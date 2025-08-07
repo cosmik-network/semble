@@ -8,7 +8,21 @@ import { FeedActivity } from '../../domain/FeedActivity';
 import { ActivityId } from '../../domain/value-objects/ActivityId';
 
 export class InMemoryFeedRepository implements IFeedRepository {
+  private static instance: InMemoryFeedRepository | null = null;
   private activities: FeedActivity[] = [];
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryFeedRepository {
+    if (!InMemoryFeedRepository.instance) {
+      InMemoryFeedRepository.instance = new InMemoryFeedRepository();
+    }
+    return InMemoryFeedRepository.instance;
+  }
+
+  public static resetInstance(): void {
+    InMemoryFeedRepository.instance = null;
+  }
 
   async addActivity(activity: FeedActivity): Promise<Result<void>> {
     try {

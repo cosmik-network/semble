@@ -65,7 +65,7 @@ export class RepositoryFactory {
       );
       const appPasswordSessionRepository =
         new InMemoryAppPasswordSessionRepository();
-      const feedRepository = new InMemoryFeedRepository();
+      const feedRepository = InMemoryFeedRepository.getInstance();
       const oauthStateStore = new InMemoryStateStore();
       const oauthSessionStore = new InMemorySessionStore();
 

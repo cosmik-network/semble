@@ -25,6 +25,8 @@ import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublish
 import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 import { BullMQEventSubscriber } from '../../events/BullMQEventSubscriber';
 import { BullMQEventPublisher } from '../../events/BullMQEventPublisher';
+import { InMemoryEventPublisher } from '../../events/InMemoryEventPublisher';
+import { InMemoryEventSubscriber } from '../../events/InMemoryEventSubscriber';
 import Redis from 'ioredis';
 // Mock/Fake service imports
 import { FakeJwtTokenService } from '../../../../modules/user/infrastructure/services/FakeJwtTokenService';
@@ -72,7 +74,7 @@ export interface WebAppServices extends SharedServices {
 
 // Worker specific services (includes subscribers)
 export interface WorkerServices extends SharedServices {
-  redisConnection: Redis;
+  redisConnection: Redis | null;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   cardCollectionSaga: CardCollectionSaga;
@@ -145,10 +147,17 @@ export class ServiceFactory {
 
     const authMiddleware = new AuthMiddleware(sharedServices.tokenService);
 
-    const redisConnection = RedisFactory.createConnection(
-      configService.getWorkersConfig().redisConfig,
-    );
-    const eventPublisher = new BullMQEventPublisher(redisConnection);
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+
+    let eventPublisher: IEventPublisher;
+    if (useInMemoryEvents) {
+      eventPublisher = new InMemoryEventPublisher();
+    } else {
+      const redisConnection = RedisFactory.createConnection(
+        configService.getWorkersConfig().redisConfig,
+      );
+      eventPublisher = new BullMQEventPublisher(redisConnection);
+    }
 
     return {
       ...sharedServices,
@@ -173,21 +182,33 @@ export class ServiceFactory {
       repositories,
     );
 
-    // Redis connection is required for workers
-    if (!process.env.REDIS_URL) {
-      throw new Error(
-        'REDIS_URL environment variable is required for worker services',
-      );
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+
+    let eventPublisher: IEventPublisher;
+    let redisConnection: Redis | null = null;
+    let createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
+
+    if (useInMemoryEvents) {
+      eventPublisher = new InMemoryEventPublisher();
+      createEventSubscriber = (queueName: QueueName) => {
+        return new InMemoryEventSubscriber();
+      };
+    } else {
+      // Redis connection is required for BullMQ workers
+      if (!process.env.REDIS_URL) {
+        throw new Error(
+          'REDIS_URL environment variable is required for BullMQ worker services',
+        );
+      }
+
+      const redisConfig = configService.getWorkersConfig().redisConfig;
+      redisConnection = RedisFactory.createConnection(redisConfig);
+      eventPublisher = new BullMQEventPublisher(redisConnection);
+
+      createEventSubscriber = (queueName: QueueName) => {
+        return new BullMQEventSubscriber(redisConnection!, { queueName });
+      };
     }
-
-    const redisConfig = configService.getWorkersConfig().redisConfig;
-    const redisConnection = RedisFactory.createConnection(redisConfig);
-
-    const eventPublisher = new BullMQEventPublisher(redisConnection);
-
-    const createEventSubscriber = (queueName: QueueName) => {
-      return new BullMQEventSubscriber(redisConnection, { queueName });
-    };
 
     // Create saga for worker
     const cardCollectionSaga = new CardCollectionSaga(
@@ -197,7 +218,7 @@ export class ServiceFactory {
 
     return {
       ...sharedServices,
-      redisConnection,
+      redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
       cardCollectionSaga,

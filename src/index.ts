@@ -1,6 +1,7 @@
 import { createExpressApp } from './shared/infrastructure/http/app';
 import { DatabaseFactory } from './shared/infrastructure/database/DatabaseFactory';
 import { configService } from './shared/infrastructure/config';
+import { startFeedWorker } from './workers/feed-worker';
 
 async function startServer() {
   // Get configuration
@@ -33,6 +34,13 @@ async function startServer() {
       `Server running on http://${HOST}:${PORT} in ${config.environment} environment`,
     );
   });
+
+  // Start feed worker in the same process if using in-memory events
+  const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+  if (useInMemoryEvents) {
+    console.log('Starting feed worker in the same process...');
+    await startFeedWorker();
+  }
 }
 
 startServer().catch((error) => {
