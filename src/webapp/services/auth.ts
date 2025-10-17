@@ -80,3 +80,4 @@ export const createExtensionTokenManager = () => {
   );
   return new TokenManager(storage, refresher);
 };
+

@@ -11,5 +11,8 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     note: `This is the note's content`,
+    authorId: 'author id',
+    id: 'note id',
+    updatedAt: '2025'
   },
 };
