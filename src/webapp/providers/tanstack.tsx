@@ -54,7 +54,10 @@ function makeQueryClient() {
   queryClient.getMutationCache().subscribe((event) => {
     if (event.type === 'updated') {
       const { mutation } = event;
-      if (mutation.state.error && (mutation.state.error as any)?.status === 401) {
+      if (
+        mutation.state.error &&
+        (mutation.state.error as any)?.status === 401
+      ) {
         handleAuthError();
       }
     }
