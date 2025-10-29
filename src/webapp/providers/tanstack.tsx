@@ -8,38 +8,28 @@ import {
 } from '@tanstack/react-query';
 
 function makeQueryClient() {
-  return new QueryClient({
+  const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
         retry: (failureCount, error: any) => {
           // Don't retry auth errors - handle them immediately
           if (error?.status === 401) {
+            handleAuthError();
             return false;
           }
           // Retry other errors up to 3 times
           return failureCount < 3;
-        },
-        onError: (error: any) => {
-          // Handle 401s globally by triggering auth refresh
-          if (error?.status === 401) {
-            handleAuthError();
-          }
         },
       },
       mutations: {
         retry: (failureCount, error: any) => {
           // Don't retry auth errors
           if (error?.status === 401) {
+            handleAuthError();
             return false;
           }
           return failureCount < 3;
-        },
-        onError: (error: any) => {
-          // Handle 401s globally for mutations too
-          if (error?.status === 401) {
-            handleAuthError();
-          }
         },
       },
       dehydrate: {
@@ -50,6 +40,27 @@ function makeQueryClient() {
       },
     },
   });
+
+  // Global error handling for queries and mutations
+  queryClient.getQueryCache().subscribe((event) => {
+    if (event.type === 'observerResultsUpdated') {
+      const { query } = event;
+      if (query.state.error && (query.state.error as any)?.status === 401) {
+        handleAuthError();
+      }
+    }
+  });
+
+  queryClient.getMutationCache().subscribe((event) => {
+    if (event.type === 'updated') {
+      const { mutation } = event;
+      if (mutation.state.error && (mutation.state.error as any)?.status === 401) {
+        handleAuthError();
+      }
+    }
+  });
+
+  return queryClient;
 }
 
 // Global auth error handler
