@@ -18,6 +18,7 @@ import { CardLibraryService } from '../../../domain/services/CardLibraryService'
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { Card } from 'src/modules/cards/domain/Card';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -94,7 +95,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       let urlCard = existingUrlCardResult.value;
       let isNewUrlCard = false;
-      
+
       if (!urlCard) {
         // Fetch metadata for URL
         const metadataResult = await this.metadataService.fetchMetadata(url);
@@ -140,7 +141,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         if (isNewUrlCard) {
           await this.rollbackUrlCard(urlCard, curatorId);
         }
-        
+
         // Propagate authentication errors
         if (addUrlCardToLibraryResult.error instanceof AuthenticationError) {
           return err(addUrlCardToLibraryResult.error);
@@ -253,16 +254,21 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {
             // Rollback note card creation
-            const deleteNoteResult = await this.cardRepository.delete(noteCard.cardId);
+            const deleteNoteResult = await this.cardRepository.delete(
+              noteCard.cardId,
+            );
             if (deleteNoteResult.isErr()) {
-              console.error('Failed to rollback note card creation:', deleteNoteResult.error);
+              console.error(
+                'Failed to rollback note card creation:',
+                deleteNoteResult.error,
+              );
             }
-            
+
             // Rollback URL card if we created it
             if (isNewUrlCard) {
               await this.rollbackUrlCard(urlCard, curatorId);
             }
-            
+
             // Propagate authentication errors
             if (
               addNoteCardToLibraryResult.error instanceof AuthenticationError
@@ -297,7 +303,13 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             CollectionId.createFromString(collectionIdStr);
           if (collectionIdResult.isErr()) {
             // Rollback everything we've created
-            await this.rollbackAllCards(urlCard, noteCard, curatorId, isNewUrlCard, isNewNoteCard);
+            await this.rollbackAllCards(
+              urlCard,
+              noteCard,
+              curatorId,
+              isNewUrlCard,
+              isNewNoteCard,
+            );
             return err(
               new ValidationError(
                 `Invalid collection ID: ${collectionIdResult.error.message}`,
@@ -316,8 +328,14 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           );
         if (addToCollectionsResult.isErr()) {
           // Rollback everything we've created
-          await this.rollbackAllCards(urlCard, noteCard, curatorId, isNewUrlCard, isNewNoteCard);
-          
+          await this.rollbackAllCards(
+            urlCard,
+            noteCard,
+            curatorId,
+            isNewUrlCard,
+            isNewNoteCard,
+          );
+
           // Propagate authentication errors
           if (addToCollectionsResult.error instanceof AuthenticationError) {
             return err(addToCollectionsResult.error);
@@ -366,18 +384,28 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
   }
 
   // Helper method to rollback URL card
-  private async rollbackUrlCard(urlCard: Card, curatorId: CuratorId): Promise<void> {
+  private async rollbackUrlCard(
+    urlCard: Card,
+    curatorId: CuratorId,
+  ): Promise<void> {
     try {
       // Remove from library first (this will unpublish if published)
-      const removeFromLibraryResult = await this.cardLibraryService.removeCardFromLibrary(urlCard, curatorId);
+      const removeFromLibraryResult =
+        await this.cardLibraryService.removeCardFromLibrary(urlCard, curatorId);
       if (removeFromLibraryResult.isErr()) {
-        console.error('Failed to remove URL card from library during rollback:', removeFromLibraryResult.error);
+        console.error(
+          'Failed to remove URL card from library during rollback:',
+          removeFromLibraryResult.error,
+        );
       }
-      
+
       // Then delete from repository
       const deleteResult = await this.cardRepository.delete(urlCard.cardId);
       if (deleteResult.isErr()) {
-        console.error('Failed to delete URL card during rollback:', deleteResult.error);
+        console.error(
+          'Failed to delete URL card during rollback:',
+          deleteResult.error,
+        );
       }
     } catch (error) {
       console.error('Error during URL card rollback:', error);
@@ -386,29 +414,41 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
   // Helper method to rollback all cards
   private async rollbackAllCards(
-    urlCard: Card, 
-    noteCard: Card | undefined, 
+    urlCard: Card,
+    noteCard: Card | undefined,
     curatorId: CuratorId,
     isNewUrlCard: boolean,
-    isNewNoteCard: boolean
+    isNewNoteCard: boolean,
   ): Promise<void> {
     // Rollback note card if we created it
     if (noteCard && isNewNoteCard) {
       try {
-        const removeNoteFromLibraryResult = await this.cardLibraryService.removeCardFromLibrary(noteCard, curatorId);
+        const removeNoteFromLibraryResult =
+          await this.cardLibraryService.removeCardFromLibrary(
+            noteCard,
+            curatorId,
+          );
         if (removeNoteFromLibraryResult.isErr()) {
-          console.error('Failed to remove note card from library during rollback:', removeNoteFromLibraryResult.error);
+          console.error(
+            'Failed to remove note card from library during rollback:',
+            removeNoteFromLibraryResult.error,
+          );
         }
-        
-        const deleteNoteResult = await this.cardRepository.delete(noteCard.cardId);
+
+        const deleteNoteResult = await this.cardRepository.delete(
+          noteCard.cardId,
+        );
         if (deleteNoteResult.isErr()) {
-          console.error('Failed to delete note card during rollback:', deleteNoteResult.error);
+          console.error(
+            'Failed to delete note card during rollback:',
+            deleteNoteResult.error,
+          );
         }
       } catch (error) {
         console.error('Error during note card rollback:', error);
       }
     }
-    
+
     // Rollback URL card if we created it
     if (isNewUrlCard) {
       await this.rollbackUrlCard(urlCard, curatorId);
