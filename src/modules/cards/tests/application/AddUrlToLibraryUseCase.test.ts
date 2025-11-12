@@ -542,15 +542,9 @@ describe('AddUrlToLibraryUseCase', () => {
         );
       }
 
-      // Card should be saved but not published to library
+      // Card should be completely rolled back (deleted from repository)
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(1);
-
-      const savedCard = savedCards[0]!;
-      expect(savedCard.isInLibrary(curatorId)).toBe(true); // Card is added to library before publishing
-      expect(
-        savedCard.getLibraryInfo(curatorId)?.publishedRecordId,
-      ).toBeUndefined();
+      expect(savedCards).toHaveLength(0);
 
       // Verify card was not published
       const publishedCards = cardPublisher.getPublishedCards();
@@ -593,29 +587,17 @@ describe('AddUrlToLibraryUseCase', () => {
         );
       }
 
-      // Both cards should be saved
+      // Both cards should be completely rolled back (deleted from repository)
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(2);
+      expect(savedCards).toHaveLength(0);
 
-      // URL card should be published, note card should not be
+      // Only URL card should have been published before rollback
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1); // Only URL card published
 
-      const urlCard = savedCards.find(
-        (card) => card.content.type === CardTypeEnum.URL,
-      );
-      const noteCard = savedCards.find(
-        (card) => card.content.type === CardTypeEnum.NOTE,
-      );
-
-      expect(urlCard?.isInLibrary(curatorId)).toBe(true);
-      expect(
-        urlCard?.getLibraryInfo(curatorId)?.publishedRecordId,
-      ).toBeDefined();
-      expect(noteCard?.isInLibrary(curatorId)).toBe(true);
-      expect(
-        noteCard?.getLibraryInfo(curatorId)?.publishedRecordId,
-      ).toBeUndefined();
+      // Verify URL card was unpublished during rollback
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
     });
 
     it('should rollback collection link when collection publishing fails', async () => {
@@ -649,28 +631,28 @@ describe('AddUrlToLibraryUseCase', () => {
         );
       }
 
-      // Card should be created and added to library successfully
+      // Card should be completely rolled back (deleted from repository)
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(1);
+      expect(savedCards).toHaveLength(0);
 
-      const savedCard = savedCards[0]!;
-      expect(savedCard.isInLibrary(curatorId)).toBe(true);
-
-      // Card should be published to library
+      // Card should have been published then unpublished during rollback
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1);
 
-      // But collection link should not be published
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
+
+      // Collection link should not be published
       const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
         collection.collectionId.getStringValue(),
       );
       expect(publishedLinks).toHaveLength(0);
 
-      // Library event should be published, but not collection event
+      // No events should be published due to rollback
       const libraryEvents = eventPublisher.getPublishedEventsOfType(
         EventNames.CARD_ADDED_TO_LIBRARY,
       );
-      expect(libraryEvents).toHaveLength(1);
+      expect(libraryEvents).toHaveLength(0);
 
       const collectionEvents = eventPublisher.getPublishedEventsOfType(
         EventNames.CARD_ADDED_TO_COLLECTION,
@@ -696,15 +678,9 @@ describe('AddUrlToLibraryUseCase', () => {
         );
       }
 
-      // Card should be saved but not published
+      // Card should be completely rolled back (deleted from repository)
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(1);
-
-      const savedCard = savedCards[0]!;
-      expect(savedCard.isInLibrary(curatorId)).toBe(true);
-      expect(
-        savedCard.getLibraryInfo(curatorId)?.publishedRecordId,
-      ).toBeUndefined();
+      expect(savedCards).toHaveLength(0);
 
       // Verify no cards were published
       const publishedCards = cardPublisher.getPublishedCards();
@@ -796,14 +772,18 @@ describe('AddUrlToLibraryUseCase', () => {
         );
       }
 
-      // Card should be created and published to library
+      // Card should be completely rolled back (deleted from repository)
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(1);
+      expect(savedCards).toHaveLength(0);
 
+      // Card should have been published then unpublished during rollback
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1);
 
-      // Only first collection link should be published
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
+
+      // Only first collection link should be published (before rollback)
       const collection1Links =
         collectionPublisher.getPublishedLinksForCollection(
           collection1.collectionId.getStringValue(),
@@ -816,16 +796,16 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(collection1Links).toHaveLength(1);
       expect(collection2Links).toHaveLength(0);
 
-      // Library event should be published, but only one collection event
+      // No events should be published due to rollback
       const libraryEvents = eventPublisher.getPublishedEventsOfType(
         EventNames.CARD_ADDED_TO_LIBRARY,
       );
-      expect(libraryEvents).toHaveLength(1);
+      expect(libraryEvents).toHaveLength(0);
 
       const collectionEvents = eventPublisher.getPublishedEventsOfType(
         EventNames.CARD_ADDED_TO_COLLECTION,
       );
-      expect(collectionEvents).toHaveLength(0); // No events published due to failure
+      expect(collectionEvents).toHaveLength(0);
     });
   });
 });
