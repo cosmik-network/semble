@@ -86,11 +86,16 @@ export class CreateCollectionUseCase
       const publishResult = await this.collectionPublisher.publish(collection);
       if (publishResult.isErr()) {
         // Rollback: delete the collection from repository since publishing failed
-        const deleteResult = await this.collectionRepository.delete(collection.collectionId);
+        const deleteResult = await this.collectionRepository.delete(
+          collection.collectionId,
+        );
         if (deleteResult.isErr()) {
-          console.error('Failed to rollback collection after publish failure:', deleteResult.error);
+          console.error(
+            'Failed to rollback collection after publish failure:',
+            deleteResult.error,
+          );
         }
-        
+
         // Propagate authentication errors
         if (publishResult.error instanceof AuthenticationError) {
           return err(publishResult.error);
