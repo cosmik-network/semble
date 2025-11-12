@@ -4,8 +4,7 @@ import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionAccessType } from '../../domain/Collection';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
-import { CollectionCreatedEvent } from '../../domain/events/CollectionCreatedEvent';
-import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
+import { err } from 'src/shared/core/Result';
 
 describe('CreateCollectionUseCase', () => {
   let useCase: CreateCollectionUseCase;
@@ -219,13 +218,14 @@ describe('CreateCollectionUseCase', () => {
       // Verify collection was saved but not marked as published
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(1);
-      
+
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.isPublished).toBe(false);
       expect(savedCollection.publishedRecordId).toBeUndefined();
-      
+
       // Verify collection was not published
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(0);
     });
 
@@ -248,7 +248,7 @@ describe('CreateCollectionUseCase', () => {
       // Collection should be saved but not published
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(1);
-      
+
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.isPublished).toBe(false);
       expect(savedCollection.publishedRecordId).toBeUndefined();
@@ -271,11 +271,14 @@ describe('CreateCollectionUseCase', () => {
       expect(savedCollection.publishedRecordId).toBeDefined();
       expect(savedCollection.publishedRecordId?.uri).toBeDefined();
       expect(savedCollection.publishedRecordId?.cid).toBeDefined();
-      
+
       // Verify collection was actually published
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(1);
-      expect(publishedCollections[0]!.name.value).toBe('Successfully Published Collection');
+      expect(publishedCollections[0]!.name.value).toBe(
+        'Successfully Published Collection',
+      );
     });
 
     it('should handle repository save failure after successful publishing', async () => {
@@ -303,7 +306,8 @@ describe('CreateCollectionUseCase', () => {
       }
 
       // Collection should still be published even though final save failed
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(1);
     });
   });
