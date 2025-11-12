@@ -592,7 +592,7 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(savedCards).toHaveLength(0);
 
       // Only URL card should have been published before rollback
-      const publishedCards = cardPublisher.getPublishedCards();
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
       expect(publishedCards).toHaveLength(1); // Only URL card published
 
       // Verify URL card was unpublished during rollback
@@ -636,7 +636,7 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(savedCards).toHaveLength(0);
 
       // Card should have been published then unpublished during rollback
-      const publishedCards = cardPublisher.getPublishedCards();
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
       expect(publishedCards).toHaveLength(1);
 
       const unpublishedCards = cardPublisher.getUnpublishedCards();
@@ -713,7 +713,7 @@ describe('AddUrlToLibraryUseCase', () => {
       }
 
       // Card should still be published even though final save failed
-      const publishedCards = cardPublisher.getPublishedCards();
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
       expect(publishedCards).toHaveLength(1);
     });
 
@@ -777,7 +777,7 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(savedCards).toHaveLength(0);
 
       // Card should have been published then unpublished during rollback
-      const publishedCards = cardPublisher.getPublishedCards();
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
       expect(publishedCards).toHaveLength(1);
 
       const unpublishedCards = cardPublisher.getUnpublishedCards();
