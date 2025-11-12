@@ -13,6 +13,7 @@ import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
 import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
+import { err } from 'src/shared/core/Result';
 
 describe('AddUrlToLibraryUseCase', () => {
   let useCase: AddUrlToLibraryUseCase;
@@ -536,16 +537,20 @@ describe('AddUrlToLibraryUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to publish card to library');
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
       }
 
       // Card should be saved but not published to library
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
-      
+
       const savedCard = savedCards[0]!;
       expect(savedCard.isInLibrary(curatorId)).toBe(true); // Card is added to library before publishing
-      expect(savedCard.getLibraryInfo(curatorId)?.publishedRecordId).toBeUndefined();
+      expect(
+        savedCard.getLibraryInfo(curatorId)?.publishedRecordId,
+      ).toBeUndefined();
 
       // Verify card was not published
       const publishedCards = cardPublisher.getPublishedCards();
@@ -567,20 +572,25 @@ describe('AddUrlToLibraryUseCase', () => {
 
       // Configure card publisher to fail on the second publish call (note card)
       let publishCallCount = 0;
-      const originalPublish = cardPublisher.publishCardToLibrary.bind(cardPublisher);
-      cardPublisher.publishCardToLibrary = jest.fn().mockImplementation((card, curatorId, parentCardPublishedRecordId) => {
-        publishCallCount++;
-        if (publishCallCount === 2) {
-          return Promise.resolve(err(new Error('Note card publish failure')));
-        }
-        return originalPublish(card, curatorId, parentCardPublishedRecordId);
-      });
+      const originalPublish =
+        cardPublisher.publishCardToLibrary.bind(cardPublisher);
+      cardPublisher.publishCardToLibrary = jest
+        .fn()
+        .mockImplementation((card, curatorId, parentCardPublishedRecordId) => {
+          publishCallCount++;
+          if (publishCallCount === 2) {
+            return Promise.resolve(err(new Error('Note card publish failure')));
+          }
+          return originalPublish(card, curatorId, parentCardPublishedRecordId);
+        });
 
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to publish card to library');
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
       }
 
       // Both cards should be saved
@@ -591,13 +601,21 @@ describe('AddUrlToLibraryUseCase', () => {
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1); // Only URL card published
 
-      const urlCard = savedCards.find(card => card.content.type === CardTypeEnum.URL);
-      const noteCard = savedCards.find(card => card.content.type === CardTypeEnum.NOTE);
+      const urlCard = savedCards.find(
+        (card) => card.content.type === CardTypeEnum.URL,
+      );
+      const noteCard = savedCards.find(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
 
       expect(urlCard?.isInLibrary(curatorId)).toBe(true);
-      expect(urlCard?.getLibraryInfo(curatorId)?.publishedRecordId).toBeDefined();
+      expect(
+        urlCard?.getLibraryInfo(curatorId)?.publishedRecordId,
+      ).toBeDefined();
       expect(noteCard?.isInLibrary(curatorId)).toBe(true);
-      expect(noteCard?.getLibraryInfo(curatorId)?.publishedRecordId).toBeUndefined();
+      expect(
+        noteCard?.getLibraryInfo(curatorId)?.publishedRecordId,
+      ).toBeUndefined();
     });
 
     it('should rollback collection link when collection publishing fails', async () => {
@@ -626,13 +644,15 @@ describe('AddUrlToLibraryUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to publish collection link');
+        expect(result.error.message).toContain(
+          'Failed to publish collection link',
+        );
       }
 
       // Card should be created and added to library successfully
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
-      
+
       const savedCard = savedCards[0]!;
       expect(savedCard.isInLibrary(curatorId)).toBe(true);
 
@@ -671,16 +691,20 @@ describe('AddUrlToLibraryUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to publish card to library');
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
       }
 
       // Card should be saved but not published
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
-      
+
       const savedCard = savedCards[0]!;
       expect(savedCard.isInLibrary(curatorId)).toBe(true);
-      expect(savedCard.getLibraryInfo(curatorId)?.publishedRecordId).toBeUndefined();
+      expect(
+        savedCard.getLibraryInfo(curatorId)?.publishedRecordId,
+      ).toBeUndefined();
 
       // Verify no cards were published
       const publishedCards = cardPublisher.getPublishedCards();
@@ -693,7 +717,8 @@ describe('AddUrlToLibraryUseCase', () => {
       const originalSave = cardRepository.save.bind(cardRepository);
       cardRepository.save = jest.fn().mockImplementation((card) => {
         saveCallCount++;
-        if (saveCallCount === 2) { // Fail on second save (after publishing)
+        if (saveCallCount === 2) {
+          // Fail on second save (after publishing)
           return Promise.resolve(err(new Error('Repository save failure')));
         }
         return originalSave(card);
@@ -737,14 +762,21 @@ describe('AddUrlToLibraryUseCase', () => {
 
       // Configure collection publisher to fail on second collection link
       let linkPublishCallCount = 0;
-      const originalPublishLink = collectionPublisher.publishCardAddedToCollection.bind(collectionPublisher);
-      collectionPublisher.publishCardAddedToCollection = jest.fn().mockImplementation((card, collection, curatorId) => {
-        linkPublishCallCount++;
-        if (linkPublishCallCount === 2) {
-          return Promise.resolve(err(new Error('Second collection link publish failure')));
-        }
-        return originalPublishLink(card, collection, curatorId);
-      });
+      const originalPublishLink =
+        collectionPublisher.publishCardAddedToCollection.bind(
+          collectionPublisher,
+        );
+      collectionPublisher.publishCardAddedToCollection = jest
+        .fn()
+        .mockImplementation((card, collection, curatorId) => {
+          linkPublishCallCount++;
+          if (linkPublishCallCount === 2) {
+            return Promise.resolve(
+              err(new Error('Second collection link publish failure')),
+            );
+          }
+          return originalPublishLink(card, collection, curatorId);
+        });
 
       const request = {
         url: 'https://example.com/article',
@@ -759,7 +791,9 @@ describe('AddUrlToLibraryUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to publish collection link');
+        expect(result.error.message).toContain(
+          'Failed to publish collection link',
+        );
       }
 
       // Card should be created and published to library
@@ -770,12 +804,14 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(publishedCards).toHaveLength(1);
 
       // Only first collection link should be published
-      const collection1Links = collectionPublisher.getPublishedLinksForCollection(
-        collection1.collectionId.getStringValue(),
-      );
-      const collection2Links = collectionPublisher.getPublishedLinksForCollection(
-        collection2.collectionId.getStringValue(),
-      );
+      const collection1Links =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection1.collectionId.getStringValue(),
+        );
+      const collection2Links =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection2.collectionId.getStringValue(),
+        );
 
       expect(collection1Links).toHaveLength(1);
       expect(collection2Links).toHaveLength(0);

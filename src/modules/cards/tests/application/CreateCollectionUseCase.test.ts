@@ -311,9 +311,10 @@ describe('CreateCollectionUseCase', () => {
     it('should handle rollback failure gracefully when both publishing and deletion fail', async () => {
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
-      
+
       // Configure repository to fail on delete (rollback)
-      const originalDelete = collectionRepository.delete.bind(collectionRepository);
+      const originalDelete =
+        collectionRepository.delete.bind(collectionRepository);
       collectionRepository.delete = jest.fn().mockImplementation(() => {
         return Promise.resolve(err(new Error('Repository delete failure')));
       });
@@ -345,7 +346,7 @@ describe('CreateCollectionUseCase', () => {
 
       // Verify delete was attempted
       expect(collectionRepository.delete).toHaveBeenCalledWith(
-        savedCollection.collectionId
+        savedCollection.collectionId,
       );
     });
   });
