@@ -34,7 +34,6 @@ import { FakeJwtTokenService } from '../../../../modules/user/infrastructure/ser
 import { FakeAtProtoOAuthProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoOAuthProcessor';
 import { FakeUserAuthenticationService } from '../../../../modules/user/infrastructure/services/FakeUserAuthenticationService';
 import { FakeAgentService } from '../../../../modules/atproto/infrastructure/services/FakeAgentService';
-import { FakeBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/FakeBlueskyProfileService';
 import { FakeAppPasswordSessionService } from '../../../../modules/atproto/infrastructure/services/FakeAppPasswordSessionService';
 import { FakeAtpAppPasswordProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtpAppPasswordProcessor';
 import { ITokenService } from 'src/modules/user/application/services/ITokenService';
@@ -94,6 +93,9 @@ export interface WorkerServices extends SharedServices {
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   sagaStateStore: ISagaStateStore;
+  cardLibraryService: CardLibraryService;
+  cardCollectionService: CardCollectionService;
+  collectionPublisher: ICollectionPublisher;
 }
 
 // Legacy interface for backward compatibility
@@ -236,12 +238,46 @@ export class ServiceFactory {
       ? new InMemorySagaStateStore()
       : new RedisSagaStateStore(redisConnection!);
 
+    // Create publishers needed for worker services
+    const useFakePublishers = configService.shouldUseFakePublishers();
+    const collections = configService.getAtProtoCollections();
+
+    const collectionPublisher = useFakePublishers
+      ? new FakeCollectionPublisher()
+      : new ATProtoCollectionPublisher(
+          sharedServices.atProtoAgentService,
+          collections.collection,
+          collections.collectionLink,
+        );
+
+    const cardPublisher = useFakePublishers
+      ? new FakeCardPublisher()
+      : new ATProtoCardPublisher(
+          sharedServices.atProtoAgentService,
+          collections.card,
+        );
+
+    // Create domain services needed by workers
+    const cardCollectionService = new CardCollectionService(
+      repositories.collectionRepository,
+      collectionPublisher,
+    );
+    const cardLibraryService = new CardLibraryService(
+      repositories.cardRepository,
+      cardPublisher,
+      repositories.collectionRepository,
+      cardCollectionService,
+    );
+
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
       sagaStateStore,
+      cardLibraryService,
+      cardCollectionService,
+      collectionPublisher,
     };
   }
 

@@ -18,10 +18,11 @@ trap cleanup_and_exit SIGINT SIGTERM
 echo "Starting development with separate processes (BullMQ + Redis)..."
 
 # Use nodemon instead of tsup --onSuccess for better process management
-concurrently -k -n APP,FEED,SEARCH,BUILD -c blue,green,yellow,red \
+concurrently -k -n APP,FEED,SEARCH,FIREHOSE,BUILD -c blue,green,yellow,magenta,red \
   "dotenv -e .env.local -- nodemon --exec 'node dist/index.js' --watch dist/index.js --delay 1000ms" \
   "dotenv -e .env.local -- nodemon --exec 'node dist/workers/feed-worker.js' --watch dist/workers/feed-worker.js --delay 1000ms" \
   "dotenv -e .env.local -- nodemon --exec 'node dist/workers/search-worker.js' --watch dist/workers/search-worker.js --delay 1000ms" \
+  "dotenv -e .env.local -- nodemon --exec 'node dist/workers/firehose-worker.js' --watch dist/workers/firehose-worker.js --delay 1000ms" \
   "tsup --watch"
 
 # Cleanup after concurrently exits

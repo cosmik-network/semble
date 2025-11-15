@@ -7,6 +7,7 @@ primary_region = 'yyz'
   web = "npm start"
   feed-worker = "npm run worker:feeds"
   search-worker = "npm run worker:search"
+  firehose-worker = "npm run worker:firehose"
 
 [http_service]
   internal_port = 3000
@@ -29,6 +30,12 @@ primary_region = 'yyz'
 
 [[vm]]
   processes = ['search-worker']
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['firehose-worker']
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1

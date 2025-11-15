@@ -1,35 +1,42 @@
 import { CardLink } from 'src/modules/cards/domain/Collection';
-import { Record } from '../lexicon/types/network/cosmik/collectionLink';
 import { PublishedRecordIdProps } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { Record } from '../lexicon/types/network/cosmik/collectionLink';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
+  static readonly collectionLinkType =
+    new EnvironmentConfigService().getAtProtoCollections().collectionLink;
+
   static toCreateRecordDTO(
-    link: CardLink,
-    collectionRecord: PublishedRecordIdProps,
-    cardRecord: PublishedRecordIdProps,
-    originalCardRecord?: PublishedRecordIdProps,
+    cardLink: CardLink,
+    collectionPublishedRecordId: PublishedRecordIdProps,
+    cardPublishedRecordId: PublishedRecordIdProps,
+    originalCardPublishedRecordId?: PublishedRecordIdProps,
   ): CollectionLinkRecordDTO {
-    return {
-      $type: 'network.cosmik.collectionLink',
+    const record: CollectionLinkRecordDTO = {
+      $type: this.collectionLinkType as any,
       collection: {
-        uri: collectionRecord.uri,
-        cid: collectionRecord.cid,
+        uri: collectionPublishedRecordId.uri,
+        cid: collectionPublishedRecordId.cid,
       },
       card: {
-        uri: cardRecord.uri,
-        cid: cardRecord.cid,
+        uri: cardPublishedRecordId.uri,
+        cid: cardPublishedRecordId.cid,
       },
-      originalCard: originalCardRecord
-        ? {
-            uri: originalCardRecord.uri,
-            cid: originalCardRecord.cid,
-          }
-        : undefined,
-      addedBy: link.addedBy.value,
-      addedAt: link.addedAt.toISOString(),
+      addedBy: cardLink.addedBy.value,
+      addedAt: cardLink.addedAt.toISOString(),
       createdAt: new Date().toISOString(),
     };
+
+    if (originalCardPublishedRecordId) {
+      record.originalCard = {
+        uri: originalCardPublishedRecordId.uri,
+        cid: originalCardPublishedRecordId.cid,
+      };
+    }
+
+    return record;
   }
 }

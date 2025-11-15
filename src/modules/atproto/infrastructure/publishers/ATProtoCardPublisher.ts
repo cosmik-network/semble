@@ -78,14 +78,19 @@ export class ATProtoCardPublisher implements ICardPublisher {
         const atUri = strongRef.atUri;
         const rkey = atUri.rkey;
 
-        await agent.com.atproto.repo.putRecord({
+        const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
           collection: this.cardCollection,
           rkey: rkey,
-          record,
+          record: record,
         });
 
-        return ok(existingMembership.publishedRecordId);
+        return ok(
+          PublishedRecordId.create({
+            uri: updateResult.data.uri,
+            cid: updateResult.data.cid,
+          }),
+        );
       } else {
         // Create new record
         const createResult = await agent.com.atproto.repo.createRecord({

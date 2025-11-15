@@ -7,7 +7,13 @@ import { ICollectionRepository } from '../ICollectionRepository';
 import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
+import { PublishedRecordId } from '../value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
+
+export interface CardCollectionServiceOptions {
+  skipPublishing?: boolean;
+  publishedRecordIds?: Map<string, PublishedRecordId>; // collectionId -> publishedRecordId
+}
 
 export class CardCollectionValidationError extends Error {
   constructor(message: string) {
@@ -26,6 +32,7 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionId: CollectionId,
     curatorId: CuratorId,
+    options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
       Collection,
@@ -61,27 +68,41 @@ export class CardCollectionService implements DomainService {
         );
       }
 
-      // Publish the collection link
-      const publishLinkResult =
-        await this.collectionPublisher.publishCardAddedToCollection(
-          card,
-          collection,
-          curatorId,
+      // Handle publishing based on options
+      if (options?.skipPublishing && options?.publishedRecordIds) {
+        const publishedRecordId = options.publishedRecordIds.get(
+          collectionId.getStringValue(),
         );
-      if (publishLinkResult.isErr()) {
-        // Propagate authentication errors
-        if (publishLinkResult.error instanceof AuthenticationError) {
-          return err(publishLinkResult.error);
+        if (publishedRecordId) {
+          // Skip publishing and use provided record ID
+          collection.markCardLinkAsPublished(card.cardId, publishedRecordId);
         }
-        return err(
-          new CardCollectionValidationError(
-            `Failed to publish collection link: ${publishLinkResult.error.message}`,
-          ),
+      } else {
+        // Publish the collection link normally
+        const publishLinkResult =
+          await this.collectionPublisher.publishCardAddedToCollection(
+            card,
+            collection,
+            curatorId,
+          );
+        if (publishLinkResult.isErr()) {
+          // Propagate authentication errors
+          if (publishLinkResult.error instanceof AuthenticationError) {
+            return err(publishLinkResult.error);
+          }
+          return err(
+            new CardCollectionValidationError(
+              `Failed to publish collection link: ${publishLinkResult.error.message}`,
+            ),
+          );
+        }
+
+        // Mark the card link as published in the collection
+        collection.markCardLinkAsPublished(
+          card.cardId,
+          publishLinkResult.value,
         );
       }
-
-      // Mark the card link as published in the collection
-      collection.markCardLinkAsPublished(card.cardId, publishLinkResult.value);
 
       // Save the updated collection
       const saveCollectionResult =
@@ -100,6 +121,7 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionIds: CollectionId[],
     curatorId: CuratorId,
+    options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
       Collection[],
@@ -115,6 +137,7 @@ export class CardCollectionService implements DomainService {
         card,
         collectionId,
         curatorId,
+        options,
       );
       if (result.isErr()) {
         return err(result.error);
@@ -128,6 +151,7 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionId: CollectionId,
     curatorId: CuratorId,
+    options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
       Collection | null,
@@ -162,8 +186,8 @@ export class CardCollectionService implements DomainService {
         return ok(null);
       }
 
-      // If the card link was published, unpublish it
-      if (cardLink.publishedRecordId) {
+      // Handle unpublishing based on options
+      if (!options?.skipPublishing && cardLink.publishedRecordId) {
         const unpublishLinkResult =
           await this.collectionPublisher.unpublishCardAddedToCollection(
             cardLink.publishedRecordId,
@@ -208,6 +232,7 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionIds: CollectionId[],
     curatorId: CuratorId,
+    options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
       Collection[],
@@ -223,6 +248,7 @@ export class CardCollectionService implements DomainService {
         card,
         collectionId,
         curatorId,
+        options,
       );
       if (result.isErr()) {
         return err(result.error);

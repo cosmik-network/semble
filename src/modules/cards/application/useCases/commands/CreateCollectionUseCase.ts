@@ -5,6 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { Collection, CollectionAccessType } from '../../../domain/Collection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
@@ -12,6 +13,7 @@ export interface CreateCollectionDTO {
   name: string;
   description?: string;
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
 }
 
 export interface CreateCollectionResponseDTO {
@@ -82,22 +84,29 @@ export class CreateCollectionUseCase
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
-      // Publish collection
-      const publishResult = await this.collectionPublisher.publish(collection);
-      if (publishResult.isErr()) {
-        // Propagate authentication errors
-        if (publishResult.error instanceof AuthenticationError) {
-          return err(publishResult.error);
+      // Handle publishing - skip if publishedRecordId provided (firehose event)
+      if (request.publishedRecordId) {
+        // Mark collection as published with provided record ID
+        collection.markAsPublished(request.publishedRecordId);
+      } else {
+        // Publish collection normally
+        const publishResult =
+          await this.collectionPublisher.publish(collection);
+        if (publishResult.isErr()) {
+          // Propagate authentication errors
+          if (publishResult.error instanceof AuthenticationError) {
+            return err(publishResult.error);
+          }
+          return err(
+            new ValidationError(
+              `Failed to publish collection: ${publishResult.error.message}`,
+            ),
+          );
         }
-        return err(
-          new ValidationError(
-            `Failed to publish collection: ${publishResult.error.message}`,
-          ),
-        );
-      }
 
-      // Mark collection as published
-      collection.markAsPublished(publishResult.value);
+        // Mark collection as published
+        collection.markAsPublished(publishResult.value);
+      }
 
       // Save updated collection with published record ID
       const saveUpdatedResult =

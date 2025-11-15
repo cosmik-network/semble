@@ -21,6 +21,7 @@ export interface EnvironmentConfig {
     refreshTokenExpiresIn: number;
   };
   atproto: {
+    firehoseWebsocket: string;
     serviceEndpoint: string;
     baseUrl: string;
     collections: {
@@ -85,6 +86,9 @@ export class EnvironmentConfigService {
         ),
       },
       atproto: {
+        firehoseWebsocket:
+          process.env.ATPROTO_FIREHOSE_WEBSOCKET ||
+          'wss://relay1.us-west.bsky.network',
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',

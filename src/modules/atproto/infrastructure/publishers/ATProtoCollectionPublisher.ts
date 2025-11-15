@@ -72,14 +72,19 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         const atUri = strongRef.atUri;
         const rkey = atUri.rkey;
 
-        await agent.com.atproto.repo.putRecord({
+        const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
           collection: this.collectionCollection,
           rkey: rkey,
           record: collectionRecordDTO,
         });
 
-        return ok(collection.publishedRecordId);
+        return ok(
+          PublishedRecordId.create({
+            uri: updateResult.data.uri,
+            cid: updateResult.data.cid,
+          }),
+        );
       } else {
         // Create new collection record
         const collectionRecordDTO =

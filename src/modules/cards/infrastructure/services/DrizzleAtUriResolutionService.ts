@@ -6,7 +6,12 @@ import {
   AtUriResolutionResult,
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
-import { collections } from '../repositories/schema/collection.sql';
+import { CardId } from '../../domain/value-objects/CardId';
+import {
+  collections,
+  collectionCards,
+} from '../repositories/schema/collection.sql';
+import { cards } from '../repositories/schema/card.sql';
 import { publishedRecords } from '../repositories/schema/publishedRecord.sql';
 import { Result, ok, err } from 'src/shared/core/Result';
 
@@ -43,7 +48,96 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
           id: collectionIdResult.value,
         });
       }
+
+      // Try cards
+      const cardResult = await this.db
+        .select({
+          id: cards.id,
+        })
+        .from(cards)
+        .innerJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (cardResult.length > 0) {
+        const cardIdResult = CardId.createFromString(cardResult[0]!.id);
+        if (cardIdResult.isErr()) {
+          return err(cardIdResult.error);
+        }
+
+        return ok({
+          type: AtUriResourceType.CARD,
+          id: cardIdResult.value,
+        });
+      }
+
+      // Try collection links
+      const linkResult = await this.db
+        .select({
+          collectionId: collectionCards.collectionId,
+          cardId: collectionCards.cardId,
+        })
+        .from(collectionCards)
+        .innerJoin(
+          publishedRecords,
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (linkResult.length > 0) {
+        const collectionIdResult = CollectionId.createFromString(
+          linkResult[0]!.collectionId,
+        );
+        const cardIdResult = CardId.createFromString(linkResult[0]!.cardId);
+
+        if (collectionIdResult.isErr()) {
+          return err(collectionIdResult.error);
+        }
+        if (cardIdResult.isErr()) {
+          return err(cardIdResult.error);
+        }
+
+        return ok({
+          type: AtUriResourceType.COLLECTION_LINK,
+          id: {
+            collectionId: collectionIdResult.value,
+            cardId: cardIdResult.value,
+          },
+        });
+      }
+
       return ok(null);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async resolveCardId(atUri: string): Promise<Result<CardId | null>> {
+    try {
+      const cardResult = await this.db
+        .select({ id: cards.id })
+        .from(cards)
+        .innerJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (cardResult.length === 0) {
+        return ok(null);
+      }
+
+      const cardIdResult = CardId.createFromString(cardResult[0]!.id);
+      if (cardIdResult.isErr()) {
+        return err(cardIdResult.error);
+      }
+
+      return ok(cardIdResult.value);
     } catch (error) {
       return err(error as Error);
     }
@@ -63,5 +157,47 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
     }
 
     return ok(result.value.id as CollectionId);
+  }
+
+  async resolveCollectionLinkId(
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>> {
+    try {
+      const linkResult = await this.db
+        .select({
+          collectionId: collectionCards.collectionId,
+          cardId: collectionCards.cardId,
+        })
+        .from(collectionCards)
+        .innerJoin(
+          publishedRecords,
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (linkResult.length === 0) {
+        return ok(null);
+      }
+
+      const collectionIdResult = CollectionId.createFromString(
+        linkResult[0]!.collectionId,
+      );
+      const cardIdResult = CardId.createFromString(linkResult[0]!.cardId);
+
+      if (collectionIdResult.isErr()) {
+        return err(collectionIdResult.error);
+      }
+      if (cardIdResult.isErr()) {
+        return err(cardIdResult.error);
+      }
+
+      return ok({
+        collectionId: collectionIdResult.value,
+        cardId: cardIdResult.value,
+      });
+    } catch (error) {
+      return err(error as Error);
+    }
   }
 }

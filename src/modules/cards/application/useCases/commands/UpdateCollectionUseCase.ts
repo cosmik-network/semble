@@ -7,6 +7,7 @@ import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CollectionName } from '../../../domain/value-objects/CollectionName';
 import { CollectionDescription } from '../../../domain/value-objects/CollectionDescription';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
@@ -15,6 +16,7 @@ export interface UpdateCollectionDTO {
   name: string;
   description?: string;
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip republishing if provided
 }
 
 export interface UpdateCollectionResponseDTO {
@@ -113,8 +115,19 @@ export class UpdateCollectionUseCase
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
-      // Republish collection if it was already published
-      if (collection.isPublished) {
+      // Handle republishing - skip if publishedRecordId provided (firehose event)
+      if (request.publishedRecordId) {
+        // Update published record ID with provided value
+        collection.markAsPublished(request.publishedRecordId);
+
+        // Save collection with updated published record ID
+        const saveUpdatedResult =
+          await this.collectionRepository.save(collection);
+        if (saveUpdatedResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+        }
+      } else if (collection.isPublished) {
+        // Republish collection normally
         const republishResult =
           await this.collectionPublisher.publish(collection);
         if (republishResult.isErr()) {

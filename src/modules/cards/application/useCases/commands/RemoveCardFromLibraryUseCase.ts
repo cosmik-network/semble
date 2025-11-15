@@ -5,12 +5,14 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface RemoveCardFromLibraryDTO {
   cardId: string;
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip unpublishing if provided
 }
 
 export interface RemoveCardFromLibraryResponseDTO {
@@ -78,9 +80,19 @@ export class RemoveCardFromLibraryUseCase
         return err(new ValidationError(`Card not found: ${request.cardId}`));
       }
 
-      // Remove card from library using domain service (this handles cascading for URL cards)
+      // Use library service with options for consistent handling
+      const libraryOptions = request.publishedRecordId
+        ? {
+            skipUnpublishing: true,
+          }
+        : undefined;
+
       const removeFromLibraryResult =
-        await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
+        await this.cardLibraryService.removeCardFromLibrary(
+          card,
+          curatorId,
+          libraryOptions,
+        );
       if (removeFromLibraryResult.isErr()) {
         // Propagate authentication errors
         if (removeFromLibraryResult.error instanceof AuthenticationError) {

@@ -74,6 +74,7 @@ export class RepositoryFactory {
       const feedRepository = InMemoryFeedRepository.getInstance();
       const atUriResolutionService = new InMemoryAtUriResolutionService(
         collectionRepository,
+        cardRepository,
       );
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();

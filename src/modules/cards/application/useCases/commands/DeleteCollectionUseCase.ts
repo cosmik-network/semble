@@ -5,12 +5,14 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface DeleteCollectionDTO {
   collectionId: string;
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip unpublishing if provided
 }
 
 export interface DeleteCollectionResponseDTO {
@@ -94,8 +96,12 @@ export class DeleteCollectionUseCase
         );
       }
 
-      // Unpublish collection if it was published
-      if (collection.isPublished && collection.publishedRecordId) {
+      // Handle unpublishing - skip if publishedRecordId provided (firehose event)
+      if (
+        !request.publishedRecordId &&
+        collection.isPublished &&
+        collection.publishedRecordId
+      ) {
         const unpublishResult = await this.collectionPublisher.unpublish(
           collection.publishedRecordId,
         );
