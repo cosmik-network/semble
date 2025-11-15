@@ -9,6 +9,7 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
+  private allPublishedRecords: Map<string, Card> = new Map();
   private shouldFail: boolean = false;
   private shouldFailUnpublish: boolean = false;
   private unpublishedRecords: Array<{
@@ -42,6 +43,7 @@ export class FakeCardPublisher implements ICardPublisher {
     // Store the published card for inspection using composite key
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, card);
+    this.allPublishedRecords.set(compositeKey, card);
 
     console.log(
       `[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`,
@@ -88,6 +90,8 @@ export class FakeCardPublisher implements ICardPublisher {
 
   clear(): void {
     this.publishedRecords.clear();
+    this.allPublishedRecords.clear();
+    this.unpublishedRecords = [];
     this.shouldFail = false;
     this.shouldFailUnpublish = false;
   }
@@ -100,5 +104,9 @@ export class FakeCardPublisher implements ICardPublisher {
     // For testing purposes, track unpublished cards
     // This is a simplified implementation for test verification
     return this.unpublishedRecords;
+  }
+
+  getAllEverPublishedCards(): Card[] {
+    return Array.from(this.allPublishedRecords.values());
   }
 }

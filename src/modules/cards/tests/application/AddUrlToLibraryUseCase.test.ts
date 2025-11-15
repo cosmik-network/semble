@@ -13,6 +13,7 @@ import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
 import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
+import { err } from 'src/shared/core/Result';
 
 describe('AddUrlToLibraryUseCase', () => {
   let useCase: AddUrlToLibraryUseCase;
@@ -519,6 +520,292 @@ describe('AddUrlToLibraryUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Failed to fetch metadata');
       }
+    });
+  });
+
+  describe('Publishing failure scenarios', () => {
+    it('should rollback card creation when library publishing fails', async () => {
+      // Configure card publisher to fail
+      cardPublisher.setShouldFail(true);
+
+      const request = {
+        url: 'https://example.com/article',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
+      }
+
+      // Card should be completely rolled back (deleted from repository)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Verify card was not published
+      const publishedCards = cardPublisher.getPublishedCards();
+      expect(publishedCards).toHaveLength(0);
+
+      // Verify no library events were published
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      );
+      expect(libraryEvents).toHaveLength(0);
+    });
+
+    it('should rollback note card creation when note card library publishing fails', async () => {
+      const request = {
+        url: 'https://example.com/article',
+        note: 'This note will fail to publish',
+        curatorId: curatorId.value,
+      };
+
+      // Configure card publisher to fail on the second publish call (note card)
+      let publishCallCount = 0;
+      const originalPublish =
+        cardPublisher.publishCardToLibrary.bind(cardPublisher);
+      cardPublisher.publishCardToLibrary = jest
+        .fn()
+        .mockImplementation((card, curatorId, parentCardPublishedRecordId) => {
+          publishCallCount++;
+          if (publishCallCount === 2) {
+            return Promise.resolve(err(new Error('Note card publish failure')));
+          }
+          return originalPublish(card, curatorId, parentCardPublishedRecordId);
+        });
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
+      }
+
+      // Both cards should be completely rolled back (deleted from repository)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Only URL card should have been published before rollback
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
+      expect(publishedCards).toHaveLength(1); // Only URL card published
+
+      // Verify URL card was unpublished during rollback
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
+    });
+
+    it('should rollback collection link when collection publishing fails', async () => {
+      // Create a test collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Test Collection')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      // Configure collection publisher to fail on link publishing
+      collectionPublisher.setShouldFail(true);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Failed to publish collection link',
+        );
+      }
+
+      // Card should be completely rolled back (deleted from repository)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Card should have been published then unpublished during rollback
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
+      expect(publishedCards).toHaveLength(1);
+
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
+
+      // Collection link should not be published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(0);
+
+      // No events should be published due to rollback
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      );
+      expect(libraryEvents).toHaveLength(0);
+
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      );
+      expect(collectionEvents).toHaveLength(0);
+    });
+
+    it('should handle authentication errors during card publishing', async () => {
+      // Configure card publisher to fail with authentication error
+      cardPublisher.setShouldFail(true);
+
+      const request = {
+        url: 'https://example.com/article',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Failed to publish card to library',
+        );
+      }
+
+      // Card should be completely rolled back (deleted from repository)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Verify no cards were published
+      const publishedCards = cardPublisher.getPublishedCards();
+      expect(publishedCards).toHaveLength(0);
+    });
+
+    it('should handle repository save failure after successful card publishing', async () => {
+      // Configure repository to fail on save after publishing
+      let saveCallCount = 0;
+      const originalSave = cardRepository.save.bind(cardRepository);
+      cardRepository.save = jest.fn().mockImplementation((card) => {
+        saveCallCount++;
+        if (saveCallCount === 2) {
+          // Fail on second save (after publishing)
+          return Promise.resolve(err(new Error('Repository save failure')));
+        }
+        return originalSave(card);
+      });
+
+      const request = {
+        url: 'https://example.com/article',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Repository save failure');
+      }
+
+      // Card should still be published even though final save failed
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
+      expect(publishedCards).toHaveLength(1);
+    });
+
+    it('should handle partial failure when adding to multiple collections', async () => {
+      // Create two test collections
+      const collection1 = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Collection 1')
+        .build();
+
+      const collection2 = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Collection 2')
+        .build();
+
+      if (collection1 instanceof Error || collection2 instanceof Error) {
+        throw new Error('Failed to create collections');
+      }
+
+      await collectionRepository.save(collection1);
+      await collectionRepository.save(collection2);
+
+      // Configure collection publisher to fail on second collection link
+      let linkPublishCallCount = 0;
+      const originalPublishLink =
+        collectionPublisher.publishCardAddedToCollection.bind(
+          collectionPublisher,
+        );
+      collectionPublisher.publishCardAddedToCollection = jest
+        .fn()
+        .mockImplementation((card, collection, curatorId) => {
+          linkPublishCallCount++;
+          if (linkPublishCallCount === 2) {
+            return Promise.resolve(
+              err(new Error('Second collection link publish failure')),
+            );
+          }
+          return originalPublishLink(card, collection, curatorId);
+        });
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [
+          collection1.collectionId.getStringValue(),
+          collection2.collectionId.getStringValue(),
+        ],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Failed to publish collection link',
+        );
+      }
+
+      // Card should be completely rolled back (deleted from repository)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Card should have been published then unpublished during rollback
+      const publishedCards = cardPublisher.getAllEverPublishedCards();
+      expect(publishedCards).toHaveLength(1);
+
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(1);
+
+      // Only first collection link should be published (before rollback)
+      const collection1Links =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection1.collectionId.getStringValue(),
+        );
+      const collection2Links =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection2.collectionId.getStringValue(),
+        );
+
+      expect(collection1Links).toHaveLength(1);
+      expect(collection2Links).toHaveLength(0);
+
+      // No events should be published due to rollback
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      );
+      expect(libraryEvents).toHaveLength(0);
+
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      );
+      expect(collectionEvents).toHaveLength(0);
     });
   });
 });

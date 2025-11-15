@@ -4,8 +4,7 @@ import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionAccessType } from '../../domain/Collection';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
-import { CollectionCreatedEvent } from '../../domain/events/CollectionCreatedEvent';
-import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
+import { err } from 'src/shared/core/Result';
 
 describe('CreateCollectionUseCase', () => {
   let useCase: CreateCollectionUseCase;
@@ -216,9 +215,40 @@ describe('CreateCollectionUseCase', () => {
         expect(result.error.message).toContain('Failed to publish collection');
       }
 
-      // Verify collection was not saved if publishing failed
+      // Verify collection was deleted from repository after publish failure (rollback)
       const savedCollections = collectionRepository.getAllCollections();
-      expect(savedCollections).toHaveLength(1); // Collection is saved before publishing
+      expect(savedCollections).toHaveLength(0);
+
+      // Verify collection was not published
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(0);
+    });
+
+    it('should rollback collection when publishing fails due to authentication error', async () => {
+      // Configure publisher to fail with authentication error
+      collectionPublisher.setShouldFail(true);
+
+      const request = {
+        name: 'Collection With Auth Failure',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish collection');
+      }
+
+      // Collection should be deleted from repository after publish failure (rollback)
+      const savedCollections = collectionRepository.getAllCollections();
+      expect(savedCollections).toHaveLength(0);
+
+      // Verify collection was not published
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(0);
     });
 
     it('should save collection with published record ID after successful publish', async () => {
@@ -238,6 +268,86 @@ describe('CreateCollectionUseCase', () => {
       expect(savedCollection.publishedRecordId).toBeDefined();
       expect(savedCollection.publishedRecordId?.uri).toBeDefined();
       expect(savedCollection.publishedRecordId?.cid).toBeDefined();
+
+      // Verify collection was actually published
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(1);
+      expect(publishedCollections[0]!.name.value).toBe(
+        'Successfully Published Collection',
+      );
+    });
+
+    it('should handle repository save failure after successful publishing', async () => {
+      // Configure repository to fail on the second save (after publishing)
+      let saveCallCount = 0;
+      const originalSave = collectionRepository.save.bind(collectionRepository);
+      collectionRepository.save = jest.fn().mockImplementation((collection) => {
+        saveCallCount++;
+        if (saveCallCount === 2) {
+          return Promise.resolve(err(new Error('Repository save failure')));
+        }
+        return originalSave(collection);
+      });
+
+      const request = {
+        name: 'Collection With Save Failure',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Repository save failure');
+      }
+
+      // Collection should still be published even though final save failed
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(1);
+    });
+
+    it('should handle rollback failure gracefully when both publishing and deletion fail', async () => {
+      // Configure publisher to fail
+      collectionPublisher.setShouldFail(true);
+
+      // Configure repository to fail on delete (rollback)
+      const originalDelete =
+        collectionRepository.delete.bind(collectionRepository);
+      collectionRepository.delete = jest.fn().mockImplementation(() => {
+        return Promise.resolve(err(new Error('Repository delete failure')));
+      });
+
+      const request = {
+        name: 'Collection With Publish And Rollback Failure',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish collection');
+      }
+
+      // Collection should still be in repository since rollback failed
+      const savedCollections = collectionRepository.getAllCollections();
+      expect(savedCollections).toHaveLength(1);
+
+      const savedCollection = savedCollections[0]!;
+      expect(savedCollection.isPublished).toBe(false);
+      expect(savedCollection.publishedRecordId).toBeUndefined();
+
+      // Verify collection was not published
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(0);
+
+      // Verify delete was attempted
+      expect(collectionRepository.delete).toHaveBeenCalledWith(
+        savedCollection.collectionId,
+      );
     });
   });
 
