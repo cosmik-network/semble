@@ -16,8 +16,9 @@ import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/Publis
 type CardRecordDTO = Record;
 
 export class CardMapper {
-  static cardCollection = new EnvironmentConfigService().getAtProtoCollections()
-    .card;
+  private static configService = new EnvironmentConfigService();
+  static cardCollection = CardMapper.configService.getAtProtoCollections().card;
+  static baseCollection = CardMapper.configService.getAtProtoBaseCollection();
   static toCreateRecordDTO(
     card: Card,
     curatorId: CuratorId,
@@ -55,7 +56,7 @@ export class CardMapper {
     if (viaCardPublishedRecordId) {
       const strongRef = new StrongRef(viaCardPublishedRecordId.getValue());
       record.provenance = {
-        $type: 'network.cosmik.defs#provenance' as any,
+        $type: `${this.baseCollection}.defs#provenance` as any,
         via: {
           uri: strongRef.getValue().uri,
           cid: strongRef.getValue().cid,
@@ -71,7 +72,7 @@ export class CardMapper {
       case CardTypeEnum.URL: {
         const urlContent = card.content.urlContent!;
         const urlContentDTO: $Typed<UrlContent> = {
-          $type: `${this.cardCollection}#urlContent` as any,
+          $type: `${this.baseCollection}.card#urlContent` as any,
           url: urlContent.url.value,
         };
 
@@ -85,7 +86,7 @@ export class CardMapper {
       case CardTypeEnum.NOTE: {
         const noteContent = card.content.noteContent!;
         const noteContentDTO: $Typed<NoteContent> = {
-          $type: `${this.cardCollection}#noteContent` as any,
+          $type: `${this.baseCollection}.card#noteContent` as any,
           text: noteContent.text,
         };
 
@@ -99,7 +100,7 @@ export class CardMapper {
 
   private static mapUrlMetadata(metadata: UrlMetadataVO): $Typed<UrlMetadata> {
     return {
-      $type: `${this.cardCollection}#urlMetadata` as any,
+      $type: `${this.baseCollection}.card#urlMetadata` as any,
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,
