@@ -61,6 +61,11 @@ export const schemaDict = {
                 'Optional strong reference to the original card (for NOTE cards).',
               ref: 'lex:com.atproto.repo.strongRef',
             },
+            provenance: {
+              type: 'ref',
+              description: 'Optional provenance information for this card.',
+              ref: 'lex:network.cosmik.defs#provenance',
+            },
           },
         },
       },
@@ -237,6 +242,11 @@ export const schemaDict = {
               description:
                 'Timestamp when this link record was created (usually set by PDS).',
             },
+            provenance: {
+              type: 'ref',
+              description: 'Optional provenance information for this link.',
+              ref: 'lex:network.cosmik.defs#provenance',
+            },
           },
         },
       },
@@ -247,19 +257,15 @@ export const schemaDict = {
     id: 'network.cosmik.defs',
     description: 'Common definitions for annotation types and references',
     defs: {
-      identifier: {
+      provenance: {
         type: 'object',
-        description: 'Represents an identifier with a type and value.',
-        required: ['type', 'value'],
+        description: 'Represents the provenance or source of a record.',
         properties: {
-          type: {
-            type: 'string',
+          via: {
+            type: 'ref',
             description:
-              "The type of identifier (e.g., 'doi', 'at-uri', 'isbn').",
-          },
-          value: {
-            type: 'string',
-            description: 'The identifier value.',
+              'Strong reference to the card that led to this record.',
+            ref: 'lex:com.atproto.repo.strongRef',
           },
         },
       },
