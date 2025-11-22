@@ -3,11 +3,13 @@ import { Card } from '../Card';
 import { Collection } from '../Collection';
 import { CuratorId } from '../value-objects/CuratorId';
 import { CollectionId } from '../value-objects/CollectionId';
+import { CardId } from '../value-objects/CardId';
 import { ICollectionRepository } from '../ICollectionRepository';
 import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
+import { ICardRepository } from '../ICardRepository';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
-import { PublishedRecordId } from '../value-objects/PublishedRecordId';
+import { PublishedRecordId, PublishedRecordIdProps } from '../value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
 export interface CardCollectionServiceOptions {
@@ -80,12 +82,22 @@ export class CardCollectionService implements DomainService {
           collection.markCardLinkAsPublished(card.cardId, publishedRecordId);
         }
       } else {
+        // Resolve via card published record ID if needed
+        let viaCardPublishedRecordId: PublishedRecordIdProps | undefined;
+        if (viaCardId) {
+          const viaCardResult = await this.cardRepository.findById(viaCardId);
+          if (viaCardResult.isOk() && viaCardResult.value?.publishedRecordId) {
+            viaCardPublishedRecordId = viaCardResult.value.publishedRecordId.getValue();
+          }
+        }
+
         // Publish the collection link normally
         const publishLinkResult =
           await this.collectionPublisher.publishCardAddedToCollection(
             card,
             collection,
             curatorId,
+            viaCardPublishedRecordId,
           );
         if (publishLinkResult.isErr()) {
           // Propagate authentication errors

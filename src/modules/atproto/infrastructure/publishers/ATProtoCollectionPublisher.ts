@@ -14,14 +14,12 @@ import { StrongRef } from '../../domain';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
-import { ICardRepository } from 'src/modules/cards/domain/ICardRepository';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   constructor(
     private readonly agentService: IAgentService,
     private readonly collectionCollection: string,
     private readonly collectionLinkCollection: string,
-    private readonly cardRepository: ICardRepository,
   ) {}
 
   /**
@@ -120,6 +118,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
+    viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const curatorDidResult = DID.create(curatorId.value);
@@ -193,15 +192,6 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         libraryMembership.publishedRecordId.uri !== card.publishedRecordId.uri
       ) {
         originalCardRecordId = card.publishedRecordId.getValue();
-      }
-
-      // Get via card published record ID if via card exists
-      let viaCardPublishedRecordId: PublishedRecordIdProps | undefined;
-      if (cardLink.viaCardId) {
-        const viaCardResult = await this.cardRepository.findById(cardLink.viaCardId);
-        if (viaCardResult.isOk() && viaCardResult.value?.publishedRecordId) {
-          viaCardPublishedRecordId = viaCardResult.value.publishedRecordId.getValue();
-        }
       }
 
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
