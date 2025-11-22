@@ -10,6 +10,7 @@ import {
   INoteCardInput,
 } from '../../../domain/CardFactory';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';

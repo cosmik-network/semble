@@ -46,6 +46,7 @@ export interface CardPersistenceData {
     contentData: CardContentData;
     url?: string;
     parentCardId?: string;
+    viaCardId?: string;
     libraryCount: number;
     createdAt: Date;
     updatedAt: Date;

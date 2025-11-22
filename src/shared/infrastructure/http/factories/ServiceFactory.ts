@@ -324,6 +324,7 @@ export class ServiceFactory {
     const cardCollectionService = new CardCollectionService(
       repositories.collectionRepository,
       collectionPublisher,
+      repositories.cardRepository,
     );
     const cardLibraryService = new CardLibraryService(
       repositories.cardRepository,
