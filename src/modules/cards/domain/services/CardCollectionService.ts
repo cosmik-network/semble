@@ -26,12 +26,14 @@ export class CardCollectionService implements DomainService {
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,
+    private cardRepository: ICardRepository,
   ) {}
 
   async addCardToCollection(
     card: Card,
     collectionId: CollectionId,
     curatorId: CuratorId,
+    viaCardId?: CardId,
     options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
@@ -59,7 +61,7 @@ export class CardCollectionService implements DomainService {
       }
 
       // Add card to collection
-      const addCardResult = collection.addCard(card.cardId, curatorId);
+      const addCardResult = collection.addCard(card.cardId, curatorId, viaCardId);
       if (addCardResult.isErr()) {
         return err(
           new CardCollectionValidationError(
@@ -121,6 +123,7 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionIds: CollectionId[],
     curatorId: CuratorId,
+    viaCardId?: CardId,
     options?: CardCollectionServiceOptions,
   ): Promise<
     Result<
@@ -137,6 +140,7 @@ export class CardCollectionService implements DomainService {
         card,
         collectionId,
         curatorId,
+        viaCardId,
         options,
       );
       if (result.isErr()) {

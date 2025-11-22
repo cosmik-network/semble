@@ -100,6 +100,7 @@ export interface CardDTO {
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
   parentCardId?: string;
+  viaCardId?: string;
   publishedRecordId?: {
     uri: string;
     cid: string;
@@ -149,6 +150,14 @@ export class CardMapper {
         parentCardId = parentCardIdOrError.value;
       }
 
+      // Create optional via card ID
+      let viaCardId: CardId | undefined;
+      if (dto.viaCardId) {
+        const viaCardIdOrError = CardId.createFromString(dto.viaCardId);
+        if (viaCardIdOrError.isErr()) return err(viaCardIdOrError.error);
+        viaCardId = viaCardIdOrError.value;
+      }
+
       // Create optional published record ID
       let publishedRecordId: PublishedRecordId | undefined;
       if (dto.publishedRecordId) {
@@ -189,6 +198,7 @@ export class CardMapper {
           content: contentOrError.value,
           url,
           parentCardId,
+          viaCardId,
           publishedRecordId,
           libraryMemberships,
           libraryCount: dto.libraryCount,
@@ -333,6 +343,7 @@ export class CardMapper {
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
+        viaCardId: card.viaCardId?.getStringValue(),
         libraryCount: card.libraryCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,

@@ -14,6 +14,7 @@ export class CollectionLinkMapper {
     collectionPublishedRecordId: PublishedRecordIdProps,
     cardPublishedRecordId: PublishedRecordIdProps,
     originalCardPublishedRecordId?: PublishedRecordIdProps,
+    viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): CollectionLinkRecordDTO {
     const record: CollectionLinkRecordDTO = {
       $type: this.collectionLinkType as any,
@@ -34,6 +35,16 @@ export class CollectionLinkMapper {
       record.originalCard = {
         uri: originalCardPublishedRecordId.uri,
         cid: originalCardPublishedRecordId.cid,
+      };
+    }
+
+    if (viaCardPublishedRecordId) {
+      record.provenance = {
+        $type: 'network.cosmik.defs#provenance' as any,
+        via: {
+          uri: viaCardPublishedRecordId.uri,
+          cid: viaCardPublishedRecordId.cid,
+        },
       };
     }
 

@@ -14,6 +14,7 @@ export interface CardLink {
   cardId: CardId;
   addedBy: CuratorId;
   addedAt: Date;
+  viaCardId?: CardId; // Card that led to this addition
   publishedRecordId?: PublishedRecordId; // AT URI of the link record
 }
 
@@ -201,6 +202,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
   public addCard(
     cardId: CardId,
     userId: CuratorId,
+    viaCardId?: CardId,
   ): Result<CardLink, CollectionAccessError> {
     if (!this.canAddCard(userId)) {
       return err(
@@ -222,6 +224,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
       cardId,
       addedBy: userId,
       addedAt: new Date(),
+      viaCardId,
       publishedRecordId: undefined, // Will be set when published
     };
 

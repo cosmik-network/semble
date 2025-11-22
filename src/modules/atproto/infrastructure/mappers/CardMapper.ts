@@ -22,6 +22,7 @@ export class CardMapper {
     card: Card,
     curatorId: CuratorId,
     parentCardPublishedRecordId?: PublishedRecordId,
+    viaCardPublishedRecordId?: PublishedRecordId,
   ): CardRecordDTO {
     const record: CardRecordDTO = {
       $type: this.cardCollection as any,
@@ -48,6 +49,17 @@ export class CardMapper {
       record.parentCard = {
         uri: strongRef.getValue().uri,
         cid: strongRef.getValue().cid,
+      };
+    }
+
+    if (viaCardPublishedRecordId) {
+      const strongRef = new StrongRef(viaCardPublishedRecordId.getValue());
+      record.provenance = {
+        $type: 'network.cosmik.defs#provenance' as any,
+        via: {
+          uri: strongRef.getValue().uri,
+          cid: strongRef.getValue().cid,
+        },
       };
     }
 

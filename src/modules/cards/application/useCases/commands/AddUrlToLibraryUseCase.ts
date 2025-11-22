@@ -25,6 +25,7 @@ export interface AddUrlToLibraryDTO {
   note?: string;
   collectionIds?: string[];
   curatorId: string;
+  viaCardId?: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
 }
 
@@ -111,6 +112,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           type: CardTypeEnum.URL,
           url: url.value,
           metadata: metadataResult.value,
+          viaCardId: request.viaCardId,
         };
 
         const urlCardResult = CardFactory.create({
@@ -287,12 +289,27 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           collectionIds.push(collectionIdResult.value);
         }
 
+        // Validate and create viaCardId if provided
+        let viaCardId: CardId | undefined;
+        if (request.viaCardId) {
+          const viaCardIdResult = CardId.createFromString(request.viaCardId);
+          if (viaCardIdResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Invalid via card ID: ${viaCardIdResult.error.message}`,
+              ),
+            );
+          }
+          viaCardId = viaCardIdResult.value;
+        }
+
         // Add card to collections using domain service
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
             cardToAdd,
             collectionIds,
             curatorId,
+            viaCardId,
           );
         if (addToCollectionsResult.isErr()) {
           // Propagate authentication errors
