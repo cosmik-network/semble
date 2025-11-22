@@ -37,6 +37,7 @@ describe('AddCardToLibraryUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
 
     useCase = new AddCardToLibraryUseCase(
