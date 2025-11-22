@@ -1,6 +1,6 @@
 {
   "name": "@cosmik.network/semble-pds-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A lightweight PDS client and AtpAgent wrapper for creating Semble records (Cards, Collections, CollectionLinks) directly to your PDS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

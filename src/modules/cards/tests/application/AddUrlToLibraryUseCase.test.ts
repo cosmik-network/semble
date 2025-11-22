@@ -43,6 +43,7 @@ describe('AddUrlToLibraryUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
 
     useCase = new AddUrlToLibraryUseCase(

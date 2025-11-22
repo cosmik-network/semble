@@ -33,6 +33,7 @@ describe('UpdateNoteCardUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
 
     cardLibraryService = new CardLibraryService(

@@ -63,6 +63,7 @@ describe('ProcessFirehoseEventUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
     cardLibraryService = new CardLibraryService(
       cardRepository,

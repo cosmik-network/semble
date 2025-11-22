@@ -59,6 +59,7 @@ export class CardLibraryService implements DomainService {
 
       let parentCardPublishedRecordId: PublishedRecordId | undefined =
         undefined;
+      let viaCardPublishedRecordId: PublishedRecordId | undefined = undefined;
 
       if (card.parentCardId) {
         // Ensure parent card is in the curator's library
@@ -78,6 +79,26 @@ export class CardLibraryService implements DomainService {
           return err(new CardLibraryValidationError(`Parent card not found`));
         }
         parentCardPublishedRecordId = parentCardValue.publishedRecordId;
+      }
+
+      if (card.viaCardId) {
+        // Get via card published record ID
+        const viaCardResult = await this.cardRepository.findById(
+          card.viaCardId,
+        );
+        if (viaCardResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to fetch via card: ${viaCardResult.error.message}`,
+            ),
+          );
+        }
+        const viaCardValue = viaCardResult.value;
+
+        if (!viaCardValue) {
+          return err(new CardLibraryValidationError(`Via card not found`));
+        }
+        viaCardPublishedRecordId = viaCardValue.publishedRecordId;
       }
 
       if (libraryInfo?.publishedRecordId) {
@@ -101,6 +122,7 @@ export class CardLibraryService implements DomainService {
             card,
             curatorId,
             parentCardPublishedRecordId,
+            viaCardPublishedRecordId,
           );
           if (republishResult.isErr()) {
             if (republishResult.error instanceof AuthenticationError) {
@@ -159,6 +181,7 @@ export class CardLibraryService implements DomainService {
 
       let parentCardPublishedRecordId: PublishedRecordId | undefined =
         undefined;
+      let viaCardPublishedRecordId: PublishedRecordId | undefined = undefined;
 
       if (card.parentCardId) {
         // Ensure parent card is in the curator's library
@@ -180,12 +203,33 @@ export class CardLibraryService implements DomainService {
         parentCardPublishedRecordId = parentCardValue.publishedRecordId;
       }
 
+      if (card.viaCardId) {
+        // Get via card published record ID
+        const viaCardResult = await this.cardRepository.findById(
+          card.viaCardId,
+        );
+        if (viaCardResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to fetch via card: ${viaCardResult.error.message}`,
+            ),
+          );
+        }
+        const viaCardValue = viaCardResult.value;
+
+        if (!viaCardValue) {
+          return err(new CardLibraryValidationError(`Via card not found`));
+        }
+        viaCardPublishedRecordId = viaCardValue.publishedRecordId;
+      }
+
       if (isInLibrary && libraryInfo?.publishedRecordId) {
         // Card is already in library and published - republish to update it
         const republishResult = await this.cardPublisher.publishCardToLibrary(
           card,
           curatorId,
           parentCardPublishedRecordId,
+          viaCardPublishedRecordId,
         );
         if (republishResult.isErr()) {
           if (republishResult.error instanceof AuthenticationError) {
@@ -253,6 +297,7 @@ export class CardLibraryService implements DomainService {
           card,
           curatorId,
           parentCardPublishedRecordId,
+          viaCardPublishedRecordId,
         );
         if (publishResult.isErr()) {
           // Propagate authentication errors

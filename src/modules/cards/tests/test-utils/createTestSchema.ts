@@ -24,6 +24,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       content_data JSONB NOT NULL,
       url TEXT,
       parent_card_id UUID REFERENCES cards(id),
+      via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
       library_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -67,6 +68,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
       added_by TEXT NOT NULL,
       added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
       UNIQUE(collection_id, card_id)
     )`,

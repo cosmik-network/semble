@@ -42,6 +42,7 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
 
     useCase = new UpdateUrlCardAssociationsUseCase(
