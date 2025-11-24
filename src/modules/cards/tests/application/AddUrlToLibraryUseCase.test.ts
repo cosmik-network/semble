@@ -365,6 +365,70 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
     });
 
+    it('should add URL card to collections with viaCardId', async () => {
+      // Create a test collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Test Collection')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      // Create a via card first
+      const viaCardRequest = {
+        url: 'https://example.com/via-article',
+        curatorId: curatorId.value,
+      };
+
+      const viaCardResult = await useCase.execute(viaCardRequest);
+      expect(viaCardResult.isOk()).toBe(true);
+      const viaCardId = viaCardResult.unwrap().urlCardId;
+
+      // Now add URL with viaCardId
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        viaCardId: viaCardId,
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      // Verify URL card was created
+      expect(response.urlCardId).toBeDefined();
+      expect(response.urlCardId).not.toBe(viaCardId);
+
+      // Verify collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(1);
+
+      // Verify the published link is for the new URL card
+      const publishedLink = publishedLinks[0];
+      expect(publishedLink?.cardId).toBe(response.urlCardId);
+
+      // Verify CardAddedToCollectionEvent was published with correct viaCardId
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      ) as CardAddedToCollectionEvent[];
+      expect(collectionEvents).toHaveLength(1);
+      expect(collectionEvents[0]?.cardId.getStringValue()).toBe(
+        response.urlCardId,
+      );
+      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(
+        collection.collectionId.getStringValue(),
+      );
+      expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
+    });
+
     it('should add URL card (not note card) to collections when note is provided', async () => {
       // Create a test collection
       const collection = new CollectionBuilder()
