@@ -9,7 +9,10 @@ import { ICollectionPublisher } from '../../application/ports/ICollectionPublish
 import { ICardRepository } from '../ICardRepository';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
-import { PublishedRecordId, PublishedRecordIdProps } from '../value-objects/PublishedRecordId';
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from '../value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
 export interface CardCollectionServiceOptions {
@@ -63,7 +66,11 @@ export class CardCollectionService implements DomainService {
       }
 
       // Add card to collection
-      const addCardResult = collection.addCard(card.cardId, curatorId, viaCardId);
+      const addCardResult = collection.addCard(
+        card.cardId,
+        curatorId,
+        viaCardId,
+      );
       if (addCardResult.isErr()) {
         return err(
           new CardCollectionValidationError(
@@ -87,7 +94,8 @@ export class CardCollectionService implements DomainService {
         if (viaCardId) {
           const viaCardResult = await this.cardRepository.findById(viaCardId);
           if (viaCardResult.isOk() && viaCardResult.value?.publishedRecordId) {
-            viaCardPublishedRecordId = viaCardResult.value.publishedRecordId.getValue();
+            viaCardPublishedRecordId =
+              viaCardResult.value.publishedRecordId.getValue();
           }
         }
 
