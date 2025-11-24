@@ -19,6 +19,7 @@ export default function CollectionsContainer(props: Props) {
     <Container p="xs" size="xl">
       <Stack>
         <Select
+          allowDeselect={false}
           mr={'auto'}
           size="sm"
           label="Sort by"
