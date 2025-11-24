@@ -5,10 +5,14 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 import { IdResolver } from '@atproto/identity';
 import { FirehoseEvent } from '../../domain/FirehoseEvent';
 
+const DEBUG_LOGGING = true; // Set to false to disable debug logs
+
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
   private runner?: MemoryRunner;
   private isRunningFlag = false;
+  private eventCount = 0;
+  private heartbeatInterval?: NodeJS.Timeout;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -37,6 +41,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
         excludeIdentity: true,
         excludeAccount: true,
         excludeSync: true,
+        unauthenticatedCommits: true, // Skip DID resolution to avoid AbortErrors
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
       });
@@ -44,6 +49,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       await this.firehose.start();
       this.isRunningFlag = true;
       console.log('AT Protocol firehose service started');
+
+      // Start heartbeat logging
+      this.startHeartbeat();
     } catch (error) {
       console.error('Failed to start firehose:', error);
       await this.reconnect();
@@ -67,43 +75,75 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.runner = undefined;
     }
 
+    // Stop heartbeat
+    this.stopHeartbeat();
+
     this.isRunningFlag = false;
     console.log('AT Protocol firehose service stopped');
   }
 
   isRunning(): boolean {
-    return this.isRunningFlag;
+    return (
+      (this.isRunningFlag &&
+        this.firehose &&
+        !((this.firehose as any).abortController?.signal?.aborted ?? false)) ||
+      false
+    );
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
-    // Create FirehoseEvent value object (includes filtering logic)
-    const firehoseEventResult = FirehoseEvent.fromEvent(evt);
-    if (firehoseEventResult.isErr()) {
-      // Only log actual errors, not filtered events
-      if (!firehoseEventResult.error.message.includes('is not processable')) {
-        console.error(
-          'Failed to create FirehoseEvent:',
-          firehoseEventResult.error,
-        );
+    try {
+      this.eventCount++;
+
+      if (DEBUG_LOGGING) {
+        console.log(`Processing firehose event: ${evt.event} for ${evt.did}`);
       }
-      return;
-    }
 
-    const result = await this.firehoseEventHandler.handle(
-      firehoseEventResult.value,
-    );
+      // Create FirehoseEvent value object (includes filtering logic)
+      const firehoseEventResult = FirehoseEvent.fromEvent(evt);
+      if (firehoseEventResult.isErr()) {
+        // Only log actual errors, not filtered events
+        if (!firehoseEventResult.error.message.includes('is not processable')) {
+          console.error(
+            'Failed to create FirehoseEvent:',
+            firehoseEventResult.error,
+          );
+        }
+        return;
+      }
 
-    if (result.isErr()) {
-      console.error('Failed to process firehose event:', result.error);
+      if (DEBUG_LOGGING) {
+        console.log(`Successfully created FirehoseEvent, passing to handler`);
+      }
+
+      const result = await this.firehoseEventHandler.handle(
+        firehoseEventResult.value,
+      );
+
+      if (result.isErr()) {
+        console.error('Failed to process firehose event:', result.error);
+      } else if (DEBUG_LOGGING) {
+        console.log(`Successfully processed event`);
+      }
+    } catch (error) {
+      console.error('Unhandled error in handleFirehoseEvent:', error);
+      // Don't re-throw - let processing continue
     }
   }
 
   private handleError(err: Error): void {
     console.error('Firehose error:', err);
 
-    // Only reconnect on connection errors, not parsing errors
+    // Skip reconnection for parse errors (including DID resolution failures)
     if (err.name === 'FirehoseParseError') {
-      console.warn('Skipping reconnection for parse error');
+      // Check if it's a DID resolution timeout
+      if (err.cause && (err.cause as any).name === 'AbortError') {
+        console.warn(
+          'DID resolution timeout - continuing without reconnection',
+        );
+      } else {
+        console.warn('Skipping reconnection for parse error');
+      }
       return;
     }
 
@@ -124,6 +164,24 @@ export class AtProtoFirehoseService implements IFirehoseService {
       console.error('Reconnection failed:', error);
       // Try again after another delay
       setTimeout(() => this.reconnect(), 10000);
+    }
+  }
+
+  private startHeartbeat(): void {
+    this.heartbeatInterval = setInterval(() => {
+      if (DEBUG_LOGGING) {
+        console.log(
+          `Firehose status: running=${this.isRunningFlag}, events processed in last minute: ${this.eventCount}`,
+        );
+      }
+      this.eventCount = 0; // Reset counter
+    }, 60000);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = undefined;
     }
   }
 
