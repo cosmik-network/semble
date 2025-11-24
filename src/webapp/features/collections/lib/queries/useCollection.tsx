@@ -1,13 +1,13 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getCollectionPageByAtUri } from '../dal';
 import { collectionKeys } from '../collectionKeys';
-import { CollectionSortField } from '@semble/types';
+import { CardSortField } from '@semble/types';
 
 interface Props {
   rkey: string;
   handle: string;
   limit?: number;
-  sortBy?: CollectionSortField;
+  sortBy?: CardSortField;
 }
 
 export default function useCollection(props: Props) {
@@ -20,7 +20,7 @@ export default function useCollection(props: Props) {
       getCollectionPageByAtUri({
         recordKey: props.rkey,
         handle: props.handle,
-        params: { limit, page: pageParam, collectionSortBy: props.sortBy },
+        params: { limit, page: pageParam, cardSortBy: props.sortBy },
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore
