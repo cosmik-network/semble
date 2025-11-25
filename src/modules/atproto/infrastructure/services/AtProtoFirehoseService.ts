@@ -15,6 +15,8 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private runner?: MemoryRunner;
   private isRunningFlag = false;
   private cleaningUp = false;
+  private eventCount = 0;
+  private logInterval?: NodeJS.Timeout;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -44,6 +46,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
         idResolver: this.idResolver,
         excludeIdentity: true,
         excludeAccount: true,
+        excludeSync: true,
         subscriptionReconnectDelay: 5000, // 5 second delay between reconnects
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
@@ -55,6 +58,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       });
 
       this.isRunningFlag = true;
+      this.startEventCountLogging();
       console.log('[FIREHOSE] AT Protocol firehose service started');
     } catch (error) {
       console.error('[FIREHOSE] Failed to start firehose:', error);
@@ -79,6 +83,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.runner = undefined;
     }
 
+    this.stopEventCountLogging();
     this.isRunningFlag = false;
     console.log('[FIREHOSE] AT Protocol firehose service stopped');
   }
@@ -88,6 +93,8 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
+    this.eventCount++;
+
     try {
       // Create FirehoseEvent value object (includes filtering logic)
       const firehoseEventResult = FirehoseEvent.fromEvent(evt);
@@ -134,9 +141,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
   }
 
-  private handleError(err: Error): void {
-    console.error('[FIREHOSE] Firehose error:', err.name, err.message);
-  }
+  private handleError(err: Error): void {}
 
   private getFilteredCollections(): string[] {
     const collections = this.configService.getAtProtoCollections();
@@ -168,5 +173,24 @@ export class AtProtoFirehoseService implements IFirehoseService {
     process.on('SIGTERM', cleanup);
     process.on('SIGINT', cleanup);
     process.on('SIGUSR2', cleanup); // For nodemon
+  }
+
+  private startEventCountLogging(): void {
+    this.logInterval = setInterval(
+      () => {
+        console.log(
+          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}`,
+        );
+        this.eventCount = 0; // Reset counter
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
+  }
+
+  private stopEventCountLogging(): void {
+    if (this.logInterval) {
+      clearInterval(this.logInterval);
+      this.logInterval = undefined;
+    }
   }
 }
