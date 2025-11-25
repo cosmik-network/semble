@@ -4,6 +4,7 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import { RiNotification2Line } from 'react-icons/ri';
 
 export default function BottomBar() {
   const { data: profile } = useMyProfile();
@@ -17,6 +18,7 @@ export default function BottomBar() {
           href={`/profile/${profile.handle}/cards`}
           icon={FaRegNoteSticky}
         />
+        <BottomBarItem href="/notifications" icon={RiNotification2Line} />
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           icon={<Avatar src={profile.avatarUrl} />}
