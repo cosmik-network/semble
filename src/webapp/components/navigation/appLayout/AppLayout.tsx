@@ -37,7 +37,7 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
       footer={{
-        height: isMobile ? 80 : 0,
+        height: isMobile ? 85 : 0,
       }}
     >
       <Navbar />
