@@ -14,11 +14,11 @@ export default function BottomBar() {
       <Group align="start" justify="space-around" gap={'lg'} h={'100%'}>
         <BottomBarItem href="/home" icon={LuLibrary} />
         <BottomBarItem href="/explore" icon={MdOutlineEmojiNature} />
-        <BottomBarItem href="/notifications" icon={RiNotification2Line} />
         <BottomBarItem
           href={`/profile/${profile.handle}/cards`}
           icon={FaRegNoteSticky}
         />
+        <BottomBarItem href="/notifications" icon={RiNotification2Line} />
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           icon={<Avatar src={profile.avatarUrl} />}

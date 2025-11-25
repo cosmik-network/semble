@@ -60,14 +60,14 @@ export default function Navbar() {
               icon={<MdOutlineEmojiNature size={25} />}
             />
             <NavItem
-              href="/notifications"
-              label="Notifications"
-              icon={<RiNotification2Line size={25} />}
-            />
-            <NavItem
               href={`/profile/${profile.handle}/cards`}
               label="Cards"
               icon={<FaRegNoteSticky size={25} />}
+            />
+            <NavItem
+              href="/notifications"
+              label="Notifications"
+              icon={<RiNotification2Line size={25} />}
             />
             <NavItem
               href={`/settings`}
