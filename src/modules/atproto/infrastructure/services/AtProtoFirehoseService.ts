@@ -47,6 +47,8 @@ export class AtProtoFirehoseService implements IFirehoseService {
         excludeIdentity: true,
         excludeAccount: true,
         excludeSync: true,
+        unauthenticatedCommits: true,
+        unauthenticatedHandles: true,
         subscriptionReconnectDelay: 5000, // 5 second delay between reconnects
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
