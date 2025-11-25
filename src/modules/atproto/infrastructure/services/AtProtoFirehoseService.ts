@@ -124,9 +124,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       // Check if we haven't received events for too long (10 minutes)
       // Note: AT Protocol firehose should have regular activity
-      if (this.lastEventTime && timeSinceLastEvent! > 60000 * 60 * 2) {
+      if (this.lastEventTime && timeSinceLastEvent! > 60000 * 5) {
         console.warn(
-          '[FIREHOSE] [HEALTH] No events for 2 hours, forcing reconnect',
+          '[FIREHOSE] [HEALTH] No events for 5 minutes, forcing reconnect',
         );
         this.reconnect();
         return;
