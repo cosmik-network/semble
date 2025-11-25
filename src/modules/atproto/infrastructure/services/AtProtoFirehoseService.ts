@@ -98,6 +98,23 @@ export class AtProtoFirehoseService implements IFirehoseService {
     this.eventCount++;
 
     try {
+      if (
+        evt.event !== 'create' &&
+        evt.event !== 'update' &&
+        evt.event !== 'delete'
+      ) {
+        return;
+      }
+      if (evt.collection === FIREHOSE_COLLECTIONS.APP_BSKY_POST) {
+        if (evt.did === 'did:plc:rlknsba2qldjkicxsmni3vyn') {
+          console.log(
+            'event from cosmik testing account:',
+            JSON.stringify(evt),
+          );
+        }
+        return;
+      }
+
       // Create FirehoseEvent value object (includes filtering logic)
       const firehoseEventResult = FirehoseEvent.fromEvent(evt);
       if (firehoseEventResult.isErr()) {
