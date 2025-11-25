@@ -57,7 +57,7 @@ export default function AddCardToModalContent(props: Props) {
 
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
-    track('add or update card');
+    track('add or update existing card');
 
     const trimmedNote = note?.trimEnd() === '' ? undefined : note;
 

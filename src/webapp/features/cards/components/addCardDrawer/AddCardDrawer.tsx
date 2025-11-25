@@ -50,6 +50,7 @@ export default function AddCardDrawer(props: Props) {
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
+    track('add new card');
 
     addCard.mutate(
       {
@@ -72,8 +73,6 @@ export default function AddCardDrawer(props: Props) {
         },
       },
     );
-
-    track('create new card');
   };
 
   return (
