@@ -15,6 +15,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private connectionMonitor?: NodeJS.Timeout;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private isReconnecting = false;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -29,7 +30,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
     try {
       console.log(
-        `Starting AT Protocol firehose service for collections: ${this.getFilteredCollections().join(', ')}`,
+        `[FIREHOSE] Starting AT Protocol firehose service for collections: ${this.getFilteredCollections().join(', ')}`,
       );
 
       const runner = new MemoryRunner({});
@@ -37,9 +38,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       this.firehose = new Firehose({
         service: this.configService.getAtProtoConfig().firehoseWebsocket,
+        filterCollections: this.getFilteredCollections(),
         runner,
         idResolver: this.idResolver,
-        filterCollections: this.getFilteredCollections(),
         excludeIdentity: true,
         excludeAccount: true,
         excludeSync: true,
@@ -48,13 +49,18 @@ export class AtProtoFirehoseService implements IFirehoseService {
         onError: this.handleError.bind(this),
       });
 
-      await this.firehose.start();
+      // Don't await - this is a long-running operation
+      this.firehose.start().catch((error: any) => {
+        console.error('[FIREHOSE] Firehose start failed:', error);
+        this.reconnect();
+      });
+
       this.isRunningFlag = true;
       this.reconnectAttempts = 0; // Reset on successful start
       this.startConnectionMonitoring();
-      console.log('AT Protocol firehose service started');
+      console.log('[FIREHOSE] AT Protocol firehose service started');
     } catch (error) {
-      console.error('Failed to start firehose:', error);
+      console.error('[FIREHOSE] Failed to start firehose:', error);
       await this.reconnect();
     }
   }
@@ -64,7 +70,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       return;
     }
 
-    console.log('Stopping AT Protocol firehose service...');
+    console.log('[FIREHOSE] Stopping AT Protocol firehose service...');
 
     this.stopConnectionMonitoring();
 
@@ -79,7 +85,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
 
     this.isRunningFlag = false;
-    console.log('AT Protocol firehose service stopped');
+    console.log('[FIREHOSE] AT Protocol firehose service stopped');
   }
 
   isRunning(): boolean {
@@ -100,7 +106,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
         : null;
 
       console.log(
-        `[HEALTH] Connected: ${isConnected}, Last event: ${
+        `[FIREHOSE] [HEALTH] Connected: ${isConnected}, Last event: ${
           this.lastEventTime
             ? `${Math.round(timeSinceLastEvent! / 1000)}s ago`
             : 'never'
@@ -109,15 +115,19 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       // Check if connection appears dead
       if (!isConnected) {
-        console.warn('[HEALTH] Connection appears dead, attempting reconnect');
+        console.warn(
+          '[FIREHOSE] [HEALTH] Connection appears dead, attempting reconnect',
+        );
         this.reconnect();
         return;
       }
 
       // Check if we haven't received events for too long (10 minutes)
       // Note: AT Protocol firehose should have regular activity
-      if (this.lastEventTime && timeSinceLastEvent! > 600000) {
-        console.warn('[HEALTH] No events for 10 minutes, forcing reconnect');
+      if (this.lastEventTime && timeSinceLastEvent! > 60000 * 5) {
+        console.warn(
+          '[FIREHOSE] [HEALTH] No events for 5 minutes, forcing reconnect',
+        );
         this.reconnect();
         return;
       }
@@ -125,7 +135,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       // Check if aborted but still marked as running
       if ((this.firehose as any)?.abortController?.signal?.aborted) {
         console.warn(
-          '[HEALTH] Connection aborted but still marked running, reconnecting',
+          '[FIREHOSE] [HEALTH] Connection aborted but still marked running, reconnecting',
         );
         this.reconnect();
         return;
@@ -145,7 +155,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.lastEventTime = Date.now(); // Track when we last received an event
 
       if (DEBUG_LOGGING) {
-        console.log(`Processing firehose event: ${evt.event} for ${evt.did}`);
+        console.log(
+          `[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`,
+        );
       }
 
       // Create FirehoseEvent value object (includes filtering logic)
@@ -154,7 +166,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
         // Only log actual errors, not filtered events
         if (!firehoseEventResult.error.message.includes('is not processable')) {
           console.error(
-            'Failed to create FirehoseEvent:',
+            '[FIREHOSE] Failed to create FirehoseEvent:',
             firehoseEventResult.error,
           );
         }
@@ -162,7 +174,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       }
 
       if (DEBUG_LOGGING) {
-        console.log(`Successfully created FirehoseEvent, passing to handler`);
+        console.log(
+          `[FIREHOSE] Successfully created FirehoseEvent, passing to handler`,
+        );
       }
 
       const result = await this.firehoseEventHandler.handle(
@@ -170,62 +184,79 @@ export class AtProtoFirehoseService implements IFirehoseService {
       );
 
       if (result.isErr()) {
-        console.error('Failed to process firehose event:', result.error);
+        console.error(
+          '[FIREHOSE] Failed to process firehose event:',
+          result.error,
+        );
       } else if (DEBUG_LOGGING) {
-        console.log(`Successfully processed event`);
+        console.log(`[FIREHOSE] Successfully processed event`);
       }
     } catch (error) {
-      console.error('Unhandled error in handleFirehoseEvent:', error);
+      console.error(
+        '[FIREHOSE] Unhandled error in handleFirehoseEvent:',
+        error,
+      );
       // Don't re-throw - let processing continue
     }
   }
 
   private handleError(err: Error): void {
-    console.error('Firehose error:', err.name, err.message);
+    console.error('[FIREHOSE] Firehose error:', err.name, err.message);
 
     // Log different error types for debugging
     if (err.name === 'FirehoseParseError') {
-      console.warn('Parse error - continuing without reconnect');
+      console.warn('[FIREHOSE] Parse error - continuing without reconnect');
       return;
     }
 
     if (err.name === 'FirehoseValidationError') {
-      console.warn('Validation error - continuing without reconnect');
+      console.warn(
+        '[FIREHOSE] Validation error - continuing without reconnect',
+      );
       return;
     }
 
     // For subscription errors and others, attempt reconnect
-    console.log('Connection error detected, will attempt reconnect');
+    console.log('[FIREHOSE] Connection error detected, will attempt reconnect');
     if (this.isRunningFlag) {
       this.reconnect();
     }
   }
 
   private async reconnect(): Promise<void> {
+    if (this.isReconnecting) {
+      console.log('[FIREHOSE] Reconnect already in progress, skipping');
+      return;
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error(
-        `Max reconnect attempts (${this.maxReconnectAttempts}) reached. Stopping service.`,
+        `[FIREHOSE] Max reconnect attempts (${this.maxReconnectAttempts}) reached. Stopping service.`,
       );
       await this.stop();
       return;
     }
 
-    this.reconnectAttempts++;
-    const delay = Math.min(5000 * this.reconnectAttempts, 30000); // Exponential backoff, max 30s
-
-    console.log(
-      `Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    this.isReconnecting = true;
 
     try {
+      this.reconnectAttempts++;
+      const delay = Math.min(5000 * this.reconnectAttempts, 30000); // Exponential backoff, max 30s
+
+      console.log(
+        `[FIREHOSE] Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
       await this.stop();
       await this.start();
-      console.log('Reconnection successful');
+      console.log('[FIREHOSE] Reconnection successful');
     } catch (error) {
-      console.error('Reconnection failed:', error);
+      console.error('[FIREHOSE] Reconnection failed:', error);
       // The next health check will trigger another reconnect attempt
+    } finally {
+      this.isReconnecting = false;
     }
   }
 

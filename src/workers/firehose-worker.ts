@@ -9,7 +9,7 @@ import { DrizzleFirehoseEventDuplicationService } from '../modules/atproto/infra
 import { DatabaseFactory } from '../shared/infrastructure/database/DatabaseFactory';
 
 async function main() {
-  console.log('Starting firehose worker...');
+  console.log('[FIREHOSE] Starting firehose worker...');
 
   const configService = new EnvironmentConfigService();
   const repositories = RepositoryFactory.create(configService);
