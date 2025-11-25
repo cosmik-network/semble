@@ -17,6 +17,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private cleaningUp = false;
   private eventCount = 0;
   private logInterval?: NodeJS.Timeout;
+  private mostRecentEventTime?: Date;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -96,6 +97,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     this.eventCount++;
+    this.mostRecentEventTime = new Date(evt.time);
 
     try {
       if (
@@ -197,8 +199,18 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private startEventCountLogging(): void {
     this.logInterval = setInterval(
       () => {
+        const now = new Date();
+        let timingInfo = '';
+
+        if (this.mostRecentEventTime) {
+          const gapSeconds = Math.floor(
+            (now.getTime() - this.mostRecentEventTime.getTime()) / 1000,
+          );
+          timingInfo = ` | Most recent event: ${this.mostRecentEventTime.toISOString()} | Gap: ${gapSeconds}s`;
+        }
+
         console.log(
-          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}`,
+          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}${timingInfo}`,
         );
         this.eventCount = 0; // Reset counter
       },
