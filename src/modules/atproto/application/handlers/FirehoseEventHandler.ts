@@ -57,7 +57,7 @@ export class FirehoseEventHandler {
 
         if (result.isErr()) {
           console.error(
-            'Failed to process delayed firehose event:',
+            '[FIREHOSE] Failed to process delayed firehose event:',
             result.error,
           );
         }

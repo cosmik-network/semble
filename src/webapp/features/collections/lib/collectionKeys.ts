@@ -6,11 +6,9 @@ export const collectionKeys = {
   mine: (limit?: number) => [...collectionKeys.all(), 'mine', limit] as const,
   search: (query: string) => [...collectionKeys.all(), 'search', query],
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
-  infinite: (id?: string, limit?: number, sortBy?: CollectionSortField) => [
-    ...collectionKeys.all(),
-    'infinite',
-    id,
-    limit,
-    sortBy,
-  ],
+  infinite: (
+    id?: string,
+    limit?: number,
+    sortBy?: CollectionSortField | CardSortField,
+  ) => [...collectionKeys.all(), 'infinite', id, limit, sortBy],
 };

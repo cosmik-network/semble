@@ -274,7 +274,11 @@ export class SemblePDSClient {
 
   private extractRkey(uri: string): string {
     const parts = uri.split('/');
-    return parts[parts.length - 1];
+    const rkey = parts[parts.length - 1];
+    if (!rkey) {
+      throw new Error(`Invalid URI format: ${uri}`);
+    }
+    return rkey;
   }
 }
 

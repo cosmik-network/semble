@@ -1,6 +1,16 @@
+'use client';
+
 import { AppBskyEmbedImages } from '@atproto/api';
-import { AspectRatio, SimpleGrid, Image, Anchor } from '@mantine/core';
+import {
+  AspectRatio,
+  SimpleGrid,
+  Image,
+  Anchor,
+  Spoiler,
+  Button,
+} from '@mantine/core';
 import type { EmbedMode } from '../../types';
+import styles from './ImageEmbed.module.css';
 
 interface Props {
   images: AppBskyEmbedImages.ViewImage[];
@@ -29,7 +39,7 @@ export default function ImageEmbed(props: Props) {
                 radius="sm"
                 h={'100%'}
                 w={'100%'}
-                mah={props.images.length === 1 ? 120 : 150}
+                mah={props.images.length === 1 ? 200 : 150}
               />
             </AspectRatio>
           );
@@ -39,31 +49,60 @@ export default function ImageEmbed(props: Props) {
   }
 
   return (
-    <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
-      {props.images.map((img, i) => {
-        const ratio =
-          props.images.length === 1
-            ? img?.aspectRatio
-              ? img.aspectRatio.width / img.aspectRatio.height
-              : 16 / 9
-            : img?.aspectRatio
-              ? img.aspectRatio.width / img.aspectRatio.height
-              : 1 / 1;
+    <Spoiler
+      classNames={styles}
+      showLabel={
+        <Button
+          component="span"
+          size="xs"
+          variant="light"
+          color="gray"
+          radius={'sm'}
+          fullWidth
+        >
+          Expand image
+        </Button>
+      }
+      hideLabel={
+        <Button
+          component="span"
+          size="xs"
+          variant="light"
+          color="gray"
+          radius={'sm'}
+          fullWidth
+        >
+          Collape image
+        </Button>
+      }
+      maxHeight={280}
+    >
+      <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
+        {props.images.map((img, i) => {
+          const ratio =
+            props.images.length === 1
+              ? img?.aspectRatio
+                ? img.aspectRatio.width / img.aspectRatio.height
+                : 16 / 9
+              : img?.aspectRatio
+                ? img.aspectRatio.width / img.aspectRatio.height
+                : 1 / 1;
 
-        return (
-          <AspectRatio ratio={ratio} key={i}>
-            <Anchor href={img.fullsize} target="_blank">
-              <Image
-                src={img.thumb}
-                alt={img.alt}
-                radius="sm"
-                h={'100%'}
-                w={'100%'}
-              />
-            </Anchor>
-          </AspectRatio>
-        );
-      })}
-    </SimpleGrid>
+          return (
+            <AspectRatio ratio={ratio} key={i}>
+              <Anchor href={img.fullsize} target="_blank">
+                <Image
+                  src={img.thumb}
+                  alt={img.alt}
+                  radius="sm"
+                  h={'100%'}
+                  w={'100%'}
+                />
+              </Anchor>
+            </AspectRatio>
+          );
+        })}
+      </SimpleGrid>
+    </Spoiler>
   );
 }
