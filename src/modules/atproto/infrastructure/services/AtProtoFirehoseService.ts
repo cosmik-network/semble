@@ -210,12 +210,12 @@ export class AtProtoFirehoseService implements IFirehoseService {
         }
 
         console.log(
-          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}${timingInfo}`,
+          `[FIREHOSE] Events processed in last 1 minutes: ${this.eventCount}${timingInfo}`,
         );
         this.eventCount = 0; // Reset counter
       },
-      5 * 60 * 1000,
-    ); // 5 minutes
+      1 * 60 * 1000,
+    ); // 1 minute intervals
   }
 
   private stopEventCountLogging(): void {
