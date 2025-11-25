@@ -1,5 +1,5 @@
 import { IconType } from 'react-icons/lib';
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Anchor, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
 import { ReactElement, isValidElement } from 'react';
 import { usePathname } from 'next/navigation';
@@ -7,6 +7,7 @@ import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   href: string;
+  title?: string;
   icon: IconType | ReactElement;
 }
 
@@ -25,19 +26,26 @@ export default function BottomBarItem(props: Props) {
   };
 
   return (
-    <ActionIcon
-      component={Link}
-      href={props.href}
-      variant={isActive ? 'light' : 'transparent'}
-      size={'lg'}
-      color="gray"
-      onClick={() => {
-        if (mobileOpened) {
-          toggleMobile();
-        }
-      }}
-    >
-      {renderIcon()}
-    </ActionIcon>
+    <Anchor component={Link} href={props.href} underline="never">
+      <Stack gap={0} align="center">
+        <ActionIcon
+          variant={isActive ? 'light' : 'transparent'}
+          size={'lg'}
+          color="gray"
+          onClick={() => {
+            if (mobileOpened) {
+              toggleMobile();
+            }
+          }}
+        >
+          {renderIcon()}
+        </ActionIcon>
+        {props.title && (
+          <Text fz={'sm'} fw={600} c={'gray'}>
+            {props.title}
+          </Text>
+        )}
+      </Stack>
+    </Anchor>
   );
 }
