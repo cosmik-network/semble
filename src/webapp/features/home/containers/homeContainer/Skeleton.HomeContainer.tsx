@@ -25,7 +25,7 @@ export default function HomeContainerSkeleton() {
           <Group justify="space-between">
             <Group gap="xs">
               <MdOutlineEmojiNature size={22} />
-              <Title order={2}>What's new</Title>
+              <Title order={2}>Latest on Semble</Title>
             </Group>
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>

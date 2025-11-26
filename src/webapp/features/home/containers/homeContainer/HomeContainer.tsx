@@ -53,7 +53,7 @@ export default function HomeContainer() {
             <Group justify="space-between">
               <Group gap="xs">
                 <MdOutlineEmojiNature size={22} />
-                <Title order={2}>What's new</Title>
+                <Title order={2}>Latest on Semble</Title>
               </Group>
               <Button
                 variant="light"
@@ -77,7 +77,15 @@ export default function HomeContainer() {
                       md: 4,
                     }}
                   >
-                    <FeedItem item={item} />
+                    <UrlCard
+                      id={item.card.id}
+                      url={item.card.url}
+                      cardContent={item.card.cardContent}
+                      note={item.card.note}
+                      urlLibraryCount={item.card.urlLibraryCount}
+                      urlIsInLibrary={item.card.urlInLibrary}
+                      cardAuthor={item.card.author}
+                    />
                   </Grid.Col>
                 ))}
               </Grid>
