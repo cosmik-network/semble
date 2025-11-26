@@ -166,8 +166,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
   }
 
   private buildJetstreamUrl(): string {
-    // Use public Jetstream instance - could be made configurable
-    const baseUrl = 'wss://jetstream2.us-west.bsky.network/subscribe';
+    const baseUrl = this.configService.getAtProtoConfig().jetstreamWebsocket;
     const collections = this.getFilteredCollections();
     
     const params = new URLSearchParams();

@@ -22,9 +22,9 @@ export interface EnvironmentConfig {
   };
   atproto: {
     firehoseWebsocket: string;
+    jetstreamWebsocket: string;
     serviceEndpoint: string;
     baseUrl: string;
-    useJetstream: boolean;
     collections: {
       card: string;
       collection: string;
@@ -90,10 +90,12 @@ export class EnvironmentConfigService {
         firehoseWebsocket:
           process.env.ATPROTO_FIREHOSE_WEBSOCKET ||
           'wss://relay1.us-west.bsky.network',
+        jetstreamWebsocket:
+          process.env.ATPROTO_JETSTREAM_WEBSOCKET ||
+          'wss://jetstream2.us-west.bsky.network/subscribe',
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
-        useJetstream: process.env.USE_JETSTREAM === 'true',
         collections: {
           card:
             environment === Environment.PROD
