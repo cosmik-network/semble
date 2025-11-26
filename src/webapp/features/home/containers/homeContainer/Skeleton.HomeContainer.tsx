@@ -13,7 +13,6 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import FeedItemSkeleton from '@/features/feeds/components/feedItem/Skeleton.FeedItem';
 
 export default function HomeContainerSkeleton() {
   return (
@@ -25,7 +24,7 @@ export default function HomeContainerSkeleton() {
           <Group justify="space-between">
             <Group gap="xs">
               <MdOutlineEmojiNature size={22} />
-              <Title order={2}>Latest on Semble</Title>
+              <Title order={2}>Discover on Semble</Title>
             </Group>
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
@@ -33,7 +32,7 @@ export default function HomeContainerSkeleton() {
           <Grid gutter="md">
             {Array.from({ length: 3 }).map((_, i) => (
               <GridCol key={i} span={{ base: 12, sm: 4 }}>
-                <FeedItemSkeleton />
+                <UrlCardSkeleton />
               </GridCol>
             ))}
           </Grid>

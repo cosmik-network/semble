@@ -25,25 +25,30 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
-import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
-import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import { sanitizeText } from '@/lib/utils/text';
-import { getRelativeTime } from '@/lib/utils/time';
+import useSembleSimilarCards from '@/features/semble/lib/queries/useSembleSimilarCards';
+import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: profile } = useMyProfile();
-  const { data: feed } = useGlobalFeed();
+  const { data: similarCardsData } = useSembleSimilarCards({
+    url:
+      myCardsData.pages[0].cards.length > 0
+        ? myCardsData.pages[0].cards[0].url
+        : profile.description || profile.handle,
+  });
 
   const { desktopOpened } = useNavbarContext();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   const collections =
-    collectionsData?.pages.flatMap((page) => page.collections) ?? [];
-  const cards = myCardsData?.pages.flatMap((page) => page.cards) ?? [];
+    collectionsData.pages.flatMap((page) => page.collections) ?? [];
+  const cards = myCardsData.pages.flatMap((page) => page.cards) ?? [];
+  const similarCards =
+    similarCardsData.pages.flatMap((page) => page.urls) ?? [];
 
   return (
     <Container p="xs" size="xl">
@@ -56,7 +61,7 @@ export default function HomeContainer() {
             <Group justify="space-between">
               <Group gap="xs">
                 <MdOutlineEmojiNature size={22} />
-                <Title order={2}>Latest on Semble</Title>
+                <Title order={2}>Discover on Semble</Title>
               </Group>
               <Button
                 variant="light"
@@ -68,11 +73,11 @@ export default function HomeContainer() {
               </Button>
             </Group>
 
-            {feed.pages[0].activities.length > 0 ? (
+            {similarCards.length > 0 ? (
               <Grid>
-                {feed.pages[0].activities.slice(0, 3).map((item) => (
+                {similarCards.slice(0, 3).map((item, i) => (
                   <Grid.Col
-                    key={item.card.id}
+                    key={i}
                     span={{
                       base: 12,
                       xs: desktopOpened ? 12 : 6,
@@ -80,43 +85,7 @@ export default function HomeContainer() {
                       md: 4,
                     }}
                   >
-                    <Stack gap={'xs'} align="stretch" h={'100%'}>
-                      <Group gap={'sm'} wrap="nowrap">
-                        <Group gap={'xs'} wrap="nowrap" flex={1}>
-                          <Avatar src={item.user.avatarUrl} />
-                          <Text
-                            component={Link}
-                            href={`/profile/${item.user.handle}`}
-                            fw={600}
-                            c={'bright'}
-                            lineClamp={1}
-                          >
-                            {sanitizeText(item.user.name)}
-                          </Text>
-                        </Group>
-                        <Text
-                          fz={'sm'}
-                          fw={600}
-                          c={'gray'}
-                          span
-                          display={'block'}
-                        >
-                          {getRelativeTime(item.createdAt.toString()) ===
-                          'just now'
-                            ? `Now`
-                            : `${getRelativeTime(item.createdAt.toString())} ago`}
-                        </Text>
-                      </Group>
-                      <UrlCard
-                        id={item.card.id}
-                        url={item.card.url}
-                        cardContent={item.card.cardContent}
-                        note={item.card.note}
-                        urlLibraryCount={item.card.urlLibraryCount}
-                        urlIsInLibrary={item.card.urlInLibrary}
-                        cardAuthor={item.card.author}
-                      />
-                    </Stack>
+                    <SimilarUrlCard urlView={item} />
                   </Grid.Col>
                 ))}
               </Grid>
