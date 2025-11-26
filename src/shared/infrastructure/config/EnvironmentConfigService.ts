@@ -24,6 +24,7 @@ export interface EnvironmentConfig {
     firehoseWebsocket: string;
     serviceEndpoint: string;
     baseUrl: string;
+    useJetstream: boolean;
     collections: {
       card: string;
       collection: string;
@@ -92,6 +93,7 @@ export class EnvironmentConfigService {
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
+        useJetstream: process.env.USE_JETSTREAM === 'true',
         collections: {
           card:
             environment === Environment.PROD

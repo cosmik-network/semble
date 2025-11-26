@@ -2,10 +2,12 @@ import { IProcess } from 'src/shared/domain/IProcess';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { AtProtoFirehoseService } from '../services/AtProtoFirehoseService';
+import { AtProtoJetstreamService } from '../services/AtProtoJetstreamService';
+import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { IdResolver } from '@atproto/identity';
 
 export class FirehoseWorkerProcess implements IProcess {
-  private firehoseService?: AtProtoFirehoseService;
+  private firehoseService?: IFirehoseService;
 
   constructor(
     private configService: EnvironmentConfigService,
@@ -15,13 +17,23 @@ export class FirehoseWorkerProcess implements IProcess {
   async start(): Promise<void> {
     console.log('[FIREHOSE] Starting firehose worker...');
 
-    const idResolver = new IdResolver();
-
-    this.firehoseService = new AtProtoFirehoseService(
-      this.firehoseEventHandler,
-      this.configService,
-      idResolver,
-    );
+    const atprotoConfig = this.configService.getAtProtoConfig();
+    
+    if (atprotoConfig.useJetstream) {
+      console.log('[FIREHOSE] Using Jetstream service');
+      this.firehoseService = new AtProtoJetstreamService(
+        this.firehoseEventHandler,
+        this.configService,
+      );
+    } else {
+      console.log('[FIREHOSE] Using ATProto firehose service');
+      const idResolver = new IdResolver();
+      this.firehoseService = new AtProtoFirehoseService(
+        this.firehoseEventHandler,
+        this.configService,
+        idResolver,
+      );
+    }
 
     // Don't await - let it run in background
     this.firehoseService.start().catch((error) => {
