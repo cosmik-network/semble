@@ -2,6 +2,7 @@
 
 import {
   Anchor,
+  Button,
   Container,
   Grid,
   Group,
@@ -74,13 +75,13 @@ export default function SembleOverviewContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Notes
               </Title>
-              <Anchor
+              <Button
                 onClick={() => props.onViewTab('notes')}
-                c="blue"
-                fw={600}
+                variant="light"
+                color="blue"
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {errorNotes ? (
@@ -117,13 +118,13 @@ export default function SembleOverviewContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Collections
               </Title>
-              <Anchor
+              <Button
                 onClick={() => props.onViewTab('collections')}
-                c="blue"
-                fw={600}
+                variant="light"
+                color="blue"
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {errorCollections ? (
@@ -145,13 +146,13 @@ export default function SembleOverviewContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Added by
               </Title>
-              <Anchor
+              <Button
                 onClick={() => props.onViewTab('addedBy')}
-                c="blue"
-                fw={600}
+                variant="light"
+                color="blue"
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {errorLibraries ? (
@@ -186,13 +187,13 @@ export default function SembleOverviewContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Similar cards
               </Title>
-              <Anchor
+              <Button
                 onClick={() => props.onViewTab('similar')}
-                c="blue"
-                fw={600}
+                variant="light"
+                color="blue"
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {errorSimilarCards ? (

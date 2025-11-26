@@ -5,13 +5,13 @@ import useCards from '@/features/cards/lib/queries/useCards';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useCollections from '@/features/collections/lib/queries/useCollections';
 import {
-  Anchor,
   Container,
   Group,
   SimpleGrid,
   Stack,
   Title,
   Grid,
+  Button,
 } from '@mantine/core';
 import Link from 'next/link';
 import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
@@ -47,14 +47,14 @@ export default function ProfileContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Cards
               </Title>
-              <Anchor
+              <Button
+                variant="light"
                 component={Link}
+                color="blue"
                 href={`/profile/${props.handle}/cards`}
-                c="blue"
-                fw={600}
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {cards.length > 0 ? (
@@ -94,14 +94,14 @@ export default function ProfileContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Collections
               </Title>
-              <Anchor
+              <Button
+                variant="light"
                 component={Link}
+                color="blue"
                 href={`/profile/${props.handle}/collections`}
-                c="blue"
-                fw={600}
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {collections.length > 0 ? (

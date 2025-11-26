@@ -21,7 +21,7 @@ export default function ProfileContainerSkeleton() {
             <Title order={2} fz={'h3'}>
               Cards
             </Title>
-            <Skeleton w={60} h={22} />
+            <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
           <Grid gutter="md">
@@ -40,7 +40,7 @@ export default function ProfileContainerSkeleton() {
               Collections
             </Title>
 
-            <Skeleton w={60} h={22} />
+            <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
