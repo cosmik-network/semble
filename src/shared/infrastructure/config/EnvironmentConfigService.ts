@@ -92,7 +92,7 @@ export class EnvironmentConfigService {
           'wss://relay1.us-west.bsky.network',
         jetstreamWebsocket:
           process.env.ATPROTO_JETSTREAM_WEBSOCKET ||
-          'wss://jetstream2.us-west.bsky.network/subscribe',
+          'wss://jetstream2.us-west.bsky.network',
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',

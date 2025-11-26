@@ -183,7 +183,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
       params.append('wantedCollections', collection);
     });
 
-    return `${baseUrl}?${params.toString()}`;
+    return `${baseUrl}/subscribe?${params.toString()}`;
   }
 
   private handleMessage(data: WebSocket.Data): void {
