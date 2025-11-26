@@ -64,9 +64,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
     private configService: EnvironmentConfigService,
-  ) {
-    this.setupCleanupHandlers();
-  }
+  ) {}
 
   async start(): Promise<void> {
     if (this.isRunningFlag) {
@@ -267,23 +265,6 @@ export class AtProtoJetstreamService implements IFirehoseService {
     ];
   }
 
-  private setupCleanupHandlers(): void {
-    const cleanup = async () => {
-      if (this.cleaningUp) return;
-      this.cleaningUp = true;
-      console.log('[JETSTREAM] Shutting down Jetstream service...');
-
-      if (this.ws) {
-        this.ws.close();
-      }
-
-      process.exit();
-    };
-
-    process.on('SIGTERM', cleanup);
-    process.on('SIGINT', cleanup);
-    process.on('SIGUSR2', cleanup); // For nodemon
-  }
 
   private startEventCountLogging(): void {
     this.logInterval = setInterval(
