@@ -1,3 +1,5 @@
+"use client";
+
 import type { UrlView } from '@/api-client';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 
