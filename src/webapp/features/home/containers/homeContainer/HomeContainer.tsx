@@ -24,11 +24,15 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
+import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
+import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
+import { MdOutlineEmojiNature } from 'react-icons/md';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: profile } = useMyProfile();
+  const { data: feed } = useGlobalFeed({ limit: 3 });
 
   const { desktopOpened } = useNavbarContext();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
@@ -44,6 +48,48 @@ export default function HomeContainer() {
         <Title order={1}>Home</Title>
 
         <Stack gap={50}>
+          {/* Explore */}
+          <Stack>
+            <Group justify="space-between">
+              <Group gap="xs">
+                <MdOutlineEmojiNature size={22} />
+                <Title order={2}>What's new</Title>
+              </Group>
+              <Button
+                variant="light"
+                component={Link}
+                color="blue"
+                href={'/explore'}
+              >
+                View all
+              </Button>
+            </Group>
+
+            {feed.pages[0].activities.length > 0 ? (
+              <Grid>
+                {feed.pages[0].activities.map((item) => (
+                  <Grid.Col
+                    key={item.card.id}
+                    span={{
+                      base: 12,
+                      xs: desktopOpened ? 12 : 6,
+                      sm: desktopOpened ? 6 : 4,
+                      md: 4,
+                    }}
+                  >
+                    <FeedItem item={item} />
+                  </Grid.Col>
+                ))}
+              </Grid>
+            ) : (
+              <Stack align="center" gap="xs">
+                <Text fz="h3" fw={600} c="gray">
+                  No recent activity to show yet
+                </Text>
+              </Stack>
+            )}
+          </Stack>
+
           {/* Collections */}
           <Stack>
             <Group justify="space-between">
@@ -51,14 +97,14 @@ export default function HomeContainer() {
                 <BiCollection size={22} />
                 <Title order={2}>Collections</Title>
               </Group>
-              <Anchor
+              <Button
+                variant="light"
                 component={Link}
+                color="blue"
                 href={`/profile/${profile.handle}/collections`}
-                c="blue"
-                fw={600}
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {collections.length > 0 ? (
@@ -92,14 +138,14 @@ export default function HomeContainer() {
                 <FaRegNoteSticky size={22} />
                 <Title order={2}>Cards</Title>
               </Group>
-              <Anchor
+              <Button
+                variant="light"
                 component={Link}
+                color="blue"
                 href={`/profile/${profile.handle}/cards`}
-                c="blue"
-                fw={600}
               >
                 View all
-              </Anchor>
+              </Button>
             </Group>
 
             {cards.length > 0 ? (
