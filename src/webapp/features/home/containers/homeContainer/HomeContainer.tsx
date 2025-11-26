@@ -15,7 +15,6 @@ import {
   Title,
   Text,
   Button,
-  Avatar,
 } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
