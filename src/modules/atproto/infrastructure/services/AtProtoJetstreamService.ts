@@ -265,7 +265,6 @@ export class AtProtoJetstreamService implements IFirehoseService {
     ];
   }
 
-
   private startEventCountLogging(): void {
     this.logInterval = setInterval(
       () => {
