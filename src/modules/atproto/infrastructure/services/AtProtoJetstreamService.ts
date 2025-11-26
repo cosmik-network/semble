@@ -44,7 +44,10 @@ interface JetstreamAccountEvent {
   };
 }
 
-type JetstreamEvent = JetstreamCommitEvent | JetstreamIdentityEvent | JetstreamAccountEvent;
+type JetstreamEvent =
+  | JetstreamCommitEvent
+  | JetstreamIdentityEvent
+  | JetstreamAccountEvent;
 
 export class AtProtoJetstreamService implements IFirehoseService {
   private ws?: WebSocket;
@@ -108,7 +111,9 @@ export class AtProtoJetstreamService implements IFirehoseService {
   }
 
   isRunning(): boolean {
-    return this.isRunningFlag && !!this.ws && this.ws.readyState === WebSocket.OPEN;
+    return (
+      this.isRunningFlag && !!this.ws && this.ws.readyState === WebSocket.OPEN
+    );
   }
 
   private async connect(): Promise<void> {
@@ -129,7 +134,9 @@ export class AtProtoJetstreamService implements IFirehoseService {
       });
 
       this.ws.on('close', (code: number, reason: Buffer) => {
-        console.log(`[JETSTREAM] WebSocket closed: ${code} ${reason.toString()}`);
+        console.log(
+          `[JETSTREAM] WebSocket closed: ${code} ${reason.toString()}`,
+        );
         if (this.isRunningFlag && !this.cleaningUp) {
           this.scheduleReconnect();
         }
@@ -151,9 +158,13 @@ export class AtProtoJetstreamService implements IFirehoseService {
     }
 
     this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, Math.min(this.reconnectAttempts - 1, 5)); // Exponential backoff, max 5
+    const delay =
+      this.reconnectDelay *
+      Math.pow(2, Math.min(this.reconnectAttempts - 1, 5)); // Exponential backoff, max 5
 
-    console.log(`[JETSTREAM] Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
+    console.log(
+      `[JETSTREAM] Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`,
+    );
 
     this.reconnectTimeout = setTimeout(async () => {
       try {
@@ -168,9 +179,9 @@ export class AtProtoJetstreamService implements IFirehoseService {
   private buildJetstreamUrl(): string {
     const baseUrl = this.configService.getAtProtoConfig().jetstreamWebsocket;
     const collections = this.getFilteredCollections();
-    
+
     const params = new URLSearchParams();
-    collections.forEach(collection => {
+    collections.forEach((collection) => {
       params.append('wantedCollections', collection);
     });
 
@@ -196,7 +207,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
     try {
       // Convert Jetstream event to our FirehoseEvent format
       const atUri = `at://${event.did}/${event.commit.collection}/${event.commit.rkey}`;
-      
+
       if (DEBUG_LOGGING) {
         console.log(
           `[JETSTREAM] Processing commit event: ${event.commit.operation} for ${event.did}`,
@@ -217,7 +228,9 @@ export class AtProtoJetstreamService implements IFirehoseService {
       };
 
       // Create FirehoseEvent from the synthetic event
-      const firehoseEventResult = FirehoseEvent.fromEvent(syntheticEvent as any);
+      const firehoseEventResult = FirehoseEvent.fromEvent(
+        syntheticEvent as any,
+      );
       if (firehoseEventResult.isErr()) {
         if (!firehoseEventResult.error.message.includes('is not processable')) {
           console.error(
@@ -228,7 +241,9 @@ export class AtProtoJetstreamService implements IFirehoseService {
         return;
       }
 
-      const result = await this.firehoseEventHandler.handle(firehoseEventResult.value);
+      const result = await this.firehoseEventHandler.handle(
+        firehoseEventResult.value,
+      );
 
       if (result.isErr()) {
         console.error(
@@ -239,10 +254,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
         console.log(`[JETSTREAM] Successfully processed event`);
       }
     } catch (error) {
-      console.error(
-        '[JETSTREAM] Unhandled error in handleCommitEvent:',
-        error,
-      );
+      console.error('[JETSTREAM] Unhandled error in handleCommitEvent:', error);
     }
   }
 
