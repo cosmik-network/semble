@@ -185,17 +185,8 @@ export class AtProtoJetstreamService implements IFirehoseService {
 
       if (message.kind === 'commit') {
         this.handleCommitEvent(message);
-      } else if (message.kind === 'identity') {
-        if (DEBUG_LOGGING) {
-          console.log(`[JETSTREAM] Received identity event for ${message.did}`);
-        }
-        // Identity events are not currently processed by our system
-      } else if (message.kind === 'account') {
-        if (DEBUG_LOGGING) {
-          console.log(`[JETSTREAM] Received account event for ${message.did}`);
-        }
-        // Account events are not currently processed by our system
       }
+      // Ignore identity and account events
     } catch (error) {
       console.error('[JETSTREAM] Failed to parse message:', error);
     }
