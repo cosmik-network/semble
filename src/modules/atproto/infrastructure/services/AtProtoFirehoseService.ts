@@ -17,6 +17,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private cleaningUp = false;
   private eventCount = 0;
   private logInterval?: NodeJS.Timeout;
+  private mostRecentEventTime?: Date;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -96,8 +97,26 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     this.eventCount++;
+    this.mostRecentEventTime = new Date(evt.time);
 
     try {
+      if (
+        evt.event !== 'create' &&
+        evt.event !== 'update' &&
+        evt.event !== 'delete'
+      ) {
+        return;
+      }
+      if (evt.collection === FIREHOSE_COLLECTIONS.APP_BSKY_POST) {
+        if (evt.did === 'did:plc:rlknsba2qldjkicxsmni3vyn') {
+          console.log(
+            'event from cosmik testing account:',
+            JSON.stringify(evt),
+          );
+        }
+        return;
+      }
+
       // Create FirehoseEvent value object (includes filtering logic)
       const firehoseEventResult = FirehoseEvent.fromEvent(evt);
       if (firehoseEventResult.isErr()) {
@@ -180,13 +199,23 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private startEventCountLogging(): void {
     this.logInterval = setInterval(
       () => {
+        const now = new Date();
+        let timingInfo = '';
+
+        if (this.mostRecentEventTime) {
+          const gapSeconds = Math.floor(
+            (now.getTime() - this.mostRecentEventTime.getTime()) / 1000,
+          );
+          timingInfo = ` | Most recent event: ${this.mostRecentEventTime.toISOString()} | Gap: ${gapSeconds}s`;
+        }
+
         console.log(
-          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}`,
+          `[FIREHOSE] Events processed in last 1 minutes: ${this.eventCount}${timingInfo}`,
         );
         this.eventCount = 0; // Reset counter
       },
-      5 * 60 * 1000,
-    ); // 5 minutes
+      1 * 60 * 1000,
+    ); // 1 minute intervals
   }
 
   private stopEventCountLogging(): void {

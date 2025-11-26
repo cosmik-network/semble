@@ -24,7 +24,7 @@ export default function SembleOverviewContainerSkeleton() {
               <Title order={2} fz={'h3'}>
                 Notes
               </Title>
-              <Skeleton w={60} h={22} />
+              <Skeleton w={87} h={36} radius={'xl'} />
             </Group>
 
             <Grid gutter="md">
@@ -42,7 +42,7 @@ export default function SembleOverviewContainerSkeleton() {
               <Title order={2} fz={'h3'}>
                 Collections
               </Title>
-              <Skeleton w={60} h={22} />
+              <Skeleton w={87} h={36} radius={'xl'} />
             </Group>
 
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
@@ -58,7 +58,7 @@ export default function SembleOverviewContainerSkeleton() {
               <Title order={2} fz={'h3'}>
                 Added by
               </Title>
-              <Skeleton w={60} h={22} />
+              <Skeleton w={87} h={36} radius={'xl'} />
             </Group>
 
             <Grid gutter="md">
@@ -83,7 +83,7 @@ export default function SembleOverviewContainerSkeleton() {
               <Title order={2} fz={'h3'}>
                 Similar cards
               </Title>
-              <Skeleton w={60} h={22} />
+              <Skeleton w={87} h={36} radius={'xl'} />
             </Group>
 
             <Grid gutter="md">

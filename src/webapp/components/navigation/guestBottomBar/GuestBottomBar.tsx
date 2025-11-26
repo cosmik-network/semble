@@ -2,7 +2,6 @@ import { AppShellFooter, Avatar, Group } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
-import Link from 'next/link';
 
 export default function GuestBottomBar() {
   return (
