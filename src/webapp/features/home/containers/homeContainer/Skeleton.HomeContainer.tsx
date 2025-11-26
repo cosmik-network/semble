@@ -13,6 +13,7 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import FeedItemSkeleton from '@/features/feeds/components/feedItem/Skeleton.FeedItem';
 
 export default function HomeContainerSkeleton() {
   return (
@@ -32,7 +33,7 @@ export default function HomeContainerSkeleton() {
           <Grid gutter="md">
             {Array.from({ length: 3 }).map((_, i) => (
               <GridCol key={i} span={{ base: 12, sm: 4 }}>
-                <UrlCardSkeleton />
+                <FeedItemSkeleton />
               </GridCol>
             ))}
           </Grid>

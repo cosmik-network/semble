@@ -15,6 +15,7 @@ import {
   Title,
   Text,
   Button,
+  Avatar,
 } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -27,12 +28,14 @@ import { useNavbarContext } from '@/providers/navbar';
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { sanitizeText } from '@/lib/utils/text';
+import { getRelativeTime } from '@/lib/utils/time';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: profile } = useMyProfile();
-  const { data: feed } = useGlobalFeed({ limit: 3 });
+  const { data: feed } = useGlobalFeed();
 
   const { desktopOpened } = useNavbarContext();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
@@ -67,7 +70,7 @@ export default function HomeContainer() {
 
             {feed.pages[0].activities.length > 0 ? (
               <Grid>
-                {feed.pages[0].activities.map((item) => (
+                {feed.pages[0].activities.slice(0, 3).map((item) => (
                   <Grid.Col
                     key={item.card.id}
                     span={{
@@ -77,15 +80,43 @@ export default function HomeContainer() {
                       md: 4,
                     }}
                   >
-                    <UrlCard
-                      id={item.card.id}
-                      url={item.card.url}
-                      cardContent={item.card.cardContent}
-                      note={item.card.note}
-                      urlLibraryCount={item.card.urlLibraryCount}
-                      urlIsInLibrary={item.card.urlInLibrary}
-                      cardAuthor={item.card.author}
-                    />
+                    <Stack gap={'xs'} align="stretch" h={'100%'}>
+                      <Group gap={'sm'} wrap="nowrap">
+                        <Group gap={'xs'} wrap="nowrap" flex={1}>
+                          <Avatar src={item.user.avatarUrl} />
+                          <Text
+                            component={Link}
+                            href={`/profile/${item.user.handle}`}
+                            fw={600}
+                            c={'bright'}
+                            lineClamp={1}
+                          >
+                            {sanitizeText(item.user.name)}
+                          </Text>
+                        </Group>
+                        <Text
+                          fz={'sm'}
+                          fw={600}
+                          c={'gray'}
+                          span
+                          display={'block'}
+                        >
+                          {getRelativeTime(item.createdAt.toString()) ===
+                          'just now'
+                            ? `Now`
+                            : `${getRelativeTime(item.createdAt.toString())} ago`}
+                        </Text>
+                      </Group>
+                      <UrlCard
+                        id={item.card.id}
+                        url={item.card.url}
+                        cardContent={item.card.cardContent}
+                        note={item.card.note}
+                        urlLibraryCount={item.card.urlLibraryCount}
+                        urlIsInLibrary={item.card.urlInLibrary}
+                        cardAuthor={item.card.author}
+                      />
+                    </Stack>
                   </Grid.Col>
                 ))}
               </Grid>
