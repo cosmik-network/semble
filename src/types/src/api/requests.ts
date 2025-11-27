@@ -18,6 +18,7 @@ export interface AddUrlToLibraryRequest {
   url: string;
   note?: string;
   collectionIds?: string[];
+  viaCardId?: string;
 }
 
 export interface AddCardToLibraryRequest {
@@ -40,6 +41,7 @@ export interface UpdateUrlCardAssociationsRequest {
   note?: string;
   addToCollections?: string[];
   removeFromCollections?: string[];
+  viaCardId?: string;
 }
 
 export interface RemoveCardFromLibraryRequest {

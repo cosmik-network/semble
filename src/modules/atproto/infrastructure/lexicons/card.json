@@ -40,6 +40,11 @@
             "type": "ref",
             "description": "Optional strong reference to the original card (for NOTE cards).",
             "ref": "com.atproto.repo.strongRef"
+          },
+          "provenance": {
+            "type": "ref",
+            "description": "Optional provenance information for this card.",
+            "ref": "network.cosmik.defs#provenance"
           }
         }
       }

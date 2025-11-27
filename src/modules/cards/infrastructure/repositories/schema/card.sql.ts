@@ -20,6 +20,7 @@ export const cards: PgTableWithColumns<any> = pgTable(
     contentData: jsonb('content_data').notNull(),
     url: text('url'), // Optional URL field for all card types
     parentCardId: uuid('parent_card_id').references(() => cards.id),
+    viaCardId: uuid('via_card_id').references(() => cards.id),
     publishedRecordId: uuid('published_record_id').references(
       () => publishedRecords.id,
     ),

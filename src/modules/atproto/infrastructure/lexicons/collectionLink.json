@@ -39,6 +39,11 @@
             "type": "string",
             "format": "datetime",
             "description": "Timestamp when this link record was created (usually set by PDS)."
+          },
+          "provenance": {
+            "type": "ref",
+            "description": "Optional provenance information for this link.",
+            "ref": "network.cosmik.defs#provenance"
           }
         }
       }

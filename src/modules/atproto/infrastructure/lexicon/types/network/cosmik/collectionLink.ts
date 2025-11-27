@@ -10,6 +10,7 @@ import {
   type OmitKey,
 } from '../../../util';
 import type * as ComAtprotoRepoStrongRef from '../../com/atproto/repo/strongRef.js';
+import type * as NetworkCosmikDefs from './defs.js';
 
 const is$typed = _is$typed,
   validate = _validate;
@@ -26,6 +27,7 @@ export interface Record {
   addedAt: string;
   /** Timestamp when this link record was created (usually set by PDS). */
   createdAt?: string;
+  provenance?: NetworkCosmikDefs.Provenance;
   [k: string]: unknown;
 }
 

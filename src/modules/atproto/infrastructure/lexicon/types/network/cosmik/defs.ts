@@ -9,26 +9,24 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../util';
+import type * as ComAtprotoRepoStrongRef from '../../com/atproto/repo/strongRef.js';
 
 const is$typed = _is$typed,
   validate = _validate;
 const id = 'network.cosmik.defs';
 
-/** Represents an identifier with a type and value. */
-export interface Identifier {
-  $type?: 'network.cosmik.defs#identifier';
-  /** The type of identifier (e.g., 'doi', 'at-uri', 'isbn'). */
-  type: string;
-  /** The identifier value. */
-  value: string;
+/** Represents the provenance or source of a record. */
+export interface Provenance {
+  $type?: 'network.cosmik.defs#provenance';
+  via?: ComAtprotoRepoStrongRef.Main;
 }
 
-const hashIdentifier = 'identifier';
+const hashProvenance = 'provenance';
 
-export function isIdentifier<V>(v: V) {
-  return is$typed(v, id, hashIdentifier);
+export function isProvenance<V>(v: V) {
+  return is$typed(v, id, hashProvenance);
 }
 
-export function validateIdentifier<V>(v: V) {
-  return validate<Identifier & V>(v, id, hashIdentifier);
+export function validateProvenance<V>(v: V) {
+  return validate<Provenance & V>(v, id, hashProvenance);
 }
