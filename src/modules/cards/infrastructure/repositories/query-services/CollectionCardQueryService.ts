@@ -126,13 +126,19 @@ export class CollectionCardQueryService {
           urlLibraryCount: urlLibraryCountMap.get(card.url || '') || 0,
         }));
 
-        // Sort by urlLibraryCount
+        // Sort by urlLibraryCount with secondary sort by updatedAt
         cardsWithUrlLibraryCount.sort((a, b) => {
-          if (sortOrder === SortOrder.ASC) {
-            return a.urlLibraryCount - b.urlLibraryCount;
-          } else {
-            return b.urlLibraryCount - a.urlLibraryCount;
+          // Primary sort: urlLibraryCount
+          const libraryCountDiff = sortOrder === SortOrder.ASC 
+            ? a.urlLibraryCount - b.urlLibraryCount
+            : b.urlLibraryCount - a.urlLibraryCount;
+          
+          // If library counts are equal, sort by updatedAt (default sort)
+          if (libraryCountDiff === 0) {
+            return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
           }
+          
+          return libraryCountDiff;
         });
 
         // Apply pagination
