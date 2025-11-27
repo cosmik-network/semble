@@ -221,7 +221,8 @@ describe('CreateCollectionUseCase', () => {
       expect(savedCollections).toHaveLength(0);
 
       // Verify no collection was published
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(0);
     });
 
