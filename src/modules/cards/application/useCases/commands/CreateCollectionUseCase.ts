@@ -78,12 +78,6 @@ export class CreateCollectionUseCase
 
       const collection = collectionResult.value;
 
-      // Save collection
-      const saveResult = await this.collectionRepository.save(collection);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
-      }
-
       // Handle publishing - skip if publishedRecordId provided (firehose event)
       if (request.publishedRecordId) {
         // Mark collection as published with provided record ID
