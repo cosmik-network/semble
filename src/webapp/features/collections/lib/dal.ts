@@ -8,12 +8,11 @@ interface PageParams {
   limit?: number;
   cardSortBy?: CardSortField;
   collectionSortBy?: CollectionSortField;
-  sortOrder?: SortOrder;
 }
 
 interface SearchParams {
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: SortOrder;
   searchText?: string;
 }
 
@@ -119,7 +118,7 @@ export const getCollectionPageByAtUri = cache(
   }: {
     recordKey: string;
     handle: string;
-    params?: PageParams;
+    params?: PageParams & SearchParams;
   }) => {
     const client = createSembleClient();
     const response = await client.getCollectionPageByAtUri({

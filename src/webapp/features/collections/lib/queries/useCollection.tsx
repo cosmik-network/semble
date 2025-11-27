@@ -15,13 +15,23 @@ export default function useCollection(props: Props) {
   const limit = props.limit ?? 20;
 
   return useSuspenseInfiniteQuery({
-    queryKey: collectionKeys.infinite(props.rkey, props.limit, props.sortBy, props.sortOrder),
+    queryKey: collectionKeys.infinite(
+      props.rkey,
+      props.limit,
+      props.sortBy,
+      props.sortOrder,
+    ),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getCollectionPageByAtUri({
         recordKey: props.rkey,
         handle: props.handle,
-        params: { limit, page: pageParam, cardSortBy: props.sortBy, sortOrder: props.sortOrder },
+        params: {
+          limit,
+          page: pageParam,
+          cardSortBy: props.sortBy,
+          sortOrder: props.sortOrder,
+        },
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore
