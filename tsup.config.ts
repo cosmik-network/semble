@@ -14,4 +14,9 @@ export default defineConfig({
   sourcemap: true,
   // Bundle workspace dependencies
   noExternal: ['@semble/types'],
+  // Enable type checking
+  dts: false, // We don't need declaration files for the main app
+  skipNodeModulesBundle: true,
+  // This will make tsup type-check all files including workspace packages
+  tsconfig: './tsconfig.json',
 });
