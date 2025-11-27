@@ -11,11 +11,16 @@ import { CollectionSortField } from '@semble/types';
 interface Props {
   handle: string;
   sortBy?: CollectionSortField;
+  query?: string;
 }
 
 export default function CollectionsContainerContent(props: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useCollections({ didOrHandle: props.handle, sortBy: props.sortBy });
+    useCollections({
+      didOrHandle: props.handle,
+      sortBy: props.sortBy,
+      query: props.query,
+    });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -25,7 +30,14 @@ export default function CollectionsContainerContent(props: Props) {
   if (collections.length === 0) {
     return (
       <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab message="No collections" icon={BiCollection} />
+        <ProfileEmptyTab
+          message={
+            props.query
+              ? `No collections found for "${props.query}"`
+              : 'No collections'
+          }
+          icon={BiCollection}
+        />
       </Container>
     );
   }

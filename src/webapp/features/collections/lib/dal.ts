@@ -8,6 +8,7 @@ interface PageParams {
   limit?: number;
   cardSortBy?: CardSortField;
   collectionSortBy?: CollectionSortField;
+  query?: string;
 }
 
 interface SearchParams {
@@ -38,6 +39,7 @@ export const getCollections = cache(
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
+      searchText: params?.query,
     });
 
     // Temp fix: filter out collections without uri

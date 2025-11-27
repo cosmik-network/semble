@@ -10,5 +10,6 @@ export const collectionKeys = {
     id?: string,
     limit?: number,
     sortBy?: CollectionSortField | CardSortField,
-  ) => [...collectionKeys.all(), 'infinite', id, limit, sortBy],
+    query?: string,
+  ) => [...collectionKeys.all(), 'infinite', id, limit, sortBy, query],
 };
