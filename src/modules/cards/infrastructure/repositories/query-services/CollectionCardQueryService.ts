@@ -83,7 +83,7 @@ export class CollectionCardQueryService {
       if (sortBy === CardSortField.LIBRARY_COUNT) {
         // Get all cards first
         const allCardsResult = await cardsQuery;
-        
+
         if (allCardsResult.length === 0) {
           return {
             items: [],
@@ -101,8 +101,13 @@ export class CollectionCardQueryService {
             count: countDistinct(libraryMemberships.userId),
           })
           .from(cards)
-          .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-          .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          )
           .groupBy(cards.url);
 
         const urlLibraryCountsResult = await urlLibraryCountsQuery;
@@ -132,7 +137,10 @@ export class CollectionCardQueryService {
 
         // Apply pagination
         const startIndex = (page - 1) * limit;
-        cardsWithUrlLibraryCount = cardsWithUrlLibraryCount.slice(startIndex, startIndex + limit);
+        cardsWithUrlLibraryCount = cardsWithUrlLibraryCount.slice(
+          startIndex,
+          startIndex + limit,
+        );
       }
 
       // Execute query based on sort type
@@ -203,8 +211,13 @@ export class CollectionCardQueryService {
             count: countDistinct(libraryMemberships.userId),
           })
           .from(cards)
-          .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-          .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          )
           .groupBy(cards.url);
 
         const urlLibraryCountsResult = await urlLibraryCountsQuery;
@@ -258,7 +271,7 @@ export class CollectionCardQueryService {
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
-      const offset = (page - 1) * limit;
+      // const offset = (page - 1) * limit;
       const hasMore = offset + cardsResult.length < totalCount;
 
       // Combine the data
