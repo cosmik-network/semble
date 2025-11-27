@@ -22,7 +22,7 @@ export default function DiscoverOnSemble() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Stack gap={'xs'}>
+        <Stack gap={0}>
           <Group gap="xs">
             <MdOutlineEmojiNature size={22} />
             <Title order={2}>Discover on Semble</Title>
