@@ -66,7 +66,7 @@ export default function CollectionCard(props: Props) {
           {cards.length > 0 && (
             <Grid gutter={'xs'}>
               {cards.map((c) => (
-                <Grid.Col span={3}>
+                <Grid.Col key={c.id} span={3}>
                   {c.cardContent.thumbnailUrl ? (
                     <AspectRatio ratio={16 / 9}>
                       <Image
