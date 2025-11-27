@@ -13,5 +13,13 @@ export const collectionKeys = {
     sortBy?: CollectionSortField | CardSortField,
     queryOrSortOrder?: string | SortOrder,
     query?: string,
-  ) => [...collectionKeys.all(), 'infinite', id, limit, sortBy, queryOrSortOrder, query],
+  ) => [
+    ...collectionKeys.all(),
+    'infinite',
+    id,
+    limit,
+    sortBy,
+    queryOrSortOrder,
+    query,
+  ],
 };
