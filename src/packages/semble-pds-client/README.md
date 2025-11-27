@@ -15,7 +15,7 @@ import { SemblePDSClient } from '@cosmik.network/semble-pds-client';
 
 const client = new SemblePDSClient({
   service: 'https://bsky.social', // or your PDS URL
-  env: 'dev', // optional: appends to NSID (e.g. network.cosmik.dev.*)
+  env: 'dev', // optional: appends to NSID (e.g. network.cosmik.dev.*), usually only used for testing purposes
 });
 
 // Login with app password
