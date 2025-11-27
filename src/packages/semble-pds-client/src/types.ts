@@ -13,6 +13,11 @@ export interface UrlMetadata {
   retrievedAt?: string;
 }
 
+export interface CreateCardResult {
+  urlCard: StrongRef;
+  noteCard?: StrongRef;
+}
+
 export interface CreateCardOptions {
   url: string;
   note?: string;

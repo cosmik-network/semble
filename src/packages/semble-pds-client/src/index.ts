@@ -55,7 +55,7 @@ export class SemblePDSClient {
     }
   }
 
-  async createCard(options: CreateCardOptions): Promise<StrongRef> {
+  async createCard(options: CreateCardOptions): Promise<CreateCardResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
@@ -113,14 +113,20 @@ export class SemblePDSClient {
         record: noteRecord,
       });
 
-      // Return the note card reference since it's the "final" card created
-      return {
+      const noteCard = {
         uri: noteResponse.data.uri,
         cid: noteResponse.data.cid,
       };
+
+      return {
+        urlCard,
+        noteCard,
+      };
     }
 
-    return urlCard;
+    return {
+      urlCard,
+    };
   }
 
   async addNoteToCard(
