@@ -22,7 +22,10 @@ export default function CardsContainer(props: Props) {
       case 'oldest':
         return { sortBy: CardSortField.UPDATED_AT, sortOrder: SortOrder.ASC };
       case 'most-popular':
-        return { sortBy: CardSortField.LIBRARY_COUNT, sortOrder: SortOrder.DESC };
+        return {
+          sortBy: CardSortField.LIBRARY_COUNT,
+          sortOrder: SortOrder.DESC,
+        };
       default:
         return { sortBy: CardSortField.UPDATED_AT, sortOrder: SortOrder.DESC };
     }
@@ -47,10 +50,10 @@ export default function CardsContainer(props: Props) {
           ]}
         />
         <Suspense fallback={<CardsContainerContentSkeleton />}>
-          <CardsContainerContent 
-            handle={props.handle} 
+          <CardsContainerContent
+            handle={props.handle}
             sortBy={sortBy}
-            sortOrder={sortOrder} 
+            sortOrder={sortOrder}
           />
         </Suspense>
       </Stack>
