@@ -166,7 +166,7 @@ export class CollectionCardQueryService {
       } else {
         // Execute standard query with sorting and pagination
         cardsResult = await cardsQuery
-          .orderBy(orderDirection(this.getSortColumn(sortBy)))
+          .orderBy(orderDirection(this.getCollectionSortColumn(sortBy)))
           .limit(limit)
           .offset(offset);
       }
@@ -336,6 +336,19 @@ export class CollectionCardQueryService {
         return cards.libraryCount;
       default:
         return cards.updatedAt;
+    }
+  }
+
+  private getCollectionSortColumn(sortBy: CardSortField) {
+    switch (sortBy) {
+      case CardSortField.CREATED_AT:
+        return collectionCards.addedAt;
+      case CardSortField.UPDATED_AT:
+        return collectionCards.addedAt;
+      case CardSortField.LIBRARY_COUNT:
+        return cards.libraryCount;
+      default:
+        return collectionCards.addedAt;
     }
   }
 }
