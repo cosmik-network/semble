@@ -279,12 +279,12 @@ export class AtProtoJetstreamService implements IFirehoseService {
         }
 
         console.log(
-          `[JETSTREAM] Events processed in last 1 minute: ${this.eventCount}${timingInfo}`,
+          `[JETSTREAM] Events processed in last 10 minutes: ${this.eventCount}${timingInfo}`,
         );
         this.eventCount = 0; // Reset counter
       },
-      1 * 60 * 1000,
-    ); // 1 minute intervals
+      10 * 60 * 1000,
+    ); // 10 minute intervals
   }
 
   private stopEventCountLogging(): void {
