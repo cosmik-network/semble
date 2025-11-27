@@ -409,8 +409,9 @@ describe('UpdateCollectionUseCase', () => {
       expect(finalPublishCount).toBe(initialPublishCount);
     });
 
-    it('should handle republishing failure gracefully', async () => {
+    it('should not update collection when republishing fails', async () => {
       const collection = await createCollection(curatorId, 'Original Name');
+      const originalUpdatedAt = collection.updatedAt;
 
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
@@ -429,6 +430,14 @@ describe('UpdateCollectionUseCase', () => {
           'Failed to republish collection',
         );
       }
+
+      // Verify collection was NOT updated when republishing failed
+      const unchangedCollectionResult = await collectionRepository.findById(
+        collection.collectionId,
+      );
+      const unchangedCollection = unchangedCollectionResult.unwrap()!;
+      expect(unchangedCollection.name.value).toBe('Original Name');
+      expect(unchangedCollection.updatedAt).toEqual(originalUpdatedAt);
     });
   });
 

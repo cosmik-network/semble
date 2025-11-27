@@ -123,12 +123,6 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         }
 
         urlCard = urlCardResult.value;
-
-        // Save URL card
-        const saveUrlCardResult = await this.cardRepository.save(urlCard);
-        if (saveUrlCardResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveUrlCardResult.error));
-        }
       }
 
       // Add URL card to library using domain service
@@ -230,14 +224,6 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           }
 
           noteCard = noteCardResult.value;
-
-          // Save note card
-          const saveNoteCardResult = await this.cardRepository.save(noteCard);
-          if (saveNoteCardResult.isErr()) {
-            return err(
-              AppError.UnexpectedError.create(saveNoteCardResult.error),
-            );
-          }
 
           // Add note card to library using domain service
           // Note: For note cards, we don't pass publishedRecordId here since it's handled

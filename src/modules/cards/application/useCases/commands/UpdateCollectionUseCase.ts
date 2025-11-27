@@ -5,8 +5,6 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
-import { CollectionName } from '../../../domain/value-objects/CollectionName';
-import { CollectionDescription } from '../../../domain/value-objects/CollectionDescription';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
@@ -107,12 +105,6 @@ export class UpdateCollectionUseCase
       );
       if (updateResult.isErr()) {
         return err(new ValidationError(updateResult.error.message));
-      }
-
-      // Save updated collection
-      const saveResult = await this.collectionRepository.save(collection);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
       // Handle republishing - skip if publishedRecordId provided (firehose event)
