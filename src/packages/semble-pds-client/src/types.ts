@@ -25,4 +25,6 @@ export interface CreateCollectionOptions {
 
 export interface SemblePDSClientOptions {
   service: string;
+  // Optional environment string that gets appended to the NSID, e.g. cosmik.network.{env}.*
+  env?: string;
 }

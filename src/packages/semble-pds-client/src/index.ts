@@ -10,14 +10,20 @@ import {
 
 export class SemblePDSClient {
   private agent: AtpAgent;
-  private readonly CARD_COLLECTION = 'network.cosmik.card';
-  private readonly COLLECTION_COLLECTION = 'network.cosmik.collection';
-  private readonly COLLECTION_LINK_COLLECTION = 'network.cosmik.collectionLink';
+  private readonly BASE_NSID: string;
+  private readonly CARD_COLLECTION: string;
+  private readonly COLLECTION_COLLECTION: string;
+  private readonly COLLECTION_LINK_COLLECTION: string;
 
   constructor(options: SemblePDSClientOptions) {
     this.agent = new AtpAgent({
       service: options.service,
     });
+    
+    this.BASE_NSID = options.env ? `network.cosmik.${options.env}` : 'network.cosmik';
+    this.CARD_COLLECTION = `${this.BASE_NSID}.card`;
+    this.COLLECTION_COLLECTION = `${this.BASE_NSID}.collection`;
+    this.COLLECTION_LINK_COLLECTION = `${this.BASE_NSID}.collectionLink`;
   }
 
   async login(identifier: string, password: string): Promise<void> {
@@ -59,10 +65,10 @@ export class SemblePDSClient {
       type: 'URL',
       url: options.url,
       content: {
-        $type: 'network.cosmik.card#urlContent',
+        $type: `${this.BASE_NSID}.card#urlContent`,
         url: options.url,
         ...(metadata && {
-          metadata: { $type: 'network.cosmik.card#urlMetadata', ...metadata },
+          metadata: { $type: `${this.BASE_NSID}.card#urlMetadata`, ...metadata },
         }),
       },
       createdAt: new Date().toISOString(),
@@ -92,7 +98,7 @@ export class SemblePDSClient {
       $type: this.CARD_COLLECTION,
       type: 'NOTE',
       content: {
-        $type: 'network.cosmik.card#noteContent',
+        $type: `${this.BASE_NSID}.card#noteContent`,
         text: noteText,
       },
       parentCard: {
@@ -187,7 +193,7 @@ export class SemblePDSClient {
       $type: this.CARD_COLLECTION,
       type: 'NOTE',
       content: {
-        $type: 'network.cosmik.card#noteContent',
+        $type: `${this.BASE_NSID}.card#noteContent`,
         text: updatedText,
       },
       createdAt: new Date().toISOString(),
