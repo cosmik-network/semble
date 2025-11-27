@@ -581,9 +581,19 @@ describe('AddUrlToLibraryUseCase', () => {
         expect(result.error.message).toContain('Failed to publish');
       }
 
-      // Verify no cards were saved when collection publishing failed
+      // card should still be published to library
       const savedCards = cardRepository.getAllCards();
-      expect(savedCards).toHaveLength(0);
+      expect(savedCards).toHaveLength(1);
+
+      const savedCollection = await collectionRepository.findById(
+        collection.collectionId,
+      );
+      if (savedCollection.isErr()) {
+        throw new Error(
+          `Failed to retrieve collection: ${savedCollection.error.message}`,
+        );
+      }
+      expect(savedCollection.value?.cardCount).toBe(0); // card count should be 0 since link publishing failed
 
       // Verify no collection links were published
       const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
