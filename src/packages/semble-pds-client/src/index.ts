@@ -19,8 +19,10 @@ export class SemblePDSClient {
     this.agent = new AtpAgent({
       service: options.service,
     });
-    
-    this.BASE_NSID = options.env ? `network.cosmik.${options.env}` : 'network.cosmik';
+
+    this.BASE_NSID = options.env
+      ? `network.cosmik.${options.env}`
+      : 'network.cosmik';
     this.CARD_COLLECTION = `${this.BASE_NSID}.card`;
     this.COLLECTION_COLLECTION = `${this.BASE_NSID}.collection`;
     this.COLLECTION_LINK_COLLECTION = `${this.BASE_NSID}.collectionLink`;
@@ -68,7 +70,10 @@ export class SemblePDSClient {
         $type: `${this.BASE_NSID}.card#urlContent`,
         url: options.url,
         ...(metadata && {
-          metadata: { $type: `${this.BASE_NSID}.card#urlMetadata`, ...metadata },
+          metadata: {
+            $type: `${this.BASE_NSID}.card#urlMetadata`,
+            ...metadata,
+          },
         }),
       },
       createdAt: new Date().toISOString(),
@@ -80,10 +85,42 @@ export class SemblePDSClient {
       record,
     });
 
-    return {
+    const urlCard = {
       uri: response.data.uri,
       cid: response.data.cid,
     };
+
+    // If a note is provided, create a NOTE card that references the URL card as parent
+    if (options.note) {
+      const noteRecord = {
+        $type: this.CARD_COLLECTION,
+        type: 'NOTE',
+        url: options.url,
+        content: {
+          $type: `${this.BASE_NSID}.card#noteContent`,
+          text: options.note,
+        },
+        parentCard: {
+          uri: urlCard.uri,
+          cid: urlCard.cid,
+        },
+        createdAt: new Date().toISOString(),
+      };
+
+      const noteResponse = await this.agent.com.atproto.repo.createRecord({
+        repo: this.agent.session.did,
+        collection: this.CARD_COLLECTION,
+        record: noteRecord,
+      });
+
+      // Return the note card reference since it's the "final" card created
+      return {
+        uri: noteResponse.data.uri,
+        cid: noteResponse.data.cid,
+      };
+    }
+
+    return urlCard;
   }
 
   async addNoteToCard(
