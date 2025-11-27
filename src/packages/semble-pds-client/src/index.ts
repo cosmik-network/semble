@@ -6,6 +6,7 @@ import {
   CreateCardOptions,
   CreateCollectionOptions,
   SemblePDSClientOptions,
+  CreateCardResult,
 } from './types';
 
 export class SemblePDSClient {
