@@ -582,13 +582,13 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       // Verify sorting by library count (descending)
       expect(result.items[0]?.url).toBe(url1.value); // Most popular (3 libraries)
-      expect(result.items[0]?.libraryCount).toBe(3);
+      expect(result.items[0]?.urlLibraryCount).toBe(3);
 
       expect(result.items[1]?.url).toBe(url2.value); // Medium popular (2 libraries)
-      expect(result.items[1]?.libraryCount).toBe(2);
+      expect(result.items[1]?.urlLibraryCount).toBe(2);
 
       expect(result.items[2]?.url).toBe(url3.value); // Least popular (1 library)
-      expect(result.items[2]?.libraryCount).toBe(1);
+      expect(result.items[2]?.urlLibraryCount).toBe(1);
     });
 
     it('should handle pagination for collection cards', async () => {
