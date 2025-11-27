@@ -1,29 +1,19 @@
 'use client';
 
 import { ExtensionService } from '@/services/extensionService';
-import {
-  Stack,
-  Text,
-  Button,
-  UnstyledButton,
-  TextInput,
-  PasswordInput,
-  Alert,
-} from '@mantine/core';
-import { BiRightArrowAlt } from 'react-icons/bi';
-import { MdOutlineAlternateEmail, MdLock } from 'react-icons/md';
+import { Stack } from '@mantine/core';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from '@mantine/form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createSembleClient } from '@/services/apiClient';
+import OAuthLoginForm from './OAuthLoginForm';
+import AppPasswordLoginForm from './AppPasswordLoginForm';
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, refreshAuth } = useAuth();
-
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,8 +50,6 @@ export default function LoginForm() {
       isExtensionLogin
         ? handleExtensionTokenGeneration()
         : router.push('/home');
-    } else {
-      setIsCheckingAuth(false);
     }
   }, [isAuthenticated, isExtensionLogin]);
 
@@ -139,115 +127,31 @@ export default function LoginForm() {
     },
   });
 
-  if (form.values.useAppPassword) {
-    return (
-      <Stack gap={'lg'}>
-        <form onSubmit={handleAppPasswordSubmit}>
-          <Stack align="center">
-            <TextInput
-              autoComplete="username"
-              name="username"
-              label="Handle"
-              placeholder="you.bsky.social"
-              key={form.key('handle')}
-              value={form.values.handle}
-              onChange={(event) => {
-                form.setFieldValue('handle', event.currentTarget.value);
-                if (error) setError('');
-              }}
-              leftSection={<MdOutlineAlternateEmail size={22} />}
-              variant="filled"
-              size="lg"
-              w={'100%'}
-              required
-            />
-            <PasswordInput
-              autoComplete="password"
-              name="password"
-              label="App password"
-              placeholder="Your password"
-              key={form.key('appPassword')}
-              {...form.getInputProps('appPassword')}
-              leftSection={<MdLock size={22} />}
-              variant="filled"
-              size="lg"
-              w={'100%'}
-              required
-            />
-            <Button
-              type="submit"
-              size="lg"
-              color="var(--mantine-color-dark-filled)"
-              fullWidth
-              rightSection={<BiRightArrowAlt size={22} />}
-              loading={isLoading}
-            >
-              Log in
-            </Button>
-            {error && <Alert title={error} color="red" />}
-          </Stack>
-        </form>
-        <Stack align="center">
-          <UnstyledButton
-            fw={500}
-            onClick={() => {
-              form.setFieldValue('useAppPassword', false);
-              setError('');
-            }}
-          >
-            Use OAuth login
-          </UnstyledButton>
-        </Stack>
-      </Stack>
-    );
-  }
-
   return (
-    <Stack gap={'xl'}>
-      <form onSubmit={handleOAuthSubmit}>
-        <Stack align="center">
-          <TextInput
-            autoComplete="username"
-            name="username"
-            label="Handle"
-            placeholder="you.bsky.social"
-            key={form.key('handle')}
-            value={form.values.handle}
-            onChange={(event) => {
-              form.setFieldValue('handle', event.currentTarget.value);
-              if (error) setError('');
-            }}
-            leftSection={<MdOutlineAlternateEmail size={22} />}
-            variant="filled"
-            size="lg"
-            w={'100%'}
-            required
-          />
-          <Button
-            type="submit"
-            size="lg"
-            color="var(--mantine-color-dark-filled)"
-            fullWidth
-            rightSection={<BiRightArrowAlt size={22} />}
-            loading={isLoading}
-          >
-            Log in
-          </Button>
-          {error && <Alert title={error} color="red" />}
-          <Text fw={500} c={'stone'}>
-            Or
-          </Text>
-          <UnstyledButton
-            fw={500}
-            onClick={() => {
-              form.setFieldValue('useAppPassword', true);
-              setError('');
-            }}
-          >
-            Use your app password
-          </UnstyledButton>
-        </Stack>
-      </form>
+    <Stack>
+      {form.values.useAppPassword ? (
+        <AppPasswordLoginForm
+          form={form}
+          error={error}
+          isLoading={isLoading}
+          onSubmit={handleAppPasswordSubmit}
+          onSwitchToOAuth={() => {
+            form.setFieldValue('useAppPassword', false);
+            setError('');
+          }}
+        />
+      ) : (
+        <OAuthLoginForm
+          form={form}
+          error={error}
+          isLoading={isLoading}
+          onSubmit={handleOAuthSubmit}
+          onSwitchToAppPassword={() => {
+            form.setFieldValue('useAppPassword', true);
+            setError('');
+          }}
+        />
+      )}
     </Stack>
   );
 }
