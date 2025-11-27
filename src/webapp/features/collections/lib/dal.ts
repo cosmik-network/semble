@@ -8,7 +8,6 @@ interface PageParams {
   limit?: number;
   cardSortBy?: CardSortField;
   collectionSortBy?: CollectionSortField;
-  query?: string;
 }
 
 interface SearchParams {
@@ -32,14 +31,14 @@ export const getCollectionsForUrl = cache(
 );
 
 export const getCollections = cache(
-  async (didOrHandle: string, params?: PageParams) => {
+  async (didOrHandle: string, params?: PageParams & SearchParams) => {
     const client = createSembleClient();
     const response = await client.getCollections({
       identifier: didOrHandle,
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
-      searchText: params?.query,
+      searchText: params?.searchText,
     });
 
     // Temp fix: filter out collections without uri

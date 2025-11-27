@@ -26,7 +26,7 @@ export default function useCollections(props: Props) {
         limit,
         page: pageParam,
         collectionSortBy: props.sortBy,
-        query: props?.query,
+        searchText: props?.query,
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore
