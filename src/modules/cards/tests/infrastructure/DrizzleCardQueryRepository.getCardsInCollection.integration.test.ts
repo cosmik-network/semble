@@ -476,30 +476,80 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
     });
 
     it('should handle sorting by library count in collection', async () => {
-      // Create URL cards - each URL card can only be in its creator's library
-      const url1 = URL.create('https://example.com/popular').unwrap();
+      // Create 3 URL cards with different popularity levels
+      const url1 = URL.create('https://example.com/most-popular').unwrap();
+      const url2 = URL.create('https://example.com/medium-popular').unwrap();
+      const url3 = URL.create('https://example.com/least-popular').unwrap();
+
+      // Create URL cards from the first curator (collection author)
       const urlCard1 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url1)
+        .withCreatedAt(new Date('2023-01-01'))
+        .withUpdatedAt(new Date('2023-01-01'))
         .buildOrThrow();
 
-      const url2 = URL.create('https://example.com/less-popular').unwrap();
       const urlCard2 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url2)
+        .withCreatedAt(new Date('2023-01-02'))
+        .withUpdatedAt(new Date('2023-01-02'))
+        .buildOrThrow();
+
+      const urlCard3 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url3)
+        .withCreatedAt(new Date('2023-01-03'))
+        .withUpdatedAt(new Date('2023-01-03'))
         .buildOrThrow();
 
       await cardRepository.save(urlCard1);
       await cardRepository.save(urlCard2);
+      await cardRepository.save(urlCard3);
 
-      // Add cards to creator's library - URL cards can only be in creator's library
+      // Add cards to creator's library
       urlCard1.addToLibrary(curatorId);
-      await cardRepository.save(urlCard1);
-
       urlCard2.addToLibrary(curatorId);
-      await cardRepository.save(urlCard2);
+      urlCard3.addToLibrary(curatorId);
 
-      // Create collection and add both cards
+      await cardRepository.save(urlCard1);
+      await cardRepository.save(urlCard2);
+      await cardRepository.save(urlCard3);
+
+      // Create additional cards for the same URLs from other users to increase library counts
+      // URL 1 will be in 3 libraries (curatorId, otherCuratorId, thirdCuratorId)
+      const urlCard1_user2 = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url1)
+        .buildOrThrow();
+
+      const urlCard1_user3 = new CardBuilder()
+        .withCuratorId(thirdCuratorId.value)
+        .withUrlCard(url1)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard1_user2);
+      await cardRepository.save(urlCard1_user3);
+
+      urlCard1_user2.addToLibrary(otherCuratorId);
+      urlCard1_user3.addToLibrary(thirdCuratorId);
+
+      await cardRepository.save(urlCard1_user2);
+      await cardRepository.save(urlCard1_user3);
+
+      // URL 2 will be in 2 libraries (curatorId, otherCuratorId)
+      const urlCard2_user2 = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url2)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2_user2);
+      urlCard2_user2.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2_user2);
+
+      // URL 3 will be in 1 library (only curatorId) - no additional cards needed
+
+      // Create collection and add all three cards
       const collection = Collection.create(
         {
           authorId: curatorId,
@@ -514,6 +564,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       collection.addCard(urlCard1.cardId, curatorId);
       collection.addCard(urlCard2.cardId, curatorId);
+      collection.addCard(urlCard3.cardId, curatorId);
       await collectionRepository.save(collection);
 
       // Query cards sorted by library count descending
@@ -527,10 +578,17 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         },
       );
 
-      expect(result.items).toHaveLength(2);
-      // Both URL cards have library count of 1 (only in creator's library)
-      expect(result.items[0]?.libraryCount).toBe(1);
-      expect(result.items[1]?.libraryCount).toBe(1);
+      expect(result.items).toHaveLength(3);
+
+      // Verify sorting by library count (descending)
+      expect(result.items[0]?.url).toBe(url1.value); // Most popular (3 libraries)
+      expect(result.items[0]?.libraryCount).toBe(3);
+
+      expect(result.items[1]?.url).toBe(url2.value); // Medium popular (2 libraries)
+      expect(result.items[1]?.libraryCount).toBe(2);
+
+      expect(result.items[2]?.url).toBe(url3.value); // Least popular (1 library)
+      expect(result.items[2]?.libraryCount).toBe(1);
     });
 
     it('should handle pagination for collection cards', async () => {
