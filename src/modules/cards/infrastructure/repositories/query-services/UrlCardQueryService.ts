@@ -68,8 +68,13 @@ export class UrlCardQueryService {
             count: countDistinct(libraryMemberships.userId),
           })
           .from(cards)
-          .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-          .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          )
           .groupBy(cards.url);
 
         const urlLibraryCountsResult = await urlLibraryCountsQuery;
@@ -91,15 +96,16 @@ export class UrlCardQueryService {
         // Sort by urlLibraryCount with secondary sort by updatedAt
         cardsWithUrlLibraryCount.sort((a, b) => {
           // Primary sort: urlLibraryCount
-          const libraryCountDiff = sortOrder === SortOrder.ASC 
-            ? a.urlLibraryCount - b.urlLibraryCount
-            : b.urlLibraryCount - a.urlLibraryCount;
-          
+          const libraryCountDiff =
+            sortOrder === SortOrder.ASC
+              ? a.urlLibraryCount - b.urlLibraryCount
+              : b.urlLibraryCount - a.urlLibraryCount;
+
           // If library counts are equal, sort by updatedAt (default sort)
           if (libraryCountDiff === 0) {
             return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
           }
-          
+
           return libraryCountDiff;
         });
 
@@ -600,7 +606,10 @@ export class UrlCardQueryService {
             count: countDistinct(libraryMemberships.userId),
           })
           .from(cards)
-          .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
           .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
 
         const urlLibraryCountResult = await urlLibraryCountQuery;
@@ -615,15 +624,16 @@ export class UrlCardQueryService {
         // Sort by urlLibraryCount with secondary sort by updatedAt
         librariesWithCount.sort((a, b) => {
           // Primary sort: urlLibraryCount
-          const libraryCountDiff = sortOrder === SortOrder.ASC 
-            ? a.urlLibraryCount - b.urlLibraryCount
-            : b.urlLibraryCount - a.urlLibraryCount;
-          
+          const libraryCountDiff =
+            sortOrder === SortOrder.ASC
+              ? a.urlLibraryCount - b.urlLibraryCount
+              : b.urlLibraryCount - a.urlLibraryCount;
+
           // If library counts are equal, sort by updatedAt (default sort)
           if (libraryCountDiff === 0) {
             return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
           }
-          
+
           return libraryCountDiff;
         });
 

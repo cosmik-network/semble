@@ -129,15 +129,16 @@ export class CollectionCardQueryService {
         // Sort by urlLibraryCount with secondary sort by updatedAt
         cardsWithUrlLibraryCount.sort((a, b) => {
           // Primary sort: urlLibraryCount
-          const libraryCountDiff = sortOrder === SortOrder.ASC 
-            ? a.urlLibraryCount - b.urlLibraryCount
-            : b.urlLibraryCount - a.urlLibraryCount;
-          
+          const libraryCountDiff =
+            sortOrder === SortOrder.ASC
+              ? a.urlLibraryCount - b.urlLibraryCount
+              : b.urlLibraryCount - a.urlLibraryCount;
+
           // If library counts are equal, sort by updatedAt (default sort)
           if (libraryCountDiff === 0) {
             return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
           }
-          
+
           return libraryCountDiff;
         });
 
