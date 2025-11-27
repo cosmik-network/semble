@@ -22,12 +22,17 @@ export default function DiscoverOnSemble() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Group gap="xs">
-          <MdOutlineEmojiNature size={22} />
-          <Title order={2}>Discover on Semble</Title>
-        </Group>
+        <Stack gap={'xs'}>
+          <Group gap="xs">
+            <MdOutlineEmojiNature size={22} />
+            <Title order={2}>Discover on Semble</Title>
+          </Group>
+          <Text fw={500} fz={'lg'}>
+            Recommendations based on your activity
+          </Text>
+        </Stack>
         <Button variant="light" component={Link} color="blue" href={'/explore'}>
-          View all
+          Explore
         </Button>
       </Group>
 
