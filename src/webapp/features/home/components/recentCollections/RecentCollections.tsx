@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';

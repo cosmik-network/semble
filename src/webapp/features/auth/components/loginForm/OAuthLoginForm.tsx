@@ -122,11 +122,7 @@ export default function OAuthLoginForm(props: Props) {
             <Combobox.Dropdown hidden={debounced.trim().length === 0}>
               <Combobox.Options>
                 <ScrollArea.Autosize type="scroll" mah={200}>
-                  {isFetching && (
-                    <Combobox.Empty>
-                      Searching...
-                    </Combobox.Empty>
-                  )}
+                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
                   {error && (
                     <Combobox.Empty>
                       Could not search for profiles

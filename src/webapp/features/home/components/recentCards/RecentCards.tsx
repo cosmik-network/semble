@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
