@@ -12,6 +12,7 @@ import {
   Group,
   Avatar,
   ScrollArea,
+  Skeleton,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -57,7 +58,11 @@ export default function OAuthLoginForm(props: Props) {
   });
 
   const suggestions = actors;
-  const empty = !error && debounced.trim() && suggestions.length === 0;
+  const empty =
+    !error &&
+    !isFetching &&
+    debounced.trim().length > 0 &&
+    suggestions.length === 0;
 
   const options = suggestions.map((user) => (
     <Combobox.Option key={user.did} value={user.handle} p={5}>
@@ -114,14 +119,21 @@ export default function OAuthLoginForm(props: Props) {
               />
             </Combobox.Target>
 
-            <Combobox.Dropdown hidden={!suggestions.length && !empty && !error}>
+            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
               <Combobox.Options>
                 <ScrollArea.Autosize type="scroll" mah={200}>
-                  {error && <Combobox.Empty>Search failed</Combobox.Empty>}
-                  {!error && options}
-                  {!error && empty && (
-                    <Combobox.Empty>No users found</Combobox.Empty>
+                  {isFetching && (
+                    <Combobox.Empty>
+                      Searching...
+                    </Combobox.Empty>
                   )}
+                  {error && (
+                    <Combobox.Empty>
+                      Could not search for profiles
+                    </Combobox.Empty>
+                  )}
+                  {empty && <Combobox.Empty>No profiles found</Combobox.Empty>}
+                  {options.length > 0 && options}
                 </ScrollArea.Autosize>
               </Combobox.Options>
             </Combobox.Dropdown>
