@@ -11,7 +11,7 @@ export const collectionKeys = {
     id?: string,
     limit?: number,
     sortBy?: CollectionSortField | CardSortField,
-    queryOrSortOrder?: string | SortOrder,
+    sortOrder?: SortOrder,
     query?: string,
   ) => [
     ...collectionKeys.all(),
@@ -19,7 +19,7 @@ export const collectionKeys = {
     id,
     limit,
     sortBy,
-    queryOrSortOrder,
+    sortOrder,
     query,
   ],
 };

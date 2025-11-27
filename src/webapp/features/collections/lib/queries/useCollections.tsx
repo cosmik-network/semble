@@ -18,6 +18,7 @@ export default function useCollections(props: Props) {
       props.didOrHandle,
       props.limit,
       props?.sortBy,
+      undefined, // sortOrder
       props.query,
     ),
     initialPageParam: 1,
