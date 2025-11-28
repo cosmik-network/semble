@@ -2,7 +2,7 @@ import { useNavbarContext } from '@/providers/navbar';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField } from '@semble/types';
 import { Anchor, Box, Button, Grid, Stack, Text } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
@@ -14,7 +14,6 @@ interface Props {
   rkey: string;
   handle: string;
   sortBy: CardSortField;
-  sortOrder: SortOrder;
 }
 
 export default function CollectionContainerContent(props: Props) {
@@ -27,7 +26,6 @@ export default function CollectionContainerContent(props: Props) {
       rkey: props.rkey,
       handle: props.handle,
       sortBy: props.sortBy,
-      sortOrder: props.sortOrder,
     });
 
   const firstPage = data.pages[0];
