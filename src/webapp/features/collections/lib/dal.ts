@@ -1,6 +1,6 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/apiClient';
-import { CardSortField, CollectionSortField } from '@semble/types';
+import { CardSortField, CollectionSortField, SortOrder } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -12,7 +12,7 @@ interface PageParams {
 
 interface SearchParams {
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: SortOrder;
   searchText?: string;
 }
 
@@ -118,7 +118,7 @@ export const getCollectionPageByAtUri = cache(
   }: {
     recordKey: string;
     handle: string;
-    params?: PageParams;
+    params?: PageParams & SearchParams;
   }) => {
     const client = createSembleClient();
     const response = await client.getCollectionPageByAtUri({
@@ -127,6 +127,7 @@ export const getCollectionPageByAtUri = cache(
       page: params?.page,
       limit: params?.limit,
       sortBy: params?.cardSortBy,
+      sortOrder: params?.sortOrder,
     });
 
     return response;

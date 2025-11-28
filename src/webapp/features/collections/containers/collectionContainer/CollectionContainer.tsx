@@ -16,7 +16,7 @@ import { Suspense, useState } from 'react';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
-import { CardSortField } from '@semble/types';
+import { CardSortField, SortOrder } from '@semble/types';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 
@@ -25,6 +25,8 @@ interface Props {
   handle: string;
 }
 
+type SortOption = 'newest' | 'oldest' | 'most-popular';
+
 export default function CollectionContainer(props: Props) {
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
@@ -32,7 +34,25 @@ export default function CollectionContainer(props: Props) {
   });
 
   const firstPage = data.pages[0];
-  const [sortBy, setSortBy] = useState<CardSortField>(CardSortField.CREATED_AT);
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+
+  const getSortParams = (option: SortOption) => {
+    switch (option) {
+      case 'newest':
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
+      case 'oldest':
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.ASC };
+      case 'most-popular':
+        return {
+          sortBy: CardSortField.LIBRARY_COUNT,
+          sortOrder: SortOrder.DESC,
+        };
+      default:
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
+    }
+  };
+
+  const { sortBy, sortOrder } = getSortParams(sortOption);
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -88,12 +108,12 @@ export default function CollectionContainer(props: Props) {
             size="sm"
             label="Sort by"
             allowDeselect={false}
-            value={sortBy}
-            onChange={(value) => setSortBy(value as CardSortField)}
+            value={sortOption}
+            onChange={(value) => setSortOption(value as SortOption)}
             data={[
-              { value: CardSortField.CREATED_AT, label: 'Created (Newest)' },
-              { value: CardSortField.UPDATED_AT, label: 'Updated (Newest)' },
-              { value: CardSortField.LIBRARY_COUNT, label: 'Most Popular' },
+              { value: 'newest', label: 'Newest' },
+              { value: 'oldest', label: 'Oldest' },
+              { value: 'most-popular', label: 'Most Popular' },
             ]}
           />*/}
           <CollectionActions
@@ -110,6 +130,7 @@ export default function CollectionContainer(props: Props) {
             rkey={props.rkey}
             handle={props.handle}
             sortBy={sortBy}
+            sortOrder={sortOrder}
           />
         </Suspense>
       </Stack>
