@@ -130,7 +130,7 @@ export default function AddCardDrawer(props: Props) {
                 <Text fw={500}>
                   Add to collections{' '}
                   {selectedCollections.length > 0 &&
-                    `(${selectedCollections.length} selected)`}
+                    `(${selectedCollections.length})`}
                 </Text>
                 <ScrollArea.Autosize style={{ overflow: 'scroll' }}>
                   <Group gap={'xs'} wrap="nowrap">
@@ -142,7 +142,7 @@ export default function AddCardDrawer(props: Props) {
                     >
                       {myCollections.length === 0
                         ? 'Create a collection'
-                        : 'Manage'}
+                        : 'Manage/View all'}
                     </Button>
 
                     {myCollections.map((col) => (
