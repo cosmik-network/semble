@@ -1,3 +1,5 @@
+'use client';
+
 import { getDomain } from '@/lib/utils/link';
 import {
   Anchor,
@@ -10,6 +12,7 @@ import {
 } from '@mantine/core';
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
+import { useState } from 'react';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
@@ -17,6 +20,7 @@ interface Props {
 
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
+  const [imageError, setImageError] = useState(false);
 
   return (
     <Group justify="space-between" align="start" gap={'lg'}>
@@ -54,7 +58,7 @@ export default function LinkCardContent(props: Props) {
           </Text>
         )}
       </Stack>
-      {props.cardContent.thumbnailUrl && (
+      {props.cardContent.thumbnailUrl && !imageError && (
         <AspectRatio ratio={1 / 1}>
           <Image
             src={props.cardContent.thumbnailUrl}
@@ -62,6 +66,7 @@ export default function LinkCardContent(props: Props) {
             radius={'md'}
             w={75}
             h={75}
+            onError={() => setImageError(true)}
           />
         </AspectRatio>
       )}
