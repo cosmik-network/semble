@@ -1,5 +1,6 @@
 import { AspectRatio, Card, Center, Grid, Text, Image } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
+import { useState } from 'react';
 
 interface Props {
   rkey: string;
@@ -7,6 +8,8 @@ interface Props {
 }
 
 export default function CollectionCardPreview(props: Props) {
+  const [imageError, setImageError] = useState(false);
+
   const { data } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -21,7 +24,7 @@ export default function CollectionCardPreview(props: Props) {
     <Grid gutter={'xs'}>
       {cards.map((c) => (
         <Grid.Col key={c.id} span={3}>
-          {c.cardContent.thumbnailUrl ? (
+          {c.cardContent.thumbnailUrl && !imageError ? (
             <AspectRatio ratio={16 / 9}>
               <Image
                 src={c.cardContent.thumbnailUrl}
@@ -29,6 +32,7 @@ export default function CollectionCardPreview(props: Props) {
                 radius={'md'}
                 h={45}
                 w={'100%'}
+                onError={() => setImageError(true)}
               />
             </AspectRatio>
           ) : (
