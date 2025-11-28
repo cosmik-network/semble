@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Anchor,
-  Button,
-  Container,
-  Grid,
-  Group,
-  SimpleGrid,
-  Stack,
-  Title,
-} from '@mantine/core';
+import { Button, Grid, Group, SimpleGrid, Stack, Title } from '@mantine/core';
 import useSembleNotes from '../../lib/queries/useSembleNotes';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -66,161 +57,159 @@ export default function SembleOverviewContainer(props: Props) {
     similarCards?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
   return (
-    <Container p={'xs'} size={'xl'}>
-      <Stack>
-        <Stack gap={50}>
-          {/* Notes */}
-          <Stack>
-            <Group justify="space-between">
-              <Title order={2} fz={'h3'}>
-                Notes
-              </Title>
-              <Button
-                onClick={() => props.onViewTab('notes')}
-                variant="light"
-                color="blue"
-              >
-                View all
-              </Button>
-            </Group>
+    <Stack>
+      <Stack gap={50}>
+        {/* Notes */}
+        <Stack>
+          <Group justify="space-between">
+            <Title order={2} fz={'h3'}>
+              Notes
+            </Title>
+            <Button
+              onClick={() => props.onViewTab('notes')}
+              variant="light"
+              color="blue"
+            >
+              View all
+            </Button>
+          </Group>
 
-            {errorNotes ? (
-              <SembleNotesContainerError />
-            ) : allNotes.length > 0 ? (
-              <Grid gutter="md">
-                {allNotes.map((note) => (
-                  <Grid.Col
-                    key={note.id}
-                    span={{
-                      base: 12,
-                      xs: desktopOpened ? 12 : 6,
-                      sm: desktopOpened ? 6 : 4,
-                      lg: 4,
-                    }}
-                  >
-                    <NoteCard
-                      id={note.id}
-                      author={note.author}
-                      createdAt={note.createdAt}
-                      note={note.note}
-                    />
-                  </Grid.Col>
-                ))}
-              </Grid>
-            ) : (
-              <ProfileEmptyTab message="No notes" icon={FaRegNoteSticky} />
-            )}
-          </Stack>
+          {errorNotes ? (
+            <SembleNotesContainerError />
+          ) : allNotes.length > 0 ? (
+            <Grid gutter="md">
+              {allNotes.map((note) => (
+                <Grid.Col
+                  key={note.id}
+                  span={{
+                    base: 12,
+                    xs: desktopOpened ? 12 : 6,
+                    sm: desktopOpened ? 6 : 4,
+                    lg: 4,
+                  }}
+                >
+                  <NoteCard
+                    id={note.id}
+                    author={note.author}
+                    createdAt={note.createdAt}
+                    note={note.note}
+                  />
+                </Grid.Col>
+              ))}
+            </Grid>
+          ) : (
+            <ProfileEmptyTab message="No notes" icon={FaRegNoteSticky} />
+          )}
+        </Stack>
 
-          {/* Collections */}
-          <Stack>
-            <Group justify="space-between">
-              <Title order={2} fz={'h3'}>
-                Collections
-              </Title>
-              <Button
-                onClick={() => props.onViewTab('collections')}
-                variant="light"
-                color="blue"
-              >
-                View all
-              </Button>
-            </Group>
+        {/* Collections */}
+        <Stack>
+          <Group justify="space-between">
+            <Title order={2} fz={'h3'}>
+              Collections
+            </Title>
+            <Button
+              onClick={() => props.onViewTab('collections')}
+              variant="light"
+              color="blue"
+            >
+              View all
+            </Button>
+          </Group>
 
-            {errorCollections ? (
-              <SembleCollectionsError />
-            ) : allCollections.length > 0 ? (
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
-                {allCollections.map((collection) => (
-                  <CollectionCard key={collection.id} collection={collection} />
-                ))}
-              </SimpleGrid>
-            ) : (
-              <SembleEmptyTab message="No collections" icon={BiCollection} />
-            )}
-          </Stack>
+          {errorCollections ? (
+            <SembleCollectionsError />
+          ) : allCollections.length > 0 ? (
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+              {allCollections.map((collection) => (
+                <CollectionCard key={collection.id} collection={collection} />
+              ))}
+            </SimpleGrid>
+          ) : (
+            <SembleEmptyTab message="No collections" icon={BiCollection} />
+          )}
+        </Stack>
 
-          {/* Libraries */}
-          <Stack>
-            <Group justify="space-between">
-              <Title order={2} fz={'h3'}>
-                Added by
-              </Title>
-              <Button
-                onClick={() => props.onViewTab('addedBy')}
-                variant="light"
-                color="blue"
-              >
-                View all
-              </Button>
-            </Group>
+        {/* Libraries */}
+        <Stack>
+          <Group justify="space-between">
+            <Title order={2} fz={'h3'}>
+              Added by
+            </Title>
+            <Button
+              onClick={() => props.onViewTab('addedBy')}
+              variant="light"
+              color="blue"
+            >
+              View all
+            </Button>
+          </Group>
 
-            {errorLibraries ? (
-              <SembleLibrariesContainerError />
-            ) : allLibraries.length > 0 ? (
-              <Grid gutter="md">
-                {allLibraries.map((item) => (
-                  <Grid.Col
-                    key={item.user.name}
-                    span={{
-                      base: 12,
-                      xs: desktopOpened ? 12 : 6,
-                      sm: desktopOpened ? 6 : 4,
-                      lg: 4,
-                    }}
-                  >
-                    <AddedByCard item={item} />
-                  </Grid.Col>
-                ))}
-              </Grid>
-            ) : (
-              <SembleEmptyTab
-                message="No one has added this link to their library yet"
-                icon={LuLibrary}
-              />
-            )}
-          </Stack>
+          {errorLibraries ? (
+            <SembleLibrariesContainerError />
+          ) : allLibraries.length > 0 ? (
+            <Grid gutter="md">
+              {allLibraries.map((item) => (
+                <Grid.Col
+                  key={item.user.name}
+                  span={{
+                    base: 12,
+                    xs: desktopOpened ? 12 : 6,
+                    sm: desktopOpened ? 6 : 4,
+                    lg: 4,
+                  }}
+                >
+                  <AddedByCard item={item} />
+                </Grid.Col>
+              ))}
+            </Grid>
+          ) : (
+            <SembleEmptyTab
+              message="No one has added this link to their library yet"
+              icon={LuLibrary}
+            />
+          )}
+        </Stack>
 
-          {/* Similar cards */}
-          <Stack>
-            <Group justify="space-between">
-              <Title order={2} fz={'h3'}>
-                Similar cards
-              </Title>
-              <Button
-                onClick={() => props.onViewTab('similar')}
-                variant="light"
-                color="blue"
-              >
-                View all
-              </Button>
-            </Group>
+        {/* Similar cards */}
+        <Stack>
+          <Group justify="space-between">
+            <Title order={2} fz={'h3'}>
+              Similar cards
+            </Title>
+            <Button
+              onClick={() => props.onViewTab('similar')}
+              variant="light"
+              color="blue"
+            >
+              View all
+            </Button>
+          </Group>
 
-            {errorSimilarCards ? (
-              <SembleSimilarCardsContainerError />
-            ) : allSimilarCards.length > 0 ? (
-              <Grid gutter="md">
-                {allSimilarCards.map((urlView) => (
-                  <Grid.Col
-                    key={urlView.url}
-                    span={{
-                      base: 12,
-                      xs: desktopOpened ? 12 : 6,
-                      sm: desktopOpened ? 6 : 4,
-                      md: 4,
-                      lg: 3,
-                    }}
-                  >
-                    <SimilarUrlCard urlView={urlView} />
-                  </Grid.Col>
-                ))}
-              </Grid>
-            ) : (
-              <SembleEmptyTab message="No similar cards found" icon={BiLink} />
-            )}
-          </Stack>
+          {errorSimilarCards ? (
+            <SembleSimilarCardsContainerError />
+          ) : allSimilarCards.length > 0 ? (
+            <Grid gutter="md">
+              {allSimilarCards.map((urlView) => (
+                <Grid.Col
+                  key={urlView.url}
+                  span={{
+                    base: 12,
+                    xs: desktopOpened ? 12 : 6,
+                    sm: desktopOpened ? 6 : 4,
+                    md: 4,
+                    lg: 3,
+                  }}
+                >
+                  <SimilarUrlCard urlView={urlView} />
+                </Grid.Col>
+              ))}
+            </Grid>
+          ) : (
+            <SembleEmptyTab message="No similar cards found" icon={BiLink} />
+          )}
         </Stack>
       </Stack>
-    </Container>
+    </Stack>
   );
 }
