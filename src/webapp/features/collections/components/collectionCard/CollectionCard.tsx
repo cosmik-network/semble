@@ -3,21 +3,12 @@
 import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import {
-  AspectRatio,
-  Avatar,
-  Box,
-  Card,
-  Group,
-  Stack,
-  Image,
-  Text,
-  Center,
-  Grid,
-} from '@mantine/core';
+import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import { useRouter } from 'next/navigation';
-import useCollection from '../../lib/queries/useCollection';
+import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
+import { Suspense } from 'react';
+import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -29,12 +20,6 @@ export default function CollectionCard(props: Props) {
   const router = useRouter();
   const { collection } = props;
   const rkey = getRecordKey(collection.uri!!);
-  const { data } = useCollection({
-    rkey: rkey,
-    handle: props.collection.author.handle,
-    limit: 4,
-  });
-  const cards = data?.pages.flatMap((col) => col.urlCards) ?? [];
 
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
@@ -63,37 +48,12 @@ export default function CollectionCard(props: Props) {
             )}
           </Stack>
 
-          {cards.length > 0 && (
-            <Grid gutter={'xs'}>
-              {cards.map((c) => (
-                <Grid.Col key={c.id} span={3}>
-                  {c.cardContent.thumbnailUrl ? (
-                    <AspectRatio ratio={16 / 9}>
-                      <Image
-                        src={c.cardContent.thumbnailUrl}
-                        alt={`${c.cardContent.url} social preview image`}
-                        radius={'md'}
-                        h={45}
-                        w={'100%'}
-                      />
-                    </AspectRatio>
-                  ) : (
-                    <AspectRatio ratio={16 / 9}>
-                      <Card p={'xs'} radius={'md'} h={45} w={'100%'} withBorder>
-                        <Center>
-                          <Text fz={'xs'} fw={500} lineClamp={1}>
-                            {c.cardContent.title ??
-                              c.cardContent.description ??
-                              c.cardContent.url}
-                          </Text>
-                        </Center>
-                      </Card>
-                    </AspectRatio>
-                  )}
-                </Grid.Col>
-              ))}
-            </Grid>
-          )}
+          <Suspense fallback={<CollectionCardPreviewSkeleton />}>
+            <CollectionCardPreview
+              rkey={rkey}
+              handle={props.collection.author.handle}
+            />
+          </Suspense>
 
           <Group justify="space-between">
             <Text c={'gray'}>
