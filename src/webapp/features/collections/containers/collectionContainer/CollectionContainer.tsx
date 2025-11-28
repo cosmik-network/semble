@@ -103,7 +103,7 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         <Group justify="space-between" align="end">
-          <Select
+          {/*<Select
             mr={'auto'}
             size="sm"
             label="Sort by"
@@ -115,7 +115,7 @@ export default function CollectionContainer(props: Props) {
               { value: 'oldest', label: 'Oldest' },
               { value: 'most-popular', label: 'Most Popular' },
             ]}
-          />
+          />*/}
           <CollectionActions
             id={firstPage.id}
             rkey={props.rkey}
