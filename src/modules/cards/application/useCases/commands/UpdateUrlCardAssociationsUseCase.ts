@@ -214,14 +214,6 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
 
           noteCard = noteCardResult.value;
 
-          // Save note card
-          const saveNoteCardResult = await this.cardRepository.save(noteCard);
-          if (saveNoteCardResult.isErr()) {
-            return err(
-              AppError.UnexpectedError.create(saveNoteCardResult.error),
-            );
-          }
-
           // Determine service options based on context
           const isFirehoseEvent =
             request.context === OperationContext.FIREHOSE_EVENT;

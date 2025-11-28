@@ -36,3 +36,26 @@ export const searchBlueskyUsers = cache(
     return res.data.actors;
   },
 );
+
+interface SearchParams {
+  searchText: string;
+}
+
+interface PageParams {
+  page?: string;
+  limit?: number;
+  sortBy?: string;
+}
+
+export const searchBlueskyPosts = cache(
+  async (params: PageParams & SearchParams) => {
+    const agent = new AtpAgent({ service: 'https://public.api.bsky.app' });
+    const posts = await agent.app.bsky.feed.searchPosts({
+      q: params.searchText,
+      limit: params?.limit,
+      cursor: params.page,
+    });
+
+    return posts;
+  },
+);

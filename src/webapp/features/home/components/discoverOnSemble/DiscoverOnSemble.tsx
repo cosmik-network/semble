@@ -15,19 +15,27 @@ export default function DiscoverOnSemble() {
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: similarCardsData } = useSembleSimilarCards({
     url:
-      myCardsData.pages[0].cards[0].url ?? profile.description ?? profile.name,
+      myCardsData.pages[0].cards[0]?.url ??
+      `https://bsky.app/profile/${profile?.handle}`,
   });
   const cards = similarCardsData.pages.flatMap((page) => page.urls) ?? [];
 
   return (
     <Stack>
       <Group justify="space-between">
-        <Group gap="xs">
-          <MdOutlineEmojiNature size={22} />
-          <Title order={2}>Discover on Semble</Title>
-        </Group>
+        <Stack gap={0}>
+          <Group gap="xs">
+            <MdOutlineEmojiNature size={22} />
+            <Title order={2}>Discover on Semble</Title>
+          </Group>
+          <Text fw={500} fz={'lg'}>
+            {`Recommendations based on your ${
+              myCardsData.pages[0].cards.length > 0 ? 'activity' : 'profile'
+            }`}
+          </Text>
+        </Stack>
         <Button variant="light" component={Link} color="blue" href={'/explore'}>
-          View all
+          Explore
         </Button>
       </Group>
 

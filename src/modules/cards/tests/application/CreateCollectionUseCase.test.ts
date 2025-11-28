@@ -200,7 +200,7 @@ describe('CreateCollectionUseCase', () => {
   });
 
   describe('Publishing integration', () => {
-    it('should handle publishing failure gracefully', async () => {
+    it('should not save collection when publishing fails', async () => {
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
 
@@ -216,9 +216,14 @@ describe('CreateCollectionUseCase', () => {
         expect(result.error.message).toContain('Failed to publish collection');
       }
 
-      // Verify collection was not saved if publishing failed
+      // Verify collection was NOT saved when publishing failed
       const savedCollections = collectionRepository.getAllCollections();
-      expect(savedCollections).toHaveLength(1); // Collection is saved before publishing
+      expect(savedCollections).toHaveLength(0);
+
+      // Verify no collection was published
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
+      expect(publishedCollections).toHaveLength(0);
     });
 
     it('should save collection with published record ID after successful publish', async () => {
