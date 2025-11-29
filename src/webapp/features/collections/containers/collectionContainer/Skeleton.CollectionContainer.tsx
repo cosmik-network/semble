@@ -24,7 +24,13 @@ export default function CollectionContainerSkeleton() {
         </Group>
 
         <Group justify="space-between" align="end">
-          <Select mr={'auto'} size="sm" label="Sort by" allowDeselect={false} />
+          <Select
+            disabled
+            mr={'auto'}
+            size="sm"
+            label="Sort by"
+            allowDeselect={false}
+          />
           <Group>
             <Skeleton w={100} h={32} radius={'md'} />
             <Skeleton w={32} h={32} radius={'md'} />
