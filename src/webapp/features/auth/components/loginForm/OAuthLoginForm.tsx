@@ -45,7 +45,7 @@ export default function OAuthLoginForm(props: Props) {
   });
 
   const [inputValue, setInputValue] = useState(props.form.values.handle);
-  const [debounced] = useDebouncedValue(inputValue, 300);
+  const [debounced] = useDebouncedValue(inputValue, 200);
 
   const {
     data: actors = [],
