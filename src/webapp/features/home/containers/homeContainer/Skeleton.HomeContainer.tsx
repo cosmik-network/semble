@@ -6,7 +6,7 @@ import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton
 export default function HomeContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
-      <Stack gap="xl">
+      <Stack>
         <Title order={1}>Home</Title>
 
         <Stack gap={50}>
