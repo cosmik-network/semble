@@ -39,6 +39,7 @@ export default function CardsContainer(props: Props) {
         <Select
           allowDeselect={false}
           mr={'auto'}
+          variant="filled"
           size="sm"
           label="Sort by"
           value={sortOption}

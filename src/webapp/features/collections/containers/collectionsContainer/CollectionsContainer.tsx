@@ -34,6 +34,7 @@ export default function CollectionsContainer(props: Props) {
             allowDeselect={false}
             mr={'auto'}
             size="sm"
+            variant="filled"
             label="Sort by"
             value={sortBy}
             onChange={(value) => setSortBy(value as CollectionSortField)}
@@ -48,6 +49,7 @@ export default function CollectionsContainer(props: Props) {
           <TextInput
             placeholder={'Search for collections'}
             value={search}
+            variant="filled"
             onChange={(e) => setSearch(e.currentTarget.value)}
             leftSection={<IoSearch />}
             rightSection={

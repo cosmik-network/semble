@@ -106,6 +106,7 @@ export default function CollectionContainer(props: Props) {
           <Select
             mr={'auto'}
             size="sm"
+            variant="filled"
             label="Sort by"
             allowDeselect={false}
             value={sortOption}
