@@ -75,6 +75,7 @@ export default async function ProfileHeader(props: Props) {
               href={`https://bsky.app/profile/${profile.handle}`}
               target="_blank"
               variant="light"
+              size="xs"
               radius={'xl'}
               color={'gray'}
               leftSection={<FaBluesky />}
