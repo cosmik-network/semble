@@ -132,7 +132,7 @@ export default function AddCardDrawer(props: Props) {
                   {selectedCollections.length > 0 &&
                     `(${selectedCollections.length})`}
                 </Text>
-                <ScrollArea.Autosize style={{ overflow: 'scroll' }}>
+                <ScrollArea.Autosize type="hover">
                   <Group gap={'xs'} wrap="nowrap">
                     <Button
                       onClick={toggleCollectionSelector}
