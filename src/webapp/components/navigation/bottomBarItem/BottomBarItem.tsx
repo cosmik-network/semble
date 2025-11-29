@@ -41,7 +41,7 @@ export default function BottomBarItem(props: Props) {
           {renderIcon()}
         </ActionIcon>
         {props.title && (
-          <Text fz={'sm'} fw={600} c={'gray'}>
+          <Text fz={'sm'} fw={600} c={isActive ? 'bright' : 'gray'}>
             {props.title}
           </Text>
         )}
