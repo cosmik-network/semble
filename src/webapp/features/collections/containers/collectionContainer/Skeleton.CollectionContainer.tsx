@@ -27,6 +27,7 @@ export default function CollectionContainerSkeleton() {
           <Select
             disabled
             mr={'auto'}
+            variant="filled"
             size="sm"
             label="Sort by"
             allowDeselect={false}
