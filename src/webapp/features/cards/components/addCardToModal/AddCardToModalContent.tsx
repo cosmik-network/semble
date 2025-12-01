@@ -1,6 +1,5 @@
 'use client';
 
-import type { UrlCard } from '@/api-client';
 import { Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
@@ -57,7 +56,7 @@ export default function AddCardToModalContent(props: Props) {
 
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
-    track('add or update card');
+    track('add or update existing card');
 
     const trimmedNote = note?.trimEnd() === '' ? undefined : note;
 

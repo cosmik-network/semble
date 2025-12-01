@@ -1,3 +1,17 @@
 .main {
   overscroll-behavior: none;
 }
+
+.option {
+  &[data-combobox-selected] {
+    color: var(--mantine-color-white);
+
+    @mixin light {
+      background-color: var(--mantine-color-gray-2);
+    }
+
+    @mixin dark {
+      background-color: var(--mantine-color-dark-5);
+    }
+  }
+}

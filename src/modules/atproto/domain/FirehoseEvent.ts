@@ -4,8 +4,10 @@ import { ATUri } from './ATUri';
 import { DID } from './DID';
 import type { Event, CommitEvt, Create, Update, Delete } from '@atproto/sync';
 import type { RepoRecord } from '@atproto/lexicon';
-import type { CID } from 'multiformats/cid';
 
+export const FIREHOSE_COLLECTIONS = {
+  APP_BSKY_POST: 'app.bsky.feed.post',
+};
 export class InvalidFirehoseEventError extends Error {
   constructor(message: string) {
     super(message);

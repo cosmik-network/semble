@@ -15,6 +15,7 @@ import { SemblePDSClient } from '@cosmik.network/semble-pds-client';
 
 const client = new SemblePDSClient({
   service: 'https://bsky.social', // or your PDS URL
+  env: 'dev', // optional: appends to NSID (e.g. network.cosmik.dev.*), usually only used for testing purposes
 });
 
 // Login with app password
@@ -62,6 +63,7 @@ await client.removeCardFromCollection(collectionLink);
 
 - `new SemblePDSClient(options)` - Create a new client instance
   - `options.service` - PDS service URL
+  - `options.env` - Optional environment string that gets appended to the NSID (e.g. `network.cosmik.{env}.*`)
 
 #### Methods
 

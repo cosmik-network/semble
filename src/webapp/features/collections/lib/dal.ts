@@ -1,6 +1,6 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/apiClient';
-import { CardSortField, CollectionSortField } from '@semble/types';
+import { CardSortField, CollectionSortField, SortOrder } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -12,7 +12,7 @@ interface PageParams {
 
 interface SearchParams {
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: SortOrder;
   searchText?: string;
 }
 
@@ -31,13 +31,14 @@ export const getCollectionsForUrl = cache(
 );
 
 export const getCollections = cache(
-  async (didOrHandle: string, params?: PageParams) => {
+  async (didOrHandle: string, params?: PageParams & SearchParams) => {
     const client = createSembleClient();
     const response = await client.getCollections({
       identifier: didOrHandle,
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
+      searchText: params?.searchText,
     });
 
     // Temp fix: filter out collections without uri
@@ -117,7 +118,7 @@ export const getCollectionPageByAtUri = cache(
   }: {
     recordKey: string;
     handle: string;
-    params?: PageParams;
+    params?: PageParams & SearchParams;
   }) => {
     const client = createSembleClient();
     const response = await client.getCollectionPageByAtUri({
@@ -126,6 +127,7 @@ export const getCollectionPageByAtUri = cache(
       page: params?.page,
       limit: params?.limit,
       sortBy: params?.cardSortBy,
+      sortOrder: params?.sortOrder,
     });
 
     return response;

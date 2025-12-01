@@ -12,15 +12,21 @@ export default function BottomBar() {
   return (
     <AppShellFooter px={'sm'} pb={'lg'} py={'xs'} hiddenFrom="sm">
       <Group align="start" justify="space-around" gap={'lg'} h={'100%'}>
-        <BottomBarItem href="/home" icon={LuLibrary} />
-        <BottomBarItem href="/explore" icon={MdOutlineEmojiNature} />
+        <BottomBarItem href="/home" title="Home" icon={LuLibrary} />
+        <BottomBarItem
+          href="/explore"
+          title="Explore"
+          icon={MdOutlineEmojiNature}
+        />
         <BottomBarItem
           href={`/profile/${profile.handle}/cards`}
+          title="Cards"
           icon={FaRegNoteSticky}
         />
         <BottomBarItem href="/notifications" icon={RiNotification2Line} />
         <BottomBarItem
           href={`/profile/${profile.handle}`}
+          title={'Profile'}
           icon={<Avatar src={profile.avatarUrl} />}
         />
       </Group>

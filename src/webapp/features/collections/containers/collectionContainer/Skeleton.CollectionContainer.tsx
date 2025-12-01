@@ -1,4 +1,4 @@
-import { Container, Group, Skeleton, Stack, Text } from '@mantine/core';
+import { Container, Group, Select, Skeleton, Stack, Text } from '@mantine/core';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 
 export default function CollectionContainerSkeleton() {
@@ -23,9 +23,19 @@ export default function CollectionContainerSkeleton() {
           </Stack>
         </Group>
 
-        <Group justify="end">
-          <Skeleton w={100} h={32} radius={'md'} />
-          <Skeleton w={32} h={32} radius={'md'} />
+        <Group justify="space-between" align="end">
+          <Select
+            disabled
+            mr={'auto'}
+            variant="filled"
+            size="sm"
+            label="Sort by"
+            allowDeselect={false}
+          />
+          <Group>
+            <Skeleton w={100} h={32} radius={'md'} />
+            <Skeleton w={32} h={32} radius={'md'} />
+          </Group>
         </Group>
 
         {/* Cards */}

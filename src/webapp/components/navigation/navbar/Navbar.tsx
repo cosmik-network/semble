@@ -26,7 +26,7 @@ import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
-import { RiNotification2Line } from 'react-icons/ri';
+import { track } from '@vercel/analytics';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -65,11 +65,6 @@ export default function Navbar() {
               icon={<FaRegNoteSticky size={25} />}
             />
             <NavItem
-              href="/notifications"
-              label="Notifications"
-              icon={<RiNotification2Line size={25} />}
-            />
-            <NavItem
               href={`/settings`}
               label="Settings"
               icon={<TbSettings size={25} />}
@@ -87,7 +82,10 @@ export default function Navbar() {
           size="lg"
           fullWidth
           leftSection={<FiPlus size={22} />}
-          onClick={() => setOpenAddDrawer(true)}
+          onClick={() => {
+            track('open new card drawer');
+            setOpenAddDrawer(true);
+          }}
         >
           New Card
         </Button>

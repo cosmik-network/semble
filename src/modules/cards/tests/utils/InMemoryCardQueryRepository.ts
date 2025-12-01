@@ -284,7 +284,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
           comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
           break;
         case CardSortField.LIBRARY_COUNT:
-          comparison = a.libraryCount - b.libraryCount;
+          // Sort by URL library count instead of card library count
+          comparison = a.urlLibraryCount - b.urlLibraryCount;
           break;
         default:
           comparison = 0;

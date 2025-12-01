@@ -13,6 +13,11 @@ export interface UrlMetadata {
   retrievedAt?: string;
 }
 
+export interface CreateCardResult {
+  urlCard: StrongRef;
+  noteCard?: StrongRef;
+}
+
 export interface CreateCardOptions {
   url: string;
   note?: string;
@@ -25,4 +30,6 @@ export interface CreateCollectionOptions {
 
 export interface SemblePDSClientOptions {
   service: string;
+  // Optional environment string that gets appended to the NSID, e.g. cosmik.network.{env}.*
+  env?: string;
 }
