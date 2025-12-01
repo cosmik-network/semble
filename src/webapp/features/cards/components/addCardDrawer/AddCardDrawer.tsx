@@ -8,7 +8,6 @@ import {
   Text,
   Textarea,
   TextInput,
-  Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';

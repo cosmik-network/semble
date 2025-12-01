@@ -1,6 +1,5 @@
 'use client';
 
-import type { UrlCard } from '@/api-client';
 import { Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
