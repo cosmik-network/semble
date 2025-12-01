@@ -86,7 +86,7 @@ export default function AddCardDrawer(props: Props) {
         props.onClose();
       }}
       withCloseButton={false}
-      size={'28rem'}
+      size={'29rem'}
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
