@@ -23,7 +23,11 @@ export default function BottomBar() {
           title="Cards"
           icon={FaRegNoteSticky}
         />
-        <BottomBarItem href="/notifications" icon={RiNotification2Line} />
+        <BottomBarItem
+          href="/notifications"
+          title="Notifications"
+          icon={RiNotification2Line}
+        />
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           title={'Profile'}
