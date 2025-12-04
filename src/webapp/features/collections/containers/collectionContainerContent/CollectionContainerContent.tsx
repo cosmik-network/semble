@@ -96,15 +96,17 @@ export default function CollectionContainerContent(props: Props) {
       )}
 
       <Box>
-        <AddCardDrawer
-          isOpen={showAddDrawer}
-          onClose={() => setShowAddDrawer(false)}
-          selectedCollection={{
-            id: firstPage.id,
-            name: firstPage.name,
-            cardCount: allCards.length,
-          }}
-        />
+        {user && (
+          <AddCardDrawer
+            isOpen={showAddDrawer}
+            onClose={() => setShowAddDrawer(false)}
+            selectedCollection={{
+              id: firstPage.id,
+              name: firstPage.name,
+              cardCount: allCards.length,
+            }}
+          />
+        )}
       </Box>
     </Fragment>
   );
