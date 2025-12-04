@@ -46,7 +46,7 @@ export default async function Image(props: Props) {
               lineHeight: '20px',
             }}
           >
-            {truncateText(truncateText(collection.name), 35)}
+            {truncateText(truncateText(collection.name), 30)}
           </p>
           <p
             style={{
