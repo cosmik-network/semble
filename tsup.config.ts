@@ -17,4 +17,14 @@ export default defineConfig({
   // Enable type checking
   // This will make tsup type-check all files including workspace packages
   tsconfig: './tsconfig.json',
+  // Add watch exclusions to prevent continuous rebuilds
+  ignoreWatch: [
+    'dist/**',
+    'node_modules/**',
+    '**/*.test.ts',
+    '**/*.spec.ts',
+    'src/webapp/**',
+    'src/types/**',
+    'src/packages/**'
+  ],
 });
