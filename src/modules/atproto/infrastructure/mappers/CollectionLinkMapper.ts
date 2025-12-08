@@ -6,8 +6,9 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
-  static readonly collectionLinkType =
-    new EnvironmentConfigService().getAtProtoCollections().collectionLink;
+  private static configService = new EnvironmentConfigService();
+  static collectionLinkType = CollectionLinkMapper.configService.getAtProtoCollections().collectionLink;
+  static baseCollection = CollectionLinkMapper.configService.getAtProtoBaseCollection();
 
   static toCreateRecordDTO(
     cardLink: CardLink,
@@ -40,7 +41,7 @@ export class CollectionLinkMapper {
 
     if (viaCardPublishedRecordId) {
       record.provenance = {
-        $type: 'network.cosmik.defs#provenance' as any,
+        $type: `${this.baseCollection}.defs#provenance` as any,
         via: {
           uri: viaCardPublishedRecordId.uri,
           cid: viaCardPublishedRecordId.cid,
