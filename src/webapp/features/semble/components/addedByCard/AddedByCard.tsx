@@ -19,6 +19,7 @@ export default function AddedByCard(props: Props) {
       p={'sm'}
       component={Link}
       href={`/profile/${props.item.user.handle}`}
+      h={'100%'}
     >
       <Group gap={'xs'} justify="space-between">
         <Group gap={'xs'}>

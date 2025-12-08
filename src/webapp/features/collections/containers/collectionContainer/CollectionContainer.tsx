@@ -2,55 +2,57 @@
 
 import {
   Anchor,
-  Box,
-  Button,
   Container,
-  Grid,
   Group,
   Stack,
   Text,
   Title,
   Avatar,
+  Select,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
-import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import Link from 'next/link';
-import { useState } from 'react';
-import { FiPlus } from 'react-icons/fi';
-import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import { Suspense, useState } from 'react';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavbarContext } from '@/providers/navbar';
+import { CardSortField, SortOrder } from '@semble/types';
+import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
+import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 
 interface Props {
   rkey: string;
   handle: string;
 }
 
-export default function CollectionContainer(props: Props) {
-  const { desktopOpened } = useNavbarContext();
-  const [showAddDrawer, setShowAddDrawer] = useState(false);
-  const { user } = useAuth();
+type SortOption = 'newest' | 'oldest' | 'most-popular';
 
-  // const [sortBy, setSortBy] = useState<CardSortField>(CardSortField.CREATED_AT);
-  const {
-    data,
-    isPending,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useCollection({
+export default function CollectionContainer(props: Props) {
+  const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
-    // sortBy: sortBy,
   });
 
   const firstPage = data.pages[0];
-  const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+
+  const getSortParams = (option: SortOption) => {
+    switch (option) {
+      case 'newest':
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
+      case 'oldest':
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.ASC };
+      case 'most-popular':
+        return {
+          sortBy: CardSortField.LIBRARY_COUNT,
+          sortOrder: SortOrder.DESC,
+        };
+      default:
+        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
+    }
+  };
+
+  const { sortBy, sortOrder } = getSortParams(sortOption);
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -101,18 +103,20 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         <Group justify="space-between" align="end">
-          {/*<Select
+          <Select
             mr={'auto'}
             size="sm"
+            variant="filled"
             label="Sort by"
-            value={sortBy}
-            onChange={(value) => setSortBy(value as CardSortField)}
+            allowDeselect={false}
+            value={sortOption}
+            onChange={(value) => setSortOption(value as SortOption)}
             data={[
-              { value: CardSortField.CREATED_AT, label: 'Created (Newest)' },
-              { value: CardSortField.UPDATED_AT, label: 'Updated (Newest)' },
-              { value: CardSortField.LIBRARY_COUNT, label: 'Most Popular' },
+              { value: 'newest', label: 'Newest' },
+              { value: 'oldest', label: 'Oldest' },
+              { value: 'most-popular', label: 'Most Popular' },
             ]}
-          />*/}
+          />
           <CollectionActions
             id={firstPage.id}
             rkey={props.rkey}
@@ -122,78 +126,15 @@ export default function CollectionContainer(props: Props) {
           />
         </Group>
 
-        {allCards.length > 0 ? (
-          <InfiniteScroll
-            dataLength={allCards.length}
-            hasMore={!!hasNextPage}
-            isInitialLoading={isPending}
-            isLoading={isFetchingNextPage}
-            loadMore={fetchNextPage}
-          >
-            <Grid gutter="md">
-              {allCards.map((card) => (
-                <Grid.Col
-                  key={card.id}
-                  span={{
-                    base: 12,
-                    xs: desktopOpened ? 12 : 6,
-                    sm: desktopOpened ? 6 : 4,
-                    md: 4,
-                    lg: 3,
-                  }}
-                >
-                  <UrlCard
-                    id={card.id}
-                    url={card.url}
-                    cardContent={card.cardContent}
-                    authorHandle={firstPage.author.handle}
-                    cardAuthor={firstPage.author}
-                    note={card.note}
-                    urlLibraryCount={card.urlLibraryCount}
-                    urlIsInLibrary={card.urlInLibrary}
-                    currentCollection={firstPage}
-                  />
-                </Grid.Col>
-              ))}
-            </Grid>
-          </InfiniteScroll>
-        ) : (
-          <Stack align="center" gap="xs">
-            <Text fz="h3" fw={600} c="gray">
-              No cards
-            </Text>
-            {firstPage.author.handle == user?.handle && (
-              <Button
-                variant="light"
-                color="gray"
-                size="md"
-                rightSection={<FiPlus size={22} />}
-                onClick={() => setShowAddDrawer(true)}
-              >
-                Add your first card
-              </Button>
-            )}
-            <Text ta={'center'} fw={500} c={'gray'}>
-              Need inspiration?{' '}
-              <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
-                Explore cards from the community
-              </Anchor>
-            </Text>
-          </Stack>
-        )}
+        <Suspense fallback={<CollectionContainerContentSkeleton />}>
+          <CollectionContainerContent
+            rkey={props.rkey}
+            handle={props.handle}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+          />
+        </Suspense>
       </Stack>
-
-      <Box>
-        <AddCardDrawer
-          isOpen={showAddDrawer}
-          onClose={() => setShowAddDrawer(false)}
-          selectedCollection={{
-            id: firstPage.id,
-            name: firstPage.name,
-            cardCount: allCards.length,
-          }}
-        />
-      </Box>
     </Container>
   );
 }

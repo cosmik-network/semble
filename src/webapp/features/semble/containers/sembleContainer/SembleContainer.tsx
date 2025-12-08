@@ -20,7 +20,8 @@ export default function SembleContainer(props: Props) {
       <SembleHeaderBackground />
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
-          {platform === SupportedPlatform.BLUESKY_POST ? (
+          {platform === SupportedPlatform.BLUESKY_POST ||
+          platform === SupportedPlatform.BLACKSKY_POST ? (
             <Box maw={600} w={'100%'} mx={'auto'}>
               <Suspense fallback={<BlueskySembleHeaderSkeleton />}>
                 <BlueskySembleHeader url={props.url} />

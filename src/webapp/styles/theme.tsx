@@ -1,4 +1,5 @@
 'use client';
+import classes from './global.module.css';
 
 import {
   createTheme,
@@ -12,6 +13,7 @@ import {
   TabsTab,
   Tooltip,
   Text,
+  Combobox,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -140,6 +142,13 @@ export const theme = createTheme({
       styles: {
         root: {
           wordBreak: 'break-word',
+        },
+      },
+    }),
+    Combobox: Combobox.extend({
+      defaultProps: {
+        classNames: {
+          option: classes.option,
         },
       },
     }),

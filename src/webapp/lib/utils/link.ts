@@ -28,6 +28,7 @@ export const isCollectionPage = (url: string = window.location.pathname) => {
 
 export enum SupportedPlatform {
   BLUESKY_POST = 'bluesky post',
+  BLACKSKY_POST = 'blacksky post',
   SEMBLE_COLLECTION = 'semble collection',
 }
 
@@ -46,6 +47,15 @@ export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
       parsedUrl.pathname.includes('/post/')
     ) {
       return SupportedPlatform.BLUESKY_POST;
+    }
+
+    // blacksky posts
+    // https://blacksky.community/profile/handle/post/id
+    if (
+      parsedUrl.hostname === 'blacksky.community' &&
+      parsedUrl.pathname.includes('/post/')
+    ) {
+      return SupportedPlatform.BLACKSKY_POST;
     }
 
     return null; // no supported service detected

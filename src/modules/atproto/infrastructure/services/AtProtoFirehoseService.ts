@@ -3,18 +3,29 @@ import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { IdResolver } from '@atproto/identity';
-import { FirehoseEvent } from '../../domain/FirehoseEvent';
+import {
+  FIREHOSE_COLLECTIONS,
+  FirehoseEvent,
+} from '../../domain/FirehoseEvent';
+
+const DEBUG_LOGGING = true; // Set to false to disable debug logs
 
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
   private runner?: MemoryRunner;
   private isRunningFlag = false;
+  private cleaningUp = false;
+  private eventCount = 0;
+  private logInterval?: NodeJS.Timeout;
+  private mostRecentEventTime?: Date;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
     private configService: EnvironmentConfigService,
     private idResolver: IdResolver,
-  ) {}
+  ) {
+    this.setupCleanupHandlers();
+  }
 
   async start(): Promise<void> {
     if (this.isRunningFlag) {
@@ -23,7 +34,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
     try {
       console.log(
-        `Starting AT Protocol firehose service for collections: ${this.getFilteredCollections().join(', ')}`,
+        `[FIREHOSE] Starting AT Protocol firehose service for collections: ${this.getFilteredCollections().join(', ')}`,
       );
 
       const runner = new MemoryRunner({});
@@ -31,22 +42,30 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       this.firehose = new Firehose({
         service: this.configService.getAtProtoConfig().firehoseWebsocket,
+        filterCollections: this.getFilteredCollections(),
         runner,
         idResolver: this.idResolver,
-        filterCollections: this.getFilteredCollections(),
         excludeIdentity: true,
         excludeAccount: true,
         excludeSync: true,
+        unauthenticatedCommits: true,
+        unauthenticatedHandles: true,
+        subscriptionReconnectDelay: 5000, // 5 second delay between reconnects
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
       });
 
-      await this.firehose.start();
+      // Don't await - this is a long-running operation
+      this.firehose.start().catch((error: any) => {
+        console.error('[FIREHOSE] Firehose start failed:', error);
+      });
+
       this.isRunningFlag = true;
-      console.log('AT Protocol firehose service started');
+      this.startEventCountLogging();
+      console.log('[FIREHOSE] AT Protocol firehose service started');
     } catch (error) {
-      console.error('Failed to start firehose:', error);
-      await this.reconnect();
+      console.error('[FIREHOSE] Failed to start firehose:', error);
+      throw error;
     }
   }
 
@@ -55,7 +74,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       return;
     }
 
-    console.log('Stopping AT Protocol firehose service...');
+    console.log('[FIREHOSE] Stopping AT Protocol firehose service...');
 
     if (this.firehose) {
       await this.firehose.destroy();
@@ -67,65 +86,83 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.runner = undefined;
     }
 
+    this.stopEventCountLogging();
     this.isRunningFlag = false;
-    console.log('AT Protocol firehose service stopped');
+    console.log('[FIREHOSE] AT Protocol firehose service stopped');
   }
 
   isRunning(): boolean {
-    return this.isRunningFlag;
+    return this.isRunningFlag && !!this.firehose;
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
-    // Create FirehoseEvent value object (includes filtering logic)
-    const firehoseEventResult = FirehoseEvent.fromEvent(evt);
-    if (firehoseEventResult.isErr()) {
-      // Only log actual errors, not filtered events
-      if (!firehoseEventResult.error.message.includes('is not processable')) {
-        console.error(
-          'Failed to create FirehoseEvent:',
-          firehoseEventResult.error,
-        );
-      }
-      return;
-    }
-
-    const result = await this.firehoseEventHandler.handle(
-      firehoseEventResult.value,
-    );
-
-    if (result.isErr()) {
-      console.error('Failed to process firehose event:', result.error);
-    }
-  }
-
-  private handleError(err: Error): void {
-    console.error('Firehose error:', err);
-
-    // Only reconnect on connection errors, not parsing errors
-    if (err.name === 'FirehoseParseError') {
-      console.warn('Skipping reconnection for parse error');
-      return;
-    }
-
-    if (this.isRunningFlag) {
-      this.reconnect();
-    }
-  }
-
-  private async reconnect(): Promise<void> {
-    console.log('Attempting to reconnect firehose...');
-
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+    this.eventCount++;
+    this.mostRecentEventTime = new Date(evt.time);
 
     try {
-      await this.stop();
-      await this.start();
+      if (
+        evt.event !== 'create' &&
+        evt.event !== 'update' &&
+        evt.event !== 'delete'
+      ) {
+        return;
+      }
+      if (evt.collection === FIREHOSE_COLLECTIONS.APP_BSKY_POST) {
+        if (evt.did === 'did:plc:rlknsba2qldjkicxsmni3vyn') {
+          console.log(
+            'event from cosmik testing account:',
+            JSON.stringify(evt),
+          );
+        }
+        return;
+      }
+
+      // Create FirehoseEvent value object (includes filtering logic)
+      const firehoseEventResult = FirehoseEvent.fromEvent(evt);
+      if (firehoseEventResult.isErr()) {
+        // Only log actual errors, not filtered events
+        if (!firehoseEventResult.error.message.includes('is not processable')) {
+          console.error(
+            '[FIREHOSE] Failed to create FirehoseEvent:',
+            firehoseEventResult.error,
+          );
+        }
+        return;
+      }
+      if (
+        firehoseEventResult.value.collection ===
+        FIREHOSE_COLLECTIONS.APP_BSKY_POST
+      ) {
+        return;
+      }
+      if (DEBUG_LOGGING) {
+        console.log(
+          `[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`,
+        );
+      }
+
+      const result = await this.firehoseEventHandler.handle(
+        firehoseEventResult.value,
+      );
+
+      if (result.isErr()) {
+        console.error(
+          '[FIREHOSE] Failed to process firehose event:',
+          result.error,
+        );
+      } else if (DEBUG_LOGGING) {
+        console.log(`[FIREHOSE] Successfully processed event`);
+      }
     } catch (error) {
-      console.error('Reconnection failed:', error);
-      // Try again after another delay
-      setTimeout(() => this.reconnect(), 10000);
+      console.error(
+        '[FIREHOSE] Unhandled error in handleFirehoseEvent:',
+        error,
+      );
+      // Don't re-throw - let processing continue
     }
   }
+
+  private handleError(err: Error): void {}
 
   private getFilteredCollections(): string[] {
     const collections = this.configService.getAtProtoCollections();
@@ -133,6 +170,58 @@ export class AtProtoFirehoseService implements IFirehoseService {
       collections.card,
       collections.collection,
       collections.collectionLink,
+      FIREHOSE_COLLECTIONS.APP_BSKY_POST,
     ];
+  }
+
+  private setupCleanupHandlers(): void {
+    const cleanup = async () => {
+      if (this.cleaningUp) return;
+      this.cleaningUp = true;
+      console.log('[FIREHOSE] Shutting down firehose...');
+
+      if (this.firehose) {
+        await this.firehose.destroy();
+      }
+
+      if (this.runner) {
+        await this.runner.destroy();
+      }
+
+      process.exit();
+    };
+
+    process.on('SIGTERM', cleanup);
+    process.on('SIGINT', cleanup);
+    process.on('SIGUSR2', cleanup); // For nodemon
+  }
+
+  private startEventCountLogging(): void {
+    this.logInterval = setInterval(
+      () => {
+        const now = new Date();
+        let timingInfo = '';
+
+        if (this.mostRecentEventTime) {
+          const gapSeconds = Math.floor(
+            (now.getTime() - this.mostRecentEventTime.getTime()) / 1000,
+          );
+          timingInfo = ` | Most recent event: ${this.mostRecentEventTime.toISOString()} | Gap: ${gapSeconds}s`;
+        }
+
+        console.log(
+          `[FIREHOSE] Events processed in last 1 minutes: ${this.eventCount}${timingInfo}`,
+        );
+        this.eventCount = 0; // Reset counter
+      },
+      1 * 60 * 1000,
+    ); // 1 minute intervals
+  }
+
+  private stopEventCountLogging(): void {
+    if (this.logInterval) {
+      clearInterval(this.logInterval);
+      this.logInterval = undefined;
+    }
   }
 }

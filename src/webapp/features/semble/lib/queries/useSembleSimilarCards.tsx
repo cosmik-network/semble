@@ -12,7 +12,7 @@ export default function useSembleSimilarCards(props: Props) {
   const limit = props?.limit ?? 16;
 
   const similarCards = useSuspenseInfiniteQuery({
-    queryKey: sembleKeys.similarCardsInfinite(props.url),
+    queryKey: sembleKeys.similarCardsInfinite(props.url, props.limit),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getSimilarUrlsForUrl(props.url, {

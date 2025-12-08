@@ -48,7 +48,7 @@ export class CollectionCardQueryService {
 
       const collectionAuthorId = collectionResult[0]!.authorId;
 
-      // Get URL cards in the collection
+      // Get cards in collection - use standard query for all sort fields
       const cardsQuery = this.db
         .select({
           id: cards.id,
@@ -66,12 +66,111 @@ export class CollectionCardQueryService {
             eq(collectionCards.collectionId, collectionId),
             eq(cards.type, CardTypeEnum.URL),
           ),
-        )
-        .orderBy(orderDirection(this.getSortColumn(sortBy)))
-        .limit(limit)
-        .offset(offset);
+        );
 
-      const cardsResult = await cardsQuery;
+      // For LIBRARY_COUNT sorting, we need to sort by urlLibraryCount after calculating it
+      let cardsWithUrlLibraryCount: Array<{
+        id: string;
+        authorId: string;
+        url: string | null;
+        contentData: any;
+        libraryCount: number;
+        createdAt: Date;
+        updatedAt: Date;
+        urlLibraryCount: number;
+      }> = [];
+
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        // Get all cards first
+        const allCardsResult = await cardsQuery;
+
+        if (allCardsResult.length === 0) {
+          return {
+            items: [],
+            totalCount: 0,
+            hasMore: false,
+          };
+        }
+
+        const urls = allCardsResult.map((card) => card.url || '');
+
+        // Calculate urlLibraryCount for each URL
+        const urlLibraryCountsQuery = this.db
+          .select({
+            url: cards.url,
+            count: countDistinct(libraryMemberships.userId),
+          })
+          .from(cards)
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          )
+          .groupBy(cards.url);
+
+        const urlLibraryCountsResult = await urlLibraryCountsQuery;
+
+        // Create a map of URL to urlLibraryCount
+        const urlLibraryCountMap = new Map<string, number>();
+        urlLibraryCountsResult.forEach((row) => {
+          if (row.url) {
+            urlLibraryCountMap.set(row.url, row.count);
+          }
+        });
+
+        // Combine cards with their urlLibraryCount
+        cardsWithUrlLibraryCount = allCardsResult.map((card) => ({
+          ...card,
+          urlLibraryCount: urlLibraryCountMap.get(card.url || '') || 0,
+        }));
+
+        // Sort by urlLibraryCount with secondary sort by updatedAt
+        cardsWithUrlLibraryCount.sort((a, b) => {
+          // Primary sort: urlLibraryCount
+          const libraryCountDiff =
+            sortOrder === SortOrder.ASC
+              ? a.urlLibraryCount - b.urlLibraryCount
+              : b.urlLibraryCount - a.urlLibraryCount;
+
+          // If library counts are equal, sort by updatedAt (default sort)
+          if (libraryCountDiff === 0) {
+            return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
+          }
+
+          return libraryCountDiff;
+        });
+
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        cardsWithUrlLibraryCount = cardsWithUrlLibraryCount.slice(
+          startIndex,
+          startIndex + limit,
+        );
+      }
+
+      // Execute query based on sort type
+      let cardsResult: Array<{
+        id: string;
+        authorId: string;
+        url: string | null;
+        contentData: any;
+        libraryCount: number;
+        createdAt: Date;
+        updatedAt: Date;
+      }>;
+
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        // Use pre-sorted and paginated results
+        cardsResult = cardsWithUrlLibraryCount;
+      } else {
+        // Execute standard query with sorting and pagination
+        cardsResult = await cardsQuery
+          .orderBy(orderDirection(this.getCollectionSortColumn(sortBy)))
+          .limit(limit)
+          .offset(offset);
+      }
 
       if (cardsResult.length === 0) {
         return {
@@ -103,25 +202,39 @@ export class CollectionCardQueryService {
       const notesResult = await notesQuery;
 
       // Get urlLibraryCount for each URL (count of unique users who have cards with this URL)
-      const urlLibraryCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
+      let urlLibraryCountMap = new Map<string, number>();
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        // URL library counts were already calculated for sorting
+        cardsWithUrlLibraryCount.forEach((card) => {
+          if (card.url) {
+            urlLibraryCountMap.set(card.url, card.urlLibraryCount);
+          }
+        });
+      } else {
+        // Calculate URL library counts separately
+        const urlLibraryCountsQuery = this.db
+          .select({
+            url: cards.url,
+            count: countDistinct(libraryMemberships.userId),
+          })
+          .from(cards)
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          )
+          .groupBy(cards.url);
 
-      const urlLibraryCountsResult = await urlLibraryCountsQuery;
+        const urlLibraryCountsResult = await urlLibraryCountsQuery;
 
-      // Create a map of URL to urlLibraryCount
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, row.count);
-        }
-      });
+        urlLibraryCountsResult.forEach((row) => {
+          if (row.url) {
+            urlLibraryCountMap.set(row.url, row.count);
+          }
+        });
+      }
 
       // Get urlInLibrary for each URL if callingUserId is provided
       let urlInLibraryMap: Map<string, boolean> | undefined;
@@ -165,6 +278,7 @@ export class CollectionCardQueryService {
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
+      // const offset = (page - 1) * limit;
       const hasMore = offset + cardsResult.length < totalCount;
 
       // Combine the data
@@ -223,6 +337,19 @@ export class CollectionCardQueryService {
         return cards.libraryCount;
       default:
         return cards.updatedAt;
+    }
+  }
+
+  private getCollectionSortColumn(sortBy: CardSortField) {
+    switch (sortBy) {
+      case CardSortField.CREATED_AT:
+        return collectionCards.addedAt;
+      case CardSortField.UPDATED_AT:
+        return collectionCards.addedAt;
+      case CardSortField.LIBRARY_COUNT:
+        return cards.libraryCount;
+      default:
+        return collectionCards.addedAt;
     }
   }
 }

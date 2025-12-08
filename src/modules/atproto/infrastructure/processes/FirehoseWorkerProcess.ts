@@ -1,11 +1,10 @@
 import { IProcess } from 'src/shared/domain/IProcess';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
-import { AtProtoFirehoseService } from '../services/AtProtoFirehoseService';
-import { IdResolver } from '@atproto/identity';
+import { AtProtoJetstreamService } from '../services/AtProtoJetstreamService';
 
 export class FirehoseWorkerProcess implements IProcess {
-  private firehoseService?: AtProtoFirehoseService;
+  private firehoseService?: AtProtoJetstreamService;
 
   constructor(
     private configService: EnvironmentConfigService,
@@ -13,25 +12,26 @@ export class FirehoseWorkerProcess implements IProcess {
   ) {}
 
   async start(): Promise<void> {
-    console.log('Starting firehose worker...');
+    console.log('[FIREHOSE] Starting firehose worker...');
 
-    const idResolver = new IdResolver();
-
-    this.firehoseService = new AtProtoFirehoseService(
+    console.log('[FIREHOSE] Using Jetstream service');
+    this.firehoseService = new AtProtoJetstreamService(
       this.firehoseEventHandler,
       this.configService,
-      idResolver,
     );
 
-    await this.firehoseService.start();
-    console.log('Firehose worker started');
+    // Don't await - let it run in background
+    this.firehoseService.start().catch((error) => {
+      console.error('[FIREHOSE] Firehose service failed:', error);
+    });
 
+    console.log('[FIREHOSE] Firehose worker started');
     this.setupShutdownHandlers();
   }
 
   private setupShutdownHandlers(): void {
     const shutdown = async () => {
-      console.log('Shutting down firehose worker...');
+      console.log('[FIREHOSE] Shutting down firehose worker...');
       if (this.firehoseService) {
         await this.firehoseService.stop();
       }

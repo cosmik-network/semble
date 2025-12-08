@@ -9,6 +9,7 @@ import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
 import { MdIosShare } from 'react-icons/md';
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
+import { track } from '@vercel/analytics';
 
 interface Props {
   url: string;
@@ -71,7 +72,12 @@ export default function SembleActions(props: Props) {
           leftSection={
             isInYourLibrary ? <IoMdCheckmark size={18} /> : <FiPlus size={18} />
           }
-          onClick={() => setShowAddToModal(true)}
+          onClick={() => {
+            setShowAddToModal(true);
+            track(
+              `Semble: ${isInYourLibrary ? 'update card' : 'add to library'}`,
+            );
+          }}
         >
           {isInYourLibrary ? 'Update card' : 'Add to library'}
         </Button>

@@ -431,6 +431,96 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
     });
   });
 
+  describe('Publishing failures', () => {
+    it('should not save note when card publishing fails', async () => {
+      const url = 'https://example.com/article';
+
+      // First, add the URL to the library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Get initial card count
+      const initialCards = cardRepository.getAllCards();
+      const initialCardCount = initialCards.length;
+
+      // Configure card publisher to fail
+      cardPublisher.setShouldFail(true);
+
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        note: 'This note should not be saved',
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish');
+      }
+
+      // Verify no new cards were saved when publishing failed
+      const finalCards = cardRepository.getAllCards();
+      expect(finalCards).toHaveLength(initialCardCount);
+
+      // Verify no note card was created
+      const noteCards = finalCards.filter(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
+      expect(noteCards).toHaveLength(0);
+    });
+
+    it('should not save collection associations when collection publishing fails', async () => {
+      const url = 'https://example.com/article';
+
+      // Create collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Test Collection')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Configure collection publisher to fail
+      collectionPublisher.setShouldFail(true);
+
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish');
+      }
+
+      // Verify no collection links were published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(0);
+    });
+  });
+
   describe('Validation', () => {
     it('should fail when card does not exist', async () => {
       const request = {

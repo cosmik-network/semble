@@ -3,7 +3,11 @@ import { getBlueskyPost } from '../../lib/dal';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import { getDomain } from '@/lib/utils/link';
+import {
+  detectUrlPlatform,
+  getDomain,
+  SupportedPlatform,
+} from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
 import {
   Stack,
@@ -13,11 +17,14 @@ import {
   Group,
   Avatar,
   Box,
+  Image,
   Text,
 } from '@mantine/core';
 import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
+import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
+import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 
 interface Props {
   url: string;
@@ -26,6 +33,28 @@ interface Props {
 export default async function BlueskySemblePost(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
+  const platform = detectUrlPlatform(props.url);
+  const platformIcon =
+    platform === SupportedPlatform.BLUESKY_POST ? (
+      <FaBluesky fill="#0085ff" size={18} />
+    ) : (
+      <>
+        <Image
+          src={BlackskyLogo.src}
+          alt="Blacksky logo"
+          w={18}
+          h={'100%'}
+          darkHidden
+        />
+        <Image
+          src={BlackskyLogoWhite.src}
+          alt="Blacksky logo"
+          w={18}
+          h={'100%'}
+          lightHidden
+        />
+      </>
+    );
 
   if (
     !data.thread ||
@@ -81,7 +110,7 @@ export default async function BlueskySemblePost(props: Props) {
                 </Text>
               </Stack>
             </Group>
-            <FaBluesky fill="#0085ff" size={18} />
+            {platformIcon}
           </Group>
           <Stack gap={'xs'} w={'100%'}>
             <Box>

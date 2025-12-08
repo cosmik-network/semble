@@ -568,7 +568,7 @@ describe('AddUrlToLibraryUseCase', () => {
     });
   });
 
-  describe('Metadata service integration', () => {
+  describe('Publishing and metadata integration', () => {
     it('should handle metadata service failure gracefully', async () => {
       // Configure metadata service to fail
       metadataService.setShouldFail(true);
@@ -584,6 +584,98 @@ describe('AddUrlToLibraryUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Failed to fetch metadata');
       }
+    });
+
+    it('should not save cards when publishing to library fails', async () => {
+      // Configure card publisher to fail
+      cardPublisher.setShouldFail(true);
+
+      const request = {
+        url: 'https://example.com/article',
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish card');
+      }
+
+      // Verify no cards were saved when publishing failed
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Verify no cards were published
+      const publishedCards = cardPublisher.getPublishedCards();
+      expect(publishedCards).toHaveLength(0);
+
+      // Verify no events were published
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      );
+      expect(libraryEvents).toHaveLength(0);
+    });
+
+    it('should not save cards when collection publishing fails', async () => {
+      // Create a test collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Test Collection')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      // Configure collection publisher to fail (for card-collection links)
+      collectionPublisher.setShouldFail(true);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Failed to publish');
+      }
+
+      // card should still be published to library
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(1);
+
+      const savedCollection = await collectionRepository.findById(
+        collection.collectionId,
+      );
+      if (savedCollection.isErr()) {
+        throw new Error(
+          `Failed to retrieve collection: ${savedCollection.error.message}`,
+        );
+      }
+      expect(savedCollection.value?.cardCount).toBe(0); // card count should be 0 since link publishing failed
+
+      // Verify no collection links were published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(0);
+
+      // Verify no events were published
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      );
+      expect(libraryEvents).toHaveLength(0);
+
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      );
+      expect(collectionEvents).toHaveLength(0);
     });
   });
 });

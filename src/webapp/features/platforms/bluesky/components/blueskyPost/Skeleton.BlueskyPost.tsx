@@ -10,7 +10,7 @@ export default function BlueskyPostSkeleton() {
           <Skeleton w={'70%'} h={14} />
         </Group>
 
-        <FaBluesky size={18} fill="#0085ff" />
+        <Skeleton h={18} w={18} radius="xl" />
       </Group>
       <Stack w={'100%'} gap={5}>
         <Skeleton w={'100%'} h={10} />

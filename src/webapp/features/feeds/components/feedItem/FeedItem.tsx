@@ -9,7 +9,7 @@ interface Props {
 
 export default function FeedItem(props: Props) {
   return (
-    <Stack gap={'xs'} align="stretch">
+    <Stack gap={'xs'} align="stretch" h={'100%'}>
       <FeedActivityStatus
         user={props.item.user}
         collections={props.item.collections}

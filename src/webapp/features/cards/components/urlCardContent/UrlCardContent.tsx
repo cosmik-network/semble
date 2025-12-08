@@ -20,14 +20,17 @@ export default function UrlCardContent(props: Props) {
     return <SembleCollectionCardContent cardContent={props.cardContent} />;
   }
 
-  if (platform === SupportedPlatform.BLUESKY_POST) {
+  if (
+    platform === SupportedPlatform.BLUESKY_POST ||
+    platform === SupportedPlatform.BLACKSKY_POST
+  ) {
     return (
       <ErrorBoundary
         fallback={<LinkCardContent cardContent={props.cardContent} />}
       >
         <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
-            uri={getPostUriFromUrl(props.url)}
+            url={props.url}
             fallbackCardContent={
               <LinkCardContent cardContent={props.cardContent} />
             }

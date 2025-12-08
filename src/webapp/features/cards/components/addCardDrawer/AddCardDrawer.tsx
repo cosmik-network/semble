@@ -3,10 +3,11 @@ import {
   Container,
   Drawer,
   Group,
+  ScrollArea,
   Stack,
+  Text,
   Textarea,
   TextInput,
-  Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -18,6 +19,8 @@ import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
 import { IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { track } from '@vercel/analytics';
+import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 
 interface Props {
   isOpen: boolean;
@@ -34,8 +37,9 @@ export default function AddCardDrawer(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
 
-  const hasNoCollections = selectedCollections.length === 0;
-  const hasOneCollection = selectedCollections.length === 1;
+  const { data: collections } = useMyCollections({ limit: 10 });
+  const myCollections =
+    collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   const addCard = useAddCard();
 
@@ -49,6 +53,7 @@ export default function AddCardDrawer(props: Props) {
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
+    track('add new card');
 
     addCard.mutate(
       {
@@ -80,6 +85,7 @@ export default function AddCardDrawer(props: Props) {
         props.onClose();
       }}
       withCloseButton={false}
+      size={'29rem'}
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
@@ -119,25 +125,51 @@ export default function AddCardDrawer(props: Props) {
                 />
               </Stack>
 
-              <Group>
-                <Stack align="start" gap={'xs'}>
-                  <Tooltip
-                    label={selectedCollections.map((c) => c.name).join(', ')}
-                    disabled={hasNoCollections}
-                  >
+              <Stack gap={5}>
+                <Text fw={500}>
+                  Add to collections{' '}
+                  {selectedCollections.length > 0 &&
+                    `(${selectedCollections.length})`}
+                </Text>
+                <ScrollArea.Autosize type="hover">
+                  <Group gap={'xs'} wrap="nowrap">
                     <Button
                       onClick={toggleCollectionSelector}
                       variant="light"
-                      color={hasNoCollections ? 'gray' : 'grape'}
+                      color={'blue'}
                       leftSection={<BiCollection size={22} />}
                     >
-                      {!hasNoCollections
-                        ? `${selectedCollections.length} ${hasOneCollection ? 'collection' : 'collections'}`
-                        : 'Add to collections'}
+                      {myCollections.length === 0
+                        ? 'Create a collection'
+                        : 'Manage/View all'}
                     </Button>
-                  </Tooltip>
-                </Stack>
-              </Group>
+
+                    {myCollections.map((col) => (
+                      <Button
+                        key={col.id}
+                        variant="light"
+                        color={
+                          selectedCollections.some((c) => c.id === col.id)
+                            ? 'grape'
+                            : 'gray'
+                        }
+                        onClick={() => {
+                          setSelectedCollections((prev) => {
+                            // already selected, remove
+                            if (prev.some((c) => c.id === col.id)) {
+                              return prev.filter((c) => c.id !== col.id);
+                            }
+                            // not selected, add it
+                            return [...prev, col];
+                          });
+                        }}
+                      >
+                        {col.name}
+                      </Button>
+                    ))}
+                  </Group>
+                </ScrollArea.Autosize>
+              </Stack>
 
               <Drawer
                 opened={collectionSelectorOpened}
@@ -174,7 +206,10 @@ export default function AddCardDrawer(props: Props) {
                 variant="light"
                 size="md"
                 color={'gray'}
-                onClick={props.onClose}
+                onClick={() => {
+                  props.onClose();
+                  setSelectedCollections([]);
+                }}
               >
                 Cancel
               </Button>

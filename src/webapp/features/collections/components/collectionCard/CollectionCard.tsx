@@ -6,6 +6,9 @@ import { getRelativeTime } from '@/lib/utils/time';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import { useRouter } from 'next/navigation';
+import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
+import { Suspense } from 'react';
+import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -17,6 +20,7 @@ export default function CollectionCard(props: Props) {
   const router = useRouter();
   const { collection } = props;
   const rkey = getRecordKey(collection.uri!!);
+
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
@@ -32,36 +36,46 @@ export default function CollectionCard(props: Props) {
       className={styles.root}
     >
       <Stack justify="space-between" h={'100%'}>
-        <Stack gap={0}>
-          <Text fw={500} lineClamp={1} c={'bright'}>
-            {collection.name}
-          </Text>
-          {collection.description && (
-            <Text c={'gray'} lineClamp={2}>
-              {collection.description}
+        <Stack gap={'xs'}>
+          <Stack gap={0}>
+            <Text fw={500} lineClamp={1} c={'bright'}>
+              {collection.name}
             </Text>
-          )}
-        </Stack>
-        <Group justify="space-between">
-          <Text c={'gray'}>
-            {collection.cardCount}{' '}
-            {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
-            {relativeUpdateDate}
-          </Text>
-        </Group>
-        {props.showAuthor && (
-          <Group gap={'xs'}>
-            <Avatar
-              src={collection.author.avatarUrl}
-              alt={`${collection.author.handle}'s avatar`}
-              size={'sm'}
-            />
+            {collection.description && (
+              <Text c={'gray'} lineClamp={2}>
+                {collection.description}
+              </Text>
+            )}
+          </Stack>
 
-            <Text fw={500} c={'bright'} span>
-              {collection.author.name}
+          <Suspense fallback={<CollectionCardPreviewSkeleton />}>
+            <CollectionCardPreview
+              rkey={rkey}
+              handle={props.collection.author.handle}
+            />
+          </Suspense>
+
+          <Group justify="space-between">
+            <Text c={'gray'}>
+              {collection.cardCount}{' '}
+              {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
+              {relativeUpdateDate}
             </Text>
           </Group>
-        )}
+          {props.showAuthor && (
+            <Group gap={'xs'}>
+              <Avatar
+                src={collection.author.avatarUrl}
+                alt={`${collection.author.handle}'s avatar`}
+                size={'sm'}
+              />
+
+              <Text fw={500} c={'bright'} span>
+                {collection.author.name}
+              </Text>
+            </Group>
+          )}
+        </Stack>
       </Stack>
     </Card>
   );

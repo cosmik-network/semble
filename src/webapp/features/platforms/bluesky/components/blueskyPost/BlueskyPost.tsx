@@ -1,18 +1,45 @@
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, Avatar, Box } from '@mantine/core';
+import { Group, Stack, Text, Avatar, Box, Image } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
 import { FaBluesky } from 'react-icons/fa6';
+import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
+import { getPostUriFromUrl } from '@/lib/utils/atproto';
+import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
+import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 
 interface Props {
-  uri: string;
+  url: string;
   fallbackCardContent: ReactElement;
 }
 
 export default function BlueskyPost(props: Props) {
-  const { data, error } = useGetBlueskyPost({ uri: props.uri });
+  const uri = getPostUriFromUrl(props.url);
+  const { data, error } = useGetBlueskyPost({ uri });
+  const platform = detectUrlPlatform(props.url);
+  const platformIcon =
+    platform === SupportedPlatform.BLUESKY_POST ? (
+      <FaBluesky fill="#0085ff" size={18} />
+    ) : (
+      <>
+        <Image
+          src={BlackskyLogo.src}
+          alt="Blacksky logo"
+          w={18}
+          h={'100%'}
+          darkHidden
+        />
+        <Image
+          src={BlackskyLogoWhite.src}
+          alt="Blacksky logo"
+          w={18}
+          h={'100%'}
+          lightHidden
+        />
+      </>
+    );
 
   if (
     !data.thread ||
@@ -42,8 +69,7 @@ export default function BlueskyPost(props: Props) {
             {post.author.displayName || post.author.handle}
           </Text>
         </Group>
-
-        <FaBluesky fill="#0085ff" size={18} />
+        {platformIcon}
       </Group>
       <Stack gap={'xs'} w={'100%'}>
         <Box>

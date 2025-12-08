@@ -24,7 +24,7 @@ export const getLibrariesForUrl = cache(
 );
 
 export const getSimilarUrlsForUrl = cache(
-  async (url: string, params?: SimilarUrlsParams) => {
+  async (url: string, params?: SimilarUrlsParams & PageParams) => {
     const client = createSembleClient();
     const response = await client.getSimilarUrlsForUrl({
       url,

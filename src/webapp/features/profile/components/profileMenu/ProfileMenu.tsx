@@ -4,21 +4,12 @@ import {
   Group,
   Alert,
   Menu,
-  Image,
-  Button,
-  useMantineColorScheme,
-  useComputedColorScheme,
+  Card,
+  Text,
+  UnstyledButton,
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
-import CosmikLogo from '@/assets/cosmik-logo-full.svg';
-import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
-import {
-  MdBugReport,
-  MdDarkMode,
-  MdLightMode,
-  MdCollectionsBookmark,
-  MdOutlineSmartphone,
-} from 'react-icons/md';
+import { MdBugReport, MdCollectionsBookmark } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -27,6 +18,8 @@ import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { BiSolidUserCircle } from 'react-icons/bi';
 import { useOs } from '@mantine/hooks';
+import { BsThreeDots } from 'react-icons/bs';
+import styles from './ProfileMenu.module.css';
 
 export default function ProfileMenu() {
   const router = useRouter();
@@ -35,11 +28,6 @@ export default function ProfileMenu() {
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
 
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -47,17 +35,6 @@ export default function ProfileMenu() {
     } catch (error) {
       console.error('Error logging out:', error);
     }
-  };
-
-  const handleThemeToggle = () => {
-    const nextScheme =
-      colorScheme === 'light'
-        ? 'dark'
-        : colorScheme === 'dark'
-          ? 'auto'
-          : 'light';
-
-    setColorScheme(nextScheme);
   };
 
   if (isPending || !data) {
@@ -72,19 +49,19 @@ export default function ProfileMenu() {
     <Group>
       <Menu shadow="sm" width={280}>
         <Menu.Target>
-          <Button
-            variant="subtle"
-            color="bright"
-            fz="md"
-            radius="md"
-            size="lg"
-            px={3}
-            fullWidth
-            justify="start"
-            leftSection={<Avatar src={data.avatarUrl} />}
-          >
-            {data.name}
-          </Button>
+          <Card px={5} py={5} flex={1} className={styles.root}>
+            <UnstyledButton>
+              <Group justify="space-between" wrap="nowrap">
+                <Group gap={'xs'} c={'bright'} wrap="nowrap">
+                  <Avatar src={data.avatarUrl} />
+                  <Text fw={600} lineClamp={1}>
+                    {data.name}
+                  </Text>
+                </Group>
+                <BsThreeDots />
+              </Group>
+            </UnstyledButton>
+          </Card>
         </Menu.Target>
 
         <Menu.Dropdown>
@@ -96,23 +73,6 @@ export default function ProfileMenu() {
             color="gray"
           >
             View profile
-          </Menu.Item>
-
-          <Menu.Item
-            color="gray"
-            leftSection={
-              colorScheme === 'auto' ? (
-                <MdOutlineSmartphone size={22} />
-              ) : computedColorScheme === 'dark' ? (
-                <MdDarkMode size={22} />
-              ) : (
-                <MdLightMode size={22} />
-              )
-            }
-            closeMenuOnClick={false}
-            onClick={handleThemeToggle}
-          >
-            Theme: {colorScheme === 'auto' ? 'system' : colorScheme}
           </Menu.Item>
 
           <Menu.Divider />
@@ -157,26 +117,6 @@ export default function ProfileMenu() {
             onClick={handleLogout}
           >
             Log out
-          </Menu.Item>
-
-          <Menu.Divider />
-
-          <Menu.Item
-            component="a"
-            href="https://cosmik.network/"
-            target="_blank"
-          >
-            <Image
-              src={
-                computedColorScheme === 'dark'
-                  ? CosmikLogoWhite.src
-                  : CosmikLogo.src
-              }
-              alt="Cosmik logo"
-              w="auto"
-              h={24}
-              ml={2}
-            />
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

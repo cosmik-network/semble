@@ -26,6 +26,7 @@ import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import { track } from '@vercel/analytics';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -81,7 +82,10 @@ export default function Navbar() {
           size="lg"
           fullWidth
           leftSection={<FiPlus size={22} />}
-          onClick={() => setOpenAddDrawer(true)}
+          onClick={() => {
+            track('open new card drawer');
+            setOpenAddDrawer(true);
+          }}
         >
           New Card
         </Button>
