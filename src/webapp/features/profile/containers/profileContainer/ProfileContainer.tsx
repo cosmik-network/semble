@@ -18,6 +18,7 @@ import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useNavbarContext } from '@/providers/navbar';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   handle: string;
@@ -36,6 +37,8 @@ export default function ProfileContainer(props: Props) {
   const cards = cardsData?.pages.flatMap((page) => page.cards) ?? [];
 
   const { desktopOpened } = useNavbarContext();
+  const { user } = useAuth();
+  const isOwnProfile = user?.handle === props.handle;
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -79,6 +82,7 @@ export default function ProfileContainer(props: Props) {
                       authorHandle={props.handle}
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
+                      viaCardId={!isOwnProfile ? card.id : undefined}
                     />
                   </Grid.Col>
                 ))}

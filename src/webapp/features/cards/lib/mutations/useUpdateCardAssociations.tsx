@@ -17,12 +17,14 @@ export default function useUpdateCardAssociations() {
       note?: string;
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
+      viaCardId?: string;
     }) => {
       return client.updateUrlCardAssociations({
         cardId: updatedCard.cardId,
         note: updatedCard.note,
         addToCollections: updatedCard.addToCollectionIds,
         removeFromCollections: updatedCard.removeFromCollectionIds,
+        viaCardId: updatedCard.viaCardId,
       });
     },
 

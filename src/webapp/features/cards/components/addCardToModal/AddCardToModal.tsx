@@ -12,6 +12,7 @@ interface Props {
   note?: string;
   isInYourLibrary?: boolean;
   urlLibraryCount: number;
+  viaCardId?: string;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -51,6 +52,7 @@ export default function AddCardToModal(props: Props) {
           url={props.url}
           cardId={props.cardId}
           note={props.note}
+          viaCardId={props.viaCardId}
         />
       </Suspense>
     </Modal>

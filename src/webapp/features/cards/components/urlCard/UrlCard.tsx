@@ -18,6 +18,7 @@ interface Props {
   urlIsInLibrary?: boolean;
   authorHandle?: string;
   cardAuthor?: User;
+  viaCardId?: string;
 }
 
 export default function UrlCard(props: Props) {
@@ -58,6 +59,7 @@ export default function UrlCard(props: Props) {
           currentCollection={props.currentCollection}
           urlLibraryCount={props.urlLibraryCount}
           urlIsInLibrary={props.urlIsInLibrary!!}
+          viaCardId={props.viaCardId}
         />
       </Stack>
     </Card>
