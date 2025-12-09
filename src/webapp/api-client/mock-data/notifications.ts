@@ -1,6 +1,7 @@
 import { NotificationItem, NotificationType } from '@semble/types';
 
-export const mockNotifications: NotificationItem[] = [
+class MockNotificationStore {
+  private notifications: NotificationItem[] = [
   {
     id: '1',
     user: {
@@ -276,8 +277,36 @@ export const mockNotifications: NotificationItem[] = [
     ],
     type: NotificationType.USER_ADDED_YOUR_BSKY_POST,
     read: true,
-  },
-];
+  ];
+
+  getNotifications(): NotificationItem[] {
+    return this.notifications;
+  }
+
+  markAsRead(notificationIds: string[]): number {
+    let markedCount = 0;
+    this.notifications.forEach(notification => {
+      if (notificationIds.includes(notification.id) && !notification.read) {
+        notification.read = true;
+        markedCount++;
+      }
+    });
+    return markedCount;
+  }
+
+  markAllAsRead(): number {
+    let markedCount = 0;
+    this.notifications.forEach(notification => {
+      if (!notification.read) {
+        notification.read = true;
+        markedCount++;
+      }
+    });
+    return markedCount;
+  }
+}
+
+const mockNotificationStore = new MockNotificationStore();
 
 export const getMockNotifications = (params?: {
   page?: number;
@@ -286,10 +315,10 @@ export const getMockNotifications = (params?: {
 }) => {
   const { page = 1, limit = 10, unreadOnly = false } = params || {};
 
-  let filteredNotifications = mockNotifications;
+  let filteredNotifications = mockNotificationStore.getNotifications();
 
   if (unreadOnly) {
-    filteredNotifications = mockNotifications.filter((n) => !n.read);
+    filteredNotifications = filteredNotifications.filter((n) => !n.read);
   }
 
   const startIndex = (page - 1) * limit;
@@ -299,7 +328,7 @@ export const getMockNotifications = (params?: {
     endIndex,
   );
 
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const unreadCount = mockNotificationStore.getNotifications().filter((n) => !n.read).length;
 
   return {
     notifications: paginatedNotifications,
@@ -316,6 +345,16 @@ export const getMockNotifications = (params?: {
 
 export const getMockUnreadCount = () => {
   return {
-    unreadCount: mockNotifications.filter((n) => !n.read).length,
+    unreadCount: mockNotificationStore.getNotifications().filter((n) => !n.read).length,
   };
+};
+
+export const markMockNotificationsAsRead = (notificationIds: string[]) => {
+  const markedCount = mockNotificationStore.markAsRead(notificationIds);
+  return { markedCount };
+};
+
+export const markAllMockNotificationsAsRead = () => {
+  const markedCount = mockNotificationStore.markAllAsRead();
+  return { markedCount };
 };

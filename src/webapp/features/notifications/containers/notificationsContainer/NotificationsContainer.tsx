@@ -15,6 +15,8 @@ import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
+import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotificationsAsRead';
+import { useEffect, useRef } from 'react';
 
 export default function NotificationsContainer() {
   const {
@@ -28,8 +30,27 @@ export default function NotificationsContainer() {
     refetch,
   } = useMyNotifications();
 
+  const markAsReadMutation = useMarkNotificationsAsRead();
+  const hasMarkedAsRead = useRef(false);
+
   const allNotifications =
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
+
+  // Mark unread notifications as read when component unmounts
+  useEffect(() => {
+    return () => {
+      if (!hasMarkedAsRead.current && allNotifications.length > 0) {
+        const unreadIds = allNotifications
+          .filter(notification => !notification.read)
+          .map(notification => notification.id);
+        
+        if (unreadIds.length > 0) {
+          hasMarkedAsRead.current = true;
+          markAsReadMutation.mutate({ notificationIds: unreadIds });
+        }
+      }
+    };
+  }, [allNotifications, markAsReadMutation]);
 
   if (isPending) {
     return <NotificationsContainerSkeleton />;
