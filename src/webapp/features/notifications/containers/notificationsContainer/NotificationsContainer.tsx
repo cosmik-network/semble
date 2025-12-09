@@ -41,9 +41,9 @@ export default function NotificationsContainer() {
     return () => {
       if (!hasMarkedAsRead.current && allNotifications.length > 0) {
         const unreadIds = allNotifications
-          .filter(notification => !notification.read)
-          .map(notification => notification.id);
-        
+          .filter((notification) => !notification.read)
+          .map((notification) => notification.id);
+
         if (unreadIds.length > 0) {
           hasMarkedAsRead.current = true;
           markAsReadMutation.mutate({ notificationIds: unreadIds });

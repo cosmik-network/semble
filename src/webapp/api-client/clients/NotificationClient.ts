@@ -10,7 +10,8 @@ import {
 import {
   getMockNotifications,
   getMockUnreadCount,
-  mockNotifications,
+  markMockNotificationsAsRead,
+  markAllMockNotificationsAsRead,
 } from '../mock-data/notifications';
 
 export class NotificationClient extends BaseClient {
@@ -60,16 +61,10 @@ export class NotificationClient extends BaseClient {
   async markNotificationsAsRead(
     request: MarkNotificationsAsReadRequest,
   ): Promise<MarkNotificationsAsReadResponse> {
-    // For development, simulate marking as read
+    // For development, update mock data
     if (process.env.NODE_ENV === 'development') {
-      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // In a real implementation, this would update the backend
-      // For now, just return the count of IDs that would be marked
-      const markedCount = request.notificationIds.length;
-
-      return { markedCount };
+      return markMockNotificationsAsRead(request.notificationIds);
     }
 
     return this.request<MarkNotificationsAsReadResponse>(
@@ -80,15 +75,10 @@ export class NotificationClient extends BaseClient {
   }
 
   async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
-    // For development, simulate marking all as read
+    // For development, update mock data
     if (process.env.NODE_ENV === 'development') {
-      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // Count unread notifications
-      const unreadCount = mockNotifications.filter((n) => !n.read).length;
-
-      return { markedCount: unreadCount };
+      return markAllMockNotificationsAsRead();
     }
 
     return this.request<MarkAllNotificationsAsReadResponse>(
