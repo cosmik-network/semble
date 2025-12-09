@@ -39,6 +39,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-1',
         name: 'Design Resources',
+        uri: 'at://did:plc:alice123/network.cosmik.collection/collection1',
         author: {
           id: 'user-1',
           name: 'Alice Johnson',
@@ -90,6 +91,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-2',
         name: 'Web Dev Insights',
+        uri: 'at://did:plc:bob456/network.cosmik.collection/collection2',
         author: {
           id: 'user-2',
           name: 'Bob Smith',
@@ -141,6 +143,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-3',
         name: 'Learning Resources',
+        uri: 'at://did:plc:carol789/network.cosmik.collection/collection3',
         author: {
           id: 'user-3',
           name: 'Carol Davis',
@@ -193,6 +196,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-4',
         name: 'React Deep Dives',
+        uri: 'at://did:plc:david012/network.cosmik.collection/collection4',
         author: {
           id: 'user-4',
           name: 'David Wilson',
@@ -206,6 +210,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-5',
         name: 'Frontend Architecture',
+        uri: 'at://did:plc:david012/network.cosmik.collection/collection5',
         author: {
           id: 'user-4',
           name: 'David Wilson',
@@ -257,6 +262,7 @@ export const mockNotifications: NotificationItem[] = [
       {
         id: 'collection-6',
         name: 'Accessibility Resources',
+        uri: 'at://did:plc:emma345/network.cosmik.collection/collection6',
         author: {
           id: 'user-5',
           name: 'Emma Thompson',
