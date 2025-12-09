@@ -14,10 +14,12 @@ export default function useAddCard() {
       url: string;
       note?: string;
       collectionIds?: string[];
+      viaCardId?: string;
     }) => {
       return addUrlToLibrary(newCard.url, {
         note: newCard.note,
         collectionIds: newCard.collectionIds,
+        viaCardId: newCard.viaCardId,
       });
     },
 

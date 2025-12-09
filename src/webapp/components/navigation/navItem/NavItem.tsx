@@ -1,7 +1,7 @@
 'use client';
 
 import { useNavbarContext } from '@/providers/navbar';
-import { NavLink } from '@mantine/core';
+import { NavLink, Indicator } from '@mantine/core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -17,7 +17,7 @@ export default function NavItem(props: Props) {
   const pathname = usePathname();
   const isActive = pathname === props.href;
 
-  return (
+  const navLink = (
     <NavLink
       component={Link}
       href={props.href}
@@ -26,8 +26,20 @@ export default function NavItem(props: Props) {
       fw={600}
       label={props.label}
       leftSection={props.icon}
+      rightSection={props.badge ? String(props.badge) : undefined}
       active={isActive}
       onClick={toggleMobile}
     />
   );
+
+  // Show pink dot indicator if there are unread notifications
+  if (props.badge && props.badge > 0) {
+    return (
+      <Indicator color="pink" size={8} offset={7} position="top-start">
+        {navLink}
+      </Indicator>
+    );
+  }
+
+  return navLink;
 }

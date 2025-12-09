@@ -25,6 +25,7 @@ export default function FeedItem(props: Props) {
         urlLibraryCount={props.item.card.urlLibraryCount}
         urlIsInLibrary={props.item.card.urlInLibrary}
         authorHandle={props.item.user.handle}
+        viaCardId={props.item.card.id}
       />
     </Stack>
   );

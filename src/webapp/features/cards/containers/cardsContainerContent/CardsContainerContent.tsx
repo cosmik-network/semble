@@ -77,6 +77,7 @@ export default function CardsContainerContent(props: Props) {
               cardAuthor={card.author}
               urlLibraryCount={card.urlLibraryCount}
               urlIsInLibrary={card.urlInLibrary}
+              viaCardId={card.id}
             />
           </Grid.Col>
         ))}

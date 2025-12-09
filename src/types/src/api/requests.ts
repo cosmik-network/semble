@@ -18,6 +18,7 @@ export interface AddUrlToLibraryRequest {
   url: string;
   note?: string;
   collectionIds?: string[];
+  viaCardId?: string;
 }
 
 export interface AddCardToLibraryRequest {
@@ -40,6 +41,7 @@ export interface UpdateUrlCardAssociationsRequest {
   note?: string;
   addToCollections?: string[];
   removeFromCollections?: string[];
+  viaCardId?: string;
 }
 
 export interface RemoveCardFromLibraryRequest {
@@ -139,4 +141,13 @@ export interface GetCollectionsForUrlParams extends PaginatedSortedParams {
 export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   url: string;
   threshold?: number;
+}
+
+// Notification request types
+export interface GetMyNotificationsParams extends PaginatedSortedParams {
+  unreadOnly?: boolean;
+}
+
+export interface MarkNotificationsAsReadRequest {
+  notificationIds: string[];
 }

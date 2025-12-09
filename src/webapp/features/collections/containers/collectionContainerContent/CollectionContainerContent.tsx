@@ -65,6 +65,7 @@ export default function CollectionContainerContent(props: Props) {
                   urlLibraryCount={card.urlLibraryCount}
                   urlIsInLibrary={card.urlInLibrary}
                   currentCollection={firstPage}
+                  viaCardId={card.id}
                 />
               </Grid.Col>
             ))}
@@ -96,15 +97,17 @@ export default function CollectionContainerContent(props: Props) {
       )}
 
       <Box>
-        <AddCardDrawer
-          isOpen={showAddDrawer}
-          onClose={() => setShowAddDrawer(false)}
-          selectedCollection={{
-            id: firstPage.id,
-            name: firstPage.name,
-            cardCount: allCards.length,
-          }}
-        />
+        {user && (
+          <AddCardDrawer
+            isOpen={showAddDrawer}
+            onClose={() => setShowAddDrawer(false)}
+            selectedCollection={{
+              id: firstPage.id,
+              name: firstPage.name,
+              cardCount: allCards.length,
+            }}
+          />
+        )}
       </Box>
     </Fragment>
   );

@@ -2,7 +2,10 @@ import { Collection } from '../../domain/Collection';
 import { Result } from '../../../../shared/core/Result';
 import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { Card } from '../../domain/Card';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from '../../domain/value-objects/PublishedRecordId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export interface ICollectionPublisher {
@@ -15,6 +18,7 @@ export interface ICollectionPublisher {
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
+    viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
   unpublishCardAddedToCollection(
     recordId: PublishedRecordId,

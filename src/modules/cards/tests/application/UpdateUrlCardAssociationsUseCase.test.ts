@@ -42,6 +42,7 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
+      cardRepository,
     );
 
     useCase = new UpdateUrlCardAssociationsUseCase(
@@ -207,6 +208,65 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       expect(response.addedToCollections).toContain(
         collection2.collectionId.getStringValue(),
       );
+    });
+
+    it('should add URL card to collections with viaCardId', async () => {
+      const url = 'https://example.com/article';
+
+      // Create collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Test Collection')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Create a via card first
+      const viaCardResult = await addUrlToLibraryUseCase.execute({
+        url: 'https://example.com/via-article',
+        curatorId: curatorId.value,
+      });
+      expect(viaCardResult.isOk()).toBe(true);
+      const viaCardId = viaCardResult.unwrap().urlCardId;
+
+      // Add URL to library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Add to collection with viaCardId
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [collection.collectionId.getStringValue()],
+        viaCardId: viaCardId,
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.addedToCollections).toHaveLength(1);
+      expect(response.addedToCollections).toContain(
+        collection.collectionId.getStringValue(),
+      );
+
+      // Verify the collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(1);
+
+      // Verify the published link is for the correct URL card
+      const publishedLink = publishedLinks[0];
+      expect(publishedLink?.cardId).toBe(urlCardId);
     });
 
     it('should remove URL card from collections', async () => {

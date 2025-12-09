@@ -11,7 +11,7 @@ export class AddUrlToLibraryController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { url, note, collectionIds } = req.body;
+      const { url, note, collectionIds, viaCardId } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -27,6 +27,7 @@ export class AddUrlToLibraryController extends Controller {
         note,
         collectionIds: collectionIds || [],
         curatorId,
+        viaCardId,
       });
 
       if (result.isErr()) {
