@@ -116,17 +116,20 @@ export default function AddCardToModalContent(props: Props) {
         (c) => c.id,
       );
 
-    updateCardAssociations.mutate({
-      ...updatedCardPayload,
-      viaCardId: props.viaCardId,
-    }, {
-      onError: () => {
-        notifications.show({ message: 'Could not update card.' });
+    updateCardAssociations.mutate(
+      {
+        ...updatedCardPayload,
+        viaCardId: props.viaCardId,
       },
-      onSettled: () => {
-        props.onClose();
+      {
+        onError: () => {
+          notifications.show({ message: 'Could not update card.' });
+        },
+        onSettled: () => {
+          props.onClose();
+        },
       },
-    });
+    );
   };
 
   return (

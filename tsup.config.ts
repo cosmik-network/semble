@@ -25,6 +25,6 @@ export default defineConfig({
     '**/*.spec.ts',
     'src/webapp/**',
     'src/types/**',
-    'src/packages/**'
+    'src/packages/**',
   ],
 });

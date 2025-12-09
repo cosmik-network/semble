@@ -7,8 +7,10 @@ type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
   private static configService = new EnvironmentConfigService();
-  static collectionLinkType = CollectionLinkMapper.configService.getAtProtoCollections().collectionLink;
-  static baseCollection = CollectionLinkMapper.configService.getAtProtoBaseCollection();
+  static collectionLinkType =
+    CollectionLinkMapper.configService.getAtProtoCollections().collectionLink;
+  static baseCollection =
+    CollectionLinkMapper.configService.getAtProtoBaseCollection();
 
   static toCreateRecordDTO(
     cardLink: CardLink,

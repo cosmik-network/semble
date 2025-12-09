@@ -41,7 +41,11 @@ export const getMyUrlCards = cache(async (params?: PageParams) => {
 export const addUrlToLibrary = cache(
   async (
     url: string,
-    { note, collectionIds, viaCardId }: { note?: string; collectionIds?: string[]; viaCardId?: string },
+    {
+      note,
+      collectionIds,
+      viaCardId,
+    }: { note?: string; collectionIds?: string[]; viaCardId?: string },
   ) => {
     const session = await verifySessionOnClient();
     if (!session) throw new Error('No session found');
