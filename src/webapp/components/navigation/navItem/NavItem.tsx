@@ -35,12 +35,7 @@ export default function NavItem(props: Props) {
   // Show pink dot indicator if there are unread notifications
   if (props.badge && props.badge > 0) {
     return (
-      <Indicator
-        color="pink"
-        size={8}
-        offset={7}
-        position="top-start"
-      >
+      <Indicator color="pink" size={8} offset={7} position="top-start">
         {navLink}
       </Indicator>
     );

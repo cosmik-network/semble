@@ -61,7 +61,11 @@ export default function NotificationActivityStatus(props: Props) {
             ) : (
               <Fragment>
                 <Text span>added your card to </Text>
-                {renderCollections(displayedCollections, remainingCollections, remainingCount)}
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
               </Fragment>
             )}
           </Fragment>
@@ -75,7 +79,11 @@ export default function NotificationActivityStatus(props: Props) {
             ) : (
               <Fragment>
                 <Text span>added your Bluesky post to </Text>
-                {renderCollections(displayedCollections, remainingCollections, remainingCount)}
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
               </Fragment>
             )}
           </Fragment>
@@ -89,7 +97,11 @@ export default function NotificationActivityStatus(props: Props) {
             ) : (
               <Fragment>
                 <Text span>added your collection to </Text>
-                {renderCollections(displayedCollections, remainingCollections, remainingCount)}
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
               </Fragment>
             )}
           </Fragment>
