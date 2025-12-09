@@ -17,7 +17,8 @@ export const mockNotifications: NotificationItem[] = [
       cardContent: {
         url: 'https://example.com/article-1',
         title: 'Building Better User Interfaces',
-        description: 'A comprehensive guide to modern UI design principles and best practices.',
+        description:
+          'A comprehensive guide to modern UI design principles and best practices.',
         author: 'John Doe',
         thumbnailUrl: 'https://picsum.photos/seed/article1/400/200',
       },
@@ -68,7 +69,8 @@ export const mockNotifications: NotificationItem[] = [
       cardContent: {
         url: 'https://bsky.app/profile/you.bsky.social/post/abc123',
         title: 'My thoughts on the future of web development',
-        description: 'Sharing some insights about where I think web development is heading in 2025.',
+        description:
+          'Sharing some insights about where I think web development is heading in 2025.',
         thumbnailUrl: 'https://picsum.photos/seed/bsky1/400/200',
       },
       libraryCount: 8,
@@ -118,7 +120,8 @@ export const mockNotifications: NotificationItem[] = [
       cardContent: {
         url: 'https://example.com/my-collection',
         title: 'Essential JavaScript Resources',
-        description: 'A curated collection of the best JavaScript learning resources and tools.',
+        description:
+          'A curated collection of the best JavaScript learning resources and tools.',
         thumbnailUrl: 'https://picsum.photos/seed/collection1/400/200',
       },
       libraryCount: 42,
@@ -168,7 +171,8 @@ export const mockNotifications: NotificationItem[] = [
       cardContent: {
         url: 'https://example.com/article-2',
         title: 'Advanced React Patterns',
-        description: 'Deep dive into advanced React patterns and when to use them.',
+        description:
+          'Deep dive into advanced React patterns and when to use them.',
         author: 'Jane Smith',
         thumbnailUrl: 'https://picsum.photos/seed/article2/400/200',
       },
@@ -232,7 +236,8 @@ export const mockNotifications: NotificationItem[] = [
       cardContent: {
         url: 'https://bsky.app/profile/you.bsky.social/post/def456',
         title: 'The importance of accessibility in modern web design',
-        description: 'Why accessibility should be a priority, not an afterthought.',
+        description:
+          'Why accessibility should be a priority, not an afterthought.',
         thumbnailUrl: 'https://picsum.photos/seed/bsky2/400/200',
       },
       libraryCount: 19,
@@ -274,19 +279,22 @@ export const getMockNotifications = (params?: {
   unreadOnly?: boolean;
 }) => {
   const { page = 1, limit = 10, unreadOnly = false } = params || {};
-  
+
   let filteredNotifications = mockNotifications;
-  
+
   if (unreadOnly) {
-    filteredNotifications = mockNotifications.filter(n => !n.read);
+    filteredNotifications = mockNotifications.filter((n) => !n.read);
   }
-  
+
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
-  const paginatedNotifications = filteredNotifications.slice(startIndex, endIndex);
-  
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
-  
+  const paginatedNotifications = filteredNotifications.slice(
+    startIndex,
+    endIndex,
+  );
+
+  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+
   return {
     notifications: paginatedNotifications,
     pagination: {
@@ -302,6 +310,6 @@ export const getMockNotifications = (params?: {
 
 export const getMockUnreadCount = () => {
   return {
-    unreadCount: mockNotifications.filter(n => !n.read).length,
+    unreadCount: mockNotifications.filter((n) => !n.read).length,
   };
 };

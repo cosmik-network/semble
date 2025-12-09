@@ -7,7 +7,11 @@ import {
   MarkNotificationsAsReadResponse,
   MarkAllNotificationsAsReadResponse,
 } from '@semble/types';
-import { getMockNotifications, getMockUnreadCount, mockNotifications } from '../mock-data/notifications';
+import {
+  getMockNotifications,
+  getMockUnreadCount,
+  mockNotifications,
+} from '../mock-data/notifications';
 
 export class NotificationClient extends BaseClient {
   async getMyNotifications(
@@ -16,7 +20,7 @@ export class NotificationClient extends BaseClient {
     // For development, return mock data
     if (process.env.NODE_ENV === 'development') {
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return getMockNotifications({
         page: params?.page,
         limit: params?.limit,
@@ -43,7 +47,7 @@ export class NotificationClient extends BaseClient {
     // For development, return mock data
     if (process.env.NODE_ENV === 'development') {
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       return getMockUnreadCount();
     }
 
@@ -59,12 +63,12 @@ export class NotificationClient extends BaseClient {
     // For development, simulate marking as read
     if (process.env.NODE_ENV === 'development') {
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       // In a real implementation, this would update the backend
       // For now, just return the count of IDs that would be marked
       const markedCount = request.notificationIds.length;
-      
+
       return { markedCount };
     }
 
@@ -79,11 +83,11 @@ export class NotificationClient extends BaseClient {
     // For development, simulate marking all as read
     if (process.env.NODE_ENV === 'development') {
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       // Count unread notifications
-      const unreadCount = mockNotifications.filter(n => !n.read).length;
-      
+      const unreadCount = mockNotifications.filter((n) => !n.read).length;
+
       return { markedCount: unreadCount };
     }
 
