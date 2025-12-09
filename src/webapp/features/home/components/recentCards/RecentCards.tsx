@@ -56,6 +56,7 @@ export default function RecentCards() {
                 urlLibraryCount={card.urlLibraryCount}
                 urlIsInLibrary={card.urlInLibrary}
                 cardAuthor={card.author}
+                viaCardId={card.id}
               />
             </Grid.Col>
           ))}

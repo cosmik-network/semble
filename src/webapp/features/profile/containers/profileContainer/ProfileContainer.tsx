@@ -82,7 +82,7 @@ export default function ProfileContainer(props: Props) {
                       authorHandle={props.handle}
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
-                      viaCardId={!isOwnProfile ? card.id : undefined}
+                      viaCardId={card.id}
                     />
                   </Grid.Col>
                 ))}
