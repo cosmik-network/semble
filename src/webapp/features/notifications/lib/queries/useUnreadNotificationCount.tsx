@@ -6,8 +6,9 @@ export default function useUnreadNotificationCount() {
   const query = useQuery({
     queryKey: notificationKeys.unreadCount(),
     queryFn: getUnreadNotificationCount,
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 20000, // 20 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   return query;
