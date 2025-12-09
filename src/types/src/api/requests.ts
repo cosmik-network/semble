@@ -142,3 +142,12 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   url: string;
   threshold?: number;
 }
+
+// Notification request types
+export interface GetMyNotificationsParams extends PaginatedSortedParams {
+  unreadOnly?: boolean;
+}
+
+export interface MarkNotificationsAsReadRequest {
+  notificationIds: string[];
+}
