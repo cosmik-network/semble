@@ -17,6 +17,7 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
+import { IoNotificationsOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
@@ -26,11 +27,13 @@ import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import useUnreadNotificationCount from '@/features/notifications/lib/queries/useUnreadNotificationCount';
 import { track } from '@vercel/analytics';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
+  const { data: unreadCount } = useUnreadNotificationCount();
 
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
@@ -58,6 +61,12 @@ export default function Navbar() {
               href="/explore"
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
+            />
+            <NavItem
+              href="/notifications"
+              label="Notifications"
+              icon={<IoNotificationsOutline size={25} />}
+              badge={unreadCount?.unreadCount}
             />
             <NavItem
               href={`/profile/${profile.handle}/cards`}
