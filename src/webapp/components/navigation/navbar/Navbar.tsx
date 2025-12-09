@@ -17,7 +17,7 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
-import { IoNotificationsOutline } from 'react-icons/io5';
+import { RiNotification2Line } from 'react-icons/ri';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
@@ -65,7 +65,7 @@ export default function Navbar() {
             <NavItem
               href="/notifications"
               label="Notifications"
-              icon={<IoNotificationsOutline size={25} />}
+              icon={<RiNotification2Line size={25} />}
               badge={unreadCount?.unreadCount}
             />
             <NavItem
