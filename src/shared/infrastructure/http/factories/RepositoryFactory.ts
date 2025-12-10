@@ -36,6 +36,9 @@ import { IFeedRepository } from '../../../../modules/feeds/domain/IFeedRepositor
 import { IAtUriResolutionService } from '../../../../modules/cards/domain/services/IAtUriResolutionService';
 import { DrizzleAtUriResolutionService } from '../../../../modules/cards/infrastructure/services/DrizzleAtUriResolutionService';
 import { InMemoryAtUriResolutionService } from '../../../../modules/cards/tests/utils/InMemoryAtUriResolutionService';
+import { INotificationRepository } from '../../../../modules/notifications/domain/INotificationRepository';
+import { DrizzleNotificationRepository } from '../../../../modules/notifications/infrastructure/repositories/DrizzleNotificationRepository';
+import { InMemoryNotificationRepository } from '../../../../modules/notifications/tests/infrastructure/InMemoryNotificationRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -46,6 +49,7 @@ export interface Repositories {
   collectionQueryRepository: ICollectionQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
+  notificationRepository: INotificationRepository;
   atUriResolutionService: IAtUriResolutionService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
@@ -76,6 +80,7 @@ export class RepositoryFactory {
         collectionRepository,
         cardRepository,
       );
+      const notificationRepository = InMemoryNotificationRepository.getInstance();
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
 
@@ -88,6 +93,7 @@ export class RepositoryFactory {
         collectionQueryRepository,
         appPasswordSessionRepository,
         feedRepository,
+        notificationRepository,
         atUriResolutionService,
         oauthStateStore,
         oauthSessionStore,
@@ -110,6 +116,7 @@ export class RepositoryFactory {
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
+      notificationRepository: new DrizzleNotificationRepository(db),
       atUriResolutionService: new DrizzleAtUriResolutionService(db),
       oauthStateStore,
       oauthSessionStore,
