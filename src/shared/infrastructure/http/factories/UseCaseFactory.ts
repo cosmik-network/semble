@@ -39,10 +39,12 @@ import { GetMyNotificationsUseCase } from '../../../../modules/notifications/app
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
 import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkAllNotificationsAsReadUseCase';
+import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
+  createNotificationUseCase: CreateNotificationUseCase;
   // Firehose-specific use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
@@ -287,6 +289,10 @@ export class UseCaseFactory {
       // Search use cases (only ones needed by workers)
       indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
         services.searchService,
+      ),
+      // Notification use cases (only ones needed by workers)
+      createNotificationUseCase: new CreateNotificationUseCase(
+        services.notificationService,
       ),
       // Firehose-specific use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
