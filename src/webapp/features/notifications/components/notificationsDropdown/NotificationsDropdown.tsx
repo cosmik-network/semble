@@ -59,10 +59,12 @@ export default function NotificationsDropdown() {
                 </Stack>
               }
             >
-              <Stack align="center">
+              <Stack>
                 <NotificationsDropdownContent />
+
                 <Anchor
                   c={'dimmed'}
+                  mx={'auto'}
                   fw={600}
                   component={Link}
                   href={'/notifications'}
