@@ -28,6 +28,7 @@ export interface UpdateUrlCardAssociationsDTO {
   note?: string;
   addToCollections?: string[];
   removeFromCollections?: string[];
+  viaCardId?: string;
   context?: OperationContext;
   publishedRecordIds?: {
     noteCard?: PublishedRecordId;
@@ -285,11 +286,26 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
               }
             : undefined;
 
+        // Validate and create viaCardId if provided
+        let viaCardId: CardId | undefined;
+        if (request.viaCardId) {
+          const viaCardIdResult = CardId.createFromString(request.viaCardId);
+          if (viaCardIdResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Invalid via card ID: ${viaCardIdResult.error.message}`,
+              ),
+            );
+          }
+          viaCardId = viaCardIdResult.value;
+        }
+
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
             urlCard,
             collectionIds,
             curatorId,
+            viaCardId,
             collectionOptions,
           );
         if (addToCollectionsResult.isErr()) {

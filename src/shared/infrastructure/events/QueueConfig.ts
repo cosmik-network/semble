@@ -2,6 +2,7 @@ export const QueueNames = {
   FEEDS: 'feeds',
   SEARCH: 'search',
   ANALYTICS: 'analytics',
+  NOTIFICATIONS: 'notifications',
 } as const;
 
 export type QueueName = (typeof QueueNames)[keyof typeof QueueNames];
@@ -27,5 +28,12 @@ export const QueueOptions = {
     removeOnComplete: 25,
     removeOnFail: 10,
     concurrency: 20,
+  },
+  [QueueNames.NOTIFICATIONS]: {
+    attempts: 3,
+    backoff: { type: 'exponential' as const, delay: 2000 },
+    removeOnComplete: 50,
+    removeOnFail: 25,
+    concurrency: 10,
   },
 } as const;

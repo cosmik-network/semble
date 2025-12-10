@@ -61,6 +61,7 @@ export const collectionCards = pgTable(
       .references(() => cards.id, { onDelete: 'cascade' }),
     addedBy: text('added_by').notNull(),
     addedAt: timestamp('added_at').notNull().defaultNow(),
+    viaCardId: uuid('via_card_id').references(() => cards.id),
     publishedRecordId: uuid('published_record_id').references(
       () => publishedRecords.id,
     ),

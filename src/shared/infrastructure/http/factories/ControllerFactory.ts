@@ -32,6 +32,10 @@ import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/in
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
+import { GetMyNotificationsController } from '../../../../modules/notifications/infrastructure/http/controllers/GetMyNotificationsController';
+import { GetUnreadNotificationCountController } from '../../../../modules/notifications/infrastructure/http/controllers/GetUnreadNotificationCountController';
+import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
+import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -72,6 +76,11 @@ export interface Controllers {
   getGlobalFeedController: GetGlobalFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
+  // Notification controllers
+  getMyNotificationsController: GetMyNotificationsController;
+  getUnreadNotificationCountController: GetUnreadNotificationCountController;
+  markNotificationsAsReadController: MarkNotificationsAsReadController;
+  markAllNotificationsAsReadController: MarkAllNotificationsAsReadController;
 }
 
 export class ControllerFactory {
@@ -190,6 +199,21 @@ export class ControllerFactory {
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(
         useCases.getSimilarUrlsForUrlUseCase,
       ),
+      // Notification controllers
+      getMyNotificationsController: new GetMyNotificationsController(
+        useCases.getMyNotificationsUseCase,
+      ),
+      getUnreadNotificationCountController:
+        new GetUnreadNotificationCountController(
+          useCases.getUnreadNotificationCountUseCase,
+        ),
+      markNotificationsAsReadController: new MarkNotificationsAsReadController(
+        useCases.markNotificationsAsReadUseCase,
+      ),
+      markAllNotificationsAsReadController:
+        new MarkAllNotificationsAsReadController(
+          useCases.markAllNotificationsAsReadUseCase,
+        ),
     };
   }
 }

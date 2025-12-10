@@ -118,6 +118,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
+    viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const curatorDidResult = DID.create(curatorId.value);
@@ -198,6 +199,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         collection.publishedRecordId.getValue(),
         libraryMembership.publishedRecordId.getValue(),
         originalCardRecordId,
+        viaCardPublishedRecordId,
       );
       linkRecordDTO.$type = this.collectionLinkCollection as any;
 

@@ -13,8 +13,13 @@ export class UpdateUrlCardAssociationsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { cardId, note, addToCollections, removeFromCollections } =
-        req.body;
+      const {
+        cardId,
+        note,
+        addToCollections,
+        removeFromCollections,
+        viaCardId,
+      } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -31,6 +36,7 @@ export class UpdateUrlCardAssociationsController extends Controller {
         note,
         addToCollections,
         removeFromCollections,
+        viaCardId,
       });
 
       if (result.isErr()) {

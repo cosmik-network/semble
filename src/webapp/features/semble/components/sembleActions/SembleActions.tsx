@@ -13,6 +13,7 @@ import { track } from '@vercel/analytics';
 
 interface Props {
   url: string;
+  viaCardId?: string;
 }
 
 export default function SembleActions(props: Props) {
@@ -91,6 +92,7 @@ export default function SembleActions(props: Props) {
         note={cardStatus.data.card?.note?.text}
         isInYourLibrary={cardStatus.data.card?.urlInLibrary}
         urlLibraryCount={urlLibraryCount}
+        viaCardId={props.viaCardId}
       />
     </Fragment>
   );

@@ -8,6 +8,7 @@ primary_region = 'yyz'
   feed-worker = "npm run worker:feeds"
   search-worker = "npm run worker:search"
   firehose-worker = "npm run worker:firehose"
+  notification-worker = "npm run worker:notifications"
 
 [http_service]
   internal_port = 3000
@@ -42,6 +43,12 @@ primary_region = 'yyz'
   cpus = 1
   auto_stop_machines = false
   min_machines_running = 1
+
+[[vm]]
+  processes = ['notification-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
 
 [env]
 NODE_ENV="prod"

@@ -3,18 +3,14 @@
   "id": "network.cosmik.defs",
   "description": "Common definitions for annotation types and references",
   "defs": {
-    "identifier": {
+    "provenance": {
       "type": "object",
-      "description": "Represents an identifier with a type and value.",
-      "required": ["type", "value"],
+      "description": "Represents the provenance or source of a record.",
       "properties": {
-        "type": {
-          "type": "string",
-          "description": "The type of identifier (e.g., 'doi', 'at-uri', 'isbn')."
-        },
-        "value": {
-          "type": "string",
-          "description": "The identifier value."
+        "via": {
+          "type": "ref",
+          "description": "Strong reference to the card that led to this record.",
+          "ref": "com.atproto.repo.strongRef"
         }
       }
     }

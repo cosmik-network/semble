@@ -24,6 +24,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       content_data JSONB NOT NULL,
       url TEXT,
       parent_card_id UUID REFERENCES cards(id),
+      via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
       library_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -67,6 +68,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
       added_by TEXT NOT NULL,
       added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
       UNIQUE(collection_id, card_id)
     )`,
@@ -77,6 +79,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )`,
+
+    // Notifications table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS notifications (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      recipient_user_id TEXT NOT NULL,
+      actor_user_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      metadata JSONB NOT NULL,
+      read BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
   ];
 
@@ -142,6 +156,17 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Index for efficient AT URI look ups
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
+  `);
+
+  // Notifications table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_idx ON notifications(recipient_user_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_user_id, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx ON notifications(recipient_user_id, read);
   `);
 
   // Cards table indexes
