@@ -30,7 +30,7 @@ export default function NotificationsContainer() {
     refetch,
   } = useMyNotifications();
 
-  const markAsReadMutation = useMarkNotificationsAsRead();
+  const markAsRead = useMarkNotificationsAsRead();
   const hasMarkedAsRead = useRef(false);
 
   const allNotifications =
@@ -46,11 +46,11 @@ export default function NotificationsContainer() {
 
         if (unreadIds.length > 0) {
           hasMarkedAsRead.current = true;
-          markAsReadMutation.mutate({ notificationIds: unreadIds });
+          markAsRead.mutate({ notificationIds: unreadIds });
         }
       }
     };
-  }, [allNotifications, markAsReadMutation]);
+  }, [allNotifications, markAsRead]);
 
   if (isPending) {
     return <NotificationsContainerSkeleton />;

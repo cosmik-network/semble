@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
+import styles from './NotificationDropdownItemActivityStatus.module.css';
 
 interface Props {
   user: NotificationItem['user'];
@@ -169,23 +170,21 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
   );
 
   return (
-    <Card p={0}>
-      <Stack gap={'xs'} px={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="center">
-          <Avatar
-            component={Link}
-            href={`/profile/${props.user.handle}`}
-            src={props.user.avatarUrl}
-            alt={`${props.user.name}'s' avatar`}
-          />
-          <Text fw={500}>
-            {getActivityText()}
-            <Text fz={'sm'} fw={600} c={'gray'} span>
-              {''} · {relativeCreatedDate}
-            </Text>
+    <Card p={0} className={styles.root} radius={'lg'}>
+      <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
+        <Avatar
+          component={Link}
+          href={`/profile/${props.user.handle}`}
+          src={props.user.avatarUrl}
+          alt={`${props.user.name}'s' avatar`}
+        />
+        <Text fw={500}>
+          {getActivityText()}
+          <Text fz={'sm'} fw={600} c={'gray'} span>
+            {''} · {relativeCreatedDate}
           </Text>
-        </Group>
-      </Stack>
+        </Text>
+      </Group>
     </Card>
   );
 }
