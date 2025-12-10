@@ -1,7 +1,7 @@
 import type { NotificationItem as NotificationItemType } from '@/api-client';
-import { Indicator, Stack, Image, Group } from '@mantine/core';
-import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
+import { Indicator, Image, Group } from '@mantine/core';
 import { useState } from 'react';
+import NotificationDropdownItemActivityStatus from './NotificationDropdownItemActivityStatus';
 
 interface Props {
   item: NotificationItemType;
@@ -19,7 +19,7 @@ export default function NotificationDropdownItem(props: Props) {
       position="top-start"
     >
       <Group gap={'xs'} align="center" h={'100%'} wrap="nowrap">
-        <NotificationActivityStatus
+        <NotificationDropdownItemActivityStatus
           user={props.item.user}
           collections={props.item.collections}
           createdAt={props.item.createdAt}

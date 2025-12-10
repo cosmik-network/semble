@@ -11,7 +11,7 @@ export default function NotificationsDropdownContent() {
 
   return (
     <ScrollArea.Autosize mah={385} type="auto">
-      <Stack align="center" gap={'xs'}>
+      <Stack align="center" gap={'lg'}>
         {allNotifications.length === 0 ? (
           <Text fw={500}>You have no notifications</Text>
         ) : (

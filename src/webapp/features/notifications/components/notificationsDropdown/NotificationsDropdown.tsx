@@ -30,7 +30,7 @@ export default function NotificationsDropdown() {
       offset={10}
       color="tangerine"
     >
-      <Popover position="bottom-start" shadow="sm" opened={opened}>
+      <Popover position="bottom-start" shadow="sm" trapFocus opened={opened}>
         <Popover.Target>
           <NavLink
             component="button"
