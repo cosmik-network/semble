@@ -20,6 +20,7 @@
     "worker:feeds": "node dist/workers/feed-worker.js",
     "worker:search": "node dist/workers/search-worker.js",
     "worker:firehose": "node dist/workers/firehose-worker.js",
+    "worker:notifications": "node dist/workers/notification-worker.js",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='.integration.test.' --testPathIgnorePatterns='.e2e.test.'",
     "test:integration": "jest --testPathPattern='.integration.test.'",
