@@ -11,7 +11,7 @@ export default async function Page() {
 
   return (
     <Fragment>
-      <Header>
+      <Header title="Settings">
         <BackButton href="/home">Home</BackButton>
       </Header>
       <SettingsContainer />

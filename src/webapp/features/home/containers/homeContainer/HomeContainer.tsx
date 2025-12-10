@@ -14,8 +14,6 @@ export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>Home</Title>
-
         <Stack gap={50}>
           {/* Explore */}
           <Stack>

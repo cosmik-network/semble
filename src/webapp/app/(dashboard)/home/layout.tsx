@@ -14,7 +14,7 @@ interface Props {
 export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header />
+      <Header title="Home" />
       {props.children}
     </Fragment>
   );

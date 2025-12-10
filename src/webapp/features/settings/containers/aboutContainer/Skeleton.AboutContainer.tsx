@@ -4,7 +4,6 @@ import {
   Container,
   Stack,
   Image,
-  Title,
   Text,
   Group,
 } from '@mantine/core';
@@ -16,7 +15,6 @@ export default function AboutContainerSkeleton() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
-        <Title order={1}>Loading</Title>
         <ButtonGroup orientation="vertical">
           <SettingItemSkeleton />
           <SettingItemSkeleton />

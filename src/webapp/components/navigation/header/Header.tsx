@@ -1,8 +1,9 @@
-import { Box, Divider, Group, Paper } from '@mantine/core';
+import { Box, Divider, Group, Paper, Text } from '@mantine/core';
 import NavbarToggle from '../NavbarToggle';
 import { ReactElement } from 'react';
 
 interface Props {
+  title?: string;
   children?: ReactElement;
 }
 
@@ -11,9 +12,13 @@ export default function Header(props: Props) {
     <Paper pos={'sticky'} top={0} style={{ zIndex: 1 }}>
       <Group gap={'xs'} p={'xs'} justify="space-between">
         {props.children}
-        <Box ml={'auto'}>
-          <NavbarToggle />
-        </Box>
+        {props.title && (
+          <Text fz={'h3'} fw={700}>
+            {props.title}
+          </Text>
+        )}
+
+        <NavbarToggle />
       </Group>
       <Divider />
     </Paper>

@@ -2,15 +2,7 @@
 
 import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifications';
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
-import {
-  Stack,
-  Title,
-  Text,
-  Center,
-  Container,
-  Box,
-  Loader,
-} from '@mantine/core';
+import { Stack, Text, Center, Container, Box, Loader } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -63,7 +55,6 @@ export default function NotificationsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>Notifications</Title>
         {isRefetching && (
           <Stack align="center" gap={'xs'}>
             <Loader color={'gray'} />

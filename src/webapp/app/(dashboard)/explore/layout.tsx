@@ -18,7 +18,7 @@ export default async function Layout(props: Props) {
 
   return (
     <Fragment>
-      <Header>
+      <Header title="Explore">
         {session ? (
           <BackButton href="/home">Home</BackButton>
         ) : (
