@@ -11,9 +11,9 @@ export default function NotificationItem(props: Props) {
   return (
     <Indicator
       disabled={props.item.read}
-      color="pink"
+      color="tangerine"
       size={8}
-      offset={7}
+      offset={3}
       position="top-start"
     >
       <Stack gap={'xs'} align="stretch" h={'100%'}>

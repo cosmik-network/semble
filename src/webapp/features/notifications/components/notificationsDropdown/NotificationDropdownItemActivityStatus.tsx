@@ -14,7 +14,6 @@ import {
 import { NotificationItem, Collection, NotificationType } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
-import styles from '../../../feeds/components/feedActivityStatus/FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
