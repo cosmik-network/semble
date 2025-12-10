@@ -9,6 +9,7 @@ import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { NotificationItem } from '@semble/types';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -17,63 +18,7 @@ export interface GetMyNotificationsDTO {
   unreadOnly?: boolean;
 }
 
-export interface NotificationItemDTO {
-  id: string;
-  user: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  };
-  card: {
-    id: string;
-    type: 'URL';
-    url: string;
-    cardContent: {
-      url: string;
-      title?: string;
-      description?: string;
-      author?: string;
-      thumbnailUrl?: string;
-    };
-    libraryCount: number;
-    urlLibraryCount: number;
-    urlInLibrary?: boolean;
-    createdAt: string;
-    updatedAt: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-      description?: string;
-    };
-    note?: {
-      id: string;
-      text: string;
-    };
-  };
-  createdAt: string;
-  collections: Array<{
-    id: string;
-    uri?: string;
-    name: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-      description?: string;
-    };
-    description?: string;
-    cardCount: number;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-  type: string;
-  read: boolean;
-}
+type NotificationItemDTO = NotificationItem;
 
 export interface GetMyNotificationsResponseDTO {
   notifications: NotificationItemDTO[];
@@ -121,7 +66,9 @@ export class GetMyNotificationsUseCase
     try {
       const userIdResult = CuratorId.create(request.userId);
       if (userIdResult.isErr()) {
-        return err(new ValidationError(`Invalid user ID: ${userIdResult.error.message}`));
+        return err(
+          new ValidationError(`Invalid user ID: ${userIdResult.error.message}`),
+        );
       }
 
       const page = request.page || 1;
@@ -156,12 +103,16 @@ export class GetMyNotificationsUseCase
           }
 
           // Get card data
-          const cardIdResult = CardId.createFromString(notification.metadata.cardId);
+          const cardIdResult = CardId.createFromString(
+            notification.metadata.cardId,
+          );
           if (cardIdResult.isErr()) {
             continue;
           }
 
-          const cardResult = await this.cardRepository.findById(cardIdResult.value);
+          const cardResult = await this.cardRepository.findById(
+            cardIdResult.value,
+          );
           if (cardResult.isErr() || !cardResult.value) {
             continue;
           }
@@ -180,7 +131,8 @@ export class GetMyNotificationsUseCase
           const collections = [];
           if (notification.metadata.collectionIds) {
             for (const collectionIdStr of notification.metadata.collectionIds) {
-              const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+              const collectionIdResult =
+                CollectionId.createFromString(collectionIdStr);
               if (collectionIdResult.isErr()) {
                 continue;
               }
@@ -193,9 +145,8 @@ export class GetMyNotificationsUseCase
               }
 
               const collection = collectionResult.value;
-              const collectionAuthorProfileResult = await this.profileService.getProfile(
-                collection.authorId.value,
-              );
+              const collectionAuthorProfileResult =
+                await this.profileService.getProfile(collection.authorId.value);
               if (collectionAuthorProfileResult.isErr()) {
                 continue;
               }

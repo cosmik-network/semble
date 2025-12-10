@@ -1,11 +1,6 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
-
-export enum NotificationTypeEnum {
-  USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',
-  USER_ADDED_YOUR_BSKY_POST = 'USER_ADDED_YOUR_BSKY_POST',
-  USER_ADDED_YOUR_COLLECTION = 'USER_ADDED_YOUR_COLLECTION',
-}
+import { NotificationType as NotificationTypeEnum } from '@semble/types';
 
 interface NotificationTypeProps {
   value: NotificationTypeEnum;
