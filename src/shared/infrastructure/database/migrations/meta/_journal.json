@@ -64,6 +64,13 @@
       "when": 1764017027849,
       "tag": "0008_flaky_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1765356227606,
+      "tag": "0009_stormy_mastermind",
+      "breakpoints": true
     }
   ]
 }
