@@ -7,6 +7,7 @@ import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atp
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
+import { createNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
 import { createTestRoutes } from './routes/testRoutes';
 import {
   EnvironmentConfigService,
@@ -125,6 +126,14 @@ export const createExpressApp = (
     controllers.getSimilarUrlsForUrlController,
   );
 
+  const notificationRouter = createNotificationRoutes(
+    services.authMiddleware,
+    controllers.getMyNotificationsController,
+    controllers.getUnreadNotificationCountController,
+    controllers.markNotificationsAsReadController,
+    controllers.markAllNotificationsAsReadController,
+  );
+
   const testRouter = Router();
   createTestRoutes(testRouter);
 
@@ -134,6 +143,7 @@ export const createExpressApp = (
   app.use('/api', cardsRouter);
   app.use('/api/feeds', feedRouter);
   app.use('/api/search', searchRouter);
+  app.use('/api/notifications', notificationRouter);
   app.use('/api/test', testRouter);
 
   return app;

@@ -57,6 +57,7 @@ import { SearchService } from '../../../../modules/search/domain/services/Search
 import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDatabase';
 import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
 import { UpstashVectorDatabase } from '../../../../modules/search/infrastructure/UpstashVectorDatabase';
+import { NotificationService } from '../../../../modules/notifications/domain/services/NotificationService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -66,6 +67,7 @@ export interface SharedServices {
   metadataService: IMetadataService;
   profileService: IProfileService;
   feedService: FeedService;
+  notificationService: NotificationService;
   nodeOauthClient: NodeOAuthClient;
   identityResolutionService: IIdentityResolutionService;
   configService: EnvironmentConfigService;
@@ -280,6 +282,11 @@ export class ServiceFactory {
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);
 
+    // Notification Service
+    const notificationService = new NotificationService(
+      repositories.notificationRepository,
+    );
+
     // Identity Resolution Service
     const identityResolutionService = new ATProtoIdentityResolutionService(
       atProtoAgentService,
@@ -353,6 +360,7 @@ export class ServiceFactory {
       metadataService,
       profileService,
       feedService,
+      notificationService,
       nodeOauthClient,
       identityResolutionService,
       configService,

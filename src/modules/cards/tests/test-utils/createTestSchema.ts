@@ -80,6 +80,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       metadata JSONB NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
+
+    // Notifications table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS notifications (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      recipient_user_id TEXT NOT NULL,
+      actor_user_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      metadata JSONB NOT NULL,
+      read BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -144,6 +156,17 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Index for efficient AT URI look ups
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
+  `);
+
+  // Notifications table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_idx ON notifications(recipient_user_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_user_id, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx ON notifications(recipient_user_id, read);
   `);
 
   // Cards table indexes

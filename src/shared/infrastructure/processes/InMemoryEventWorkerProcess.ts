@@ -6,8 +6,11 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler as FeedCardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { CardAddedToLibraryEventHandler as NotificationCardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { CardAddedToCollectionEventHandler as NotificationCardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
+import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
 import { IEventSubscriber } from '../../application/events/IEventSubscriber';
@@ -61,6 +64,18 @@ export class InMemoryEventWorkerProcess implements IProcess {
         repositories.cardRepository,
       );
 
+    // Notification handlers
+    const cardNotificationSaga = new CardNotificationSaga(
+      useCases.createNotificationUseCase,
+      services.sagaStateStore,
+      repositories.cardRepository,
+    );
+
+    const notificationCardAddedToLibraryHandler =
+      new NotificationCardAddedToLibraryEventHandler(cardNotificationSaga);
+    const notificationCardAddedToCollectionHandler =
+      new NotificationCardAddedToCollectionEventHandler(cardNotificationSaga);
+
     // Register feed handlers
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -76,6 +91,17 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       searchCardAddedToLibraryHandler,
+    );
+
+    // Register notification handlers
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_LIBRARY,
+      notificationCardAddedToLibraryHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_COLLECTION,
+      notificationCardAddedToCollectionHandler,
     );
   }
 }

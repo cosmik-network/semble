@@ -6,6 +6,7 @@ export default defineConfig({
     'workers/feed-worker': 'src/workers/feed-worker.ts',
     'workers/search-worker': 'src/workers/search-worker.ts',
     'workers/firehose-worker': 'src/workers/firehose-worker.ts',
+    'workers/notification-worker': 'src/workers/notification-worker.ts',
   },
   outDir: 'dist',
   target: 'node18',

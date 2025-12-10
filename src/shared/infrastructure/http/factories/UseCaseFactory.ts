@@ -35,10 +35,16 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/applicat
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
+import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
+import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
+import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkAllNotificationsAsReadUseCase';
+import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
+  createNotificationUseCase: CreateNotificationUseCase;
   // Firehose-specific use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
@@ -87,6 +93,11 @@ export interface UseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
+  // Notification use cases
+  getMyNotificationsUseCase: GetMyNotificationsUseCase;
+  getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
+  markNotificationsAsReadUseCase: MarkNotificationsAsReadUseCase;
+  markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase;
 }
 
 export class UseCaseFactory {
@@ -247,6 +258,22 @@ export class UseCaseFactory {
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
         services.searchService,
       ),
+      // Notification use cases
+      getMyNotificationsUseCase: new GetMyNotificationsUseCase(
+        repositories.notificationRepository,
+        services.profileService,
+        repositories.cardRepository,
+        repositories.collectionRepository,
+      ),
+      getUnreadNotificationCountUseCase: new GetUnreadNotificationCountUseCase(
+        repositories.notificationRepository,
+      ),
+      markNotificationsAsReadUseCase: new MarkNotificationsAsReadUseCase(
+        repositories.notificationRepository,
+      ),
+      markAllNotificationsAsReadUseCase: new MarkAllNotificationsAsReadUseCase(
+        repositories.notificationRepository,
+      ),
     };
   }
 
@@ -262,6 +289,10 @@ export class UseCaseFactory {
       // Search use cases (only ones needed by workers)
       indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
         services.searchService,
+      ),
+      // Notification use cases (only ones needed by workers)
+      createNotificationUseCase: new CreateNotificationUseCase(
+        services.notificationService,
       ),
       // Firehose-specific use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(

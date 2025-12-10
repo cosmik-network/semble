@@ -41,7 +41,7 @@ export default function MyFeedContainer() {
 
   return (
     <Container p="xs" size="xl">
-      <Stack>
+      <Stack align="center">
         <Title order={1}>Explore</Title>
         {isRefetching && (
           <Stack align="center" gap={'xs'}>
