@@ -17,7 +17,6 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
-import { RiNotification2Line } from 'react-icons/ri';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
@@ -27,13 +26,12 @@ import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
-import useUnreadNotificationCount from '@/features/notifications/lib/queries/useUnreadNotificationCount';
 import { track } from '@vercel/analytics';
+import NotificationsDropdown from '@/features/notifications/components/notificationsDropdown/NotificationsDropdown';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
-  const { data: unreadCount } = useUnreadNotificationCount();
 
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
@@ -62,12 +60,7 @@ export default function Navbar() {
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
             />
-            <NavItem
-              href="/notifications"
-              label="Notifications"
-              icon={<RiNotification2Line size={25} />}
-              badge={unreadCount?.unreadCount}
-            />
+            <NotificationsDropdown />
             <NavItem
               href={`/profile/${profile.handle}/cards`}
               label="Cards"
