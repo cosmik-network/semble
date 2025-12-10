@@ -24,10 +24,10 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
     try {
       // Decode handle from the state parameter
       const handle = this.decodeState(params.state);
-      
+
       // Get mock data based on handle
       const mockData = this.getMockDataForHandle(handle);
-      
+
       return ok({
         did: mockData.did,
         handle: mockData.handle,
@@ -52,7 +52,10 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
     }
   }
 
-  private getMockDataForHandle(handle?: string): { did: string; handle: string } {
+  private getMockDataForHandle(handle?: string): {
+    did: string;
+    handle: string;
+  } {
     // Default to first account if no handle provided
     if (!handle) {
       return {
