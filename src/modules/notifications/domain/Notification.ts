@@ -2,7 +2,7 @@ import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { UniqueEntityID } from '../../../shared/domain/UniqueEntityID';
 import { ok, err, Result } from '../../../shared/core/Result';
 import { NotificationId } from './value-objects/NotificationId';
-import { NotificationType, NotificationTypeEnum } from './value-objects/NotificationType';
+import { NotificationType } from './value-objects/NotificationType';
 import { CuratorId } from '../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
@@ -92,7 +92,7 @@ export class Notification extends AggregateRoot<NotificationProps> {
 
     const metadata: NotificationMetadata = {
       cardId: cardId.getStringValue(),
-      collectionIds: collectionIds?.map(id => id.getStringValue()),
+      collectionIds: collectionIds?.map((id) => id.getStringValue()),
     };
 
     return this.create({
