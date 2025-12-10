@@ -5,7 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { INotificationRepository } from '../../../domain/INotificationRepository';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
+import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
@@ -106,7 +106,7 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
-    private cardQueryRepository: ICardQueryRepository,
+    private cardRepository: ICardRepository,
     private collectionRepository: ICollectionRepository,
   ) {}
 
@@ -161,7 +161,7 @@ export class GetMyNotificationsUseCase
             continue;
           }
 
-          const cardResult = await this.cardQueryRepository.findById(cardIdResult.value);
+          const cardResult = await this.cardRepository.findById(cardIdResult.value);
           if (cardResult.isErr() || !cardResult.value) {
             continue;
           }
@@ -203,15 +203,15 @@ export class GetMyNotificationsUseCase
               collections.push({
                 id: collection.collectionId.getStringValue(),
                 uri: collection.publishedRecordId?.uri,
-                name: collection.name,
+                name: collection.name.value,
                 author: {
-                  id: collectionAuthorProfileResult.value.did,
-                  name: collectionAuthorProfileResult.value.displayName || collectionAuthorProfileResult.value.handle,
+                  id: collectionAuthorProfileResult.value.id,
+                  name: collectionAuthorProfileResult.value.name,
                   handle: collectionAuthorProfileResult.value.handle,
-                  avatarUrl: collectionAuthorProfileResult.value.avatar,
-                  description: collectionAuthorProfileResult.value.description,
+                  avatarUrl: collectionAuthorProfileResult.value.avatarUrl,
+                  description: collectionAuthorProfileResult.value.bio,
                 },
-                description: collection.description,
+                description: collection.description?.value,
                 cardCount: collection.cardCount,
                 createdAt: collection.createdAt.toISOString(),
                 updatedAt: collection.updatedAt.toISOString(),
@@ -222,11 +222,11 @@ export class GetMyNotificationsUseCase
           const notificationItem: NotificationItemDTO = {
             id: notification.notificationId.getStringValue(),
             user: {
-              id: actorProfileResult.value.did,
-              name: actorProfileResult.value.displayName || actorProfileResult.value.handle,
+              id: actorProfileResult.value.id,
+              name: actorProfileResult.value.name,
               handle: actorProfileResult.value.handle,
-              avatarUrl: actorProfileResult.value.avatar,
-              description: actorProfileResult.value.description,
+              avatarUrl: actorProfileResult.value.avatarUrl,
+              description: actorProfileResult.value.bio,
             },
             card: {
               id: card.cardId.getStringValue(),
@@ -245,11 +245,11 @@ export class GetMyNotificationsUseCase
               createdAt: card.createdAt.toISOString(),
               updatedAt: card.updatedAt.toISOString(),
               author: {
-                id: cardAuthorProfileResult.value.did,
-                name: cardAuthorProfileResult.value.displayName || cardAuthorProfileResult.value.handle,
+                id: cardAuthorProfileResult.value.id,
+                name: cardAuthorProfileResult.value.name,
                 handle: cardAuthorProfileResult.value.handle,
-                avatarUrl: cardAuthorProfileResult.value.avatar,
-                description: cardAuthorProfileResult.value.description,
+                avatarUrl: cardAuthorProfileResult.value.avatarUrl,
+                description: cardAuthorProfileResult.value.bio,
               },
             },
             createdAt: notification.createdAt.toISOString(),

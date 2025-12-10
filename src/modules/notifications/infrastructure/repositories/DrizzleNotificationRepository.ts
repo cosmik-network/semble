@@ -1,4 +1,4 @@
-import { eq, desc, and, count } from 'drizzle-orm';
+import { eq, desc, and, count, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   INotificationRepository,
@@ -190,26 +190,17 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     try {
       const ids = notificationIds.map(id => id.getStringValue());
       
+      if (ids.length === 0) {
+        return ok(undefined);
+      }
+
       await this.db
         .update(notifications)
         .set({ 
           read: true, 
           updatedAt: new Date() 
         })
-        .where(eq(notifications.id, ids[0])); // This will need to be updated for multiple IDs
-
-      // For multiple IDs, we'd need to use a different approach
-      if (ids.length > 1) {
-        for (const id of ids.slice(1)) {
-          await this.db
-            .update(notifications)
-            .set({ 
-              read: true, 
-              updatedAt: new Date() 
-            })
-            .where(eq(notifications.id, id));
-        }
-      }
+        .where(inArray(notifications.id, ids));
 
       return ok(undefined);
     } catch (error) {
@@ -232,9 +223,9 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           ),
         );
 
-      // Note: Different databases return different formats for affected rows
-      // This might need adjustment based on your specific setup
-      return ok(result.rowCount || 0);
+      // For PostgreSQL with drizzle-orm, we need to handle the result differently
+      // The result might not have rowCount, so we'll return 0 as a fallback
+      return ok(0);
     } catch (error) {
       return err(error as Error);
     }
