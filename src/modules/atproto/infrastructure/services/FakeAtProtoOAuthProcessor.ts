@@ -11,8 +11,9 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
 
   async generateAuthUrl(handle?: string): Promise<Result<string>> {
     try {
-      // Include the handle in the mock URL so we can identify which account to use
-      const mockUrl = `http://127.0.0.1:3000/api/users/oauth/callback?code=mockCode&state=mockState&iss=mockIssuer&handle=${encodeURIComponent(handle || '')}`;
+      // Encode the handle in the state parameter so we can decode it later
+      const state = this.encodeState(handle || '');
+      const mockUrl = `http://127.0.0.1:3000/api/users/oauth/callback?code=mockCode&state=${state}&iss=mockIssuer`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);
@@ -21,8 +22,8 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
 
   async processCallback(params: OAuthCallbackDTO): Promise<Result<AuthResult>> {
     try {
-      // Extract handle from the callback params or use a default
-      const handle = (params as any).handle || this.getHandleFromState(params.state);
+      // Decode handle from the state parameter
+      const handle = this.decodeState(params.state);
       
       // Get mock data based on handle
       const mockData = this.getMockDataForHandle(handle);
@@ -36,10 +37,19 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
     }
   }
 
-  private getHandleFromState(state: string): string {
-    // In a real implementation, you'd decode the state to get the original handle
-    // For mock, we'll default to the first account
-    return process.env.BSKY_HANDLE_1 || 'alice.bsky.social';
+  private encodeState(handle: string): string {
+    // Simple base64 encoding of the handle for the mock state
+    return Buffer.from(handle).toString('base64');
+  }
+
+  private decodeState(state: string): string {
+    try {
+      // Decode the handle from the base64 state
+      return Buffer.from(state, 'base64').toString('utf8');
+    } catch (error) {
+      // If decoding fails, default to the first account
+      return process.env.BSKY_HANDLE_1 || 'alice.bsky.social';
+    }
   }
 
   private getMockDataForHandle(handle?: string): { did: string; handle: string } {
