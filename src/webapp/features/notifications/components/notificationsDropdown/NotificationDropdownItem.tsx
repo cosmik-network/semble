@@ -1,7 +1,8 @@
 import type { NotificationItem as NotificationItemType } from '@/api-client';
-import { Indicator, Image, Group } from '@mantine/core';
+import { Indicator, Image, Group, Anchor } from '@mantine/core';
 import { useState } from 'react';
 import NotificationDropdownItemActivityStatus from './NotificationDropdownItemActivityStatus';
+import Link from 'next/link';
 
 interface Props {
   item: NotificationItemType;
@@ -13,10 +14,10 @@ export default function NotificationDropdownItem(props: Props) {
   return (
     <Indicator
       disabled={props.item.read}
-      color="pink"
+      position={'top-start'}
       size={8}
-      offset={7}
-      position="top-start"
+      offset={4}
+      color="tangerine"
     >
       <Group gap={'xs'} align="center" h={'100%'} wrap="nowrap">
         <NotificationDropdownItemActivityStatus
@@ -26,14 +27,16 @@ export default function NotificationDropdownItem(props: Props) {
           type={props.item.type}
         />
         {props.item.card.cardContent.thumbnailUrl && !imageError && (
-          <Image
-            src={props.item.card.cardContent.thumbnailUrl}
-            alt={`${props.item.card.cardContent.url} social preview image`}
-            radius={'md'}
-            h={45}
-            w={45}
-            onError={() => setImageError(true)}
-          />
+          <Anchor component={Link} href={props.item.card.url} target="_blank">
+            <Image
+              src={props.item.card.cardContent.thumbnailUrl}
+              alt={`${props.item.card.cardContent.url} social preview image`}
+              radius={'md'}
+              h={45}
+              w={45}
+              onError={() => setImageError(true)}
+            />
+          </Anchor>
         )}
       </Group>
     </Indicator>

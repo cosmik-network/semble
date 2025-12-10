@@ -170,9 +170,9 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
   );
 
   return (
-    <Card p={0} className={styles.root} radius={'lg'}>
-      <Stack gap={'xs'} p={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="start">
+    <Card p={0}>
+      <Stack gap={'xs'} px={'xs'}>
+        <Group gap={'xs'} wrap="nowrap" align="center">
           <Avatar
             component={Link}
             href={`/profile/${props.user.handle}`}
@@ -181,8 +181,8 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
           />
           <Text fw={500}>
             {getActivityText()}
-            <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-              {relativeCreatedDate}
+            <Text fz={'sm'} fw={600} c={'gray'} span>
+              {''} · {relativeCreatedDate}
             </Text>
           </Text>
         </Group>
