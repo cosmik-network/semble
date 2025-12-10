@@ -4,7 +4,9 @@ import { MarkAllNotificationsAsReadUseCase } from '../../../application/useCases
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class MarkAllNotificationsAsReadController extends Controller {
-  constructor(private markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase) {
+  constructor(
+    private markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
+  ) {
     super();
   }
 

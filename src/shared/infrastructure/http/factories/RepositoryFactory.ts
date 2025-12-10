@@ -80,7 +80,8 @@ export class RepositoryFactory {
         collectionRepository,
         cardRepository,
       );
-      const notificationRepository = InMemoryNotificationRepository.getInstance();
+      const notificationRepository =
+        InMemoryNotificationRepository.getInstance();
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
 

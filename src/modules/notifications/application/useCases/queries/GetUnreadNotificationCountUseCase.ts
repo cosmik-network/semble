@@ -42,10 +42,14 @@ export class GetUnreadNotificationCountUseCase
     try {
       const userIdResult = CuratorId.create(request.userId);
       if (userIdResult.isErr()) {
-        return err(new ValidationError(`Invalid user ID: ${userIdResult.error.message}`));
+        return err(
+          new ValidationError(`Invalid user ID: ${userIdResult.error.message}`),
+        );
       }
 
-      const result = await this.notificationRepository.getUnreadCount(userIdResult.value);
+      const result = await this.notificationRepository.getUnreadCount(
+        userIdResult.value,
+      );
 
       if (result.isErr()) {
         return err(new ValidationError(result.error.message));

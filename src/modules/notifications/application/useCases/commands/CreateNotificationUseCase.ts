@@ -111,7 +111,8 @@ export class CreateNotificationUseCase
       }
 
       return ok({
-        notificationId: notificationResult.value.notificationId.getStringValue(),
+        notificationId:
+          notificationResult.value.notificationId.getStringValue(),
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

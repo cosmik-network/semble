@@ -16,7 +16,8 @@ export class InMemoryNotificationRepository implements INotificationRepository {
 
   public static getInstance(): InMemoryNotificationRepository {
     if (!InMemoryNotificationRepository.instance) {
-      InMemoryNotificationRepository.instance = new InMemoryNotificationRepository();
+      InMemoryNotificationRepository.instance =
+        new InMemoryNotificationRepository();
     }
     return InMemoryNotificationRepository.instance;
   }
@@ -28,7 +29,10 @@ export class InMemoryNotificationRepository implements INotificationRepository {
   }
 
   async save(notification: Notification): Promise<Result<void>> {
-    this.notifications.set(notification.notificationId.getStringValue(), notification);
+    this.notifications.set(
+      notification.notificationId.getStringValue(),
+      notification,
+    );
     return ok(undefined);
   }
 
@@ -45,26 +49,34 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     const offset = (page - 1) * limit;
 
     // Filter notifications by recipient
-    let filteredNotifications = Array.from(this.notifications.values())
-      .filter(notification => notification.recipientUserId.equals(recipientId));
+    let filteredNotifications = Array.from(this.notifications.values()).filter(
+      (notification) => notification.recipientUserId.equals(recipientId),
+    );
 
     // Filter by read status if requested
     if (unreadOnly) {
-      filteredNotifications = filteredNotifications.filter(notification => !notification.read);
+      filteredNotifications = filteredNotifications.filter(
+        (notification) => !notification.read,
+      );
     }
 
     // Sort by creation date (newest first)
-    filteredNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    filteredNotifications.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     const totalCount = filteredNotifications.length;
-    const paginatedNotifications = filteredNotifications.slice(offset, offset + limit);
+    const paginatedNotifications = filteredNotifications.slice(
+      offset,
+      offset + limit,
+    );
     const hasMore = offset + paginatedNotifications.length < totalCount;
 
     // Calculate unread count
-    const unreadCount = Array.from(this.notifications.values())
-      .filter(notification => 
-        notification.recipientUserId.equals(recipientId) && !notification.read
-      ).length;
+    const unreadCount = Array.from(this.notifications.values()).filter(
+      (notification) =>
+        notification.recipientUserId.equals(recipientId) && !notification.read,
+    ).length;
 
     return ok({
       notifications: paginatedNotifications,
@@ -75,10 +87,10 @@ export class InMemoryNotificationRepository implements INotificationRepository {
   }
 
   async getUnreadCount(recipientId: CuratorId): Promise<Result<number>> {
-    const unreadCount = Array.from(this.notifications.values())
-      .filter(notification => 
-        notification.recipientUserId.equals(recipientId) && !notification.read
-      ).length;
+    const unreadCount = Array.from(this.notifications.values()).filter(
+      (notification) =>
+        notification.recipientUserId.equals(recipientId) && !notification.read,
+    ).length;
 
     return ok(unreadCount);
   }
@@ -95,9 +107,12 @@ export class InMemoryNotificationRepository implements INotificationRepository {
 
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     let markedCount = 0;
-    
+
     for (const notification of this.notifications.values()) {
-      if (notification.recipientUserId.equals(recipientId) && !notification.read) {
+      if (
+        notification.recipientUserId.equals(recipientId) &&
+        !notification.read
+      ) {
         notification.markAsRead();
         markedCount++;
       }

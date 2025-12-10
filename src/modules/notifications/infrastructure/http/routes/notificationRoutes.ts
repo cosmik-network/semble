@@ -20,8 +20,10 @@ export function createNotificationRoutes(
   );
 
   // GET /api/notifications/unread-count - Get unread notification count
-  router.get('/unread-count', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getUnreadNotificationCountController.execute(req, res),
+  router.get(
+    '/unread-count',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => getUnreadNotificationCountController.execute(req, res),
   );
 
   // POST /api/notifications/mark-read - Mark notifications as read
@@ -30,8 +32,10 @@ export function createNotificationRoutes(
   );
 
   // POST /api/notifications/mark-all-read - Mark all notifications as read
-  router.post('/mark-all-read', authMiddleware.ensureAuthenticated(), (req, res) =>
-    markAllNotificationsAsReadController.execute(req, res),
+  router.post(
+    '/mark-all-read',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => markAllNotificationsAsReadController.execute(req, res),
   );
 
   return router;

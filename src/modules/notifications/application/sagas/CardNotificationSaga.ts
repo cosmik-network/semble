@@ -36,14 +36,14 @@ export class CardNotificationSaga {
       // Get the card to check if it has a viaCardId
       const cardIdResult = event.cardId;
       const cardResult = await this.cardRepository.findById(cardIdResult);
-      
+
       if (cardResult.isErr() || !cardResult.value) {
         // Card not found, skip notification
         return ok(undefined);
       }
 
       const card = cardResult.value;
-      
+
       // Only create notifications for cards that have a viaCardId
       if (!card.viaCardId) {
         return ok(undefined);
@@ -87,7 +87,10 @@ export class CardNotificationSaga {
                 event,
                 recipientUserId,
               );
-              await this.setPendingNotification(aggregationKey, newNotification);
+              await this.setPendingNotification(
+                aggregationKey,
+                newNotification,
+              );
               await this.scheduleFlush(aggregationKey);
             }
 
@@ -150,7 +153,9 @@ export class CardNotificationSaga {
     await this.stateStore.setex(key, ttlSeconds, JSON.stringify(notification));
   }
 
-  private async deletePendingNotification(aggregationKey: string): Promise<void> {
+  private async deletePendingNotification(
+    aggregationKey: string,
+  ): Promise<void> {
     await this.stateStore.del(this.getPendingKey(aggregationKey));
   }
 

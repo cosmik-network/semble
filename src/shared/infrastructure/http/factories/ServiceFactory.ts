@@ -283,7 +283,9 @@ export class ServiceFactory {
     const feedService = new FeedService(repositories.feedRepository);
 
     // Notification Service
-    const notificationService = new NotificationService(repositories.notificationRepository);
+    const notificationService = new NotificationService(
+      repositories.notificationRepository,
+    );
 
     // Identity Resolution Service
     const identityResolutionService = new ATProtoIdentityResolutionService(

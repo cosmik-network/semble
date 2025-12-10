@@ -1,4 +1,12 @@
-import { pgTable, text, timestamp, jsonb, uuid, boolean, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  jsonb,
+  uuid,
+  boolean,
+  index,
+} from 'drizzle-orm/pg-core';
 
 export const notifications = pgTable(
   'notifications',
@@ -15,14 +23,16 @@ export const notifications = pgTable(
   (table) => {
     return {
       // Critical for finding notifications by recipient
-      recipientIdx: index('notifications_recipient_idx').on(table.recipientUserId),
-      
+      recipientIdx: index('notifications_recipient_idx').on(
+        table.recipientUserId,
+      ),
+
       // For paginated notification queries (most common sort)
       recipientCreatedAtIdx: index('notifications_recipient_created_at_idx').on(
         table.recipientUserId,
         table.createdAt.desc(),
       ),
-      
+
       // For unread count queries
       recipientReadIdx: index('notifications_recipient_read_idx').on(
         table.recipientUserId,

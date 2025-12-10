@@ -4,7 +4,9 @@ import { GetUnreadNotificationCountUseCase } from '../../../application/useCases
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetUnreadNotificationCountController extends Controller {
-  constructor(private getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase) {
+  constructor(
+    private getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase,
+  ) {
     super();
   }
 

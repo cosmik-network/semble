@@ -42,10 +42,14 @@ export class MarkAllNotificationsAsReadUseCase
     try {
       const userIdResult = CuratorId.create(request.userId);
       if (userIdResult.isErr()) {
-        return err(new ValidationError(`Invalid user ID: ${userIdResult.error.message}`));
+        return err(
+          new ValidationError(`Invalid user ID: ${userIdResult.error.message}`),
+        );
       }
 
-      const result = await this.notificationRepository.markAllAsReadForUser(userIdResult.value);
+      const result = await this.notificationRepository.markAllAsReadForUser(
+        userIdResult.value,
+      );
 
       if (result.isErr()) {
         return err(new ValidationError(result.error.message));

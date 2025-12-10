@@ -41,19 +41,26 @@ export class MarkNotificationsAsReadUseCase
   > {
     try {
       if (!request.notificationIds || request.notificationIds.length === 0) {
-        return err(new ValidationError('At least one notification ID is required'));
+        return err(
+          new ValidationError('At least one notification ID is required'),
+        );
       }
 
       const notificationIds: NotificationId[] = [];
       for (const idStr of request.notificationIds) {
         const idResult = NotificationId.createFromString(idStr);
         if (idResult.isErr()) {
-          return err(new ValidationError(`Invalid notification ID: ${idResult.error.message}`));
+          return err(
+            new ValidationError(
+              `Invalid notification ID: ${idResult.error.message}`,
+            ),
+          );
         }
         notificationIds.push(idResult.value);
       }
 
-      const result = await this.notificationRepository.markAsRead(notificationIds);
+      const result =
+        await this.notificationRepository.markAsRead(notificationIds);
 
       if (result.isErr()) {
         return err(new ValidationError(result.error.message));

@@ -100,9 +100,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         whereConditions.push(eq(notifications.read, false));
       }
 
-      const whereClause = whereConditions.length > 1 
-        ? and(...whereConditions)
-        : whereConditions[0];
+      const whereClause =
+        whereConditions.length > 1
+          ? and(...whereConditions)
+          : whereConditions[0];
 
       // Get notifications
       const notificationsResult = await this.db
@@ -188,17 +189,17 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
   async markAsRead(notificationIds: NotificationId[]): Promise<Result<void>> {
     try {
-      const ids = notificationIds.map(id => id.getStringValue());
-      
+      const ids = notificationIds.map((id) => id.getStringValue());
+
       if (ids.length === 0) {
         return ok(undefined);
       }
 
       await this.db
         .update(notifications)
-        .set({ 
-          read: true, 
-          updatedAt: new Date() 
+        .set({
+          read: true,
+          updatedAt: new Date(),
         })
         .where(inArray(notifications.id, ids));
 
@@ -212,9 +213,9 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     try {
       const result = await this.db
         .update(notifications)
-        .set({ 
-          read: true, 
-          updatedAt: new Date() 
+        .set({
+          read: true,
+          updatedAt: new Date(),
         })
         .where(
           and(

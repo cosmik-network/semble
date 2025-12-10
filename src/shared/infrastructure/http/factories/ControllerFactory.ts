@@ -203,15 +203,17 @@ export class ControllerFactory {
       getMyNotificationsController: new GetMyNotificationsController(
         useCases.getMyNotificationsUseCase,
       ),
-      getUnreadNotificationCountController: new GetUnreadNotificationCountController(
-        useCases.getUnreadNotificationCountUseCase,
-      ),
+      getUnreadNotificationCountController:
+        new GetUnreadNotificationCountController(
+          useCases.getUnreadNotificationCountUseCase,
+        ),
       markNotificationsAsReadController: new MarkNotificationsAsReadController(
         useCases.markNotificationsAsReadUseCase,
       ),
-      markAllNotificationsAsReadController: new MarkAllNotificationsAsReadController(
-        useCases.markAllNotificationsAsReadUseCase,
-      ),
+      markAllNotificationsAsReadController:
+        new MarkAllNotificationsAsReadController(
+          useCases.markAllNotificationsAsReadUseCase,
+        ),
     };
   }
 }

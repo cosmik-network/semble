@@ -25,7 +25,11 @@ export class NotificationService implements DomainService {
     try {
       // Don't create notification if user is adding their own card
       if (recipientUserId.equals(actorUserId)) {
-        return err(new NotificationServiceError('Cannot notify user about their own action'));
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
       }
 
       const notificationResult = Notification.createUserAddedYourCard(
@@ -36,7 +40,9 @@ export class NotificationService implements DomainService {
       );
 
       if (notificationResult.isErr()) {
-        return err(new NotificationServiceError(notificationResult.error.message));
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
       }
 
       const notification = notificationResult.value;

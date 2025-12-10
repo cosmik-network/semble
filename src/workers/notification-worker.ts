@@ -13,7 +13,9 @@ async function main() {
   }
 
   console.log('Starting dedicated notification worker process...');
-  const notificationWorkerProcess = new NotificationWorkerProcess(configService);
+  const notificationWorkerProcess = new NotificationWorkerProcess(
+    configService,
+  );
 
   await notificationWorkerProcess.start();
 }
