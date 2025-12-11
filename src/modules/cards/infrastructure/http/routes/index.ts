@@ -23,6 +23,7 @@ import { GetCollectionPageController } from '../controllers/GetCollectionPageCon
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
+import { SearchCollectionsController } from '../controllers/SearchCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 
@@ -53,6 +54,7 @@ export function createCardsModuleRoutes(
   getMyCollectionsController: GetMyCollectionsController,
   getCollectionsController: GetUserCollectionsController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
+  searchCollectionsController: SearchCollectionsController,
 ): Router {
   const router = Router();
 
@@ -92,6 +94,7 @@ export function createCardsModuleRoutes(
       getCollectionsController,
       getCollectionPageByAtUriController,
       getCollectionsForUrlController,
+      searchCollectionsController,
     ),
   );
 
