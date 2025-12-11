@@ -27,6 +27,7 @@ import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
+import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
@@ -68,6 +69,7 @@ export interface Controllers {
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController;
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
+  searchCollectionsController: SearchCollectionsController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
@@ -176,6 +178,9 @@ export class ControllerFactory {
       ),
       getCollectionsController: new GetUserCollectionsController(
         useCases.getCollectionsUseCase,
+      ),
+      searchCollectionsController: new SearchCollectionsController(
+        useCases.searchCollectionsUseCase,
       ),
       getUrlStatusForMyLibraryController:
         new GetUrlStatusForMyLibraryController(

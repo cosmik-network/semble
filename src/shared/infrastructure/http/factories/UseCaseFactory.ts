@@ -25,6 +25,7 @@ import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
+import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
@@ -84,6 +85,7 @@ export interface UseCases {
   getCollectionPageUseCase: GetCollectionPageUseCase;
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
+  searchCollectionsUseCase: SearchCollectionsUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
@@ -221,6 +223,10 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         services.profileService,
         services.identityResolutionService,
+      ),
+      searchCollectionsUseCase: new SearchCollectionsUseCase(
+        repositories.collectionQueryRepository,
+        services.profileService,
       ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
