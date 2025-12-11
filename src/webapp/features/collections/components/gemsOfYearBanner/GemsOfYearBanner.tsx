@@ -9,8 +9,9 @@ import { FiPlus } from 'react-icons/fi';
 export default function GemsOfYearBanner() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { data: searchResults } = useCollectionSearch({ query: '💎' });
-  
-  const hasGemsCollection = searchResults && searchResults.collections.length > 0;
+
+  const hasGemsCollection =
+    searchResults && searchResults.collections.length > 0;
 
   return (
     <>
@@ -19,7 +20,7 @@ export default function GemsOfYearBanner() {
           <Title order={1} size="h2">
             Gems of 2025
           </Title>
-          
+
           {!hasGemsCollection && (
             <Button
               variant="light"
