@@ -6,6 +6,8 @@ import {
   UpdateCollectionResponse,
   DeleteCollectionRequest,
   DeleteCollectionResponse,
+  SearchCollectionsParams,
+  GetCollectionsResponse,
 } from '@semble/types';
 
 export class CollectionClient extends BaseClient {
@@ -37,5 +39,23 @@ export class CollectionClient extends BaseClient {
       'DELETE',
       `/api/collections/${request.collectionId}`,
     );
+  }
+
+  async searchCollections(
+    params?: SearchCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params?.searchText) searchParams.set('searchText', params.searchText);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/search?${queryString}`
+      : '/api/collections/search';
+
+    return this.request<GetCollectionsResponse>('GET', endpoint);
   }
 }
