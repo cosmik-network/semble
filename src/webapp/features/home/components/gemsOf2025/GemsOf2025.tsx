@@ -6,6 +6,8 @@ import Banner from '@/assets/gems-of-2025-banner.webp';
 import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import { useState } from 'react';
+import { BiCollection } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 
 export default function GemsOf2025() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -45,36 +47,25 @@ export default function GemsOf2025() {
             <Group gap={'xs'} justify="center">
               <Button
                 component={Link}
-                href="/explore/gems-of-2025"
-                size="md"
+                href="/explore/gems-of-2025/collections"
+                size="sm"
                 variant="white"
                 color={'blue.8'}
+                leftSection={<BiCollection size={18} />}
               >
-                Explore
+                View Gems
               </Button>
-              {!isLoadingSearchResults && (
-                <>
-                  {hasGemsCollection ? (
-                    <Button
-                      component={Link}
-                      href="/explore/gems-of-2025/collections"
-                      size="md"
-                      variant="white"
-                      color={'grape'}
-                    >
-                      View collections
-                    </Button>
-                  ) : (
-                    <Button
-                      size="md"
-                      variant="white"
-                      color="grape"
-                      onClick={() => setIsDrawerOpen(true)}
-                    >
-                      Create your collection
-                    </Button>
-                  )}
-                </>
+
+              {!isLoadingSearchResults && !hasGemsCollection && (
+                <Button
+                  size="sm"
+                  variant="white"
+                  color={'grape'}
+                  leftSection={<FiPlus size={18} />}
+                  onClick={() => setIsDrawerOpen(true)}
+                >
+                  Create Your Collection
+                </Button>
               )}
             </Group>
           </Stack>
