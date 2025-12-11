@@ -59,10 +59,12 @@ export default function CollectionContainer(props: Props) {
   };
 
   const { sortBy, sortOrder } = getSortParams(sortOption);
-  
+
   // Check if this is a gems collection and if user has their own gems collection
-  const isGemsCollection = firstPage?.name.includes('💎');
-  const hasOwnGemsCollection = searchResults && searchResults.collections.length > 0;
+  const isGemsCollection =
+    firstPage?.name.includes('💎') && firstPage?.name.includes('2025');
+  const hasOwnGemsCollection =
+    searchResults && searchResults.collections.length > 0;
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -127,7 +129,7 @@ export default function CollectionContainer(props: Props) {
               { value: 'most-popular', label: 'Most Popular' },
             ]}
           />
-          
+
           <Group gap="xs">
             {isGemsCollection && (
               <>
@@ -141,7 +143,7 @@ export default function CollectionContainer(props: Props) {
                 >
                   See all 💎 picks
                 </Button>
-                
+
                 {!hasOwnGemsCollection && (
                   <Button
                     variant="light"
@@ -150,12 +152,12 @@ export default function CollectionContainer(props: Props) {
                     leftSection={<FiPlus size={16} />}
                     onClick={() => setIsDrawerOpen(true)}
                   >
-                    Create your own
+                    Create your own 💎 picks
                   </Button>
                 )}
               </>
             )}
-            
+
             <CollectionActions
               id={firstPage.id}
               rkey={props.rkey}
@@ -175,7 +177,7 @@ export default function CollectionContainer(props: Props) {
           />
         </Suspense>
       </Stack>
-      
+
       <CreateCollectionDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
