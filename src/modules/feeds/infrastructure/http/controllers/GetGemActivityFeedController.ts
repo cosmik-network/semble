@@ -1,35 +1,45 @@
-import { Request, Response } from 'express';
-import { BaseController } from '../../../../../shared/infrastructure/http/BaseController';
+import { Response } from 'express';
+import { z } from 'zod';
 import { GetGemActivityFeedUseCase } from '../../../application/useCases/queries/GetGemActivityFeedUseCase';
-import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { Controller } from 'src/shared/infrastructure/http/Controller';
+import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
+import { GetGlobalFeedResponse } from '@semble/types';
 
-export class GetGemActivityFeedController extends BaseController {
+// Zod schema for request validation
+const querySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  beforeActivityId: z.string().optional(),
+});
+
+export class GetGemActivityFeedController extends Controller {
   constructor(private getGemActivityFeedUseCase: GetGemActivityFeedUseCase) {
     super();
   }
 
-  async executeImpl(req: Request, res: Response): Promise<void> {
-    const authenticatedReq = req as AuthenticatedRequest;
-    
+  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { page, limit, beforeActivityId } = req.query;
+      // Validate request with Zod
+      const validation = querySchema.safeParse(req.query);
+      if (!validation.success) {
+        return this.badRequest(res, JSON.stringify(validation.error.format()));
+      }
+
+      const params = validation.data;
+      const callerDid = req.did;
 
       const result = await this.getGemActivityFeedUseCase.execute({
-        callingUserId: authenticatedReq.did,
-        page: page ? parseInt(page as string, 10) : undefined,
-        limit: limit ? parseInt(limit as string, 10) : undefined,
-        beforeActivityId: beforeActivityId as string,
+        callingUserId: callerDid,
+        page: params.page || 1,
+        limit: params.limit || 20,
+        beforeActivityId: params.beforeActivityId,
       });
 
       if (result.isErr()) {
-        const error = result.error;
-        if (error.name === 'ValidationError') {
-          return this.badRequest(res, error.message);
-        }
-        return this.fail(res, error.message);
+        return this.fail(res, result.error.message);
       }
 
-      return this.ok(res, result.value);
+      return this.ok<GetGlobalFeedResponse>(res, result.value);
     } catch (error) {
       return this.fail(res, 'An unexpected error occurred');
     }
