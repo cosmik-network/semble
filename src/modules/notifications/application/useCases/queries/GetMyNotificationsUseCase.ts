@@ -5,9 +5,8 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { INotificationRepository } from '../../../domain/INotificationRepository';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import { ICardRepository } from '../../../../cards/domain/ICardRepository';
+import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
-import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { NotificationItem } from '@semble/types';
 
@@ -51,7 +50,7 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
-    private cardRepository: ICardRepository,
+    private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
   ) {}
 
@@ -103,25 +102,17 @@ export class GetMyNotificationsUseCase
           }
 
           // Get card data
-          const cardIdResult = CardId.createFromString(
+          const cardView = await this.cardQueryRepository.getUrlCardBasic(
             notification.metadata.cardId,
+            request.userId,
           );
-          if (cardIdResult.isErr()) {
+          if (!cardView) {
             continue;
           }
-
-          const cardResult = await this.cardRepository.findById(
-            cardIdResult.value,
-          );
-          if (cardResult.isErr() || !cardResult.value) {
-            continue;
-          }
-
-          const card = cardResult.value;
 
           // Get card author profile
           const cardAuthorProfileResult = await this.profileService.getProfile(
-            card.curatorId.value,
+            cardView.authorId,
           );
           if (cardAuthorProfileResult.isErr()) {
             continue;
@@ -180,21 +171,15 @@ export class GetMyNotificationsUseCase
               description: actorProfileResult.value.bio,
             },
             card: {
-              id: card.cardId.getStringValue(),
+              id: cardView.id,
               type: 'URL' as const,
-              url: card.url?.value || '',
-              cardContent: {
-                url: card.url?.value || '',
-                title: card.content.urlContent?.metadata?.title,
-                description: card.content.urlContent?.metadata?.description,
-                author: card.content.urlContent?.metadata?.author,
-                thumbnailUrl: card.content.urlContent?.metadata?.imageUrl,
-              },
-              libraryCount: card.libraryCount,
-              urlLibraryCount: card.libraryCount,
-              urlInLibrary: card.isInLibrary(userIdResult.value),
-              createdAt: card.createdAt.toISOString(),
-              updatedAt: card.updatedAt.toISOString(),
+              url: cardView.url,
+              cardContent: cardView.cardContent,
+              libraryCount: cardView.libraryCount,
+              urlLibraryCount: cardView.urlLibraryCount,
+              urlInLibrary: cardView.urlInLibrary,
+              createdAt: cardView.createdAt.toISOString(),
+              updatedAt: cardView.updatedAt.toISOString(),
               author: {
                 id: cardAuthorProfileResult.value.id,
                 name: cardAuthorProfileResult.value.name,
@@ -202,6 +187,7 @@ export class GetMyNotificationsUseCase
                 avatarUrl: cardAuthorProfileResult.value.avatarUrl,
                 description: cardAuthorProfileResult.value.bio,
               },
+              note: cardView.note,
             },
             createdAt: notification.createdAt.toISOString(),
             collections,
