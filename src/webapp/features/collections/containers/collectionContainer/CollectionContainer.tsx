@@ -22,7 +22,8 @@ import CollectionContainerContent from '../collectionContainerContent/Collection
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
-import { FiPlus, FiEye, FiShare2 } from 'react-icons/fi';
+import { FiPlus, FiEye } from 'react-icons/fi';
+import { FaBluesky } from 'react-icons/fa6';
 
 interface Props {
   rkey: string;
@@ -157,7 +158,7 @@ export default function CollectionContainer(props: Props) {
                   variant="light"
                   color="cyan"
                   size="sm"
-                  leftSection={<FiShare2 size={16} />}
+                  leftSection={<FaBluesky size={16} />}
                 >
                   Share on Bsky
                 </Button>
