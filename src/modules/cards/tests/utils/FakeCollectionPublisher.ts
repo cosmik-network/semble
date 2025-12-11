@@ -36,7 +36,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     }
 
     const collectionId = collection.collectionId.getStringValue();
-    
+
     // Use the collection's author DID directly
     const fakeDid = collection.authorId.value;
 
