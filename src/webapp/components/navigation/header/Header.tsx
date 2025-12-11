@@ -11,7 +11,7 @@ export default function Header(props: Props) {
   return (
     <Paper pos={'sticky'} top={0} style={{ zIndex: 1 }}>
       <Group gap={'xs'} p={'xs'} justify="space-between">
-        <Group gap={"xs"}>
+        <Group gap={'xs'}>
           {props.children}
           {props.title && (
             <Text fz={'h3'} fw={700}>
