@@ -43,7 +43,8 @@ export default function CollectionContainer(props: Props) {
   const firstPage = data.pages[0];
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { data: searchResults } = useCollectionSearch({ query: '💎' });
+  const { data: searchResults, isLoading: isLoadingSearchResults } =
+    useCollectionSearch({ query: '💎' });
 
   const getSortParams = (option: SortOption) => {
     switch (option) {
@@ -67,7 +68,9 @@ export default function CollectionContainer(props: Props) {
   const isGemsCollection =
     firstPage?.name.includes('💎') && firstPage?.name.includes('2025');
   const hasOwnGemsCollection =
-    searchResults && searchResults.collections.length > 0;
+    !isLoadingSearchResults &&
+    searchResults &&
+    searchResults.collections.length > 0;
   const isAuthor = user?.handle === firstPage?.author.handle;
 
   // Create share URL for Bluesky intent
@@ -139,18 +142,17 @@ export default function CollectionContainer(props: Props) {
             ]}
           />
 
-          <Group gap="xs">
+          <Group>
             {isGemsCollection && (
-              <>
+              <Group>
                 <Button
                   component={Link}
                   href="/explore/gems-of-2025"
                   variant="light"
                   color="blue"
-                  size="sm"
-                  leftSection={<FiEye size={16} />}
+                  leftSection={<>💎</>}
                 >
-                  See all 💎 picks
+                  See all picks
                 </Button>
 
                 {isAuthor && (
@@ -161,14 +163,13 @@ export default function CollectionContainer(props: Props) {
                     rel="noopener noreferrer"
                     variant="light"
                     color="cyan"
-                    size="sm"
                     leftSection={<FaBluesky size={16} />}
                   >
-                    Share on Bsky
+                    Share on Bluesky
                   </Button>
                 )}
 
-                {!hasOwnGemsCollection && (
+                {!isLoadingSearchResults && !hasOwnGemsCollection && (
                   <Button
                     variant="light"
                     color="grape"
@@ -179,7 +180,7 @@ export default function CollectionContainer(props: Props) {
                     Create your own 💎 picks
                   </Button>
                 )}
-              </>
+              </Group>
             )}
 
             <CollectionActions
