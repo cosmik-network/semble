@@ -11,13 +11,14 @@ export default function Header(props: Props) {
   return (
     <Paper pos={'sticky'} top={0} style={{ zIndex: 1 }}>
       <Group gap={'xs'} p={'xs'} justify="space-between">
-        {props.children}
-        {props.title && (
-          <Text fz={'h3'} fw={700}>
-            {props.title}
-          </Text>
-        )}
-
+        <Group gap={"xs"}>
+          {props.children}
+          {props.title && (
+            <Text fz={'h3'} fw={700}>
+              {props.title}
+            </Text>
+          )}
+        </Group>
         <NavbarToggle />
       </Group>
       <Divider />
