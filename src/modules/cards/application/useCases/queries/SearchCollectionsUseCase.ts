@@ -96,7 +96,7 @@ export class SearchCollectionsUseCase
             },
           };
         })
-        .filter((item): item is CollectionDTO => item !== null);
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
       return ok({
         collections: enrichedCollections,
