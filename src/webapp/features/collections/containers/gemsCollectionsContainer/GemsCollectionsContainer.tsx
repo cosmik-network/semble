@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  Container,
-  SimpleGrid,
-} from '@mantine/core';
+import { Container, SimpleGrid } from '@mantine/core';
 import { Suspense } from 'react';
 import GemsCollectionsContainerContent from '../gemsCollectionsContainerContent/GemsCollectionsContainerContent';
 import CollectionsContainerContentSkeleton from '../collectionsContainerContent/Skeleton.collectionsContainerContent';

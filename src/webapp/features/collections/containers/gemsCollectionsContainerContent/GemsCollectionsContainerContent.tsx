@@ -28,7 +28,9 @@ export default function GemsCollectionsContainerContent() {
   }
 
   if (allCollections.length === 0) {
-    return <ProfileEmptyTab message="No collections found" icon={BiCollection} />;
+    return (
+      <ProfileEmptyTab message="No collections found" icon={BiCollection} />
+    );
   }
 
   return (
