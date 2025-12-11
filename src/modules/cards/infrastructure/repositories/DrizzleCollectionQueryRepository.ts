@@ -276,23 +276,25 @@ export class DrizzleCollectionQueryRepository
       // Add tokenized search condition if searchText is provided
       if (searchText && searchText.trim()) {
         const searchWords = searchText.trim().split(/\s+/);
-        const searchConditions = searchWords.map(word => 
-          or(
-            ilike(collections.name, `%${word}%`),
-            ilike(collections.description, `%${word}%`)
-          )!
+        const searchConditions = searchWords.map(
+          (word) =>
+            or(
+              ilike(collections.name, `%${word}%`),
+              ilike(collections.description, `%${word}%`),
+            )!,
         );
-        
+
         // All words must be found (AND logic)
         whereConditions.push(and(...searchConditions)!);
       }
 
       // Build the where clause
-      const whereClause = whereConditions.length > 0 
-        ? sql`${whereConditions.reduce((acc, condition, index) =>
-            index === 0 ? condition : sql`${acc} AND ${condition}`,
-          )}`
-        : sql`1=1`; // Always true when no conditions
+      const whereClause =
+        whereConditions.length > 0
+          ? sql`${whereConditions.reduce((acc, condition, index) =>
+              index === 0 ? condition : sql`${acc} AND ${condition}`,
+            )}`
+          : sql`1=1`; // Always true when no conditions
 
       // Query collections with their stored card counts and URIs
       const collectionsQuery = this.db

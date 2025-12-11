@@ -1,5 +1,9 @@
 import { BaseClient } from './BaseClient';
-import { GetGlobalFeedParams, GetGlobalFeedResponse } from '@semble/types';
+import {
+  GetGemActivityFeedParams,
+  GetGlobalFeedParams,
+  GetGlobalFeedResponse,
+} from '@semble/types';
 
 export class FeedClient extends BaseClient {
   async getGlobalFeed(
