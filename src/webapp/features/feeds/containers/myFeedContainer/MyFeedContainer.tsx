@@ -43,7 +43,7 @@ export default function MyFeedContainer() {
           </Stack>
         )}
         {allActivities.length === 0 ? (
-          <Center h={200}>
+          <Center>
             <Text fz="h3" fw={600} c="gray">
               No activity to show yet
             </Text>

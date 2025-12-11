@@ -64,7 +64,7 @@ export default function NotificationsContainer() {
           </Stack>
         )}
         {allNotifications.length === 0 ? (
-          <Center h={200}>
+          <Center>
             <Text fz="h3" fw={600} c="gray">
               No notifications yet
             </Text>
