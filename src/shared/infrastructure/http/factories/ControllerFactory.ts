@@ -19,6 +19,7 @@ import { DeleteCollectionController } from '../../../../modules/cards/infrastruc
 import { GetCollectionPageController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController';
 import { GetMyCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController';
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
+import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGemActivityFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
@@ -76,6 +77,7 @@ export interface Controllers {
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
+  getGemActivityFeedController: GetGemActivityFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   // Notification controllers
@@ -199,6 +201,9 @@ export class ControllerFactory {
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(
         useCases.getGlobalFeedUseCase,
+      ),
+      getGemActivityFeedController: new GetGemActivityFeedController(
+        useCases.getGemActivityFeedUseCase,
       ),
       // Search controllers
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(
