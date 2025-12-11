@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, ScrollAreaAutosize, Tabs, TabsList } from '@mantine/core';
+import { ScrollAreaAutosize, Tabs, TabsList } from '@mantine/core';
 import TabItem from './TabItem';
 import { usePathname } from 'next/navigation';
 
