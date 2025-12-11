@@ -1,5 +1,9 @@
-import { Alert } from '@mantine/core';
+import { Alert, Container } from '@mantine/core';
 
 export default function CollectionContainerError() {
-  return <Alert color="red" title="Could not load collection" />;
+  return (
+    <Container p="xs" size="xl">
+      <Alert color="red" title="Could not load collection" />
+    </Container>
+  );
 }

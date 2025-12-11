@@ -9,7 +9,6 @@ interface Props {
   href: string;
   label: string;
   icon: React.ReactElement;
-  badge?: number;
 }
 
 export default function NavItem(props: Props) {

@@ -1,13 +1,13 @@
 import { Container, Stack } from '@mantine/core';
-import FeedItemSkeleton from '../../components/feedItem/Skeleton.FeedItem';
+import NotificationItemSkeleton from '../../components/notificationItem/Skeleton.NotificationItem';
 
-export default function MyFeedContainerSkeleton() {
+export default function NotificationsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
-      <Stack align="center">
+      <Stack>
         <Stack gap={60} mx={'auto'} maw={600} w={'100%'} align="stretch">
           {Array.from({ length: 4 }).map((_, i) => (
-            <FeedItemSkeleton key={i} />
+            <NotificationItemSkeleton key={i} />
           ))}
         </Stack>
       </Stack>

@@ -4,7 +4,6 @@ import {
   Container,
   Stack,
   Image,
-  Title,
   Text,
   Group,
 } from '@mantine/core';
@@ -18,7 +17,6 @@ export default function AboutContainer() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
-        <Title order={1}>About</Title>
         <ButtonGroup orientation="vertical">
           <SettingItem
             href="https://blog.cosmik.network/"
