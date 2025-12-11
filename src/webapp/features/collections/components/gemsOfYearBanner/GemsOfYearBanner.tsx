@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Container, Group, Text, Title } from '@mantine/core';
+import { Button, Container, Group, Title } from '@mantine/core';
 import { useState } from 'react';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
