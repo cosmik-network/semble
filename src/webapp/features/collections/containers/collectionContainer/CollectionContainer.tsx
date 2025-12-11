@@ -24,6 +24,7 @@ import CreateCollectionDrawer from '../../components/createCollectionDrawer/Crea
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import { FiPlus, FiEye } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   rkey: string;
@@ -33,6 +34,7 @@ interface Props {
 type SortOption = 'newest' | 'oldest' | 'most-popular';
 
 export default function CollectionContainer(props: Props) {
+  const { user } = useAuth();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -66,6 +68,7 @@ export default function CollectionContainer(props: Props) {
     firstPage?.name.includes('💎') && firstPage?.name.includes('2025');
   const hasOwnGemsCollection =
     searchResults && searchResults.collections.length > 0;
+  const isAuthor = user?.handle === firstPage?.author.handle;
 
   // Create share URL for Bluesky intent
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -150,18 +153,20 @@ export default function CollectionContainer(props: Props) {
                   See all 💎 picks
                 </Button>
 
-                <Button
-                  component="a"
-                  href={blueskyShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="light"
-                  color="cyan"
-                  size="sm"
-                  leftSection={<FaBluesky size={16} />}
-                >
-                  Share on Bsky
-                </Button>
+                {isAuthor && (
+                  <Button
+                    component="a"
+                    href={blueskyShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="light"
+                    color="cyan"
+                    size="sm"
+                    leftSection={<FaBluesky size={16} />}
+                  >
+                    Share on Bsky
+                  </Button>
+                )}
 
                 {!hasOwnGemsCollection && (
                   <Button
