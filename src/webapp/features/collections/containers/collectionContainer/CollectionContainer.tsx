@@ -9,6 +9,7 @@ import {
   Title,
   Avatar,
   Select,
+  Button,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import Link from 'next/link';
@@ -19,6 +20,9 @@ import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import { CardSortField, SortOrder } from '@semble/types';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
+import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
+import useCollectionSearch from '../../lib/queries/useCollectionSearch';
+import { FiPlus, FiEye } from 'react-icons/fi';
 
 interface Props {
   rkey: string;
@@ -35,6 +39,8 @@ export default function CollectionContainer(props: Props) {
 
   const firstPage = data.pages[0];
   const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { data: searchResults } = useCollectionSearch({ query: '💎' });
 
   const getSortParams = (option: SortOption) => {
     switch (option) {
@@ -53,6 +59,10 @@ export default function CollectionContainer(props: Props) {
   };
 
   const { sortBy, sortOrder } = getSortParams(sortOption);
+  
+  // Check if this is a gems collection and if user has their own gems collection
+  const isGemsCollection = firstPage?.name.includes('💎');
+  const hasOwnGemsCollection = searchResults && searchResults.collections.length > 0;
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -117,13 +127,43 @@ export default function CollectionContainer(props: Props) {
               { value: 'most-popular', label: 'Most Popular' },
             ]}
           />
-          <CollectionActions
-            id={firstPage.id}
-            rkey={props.rkey}
-            name={firstPage.name}
-            description={firstPage.description}
-            authorHandle={firstPage.author.handle}
-          />
+          
+          <Group gap="xs">
+            {isGemsCollection && (
+              <>
+                <Button
+                  component={Link}
+                  href="/explore/gems-of-2025"
+                  variant="light"
+                  color="blue"
+                  size="sm"
+                  leftSection={<FiEye size={16} />}
+                >
+                  See all 💎 picks
+                </Button>
+                
+                {!hasOwnGemsCollection && (
+                  <Button
+                    variant="light"
+                    color="grape"
+                    size="sm"
+                    leftSection={<FiPlus size={16} />}
+                    onClick={() => setIsDrawerOpen(true)}
+                  >
+                    Create your own
+                  </Button>
+                )}
+              </>
+            )}
+            
+            <CollectionActions
+              id={firstPage.id}
+              rkey={props.rkey}
+              name={firstPage.name}
+              description={firstPage.description}
+              authorHandle={firstPage.author.handle}
+            />
+          </Group>
         </Group>
 
         <Suspense fallback={<CollectionContainerContentSkeleton />}>
@@ -135,6 +175,12 @@ export default function CollectionContainer(props: Props) {
           />
         </Suspense>
       </Stack>
+      
+      <CreateCollectionDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        initialName="💎 Picks of 2025"
+      />
     </Container>
   );
 }
