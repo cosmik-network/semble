@@ -7,28 +7,11 @@ import {
   MarkNotificationsAsReadResponse,
   MarkAllNotificationsAsReadResponse,
 } from '@semble/types';
-import {
-  getMockNotifications,
-  getMockUnreadCount,
-  markMockNotificationsAsRead,
-  markAllMockNotificationsAsRead,
-} from '../mock-data/notifications';
 
 export class NotificationClient extends BaseClient {
   async getMyNotifications(
     params?: GetMyNotificationsParams,
   ): Promise<GetMyNotificationsResponse> {
-    // For development, return mock data
-    if (process.env.NODE_ENV === 'development') {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return getMockNotifications({
-        page: params?.page,
-        limit: params?.limit,
-        unreadOnly: params?.unreadOnly,
-      });
-    }
-
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
@@ -45,13 +28,6 @@ export class NotificationClient extends BaseClient {
   }
 
   async getUnreadNotificationCount(): Promise<GetUnreadNotificationCountResponse> {
-    // For development, return mock data
-    if (process.env.NODE_ENV === 'development') {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return getMockUnreadCount();
-    }
-
     return this.request<GetUnreadNotificationCountResponse>(
       'GET',
       '/api/notifications/unread-count',
@@ -61,12 +37,6 @@ export class NotificationClient extends BaseClient {
   async markNotificationsAsRead(
     request: MarkNotificationsAsReadRequest,
   ): Promise<MarkNotificationsAsReadResponse> {
-    // For development, update mock data
-    if (process.env.NODE_ENV === 'development') {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      return markMockNotificationsAsRead(request.notificationIds);
-    }
-
     return this.request<MarkNotificationsAsReadResponse>(
       'POST',
       '/api/notifications/mark-read',
@@ -75,12 +45,6 @@ export class NotificationClient extends BaseClient {
   }
 
   async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
-    // For development, update mock data
-    if (process.env.NODE_ENV === 'development') {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      return markAllMockNotificationsAsRead();
-    }
-
     return this.request<MarkAllNotificationsAsReadResponse>(
       'POST',
       '/api/notifications/mark-all-read',
