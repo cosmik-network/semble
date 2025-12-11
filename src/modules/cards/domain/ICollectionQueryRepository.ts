@@ -72,6 +72,14 @@ export interface CollectionForUrlQueryOptions {
   sortOrder: SortOrder;
 }
 
+export interface SearchCollectionsOptions {
+  page: number;
+  limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
+  searchText?: string;
+}
+
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
@@ -87,4 +95,8 @@ export interface ICollectionQueryRepository {
     url: string,
     options: CollectionForUrlQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
+
+  searchCollections(
+    options: SearchCollectionsOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 }

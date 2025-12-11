@@ -20,6 +20,7 @@ import {
   CollectionContainingCardDTO,
   CollectionForUrlRawDTO,
   CollectionForUrlQueryOptions,
+  SearchCollectionsOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
@@ -255,6 +256,98 @@ export class DrizzleCollectionQueryRepository
       };
     } catch (error) {
       console.error('Error in getCollectionsWithUrl:', error);
+      throw error;
+    }
+  }
+
+  async searchCollections(
+    options: SearchCollectionsOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
+    try {
+      const { page, limit, sortBy, sortOrder, searchText } = options;
+      const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+
+      // Build where conditions
+      const whereConditions = [];
+
+      // Add tokenized search condition if searchText is provided
+      if (searchText && searchText.trim()) {
+        const searchWords = searchText.trim().split(/\s+/);
+        const searchConditions = searchWords.map(word => 
+          or(
+            ilike(collections.name, `%${word}%`),
+            ilike(collections.description, `%${word}%`)
+          )!
+        );
+        
+        // All words must be found (AND logic)
+        whereConditions.push(and(...searchConditions)!);
+      }
+
+      // Build the where clause
+      const whereClause = whereConditions.length > 0 
+        ? sql`${whereConditions.reduce((acc, condition, index) =>
+            index === 0 ? condition : sql`${acc} AND ${condition}`,
+          )}`
+        : sql`1=1`; // Always true when no conditions
+
+      // Query collections with their stored card counts and URIs
+      const collectionsQuery = this.db
+        .select({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          authorId: collections.authorId,
+          cardCount: collections.cardCount,
+          uri: publishedRecords.uri,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .where(whereClause)
+        .orderBy(orderDirection(this.getSortColumn(sortBy)))
+        .limit(limit)
+        .offset(offset);
+
+      const collectionsResult = await collectionsQuery;
+
+      // Get total count with same search conditions
+      const totalCountResult = await this.db
+        .select({ count: count() })
+        .from(collections)
+        .where(whereClause);
+
+      const totalCount = totalCountResult[0]?.count || 0;
+      const hasMore = offset + collectionsResult.length < totalCount;
+
+      // Map to DTOs
+      const items = collectionsResult.map((raw) =>
+        CollectionMapper.toQueryResult({
+          id: raw.id,
+          uri: raw.uri,
+          name: raw.name,
+          description: raw.description,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+          authorId: raw.authorId,
+          cardCount: raw.cardCount,
+        }),
+      );
+
+      return {
+        items,
+        totalCount,
+        hasMore,
+      };
+    } catch (error) {
+      console.error('Error in searchCollections:', error);
       throw error;
     }
   }

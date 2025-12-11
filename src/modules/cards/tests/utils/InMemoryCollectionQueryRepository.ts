@@ -8,6 +8,7 @@ import {
   CollectionSortField,
   SortOrder,
   CollectionForUrlQueryOptions,
+  SearchCollectionsOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -217,6 +218,68 @@ export class InMemoryCollectionQueryRepository
     } catch (error) {
       throw new Error(
         `Failed to get collections with URL: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async searchCollections(
+    options: SearchCollectionsOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
+    try {
+      let allCollections = this.collectionRepository.getAllCollections();
+
+      // Apply tokenized search if searchText is provided
+      if (options.searchText && options.searchText.trim()) {
+        const searchWords = options.searchText.trim().toLowerCase().split(/\s+/);
+        
+        allCollections = allCollections.filter((collection) => {
+          const nameText = collection.name.value.toLowerCase();
+          const descriptionText = collection.description?.value.toLowerCase() || '';
+          const combinedText = `${nameText} ${descriptionText}`;
+          
+          // All search words must be found (AND logic)
+          return searchWords.every(word => combinedText.includes(word));
+        });
+      }
+
+      const sortedCollections = this.sortCollections(
+        allCollections,
+        options.sortBy,
+        options.sortOrder,
+      );
+
+      const startIndex = (options.page - 1) * options.limit;
+      const endIndex = startIndex + options.limit;
+      const paginatedCollections = sortedCollections.slice(
+        startIndex,
+        endIndex,
+      );
+
+      const items: CollectionQueryResultDTO[] = paginatedCollections.map(
+        (collection) => {
+          const collectionPublishedRecordId = collection.publishedRecordId;
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri: collectionPublishedRecordId?.uri,
+            authorId: collection.authorId.value,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          };
+        },
+      );
+
+      return {
+        items,
+        totalCount: allCollections.length,
+        hasMore: endIndex < allCollections.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to search collections: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
