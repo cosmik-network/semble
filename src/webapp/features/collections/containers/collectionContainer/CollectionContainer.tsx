@@ -22,7 +22,7 @@ import CollectionContainerContent from '../collectionContainerContent/Collection
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
-import { FiPlus, FiEye } from 'react-icons/fi';
+import { FiPlus, FiEye, FiShare2 } from 'react-icons/fi';
 
 interface Props {
   rkey: string;
@@ -65,6 +65,11 @@ export default function CollectionContainer(props: Props) {
     firstPage?.name.includes('💎') && firstPage?.name.includes('2025');
   const hasOwnGemsCollection =
     searchResults && searchResults.collections.length > 0;
+
+  // Create share URL for Bluesky intent
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareText = `Check out my 💎 picks of 2025 on Semble`;
+  const blueskyShareUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`;
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -142,6 +147,19 @@ export default function CollectionContainer(props: Props) {
                   leftSection={<FiEye size={16} />}
                 >
                   See all 💎 picks
+                </Button>
+
+                <Button
+                  component="a"
+                  href={blueskyShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="light"
+                  color="cyan"
+                  size="sm"
+                  leftSection={<FiShare2 size={16} />}
+                >
+                  Share on Bsky
                 </Button>
 
                 {!hasOwnGemsCollection && (
