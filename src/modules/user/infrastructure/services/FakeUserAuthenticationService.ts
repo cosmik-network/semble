@@ -18,25 +18,8 @@ export class FakeUserAuthenticationService
     handle?: Handle,
   ): Promise<Result<AuthenticationResult>> {
     try {
-      // Use mock data from environment variables
-      const mockDid = process.env.BSKY_DID || 'did:plc:mock123';
-      const mockHandle = process.env.BSKY_HANDLE || 'mock.bsky.social';
-
-      // Create mock DID and Handle
-      const mockDIDResult = DID.create(mockDid);
-      if (mockDIDResult.isErr()) {
-        return err(mockDIDResult.error);
-      }
-
-      const mockHandleResult = Handle.create(mockHandle);
-      if (mockHandleResult.isErr()) {
-        return err(mockHandleResult.error);
-      }
-
-      // Try to find existing user
-      const userResult = await this.userRepository.findByDID(
-        mockDIDResult.value,
-      );
+      // Try to find existing user first
+      const userResult = await this.userRepository.findByDID(did);
 
       if (userResult.isErr()) {
         return err(userResult.error);
@@ -52,11 +35,12 @@ export class FakeUserAuthenticationService
         });
       }
 
-      // Create new user with mock data
-      const newUserResult = User.createNew(
-        mockDIDResult.value,
-        mockHandleResult.value,
-      );
+      // Create new user with the provided DID and handle
+      if (!handle) {
+        return err(new Error('Handle is required for new user creation'));
+      }
+
+      const newUserResult = User.createNew(did, handle);
 
       if (newUserResult.isErr()) {
         return err(newUserResult.error);

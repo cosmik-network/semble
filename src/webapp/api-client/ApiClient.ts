@@ -4,6 +4,7 @@ import {
   CollectionClient,
   UserClient,
   FeedClient,
+  NotificationClient,
 } from './clients';
 import type {
   // Request types
@@ -64,6 +65,12 @@ import type {
   GetCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
+  GetMyNotificationsParams,
+  GetMyNotificationsResponse,
+  GetUnreadNotificationCountResponse,
+  MarkNotificationsAsReadRequest,
+  MarkNotificationsAsReadResponse,
+  MarkAllNotificationsAsReadResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -73,6 +80,7 @@ export class ApiClient {
   private collectionClient: CollectionClient;
   private userClient: UserClient;
   private feedClient: FeedClient;
+  private notificationClient: NotificationClient;
 
   constructor(private baseUrl: string) {
     this.queryClient = new QueryClient(baseUrl);
@@ -80,6 +88,7 @@ export class ApiClient {
     this.collectionClient = new CollectionClient(baseUrl);
     this.userClient = new UserClient(baseUrl);
     this.feedClient = new FeedClient(baseUrl);
+    this.notificationClient = new NotificationClient(baseUrl);
   }
 
   // Query operations - delegate to QueryClient
@@ -272,6 +281,27 @@ export class ApiClient {
     params?: GetGlobalFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getGlobalFeed(params);
+  }
+
+  // Notification operations - delegate to NotificationClient
+  async getMyNotifications(
+    params?: GetMyNotificationsParams,
+  ): Promise<GetMyNotificationsResponse> {
+    return this.notificationClient.getMyNotifications(params);
+  }
+
+  async getUnreadNotificationCount(): Promise<GetUnreadNotificationCountResponse> {
+    return this.notificationClient.getUnreadNotificationCount();
+  }
+
+  async markNotificationsAsRead(
+    request: MarkNotificationsAsReadRequest,
+  ): Promise<MarkNotificationsAsReadResponse> {
+    return this.notificationClient.markNotificationsAsRead(request);
+  }
+
+  async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
+    return this.notificationClient.markAllNotificationsAsRead();
   }
 }
 

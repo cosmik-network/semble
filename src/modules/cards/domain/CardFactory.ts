@@ -12,6 +12,7 @@ export interface IUrlCardInput {
   type: CardTypeEnum.URL;
   url: string;
   metadata: UrlMetadata;
+  viaCardId?: string;
 }
 
 export interface INoteCardInput {
@@ -77,6 +78,22 @@ export class CardFactory {
         parentCardId = parentCardIdResult.value;
       }
 
+      // Create via card ID if provided
+      let viaCardId: CardId | undefined;
+      if (this.hasViaCardId(props.cardInput)) {
+        const viaCardIdResult = CardId.createFromString(
+          props.cardInput.viaCardId!,
+        );
+        if (viaCardIdResult.isErr()) {
+          return err(
+            new CardValidationError(
+              `Invalid via card ID: ${viaCardIdResult.error.message}`,
+            ),
+          );
+        }
+        viaCardId = viaCardIdResult.value;
+      }
+
       // Create URL if provided for URL cards (required) or optional for other card types
       let url: URL | undefined;
       if (props.cardInput.type === CardTypeEnum.URL) {
@@ -105,6 +122,7 @@ export class CardFactory {
         content,
         url,
         parentCardId,
+        viaCardId,
       });
     } catch (error) {
       return err(
@@ -167,5 +185,11 @@ export class CardFactory {
     input: CardCreationInput,
   ): input is INoteCardInput {
     return 'parentCardId' in input && input.parentCardId !== undefined;
+  }
+
+  private static hasViaCardId(
+    input: CardCreationInput,
+  ): input is IUrlCardInput {
+    return 'viaCardId' in input && input.viaCardId !== undefined;
   }
 }

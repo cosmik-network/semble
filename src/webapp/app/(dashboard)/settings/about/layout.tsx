@@ -15,7 +15,7 @@ interface Props {
 export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header>
+      <Header title="About">
         <BackButton href="/settings">Settings</BackButton>
       </Header>
       {props.children}

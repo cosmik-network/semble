@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Container,
-  Stack,
-  Title,
-  SegmentedControl,
-  Center,
-} from '@mantine/core';
+import { Container, Stack, SegmentedControl, Center } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
 import { MdDarkMode, MdLightMode, MdOutlineSmartphone } from 'react-icons/md';
 
@@ -16,8 +10,6 @@ export default function AppearanceContainer() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
-        <Title order={1}>Appearance</Title>
-
         <SegmentedControl
           size="md"
           value={colorScheme}

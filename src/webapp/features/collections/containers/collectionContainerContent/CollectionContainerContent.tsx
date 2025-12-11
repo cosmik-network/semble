@@ -65,6 +65,7 @@ export default function CollectionContainerContent(props: Props) {
                   urlLibraryCount={card.urlLibraryCount}
                   urlIsInLibrary={card.urlInLibrary}
                   currentCollection={firstPage}
+                  viaCardId={card.id}
                 />
               </Grid.Col>
             ))}

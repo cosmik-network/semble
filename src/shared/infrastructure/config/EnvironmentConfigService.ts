@@ -25,6 +25,7 @@ export interface EnvironmentConfig {
     jetstreamWebsocket: string;
     serviceEndpoint: string;
     baseUrl: string;
+    baseCollection: string;
     collections: {
       card: string;
       collection: string;
@@ -96,6 +97,10 @@ export class EnvironmentConfigService {
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
+        baseCollection:
+          environment === Environment.PROD
+            ? 'network.cosmik'
+            : `network.cosmik.${environment}`,
         collections: {
           card:
             environment === Environment.PROD
@@ -177,6 +182,10 @@ export class EnvironmentConfigService {
 
   public getAtProtoCollections() {
     return this.config.atproto.collections;
+  }
+
+  public getAtProtoBaseCollection() {
+    return this.config.atproto.baseCollection;
   }
 
   public getServerConfig() {

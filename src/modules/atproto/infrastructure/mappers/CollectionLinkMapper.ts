@@ -6,14 +6,18 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
-  static readonly collectionLinkType =
-    new EnvironmentConfigService().getAtProtoCollections().collectionLink;
+  private static configService = new EnvironmentConfigService();
+  static collectionLinkType =
+    CollectionLinkMapper.configService.getAtProtoCollections().collectionLink;
+  static baseCollection =
+    CollectionLinkMapper.configService.getAtProtoBaseCollection();
 
   static toCreateRecordDTO(
     cardLink: CardLink,
     collectionPublishedRecordId: PublishedRecordIdProps,
     cardPublishedRecordId: PublishedRecordIdProps,
     originalCardPublishedRecordId?: PublishedRecordIdProps,
+    viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): CollectionLinkRecordDTO {
     const record: CollectionLinkRecordDTO = {
       $type: this.collectionLinkType as any,
@@ -34,6 +38,16 @@ export class CollectionLinkMapper {
       record.originalCard = {
         uri: originalCardPublishedRecordId.uri,
         cid: originalCardPublishedRecordId.cid,
+      };
+    }
+
+    if (viaCardPublishedRecordId) {
+      record.provenance = {
+        $type: `${this.baseCollection}.defs#provenance` as any,
+        via: {
+          uri: viaCardPublishedRecordId.uri,
+          cid: viaCardPublishedRecordId.cid,
+        },
       };
     }
 

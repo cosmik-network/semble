@@ -57,6 +57,20 @@
       "when": 1760037157784,
       "tag": "0007_regular_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1764017027849,
+      "tag": "0008_flaky_jocasta",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1765356227606,
+      "tag": "0009_stormy_mastermind",
+      "breakpoints": true
     }
   ]
 }

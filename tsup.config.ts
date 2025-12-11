@@ -6,6 +6,7 @@ export default defineConfig({
     'workers/feed-worker': 'src/workers/feed-worker.ts',
     'workers/search-worker': 'src/workers/search-worker.ts',
     'workers/firehose-worker': 'src/workers/firehose-worker.ts',
+    'workers/notification-worker': 'src/workers/notification-worker.ts',
   },
   outDir: 'dist',
   target: 'node18',
@@ -17,4 +18,14 @@ export default defineConfig({
   // Enable type checking
   // This will make tsup type-check all files including workspace packages
   tsconfig: './tsconfig.json',
+  // Add watch exclusions to prevent continuous rebuilds
+  ignoreWatch: [
+    'dist/**',
+    'node_modules/**',
+    '**/*.test.ts',
+    '**/*.spec.ts',
+    'src/webapp/**',
+    'src/types/**',
+    'src/packages/**',
+  ],
 });

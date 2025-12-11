@@ -72,6 +72,7 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
+        viaCardId: result.viaCardId || undefined,
         publishedRecordId: publishedRecord
           ? {
               uri: publishedRecord.uri,
@@ -213,6 +214,7 @@ export class DrizzleCardRepository implements ICardRepository {
               contentData: cardData.contentData,
               url: cardData.url,
               parentCardId: cardData.parentCardId,
+              viaCardId: cardData.viaCardId,
               publishedRecordId: publishedRecordId,
               libraryCount: cardData.libraryCount,
               updatedAt: cardData.updatedAt,
@@ -327,6 +329,7 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
+        viaCardId: result.viaCardId || undefined,
         publishedRecordId: publishedRecord
           ? {
               uri: publishedRecord.uri,
@@ -427,6 +430,7 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
+        viaCardId: result.viaCardId || undefined,
         publishedRecordId: publishedRecord
           ? {
               uri: publishedRecord.uri,

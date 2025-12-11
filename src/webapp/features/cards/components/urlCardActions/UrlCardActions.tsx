@@ -24,6 +24,7 @@ interface Props {
   currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary: boolean;
+  viaCardId?: string;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -123,6 +124,7 @@ export default function UrlCardActions(props: Props) {
         note={props.note?.text}
         isInYourLibrary={props.urlIsInLibrary}
         urlLibraryCount={props.urlLibraryCount}
+        viaCardId={props.viaCardId}
       />
 
       <NoteCardModal

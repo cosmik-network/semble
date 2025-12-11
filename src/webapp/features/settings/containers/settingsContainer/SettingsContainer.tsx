@@ -1,4 +1,4 @@
-import { ButtonGroup, Container, Stack, Title } from '@mantine/core';
+import { ButtonGroup, Container, Stack } from '@mantine/core';
 import AccountSummary from '../../components/accountSummary/AccountSummary';
 import SettingItem from '../../components/settingItem/SettingItem';
 import {
@@ -12,8 +12,6 @@ export default function SettingsContainer() {
   return (
     <Container p={'xs'} size={'xs'}>
       <Stack gap={'xl'}>
-        <Title order={1}>Settings</Title>
-
         <AccountSummary />
         <Stack>
           <ButtonGroup orientation="vertical">

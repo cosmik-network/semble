@@ -27,6 +27,7 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
+import NotificationsDropdown from '@/features/notifications/components/notificationsDropdown/NotificationsDropdown';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -59,6 +60,7 @@ export default function Navbar() {
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
             />
+            <NotificationsDropdown />
             <NavItem
               href={`/profile/${profile.handle}/cards`}
               label="Cards"

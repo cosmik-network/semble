@@ -241,3 +241,38 @@ export interface GetSimilarUrlsForUrlResponse {
   urls: UrlView[];
   pagination: Pagination;
 }
+
+// Notification types
+export enum NotificationType {
+  USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',
+  USER_ADDED_YOUR_BSKY_POST = 'USER_ADDED_YOUR_BSKY_POST',
+  USER_ADDED_YOUR_COLLECTION = 'USER_ADDED_YOUR_COLLECTION',
+}
+
+export interface NotificationItem {
+  id: string;
+  user: User;
+  card: UrlCard;
+  createdAt: string;
+  collections: Collection[];
+  type: NotificationType;
+  read: boolean;
+}
+
+export interface GetMyNotificationsResponse {
+  notifications: NotificationItem[];
+  pagination: Pagination;
+  unreadCount: number;
+}
+
+export interface GetUnreadNotificationCountResponse {
+  unreadCount: number;
+}
+
+export interface MarkNotificationsAsReadResponse {
+  markedCount: number;
+}
+
+export interface MarkAllNotificationsAsReadResponse {
+  markedCount: number;
+}

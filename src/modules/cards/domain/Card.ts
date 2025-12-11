@@ -42,6 +42,7 @@ interface CardProps {
   content: CardContent;
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
+  viaCardId?: CardId; // For cards that were discovered via another card
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   libraryCount: number; // Cached count of library memberships
   publishedRecordId?: PublishedRecordId; // The first published record ID for this card
@@ -72,6 +73,10 @@ export class Card extends AggregateRoot<CardProps> {
 
   get parentCardId(): CardId | undefined {
     return this.props.parentCardId;
+  }
+
+  get viaCardId(): CardId | undefined {
+    return this.props.viaCardId;
   }
 
   get createdAt(): Date {

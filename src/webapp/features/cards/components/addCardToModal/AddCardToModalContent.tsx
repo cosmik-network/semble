@@ -24,6 +24,7 @@ interface Props {
   url: string;
   cardId?: string;
   note?: string;
+  viaCardId?: string;
 }
 
 export default function AddCardToModalContent(props: Props) {
@@ -85,6 +86,7 @@ export default function AddCardToModalContent(props: Props) {
           url: props.url,
           note: trimmedNote,
           collectionIds: selectedCollections.map((c) => c.id),
+          viaCardId: props.viaCardId,
         },
         {
           onError: () => {
@@ -114,14 +116,20 @@ export default function AddCardToModalContent(props: Props) {
         (c) => c.id,
       );
 
-    updateCardAssociations.mutate(updatedCardPayload, {
-      onError: () => {
-        notifications.show({ message: 'Could not update card.' });
+    updateCardAssociations.mutate(
+      {
+        ...updatedCardPayload,
+        viaCardId: props.viaCardId,
       },
-      onSettled: () => {
-        props.onClose();
+      {
+        onError: () => {
+          notifications.show({ message: 'Could not update card.' });
+        },
+        onSettled: () => {
+          props.onClose();
+        },
       },
-    });
+    );
   };
 
   return (
