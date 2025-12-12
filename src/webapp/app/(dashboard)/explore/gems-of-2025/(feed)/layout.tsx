@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import { Fragment } from 'react';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FeedTabs from '@/features/feeds/components/feedTabs/FeedTabs';
-import { Paper } from '@mantine/core';
+import { Button, Paper } from '@mantine/core';
+import { BiCollection } from 'react-icons/bi';
 
 export const metadata: Metadata = {
   title: 'Explore — Gems of 2025',
@@ -29,6 +30,15 @@ export default async function Layout(props: Props) {
       </Header>
       <Paper pos={'sticky'} top={55} style={{ zIndex: 1 }}>
         <FeedTabs />
+        <Button
+          variant="light"
+          color="grape"
+          radius={0}
+          leftSection={<BiCollection size={18} />}
+          fullWidth
+        >
+          View Gem Collections
+        </Button>
       </Paper>
 
       {props.children}
