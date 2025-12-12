@@ -23,12 +23,11 @@ interface Props {
 }
 
 export default async function CollectionEmbedContainer(props: Props) {
-  const LIMIT = 1;
   const data = await getCollectionPageByAtUri({
     recordKey: props.rkey,
     handle: props.handle,
     params: {
-      limit: LIMIT,
+      limit: 16,
     },
   });
 
