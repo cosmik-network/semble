@@ -25,6 +25,7 @@ await client.login('your-handle.bsky.social', 'your-app-password');
 const card = await client.createCard({
   url: 'https://example.com',
   note: 'Optional note about this URL',
+  viaCard: someOtherCard, // Optional: reference to the card that led to this one
 });
 
 // Add a note to an existing card
@@ -38,6 +39,13 @@ const collection = await client.createCollection({
 
 // Add card to collection
 const collectionLink = await client.addCardToCollection(card, collection);
+
+// Add card to collection with provenance tracking
+const collectionLinkWithProvenance = await client.addCardToCollection(
+  card,
+  collection,
+  viaCard, // Optional: reference to the card that led to this addition
+);
 
 // Update a note
 await client.updateNote(noteCard, 'Updated note text');
@@ -68,10 +76,10 @@ await client.removeCardFromCollection(collectionLink);
 #### Methods
 
 - `login(identifier, password)` - Authenticate with app password
-- `createCard(options)` - Create a URL card with automatic metadata fetching
+- `createCard(options)` - Create a URL card with automatic metadata fetching and optional provenance tracking
 - `addNoteToCard(parentCard, noteText)` - Add a note card to an existing card
 - `createCollection(options)` - Create a new collection (defaults to CLOSED access)
-- `addCardToCollection(card, collection)` - Link a card to a collection
+- `addCardToCollection(card, collection, viaCard?)` - Link a card to a collection with optional provenance tracking
 - `updateNote(noteRef, updatedText)` - Update an existing note card
 - `deleteCard(cardRef)` - Delete a card
 - `updateCollection(collectionRef, name, description?)` - Update collection details
@@ -95,6 +103,7 @@ interface StrongRef {
 interface CreateCardOptions {
   url: string;
   note?: string;
+  viaCard?: StrongRef; // Optional reference to the card that led to this one
 }
 ```
 
@@ -106,6 +115,14 @@ interface CreateCollectionOptions {
   description?: string;
 }
 ```
+
+## Provenance Tracking
+
+The client supports provenance tracking through the optional `viaCard` parameter in `createCard()` and `addCardToCollection()`. When provided, this creates a provenance record that tracks which card led to the creation of a new card or the addition of a card to a collection.
+
+This is useful for tracking how content spreads through the network - for example, if someone discovers a URL through another person's card and saves it themselves, or adds it to their own collection.
+
+The provenance information is stored in the record's `provenance.via` field as a strong reference to the originating card.
 
 ## License
 
