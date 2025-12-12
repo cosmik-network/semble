@@ -17,6 +17,7 @@ import {
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
+import { CardId } from 'src/modules/cards/domain/value-objects/CardId';
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
   cid: string | null;
@@ -102,10 +103,21 @@ export class ProcessCardFirehoseEventUseCase
           return ok(undefined);
         }
 
+        let viaCardId: CardId | undefined = undefined;
+        const viaAtUri = request.record.provenance?.via?.uri;
+        if (viaAtUri) {
+          const viaCardIdResult =
+            await this.atUriResolutionService.resolveCardId(viaAtUri);
+          if (viaCardIdResult.isOk()) {
+            viaCardId = viaCardIdResult.value || undefined;
+          }
+        }
+
         const result = await this.addUrlToLibraryUseCase.execute({
           url: urlContent.url,
           curatorId: curatorDid,
           publishedRecordId: publishedRecordId,
+          viaCardId: viaCardId?.getStringValue(),
         });
 
         if (result.isErr()) {
