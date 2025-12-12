@@ -48,7 +48,7 @@ export default function GemsOf2025() {
             <Group gap={'xs'} justify="center">
               <Button
                 component={Link}
-                href="/explore/gems-of-2025/collections"
+                href="/explore/gems-of-2025"
                 size="sm"
                 variant="white"
                 color={'blue.8'}
