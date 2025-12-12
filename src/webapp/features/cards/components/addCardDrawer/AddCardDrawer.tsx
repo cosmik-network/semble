@@ -37,7 +37,7 @@ export default function AddCardDrawer(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
 
-  const { data: collections } = useMyCollections({ limit: 10 });
+  const { data: collections } = useMyCollections({ limit: 30 });
   const myCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
