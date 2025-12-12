@@ -230,15 +230,19 @@ export class InMemoryCollectionQueryRepository
 
       // Apply tokenized search if searchText is provided
       if (options.searchText && options.searchText.trim()) {
-        const searchWords = options.searchText.trim().toLowerCase().split(/\s+/);
-        
+        const searchWords = options.searchText
+          .trim()
+          .toLowerCase()
+          .split(/\s+/);
+
         allCollections = allCollections.filter((collection) => {
           const nameText = collection.name.value.toLowerCase();
-          const descriptionText = collection.description?.value.toLowerCase() || '';
+          const descriptionText =
+            collection.description?.value.toLowerCase() || '';
           const combinedText = `${nameText} ${descriptionText}`;
-          
+
           // All search words must be found (AND logic)
-          return searchWords.every(word => combinedText.includes(word));
+          return searchWords.every((word) => combinedText.includes(word));
         });
       }
 

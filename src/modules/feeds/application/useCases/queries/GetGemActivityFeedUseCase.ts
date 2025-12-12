@@ -2,7 +2,11 @@ import { Result, ok, err } from '../../../../../shared/core/Result';
 import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
-import { GetGlobalFeedUseCase, GetGlobalFeedQuery, GetGlobalFeedResult } from './GetGlobalFeedUseCase';
+import {
+  GetGlobalFeedUseCase,
+  GetGlobalFeedQuery,
+  GetGlobalFeedResult,
+} from './GetGlobalFeedUseCase';
 
 export interface GetGemActivityFeedQuery extends GetGlobalFeedQuery {}
 
@@ -18,7 +22,10 @@ export class GetGemActivityFeedUseCase
   implements
     UseCase<
       GetGemActivityFeedQuery,
-      Result<GetGemActivityFeedResult, ValidationError | AppError.UnexpectedError>
+      Result<
+        GetGemActivityFeedResult,
+        ValidationError | AppError.UnexpectedError
+      >
     >
 {
   constructor(private getGlobalFeedUseCase: GetGlobalFeedUseCase) {}
@@ -31,18 +38,18 @@ export class GetGemActivityFeedUseCase
     try {
       const requestedLimit = query.limit || 20;
       const page = query.page || 1;
-      
+
       // Start with a multiplier to account for filtering
       let multiplier = 3;
       let allFilteredItems: GetGlobalFeedResult['activities'] = [];
       let totalFetched = 0;
       let hasMore = true;
       let nextCursor = query.beforeActivityId;
-      
+
       // Keep fetching until we have enough filtered items or no more data
       while (allFilteredItems.length < requestedLimit && hasMore) {
         const fetchLimit = Math.min(requestedLimit * multiplier, 100); // Cap at 100 per API call
-        
+
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
           ...query,
           limit: fetchLimit,
@@ -55,42 +62,47 @@ export class GetGemActivityFeedUseCase
         }
 
         const globalFeed = globalFeedResult.value;
-        
+
         // Filter activities that have collections with both "💎" and "2025" in the title
-        const filteredActivities = globalFeed.activities.filter(activity => {
-          return activity.collections && activity.collections.length > 0 && 
-            activity.collections.some(collection => {
+        const filteredActivities = globalFeed.activities.filter((activity) => {
+          return (
+            activity.collections &&
+            activity.collections.length > 0 &&
+            activity.collections.some((collection) => {
               const title = collection.name.toLowerCase();
               return title.includes('💎') && title.includes('2025');
-            });
+            })
+          );
         });
 
         allFilteredItems = [...allFilteredItems, ...filteredActivities];
         totalFetched += globalFeed.activities.length;
         hasMore = globalFeed.pagination.hasMore;
         nextCursor = globalFeed.pagination.nextCursor;
-        
+
         // If we didn't get any new items and there's no more data, break
         if (globalFeed.activities.length === 0 || !hasMore) {
           break;
         }
-        
+
         // Increase multiplier for next iteration if we're still short
         multiplier = Math.min(multiplier * 1.5, 10); // Cap multiplier at 10
       }
 
       // Take only the requested number of items
       const finalItems = allFilteredItems.slice(0, requestedLimit);
-      
+
       // Calculate if there are more filtered items available
-      const hasMoreFiltered = allFilteredItems.length > requestedLimit || 
+      const hasMoreFiltered =
+        allFilteredItems.length > requestedLimit ||
         (hasMore && allFilteredItems.length === requestedLimit);
 
       // For pagination, we need to determine the next cursor
       // Use the last item's ID as the cursor if we have items
-      const finalNextCursor = finalItems.length > 0 && hasMoreFiltered 
-        ? finalItems[finalItems.length - 1].id 
-        : undefined;
+      const finalNextCursor =
+        finalItems.length > 0 && hasMoreFiltered
+          ? finalItems[finalItems.length - 1]?.id
+          : undefined;
 
       return ok({
         activities: finalItems,
