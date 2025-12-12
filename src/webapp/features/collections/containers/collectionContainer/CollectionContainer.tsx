@@ -22,9 +22,10 @@ import CollectionContainerContent from '../collectionContainerContent/Collection
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
-import { FiPlus, FiEye } from 'react-icons/fi';
+import { FiPlus } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
+import { useOs } from '@mantine/hooks';
 
 interface Props {
   rkey: string;
@@ -34,6 +35,7 @@ interface Props {
 type SortOption = 'newest' | 'oldest' | 'most-popular';
 
 export default function CollectionContainer(props: Props) {
+  const os = useOs();
   const { user } = useAuth();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
@@ -76,7 +78,8 @@ export default function CollectionContainer(props: Props) {
   // Create share URL for Bluesky intent
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareText = `Check out my 💎 picks of 2025 on Semble`;
-  const blueskyShareUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`;
+  const isMobile = os === 'ios' || os === 'android';
+  const blueskyShareUrl = `${isMobile ? 'bluesky://intent/compose' : 'https://bsky.app/intent/compose'}?text=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`;
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
