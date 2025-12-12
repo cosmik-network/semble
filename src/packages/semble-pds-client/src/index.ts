@@ -77,6 +77,14 @@ export class SemblePDSClient {
           },
         }),
       },
+      ...(options.viaCard && {
+        provenance: {
+          via: {
+            uri: options.viaCard.uri,
+            cid: options.viaCard.cid,
+          },
+        },
+      }),
       createdAt: new Date().toISOString(),
     };
 
@@ -105,6 +113,14 @@ export class SemblePDSClient {
           uri: urlCard.uri,
           cid: urlCard.cid,
         },
+        ...(options.viaCard && {
+          provenance: {
+            via: {
+              uri: options.viaCard.uri,
+              cid: options.viaCard.cid,
+            },
+          },
+        }),
         createdAt: new Date().toISOString(),
       };
 
@@ -194,6 +210,7 @@ export class SemblePDSClient {
   async addCardToCollection(
     card: StrongRef,
     collection: StrongRef,
+    viaCard?: StrongRef,
   ): Promise<StrongRef> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
@@ -211,6 +228,14 @@ export class SemblePDSClient {
       },
       addedBy: this.agent.session.did,
       addedAt: new Date().toISOString(),
+      ...(viaCard && {
+        provenance: {
+          via: {
+            uri: viaCard.uri,
+            cid: viaCard.cid,
+          },
+        },
+      }),
       createdAt: new Date().toISOString(),
     };
 
