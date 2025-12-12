@@ -20,6 +20,7 @@ import { CardCollectionService } from '../../../domain/services/CardCollectionSe
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -100,19 +101,20 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       if (!urlCard) {
         // Fetch metadata for URL
         const metadataResult = await this.metadataService.fetchMetadata(url);
-        if (metadataResult.isErr()) {
-          return err(
-            new ValidationError(
-              `Failed to fetch metadata: ${metadataResult.error.message}`,
-            ),
-          );
+        let metadata: UrlMetadata;
+        if (metadataResult.isOk()) {
+          metadata = metadataResult.value;
+        } else {
+          metadata = UrlMetadata.create({ url: url.value }).unwrap();
         }
+
+        // If metadata fetching fails, we continue without metadata
 
         // Create URL card
         const urlCardInput: IUrlCardInput = {
           type: CardTypeEnum.URL,
           url: url.value,
-          metadata: metadataResult.value,
+          metadata: metadata,
           viaCardId: request.viaCardId,
         };
 
