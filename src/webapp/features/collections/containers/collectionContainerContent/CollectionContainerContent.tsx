@@ -1,3 +1,5 @@
+'use client';
+
 import { useNavbarContext } from '@/providers/navbar';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
@@ -13,8 +15,8 @@ import { FiPlus } from 'react-icons/fi';
 interface Props {
   rkey: string;
   handle: string;
-  sortBy: CardSortField;
-  sortOrder: SortOrder;
+  sortBy?: CardSortField;
+  sortOrder?: SortOrder;
 }
 
 export default function CollectionContainerContent(props: Props) {

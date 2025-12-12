@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Anchor,
   Container,
@@ -8,76 +6,52 @@ import {
   Text,
   Title,
   Avatar,
-  Select,
-  Button,
+  Grid,
+  GridCol,
+  Image,
 } from '@mantine/core';
-import useCollection from '../../lib/queries/useCollection';
+import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
-import { Suspense, useState } from 'react';
-import CollectionContainerError from '../collectionContainer/Error.CollectionContainer';
-import CollectionContainerSkeleton from '../collectionContainer/Skeleton.CollectionContainer';
-import { CardSortField, SortOrder } from '@semble/types';
-import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
-import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
-import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
+import { getCollectionPageByAtUri } from '../../lib/dal';
+import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 
 interface Props {
   rkey: string;
   handle: string;
 }
 
-type SortOption = 'newest' | 'oldest' | 'most-popular';
-
-export default function CollectionEmbedContainer(props: Props) {
-  const { data, isPending, error } = useCollection({
-    rkey: props.rkey,
+export default async function CollectionEmbedContainer(props: Props) {
+  const data = await getCollectionPageByAtUri({
+    recordKey: props.rkey,
     handle: props.handle,
+    params: {
+      limit: 16,
+    },
   });
 
-  const firstPage = data.pages[0];
-  const [sortOption, setSortOption] = useState<SortOption>('newest');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const getSortParams = (option: SortOption) => {
-    switch (option) {
-      case 'newest':
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
-      case 'oldest':
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.ASC };
-      case 'most-popular':
-        return {
-          sortBy: CardSortField.LIBRARY_COUNT,
-          sortOrder: SortOrder.DESC,
-        };
-      default:
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
-    }
-  };
-
-  const { sortBy, sortOrder } = getSortParams(sortOption);
-
-  if (isPending) {
-    return <CollectionContainerSkeleton />;
-  }
-
-  if (error) {
-    return <CollectionContainerError />;
-  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
   return (
     <Container p="xs" size="xl">
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
-          <Stack gap={0}>
-            <Text fw={700} c="grape">
-              Collection
-            </Text>
-            <Title order={1}>{firstPage.name}</Title>
-            {firstPage.description && (
-              <Text c="gray" mt="lg">
-                {firstPage.description}
+          <Stack gap={'xs'} align="flex-start">
+            <Anchor component={Link} href={appUrl} target="_blank">
+              <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={30} />
+            </Anchor>
+            <Stack gap={0}>
+              <Text fw={700} c="grape">
+                Collection
               </Text>
-            )}
+              <Title order={1} fz={'xl'}>
+                {data.name}
+              </Title>
+              {data.description && (
+                <Text c="gray" mt="lg">
+                  {data.description}
+                </Text>
+              )}
+            </Stack>
           </Stack>
 
           <Group gap={'xs'}>
@@ -88,54 +62,48 @@ export default function CollectionEmbedContainer(props: Props) {
               <Avatar
                 size={'sm'}
                 component={Link}
-                href={`/profile/${firstPage.author.handle}`}
-                src={firstPage.author.avatarUrl}
-                alt={`${firstPage.author.name}'s' avatar`}
+                href={`/profile/${data.author.handle}`}
+                target="_blank"
+                src={data.author.avatarUrl}
+                alt={`${data.author.name}'s' avatar`}
               />
               <Anchor
                 component={Link}
-                href={`/profile/${firstPage.author.handle}`}
+                href={`/profile/${data.author.handle}`}
+                target="_blank"
                 fw={600}
                 c="bright"
               >
-                {firstPage.author.name}
+                {data.author.name}
               </Anchor>
             </Group>
           </Group>
         </Group>
 
-        <Group justify="space-between" align="end">
-          <Select
-            mr={'auto'}
-            size="sm"
-            variant="filled"
-            label="Sort by"
-            allowDeselect={false}
-            value={sortOption}
-            onChange={(value) => setSortOption(value as SortOption)}
-            data={[
-              { value: 'newest', label: 'Newest' },
-              { value: 'oldest', label: 'Oldest' },
-              { value: 'most-popular', label: 'Most Popular' },
-            ]}
-          />
-        </Group>
-
-        <Suspense fallback={<CollectionContainerContentSkeleton />}>
-          <CollectionContainerContent
-            rkey={props.rkey}
-            handle={props.handle}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-          />
-        </Suspense>
+        <Grid gutter="md">
+          {data.urlCards.map((card) => (
+            <GridCol
+              key={card.id}
+              span={{
+                base: 12,
+                xs: 6,
+                sm: 4,
+                lg: 3,
+              }}
+            >
+              <UrlCard
+                id={card.id}
+                url={card.url}
+                cardContent={card.cardContent}
+                authorHandle={data.author.handle}
+                cardAuthor={data.author}
+                note={card.note}
+                urlLibraryCount={card.urlLibraryCount}
+              />
+            </GridCol>
+          ))}
+        </Grid>
       </Stack>
-
-      <CreateCollectionDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        initialName="💎 Picks of 2025"
-      />
     </Container>
   );
 }

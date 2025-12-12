@@ -1,3 +1,5 @@
+'use client';
+
 import type { UrlCard, Collection, User } from '@/api-client';
 import { Card, Stack } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
