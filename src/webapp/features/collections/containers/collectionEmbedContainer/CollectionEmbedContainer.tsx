@@ -10,12 +10,14 @@ import {
   GridCol,
   Image,
   Button,
+  Card,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import { getCollectionPageByAtUri } from '../../lib/dal';
-import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { RiArrowRightUpLine } from 'react-icons/ri';
+import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
+import { isCollectionPage } from '@/lib/utils/link';
 
 interface Props {
   rkey: string;
@@ -93,15 +95,29 @@ export default async function CollectionEmbedContainer(props: Props) {
                 lg: 3,
               }}
             >
-              <UrlCard
-                id={card.id}
-                url={card.url}
-                cardContent={card.cardContent}
-                authorHandle={data.author.handle}
-                cardAuthor={data.author}
-                note={card.note}
-                urlLibraryCount={card.urlLibraryCount}
-              />
+              <Anchor
+                component={Link}
+                href={`${isCollectionPage(card.url) ? card.url : `/url?id=${card.cardContent.url}`}`}
+                target="_blank"
+                underline="never"
+              >
+                <Card
+                  component="article"
+                  radius={'lg'}
+                  p={'sm'}
+                  flex={1}
+                  h={'100%'}
+                  withBorder
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Stack justify="space-between" gap={'sm'} flex={1}>
+                    <UrlCardContent
+                      url={card.url}
+                      cardContent={card.cardContent}
+                    />
+                  </Stack>
+                </Card>
+              </Anchor>
             </GridCol>
           ))}
         </Grid>
