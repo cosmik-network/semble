@@ -9,11 +9,13 @@ import {
   Grid,
   GridCol,
   Image,
+  Button,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import { getCollectionPageByAtUri } from '../../lib/dal';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 interface Props {
   rkey: string;
@@ -21,11 +23,12 @@ interface Props {
 }
 
 export default async function CollectionEmbedContainer(props: Props) {
+  const LIMIT = 1;
   const data = await getCollectionPageByAtUri({
     recordKey: props.rkey,
     handle: props.handle,
     params: {
-      limit: 16,
+      limit: LIMIT,
     },
   });
 
@@ -103,6 +106,19 @@ export default async function CollectionEmbedContainer(props: Props) {
             </GridCol>
           ))}
         </Grid>
+
+        <Stack align="center">
+          <Button
+            component={Link}
+            href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
+            target="_blank"
+            variant="light"
+            color="gray"
+            rightSection={<RiArrowRightUpLine />}
+          >
+            View more on Semble
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );
