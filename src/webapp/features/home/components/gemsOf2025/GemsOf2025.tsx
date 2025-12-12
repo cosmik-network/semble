@@ -8,6 +8,7 @@ import CreateCollectionDrawer from '@/features/collections/components/createColl
 import { useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
+import { MdOutlineEmojiNature } from 'react-icons/md';
 
 export default function GemsOf2025() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -51,20 +52,30 @@ export default function GemsOf2025() {
                 size="sm"
                 variant="white"
                 color={'blue.8'}
+                leftSection={<MdOutlineEmojiNature size={18} />}
+              >
+                Explore
+              </Button>
+
+              <Button
+                component={Link}
+                href="/explore/gems-of-2025/collections"
+                size="sm"
+                variant="white"
+                color={'grape'}
                 leftSection={<BiCollection size={18} />}
               >
-                View Gems
+                View Collections
               </Button>
 
               {!isLoadingSearchResults && !hasGemsCollection && (
                 <Button
                   size="sm"
-                  variant="white"
                   color={'grape'}
                   leftSection={<FiPlus size={18} />}
                   onClick={() => setIsDrawerOpen(true)}
                 >
-                  Create Your Collection
+                  Create
                 </Button>
               )}
             </Group>
