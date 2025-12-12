@@ -48,7 +48,9 @@ export class GetGemActivityFeedUseCase
 
       // Keep fetching until we have enough filtered items or no more data
       while (allFilteredItems.length < requestedLimit && hasMore) {
-        const fetchLimit = Math.min(requestedLimit * multiplier, 100); // Cap at 100 per API call
+        const fetchLimit = Math.floor(
+          Math.min(requestedLimit * multiplier, 100),
+        ); // Cap at 100 per API call
 
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
           ...query,
