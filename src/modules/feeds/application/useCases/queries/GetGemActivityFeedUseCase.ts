@@ -39,6 +39,9 @@ export class GetGemActivityFeedUseCase
       const requestedLimit = query.limit || 20;
       const page = query.page || 1;
 
+      // Cutoff date - gem collections only exist since December 5th, 2025
+      const cutoffDate = new Date('2025-12-05T00:00:00Z');
+
       // Start with a multiplier to account for filtering
       let multiplier = 3;
       let allFilteredItems: GetGlobalFeedResult['activities'] = [];
@@ -64,6 +67,39 @@ export class GetGemActivityFeedUseCase
         }
 
         const globalFeed = globalFeedResult.value;
+
+        // Check if we've reached activities before our cutoff date
+        const oldestActivityDate =
+          globalFeed.activities.length > 0
+            ? new Date(
+                globalFeed.activities[
+                  globalFeed.activities.length - 1
+                ]!.createdAt,
+              )
+            : null;
+
+        // If the oldest activity is before our cutoff, filter and stop fetching
+        if (oldestActivityDate && oldestActivityDate < cutoffDate) {
+          // Filter out activities before cutoff date first
+          const recentActivities = globalFeed.activities.filter(
+            (activity) => new Date(activity.createdAt) >= cutoffDate,
+          );
+
+          // Then apply gem collection filter
+          const filteredActivities = recentActivities.filter((activity) => {
+            return (
+              activity.collections &&
+              activity.collections.length > 0 &&
+              activity.collections.some((collection) => {
+                const title = collection.name.toLowerCase();
+                return title.includes('💎') && title.includes('2025');
+              })
+            );
+          });
+
+          allFilteredItems = [...allFilteredItems, ...filteredActivities];
+          break; // Stop fetching since we've reached the cutoff date
+        }
 
         // Filter activities that have collections with both "💎" and "2025" in the title
         const filteredActivities = globalFeed.activities.filter((activity) => {
