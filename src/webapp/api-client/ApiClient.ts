@@ -71,6 +71,8 @@ import type {
   MarkNotificationsAsReadRequest,
   MarkNotificationsAsReadResponse,
   MarkAllNotificationsAsReadResponse,
+  GetGemActivityFeedParams,
+  SearchCollectionsParams,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -241,6 +243,12 @@ export class ApiClient {
     return this.collectionClient.deleteCollection(request);
   }
 
+  async searchCollections(
+    params?: SearchCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
+    return this.collectionClient.searchCollections(params);
+  }
+
   // User operations - delegate to UserClient
   async loginWithAppPassword(
     request: LoginWithAppPasswordRequest,
@@ -281,6 +289,12 @@ export class ApiClient {
     params?: GetGlobalFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getGlobalFeed(params);
+  }
+
+  async getGemsActivityFeed(
+    params?: GetGemActivityFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getGemsActivityFeed(params);
   }
 
   // Notification operations - delegate to NotificationClient

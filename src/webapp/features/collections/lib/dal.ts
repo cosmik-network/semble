@@ -133,3 +133,24 @@ export const getCollectionPageByAtUri = cache(
     return response;
   },
 );
+
+export const searchCollections = cache(
+  async (params?: PageParams & SearchParams) => {
+    const client = createSembleClient();
+    const response = await client.searchCollections({
+      page: params?.page,
+      limit: params?.limit,
+      sortBy: params?.collectionSortBy,
+      sortOrder: params?.sortOrder,
+      searchText: params?.searchText,
+    });
+
+    // Temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
+  },
+);

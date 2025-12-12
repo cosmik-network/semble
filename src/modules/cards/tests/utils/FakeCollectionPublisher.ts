@@ -36,7 +36,9 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     }
 
     const collectionId = collection.collectionId.getStringValue();
-    const fakeDid = process.env.BSKY_DID || 'did:plc:rlknsba2qldjkicxsmni3vyn';
+
+    // Use the collection's author DID directly
+    const fakeDid = collection.authorId.value;
 
     // Simulate publishing the collection record itself
     const fakeCollectionUri = `at://${fakeDid}/${this.collectionType}/${collectionId}`;

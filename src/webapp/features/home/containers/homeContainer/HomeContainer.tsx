@@ -9,12 +9,16 @@ import { Suspense } from 'react';
 import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton.DiscoverOnSemble';
 import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
+import GemsOf2025 from '../../components/gemsOf2025/GemsOf2025';
 
 export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
         <Stack gap={50}>
+          {/* Gems of 2025 */}
+          <GemsOf2025 />
+
           {/* Explore */}
           <Stack>
             <ErrorBoundary

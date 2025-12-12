@@ -143,6 +143,14 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   threshold?: number;
 }
 
+export interface GetGemActivityFeedParams extends PaginationParams {
+  beforeActivityId?: string; // For cursor-based pagination
+}
+
+export interface SearchCollectionsParams extends PaginatedSortedParams {
+  searchText?: string;
+}
+
 // Notification request types
 export interface GetMyNotificationsParams extends PaginatedSortedParams {
   unreadOnly?: boolean;

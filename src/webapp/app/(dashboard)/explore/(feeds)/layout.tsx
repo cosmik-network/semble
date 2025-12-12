@@ -3,6 +3,8 @@ import Header from '@/components/navigation/header/Header';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import FeedTabs from '@/features/feeds/components/feedTabs/FeedTabs';
+import { Paper } from '@mantine/core';
 
 export const metadata: Metadata = {
   title: 'Explore',
@@ -25,6 +27,10 @@ export default async function Layout(props: Props) {
           <BackButton href="/">Learn more</BackButton>
         )}
       </Header>
+      <Paper pos={'sticky'} top={55} style={{ zIndex: 1 }}>
+        <FeedTabs />
+      </Paper>
+
       {props.children}
     </Fragment>
   );
