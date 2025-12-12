@@ -34,7 +34,7 @@ export default async function CollectionEmbedContainer(props: Props) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
   return (
-    <Container p="xs" size="xl">
+    <Container p="xs" fluid>
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
           <Stack gap={'xs'} align="flex-start">
@@ -106,14 +106,15 @@ export default async function CollectionEmbedContainer(props: Props) {
           ))}
         </Grid>
 
-        <Stack align="center">
+        <Stack align="center" mt={'md'}>
           <Button
             component={Link}
             href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
             target="_blank"
             variant="light"
-            color="gray"
+            color="grape"
             rightSection={<RiArrowRightUpLine />}
+            size="md"
           >
             View more on Semble
           </Button>
