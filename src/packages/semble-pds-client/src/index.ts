@@ -79,6 +79,7 @@ export class SemblePDSClient {
       },
       ...(options.viaCard && {
         provenance: {
+          $type: `${this.BASE_NSID}.defs#provenance`,
           via: {
             uri: options.viaCard.uri,
             cid: options.viaCard.cid,
@@ -113,14 +114,6 @@ export class SemblePDSClient {
           uri: urlCard.uri,
           cid: urlCard.cid,
         },
-        ...(options.viaCard && {
-          provenance: {
-            via: {
-              uri: options.viaCard.uri,
-              cid: options.viaCard.cid,
-            },
-          },
-        }),
         createdAt: new Date().toISOString(),
       };
 
@@ -230,6 +223,7 @@ export class SemblePDSClient {
       addedAt: new Date().toISOString(),
       ...(viaCard && {
         provenance: {
+          $type: `${this.BASE_NSID}.defs#provenance`,
           via: {
             uri: viaCard.uri,
             cid: viaCard.cid,
