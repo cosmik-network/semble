@@ -20,12 +20,10 @@ export default function GemsOfYearBanner() {
     <>
       <Group justify="space-between" align="center">
         <Stack gap={0}>
-          <Title order={1} size="h1">
-            Gems of 2025
-          </Title>
-          <Text fw={500} fz={'lg'}>
-            Collections from our community
+          <Text fw={700} c="grape">
+            Gem Collections
           </Text>
+          <Title order={2}>From our community</Title>
         </Stack>
 
         {!hasGemsCollection && (
