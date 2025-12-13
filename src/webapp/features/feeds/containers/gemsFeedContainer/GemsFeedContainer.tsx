@@ -7,6 +7,7 @@ import GemsFeedContainerSkeleton from './Skeleton.GemsFeedContainer';
 import GemsFeedContainerError from './Error.GemsFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
+import GemsOf2025 from '@/features/home/components/gemsOf2025/GemsOf2025';
 
 export default function GemsFeedContainer() {
   const {
@@ -33,38 +34,41 @@ export default function GemsFeedContainer() {
 
   return (
     <Container p="xs" size="xl">
-      <Stack align="center">
-        {isRefetching && (
-          <Stack align="center" gap={'xs'}>
-            <Loader color={'gray'} />
-            <Text fw={600} c={'gray'}>
-              Fetching the latest gems...
-            </Text>
-          </Stack>
-        )}
-        {allActivities.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              No gems to show yet
-            </Text>
-          </Center>
-        ) : (
-          <InfiniteScroll
-            dataLength={allActivities.length}
-            hasMore={!!hasNextPage}
-            isInitialLoading={isPending}
-            isLoading={isFetchingNextPage}
-            loadMore={fetchNextPage}
-          >
-            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-              <Stack gap={60}>
-                {allActivities.map((item) => (
-                  <FeedItem key={item.id} item={item} />
-                ))}
-              </Stack>
+      <Stack gap={'xl'}>
+        <GemsOf2025 />
+        <Stack align="center">
+          {isRefetching && (
+            <Stack align="center" gap={'xs'}>
+              <Loader color={'gray'} />
+              <Text fw={600} c={'gray'}>
+                Fetching the latest gems...
+              </Text>
             </Stack>
-          </InfiniteScroll>
-        )}
+          )}
+          {allActivities.length === 0 ? (
+            <Center>
+              <Text fz="h3" fw={600} c="gray">
+                No gems to show yet
+              </Text>
+            </Center>
+          ) : (
+            <InfiniteScroll
+              dataLength={allActivities.length}
+              hasMore={!!hasNextPage}
+              isInitialLoading={isPending}
+              isLoading={isFetchingNextPage}
+              loadMore={fetchNextPage}
+            >
+              <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
+                <Stack gap={60}>
+                  {allActivities.map((item) => (
+                    <FeedItem key={item.id} item={item} />
+                  ))}
+                </Stack>
+              </Stack>
+            </InfiniteScroll>
+          )}
+        </Stack>
       </Stack>
 
       <Box
