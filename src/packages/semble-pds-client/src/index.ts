@@ -405,7 +405,7 @@ export class SemblePDSClient {
 
     return {
       cursor: response.data.cursor,
-      records: response.data.records.map(record => ({
+      records: response.data.records.map((record) => ({
         uri: record.uri,
         cid: record.cid,
         value: record.value as CardRecord['value'],
@@ -413,7 +413,9 @@ export class SemblePDSClient {
     };
   }
 
-  async getMyCollections(params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getMyCollections(
+    params?: ListQueryParams,
+  ): Promise<GetCollectionsResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
@@ -428,7 +430,7 @@ export class SemblePDSClient {
 
     return {
       cursor: response.data.cursor,
-      records: response.data.records.map(record => ({
+      records: response.data.records.map((record) => ({
         uri: record.uri,
         cid: record.cid,
         value: record.value as CollectionRecord['value'],
@@ -436,7 +438,10 @@ export class SemblePDSClient {
     };
   }
 
-  async getCards(did: string, params?: ListQueryParams): Promise<GetCardsResult> {
+  async getCards(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCardsResult> {
     const response = await this.agent.com.atproto.repo.listRecords({
       repo: did,
       collection: this.CARD_COLLECTION,
@@ -447,7 +452,7 @@ export class SemblePDSClient {
 
     return {
       cursor: response.data.cursor,
-      records: response.data.records.map(record => ({
+      records: response.data.records.map((record) => ({
         uri: record.uri,
         cid: record.cid,
         value: record.value as CardRecord['value'],
@@ -455,7 +460,10 @@ export class SemblePDSClient {
     };
   }
 
-  async getCollections(did: string, params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getCollections(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCollectionsResult> {
     const response = await this.agent.com.atproto.repo.listRecords({
       repo: did,
       collection: this.COLLECTION_COLLECTION,
@@ -466,7 +474,7 @@ export class SemblePDSClient {
 
     return {
       cursor: response.data.cursor,
-      records: response.data.records.map(record => ({
+      records: response.data.records.map((record) => ({
         uri: record.uri,
         cid: record.cid,
         value: record.value as CollectionRecord['value'],
@@ -519,7 +527,7 @@ export class SemblePDSClient {
       };
 
       writes.push({
-        $type: 'com.atproto.repo.applyWrites#create',
+        $type: 'com.atproto.repo.applyWrites#create' as const,
         collection: this.CARD_COLLECTION,
         value: record,
       });
@@ -540,7 +548,7 @@ export class SemblePDSClient {
         };
 
         writes.push({
-          $type: 'com.atproto.repo.applyWrites#create',
+          $type: 'com.atproto.repo.applyWrites#create' as const,
           collection: this.CARD_COLLECTION,
           value: noteRecord,
         });
@@ -552,26 +560,31 @@ export class SemblePDSClient {
       writes,
     });
 
-    const results = response.data.results?.map(result => ({
-      uri: (result as any).uri,
-      cid: (result as any).cid,
-    })) || [];
+    const results =
+      response.data.results?.map((result) => ({
+        uri: (result as any).uri,
+        cid: (result as any).cid,
+      })) || [];
 
     return { results };
   }
 
-  async createCollections(options: CreateCollectionsOptions): Promise<BatchCreateResult> {
+  async createCollections(
+    options: CreateCollectionsOptions,
+  ): Promise<BatchCreateResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
 
-    const writes = options.collections.map(collectionOptions => ({
-      $type: 'com.atproto.repo.applyWrites#create',
+    const writes = options.collections.map((collectionOptions) => ({
+      $type: 'com.atproto.repo.applyWrites#create' as const,
       collection: this.COLLECTION_COLLECTION,
       value: {
         $type: this.COLLECTION_COLLECTION,
         name: collectionOptions.name,
-        ...(collectionOptions.description && { description: collectionOptions.description }),
+        ...(collectionOptions.description && {
+          description: collectionOptions.description,
+        }),
         accessType: 'CLOSED',
         collaborators: [],
         createdAt: new Date().toISOString(),
@@ -584,21 +597,24 @@ export class SemblePDSClient {
       writes,
     });
 
-    const results = response.data.results?.map(result => ({
-      uri: (result as any).uri,
-      cid: (result as any).cid,
-    })) || [];
+    const results =
+      response.data.results?.map((result) => ({
+        uri: (result as any).uri,
+        cid: (result as any).cid,
+      })) || [];
 
     return { results };
   }
 
-  async addCardsToCollection(options: AddCardsToCollectionOptions): Promise<BatchCreateResult> {
+  async addCardsToCollection(
+    options: AddCardsToCollectionOptions,
+  ): Promise<BatchCreateResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
 
-    const writes = options.cards.map(card => ({
-      $type: 'com.atproto.repo.applyWrites#create',
+    const writes = options.cards.map((card) => ({
+      $type: 'com.atproto.repo.applyWrites#create' as const,
       collection: this.COLLECTION_LINK_COLLECTION,
       value: {
         $type: this.COLLECTION_LINK_COLLECTION,
@@ -610,7 +626,7 @@ export class SemblePDSClient {
           uri: options.collection.uri,
           cid: options.collection.cid,
         },
-        addedBy: this.agent.session.did,
+        addedBy: this.agent.session?.did,
         addedAt: new Date().toISOString(),
         ...(options.viaCard && {
           provenance: {
@@ -630,10 +646,11 @@ export class SemblePDSClient {
       writes,
     });
 
-    const results = response.data.results?.map(result => ({
-      uri: (result as any).uri,
-      cid: (result as any).cid,
-    })) || [];
+    const results =
+      response.data.results?.map((result) => ({
+        uri: (result as any).uri,
+        cid: (result as any).cid,
+      })) || [];
 
     return { results };
   }
