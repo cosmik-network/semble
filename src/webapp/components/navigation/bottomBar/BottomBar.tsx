@@ -25,19 +25,23 @@ export default function BottomBar() {
           title="Cards"
           icon={FaRegNoteSticky}
         />
-        <Indicator
-          disabled={notificationData.unreadCount === 0}
-          position={'top-start'}
-          size={8}
-          offset={10}
-          color="tangerine"
-        >
-          <BottomBarItem
-            href="/notifications"
-            title="Notifications"
-            icon={RiNotification2Line}
-          />
-        </Indicator>
+
+        <BottomBarItem
+          href="/notifications"
+          title="Notifications"
+          icon={
+            <Indicator
+              disabled={notificationData.unreadCount === 0}
+              position={'top-start'}
+              size={8}
+              offset={0}
+              color="tangerine"
+            >
+              <RiNotification2Line size={22} />
+            </Indicator>
+          }
+        />
+
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           title={'Profile'}
