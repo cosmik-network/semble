@@ -82,3 +82,21 @@ export interface ListQueryParams {
   cursor?: string;
   reverse?: boolean;
 }
+
+export interface CreateCardsOptions {
+  cards: CreateCardOptions[];
+}
+
+export interface CreateCollectionsOptions {
+  collections: CreateCollectionOptions[];
+}
+
+export interface AddCardsToCollectionOptions {
+  collection: StrongRef;
+  cards: StrongRef[];
+  viaCard?: StrongRef;
+}
+
+export interface BatchCreateResult {
+  results: StrongRef[];
+}

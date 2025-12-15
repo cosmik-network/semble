@@ -89,6 +89,30 @@ const userCardsResult = await client.getCards('did:plc:example123', {
 const userCollectionsResult = await client.getCollections('did:plc:example123', {
   limit: 20,
 });
+
+// Batch create multiple cards
+const cardsResult = await client.createCards({
+  cards: [
+    { url: 'https://example1.com', note: 'First card' },
+    { url: 'https://example2.com' },
+    { url: 'https://example3.com', viaCard: someCard },
+  ],
+});
+
+// Batch create multiple collections
+const collectionsResult = await client.createCollections({
+  collections: [
+    { name: 'Collection 1', description: 'First collection' },
+    { name: 'Collection 2' },
+  ],
+});
+
+// Batch add multiple cards to a collection
+const linksResult = await client.addCardsToCollection({
+  collection: myCollection,
+  cards: [card1, card2, card3],
+  viaCard: someCard, // Optional: applies to all cards being added
+});
 ```
 
 ## API
@@ -119,6 +143,9 @@ const userCollectionsResult = await client.getCollections('did:plc:example123', 
 - `getMyCollections(params?)` - List your own collections with optional pagination parameters
 - `getCards(did, params?)` - List cards for a specific user with optional pagination parameters
 - `getCollections(did, params?)` - List collections for a specific user with optional pagination parameters
+- `createCards(options)` - Batch create multiple cards using applyWrites
+- `createCollections(options)` - Batch create multiple collections using applyWrites
+- `addCardsToCollection(options)` - Batch add multiple cards to a collection using applyWrites
 
 ## Types
 
@@ -211,6 +238,40 @@ interface GetCardsResult {
 interface GetCollectionsResult {
   cursor?: string;
   records: CollectionRecord[];
+}
+```
+
+### `CreateCardsOptions`
+
+```typescript
+interface CreateCardsOptions {
+  cards: CreateCardOptions[];
+}
+```
+
+### `CreateCollectionsOptions`
+
+```typescript
+interface CreateCollectionsOptions {
+  collections: CreateCollectionOptions[];
+}
+```
+
+### `AddCardsToCollectionOptions`
+
+```typescript
+interface AddCardsToCollectionOptions {
+  collection: StrongRef;
+  cards: StrongRef[];
+  viaCard?: StrongRef;
+}
+```
+
+### `BatchCreateResult`
+
+```typescript
+interface BatchCreateResult {
+  results: StrongRef[];
 }
 ```
 

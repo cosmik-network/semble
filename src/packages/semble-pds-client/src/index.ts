@@ -12,6 +12,10 @@ import {
   GetCardsResult,
   GetCollectionsResult,
   ListQueryParams,
+  CreateCardsOptions,
+  CreateCollectionsOptions,
+  AddCardsToCollectionOptions,
+  BatchCreateResult,
 } from './types';
 
 export class SemblePDSClient {
@@ -468,6 +472,170 @@ export class SemblePDSClient {
         value: record.value as CollectionRecord['value'],
       })),
     };
+  }
+
+  async createCards(options: CreateCardsOptions): Promise<BatchCreateResult> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const writes = [];
+
+    // Fetch metadata for all URL cards in parallel
+    const metadataPromises = options.cards.map(async (cardOptions) => {
+      return await this.fetchUrlMetadata(cardOptions.url);
+    });
+    const metadataResults = await Promise.all(metadataPromises);
+
+    // Create write operations for URL cards
+    for (let i = 0; i < options.cards.length; i++) {
+      const cardOptions = options.cards[i];
+      const metadata = metadataResults[i];
+
+      const record = {
+        $type: this.CARD_COLLECTION,
+        type: 'URL',
+        url: cardOptions.url,
+        content: {
+          $type: `${this.BASE_NSID}.card#urlContent`,
+          url: cardOptions.url,
+          ...(metadata && {
+            metadata: {
+              $type: `${this.BASE_NSID}.card#urlMetadata`,
+              ...metadata,
+            },
+          }),
+        },
+        ...(cardOptions.viaCard && {
+          provenance: {
+            $type: `${this.BASE_NSID}.defs#provenance`,
+            via: {
+              uri: cardOptions.viaCard.uri,
+              cid: cardOptions.viaCard.cid,
+            },
+          },
+        }),
+        createdAt: new Date().toISOString(),
+      };
+
+      writes.push({
+        $type: 'com.atproto.repo.applyWrites#create',
+        collection: this.CARD_COLLECTION,
+        value: record,
+      });
+
+      // If a note is provided, add a NOTE card write operation
+      if (cardOptions.note) {
+        const noteRecord = {
+          $type: this.CARD_COLLECTION,
+          type: 'NOTE',
+          url: cardOptions.url,
+          content: {
+            $type: `${this.BASE_NSID}.card#noteContent`,
+            text: cardOptions.note,
+          },
+          // Note: We can't reference the URL card here since we don't know its URI yet
+          // This is a limitation of batch operations - we'd need to do this in two batches
+          createdAt: new Date().toISOString(),
+        };
+
+        writes.push({
+          $type: 'com.atproto.repo.applyWrites#create',
+          collection: this.CARD_COLLECTION,
+          value: noteRecord,
+        });
+      }
+    }
+
+    const response = await this.agent.com.atproto.repo.applyWrites({
+      repo: this.agent.session.did,
+      writes,
+    });
+
+    const results = response.data.results?.map(result => ({
+      uri: (result as any).uri,
+      cid: (result as any).cid,
+    })) || [];
+
+    return { results };
+  }
+
+  async createCollections(options: CreateCollectionsOptions): Promise<BatchCreateResult> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const writes = options.collections.map(collectionOptions => ({
+      $type: 'com.atproto.repo.applyWrites#create',
+      collection: this.COLLECTION_COLLECTION,
+      value: {
+        $type: this.COLLECTION_COLLECTION,
+        name: collectionOptions.name,
+        ...(collectionOptions.description && { description: collectionOptions.description }),
+        accessType: 'CLOSED',
+        collaborators: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+
+    const response = await this.agent.com.atproto.repo.applyWrites({
+      repo: this.agent.session.did,
+      writes,
+    });
+
+    const results = response.data.results?.map(result => ({
+      uri: (result as any).uri,
+      cid: (result as any).cid,
+    })) || [];
+
+    return { results };
+  }
+
+  async addCardsToCollection(options: AddCardsToCollectionOptions): Promise<BatchCreateResult> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const writes = options.cards.map(card => ({
+      $type: 'com.atproto.repo.applyWrites#create',
+      collection: this.COLLECTION_LINK_COLLECTION,
+      value: {
+        $type: this.COLLECTION_LINK_COLLECTION,
+        card: {
+          uri: card.uri,
+          cid: card.cid,
+        },
+        collection: {
+          uri: options.collection.uri,
+          cid: options.collection.cid,
+        },
+        addedBy: this.agent.session.did,
+        addedAt: new Date().toISOString(),
+        ...(options.viaCard && {
+          provenance: {
+            $type: `${this.BASE_NSID}.defs#provenance`,
+            via: {
+              uri: options.viaCard.uri,
+              cid: options.viaCard.cid,
+            },
+          },
+        }),
+        createdAt: new Date().toISOString(),
+      },
+    }));
+
+    const response = await this.agent.com.atproto.repo.applyWrites({
+      repo: this.agent.session.did,
+      writes,
+    });
+
+    const results = response.data.results?.map(result => ({
+      uri: (result as any).uri,
+      cid: (result as any).cid,
+    })) || [];
+
+    return { results };
   }
 
   private extractRkey(uri: string): string {
