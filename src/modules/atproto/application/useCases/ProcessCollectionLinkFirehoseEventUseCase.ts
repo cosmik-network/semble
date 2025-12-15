@@ -9,6 +9,7 @@ import {
   UpdateUrlCardAssociationsUseCase,
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { CardId } from 'src/modules/cards/domain/value-objects/CardId';
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
   cid: string | null;
@@ -118,6 +119,15 @@ export class ProcessCollectionLinkFirehoseEventUseCase
         collectionId.value.getStringValue(),
         publishedRecordId,
       );
+      let viaCardId: CardId | undefined = undefined;
+      const viaAtUri = request.record.provenance?.via?.uri;
+      if (viaAtUri) {
+        const viaCardIdResult =
+          await this.atUriResolutionService.resolveCardId(viaAtUri);
+        if (viaCardIdResult.isOk()) {
+          viaCardId = viaCardIdResult.value || undefined;
+        }
+      }
 
       const result = await this.updateUrlCardAssociationsUseCase.execute({
         cardId: cardId.value.getStringValue(),
@@ -127,6 +137,7 @@ export class ProcessCollectionLinkFirehoseEventUseCase
         publishedRecordIds: {
           collectionLinks: collectionLinkMap,
         },
+        viaCardId: viaCardId?.getStringValue(),
       });
 
       if (result.isErr()) {

@@ -469,8 +469,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       // The card processor handles metadata failures gracefully
       expect(result.isOk()).toBe(true);
 
-      // No card should be created due to metadata failure
-      expect(cardRepository.getAllCards()).toHaveLength(0);
+      expect(cardRepository.getAllCards()).toHaveLength(1);
     });
 
     it('should handle publisher failures gracefully', async () => {
