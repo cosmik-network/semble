@@ -6,6 +6,7 @@ import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FeedTabs from '@/features/feeds/components/feedTabs/FeedTabs';
 import { Button, Paper } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Explore — Gems of 2025',
@@ -31,6 +32,8 @@ export default async function Layout(props: Props) {
       <Paper pos={'sticky'} top={55} style={{ zIndex: 1 }}>
         <FeedTabs />
         <Button
+          component={Link}
+          href={'/explore/gems-of-2025/collections'}
           variant="light"
           color="grape"
           radius={0}
