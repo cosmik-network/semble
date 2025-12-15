@@ -218,6 +218,7 @@ export class GetGlobalFeedUseCase
           cardCount: number;
           createdAt: string;
           updatedAt: string;
+          cardIds: Set<string>; // Track which cards are in this collection
         }
       >();
       // Fetch all collections in parallel using Promise.all
@@ -249,6 +250,11 @@ export class GetGlobalFeedUseCase
           const authorProfile = authorProfileResult.value;
           const uri = collection.publishedRecordId?.uri;
 
+          // Get the card IDs in this collection
+          const cardIds = new Set(
+            collection.cardIds.map((cardId) => cardId.getStringValue()),
+          );
+
           return {
             id: collection.collectionId.getStringValue(),
             uri,
@@ -264,6 +270,7 @@ export class GetGlobalFeedUseCase
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
             updatedAt: collection.updatedAt.toISOString(),
+            cardIds,
             collectionId,
           };
         }),
@@ -280,6 +287,7 @@ export class GetGlobalFeedUseCase
             cardCount: result.cardCount,
             createdAt: result.createdAt,
             updatedAt: result.updatedAt,
+            cardIds: result.cardIds,
           });
         }
       });
@@ -321,7 +329,20 @@ export class GetGlobalFeedUseCase
 
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter((collection) => !!collection);
+          .filter((collection) => !!collection)
+          .filter((collection) =>
+            collection.cardIds.has(activity.metadata.cardId),
+          )
+          .map((collection) => ({
+            id: collection.id,
+            uri: collection.uri,
+            name: collection.name,
+            description: collection.description,
+            author: collection.author,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          }));
 
         feedItems.push({
           id: activity.activityId.getStringValue(),
