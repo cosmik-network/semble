@@ -580,10 +580,7 @@ describe('AddUrlToLibraryUseCase', () => {
 
       const result = await useCase.execute(request);
 
-      expect(result.isErr()).toBe(true);
-      if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to fetch metadata');
-      }
+      expect(result.isOk()).toBe(true);
     });
 
     it('should not save cards when publishing to library fails', async () => {

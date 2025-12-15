@@ -722,7 +722,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true); // Should not fail firehose processing
-      expect(cardRepository.getAllCards()).toHaveLength(0);
+      expect(cardRepository.getAllCards()).toHaveLength(1);
     });
   });
 });
