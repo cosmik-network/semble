@@ -61,6 +61,24 @@ await client.deleteCollection(collection);
 
 // Remove card from collection
 await client.removeCardFromCollection(collectionLink);
+
+// Get a specific card
+const cardRecord = await client.getCard(card);
+
+// Get a specific collection
+const collectionRecord = await client.getCollection(collection);
+
+// List cards with pagination
+const cardsResult = await client.getCards({
+  limit: 50,
+  cursor: 'optional-cursor',
+  reverse: false,
+});
+
+// List collections with pagination
+const collectionsResult = await client.getCollections({
+  limit: 20,
+});
 ```
 
 ## API
@@ -85,6 +103,10 @@ await client.removeCardFromCollection(collectionLink);
 - `updateCollection(collectionRef, name, description?)` - Update collection details
 - `deleteCollection(collectionRef)` - Delete a collection
 - `removeCardFromCollection(collectionLinkRef)` - Remove a card from a collection
+- `getCard(cardRef)` - Get a specific card record
+- `getCollection(collectionRef)` - Get a specific collection record
+- `getCards(params?)` - List cards with optional pagination parameters
+- `getCollections(params?)` - List collections with optional pagination parameters
 
 ## Types
 
@@ -113,6 +135,70 @@ interface CreateCardOptions {
 interface CreateCollectionOptions {
   name: string;
   description?: string;
+}
+```
+
+### `ListQueryParams`
+
+```typescript
+interface ListQueryParams {
+  limit?: number;
+  cursor?: string;
+  reverse?: boolean;
+}
+```
+
+### `CardRecord`
+
+```typescript
+interface CardRecord {
+  uri: string;
+  cid: string;
+  value: {
+    $type: string;
+    type: 'URL' | 'NOTE';
+    content: any;
+    url?: string;
+    parentCard?: StrongRef;
+    createdAt: string;
+    originalCard?: StrongRef;
+    provenance?: {
+      $type: string;
+      via?: StrongRef;
+    };
+  };
+}
+```
+
+### `CollectionRecord`
+
+```typescript
+interface CollectionRecord {
+  uri: string;
+  cid: string;
+  value: {
+    $type: string;
+    name: string;
+    description?: string;
+    accessType: 'OPEN' | 'CLOSED';
+    collaborators?: string[];
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+```
+
+### `GetCardsResult` / `GetCollectionsResult`
+
+```typescript
+interface GetCardsResult {
+  cursor?: string;
+  records: CardRecord[];
+}
+
+interface GetCollectionsResult {
+  cursor?: string;
+  records: CollectionRecord[];
 }
 ```
 

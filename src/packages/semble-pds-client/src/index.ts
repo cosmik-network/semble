@@ -7,6 +7,11 @@ import {
   CreateCollectionOptions,
   SemblePDSClientOptions,
   CreateCardResult,
+  CardRecord,
+  CollectionRecord,
+  GetCardsResult,
+  GetCollectionsResult,
+  ListQueryParams,
 } from './types';
 
 export class SemblePDSClient {
@@ -339,6 +344,92 @@ export class SemblePDSClient {
       collection: this.COLLECTION_LINK_COLLECTION,
       rkey,
     });
+  }
+
+  async getCard(cardRef: StrongRef): Promise<CardRecord> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const rkey = this.extractRkey(cardRef.uri);
+
+    const response = await this.agent.com.atproto.repo.getRecord({
+      repo: this.agent.session.did,
+      collection: this.CARD_COLLECTION,
+      rkey,
+    });
+
+    return {
+      uri: response.data.uri,
+      cid: response.data.cid || '',
+      value: response.data.value as CardRecord['value'],
+    };
+  }
+
+  async getCollection(collectionRef: StrongRef): Promise<CollectionRecord> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const rkey = this.extractRkey(collectionRef.uri);
+
+    const response = await this.agent.com.atproto.repo.getRecord({
+      repo: this.agent.session.did,
+      collection: this.COLLECTION_COLLECTION,
+      rkey,
+    });
+
+    return {
+      uri: response.data.uri,
+      cid: response.data.cid || '',
+      value: response.data.value as CollectionRecord['value'],
+    };
+  }
+
+  async getCards(params?: ListQueryParams): Promise<GetCardsResult> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const response = await this.agent.com.atproto.repo.listRecords({
+      repo: this.agent.session.did,
+      collection: this.CARD_COLLECTION,
+      limit: params?.limit,
+      cursor: params?.cursor,
+      reverse: params?.reverse,
+    });
+
+    return {
+      cursor: response.data.cursor,
+      records: response.data.records.map(record => ({
+        uri: record.uri,
+        cid: record.cid,
+        value: record.value as CardRecord['value'],
+      })),
+    };
+  }
+
+  async getCollections(params?: ListQueryParams): Promise<GetCollectionsResult> {
+    if (!this.agent.session) {
+      throw new Error('Not authenticated. Call login() first.');
+    }
+
+    const response = await this.agent.com.atproto.repo.listRecords({
+      repo: this.agent.session.did,
+      collection: this.COLLECTION_COLLECTION,
+      limit: params?.limit,
+      cursor: params?.cursor,
+      reverse: params?.reverse,
+    });
+
+    return {
+      cursor: response.data.cursor,
+      records: response.data.records.map(record => ({
+        uri: record.uri,
+        cid: record.cid,
+        value: record.value as CollectionRecord['value'],
+      })),
+    };
   }
 
   private extractRkey(uri: string): string {
