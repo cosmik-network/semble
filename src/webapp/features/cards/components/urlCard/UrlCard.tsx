@@ -60,7 +60,7 @@ export default function UrlCard(props: Props) {
           note={props.note}
           currentCollection={props.currentCollection}
           urlLibraryCount={props.urlLibraryCount}
-          urlIsInLibrary={props.urlIsInLibrary!!}
+          urlIsInLibrary={props.urlIsInLibrary ?? false}
           viaCardId={props.viaCardId}
         />
       </Stack>
