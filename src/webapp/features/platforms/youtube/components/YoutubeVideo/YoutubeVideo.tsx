@@ -44,7 +44,7 @@ export default function YoutubeVideo(props: Props) {
         )}
       </Stack>
       <Card p={0}>
-        <AspectRatio ratio={16 / 9}>
+        <AspectRatio ratio={16 / 8}>
           <iframe
             src={props.url}
             height={'100%'}
