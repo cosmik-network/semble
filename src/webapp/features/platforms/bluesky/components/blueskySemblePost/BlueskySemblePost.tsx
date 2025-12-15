@@ -72,29 +72,21 @@ export default async function BlueskySemblePost(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      <Text>
-        <Text fw={700} c="tangerine" span>
-          Semble
-        </Text>
-        <Text fw={700} c={'gray'} span>
-          {` · `}
-        </Text>
-        <Tooltip label={props.url}>
-          <Anchor
-            component={Link}
-            target="_blank"
-            fw={700}
-            c="blue"
-            href={props.url}
-            style={{ display: 'inline-block' }}
-          >
-            <Group gap={0} align="center" wrap="nowrap">
-              {getDomain(props.url)}
-              <RiArrowRightUpLine />
-            </Group>
-          </Anchor>
-        </Tooltip>
-      </Text>
+      <Tooltip label={props.url}>
+        <Anchor
+          component={Link}
+          target="_blank"
+          fw={700}
+          c="blue"
+          href={props.url}
+          style={{ display: 'inline-block' }}
+        >
+          <Group gap={0} align="center" wrap="nowrap">
+            {getDomain(props.url)}
+            <RiArrowRightUpLine />
+          </Group>
+        </Anchor>
+      </Tooltip>
 
       {/* Post */}
       <Card radius={'lg'} withBorder>

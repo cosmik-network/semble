@@ -3,8 +3,8 @@ import { Stack, Skeleton, Card, Group, Box } from '@mantine/core';
 export default function BlueskySemblePostSkeleton() {
   return (
     <Stack gap="md" mx="auto" w={'100%'}>
-      {/* "Semble" */}
-      <Skeleton w={120} h={16} />
+      {/* Domain */}
+      <Skeleton w={100} h={20} />
 
       {/* Post */}
       <Card radius={'lg'} withBorder>

@@ -3,10 +3,9 @@ import { Stack, Skeleton, Text } from '@mantine/core';
 export default function UrlMetadataHeaderSkeleton() {
   return (
     <Stack>
-      <Stack gap={0}>
-        <Text fw={700} c="tangerine" span>
-          Semble
-        </Text>
+      <Stack gap={'xs'}>
+        {/* Domain */}
+        <Skeleton w={100} h={20} />
 
         {/* Title */}
         <Skeleton w={'100%'} h={27} />

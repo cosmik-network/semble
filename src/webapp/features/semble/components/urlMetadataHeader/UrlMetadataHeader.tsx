@@ -29,29 +29,21 @@ export default async function UrlMetadataHeader(props: Props) {
       <GridCol span={{ base: 'auto' }}>
         <Stack>
           <Stack gap={0}>
-            <Text>
-              <Text fw={700} c="tangerine" span>
-                Semble
-              </Text>
-              <Text fw={700} c={'gray'} span>
-                {` · `}
-              </Text>
-              <Tooltip label={metadata.url}>
-                <Anchor
-                  component={Link}
-                  target="_blank"
-                  fw={700}
-                  c="blue"
-                  href={props.url}
-                  style={{ display: 'inline-block' }}
-                >
-                  <Group gap={0} align="center" wrap="nowrap">
-                    {getDomain(props.url)}
-                    <RiArrowRightUpLine />
-                  </Group>
-                </Anchor>
-              </Tooltip>
-            </Text>
+            <Tooltip label={metadata.url}>
+              <Anchor
+                component={Link}
+                target="_blank"
+                fw={700}
+                c="blue"
+                href={props.url}
+                style={{ display: 'inline-block' }}
+              >
+                <Group gap={0} align="center" wrap="nowrap">
+                  {getDomain(props.url)}
+                  <RiArrowRightUpLine />
+                </Group>
+              </Anchor>
+            </Tooltip>
 
             {metadata.title && (
               <Anchor
