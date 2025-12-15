@@ -68,15 +68,25 @@ const cardRecord = await client.getCard(card);
 // Get a specific collection
 const collectionRecord = await client.getCollection(collection);
 
-// List cards with pagination
-const cardsResult = await client.getCards({
+// List your own cards with pagination
+const myCardsResult = await client.getMyCards({
   limit: 50,
   cursor: 'optional-cursor',
   reverse: false,
 });
 
-// List collections with pagination
-const collectionsResult = await client.getCollections({
+// List your own collections with pagination
+const myCollectionsResult = await client.getMyCollections({
+  limit: 20,
+});
+
+// List cards for a specific user
+const userCardsResult = await client.getCards('did:plc:example123', {
+  limit: 50,
+});
+
+// List collections for a specific user
+const userCollectionsResult = await client.getCollections('did:plc:example123', {
   limit: 20,
 });
 ```
@@ -105,8 +115,10 @@ const collectionsResult = await client.getCollections({
 - `removeCardFromCollection(collectionLinkRef)` - Remove a card from a collection
 - `getCard(cardRef)` - Get a specific card record
 - `getCollection(collectionRef)` - Get a specific collection record
-- `getCards(params?)` - List cards with optional pagination parameters
-- `getCollections(params?)` - List collections with optional pagination parameters
+- `getMyCards(params?)` - List your own cards with optional pagination parameters
+- `getMyCollections(params?)` - List your own collections with optional pagination parameters
+- `getCards(did, params?)` - List cards for a specific user with optional pagination parameters
+- `getCollections(did, params?)` - List collections for a specific user with optional pagination parameters
 
 ## Types
 

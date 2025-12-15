@@ -386,7 +386,7 @@ export class SemblePDSClient {
     };
   }
 
-  async getCards(params?: ListQueryParams): Promise<GetCardsResult> {
+  async getMyCards(params?: ListQueryParams): Promise<GetCardsResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
@@ -409,13 +409,51 @@ export class SemblePDSClient {
     };
   }
 
-  async getCollections(params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getMyCollections(params?: ListQueryParams): Promise<GetCollectionsResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
 
     const response = await this.agent.com.atproto.repo.listRecords({
       repo: this.agent.session.did,
+      collection: this.COLLECTION_COLLECTION,
+      limit: params?.limit,
+      cursor: params?.cursor,
+      reverse: params?.reverse,
+    });
+
+    return {
+      cursor: response.data.cursor,
+      records: response.data.records.map(record => ({
+        uri: record.uri,
+        cid: record.cid,
+        value: record.value as CollectionRecord['value'],
+      })),
+    };
+  }
+
+  async getCards(did: string, params?: ListQueryParams): Promise<GetCardsResult> {
+    const response = await this.agent.com.atproto.repo.listRecords({
+      repo: did,
+      collection: this.CARD_COLLECTION,
+      limit: params?.limit,
+      cursor: params?.cursor,
+      reverse: params?.reverse,
+    });
+
+    return {
+      cursor: response.data.cursor,
+      records: response.data.records.map(record => ({
+        uri: record.uri,
+        cid: record.cid,
+        value: record.value as CardRecord['value'],
+      })),
+    };
+  }
+
+  async getCollections(did: string, params?: ListQueryParams): Promise<GetCollectionsResult> {
+    const response = await this.agent.com.atproto.repo.listRecords({
+      repo: did,
       collection: this.COLLECTION_COLLECTION,
       limit: params?.limit,
       cursor: params?.cursor,
