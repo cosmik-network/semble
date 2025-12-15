@@ -25,6 +25,7 @@ import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 interface Props {
   url: string;
@@ -83,10 +84,14 @@ export default async function BlueskySemblePost(props: Props) {
             component={Link}
             target="_blank"
             fw={700}
-            c={'blue'}
+            c="blue"
             href={props.url}
+            style={{ display: 'inline-block' }}
           >
-            {getDomain(props.url)}
+            <Group gap={0} align="center" wrap="nowrap">
+              {getDomain(props.url)}
+              <RiArrowRightUpLine />
+            </Group>
           </Anchor>
         </Tooltip>
       </Text>

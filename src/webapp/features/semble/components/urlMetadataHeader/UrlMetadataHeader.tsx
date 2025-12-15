@@ -11,8 +11,10 @@ import {
   Card,
   Grid,
   GridCol,
+  Group,
 } from '@mantine/core';
 import Link from 'next/link';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 interface Props {
   url: string;
@@ -39,10 +41,14 @@ export default async function UrlMetadataHeader(props: Props) {
                   component={Link}
                   target="_blank"
                   fw={700}
-                  c={'blue'}
-                  href={metadata.url}
+                  c="blue"
+                  href={props.url}
+                  style={{ display: 'inline-block' }}
                 >
-                  {getDomain(metadata.url)}
+                  <Group gap={0} align="center" wrap="nowrap">
+                    {getDomain(props.url)}
+                    <RiArrowRightUpLine />
+                  </Group>
                 </Anchor>
               </Tooltip>
             </Text>
@@ -71,7 +77,14 @@ export default async function UrlMetadataHeader(props: Props) {
       <GridCol span={{ base: 12, sm: 'content' }}>
         <Stack gap={'sm'} align="center">
           {metadata.imageUrl && (
-            <Card p={0} radius={'md'} withBorder>
+            <Card
+              p={0}
+              radius={'md'}
+              component={Link}
+              href={props.url}
+              target="_blank"
+              withBorder
+            >
               <Image
                 src={metadata.imageUrl}
                 alt={`${props.url} social preview image`}
