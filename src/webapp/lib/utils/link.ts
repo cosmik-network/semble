@@ -30,7 +30,9 @@ export enum SupportedPlatform {
   BLUESKY_POST = 'bluesky post',
   BLACKSKY_POST = 'blacksky post',
   SEMBLE_COLLECTION = 'semble collection',
+  SPOTIFY = 'spotify',
   YOUTUBE_VIDEO = 'youtube video',
+
   DEFAULT = 'default',
 }
 
@@ -62,6 +64,7 @@ export const detectUrlPlatform = (url: string): PlatformData => {
       return { type: SupportedPlatform.BLACKSKY_POST, url };
     }
 
+    // youtube
     if (parsedUrl.hostname === 'youtu.be') {
       const videoId = parsedUrl.pathname.split('/')[1];
       const t = parsedUrl.searchParams.get('t') ?? '0';
@@ -96,6 +99,36 @@ export const detectUrlPlatform = (url: string): PlatformData => {
         type: SupportedPlatform.YOUTUBE_VIDEO,
         url: `https://www.youtube.com/embed/${videoId}?start=${seek}`,
       };
+    }
+
+    // spotify
+    if (parsedUrl.hostname === 'open.spotify.com') {
+      const [__, typeOrLocale, idOrType, id] = parsedUrl.pathname.split('/');
+
+      if (typeOrLocale === 'album' || idOrType === 'album') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/album/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'track' || idOrType === 'track') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/track/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'episode' || idOrType === 'episode') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/episode/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'show' || idOrType === 'show') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/show/${id ?? idOrType}`,
+        };
+      }
     }
 
     return { type: SupportedPlatform.DEFAULT, url }; // no supported service detected

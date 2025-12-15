@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
+import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
 
 interface Props {
   url: string;
@@ -42,6 +43,10 @@ export default function UrlCardContent(props: Props) {
 
   if (platform.type === SupportedPlatform.YOUTUBE_VIDEO) {
     return <YoutubeVideo url={platform.url} cardContent={props.cardContent} />;
+  }
+
+  if (platform.type === SupportedPlatform.SPOTIFY) {
+    return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
   return <LinkCardContent cardContent={props.cardContent} />;
