@@ -487,15 +487,14 @@ export class SemblePDSClient {
       throw new Error('Not authenticated. Call login() first.');
     }
 
-    const writes = [];
-
     // Fetch metadata for all URL cards in parallel
     const metadataPromises = options.cards.map(async (cardOptions) => {
       return await this.fetchUrlMetadata(cardOptions.url);
     });
     const metadataResults = await Promise.all(metadataPromises);
 
-    // Create write operations for URL cards
+    // First batch: Create all URL cards
+    const urlWrites = [];
     for (let i = 0; i < options.cards.length; i++) {
       const cardOptions = options.cards[i];
       const metadata = metadataResults[i];
@@ -526,14 +525,30 @@ export class SemblePDSClient {
         createdAt: new Date().toISOString(),
       };
 
-      writes.push({
+      urlWrites.push({
         $type: 'com.atproto.repo.applyWrites#create' as const,
         collection: this.CARD_COLLECTION,
         value: record,
       });
+    }
 
-      // If a note is provided, add a NOTE card write operation
-      if (cardOptions.note) {
+    // Execute first batch to create URL cards
+    const urlResponse = await this.agent.com.atproto.repo.applyWrites({
+      repo: this.agent.session.did,
+      writes: urlWrites,
+    });
+
+    const urlResults = urlResponse.data.results?.map((result) => ({
+      uri: (result as any).uri,
+      cid: (result as any).cid,
+    })) || [];
+
+    // Second batch: Create NOTE cards that reference the URL cards
+    const noteWrites = [];
+    for (let i = 0; i < options.cards.length; i++) {
+      const cardOptions = options.cards[i];
+      
+      if (cardOptions.note && urlResults[i]) {
         const noteRecord = {
           $type: this.CARD_COLLECTION,
           type: 'NOTE',
@@ -542,12 +557,14 @@ export class SemblePDSClient {
             $type: `${this.BASE_NSID}.card#noteContent`,
             text: cardOptions.note,
           },
-          // Note: We can't reference the URL card here since we don't know its URI yet
-          // This is a limitation of batch operations - we'd need to do this in two batches
+          parentCard: {
+            uri: urlResults[i].uri,
+            cid: urlResults[i].cid,
+          },
           createdAt: new Date().toISOString(),
         };
 
-        writes.push({
+        noteWrites.push({
           $type: 'com.atproto.repo.applyWrites#create' as const,
           collection: this.CARD_COLLECTION,
           value: noteRecord,
@@ -555,18 +572,21 @@ export class SemblePDSClient {
       }
     }
 
-    const response = await this.agent.com.atproto.repo.applyWrites({
-      repo: this.agent.session.did,
-      writes,
-    });
+    let noteResults: StrongRef[] = [];
+    if (noteWrites.length > 0) {
+      const noteResponse = await this.agent.com.atproto.repo.applyWrites({
+        repo: this.agent.session.did,
+        writes: noteWrites,
+      });
 
-    const results =
-      response.data.results?.map((result) => ({
+      noteResults = noteResponse.data.results?.map((result) => ({
         uri: (result as any).uri,
         cid: (result as any).cid,
       })) || [];
+    }
 
-    return { results };
+    // Combine all results
+    return { results: [...urlResults, ...noteResults] };
   }
 
   async createCollections(
