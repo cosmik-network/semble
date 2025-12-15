@@ -86,9 +86,12 @@ const userCardsResult = await client.getCards('did:plc:example123', {
 });
 
 // List collections for a specific user
-const userCollectionsResult = await client.getCollections('did:plc:example123', {
-  limit: 20,
-});
+const userCollectionsResult = await client.getCollections(
+  'did:plc:example123',
+  {
+    limit: 20,
+  },
+);
 
 // Batch create multiple cards
 const cardsResult = await client.createCards({

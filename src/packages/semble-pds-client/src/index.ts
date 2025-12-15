@@ -538,16 +538,17 @@ export class SemblePDSClient {
       writes: urlWrites,
     });
 
-    const urlResults = urlResponse.data.results?.map((result) => ({
-      uri: (result as any).uri,
-      cid: (result as any).cid,
-    })) || [];
+    const urlResults =
+      urlResponse.data.results?.map((result) => ({
+        uri: (result as any).uri,
+        cid: (result as any).cid,
+      })) || [];
 
     // Second batch: Create NOTE cards that reference the URL cards
     const noteWrites = [];
     for (let i = 0; i < options.cards.length; i++) {
       const cardOptions = options.cards[i];
-      
+
       if (cardOptions.note && urlResults[i]) {
         const noteRecord = {
           $type: this.CARD_COLLECTION,
@@ -579,10 +580,11 @@ export class SemblePDSClient {
         writes: noteWrites,
       });
 
-      noteResults = noteResponse.data.results?.map((result) => ({
-        uri: (result as any).uri,
-        cid: (result as any).cid,
-      })) || [];
+      noteResults =
+        noteResponse.data.results?.map((result) => ({
+          uri: (result as any).uri,
+          cid: (result as any).cid,
+        })) || [];
     }
 
     // Combine all results
