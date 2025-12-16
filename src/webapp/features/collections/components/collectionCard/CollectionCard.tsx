@@ -5,7 +5,6 @@ import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
 import { Anchor, Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
-import { useRouter } from 'next/navigation';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
@@ -18,10 +17,8 @@ interface Props {
 }
 
 export default function CollectionCard(props: Props) {
-  const router = useRouter();
   const { collection } = props;
   const rkey = getRecordKey(collection.uri!!);
-
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
