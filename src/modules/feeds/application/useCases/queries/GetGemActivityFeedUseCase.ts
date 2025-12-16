@@ -36,23 +36,27 @@ export class GetGemActivityFeedUseCase
     Result<GetGemActivityFeedResult, ValidationError | AppError.UnexpectedError>
   > {
     try {
+      const page = query.page || 1;
       const requestedLimit = query.limit || 20;
       const cutoffDate = new Date('2025-12-05T00:00:00Z');
 
       let filteredItems: GetGlobalFeedResult['activities'] = [];
-      let currentCursor = query.beforeActivityId;
+      let currentGlobalPage = 1;
       let hasMoreGlobal = true;
       let reachedCutoff = false;
 
-      // Keep fetching until we have enough filtered items or reach the end
-      while (filteredItems.length < requestedLimit && hasMoreGlobal && !reachedCutoff) {
-        // Fetch a larger batch to account for filtering
-        const batchSize = Math.min(requestedLimit * 3, 100);
+      // Calculate how many filtered items we need to skip for pagination
+      const skipCount = (page - 1) * requestedLimit;
+      const totalNeeded = skipCount + requestedLimit;
+
+      // Keep fetching until we have enough filtered items
+      while (filteredItems.length < totalNeeded && hasMoreGlobal && !reachedCutoff) {
+        // Fetch larger batches to account for filtering
+        const batchSize = Math.min(requestedLimit * 5, 100);
         
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
-          page: 1, // Always use page 1 for cursor-based pagination
+          page: currentGlobalPage,
           limit: batchSize,
-          beforeActivityId: currentCursor,
           callingUserId: query.callingUserId,
         });
 
@@ -86,9 +90,9 @@ export class GetGemActivityFeedUseCase
         const newFilteredItems = globalFeed.activities.filter(this.isGemActivity);
         filteredItems = [...filteredItems, ...newFilteredItems];
 
-        // Update cursor and pagination state
+        // Update pagination state
         hasMoreGlobal = globalFeed.pagination.hasMore;
-        currentCursor = globalFeed.pagination.nextCursor;
+        currentGlobalPage++;
 
         // If no more global data, stop
         if (!hasMoreGlobal || globalFeed.activities.length === 0) {
@@ -96,27 +100,22 @@ export class GetGemActivityFeedUseCase
         }
       }
 
-      // Take only the requested number of items
-      const finalItems = filteredItems.slice(0, requestedLimit);
+      // Apply pagination to filtered results
+      const paginatedItems = filteredItems.slice(skipCount, skipCount + requestedLimit);
       
-      // Determine if there are more filtered items available
-      const hasMore = filteredItems.length > requestedLimit || 
-                     (hasMoreGlobal && !reachedCutoff && filteredItems.length === requestedLimit);
-
-      // Set next cursor based on the last item we're returning
-      const nextCursor = finalItems.length > 0 && hasMore 
-        ? finalItems[finalItems.length - 1]?.id 
-        : undefined;
+      // Determine if there are more pages
+      const hasMore = filteredItems.length > skipCount + requestedLimit || 
+                     (hasMoreGlobal && !reachedCutoff);
 
       return ok({
-        activities: finalItems,
+        activities: paginatedItems,
         pagination: {
-          currentPage: query.page || 1,
-          totalPages: 1, // Can't calculate accurately due to filtering
-          totalCount: finalItems.length, // Approximate
+          currentPage: page,
+          totalPages: hasMore ? page + 1 : page, // Can't calculate exact total due to filtering
+          totalCount: filteredItems.length, // Approximate
           hasMore,
           limit: requestedLimit,
-          nextCursor,
+          // Remove nextCursor since we're using page-based pagination
         },
       });
     } catch (error) {

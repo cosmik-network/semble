@@ -29,8 +29,6 @@ export class FeedClient extends BaseClient {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.beforeActivityId)
-      searchParams.set('beforeActivityId', params.beforeActivityId);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
