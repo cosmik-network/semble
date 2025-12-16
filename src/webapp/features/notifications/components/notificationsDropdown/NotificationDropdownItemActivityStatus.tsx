@@ -8,7 +8,6 @@ import {
   MenuItem,
   MenuTarget,
   ScrollArea,
-  Stack,
   Text,
 } from '@mantine/core';
 import { NotificationItem, Collection, NotificationType } from '@/api-client';
@@ -24,6 +23,7 @@ interface Props {
   collections?: NotificationItem['collections'];
   createdAt: string;
   type: NotificationType;
+  card: NotificationItem['card'];
 }
 
 export default function NotificationDropdownItemActivityStatus(props: Props) {
@@ -57,10 +57,32 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added your card to their library</Text>
+              <Text span>
+                added your{' '}
+                <Anchor
+                  component={Link}
+                  href={`/url?id=${props.card.url}`}
+                  fw={500}
+                  c={'blue'}
+                >
+                  card
+                </Anchor>{' '}
+                to their library
+              </Text>
             ) : (
               <Fragment>
-                <Text span>added your card to </Text>
+                <Text span>
+                  added your{' '}
+                  <Anchor
+                    component={Link}
+                    href={`/url?id=${props.card.url}`}
+                    fw={500}
+                    c={'blue'}
+                  >
+                    card
+                  </Anchor>{' '}
+                  to{' '}
+                </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
@@ -75,10 +97,32 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added your Bluesky post to their library</Text>
+              <Text span>
+                added your{' '}
+                <Anchor
+                  component={Link}
+                  href={`/url?id=${props.card.url}`}
+                  fw={500}
+                  c={'blue'}
+                >
+                  Bluesky post
+                </Anchor>
+                to their library
+              </Text>
             ) : (
               <Fragment>
-                <Text span>added your Bluesky post to </Text>
+                <Text span>
+                  added your{' '}
+                  <Anchor
+                    component={Link}
+                    href={`/url?id=${props.card.url}`}
+                    fw={500}
+                    c={'blue'}
+                  >
+                    Bluesky post
+                  </Anchor>{' '}
+                  to{' '}
+                </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
@@ -93,10 +137,32 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added your collection to their library</Text>
+              <Text span>
+                added your{' '}
+                <Anchor
+                  component={Link}
+                  href={props.card.url}
+                  c="grape"
+                  fw={500}
+                >
+                  collection
+                </Anchor>{' '}
+                to their library
+              </Text>
             ) : (
               <Fragment>
-                <Text span>added your collection to </Text>
+                <Text span>
+                  added your{' '}
+                  <Anchor
+                    component={Link}
+                    href={props.card.url}
+                    c="grape"
+                    fw={500}
+                  >
+                    collection
+                  </Anchor>{' '}
+                  collection to{' '}
+                </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
