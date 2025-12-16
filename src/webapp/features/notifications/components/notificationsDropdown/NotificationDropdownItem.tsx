@@ -25,6 +25,7 @@ export default function NotificationDropdownItem(props: Props) {
           collections={props.item.collections}
           createdAt={props.item.createdAt}
           type={props.item.type}
+          card={props.item.card}
         />
         {props.item.card.cardContent.thumbnailUrl && !imageError && (
           <Anchor component={Link} href={props.item.card.url} target="_blank">
