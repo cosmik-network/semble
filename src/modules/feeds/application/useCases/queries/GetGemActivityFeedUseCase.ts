@@ -56,7 +56,7 @@ export class GetGemActivityFeedUseCase
         !reachedCutoff
       ) {
         // Fetch larger batches to account for filtering
-        const batchSize = Math.min(requestedLimit * 5, 100);
+        const batchSize = Math.min(requestedLimit * 15, 300);
 
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
           page: currentGlobalPage,
