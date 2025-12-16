@@ -13,7 +13,9 @@ export default function NotificationsDropdownContent() {
     <ScrollArea.Autosize mah={450} type="auto">
       <Stack align="center" gap={'xs'}>
         {allNotifications.length === 0 ? (
-          <Text fw={500}>You have no notifications</Text>
+          <Text fz="lg" fw={600} c="gray">
+            You have no notifications
+          </Text>
         ) : (
           <Fragment>
             {allNotifications.map((item) => (
