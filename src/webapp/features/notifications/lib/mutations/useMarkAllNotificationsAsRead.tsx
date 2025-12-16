@@ -1,16 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/apiClient';
 import { notificationKeys } from '../notificationKeys';
-import type { MarkNotificationsAsReadRequest } from '@/api-client';
 
-export default function useMarkNotificationsAsRead() {
+export default function useMarkAllNotificationsAsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (request: MarkNotificationsAsReadRequest) => {
+    mutationFn: async () => {
       const client = createSembleClient();
 
-      return client.markNotificationsAsRead(request);
+      return client.markAllNotificationsAsRead();
     },
     onSuccess: () => {
       // Invalidate and refetch notification queries

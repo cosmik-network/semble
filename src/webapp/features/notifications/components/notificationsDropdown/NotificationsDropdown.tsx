@@ -1,7 +1,7 @@
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
 import { RiNotification2Line } from 'react-icons/ri';
 import {
-  Anchor,
+  Button,
   CloseButton,
   Group,
   Indicator,
@@ -15,10 +15,12 @@ import { usePathname } from 'next/navigation';
 import NotificationsDropdownContent from './NotificationsDropdownContent';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 
 export default function NotificationsDropdown() {
   const [opened, setOpened] = useState(false);
   const { data } = useUnreadNotificationCount();
+  const markAsRead = useMarkAllNotificationsAsRead();
   const pathname = usePathname();
   const isActive = pathname === '/notifications';
 
@@ -67,17 +69,28 @@ export default function NotificationsDropdown() {
             >
               <Stack>
                 <NotificationsDropdownContent />
-
-                <Anchor
-                  mx={'auto'}
-                  c={'dimmed'}
-                  fw={600}
-                  component={Link}
-                  href={'/notifications'}
-                  onClick={() => setOpened(false)}
-                >
-                  View all notifications
-                </Anchor>
+                <Group justify="space-between">
+                  <Button
+                    variant="transparent"
+                    p={0}
+                    color="gray"
+                    component={Link}
+                    href={'/notifications'}
+                    onClick={() => setOpened(false)}
+                  >
+                    View all notifications
+                  </Button>
+                  <Button
+                    variant="transparent"
+                    p={0}
+                    onClick={() => {
+                      markAsRead.mutate();
+                      setOpened(false);
+                    }}
+                  >
+                    Mark all as read
+                  </Button>
+                </Group>
               </Stack>
             </Suspense>
           </Stack>
