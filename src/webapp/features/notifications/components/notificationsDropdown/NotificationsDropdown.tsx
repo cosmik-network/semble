@@ -37,6 +37,7 @@ export default function NotificationsDropdown() {
         shadow="sm"
         trapFocus
         opened={opened}
+        onDismiss={() => setOpened(false)}
         middlewares={{ shift: true, flip: true }}
       >
         <Popover.Target>
