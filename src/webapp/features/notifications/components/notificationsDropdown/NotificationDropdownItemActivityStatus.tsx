@@ -8,7 +8,6 @@ import {
   MenuItem,
   MenuTarget,
   ScrollArea,
-  Stack,
   Text,
 } from '@mantine/core';
 import { NotificationItem, Collection, NotificationType } from '@/api-client';
