@@ -30,7 +30,13 @@ export default function NotificationsDropdown() {
       offset={10}
       color="tangerine"
     >
-      <Popover position="bottom-start" shadow="sm" trapFocus opened={opened}>
+      <Popover
+        position="bottom-start"
+        shadow="sm"
+        trapFocus
+        opened={opened}
+        middlewares={{ shift: true, flip: true }}
+      >
         <Popover.Target>
           <NavLink
             component="button"
@@ -63,8 +69,8 @@ export default function NotificationsDropdown() {
                 <NotificationsDropdownContent />
 
                 <Anchor
-                  c={'dimmed'}
                   mx={'auto'}
+                  c={'dimmed'}
                   fw={600}
                   component={Link}
                   href={'/notifications'}
