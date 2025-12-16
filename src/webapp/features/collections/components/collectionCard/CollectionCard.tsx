@@ -3,12 +3,13 @@
 import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import { useRouter } from 'next/navigation';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
+import Link from 'next/link';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -26,57 +27,55 @@ export default function CollectionCard(props: Props) {
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
 
   return (
-    <Card
-      withBorder
-      onClick={() =>
-        router.push(`/profile/${collection.author.handle}/collections/${rkey}`)
-      }
-      radius={'lg'}
-      p={'sm'}
-      className={styles.root}
+    <Anchor
+      component={Link}
+      href={`/profile/${collection.author.handle}/collections/${rkey}`}
+      underline="never"
     >
-      <Stack justify="space-between" h={'100%'}>
-        <Stack gap={'xs'}>
-          <Stack gap={0}>
-            <Text fw={500} lineClamp={1} c={'bright'}>
-              {collection.name}
-            </Text>
-            {collection.description && (
-              <Text c={'gray'} lineClamp={2}>
-                {collection.description}
+      <Card withBorder radius={'lg'} p={'sm'} className={styles.root}>
+        <Stack justify="space-between" h={'100%'}>
+          <Stack gap={'xs'}>
+            <Stack gap={0}>
+              <Text fw={500} lineClamp={1} c={'bright'}>
+                {collection.name}
               </Text>
-            )}
-          </Stack>
+              {collection.description && (
+                <Text c={'gray'} lineClamp={2}>
+                  {collection.description}
+                </Text>
+              )}
+            </Stack>
 
-          <Suspense fallback={<CollectionCardPreviewSkeleton />}>
-            <CollectionCardPreview
-              rkey={rkey}
-              handle={props.collection.author.handle}
-            />
-          </Suspense>
-
-          <Group justify="space-between">
-            <Text c={'gray'}>
-              {collection.cardCount}{' '}
-              {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
-              {relativeUpdateDate}
-            </Text>
-          </Group>
-          {props.showAuthor && (
-            <Group gap={'xs'}>
-              <Avatar
-                src={collection.author.avatarUrl}
-                alt={`${collection.author.handle}'s avatar`}
-                size={'sm'}
+            <Suspense fallback={<CollectionCardPreviewSkeleton />}>
+              <CollectionCardPreview
+                rkey={rkey}
+                handle={props.collection.author.handle}
               />
+            </Suspense>
 
-              <Text fw={500} c={'bright'} span>
-                {collection.author.name}
+            <Group justify="space-between">
+              <Text c={'gray'}>
+                {collection.cardCount}{' '}
+                {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
+                {relativeUpdateDate}
               </Text>
             </Group>
-          )}
+            {props.showAuthor && (
+              <Group gap={'xs'}>
+                <Avatar
+                  src={collection.author.avatarUrl}
+                  alt={`${collection.author.handle}'s avatar`}
+                  size={'sm'}
+                />
+
+                <Text fw={500} c={'bright'} span>
+                  {collection.author.name}
+                </Text>
+              </Group>
+            )}
+          </Stack>
         </Stack>
-      </Stack>
-    </Card>
+      </Card>
+    </Anchor>
   );
 }
