@@ -138,10 +138,32 @@ export default function NotificationDropdownItemActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added your collection to their library</Text>
+              <Text span>
+                added your{' '}
+                <Anchor
+                  component={Link}
+                  href={props.card.url}
+                  c="grape"
+                  fw={500}
+                >
+                  collection
+                </Anchor>{' '}
+                to their library
+              </Text>
             ) : (
               <Fragment>
-                <Text span>added your collection to </Text>
+                <Text span>
+                  added your{' '}
+                  <Anchor
+                    component={Link}
+                    href={props.card.url}
+                    c="grape"
+                    fw={500}
+                  >
+                    collection
+                  </Anchor>{' '}
+                  collection to{' '}
+                </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
