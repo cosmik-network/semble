@@ -22,7 +22,7 @@ import { CollectionBatchManager } from './collections/CollectionBatchManager';
 import { CollectionLinkManager } from './collection-link/CollectionLinkManager';
 
 export class SemblePDSClient {
-  private agent: AtpAgent;
+  public agent: AtpAgent;
   private readonly BASE_NSID: string;
   private readonly CARD_COLLECTION: string;
   private readonly COLLECTION_COLLECTION: string;
@@ -47,11 +47,29 @@ export class SemblePDSClient {
     this.COLLECTION_LINK_COLLECTION = `${this.BASE_NSID}.collectionLink`;
 
     // Initialize managers
-    this.cardManager = new CardManager(this.agent, this.BASE_NSID, this.CARD_COLLECTION);
-    this.cardBatchManager = new CardBatchManager(this.agent, this.BASE_NSID, this.CARD_COLLECTION);
-    this.collectionManager = new CollectionManager(this.agent, this.COLLECTION_COLLECTION);
-    this.collectionBatchManager = new CollectionBatchManager(this.agent, this.COLLECTION_COLLECTION);
-    this.collectionLinkManager = new CollectionLinkManager(this.agent, this.BASE_NSID, this.COLLECTION_LINK_COLLECTION);
+    this.cardManager = new CardManager(
+      this.agent,
+      this.BASE_NSID,
+      this.CARD_COLLECTION,
+    );
+    this.cardBatchManager = new CardBatchManager(
+      this.agent,
+      this.BASE_NSID,
+      this.CARD_COLLECTION,
+    );
+    this.collectionManager = new CollectionManager(
+      this.agent,
+      this.COLLECTION_COLLECTION,
+    );
+    this.collectionBatchManager = new CollectionBatchManager(
+      this.agent,
+      this.COLLECTION_COLLECTION,
+    );
+    this.collectionLinkManager = new CollectionLinkManager(
+      this.agent,
+      this.BASE_NSID,
+      this.COLLECTION_LINK_COLLECTION,
+    );
   }
 
   async login(identifier: string, password: string): Promise<void> {
@@ -59,6 +77,7 @@ export class SemblePDSClient {
       identifier,
       password,
     });
+    this.agent.session;
   }
 
   // Card operations - delegate to CardManager
@@ -66,7 +85,10 @@ export class SemblePDSClient {
     return this.cardManager.create(options);
   }
 
-  async addNoteToCard(parentCard: StrongRef, noteText: string): Promise<StrongRef> {
+  async addNoteToCard(
+    parentCard: StrongRef,
+    noteText: string,
+  ): Promise<StrongRef> {
     return this.cardManager.addNote(parentCard, noteText);
   }
 
@@ -86,7 +108,10 @@ export class SemblePDSClient {
     return this.cardManager.getMy(params);
   }
 
-  async getCards(did: string, params?: ListQueryParams): Promise<GetCardsResult> {
+  async getCards(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCardsResult> {
     return this.cardManager.getForUser(did, params);
   }
 
@@ -111,11 +136,16 @@ export class SemblePDSClient {
     return this.collectionManager.get(collectionRef);
   }
 
-  async getMyCollections(params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getMyCollections(
+    params?: ListQueryParams,
+  ): Promise<GetCollectionsResult> {
     return this.collectionManager.getMy(params);
   }
 
-  async getCollections(did: string, params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getCollections(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCollectionsResult> {
     return this.collectionManager.getForUser(did, params);
   }
 
@@ -125,11 +155,17 @@ export class SemblePDSClient {
     collection: StrongRef,
     viaCard?: StrongRef,
   ): Promise<StrongRef> {
-    return this.collectionLinkManager.addCardToCollection(card, collection, viaCard);
+    return this.collectionLinkManager.addCardToCollection(
+      card,
+      collection,
+      viaCard,
+    );
   }
 
   async removeCardFromCollection(collectionLinkRef: StrongRef): Promise<void> {
-    return this.collectionLinkManager.removeCardFromCollection(collectionLinkRef);
+    return this.collectionLinkManager.removeCardFromCollection(
+      collectionLinkRef,
+    );
   }
 
   // Batch operations - delegate to batch managers
@@ -137,11 +173,15 @@ export class SemblePDSClient {
     return this.cardBatchManager.createCards(options);
   }
 
-  async createCollections(options: CreateCollectionsOptions): Promise<BatchCreateResult> {
+  async createCollections(
+    options: CreateCollectionsOptions,
+  ): Promise<BatchCreateResult> {
     return this.collectionBatchManager.createCollections(options);
   }
 
-  async addCardsToCollection(options: AddCardsToCollectionOptions): Promise<BatchCreateResult> {
+  async addCardsToCollection(
+    options: AddCardsToCollectionOptions,
+  ): Promise<BatchCreateResult> {
     return this.collectionLinkManager.addCardsToCollection(options);
   }
 }
