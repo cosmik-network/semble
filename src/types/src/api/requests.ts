@@ -144,7 +144,7 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
 }
 
 export interface GetGemActivityFeedParams extends PaginationParams {
-  beforeActivityId?: string; // For cursor-based pagination
+  // Removed beforeActivityId since we're using page-based pagination
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
