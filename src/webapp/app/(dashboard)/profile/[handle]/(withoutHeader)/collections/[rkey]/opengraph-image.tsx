@@ -43,7 +43,7 @@ export default async function Image(props: Props) {
           <p
             style={{
               fontSize: '64px',
-              lineHeight: '20px',
+              lineHeight: '100%',
             }}
           >
             {truncateText(truncateText(collection.name), 30)}

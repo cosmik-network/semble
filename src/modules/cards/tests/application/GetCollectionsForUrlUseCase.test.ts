@@ -779,6 +779,7 @@ describe('GetCollectionsForUrlUseCase', () => {
         getCollectionsWithUrl: jest
           .fn()
           .mockRejectedValue(new Error('Database error')),
+        searchCollections: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionsForUrlUseCase(

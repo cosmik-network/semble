@@ -15,3 +15,13 @@ export const getGlobalFeed = cache(async (params?: PageParams) => {
 
   return response;
 });
+
+export const getGemsActivityFeed = cache(async (params?: PageParams) => {
+  const client = createSembleClient();
+  const response = await client.getGemsActivityFeed({
+    page: params?.page,
+    limit: params?.limit,
+  });
+
+  return response;
+});

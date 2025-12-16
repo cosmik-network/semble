@@ -7,6 +7,7 @@ import { GetMyCollectionsController } from '../controllers/GetMyCollectionsContr
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
+import { SearchCollectionsController } from '../controllers/SearchCollectionsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCollectionRoutes(
@@ -19,6 +20,7 @@ export function createCollectionRoutes(
   getUserCollectionsController: GetUserCollectionsController,
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
+  searchCollectionsController: SearchCollectionsController,
 ): Router {
   const router = Router();
 
@@ -26,6 +28,11 @@ export function createCollectionRoutes(
   // GET /api/collections - Get my collections
   router.get('/', authMiddleware.ensureAuthenticated(), (req, res) =>
     getMyCollectionsController.execute(req, res),
+  );
+
+  // GET /api/collections/search - Search collections globally
+  router.get('/search', authMiddleware.optionalAuth(), (req, res) =>
+    searchCollectionsController.execute(req, res),
   );
 
   // GET /api/collections/url - Get collections for URL

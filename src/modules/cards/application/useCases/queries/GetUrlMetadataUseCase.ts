@@ -3,6 +3,7 @@ import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { UseCase } from 'src/shared/core/UseCase';
 import { err, ok, Result } from 'src/shared/core/Result';
+import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 
 export interface GetUrlMetadataQuery {
   url: string;
@@ -49,13 +50,16 @@ export class GetUrlMetadataUseCase
 
     try {
       // Fetch metadata from external service
-      const metadataResult = await this.metadataService.fetchMetadata(url);
+      let metadataResult = await this.metadataService.fetchMetadata(url);
       if (metadataResult.isErr()) {
-        return err(
-          new Error(
-            `Failed to fetch metadata: ${metadataResult.error instanceof Error ? metadataResult.error.message : 'Unknown error'}`,
-          ),
-        );
+        metadataResult = UrlMetadata.create({ url: url.value });
+        if (metadataResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to fetch metadata: ${metadataResult.error instanceof Error ? metadataResult.error.message : 'Unknown error'}`,
+            ),
+          );
+        }
       }
 
       const metadata = metadataResult.value;

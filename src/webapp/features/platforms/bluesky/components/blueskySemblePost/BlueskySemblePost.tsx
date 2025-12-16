@@ -25,6 +25,7 @@ import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 interface Props {
   url: string;
@@ -35,7 +36,7 @@ export default async function BlueskySemblePost(props: Props) {
   const data = await getBlueskyPost(postUri);
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
-    platform === SupportedPlatform.BLUESKY_POST ? (
+    platform.type === SupportedPlatform.BLACKSKY_POST ? (
       <FaBluesky fill="#0085ff" size={18} />
     ) : (
       <>
@@ -71,25 +72,21 @@ export default async function BlueskySemblePost(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      <Text>
-        <Text fw={700} c="tangerine" span>
-          Semble
-        </Text>
-        <Text fw={700} c={'gray'} span>
-          {` · `}
-        </Text>
-        <Tooltip label={props.url}>
-          <Anchor
-            component={Link}
-            target="_blank"
-            fw={700}
-            c={'blue'}
-            href={props.url}
-          >
+      <Tooltip label={props.url}>
+        <Anchor
+          component={Link}
+          target="_blank"
+          fw={700}
+          c="blue"
+          href={props.url}
+          style={{ display: 'inline-block' }}
+        >
+          <Group gap={0} align="center" wrap="nowrap">
             {getDomain(props.url)}
-          </Anchor>
-        </Tooltip>
-      </Text>
+            <RiArrowRightUpLine />
+          </Group>
+        </Anchor>
+      </Tooltip>
 
       {/* Post */}
       <Card radius={'lg'} withBorder>

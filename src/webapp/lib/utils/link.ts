@@ -30,11 +30,17 @@ export enum SupportedPlatform {
   BLUESKY_POST = 'bluesky post',
   BLACKSKY_POST = 'blacksky post',
   SEMBLE_COLLECTION = 'semble collection',
+  SPOTIFY = 'spotify',
+  YOUTUBE_VIDEO = 'youtube video',
+
+  DEFAULT = 'default',
 }
 
-export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
+type PlatformData = { type: SupportedPlatform; url: string };
+
+export const detectUrlPlatform = (url: string): PlatformData => {
   if (isCollectionPage(url)) {
-    return SupportedPlatform.SEMBLE_COLLECTION;
+    return { type: SupportedPlatform.SEMBLE_COLLECTION, url };
   }
 
   try {
@@ -46,7 +52,7 @@ export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
       parsedUrl.hostname === 'bsky.app' &&
       parsedUrl.pathname.includes('/post/')
     ) {
-      return SupportedPlatform.BLUESKY_POST;
+      return { type: SupportedPlatform.BLUESKY_POST, url };
     }
 
     // blacksky posts
@@ -55,12 +61,79 @@ export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
       parsedUrl.hostname === 'blacksky.community' &&
       parsedUrl.pathname.includes('/post/')
     ) {
-      return SupportedPlatform.BLACKSKY_POST;
+      return { type: SupportedPlatform.BLACKSKY_POST, url };
     }
 
-    return null; // no supported service detected
+    // youtube
+    if (parsedUrl.hostname === 'youtu.be') {
+      const videoId = parsedUrl.pathname.split('/')[1];
+      const t = parsedUrl.searchParams.get('t') ?? '0';
+      const seek = encodeURIComponent(t.replace(/s$/, ''));
+
+      if (videoId) {
+        return {
+          type: SupportedPlatform.YOUTUBE_VIDEO,
+          url: `https://www.youtube.com/embed/${videoId}?start=${seek}`,
+        };
+      }
+    }
+
+    if (
+      parsedUrl.hostname === 'www.youtube.com' ||
+      parsedUrl.hostname === 'youtube.com' ||
+      parsedUrl.hostname === 'm.youtube.com' ||
+      parsedUrl.hostname === 'music.youtube.com'
+    ) {
+      const [__, page, shortOrLiveVideoId] = parsedUrl.pathname.split('/');
+
+      const isShorts = page === 'shorts';
+      const isLive = page === 'live';
+      const videoId =
+        isShorts || isLive
+          ? shortOrLiveVideoId
+          : (parsedUrl.searchParams.get('v') as string);
+      const t = parsedUrl.searchParams.get('t') ?? '0';
+      const seek = encodeURIComponent(t.replace(/s$/, ''));
+
+      return {
+        type: SupportedPlatform.YOUTUBE_VIDEO,
+        url: `https://www.youtube.com/embed/${videoId}?start=${seek}`,
+      };
+    }
+
+    // spotify
+    if (parsedUrl.hostname === 'open.spotify.com') {
+      const [__, typeOrLocale, idOrType, id] = parsedUrl.pathname.split('/');
+
+      if (typeOrLocale === 'album' || idOrType === 'album') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/album/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'track' || idOrType === 'track') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/track/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'episode' || idOrType === 'episode') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/episode/${id ?? idOrType}`,
+        };
+      }
+      if (typeOrLocale === 'show' || idOrType === 'show') {
+        return {
+          type: SupportedPlatform.SPOTIFY,
+          url: `https://open.spotify.com/embed/show/${id ?? idOrType}`,
+        };
+      }
+    }
+
+    return { type: SupportedPlatform.DEFAULT, url }; // no supported service detected
   } catch (e) {
     // invalid url
-    return null;
+    return { type: SupportedPlatform.DEFAULT, url };
   }
 };

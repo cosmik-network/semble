@@ -21,6 +21,7 @@ export interface CreateCardResult {
 export interface CreateCardOptions {
   url: string;
   note?: string;
+  viaCard?: StrongRef;
 }
 
 export interface CreateCollectionOptions {

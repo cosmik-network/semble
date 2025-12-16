@@ -19,6 +19,7 @@ import { DeleteCollectionController } from '../../../../modules/cards/infrastruc
 import { GetCollectionPageController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController';
 import { GetMyCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController';
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
+import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGemActivityFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
@@ -27,6 +28,7 @@ import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
+import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
@@ -68,12 +70,14 @@ export interface Controllers {
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController;
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
+  searchCollectionsController: SearchCollectionsController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
+  getGemActivityFeedController: GetGemActivityFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   // Notification controllers
@@ -177,6 +181,9 @@ export class ControllerFactory {
       getCollectionsController: new GetUserCollectionsController(
         useCases.getCollectionsUseCase,
       ),
+      searchCollectionsController: new SearchCollectionsController(
+        useCases.searchCollectionsUseCase,
+      ),
       getUrlStatusForMyLibraryController:
         new GetUrlStatusForMyLibraryController(
           useCases.getUrlStatusForMyLibraryUseCase,
@@ -194,6 +201,9 @@ export class ControllerFactory {
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(
         useCases.getGlobalFeedUseCase,
+      ),
+      getGemActivityFeedController: new GetGemActivityFeedController(
+        useCases.getGemActivityFeedUseCase,
       ),
       // Search controllers
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(

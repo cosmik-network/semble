@@ -11,8 +11,10 @@ import {
   Card,
   Grid,
   GridCol,
+  Group,
 } from '@mantine/core';
 import Link from 'next/link';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 interface Props {
   url: string;
@@ -27,25 +29,21 @@ export default async function UrlMetadataHeader(props: Props) {
       <GridCol span={{ base: 'auto' }}>
         <Stack>
           <Stack gap={0}>
-            <Text>
-              <Text fw={700} c="tangerine" span>
-                Semble
-              </Text>
-              <Text fw={700} c={'gray'} span>
-                {` · `}
-              </Text>
-              <Tooltip label={metadata.url}>
-                <Anchor
-                  component={Link}
-                  target="_blank"
-                  fw={700}
-                  c={'blue'}
-                  href={metadata.url}
-                >
-                  {getDomain(metadata.url)}
-                </Anchor>
-              </Tooltip>
-            </Text>
+            <Tooltip label={metadata.url}>
+              <Anchor
+                component={Link}
+                target="_blank"
+                fw={700}
+                c="blue"
+                href={props.url}
+                style={{ display: 'inline-block' }}
+              >
+                <Group gap={0} align="center" wrap="nowrap">
+                  {getDomain(props.url)}
+                  <RiArrowRightUpLine />
+                </Group>
+              </Anchor>
+            </Tooltip>
 
             {metadata.title && (
               <Anchor
@@ -71,7 +69,14 @@ export default async function UrlMetadataHeader(props: Props) {
       <GridCol span={{ base: 12, sm: 'content' }}>
         <Stack gap={'sm'} align="center">
           {metadata.imageUrl && (
-            <Card p={0} radius={'md'} withBorder>
+            <Card
+              p={0}
+              radius={'md'}
+              component={Link}
+              href={props.url}
+              target="_blank"
+              withBorder
+            >
               <Image
                 src={metadata.imageUrl}
                 alt={`${props.url} social preview image`}

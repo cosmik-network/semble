@@ -20,7 +20,7 @@ export default function BlueskyPost(props: Props) {
   const { data, error } = useGetBlueskyPost({ uri });
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
-    platform === SupportedPlatform.BLUESKY_POST ? (
+    platform.type === SupportedPlatform.BLUESKY_POST ? (
       <FaBluesky fill="#0085ff" size={18} />
     ) : (
       <>

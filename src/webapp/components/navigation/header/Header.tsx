@@ -14,7 +14,7 @@ export default function Header(props: Props) {
         <Group gap={'xs'}>
           {props.children}
           {props.title && (
-            <Text fz={'h3'} fw={700}>
+            <Text fz={'lg'} fw={700} lineClamp={1}>
               {props.title}
             </Text>
           )}

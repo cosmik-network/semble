@@ -29,10 +29,11 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  // assume the current user is the card owner if authorHandle isn't passed
-  const isAuthor = props.authorHandle
-    ? user?.handle === props.authorHandle
-    : true;
+  const isAuthorByHandle =
+    props.authorHandle && user?.handle === props.authorHandle;
+  const isAuthorById =
+    !props.authorHandle && props.cardAuthor && user?.id === props.cardAuthor.id;
+  const isAuthor = Boolean(user && (isAuthorByHandle || isAuthorById));
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);

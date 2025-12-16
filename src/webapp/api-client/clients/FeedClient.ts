@@ -1,5 +1,9 @@
 import { BaseClient } from './BaseClient';
-import { GetGlobalFeedParams, GetGlobalFeedResponse } from '@semble/types';
+import {
+  GetGemActivityFeedParams,
+  GetGlobalFeedParams,
+  GetGlobalFeedResponse,
+} from '@semble/types';
 
 export class FeedClient extends BaseClient {
   async getGlobalFeed(
@@ -15,6 +19,23 @@ export class FeedClient extends BaseClient {
     const endpoint = queryString
       ? `/api/feeds/global?${queryString}`
       : '/api/feeds/global';
+
+    return this.request<GetGlobalFeedResponse>('GET', endpoint);
+  }
+
+  async getGemsActivityFeed(
+    params?: GetGemActivityFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.beforeActivityId)
+      searchParams.set('beforeActivityId', params.beforeActivityId);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/feeds/gem?${queryString}`
+      : '/api/feeds/gem';
 
     return this.request<GetGlobalFeedResponse>('GET', endpoint);
   }

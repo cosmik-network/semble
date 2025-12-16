@@ -23,8 +23,10 @@ import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-ca
 import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
+import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
+import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
@@ -84,12 +86,14 @@ export interface UseCases {
   getCollectionPageUseCase: GetCollectionPageUseCase;
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
+  searchCollectionsUseCase: SearchCollectionsUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
+  getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
@@ -222,6 +226,10 @@ export class UseCaseFactory {
         services.profileService,
         services.identityResolutionService,
       ),
+      searchCollectionsUseCase: new SearchCollectionsUseCase(
+        repositories.collectionQueryRepository,
+        services.profileService,
+      ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
         repositories.cardQueryRepository,
@@ -250,6 +258,14 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+      ),
+      getGemActivityFeedUseCase: new GetGemActivityFeedUseCase(
+        new GetGlobalFeedUseCase(
+          repositories.feedRepository,
+          services.profileService,
+          repositories.cardQueryRepository,
+          repositories.collectionRepository,
+        ),
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
