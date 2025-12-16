@@ -36,30 +36,32 @@ export class GetGemActivityFeedUseCase
     Result<GetGemActivityFeedResult, ValidationError | AppError.UnexpectedError>
   > {
     try {
-      const requestedLimit = query.limit || 20;
       const page = query.page || 1;
-
-      // Cutoff date - gem collections only exist since December 5th, 2025
+      const requestedLimit = query.limit || 20;
       const cutoffDate = new Date('2025-12-05T00:00:00Z');
 
-      // Start with a multiplier to account for filtering
-      let multiplier = 3;
-      let allFilteredItems: GetGlobalFeedResult['activities'] = [];
-      let totalFetched = 0;
-      let hasMore = true;
-      let nextCursor = query.beforeActivityId;
+      let filteredItems: GetGlobalFeedResult['activities'] = [];
+      let currentGlobalPage = 1;
+      let hasMoreGlobal = true;
+      let reachedCutoff = false;
 
-      // Keep fetching until we have enough filtered items or no more data
-      while (allFilteredItems.length < requestedLimit && hasMore) {
-        const fetchLimit = Math.floor(
-          Math.min(requestedLimit * multiplier, 100),
-        ); // Cap at 100 per API call
+      // Calculate how many filtered items we need to skip for pagination
+      const skipCount = (page - 1) * requestedLimit;
+      const totalNeeded = skipCount + requestedLimit;
+
+      // Keep fetching until we have enough filtered items
+      while (
+        filteredItems.length < totalNeeded &&
+        hasMoreGlobal &&
+        !reachedCutoff
+      ) {
+        // Fetch larger batches to account for filtering
+        const batchSize = Math.min(requestedLimit * 5, 100);
 
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
-          ...query,
-          limit: fetchLimit,
-          page: 1, // Always use page 1 when using cursor-based pagination
-          beforeActivityId: nextCursor,
+          page: currentGlobalPage,
+          limit: batchSize,
+          callingUserId: query.callingUserId,
         });
 
         if (globalFeedResult.isErr()) {
@@ -68,93 +70,81 @@ export class GetGemActivityFeedUseCase
 
         const globalFeed = globalFeedResult.value;
 
-        // Check if we've reached activities before our cutoff date
-        const oldestActivityDate =
-          globalFeed.activities.length > 0
-            ? new Date(
-                globalFeed.activities[
-                  globalFeed.activities.length - 1
-                ]!.createdAt,
-              )
-            : null;
-
-        // If the oldest activity is before our cutoff, filter and stop fetching
-        if (oldestActivityDate && oldestActivityDate < cutoffDate) {
-          // Filter out activities before cutoff date first
-          const recentActivities = globalFeed.activities.filter(
-            (activity) => new Date(activity.createdAt) >= cutoffDate,
+        // Check if we've reached the cutoff date
+        if (globalFeed.activities.length > 0) {
+          const oldestActivityDate = new Date(
+            globalFeed.activities[globalFeed.activities.length - 1]!.createdAt,
           );
 
-          // Then apply gem collection filter
-          const filteredActivities = recentActivities.filter((activity) => {
-            return (
-              activity.collections &&
-              activity.collections.length > 0 &&
-              activity.collections.some((collection) => {
-                const title = collection.name.toLowerCase();
-                return title.includes('💎') && title.includes('2025');
-              })
+          if (oldestActivityDate < cutoffDate) {
+            // Filter activities to only include those after cutoff
+            const recentActivities = globalFeed.activities.filter(
+              (activity) => new Date(activity.createdAt) >= cutoffDate,
             );
-          });
 
-          allFilteredItems = [...allFilteredItems, ...filteredActivities];
-          break; // Stop fetching since we've reached the cutoff date
+            // Apply gem filter to recent activities
+            const newFilteredItems = recentActivities.filter(
+              this.isGemActivity,
+            );
+            filteredItems = [...filteredItems, ...newFilteredItems];
+            reachedCutoff = true;
+            break;
+          }
         }
 
-        // Filter activities that have collections with both "💎" and "2025" in the title
-        const filteredActivities = globalFeed.activities.filter((activity) => {
-          return (
-            activity.collections &&
-            activity.collections.length > 0 &&
-            activity.collections.some((collection) => {
-              const title = collection.name.toLowerCase();
-              return title.includes('💎') && title.includes('2025');
-            })
-          );
-        });
+        // Apply gem filter to all activities in this batch
+        const newFilteredItems = globalFeed.activities.filter(
+          this.isGemActivity,
+        );
+        filteredItems = [...filteredItems, ...newFilteredItems];
 
-        allFilteredItems = [...allFilteredItems, ...filteredActivities];
-        totalFetched += globalFeed.activities.length;
-        hasMore = globalFeed.pagination.hasMore;
-        nextCursor = globalFeed.pagination.nextCursor;
+        // Update pagination state
+        hasMoreGlobal = globalFeed.pagination.hasMore;
+        currentGlobalPage++;
 
-        // If we didn't get any new items and there's no more data, break
-        if (globalFeed.activities.length === 0 || !hasMore) {
+        // If no more global data, stop
+        if (!hasMoreGlobal || globalFeed.activities.length === 0) {
           break;
         }
-
-        // Increase multiplier for next iteration if we're still short
-        multiplier = Math.min(multiplier * 1.5, 10); // Cap multiplier at 10
       }
 
-      // Take only the requested number of items
-      const finalItems = allFilteredItems.slice(0, requestedLimit);
+      // Apply pagination to filtered results
+      const paginatedItems = filteredItems.slice(
+        skipCount,
+        skipCount + requestedLimit,
+      );
 
-      // Calculate if there are more filtered items available
-      const hasMoreFiltered =
-        allFilteredItems.length > requestedLimit ||
-        (hasMore && allFilteredItems.length === requestedLimit);
-
-      // For pagination, we need to determine the next cursor
-      // Use the last item's ID as the cursor if we have items
-      const finalNextCursor =
-        finalItems.length > 0 && hasMoreFiltered
-          ? finalItems[finalItems.length - 1]?.id
-          : undefined;
+      // Determine if there are more pages
+      const hasMore =
+        filteredItems.length > skipCount + requestedLimit ||
+        (hasMoreGlobal && !reachedCutoff);
 
       return ok({
-        activities: finalItems,
+        activities: paginatedItems,
         pagination: {
           currentPage: page,
-          totalPages: 1, // We can't accurately calculate this due to filtering
-          totalCount: finalItems.length, // This is approximate
-          hasMore: hasMoreFiltered,
+          totalPages: hasMore ? page + 1 : page, // Can't calculate exact total due to filtering
+          totalCount: filteredItems.length, // Approximate
+          hasMore,
           limit: requestedLimit,
-          nextCursor: finalNextCursor,
+          // Remove nextCursor since we're using page-based pagination
         },
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  private isGemActivity(
+    activity: GetGlobalFeedResult['activities'][0],
+  ): boolean {
+    return (
+      activity.collections &&
+      activity.collections.length > 0 &&
+      activity.collections.some((collection) => {
+        const title = collection.name.toLowerCase();
+        return title.includes('💎') && title.includes('2025');
+      })
+    );
   }
 }
