@@ -50,10 +50,14 @@ export class GetGemActivityFeedUseCase
       const totalNeeded = skipCount + requestedLimit;
 
       // Keep fetching until we have enough filtered items
-      while (filteredItems.length < totalNeeded && hasMoreGlobal && !reachedCutoff) {
+      while (
+        filteredItems.length < totalNeeded &&
+        hasMoreGlobal &&
+        !reachedCutoff
+      ) {
         // Fetch larger batches to account for filtering
         const batchSize = Math.min(requestedLimit * 5, 100);
-        
+
         const globalFeedResult = await this.getGlobalFeedUseCase.execute({
           page: currentGlobalPage,
           limit: batchSize,
@@ -65,21 +69,23 @@ export class GetGemActivityFeedUseCase
         }
 
         const globalFeed = globalFeedResult.value;
-        
+
         // Check if we've reached the cutoff date
         if (globalFeed.activities.length > 0) {
           const oldestActivityDate = new Date(
-            globalFeed.activities[globalFeed.activities.length - 1]!.createdAt
+            globalFeed.activities[globalFeed.activities.length - 1]!.createdAt,
           );
-          
+
           if (oldestActivityDate < cutoffDate) {
             // Filter activities to only include those after cutoff
             const recentActivities = globalFeed.activities.filter(
-              (activity) => new Date(activity.createdAt) >= cutoffDate
+              (activity) => new Date(activity.createdAt) >= cutoffDate,
             );
-            
+
             // Apply gem filter to recent activities
-            const newFilteredItems = recentActivities.filter(this.isGemActivity);
+            const newFilteredItems = recentActivities.filter(
+              this.isGemActivity,
+            );
             filteredItems = [...filteredItems, ...newFilteredItems];
             reachedCutoff = true;
             break;
@@ -87,7 +93,9 @@ export class GetGemActivityFeedUseCase
         }
 
         // Apply gem filter to all activities in this batch
-        const newFilteredItems = globalFeed.activities.filter(this.isGemActivity);
+        const newFilteredItems = globalFeed.activities.filter(
+          this.isGemActivity,
+        );
         filteredItems = [...filteredItems, ...newFilteredItems];
 
         // Update pagination state
@@ -101,11 +109,15 @@ export class GetGemActivityFeedUseCase
       }
 
       // Apply pagination to filtered results
-      const paginatedItems = filteredItems.slice(skipCount, skipCount + requestedLimit);
-      
+      const paginatedItems = filteredItems.slice(
+        skipCount,
+        skipCount + requestedLimit,
+      );
+
       // Determine if there are more pages
-      const hasMore = filteredItems.length > skipCount + requestedLimit || 
-                     (hasMoreGlobal && !reachedCutoff);
+      const hasMore =
+        filteredItems.length > skipCount + requestedLimit ||
+        (hasMoreGlobal && !reachedCutoff);
 
       return ok({
         activities: paginatedItems,
@@ -123,7 +135,9 @@ export class GetGemActivityFeedUseCase
     }
   }
 
-  private isGemActivity(activity: GetGlobalFeedResult['activities'][0]): boolean {
+  private isGemActivity(
+    activity: GetGlobalFeedResult['activities'][0],
+  ): boolean {
     return (
       activity.collections &&
       activity.collections.length > 0 &&
