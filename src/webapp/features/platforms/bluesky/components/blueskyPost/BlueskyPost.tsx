@@ -28,14 +28,14 @@ export default function BlueskyPost(props: Props) {
           src={BlackskyLogo.src}
           alt="Blacksky logo"
           w={18}
-          h={'100%'}
+          h={'auto'}
           darkHidden
         />
         <Image
           src={BlackskyLogoWhite.src}
           alt="Blacksky logo"
           w={18}
-          h={'100%'}
+          h={'auto'}
           lightHidden
         />
       </>
