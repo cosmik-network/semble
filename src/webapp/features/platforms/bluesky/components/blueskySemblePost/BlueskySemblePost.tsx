@@ -36,7 +36,7 @@ export default async function BlueskySemblePost(props: Props) {
   const data = await getBlueskyPost(postUri);
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
-    platform.type === SupportedPlatform.BLACKSKY_POST ? (
+    platform.type === SupportedPlatform.BLUESKY_POST ? (
       <FaBluesky fill="#0085ff" size={18} />
     ) : (
       <>
@@ -44,14 +44,14 @@ export default async function BlueskySemblePost(props: Props) {
           src={BlackskyLogo.src}
           alt="Blacksky logo"
           w={18}
-          h={'100%'}
+          h={'auto'}
           darkHidden
         />
         <Image
           src={BlackskyLogoWhite.src}
           alt="Blacksky logo"
           w={18}
-          h={'100%'}
+          h={'auto'}
           lightHidden
         />
       </>
