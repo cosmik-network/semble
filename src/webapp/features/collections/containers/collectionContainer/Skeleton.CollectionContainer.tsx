@@ -32,9 +32,10 @@ export default function CollectionContainerSkeleton() {
             label="Sort by"
             allowDeselect={false}
           />
-          <Group>
-            <Skeleton w={100} h={32} radius={'md'} />
-            <Skeleton w={32} h={32} radius={'md'} />
+          {/* Actions */}
+          <Group gap={'xs'}>
+            <Skeleton w={100} h={32} radius={'xl'} />
+            <Skeleton w={32} h={32} radius={'xl'} />
           </Group>
         </Group>
 

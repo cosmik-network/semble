@@ -30,13 +30,12 @@ export default function CollectionActions(props: Props) {
   }
 
   return (
-    <Group>
+    <Group gap={'xs'}>
       <CopyButton value={shareLink}>
         {({ copied, copy }) => (
           <Button
             variant="light"
             color="gray"
-            radius={'md'}
             leftSection={<MdIosShare size={22} />}
             onClick={copy}
           >
@@ -47,7 +46,12 @@ export default function CollectionActions(props: Props) {
       {isAuthor && (
         <Menu shadow="sm">
           <Menu.Target>
-            <ActionIcon variant="light" color={'gray'} size={'lg'}>
+            <ActionIcon
+              variant="light"
+              color={'gray'}
+              size={'lg'}
+              radius={'xl'}
+            >
               <BsThreeDots size={22} />
             </ActionIcon>
           </Menu.Target>

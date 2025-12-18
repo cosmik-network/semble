@@ -46,7 +46,7 @@ export default function SembleLibrariesContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="md">
+      <Grid gutter="xs">
         {allLibraries.map((item, i) => (
           <Grid.Col
             key={item.user.name}

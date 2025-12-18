@@ -4,7 +4,7 @@ import CollectionCardSkeleton from '@/features/collections/components/collection
 export default function SembleCollectionsContainerSkeleton() {
   return (
     <Stack>
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
         {Array.from({ length: 4 }).map((_, i) => (
           <CollectionCardSkeleton key={i} />
         ))}

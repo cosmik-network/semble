@@ -41,7 +41,7 @@ export default function GemsCollectionsContainerContent() {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((collection) => (
           <CollectionCard
             key={collection.id}

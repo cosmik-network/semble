@@ -52,7 +52,7 @@ export default function CollectionsContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
             ))}

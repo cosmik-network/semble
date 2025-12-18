@@ -3,7 +3,7 @@ import AddedByCardSkeleton from '../../components/addedByCard/Skeleton.AddedByCa
 
 export default function SembleLibrariesContainerSkeleton() {
   return (
-    <Grid gutter="md">
+    <Grid gutter="xs">
       <GridCol
         span={{
           base: 12,

@@ -41,7 +41,7 @@ export default function SembleCollectionsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((col) => (
           <CollectionCard key={col.uri} collection={col} showAuthor />
         ))}

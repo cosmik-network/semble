@@ -84,7 +84,7 @@ export default async function CollectionEmbedContainer(props: Props) {
           </Group>
         </Group>
 
-        <Grid gutter="md">
+        <Grid gutter="xs">
           {data.urlCards.map((card) => (
             <GridCol
               key={card.id}

@@ -25,7 +25,7 @@ export default function SembleOverviewContainerSkeleton() {
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
-          <Grid gutter="md">
+          <Grid gutter="xs">
             {Array.from({ length: 4 }).map((_, i) => (
               <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
                 <NoteCardSkeleton />
@@ -43,7 +43,7 @@ export default function SembleOverviewContainerSkeleton() {
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
             {Array.from({ length: 4 }).map((_, i) => (
               <CollectionCardSkeleton key={i} />
             ))}
@@ -59,7 +59,7 @@ export default function SembleOverviewContainerSkeleton() {
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
-          <Grid gutter="md">
+          <Grid gutter="xs">
             {Array.from({ length: 3 }).map((_, i) => (
               <GridCol
                 key={i}
