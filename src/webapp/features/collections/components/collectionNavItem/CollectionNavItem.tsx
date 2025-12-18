@@ -21,9 +21,11 @@ export default function CollectionNavItem(props: Props) {
       href={props.url}
       label={props.name}
       variant="subtle"
-      className={
-        isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
-      }
+      classNames={{
+        root: isActive
+          ? `${styles.navLink} ${styles.navLinkActive}`
+          : styles.navLink,
+      }}
       onClick={toggleMobile}
       rightSection={
         props.cardCount > 0 ? (
