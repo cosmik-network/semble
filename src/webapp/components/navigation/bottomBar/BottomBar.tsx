@@ -44,7 +44,7 @@ export default function BottomBar() {
 
         <BottomBarItem
           href={`/profile/${profile.handle}`}
-          title={'Profile'}
+          title={'Me'}
           icon={<Avatar src={profile.avatarUrl} />}
         />
       </Group>
