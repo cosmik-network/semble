@@ -68,11 +68,13 @@ export default function CollectionCard(props: Props) {
             </Suspense>
 
             <Group justify="space-between" gap={'xs'}>
-              <Text c={'gray'}>
+              <Text c={'gray'} fz={'sm'}>
                 {collection.cardCount}{' '}
                 {collection.cardCount === 1 ? 'card' : 'cards'}
               </Text>
-              <Text c={'gray'}>{relativeUpdateDate}</Text>
+              <Text c={'gray'} fz={'sm'}>
+                {relativeUpdateDate}
+              </Text>
             </Group>
           </Stack>
         </Stack>
