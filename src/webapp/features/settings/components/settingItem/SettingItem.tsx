@@ -23,7 +23,7 @@ export default function SettingItem(props: Props) {
       href={props.href}
       target={props.openInNewTab ? '_blank' : '_self'}
       variant="light"
-      size="lg"
+      size="md"
       justify="start"
       radius={'lg'}
       color="gray"
