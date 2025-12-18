@@ -56,12 +56,12 @@ export default function CollectionCard(props: Props) {
               />
             </Suspense>
 
-            <Group justify="space-between">
+            <Group justify="space-between" gap={'xs'}>
               <Text c={'gray'}>
                 {collection.cardCount}{' '}
-                {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
-                {relativeUpdateDate}
+                {collection.cardCount === 1 ? 'card' : 'cards'}
               </Text>
+              <Text c={'gray'}>{relativeUpdateDate}</Text>
             </Group>
             {props.showAuthor && (
               <Group gap={'xs'}>
