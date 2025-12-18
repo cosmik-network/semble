@@ -39,9 +39,18 @@ export default function CollectionCard(props: Props) {
         <Stack justify="space-between">
           <Stack gap={'xs'}>
             <Stack gap={0}>
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
+              <Group justify="space-between" wrap="nowrap">
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {props.showAuthor && (
+                  <Avatar
+                    src={collection.author.avatarUrl}
+                    alt={`${collection.author.handle}'s avatar`}
+                    size={'sm'}
+                  />
+                )}
+              </Group>
               {collection.description && (
                 <Text c={'gray'} lineClamp={2}>
                   {collection.description}
@@ -63,19 +72,6 @@ export default function CollectionCard(props: Props) {
               </Text>
               <Text c={'gray'}>{relativeUpdateDate}</Text>
             </Group>
-            {props.showAuthor && (
-              <Group gap={'xs'}>
-                <Avatar
-                  src={collection.author.avatarUrl}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
-
-                <Text fw={500} c={'bright'} span>
-                  {collection.author.name}
-                </Text>
-              </Group>
-            )}
           </Stack>
         </Stack>
       </Card>

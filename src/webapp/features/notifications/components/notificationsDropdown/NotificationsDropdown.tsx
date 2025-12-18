@@ -79,7 +79,7 @@ export default function NotificationsDropdown() {
                     href={'/notifications'}
                     onClick={() => setOpened(false)}
                   >
-                    View all notifications
+                    View all
                   </Button>
                   <Button
                     variant="transparent"
