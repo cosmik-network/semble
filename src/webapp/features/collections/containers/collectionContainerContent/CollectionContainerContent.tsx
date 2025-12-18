@@ -45,7 +45,7 @@ export default function CollectionContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Grid gutter="md">
+          <Grid gutter="xs">
             {allCards.map((card) => (
               <Grid.Col
                 key={card.id}

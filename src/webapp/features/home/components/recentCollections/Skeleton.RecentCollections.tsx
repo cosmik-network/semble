@@ -13,7 +13,7 @@ export default function RecentCollectionsSkeleton() {
         <Skeleton w={87} h={36} radius={'xl'} />
       </Group>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
         {Array.from({ length: 4 }).map((_, i) => (
           <CollectionCardSkeleton key={i} />
         ))}

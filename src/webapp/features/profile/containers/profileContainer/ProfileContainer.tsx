@@ -58,7 +58,7 @@ export default function ProfileContainer(props: Props) {
             </Group>
 
             {cards.length > 0 ? (
-              <Grid gutter="md">
+              <Grid gutter="xs">
                 {cards.map((card) => (
                   <Grid.Col
                     key={card.id}
@@ -106,7 +106,7 @@ export default function ProfileContainer(props: Props) {
             </Group>
 
             {collections.length > 0 ? (
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
                 {collections.map((collection) => (
                   <CollectionCard key={collection.id} collection={collection} />
                 ))}

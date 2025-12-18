@@ -77,7 +77,7 @@ export default function SembleOverviewContainer(props: Props) {
           {errorNotes ? (
             <SembleNotesContainerError />
           ) : allNotes.length > 0 ? (
-            <Grid gutter="md">
+            <Grid gutter="xs">
               {allNotes.map((note) => (
                 <Grid.Col
                   key={note.id}
@@ -120,7 +120,7 @@ export default function SembleOverviewContainer(props: Props) {
           {errorCollections ? (
             <SembleCollectionsError />
           ) : allCollections.length > 0 ? (
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
               {allCollections.map((collection) => (
                 <CollectionCard key={collection.id} collection={collection} />
               ))}
@@ -148,7 +148,7 @@ export default function SembleOverviewContainer(props: Props) {
           {errorLibraries ? (
             <SembleLibrariesContainerError />
           ) : allLibraries.length > 0 ? (
-            <Grid gutter="md">
+            <Grid gutter="xs">
               {allLibraries.map((item) => (
                 <Grid.Col
                   key={item.user.name}
@@ -189,7 +189,7 @@ export default function SembleOverviewContainer(props: Props) {
           {errorSimilarCards ? (
             <SembleSimilarCardsContainerError />
           ) : allSimilarCards.length > 0 ? (
-            <Grid gutter="md">
+            <Grid gutter="xs">
               {allSimilarCards.map((urlView) => (
                 <Grid.Col
                   key={urlView.url}

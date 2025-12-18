@@ -43,7 +43,7 @@ export default function SembleNotesContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="md">
+      <Grid gutter="xs">
         {allNotes.map((note) => (
           <Grid.Col
             key={note.id}

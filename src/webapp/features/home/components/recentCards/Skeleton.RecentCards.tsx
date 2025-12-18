@@ -13,7 +13,7 @@ export default function RecentCardsSkeleton() {
         <Skeleton w={87} h={36} radius={'xl'} />
       </Group>
 
-      <Grid gutter="md">
+      <Grid gutter="xs">
         {Array.from({ length: 8 }).map((_, i) => (
           <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
             <UrlCardSkeleton />

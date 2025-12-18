@@ -35,7 +35,7 @@ export default function CollectionsContainerSkeleton() {
           />
         </Group>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
           {Array.from({ length: 4 }).map((_, i) => (
             <CollectionCardSkeleton key={i} />
           ))}

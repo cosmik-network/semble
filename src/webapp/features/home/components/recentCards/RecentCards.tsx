@@ -36,7 +36,7 @@ export default function RecentCards() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid gutter="md">
+        <Grid gutter="xs">
           {cards.map((card) => (
             <Grid.Col
               key={card.id}
