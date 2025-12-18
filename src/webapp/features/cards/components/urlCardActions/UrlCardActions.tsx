@@ -109,7 +109,8 @@ export default function UrlCardActions(props: Props) {
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowRemoveFromLibraryModal(true);
                 }}
               >
