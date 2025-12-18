@@ -35,7 +35,6 @@ export default function CollectionsContainer(props: Props) {
             mr={'auto'}
             size="sm"
             variant="filled"
-            label="Sort by"
             value={sortBy}
             onChange={(value) => setSortBy(value as CollectionSortField)}
             data={[

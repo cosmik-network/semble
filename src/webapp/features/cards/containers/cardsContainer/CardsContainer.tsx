@@ -41,7 +41,6 @@ export default function CardsContainer(props: Props) {
           mr={'auto'}
           variant="filled"
           size="sm"
-          label="Sort by"
           value={sortOption}
           onChange={(value) => setSortOption(value as SortOption)}
           data={[

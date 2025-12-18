@@ -29,7 +29,6 @@ export default function CollectionContainerSkeleton() {
             mr={'auto'}
             variant="filled"
             size="sm"
-            label="Sort by"
             allowDeselect={false}
           />
           {/* Actions */}

@@ -5,13 +5,7 @@ export default function CardsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Select
-          disabled
-          mr={'auto'}
-          variant="filled"
-          size="sm"
-          label="Sort by"
-        />
+        <Select disabled mr={'auto'} variant="filled" size="sm" />
 
         <Grid gutter="xs">
           {Array.from({ length: 8 }).map((_, i) => (

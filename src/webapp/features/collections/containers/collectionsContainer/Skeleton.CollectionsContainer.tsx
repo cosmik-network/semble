@@ -15,13 +15,7 @@ export default function CollectionsContainerSkeleton() {
     <Container p="xs" size="xl">
       <Stack>
         <Group align="end" gap={'xs'}>
-          <Select
-            disabled
-            mr={'auto'}
-            variant="filled"
-            size="sm"
-            label="Sort by"
-          />
+          <Select disabled mr={'auto'} variant="filled" size="sm" />
           <TextInput
             placeholder={'Search for collections'}
             leftSection={<IoSearch />}
