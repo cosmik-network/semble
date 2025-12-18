@@ -40,7 +40,7 @@ export default function DiscoverOnSemble() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid>
+        <Grid gutter={'xs'}>
           {cards.slice(0, 3).map((item, i) => (
             <Grid.Col
               key={i}
