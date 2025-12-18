@@ -23,7 +23,7 @@ export default function CollectionContainerSkeleton() {
           </Stack>
         </Group>
 
-        <Group justify="space-between" align="end">
+        <Group justify="space-between" align="end" gap={'xs'}>
           <Select
             disabled
             mr={'auto'}

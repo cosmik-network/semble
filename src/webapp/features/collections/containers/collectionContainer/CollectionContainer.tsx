@@ -145,9 +145,9 @@ export default function CollectionContainer(props: Props) {
             ]}
           />
 
-          <Group>
+          <Group gap={'xs'}>
             {isGemsCollection && (
-              <Group>
+              <Group gap={'xs'}>
                 <Button
                   component={Link}
                   href="/explore/gems-of-2025"
