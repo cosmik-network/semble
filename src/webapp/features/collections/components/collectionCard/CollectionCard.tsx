@@ -29,8 +29,14 @@ export default function CollectionCard(props: Props) {
       href={`/profile/${collection.author.handle}/collections/${rkey}`}
       underline="never"
     >
-      <Card withBorder radius={'lg'} p={'sm'} className={styles.root}>
-        <Stack justify="space-between" h={'100%'}>
+      <Card
+        withBorder
+        radius={'lg'}
+        p={'sm'}
+        className={styles.root}
+        h={'100%'}
+      >
+        <Stack justify="space-between">
           <Stack gap={'xs'}>
             <Stack gap={0}>
               <Text fw={500} lineClamp={1} c={'bright'}>
