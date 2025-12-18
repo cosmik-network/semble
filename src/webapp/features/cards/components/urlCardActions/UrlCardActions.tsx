@@ -47,12 +47,7 @@ export default function UrlCardActions(props: Props) {
 
   return (
     <Fragment>
-      <Group
-        justify="space-between"
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-      >
+      <Group justify="space-between">
         <Group gap={'xs'}>
           <Button
             variant="light"
@@ -66,7 +61,8 @@ export default function UrlCardActions(props: Props) {
                 <FiPlus size={18} />
               )
             }
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setShowAddToModal(true);
             }}
           >
@@ -77,7 +73,8 @@ export default function UrlCardActions(props: Props) {
               variant="light"
               color="gray"
               radius={'xl'}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setShowNoteModal(true);
               }}
             >
@@ -88,7 +85,12 @@ export default function UrlCardActions(props: Props) {
         {isAuthor && (
           <Menu shadow="sm">
             <Menu.Target>
-              <ActionIcon variant="light" color={'gray'} radius={'xl'}>
+              <ActionIcon
+                variant="light"
+                color={'gray'}
+                radius={'xl'}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <BsThreeDots size={18} />
               </ActionIcon>
             </Menu.Target>
@@ -96,7 +98,8 @@ export default function UrlCardActions(props: Props) {
               {props.currentCollection && (
                 <Menu.Item
                   leftSection={<LuUnplug />}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowRemoveFromCollectionModal(true);
                   }}
                 >
