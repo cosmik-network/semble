@@ -108,8 +108,8 @@ export default function CardToBeAddedPreview(props: Props) {
                   src={props.thumbnailUrl}
                   alt={`${props.url} social preview image`}
                   radius={'md'}
-                  w={50}
-                  h={50}
+                  w={45}
+                  h={45}
                 />
               </AspectRatio>
             )}

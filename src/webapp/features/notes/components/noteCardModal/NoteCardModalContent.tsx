@@ -155,8 +155,8 @@ export default function NoteCardModalContent(props: Props) {
                   src={props.cardContent.thumbnailUrl}
                   alt={`${props.cardContent.url} social preview image`}
                   radius={'md'}
-                  w={50}
-                  h={50}
+                  w={45}
+                  h={45}
                 />
               </AspectRatio>
             )}
