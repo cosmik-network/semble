@@ -8,9 +8,10 @@ import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
+import { CardSize } from '../../types';
 
 interface Props {
-  size?: 'large' | 'compact' | 'small';
+  size?: CardSize;
   id: string;
   url: string;
   cardContent: UrlCard['cardContent'];

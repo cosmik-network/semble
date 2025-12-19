@@ -1,11 +1,22 @@
-import { Container, Grid, GridCol, Select, Stack } from '@mantine/core';
+import {
+  Container,
+  Grid,
+  GridCol,
+  Group,
+  Select,
+  Skeleton,
+  Stack,
+} from '@mantine/core';
 import UrlCardSkeleton from '../../components/urlCard/Skeleton.UrlCard';
 
 export default function CardsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Select disabled mr={'auto'} variant="filled" size="sm" />
+        <Group gap={'xs'} justify="space-between">
+          <Select disabled variant="filled" size="sm" />
+          <Skeleton w={84} h={36} radius={'xl'} />
+        </Group>
 
         <Grid gutter="xs">
           {Array.from({ length: 8 }).map((_, i) => (
