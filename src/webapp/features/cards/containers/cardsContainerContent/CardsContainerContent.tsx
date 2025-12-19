@@ -80,6 +80,7 @@ export default function CardsContainerContent(props: Props) {
               urlLibraryCount={card.urlLibraryCount}
               urlIsInLibrary={card.urlInLibrary}
               viaCardId={card.id}
+              size={props.cardSize}
             />
           </Grid.Col>
         ))}

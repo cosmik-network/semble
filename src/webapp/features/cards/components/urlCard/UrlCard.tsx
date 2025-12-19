@@ -50,7 +50,11 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
-        <UrlCardContent url={props.url} cardContent={props.cardContent} />
+        <UrlCardContent
+          url={props.url}
+          cardContent={props.cardContent}
+          cardSize={props.size}
+        />
 
         <UrlCardActions
           cardAuthor={props.cardAuthor}

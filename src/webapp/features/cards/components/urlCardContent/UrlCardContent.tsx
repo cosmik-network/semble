@@ -8,10 +8,12 @@ import { ErrorBoundary } from 'react-error-boundary';
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
 import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
+import { CardSize } from '../../types';
 
 interface Props {
   url: string;
   cardContent: UrlCard['cardContent'];
+  cardSize?: CardSize;
 }
 
 export default function UrlCardContent(props: Props) {
@@ -35,19 +37,31 @@ export default function UrlCardContent(props: Props) {
             fallbackCardContent={
               <LinkCardContent cardContent={props.cardContent} />
             }
+            cardSize={props.cardSize}
           />
         </Suspense>
       </ErrorBoundary>
     );
   }
 
-  if (platform.type === SupportedPlatform.YOUTUBE_VIDEO) {
+  if (
+    platform.type === SupportedPlatform.YOUTUBE_VIDEO &&
+    props.cardSize !== 'List'
+  ) {
     return <YoutubeVideo url={platform.url} cardContent={props.cardContent} />;
   }
 
-  if (platform.type === SupportedPlatform.SPOTIFY) {
+  if (
+    platform.type === SupportedPlatform.SPOTIFY &&
+    props.cardSize !== 'List'
+  ) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
-  return <LinkCardContent cardContent={props.cardContent} />;
+  return (
+    <LinkCardContent
+      cardContent={props.cardContent}
+      cardSize={props.cardSize}
+    />
+  );
 }
