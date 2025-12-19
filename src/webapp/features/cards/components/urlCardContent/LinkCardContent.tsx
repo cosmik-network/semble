@@ -34,6 +34,7 @@ export default function LinkCardContent(props: Props) {
             c={'gray'}
             lineClamp={1}
             w={'fit-content'}
+            fz={'sm'}
           >
             {domain}
           </Anchor>
