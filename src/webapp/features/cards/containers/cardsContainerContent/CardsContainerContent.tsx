@@ -8,11 +8,13 @@ import UrlCard from '../../components/urlCard/UrlCard';
 import useCards from '../../lib/queries/useCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { CardSize } from '../../types';
 
 interface Props {
   handle: string;
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
+  cardSize?: CardSize;
 }
 
 export default function CardsContainerContent(props: Props) {
@@ -62,10 +64,10 @@ export default function CardsContainerContent(props: Props) {
             key={card.id}
             span={{
               base: 12,
-              xs: desktopOpened ? 12 : 6,
-              sm: desktopOpened ? 6 : 4,
-              md: 4,
-              lg: 3,
+              xs: props.cardSize !== 'Grid' ? 12 : desktopOpened ? 12 : 6,
+              sm: props.cardSize !== 'Grid' ? 12 : desktopOpened ? 6 : 4,
+              md: props.cardSize !== 'Grid' ? 12 : 4,
+              lg: props.cardSize !== 'Grid' ? 12 : 3,
             }}
           >
             <UrlCard
@@ -78,6 +80,7 @@ export default function CardsContainerContent(props: Props) {
               urlLibraryCount={card.urlLibraryCount}
               urlIsInLibrary={card.urlInLibrary}
               viaCardId={card.id}
+              size={props.cardSize}
             />
           </Grid.Col>
         ))}

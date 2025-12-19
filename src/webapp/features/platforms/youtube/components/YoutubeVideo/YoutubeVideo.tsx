@@ -22,6 +22,7 @@ export default function YoutubeVideo(props: Props) {
             href={props.cardContent.url}
             target="_blank"
             c={'gray'}
+            fz={'sm'}
             lineClamp={1}
             w={'fit-content'}
           >

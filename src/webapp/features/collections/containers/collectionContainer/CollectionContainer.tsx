@@ -165,7 +165,7 @@ export default function CollectionContainer(props: Props) {
                     rel="noopener noreferrer"
                     variant="light"
                     color="cyan"
-                    leftSection={<FaBluesky size={16} />}
+                    leftSection={<FaBluesky />}
                   >
                     Share on Bluesky
                   </Button>
@@ -176,7 +176,7 @@ export default function CollectionContainer(props: Props) {
                     variant="light"
                     color="grape"
                     size="sm"
-                    leftSection={<FiPlus size={16} />}
+                    leftSection={<FiPlus />}
                     onClick={() => setIsDrawerOpen(true)}
                   >
                     Create your own 💎 picks

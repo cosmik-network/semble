@@ -13,9 +13,11 @@ import {
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { useState } from 'react';
+import { CardSize } from '../../types';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
+  cardSize?: CardSize;
 }
 
 export default function LinkCardContent(props: Props) {
@@ -53,7 +55,7 @@ export default function LinkCardContent(props: Props) {
             {props.cardContent.title}
           </Anchor>
         )}
-        {props.cardContent.description && (
+        {props.cardContent.description && props.cardSize !== 'List' && (
           <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
             {props.cardContent.description}
           </Text>
@@ -65,8 +67,8 @@ export default function LinkCardContent(props: Props) {
             src={props.cardContent.thumbnailUrl}
             alt={`${props.cardContent.url} social preview image`}
             radius={'md'}
-            w={75}
-            h={75}
+            w={props.cardSize === 'List' ? 45 : 75}
+            h={props.cardSize === 'List' ? 45 : 75}
             onError={() => setImageError(true)}
           />
         </AspectRatio>
