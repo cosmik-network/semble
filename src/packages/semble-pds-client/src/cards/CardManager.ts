@@ -1,5 +1,12 @@
 import { AtpAgent } from '@atproto/api';
-import { StrongRef, CreateCardOptions, CreateCardResult, CardRecord, ListQueryParams, GetCardsResult } from '../types';
+import {
+  StrongRef,
+  CreateCardOptions,
+  CreateCardResult,
+  CardRecord,
+  ListQueryParams,
+  GetCardsResult,
+} from '../types';
 import { MetadataFetcher } from '../metadata/MetadataFetcher';
 
 export class CardManager {
@@ -209,7 +216,10 @@ export class CardManager {
     };
   }
 
-  async getForUser(did: string, params?: ListQueryParams): Promise<GetCardsResult> {
+  async getForUser(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCardsResult> {
     const response = await this.agent.com.atproto.repo.listRecords({
       repo: did,
       collection: this.cardCollection,

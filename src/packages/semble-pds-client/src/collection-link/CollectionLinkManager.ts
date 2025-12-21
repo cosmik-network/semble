@@ -1,5 +1,9 @@
 import { AtpAgent } from '@atproto/api';
-import { StrongRef, AddCardsToCollectionOptions, BatchCreateResult } from '../types';
+import {
+  StrongRef,
+  AddCardsToCollectionOptions,
+  BatchCreateResult,
+} from '../types';
 
 export class CollectionLinkManager {
   constructor(
@@ -67,7 +71,9 @@ export class CollectionLinkManager {
     });
   }
 
-  async addCardsToCollection(options: AddCardsToCollectionOptions): Promise<BatchCreateResult> {
+  async addCardsToCollection(
+    options: AddCardsToCollectionOptions,
+  ): Promise<BatchCreateResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }

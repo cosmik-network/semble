@@ -7,7 +7,9 @@ export class CollectionBatchManager {
     private collectionCollection: string,
   ) {}
 
-  async createCollections(options: CreateCollectionsOptions): Promise<BatchCreateResult> {
+  async createCollections(
+    options: CreateCollectionsOptions,
+  ): Promise<BatchCreateResult> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }

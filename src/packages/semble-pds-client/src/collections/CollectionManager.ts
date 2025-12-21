@@ -1,5 +1,11 @@
 import { AtpAgent } from '@atproto/api';
-import { StrongRef, CreateCollectionOptions, CollectionRecord, ListQueryParams, GetCollectionsResult } from '../types';
+import {
+  StrongRef,
+  CreateCollectionOptions,
+  CollectionRecord,
+  ListQueryParams,
+  GetCollectionsResult,
+} from '../types';
 
 export class CollectionManager {
   constructor(
@@ -120,7 +126,10 @@ export class CollectionManager {
     };
   }
 
-  async getForUser(did: string, params?: ListQueryParams): Promise<GetCollectionsResult> {
+  async getForUser(
+    did: string,
+    params?: ListQueryParams,
+  ): Promise<GetCollectionsResult> {
     const response = await this.agent.com.atproto.repo.listRecords({
       repo: did,
       collection: this.collectionCollection,
