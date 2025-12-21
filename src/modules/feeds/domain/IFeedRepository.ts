@@ -1,3 +1,4 @@
+import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { Result } from '../../../shared/core/Result';
 import { FeedActivity } from './FeedActivity';
 import { ActivityId } from './value-objects/ActivityId';
@@ -18,6 +19,10 @@ export interface PaginatedFeedResult {
 export interface IFeedRepository {
   addActivity(activity: FeedActivity): Promise<Result<void>>;
   getGlobalFeed(
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>>;
+  getGemsFeed(
+    collectionIds: CollectionId[],
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>>;
   findById(activityId: ActivityId): Promise<Result<FeedActivity | null>>;

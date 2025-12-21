@@ -301,4 +301,287 @@ describe('DrizzleFeedRepository', () => {
       'collection-456',
     ]);
   });
+
+  describe('getGemsFeed', () => {
+    let collection1: CollectionId;
+    let collection2: CollectionId;
+    let collection3: CollectionId;
+
+    beforeEach(async () => {
+      collection1 = CollectionId.createFromString('gems-collection-1').unwrap();
+      collection2 = CollectionId.createFromString('gems-collection-2').unwrap();
+      collection3 = CollectionId.createFromString('gems-collection-3').unwrap();
+    });
+
+    it('should return activities that match any of the provided collection IDs', async () => {
+      const baseTime = new Date();
+
+      // Activity with collection1
+      const activity1 = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [collection1],
+        new Date(baseTime.getTime() - 300),
+      ).unwrap();
+
+      // Activity with collection2
+      const activity2 = FeedActivity.createCardCollected(
+        anotherCuratorId,
+        anotherCardId,
+        [collection2],
+        new Date(baseTime.getTime() - 200),
+      ).unwrap();
+
+      // Activity with both collection1 and collection3
+      const activity3 = FeedActivity.createCardCollected(
+        curatorId,
+        anotherCardId,
+        [collection1, collection3],
+        new Date(baseTime.getTime() - 100),
+      ).unwrap();
+
+      // Activity with no collections
+      const activity4 = FeedActivity.createCardCollected(
+        anotherCuratorId,
+        cardId,
+        undefined,
+        new Date(baseTime.getTime()),
+      ).unwrap();
+
+      await feedRepository.addActivity(activity1);
+      await feedRepository.addActivity(activity2);
+      await feedRepository.addActivity(activity3);
+      await feedRepository.addActivity(activity4);
+
+      // Query for activities in collection1 or collection2
+      const gemsResult = await feedRepository.getGemsFeed(
+        [collection1, collection2],
+        { page: 1, limit: 10 },
+      );
+
+      expect(gemsResult.isOk()).toBe(true);
+      const gemsFeed = gemsResult.unwrap();
+
+      expect(gemsFeed.activities).toHaveLength(3);
+      expect(gemsFeed.totalCount).toBe(3);
+
+      // Should be ordered by creation time (newest first)
+      const activityIds = gemsFeed.activities.map((a) =>
+        a.activityId.getStringValue(),
+      );
+      expect(activityIds).toEqual([
+        activity3.activityId.getStringValue(),
+        activity2.activityId.getStringValue(),
+        activity1.activityId.getStringValue(),
+      ]);
+
+      // Activity4 should not be included (no collections)
+      expect(activityIds).not.toContain(activity4.activityId.getStringValue());
+    });
+
+    it('should return empty feed when no activities match the collection IDs', async () => {
+      // Create activities with different collections
+      const activity1 = FeedActivity.createCardCollected(curatorId, cardId, [
+        collection1,
+      ]).unwrap();
+
+      const activity2 = FeedActivity.createCardCollected(
+        anotherCuratorId,
+        anotherCardId,
+        undefined, // no collections
+      ).unwrap();
+
+      await feedRepository.addActivity(activity1);
+      await feedRepository.addActivity(activity2);
+
+      // Query for activities in collection2 (which doesn't exist in our data)
+      const gemsResult = await feedRepository.getGemsFeed([collection2], {
+        page: 1,
+        limit: 10,
+      });
+
+      expect(gemsResult.isOk()).toBe(true);
+      const gemsFeed = gemsResult.unwrap();
+
+      expect(gemsFeed.activities).toHaveLength(0);
+      expect(gemsFeed.totalCount).toBe(0);
+      expect(gemsFeed.hasMore).toBe(false);
+      expect(gemsFeed.nextCursor).toBeUndefined();
+    });
+
+    it('should support pagination for gems feed', async () => {
+      const baseTime = new Date();
+
+      // Create multiple activities with collection1
+      const activities = [];
+      for (let i = 0; i < 5; i++) {
+        const activity = FeedActivity.createCardCollected(
+          curatorId,
+          CardId.createFromString(`card-${i}`).unwrap(),
+          [collection1],
+          new Date(baseTime.getTime() - i * 100),
+        ).unwrap();
+        activities.push(activity);
+        await feedRepository.addActivity(activity);
+      }
+
+      // Get first page (2 items)
+      const firstPageResult = await feedRepository.getGemsFeed([collection1], {
+        page: 1,
+        limit: 2,
+      });
+
+      expect(firstPageResult.isOk()).toBe(true);
+      const firstPage = firstPageResult.unwrap();
+
+      expect(firstPage.activities).toHaveLength(2);
+      expect(firstPage.totalCount).toBe(5);
+      expect(firstPage.hasMore).toBe(true);
+      expect(firstPage.nextCursor).toBeDefined();
+
+      // Get second page
+      const secondPageResult = await feedRepository.getGemsFeed([collection1], {
+        page: 2,
+        limit: 2,
+      });
+
+      const secondPage = secondPageResult.unwrap();
+      expect(secondPage.activities).toHaveLength(2);
+      expect(secondPage.hasMore).toBe(true);
+
+      // Get third page (last item)
+      const thirdPageResult = await feedRepository.getGemsFeed([collection1], {
+        page: 3,
+        limit: 2,
+      });
+
+      const thirdPage = thirdPageResult.unwrap();
+      expect(thirdPage.activities).toHaveLength(1);
+      expect(thirdPage.hasMore).toBe(false);
+      expect(thirdPage.nextCursor).toBeUndefined();
+    });
+
+    it('should support cursor-based pagination for gems feed', async () => {
+      const baseTime = new Date();
+
+      // Create activities with collection1
+      const activity1 = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [collection1],
+        new Date(baseTime.getTime() - 300), // oldest
+      ).unwrap();
+
+      const activity2 = FeedActivity.createCardCollected(
+        anotherCuratorId,
+        anotherCardId,
+        [collection1],
+        new Date(baseTime.getTime() - 200), // middle
+      ).unwrap();
+
+      const activity3 = FeedActivity.createCardCollected(
+        curatorId,
+        CardId.createFromString('card-999').unwrap(),
+        [collection1],
+        new Date(baseTime.getTime() - 100), // newest
+      ).unwrap();
+
+      await feedRepository.addActivity(activity1);
+      await feedRepository.addActivity(activity2);
+      await feedRepository.addActivity(activity3);
+
+      // Get activities before activity3 (should return activity2 and activity1)
+      const gemsResult = await feedRepository.getGemsFeed([collection1], {
+        page: 1,
+        limit: 10,
+        beforeActivityId: activity3.activityId,
+      });
+
+      expect(gemsResult.isOk()).toBe(true);
+      const gemsFeed = gemsResult.unwrap();
+
+      expect(gemsFeed.activities).toHaveLength(2);
+      expect(gemsFeed.activities[0]?.activityId.getStringValue()).toBe(
+        activity2.activityId.getStringValue(),
+      );
+      expect(gemsFeed.activities[1]?.activityId.getStringValue()).toBe(
+        activity1.activityId.getStringValue(),
+      );
+    });
+
+    it('should handle activities with multiple collections correctly', async () => {
+      // Activity with multiple collections including collection1
+      const activity1 = FeedActivity.createCardCollected(curatorId, cardId, [
+        collection1,
+        collection2,
+        collection3,
+      ]).unwrap();
+
+      // Activity with only collection2
+      const activity2 = FeedActivity.createCardCollected(
+        anotherCuratorId,
+        anotherCardId,
+        [collection2],
+      ).unwrap();
+
+      // Activity with collection3 only
+      const activity3 = FeedActivity.createCardCollected(
+        curatorId,
+        CardId.createFromString('card-999').unwrap(),
+        [collection3],
+      ).unwrap();
+
+      await feedRepository.addActivity(activity1);
+      await feedRepository.addActivity(activity2);
+      await feedRepository.addActivity(activity3);
+
+      // Query for collection1 - should only return activity1
+      const collection1Result = await feedRepository.getGemsFeed(
+        [collection1],
+        { page: 1, limit: 10 },
+      );
+
+      const collection1Feed = collection1Result.unwrap();
+      expect(collection1Feed.activities).toHaveLength(1);
+      expect(collection1Feed.activities[0]?.activityId.getStringValue()).toBe(
+        activity1.activityId.getStringValue(),
+      );
+
+      // Query for collection2 - should return activity1 and activity2
+      const collection2Result = await feedRepository.getGemsFeed(
+        [collection2],
+        { page: 1, limit: 10 },
+      );
+
+      const collection2Feed = collection2Result.unwrap();
+      expect(collection2Feed.activities).toHaveLength(2);
+      const activity2Ids = collection2Feed.activities.map((a) =>
+        a.activityId.getStringValue(),
+      );
+      expect(activity2Ids).toContain(activity1.activityId.getStringValue());
+      expect(activity2Ids).toContain(activity2.activityId.getStringValue());
+    });
+
+    it('should return empty feed when querying with empty collection IDs array', async () => {
+      // Create some activities
+      const activity = FeedActivity.createCardCollected(curatorId, cardId, [
+        collection1,
+      ]).unwrap();
+
+      await feedRepository.addActivity(activity);
+
+      // Query with empty collection IDs array
+      const gemsResult = await feedRepository.getGemsFeed([], {
+        page: 1,
+        limit: 10,
+      });
+
+      expect(gemsResult.isOk()).toBe(true);
+      const gemsFeed = gemsResult.unwrap();
+
+      expect(gemsFeed.activities).toHaveLength(0);
+      expect(gemsFeed.totalCount).toBe(0);
+      expect(gemsFeed.hasMore).toBe(false);
+    });
+  });
 });
