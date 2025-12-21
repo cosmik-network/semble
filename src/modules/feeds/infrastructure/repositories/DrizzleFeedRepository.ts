@@ -159,9 +159,10 @@ export class DrizzleFeedRepository implements IFeedRepository {
       }>;
 
       // Create the JSON array condition using jsonb_array_elements_text
+      const arrayLiteral = `{${collectionIdStrings.map(id => `"${id}"`).join(',')}}`;
       const jsonArrayCondition = sql`EXISTS (
         SELECT 1 FROM jsonb_array_elements_text(${feedActivities.metadata}->'collectionIds') AS collection_id
-        WHERE collection_id = ANY(${sql.array(collectionIdStrings)})
+        WHERE collection_id = ANY(${arrayLiteral}::text[])
       )`;
 
       if (beforeActivityId) {
