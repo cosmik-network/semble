@@ -403,6 +403,11 @@ export class GetGemActivityFeedUseCase
             updatedAt: collection.updatedAt,
           }));
 
+        // For gems feed, exclude the entire activity if the card is no longer in any gem collections
+        if (collections.length === 0) {
+          continue; // Skip this activity entirely
+        }
+
         feedItems.push({
           id: activity.activityId.getStringValue(),
           user: actor,
