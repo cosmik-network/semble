@@ -260,12 +260,11 @@ export class UseCaseFactory {
         repositories.collectionRepository,
       ),
       getGemActivityFeedUseCase: new GetGemActivityFeedUseCase(
-        new GetGlobalFeedUseCase(
-          repositories.feedRepository,
-          services.profileService,
-          repositories.cardQueryRepository,
-          repositories.collectionRepository,
-        ),
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+        repositories.collectionQueryRepository,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
