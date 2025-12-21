@@ -139,6 +139,16 @@ export class DrizzleFeedRepository implements IFeedRepository {
         id.getStringValue(),
       );
 
+      // Handle empty collection IDs array
+      if (collectionIdStrings.length === 0) {
+        return ok({
+          activities: [],
+          totalCount: 0,
+          hasMore: false,
+          nextCursor: undefined,
+        });
+      }
+
       // Build query conditionally
       let activitiesResult: Array<{
         id: string;
@@ -147,6 +157,12 @@ export class DrizzleFeedRepository implements IFeedRepository {
         metadata: any;
         createdAt: Date;
       }>;
+
+      // Create the JSON array condition using jsonb_array_elements_text
+      const jsonArrayCondition = sql`EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(${feedActivities.metadata}->'collectionIds') AS collection_id
+        WHERE collection_id = ANY(${collectionIdStrings})
+      )`;
 
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId
@@ -163,7 +179,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
             .where(
               and(
                 lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
-                sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
+                jsonArrayCondition,
               ),
             )
             .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
@@ -177,9 +193,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         activitiesResult = await this.db
           .select()
           .from(feedActivities)
-          .where(
-            sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
-          )
+          .where(jsonArrayCondition)
           .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
           .limit(limit)
           .offset(offset);
@@ -189,9 +203,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(feedActivities)
-        .where(
-          sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
-        );
+        .where(jsonArrayCondition);
 
       const totalCount = totalCountResult[0]?.count || 0;
 
