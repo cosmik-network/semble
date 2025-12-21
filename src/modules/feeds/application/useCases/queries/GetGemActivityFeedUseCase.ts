@@ -60,7 +60,8 @@ export class GetGemActivityFeedUseCase
       // Validate and convert collection IDs
       const collectionIds: CollectionId[] = [];
       for (const collectionIdString of query.collectionIds) {
-        const collectionIdResult = CollectionId.createFromString(collectionIdString);
+        const collectionIdResult =
+          CollectionId.createFromString(collectionIdString);
         if (collectionIdResult.isErr()) {
           return err(
             new ValidationError(
