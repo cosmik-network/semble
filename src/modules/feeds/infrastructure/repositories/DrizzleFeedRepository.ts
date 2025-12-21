@@ -1,4 +1,4 @@
-import { eq, desc, lt, count } from 'drizzle-orm';
+import { eq, desc, lt, count, sql, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   IFeedRepository,
@@ -13,6 +13,7 @@ import {
   FeedActivityDTO,
 } from './mappers/FeedActivityMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 
 export class DrizzleFeedRepository implements IFeedRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -84,6 +85,113 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(feedActivities);
+
+      const totalCount = totalCountResult[0]?.count || 0;
+
+      // Map to domain objects
+      const activities: FeedActivity[] = [];
+      for (const activityData of activitiesResult) {
+        const dto: FeedActivityDTO = {
+          id: activityData.id,
+          actorId: activityData.actorId,
+          type: activityData.type,
+          metadata: activityData.metadata as any,
+          createdAt: activityData.createdAt,
+        };
+
+        const domainResult = FeedActivityMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
+        }
+
+        activities.push(domainResult.value);
+      }
+
+      // Determine if there are more activities
+      const hasMore = offset + activities.length < totalCount;
+
+      // Set next cursor if there are more activities
+      let nextCursor: ActivityId | undefined;
+      if (hasMore && activities.length > 0) {
+        const lastActivity = activities[activities.length - 1]!;
+        nextCursor = lastActivity.activityId;
+      }
+
+      return ok({
+        activities,
+        totalCount,
+        hasMore,
+        nextCursor,
+      });
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async getGemsFeed(
+    collectionIds: CollectionId[],
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>> {
+    try {
+      const { page, limit, beforeActivityId } = options;
+      const offset = (page - 1) * limit;
+      const collectionIdStrings = collectionIds.map((id) =>
+        id.getStringValue(),
+      );
+
+      // Build query conditionally
+      let activitiesResult: Array<{
+        id: string;
+        actorId: string;
+        type: string;
+        metadata: any;
+        createdAt: Date;
+      }>;
+
+      if (beforeActivityId) {
+        // Get the timestamp of the beforeActivityId
+        const beforeActivity = await this.db
+          .select({ createdAt: feedActivities.createdAt })
+          .from(feedActivities)
+          .where(eq(feedActivities.id, beforeActivityId.getStringValue()))
+          .limit(1);
+
+        if (beforeActivity.length > 0) {
+          activitiesResult = await this.db
+            .select()
+            .from(feedActivities)
+            .where(
+              and(
+                lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
+                sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
+              ),
+            )
+            .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
+            .limit(limit);
+        } else {
+          // If beforeActivityId doesn't exist, return empty result
+          activitiesResult = [];
+        }
+      } else {
+        // Regular pagination without cursor
+        activitiesResult = await this.db
+          .select()
+          .from(feedActivities)
+          .where(
+            sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
+          )
+          .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
+          .limit(limit)
+          .offset(offset);
+      }
+
+      // Get total count with same filter
+      const totalCountResult = await this.db
+        .select({ count: count() })
+        .from(feedActivities)
+        .where(
+          sql`${feedActivities.metadata}->>'collectionIds' ?| ${collectionIdStrings}`,
+        );
 
       const totalCount = totalCountResult[0]?.count || 0;
 
