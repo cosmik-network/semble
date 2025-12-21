@@ -10,12 +10,16 @@ import {
   UrlCardView,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
+import {
+  ICollectionQueryRepository,
+  CollectionSortField,
+  SortOrder,
+} from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGemActivityFeedQuery {
   callingUserId?: string;
-  collectionIds: string[]; // Array of collection ID strings to filter by
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
@@ -45,6 +49,7 @@ export class GetGemActivityFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
+    private collectionQueryRepository: ICollectionQueryRepository,
   ) {}
 
   async execute(
@@ -57,19 +62,54 @@ export class GetGemActivityFeedUseCase
       const page = query.page || 1;
       const limit = Math.min(query.limit || 20, 100); // Cap at 100
 
-      // Validate and convert collection IDs
+      const searchText = '💎 2025';
+      // Search for collections using the query repository
+      const collectionsResult =
+        await this.collectionQueryRepository.searchCollections({
+          page: 1,
+          limit: 100, // Get up to 100 collections
+          sortBy: CollectionSortField.CREATED_AT,
+          sortOrder: SortOrder.DESC,
+          searchText: searchText,
+        });
+
+      if (collectionsResult.totalCount === 0) {
+        // No collections found, return empty feed
+        return ok({
+          activities: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 1,
+            totalCount: 0,
+            hasMore: false,
+            limit,
+          },
+        });
+      }
+
+      // Convert collection DTOs to CollectionId domain objects
       const collectionIds: CollectionId[] = [];
-      for (const collectionIdString of query.collectionIds) {
-        const collectionIdResult =
-          CollectionId.createFromString(collectionIdString);
-        if (collectionIdResult.isErr()) {
-          return err(
-            new ValidationError(
-              `Invalid collection ID: ${collectionIdResult.error.message}`,
-            ),
-          );
+      for (const collectionDto of collectionsResult.items) {
+        const collectionIdResult = CollectionId.createFromString(
+          collectionDto.id,
+        );
+        if (collectionIdResult.isOk()) {
+          collectionIds.push(collectionIdResult.value);
         }
-        collectionIds.push(collectionIdResult.value);
+      }
+
+      // If no valid collection IDs, return empty feed
+      if (collectionIds.length === 0) {
+        return ok({
+          activities: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 1,
+            totalCount: 0,
+            hasMore: false,
+            limit,
+          },
+        });
       }
 
       let beforeActivityId: ActivityId | undefined;
