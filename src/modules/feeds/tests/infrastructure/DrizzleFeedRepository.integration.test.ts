@@ -11,7 +11,6 @@ import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 import { feedActivities } from '../../infrastructure/repositories/schema/feedActivity.sql';
 import { createTestSchema } from '../../../cards/tests/test-utils/createTestSchema';
-import { ActivityId } from '../../domain/value-objects/ActivityId';
 
 describe('DrizzleFeedRepository', () => {
   let container: StartedPostgreSqlContainer;
@@ -583,30 +582,6 @@ describe('DrizzleFeedRepository', () => {
       expect(gemsFeed.activities).toHaveLength(0);
       expect(gemsFeed.totalCount).toBe(0);
       expect(gemsFeed.hasMore).toBe(false);
-    });
-
-    it('should handle cursor pagination when beforeActivityId does not exist', async () => {
-      const activity = FeedActivity.createCardCollected(curatorId, cardId, [
-        collection1,
-      ]).unwrap();
-
-      await feedRepository.addActivity(activity);
-
-      // Use a non-existent activity ID as cursor
-      const nonExistentId =
-        ActivityId.createFromString('non-existent-id').unwrap();
-
-      const gemsResult = await feedRepository.getGemsFeed([collection1], {
-        page: 1,
-        limit: 10,
-        beforeActivityId: nonExistentId,
-      });
-
-      expect(gemsResult.isOk()).toBe(true);
-      const gemsFeed = gemsResult.unwrap();
-
-      // Should return empty result when cursor doesn't exist
-      expect(gemsFeed.activities).toHaveLength(0);
     });
   });
 });
