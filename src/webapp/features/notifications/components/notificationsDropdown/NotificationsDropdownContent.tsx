@@ -10,7 +10,7 @@ export default function NotificationsDropdownContent() {
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
 
   return (
-    <ScrollArea.Autosize mah={450} type="auto">
+    <ScrollArea.Autosize mah={260} type="auto">
       <Stack align="center" gap={'xs'}>
         {allNotifications.length === 0 ? (
           <Text fz="lg" fw={600} c="gray">
