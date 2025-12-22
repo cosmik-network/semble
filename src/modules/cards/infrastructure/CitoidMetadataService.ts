@@ -2,6 +2,7 @@ import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok, err } from '../../../shared/core/Result';
+import { mapCitoidUrlType } from './mappers/CitoidUrlTypeMapper';
 
 interface CitoidCreator {
   firstName?: string;
@@ -127,7 +128,7 @@ export class CitoidMetadataService implements IMetadataService {
         author,
         publishedDate,
         siteName,
-        type: citoidData.itemType,
+        type: mapCitoidUrlType(citoidData.itemType),
       });
 
       return metadataResult;

@@ -1,5 +1,6 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { UrlType } from './UrlType';
 
 export interface UrlMetadataProps {
   url: string;
@@ -9,7 +10,7 @@ export interface UrlMetadataProps {
   publishedDate?: Date;
   siteName?: string;
   imageUrl?: string;
-  type?: string;
+  type?: UrlType;
   retrievedAt?: Date;
 }
 
@@ -42,7 +43,7 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
     return this.props.imageUrl;
   }
 
-  get type(): string | undefined {
+  get type(): UrlType | undefined {
     return this.props.type;
   }
 
