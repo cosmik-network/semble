@@ -1,0 +1,83 @@
+﻿zotero item type,Description,Semble Type
+"Artwork ","
+ A piece of artwork (e.g., an oil painting, photograph, or sculpture). 
+Also use this item type for other types of images or visual items (e.g.,
+ scientific figures). ",Link
+" Audio Recording "," Any form of 
+audio recording, including music, spoken word, sound effects, archival 
+recordings, or audio-based scientific figures. ",Audio
+" Bill "," A proposed piece of legislation. ",Link
+" Blog Post "," An article or entry
+ posted to a personal blog website. For online articles published as 
+part of a larger online publication (e.g., NYT Blogs), using Magazine Article or Newspaper Article generally yields better results. ",Article
+" Book "," A book or similar published item. For government documents, technical reports, manuals, etc., use Report instead. This item type can also be adapted to fit many types of unusual items. ",Book
+" Book Section "," A section of a book. Usually chapters, but also forewords, prefaces, introductions, appendices, afterwords, comments, etc. ",Book
+" Case "," A legal case, either published or unpublished. ",Link
+" Conference Paper "," A paper 
+presented at a conference and subsequently published in a formal 
+conference proceedings publication (e.g., as a book, report, or issue of
+ a journal). For conference papers that have not been published in a 
+proceedings, use Presentation. ",Research
+" Dataset "," A collection of data. ",Research
+" Dictionary Entry "," An entry published as part of a dictionary. ",Link
+" Document "," A generic document 
+item. This item type has a poor selection of fields and poor support in 
+citation styles, so it should generally be avoided. ",Link
+" Email "," A message sent via email. This type could also be used for other forms of personal communication. ",Link
+" Encyclopedia Article "," An article or chapter published as part of an encyclopedia. ",Article
+" Film "," A film or motion 
+picture. Generally, use this type for artistically-oriented films 
+(including fictional, non-fictional, and documentary films). For other 
+types of video items, use Video Recording. ",Video
+" Forum Post "," A post on an online discussion forum. Also use this type for items such as Facebook posts or tweets. ",Social
+" Hearing "," A formal hearing or meeting report by a legislative body. ",Link
+" Instant Message "," A message sent via an instant message or chat service. This type could also be used for other forms of personal communication. ",Link
+" Interview "," An interview with a person, including recordings, transcripts, or other records of the interview.  ",Link
+" Journal Article "," An article published in a scholarly journal (either print or online). ",Research
+" Letter "," A letter sent between persons or organizations. This type could also be used for other forms of personal communication. ",Link
+" Magazine Article "," An article published in a non-scholarly, popular, or trade magazine (either print or online). ",Article
+" Manuscript "," An unpublished 
+manuscript. Use this type for both historical documents and modern 
+unpublished work (e.g., unpublished manuscripts, manuscripts submitted 
+for publication, working papers that are not widely available). Can also
+ be used for other forms of historical or archival documents. This item 
+type can also be adapted to fit many types of unusual items. ",Research
+" Map "," A map. Also use this type for geographic models. ",Link
+" Newspaper Article "," An article published in a newspaper (either print or online). ",Article
+" Patent "," A patent awarded for an invention. ",Link
+" Podcast "," A podcast (an episode of an audio or video program distributed online, often via subscription). ",Audio
+" Presentation "," A presentation 
+made as part of a conference, meeting, symposium, lecture, etc. This 
+item type refers to the presentation itself, not a written version 
+published as part of a conference proceedings (use Conference Paper for such published versions). ",Research
+" Radio Broadcast "," An audio 
+broadcast, such as a radio news show, an episode of a radio 
+entertainment series, or similar. Includes broadcasts from online radio 
+stations and audio broadcasts archived online (cf. Podcast). ",Audio
+" Report "," A report published by 
+an organization, institution, government department, or similar entity. 
+Also used for working papers and preprints distributed through 
+institutional repositories or preprint servers. This item type can also 
+be adapted to fit many types of unusual items. ",Research
+" Software "," A piece of software, an app, or another computer program. ",Link
+" Standard "," A published document describing a standard, or a similar set of industrial or governmental specifications.  ",Link
+" Statute "," A law or other piece of enacted legislation.  ",Link
+" Thesis "," A thesis submitted as part of a student applying for a degree (either published or unpublished). ",Research
+" TV Broadcast "," An episode of a television series. ",Video
+" Video Recording "," A video 
+recording. Use this type for general video items that do not fit into 
+one of the more specific video item types (e.g., Film, TV Broadcast), 
+such as YouTube videos or video-based scientific figures. ",Video
+" Webpage "," An online page of a 
+website. When possible, use one of the more specific item types above 
+(e.g., Magazine Article, Blog Post, Report). ",Link
+" Attachment "," A standalone 
+attachment file (e.g., a PDF, JPEG, DOCX, PPTX, XLSX, or ODT file). 
+Standalone attachment files have limited functionality in Zotero (e.g., 
+they cannot be properly searched or cited). Always attach files to proper Zotero items. ",Link
+" Note "," A standalone note. Notes
+ can be used for organizing and annotating in Zotero. If you cite a 
+standalone note, Zotero will use the first 120 characters as the item 
+title (and will treat the note as an author-less and date-less item). 
+Citing notes is not a reliable way to add standalone commentary to a 
+bibliography or reference list. ",Link
