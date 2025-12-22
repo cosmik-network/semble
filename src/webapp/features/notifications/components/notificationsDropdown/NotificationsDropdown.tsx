@@ -52,10 +52,34 @@ export default function NotificationsDropdown() {
             onClick={() => setOpened((opened) => !opened)}
           />
         </Popover.Target>
-        <Popover.Dropdown w={400}>
+        <Popover.Dropdown w={430}>
           <Stack>
             <Group justify="space-between">
-              <Text fw={600}>Notifications</Text>
+              <Group justify="space-between">
+                <Text fw={600}>Notifications</Text>
+                <Button
+                  variant="transparent"
+                  p={0}
+                  color="gray"
+                  component={Link}
+                  href={'/notifications'}
+                  onClick={() => setOpened(false)}
+                >
+                  View all
+                </Button>
+                {data.unreadCount == 0 && (
+                  <Button
+                    variant="transparent"
+                    p={0}
+                    onClick={() => {
+                      markAsRead.mutate();
+                      setOpened(false);
+                    }}
+                  >
+                    Mark all as read
+                  </Button>
+                )}
+              </Group>
               <CloseButton onClick={() => setOpened(false)} />
             </Group>
             <Suspense
@@ -68,33 +92,7 @@ export default function NotificationsDropdown() {
                 </Stack>
               }
             >
-              <Stack>
-                <NotificationsDropdownContent />
-                <Group justify="space-between">
-                  <Button
-                    variant="transparent"
-                    p={0}
-                    color="gray"
-                    component={Link}
-                    href={'/notifications'}
-                    onClick={() => setOpened(false)}
-                  >
-                    View all
-                  </Button>
-                  {data.unreadCount > 0 && (
-                    <Button
-                      variant="transparent"
-                      p={0}
-                      onClick={() => {
-                        markAsRead.mutate();
-                        setOpened(false);
-                      }}
-                    >
-                      Mark all as read
-                    </Button>
-                  )}
-                </Group>
-              </Stack>
+              <NotificationsDropdownContent />
             </Suspense>
           </Stack>
         </Popover.Dropdown>
