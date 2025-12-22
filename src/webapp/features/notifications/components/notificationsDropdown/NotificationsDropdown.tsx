@@ -67,7 +67,7 @@ export default function NotificationsDropdown() {
                 >
                   View all
                 </Button>
-                {data.unreadCount == 0 && (
+                {data.unreadCount > 0 && (
                   <Button
                     variant="transparent"
                     p={0}
