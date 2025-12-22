@@ -3,16 +3,24 @@ import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok, err } from '../../../shared/core/Result';
 
+interface CitoidCreator {
+  firstName?: string;
+  lastName?: string;
+  creatorType?: string;
+  name?: string; // For single-field names (organizations)
+}
+
+interface CitoidTag {
+  tag: string;
+  type?: number;
+}
+
 interface CitoidResponse {
   key?: string;
   version?: number;
   itemType?: string;
-  creators?: Array<{
-    firstName?: string;
-    lastName?: string;
-    creatorType?: string;
-  }>;
-  tags?: string[];
+  creators?: CitoidCreator[];
+  tags?: CitoidTag[];
   title?: string;
   date?: string;
   url?: string;
@@ -21,6 +29,35 @@ interface CitoidResponse {
   language?: string;
   libraryCatalog?: string;
   accessDate?: string;
+  repository?: string;
+  archiveID?: string;
+  DOI?: string;
+  extra?: string;
+  websiteTitle?: string;
+  blogTitle?: string;
+  forumTitle?: string;
+  websiteType?: string;
+  medium?: string;
+  artworkSize?: string;
+  runningTime?: string;
+  ISBN?: string;
+  ISSN?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  edition?: string;
+  series?: string;
+  seriesNumber?: string;
+  place?: string;
+  publisher?: string;
+  institution?: string;
+  university?: string;
+  conferenceName?: string;
+  proceedingsTitle?: string;
+  meetingName?: string;
+  reportType?: string;
+  reportNumber?: string;
+  type?: string;
 }
 
 interface CitoidErrorResponse {
@@ -72,11 +109,11 @@ export class CitoidMetadataService implements IMetadataService {
         return err(new Error('Invalid metadata format from Citoid'));
       }
 
-      // Extract author from creators array
-      const author =
-        citoidData.creators && citoidData.creators.length > 0
-          ? this.formatAuthor(citoidData.creators[0]!)
-          : undefined;
+      // Extract author from creators array - prioritize 'author' type creators
+      const author = this.extractPrimaryAuthor(citoidData.creators);
+
+      // Determine site name from various possible fields
+      const siteName = this.determineSiteName(citoidData);
 
       // Parse published date
       const publishedDate = citoidData.date
@@ -89,7 +126,7 @@ export class CitoidMetadataService implements IMetadataService {
         description: citoidData.abstractNote,
         author,
         publishedDate,
-        siteName: citoidData.publicationTitle || citoidData.libraryCatalog,
+        siteName,
         type: citoidData.itemType,
       });
 
@@ -119,12 +156,53 @@ export class CitoidMetadataService implements IMetadataService {
     }
   }
 
-  private formatAuthor(creator: {
-    firstName?: string;
-    lastName?: string;
-  }): string {
-    const { firstName, lastName } = creator;
+  private extractPrimaryAuthor(creators?: CitoidCreator[]): string | undefined {
+    if (!creators || creators.length === 0) {
+      return undefined;
+    }
 
+    // First, try to find a creator with type 'author'
+    const authorCreator = creators.find(
+      (creator) => creator.creatorType === 'author',
+    );
+
+    if (authorCreator) {
+      return this.formatAuthor(authorCreator);
+    }
+
+    // If no 'author' type, try other primary creator types in order of preference
+    const primaryTypes = [
+      'artist',
+      'performer',
+      'director',
+      'podcaster',
+      'cartographer',
+      'programmer',
+      'presenter',
+      'sponsor',
+      'inventor',
+    ];
+
+    for (const type of primaryTypes) {
+      const creator = creators.find((c) => c.creatorType === type);
+      if (creator) {
+        return this.formatAuthor(creator);
+      }
+    }
+
+    // Fall back to the first creator
+    return this.formatAuthor(creators[0]!);
+  }
+
+  private formatAuthor(creator: CitoidCreator): string {
+    const { firstName, lastName, name } = creator;
+
+    // Handle single-field names (typically organizations)
+    if (name) {
+      return name;
+    }
+
+    // Handle two-field names
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (lastName) {
@@ -136,9 +214,32 @@ export class CitoidMetadataService implements IMetadataService {
     return '';
   }
 
+  private determineSiteName(data: CitoidResponse): string | undefined {
+    // Try different fields in order of preference for site name
+    return (
+      data.publicationTitle ||
+      data.websiteTitle ||
+      data.blogTitle ||
+      data.forumTitle ||
+      data.repository ||
+      data.libraryCatalog ||
+      data.institution ||
+      data.university ||
+      data.publisher
+    );
+  }
+
   private parseDate(dateString: string): Date | undefined {
     try {
-      // Try to parse the date string
+      // Handle ISO date format (YYYY-MM-DD) which is common in Citoid responses
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const parsed = new Date(dateString + 'T00:00:00.000Z');
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Try to parse the date string as-is
       const parsed = new Date(dateString);
 
       // Check if the date is valid
