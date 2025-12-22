@@ -81,16 +81,18 @@ export default function NotificationsDropdown() {
                   >
                     View all
                   </Button>
-                  <Button
-                    variant="transparent"
-                    p={0}
-                    onClick={() => {
-                      markAsRead.mutate();
-                      setOpened(false);
-                    }}
-                  >
-                    Mark all as read
-                  </Button>
+                  {data.unreadCount > 0 && (
+                    <Button
+                      variant="transparent"
+                      p={0}
+                      onClick={() => {
+                        markAsRead.mutate();
+                        setOpened(false);
+                      }}
+                    >
+                      Mark all as read
+                    </Button>
+                  )}
                 </Group>
               </Stack>
             </Suspense>
