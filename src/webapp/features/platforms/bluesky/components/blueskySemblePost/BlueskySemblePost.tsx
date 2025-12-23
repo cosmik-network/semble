@@ -71,7 +71,7 @@ export default async function BlueskySemblePost(props: Props) {
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Stack gap={'xs'}>
+    <Stack gap={'xs'} align="start">
       <Tooltip label={props.url}>
         <Anchor
           component={Link}

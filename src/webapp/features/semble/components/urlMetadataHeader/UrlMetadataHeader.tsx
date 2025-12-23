@@ -28,7 +28,7 @@ export default async function UrlMetadataHeader(props: Props) {
     <Grid gutter={'lg'} justify="space-between">
       <GridCol span={{ base: 'auto' }}>
         <Stack>
-          <Stack gap={0}>
+          <Stack gap={0} align="start">
             <Tooltip label={metadata.url}>
               <Anchor
                 component={Link}
