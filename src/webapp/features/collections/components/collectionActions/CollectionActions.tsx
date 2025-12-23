@@ -1,5 +1,5 @@
 import { Group, Menu, ActionIcon, CopyButton, Button } from '@mantine/core';
-import EditCollectionDrawer from '../editCollectionDrawer/EditCollectionDrawer';
+import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
 import { BsThreeDots, BsPencilFill, BsTrash2Fill } from 'react-icons/bs';
 import { MdIosShare } from 'react-icons/md';
@@ -16,7 +16,7 @@ interface Props {
 
 export default function CollectionActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isAuthor = user?.handle === props.authorHandle;
@@ -57,7 +57,7 @@ export default function CollectionActions(props: Props) {
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Item
-              onClick={() => setShowEditDrawer(true)}
+              onClick={() => setShowEditModal(true)}
               leftSection={<BsPencilFill />}
             >
               Edit collection
@@ -73,9 +73,9 @@ export default function CollectionActions(props: Props) {
         </Menu>
       )}
 
-      <EditCollectionDrawer
-        isOpen={showEditDrawer}
-        onClose={() => setShowEditDrawer(false)}
+      <EditCollectionModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
         collection={{
           id: props.id,
           rkey: props.rkey,
