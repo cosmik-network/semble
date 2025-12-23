@@ -71,6 +71,13 @@
       "when": 1765356227606,
       "tag": "0009_stormy_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1766492444234,
+      "tag": "0010_boring_blazing_skull",
+      "breakpoints": true
     }
   ]
 }
