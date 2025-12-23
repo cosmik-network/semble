@@ -11,6 +11,7 @@ import {
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 
 // Database representation of a feed activity
@@ -19,6 +20,7 @@ export interface FeedActivityDTO {
   actorId: string;
   type: string;
   metadata: ActivityMetadata;
+  urlType?: string;
   createdAt: Date;
 }
 
@@ -53,10 +55,16 @@ export class FeedActivityMapper {
           collectionIds = collectionIdResults.map((result) => result.unwrap());
         }
 
+        let urlType: UrlType | undefined;
+        if (dto.urlType) {
+          urlType = dto.urlType as UrlType;
+        }
+
         const activityResult = FeedActivity.createCardCollected(
           actorIdResult.value,
           cardIdResult.value,
           collectionIds,
+          urlType,
           dto.createdAt,
           new UniqueEntityID(dto.id),
         );
@@ -78,6 +86,7 @@ export class FeedActivityMapper {
       actorId: activity.actorId.value,
       type: activity.type.value,
       metadata: activity.metadata,
+      urlType: activity.urlType,
       createdAt: activity.createdAt,
     };
   }

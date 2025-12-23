@@ -7,6 +7,7 @@ import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
+import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;
@@ -37,7 +38,10 @@ export class AddActivityToFeedUseCase
       >
     >
 {
-  constructor(private feedService: FeedService) {}
+  constructor(
+    private feedService: FeedService,
+    private cardRepository: ICardRepository,
+  ) {}
 
   async execute(
     request: AddActivityToFeedDTO,
@@ -86,10 +90,25 @@ export class AddActivityToFeedUseCase
         }
       }
 
+      // Fetch the card to get its URL type
+      const cardResult = await this.cardRepository.findById(cardId);
+      if (cardResult.isErr()) {
+        return err(new ValidationError(`Failed to fetch card: ${cardResult.error.message}`));
+      }
+
+      let urlType;
+      if (cardResult.value && cardResult.value.isUrlCard) {
+        const urlCardContent = cardResult.value.content as any;
+        if (urlCardContent.metadata?.type) {
+          urlType = urlCardContent.metadata.type;
+        }
+      }
+
       const activityResult = await this.feedService.addCardCollectedActivity(
         actorId,
         cardId,
         collectionIds,
+        urlType,
       );
 
       if (activityResult.isErr()) {

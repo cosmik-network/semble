@@ -16,6 +16,7 @@ import {
   SortOrder,
 } from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGemActivityFeedQuery {
@@ -23,6 +24,7 @@ export interface GetGemActivityFeedQuery {
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
+  urlType?: string; // Filter by URL type
 }
 
 // Use the shared API type directly
@@ -127,11 +129,18 @@ export class GetGemActivityFeedUseCase
         beforeActivityId = activityIdResult.value;
       }
 
+      // Parse urlType if provided
+      let urlType: UrlType | undefined;
+      if (query.urlType) {
+        urlType = query.urlType as UrlType;
+      }
+
       // Fetch activities from repository using gems feed
       const feedResult = await this.feedRepository.getGemsFeed(collectionIds, {
         page,
         limit,
         beforeActivityId,
+        urlType,
       });
 
       if (feedResult.isErr()) {

@@ -27,6 +27,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         actorId: dto.actorId,
         type: dto.type,
         metadata: dto.metadata,
+        urlType: dto.urlType,
         createdAt: dto.createdAt,
       });
 
@@ -49,8 +50,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
         actorId: string;
         type: string;
         metadata: any;
+        urlType: string | null;
         createdAt: Date;
       }>;
+
+      // Build where conditions
+      const whereConditions = [];
+      if (options.urlType) {
+        whereConditions.push(eq(feedActivities.urlType, options.urlType));
+      }
 
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId
@@ -61,10 +69,11 @@ export class DrizzleFeedRepository implements IFeedRepository {
           .limit(1);
 
         if (beforeActivity.length > 0) {
+          const conditions = [lt(feedActivities.createdAt, beforeActivity[0]!.createdAt), ...whereConditions];
           activitiesResult = await this.db
             .select()
             .from(feedActivities)
-            .where(lt(feedActivities.createdAt, beforeActivity[0]!.createdAt))
+            .where(conditions.length > 1 ? and(...conditions) : conditions[0])
             .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
             .limit(limit);
         } else {
@@ -73,18 +82,30 @@ export class DrizzleFeedRepository implements IFeedRepository {
         }
       } else {
         // Regular pagination without cursor
-        activitiesResult = await this.db
+        const query = this.db
           .select()
-          .from(feedActivities)
+          .from(feedActivities);
+        
+        if (whereConditions.length > 0) {
+          query.where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0]);
+        }
+        
+        activitiesResult = await query
           .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
           .limit(limit)
           .offset(offset);
       }
 
-      // Get total count
-      const totalCountResult = await this.db
+      // Get total count with same filters
+      const countQuery = this.db
         .select({ count: count() })
         .from(feedActivities);
+      
+      if (whereConditions.length > 0) {
+        countQuery.where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0]);
+      }
+      
+      const totalCountResult = await countQuery;
 
       const totalCount = totalCountResult[0]?.count || 0;
 
@@ -96,6 +117,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           actorId: activityData.actorId,
           type: activityData.type,
           metadata: activityData.metadata as any,
+          urlType: activityData.urlType || undefined,
           createdAt: activityData.createdAt,
         };
 
@@ -155,8 +177,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
         actorId: string;
         type: string;
         metadata: any;
+        urlType: string | null;
         createdAt: Date;
       }>;
+
+      // Build where conditions for gems feed
+      const whereConditions = [];
+      if (options.urlType) {
+        whereConditions.push(eq(feedActivities.urlType, options.urlType));
+      }
 
       // Create the JSON array condition using jsonb_array_elements_text
       const arrayLiteral = `{${collectionIdStrings.map((id) => `"${id}"`).join(',')}}`;
@@ -174,15 +203,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
           .limit(1);
 
         if (beforeActivity.length > 0) {
+          const conditions = [
+            lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
+            jsonArrayCondition,
+            ...whereConditions
+          ];
           activitiesResult = await this.db
             .select()
             .from(feedActivities)
-            .where(
-              and(
-                lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
-                jsonArrayCondition,
-              ),
-            )
+            .where(and(...conditions))
             .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
             .limit(limit);
         } else {
@@ -191,20 +220,26 @@ export class DrizzleFeedRepository implements IFeedRepository {
         }
       } else {
         // Regular pagination without cursor
+        const conditions = [jsonArrayCondition, ...whereConditions];
         activitiesResult = await this.db
           .select()
           .from(feedActivities)
-          .where(jsonArrayCondition)
+          .where(conditions.length > 1 ? and(...conditions) : conditions[0])
           .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
           .limit(limit)
           .offset(offset);
       }
 
       // Get total count with same filter
+      const conditions = [jsonArrayCondition];
+      if (options.urlType) {
+        conditions.push(eq(feedActivities.urlType, options.urlType));
+      }
+      
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(feedActivities)
-        .where(jsonArrayCondition);
+        .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
 
       const totalCount = totalCountResult[0]?.count || 0;
 
@@ -216,6 +251,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           actorId: activityData.actorId,
           type: activityData.type,
           metadata: activityData.metadata as any,
+          urlType: activityData.urlType || undefined,
           createdAt: activityData.createdAt,
         };
 
@@ -266,6 +302,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         actorId: activityData.actorId,
         type: activityData.type,
         metadata: activityData.metadata as any,
+        urlType: activityData.urlType || undefined,
         createdAt: activityData.createdAt,
       };
 

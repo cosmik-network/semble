@@ -14,6 +14,7 @@ export class FeedClient extends BaseClient {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.beforeActivityId)
       searchParams.set('beforeActivityId', params.beforeActivityId);
+    if (params?.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -29,6 +30,7 @@ export class FeedClient extends BaseClient {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString

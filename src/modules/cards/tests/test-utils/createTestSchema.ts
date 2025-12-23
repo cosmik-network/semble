@@ -79,6 +79,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       actor_id TEXT NOT NULL,
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
+      url_type TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
 

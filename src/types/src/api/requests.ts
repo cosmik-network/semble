@@ -112,6 +112,7 @@ export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
 
 export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
+  urlType?: UrlType; // Filter by URL type
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -164,6 +165,7 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
 
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
+  urlType?: UrlType; // Filter by URL type
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
