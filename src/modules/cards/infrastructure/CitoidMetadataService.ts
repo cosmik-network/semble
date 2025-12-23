@@ -203,6 +203,8 @@ export class CitoidMetadataService implements IMetadataService {
         publishedDate,
         siteName,
         type: mapCitoidUrlType(citoidData.itemType),
+        doi: citoidData.DOI,
+        isbn: citoidData.ISBN,
       });
 
       return metadataResult;

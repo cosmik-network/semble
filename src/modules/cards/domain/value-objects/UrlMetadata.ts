@@ -12,6 +12,8 @@ export interface UrlMetadataProps {
   imageUrl?: string;
   type?: UrlType;
   retrievedAt?: Date;
+  doi?: string;
+  isbn?: string;
 }
 
 export class UrlMetadata extends ValueObject<UrlMetadataProps> {
@@ -49,6 +51,14 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
 
   get retrievedAt(): Date | undefined {
     return this.props.retrievedAt;
+  }
+
+  get doi(): string | undefined {
+    return this.props.doi;
+  }
+
+  get isbn(): string | undefined {
+    return this.props.isbn;
   }
 
   private constructor(props: UrlMetadataProps) {
