@@ -93,14 +93,18 @@ export class AddActivityToFeedUseCase
       // Fetch the card to get its URL type
       const cardResult = await this.cardRepository.findById(cardId);
       if (cardResult.isErr()) {
-        return err(new ValidationError(`Failed to fetch card: ${cardResult.error.message}`));
+        return err(
+          new ValidationError(
+            `Failed to fetch card: ${cardResult.error.message}`,
+          ),
+        );
       }
 
       let urlType;
       if (cardResult.value && cardResult.value.isUrlCard) {
-        const urlCardContent = cardResult.value.content as any;
-        if (urlCardContent.metadata?.type) {
-          urlType = urlCardContent.metadata.type;
+        const urlCardContent = cardResult.value.content;
+        if (urlCardContent.urlContent?.metadata?.type) {
+          urlType = urlCardContent.urlContent.metadata.type;
         }
       }
 
