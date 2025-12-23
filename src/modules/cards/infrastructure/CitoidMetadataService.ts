@@ -192,10 +192,8 @@ export class CitoidMetadataService implements IMetadataService {
       // Determine site name from various possible fields
       const siteName = this.determineSiteName(citoidData);
 
-      // Parse published date
-      const publishedDate = citoidData.date
-        ? this.parseDate(citoidData.date)
-        : undefined;
+      // Parse published date - try specific date fields first based on item type
+      const publishedDate = this.extractPublishedDate(citoidData);
 
       const metadataResult = UrlMetadata.create({
         url: url.value,
@@ -248,16 +246,21 @@ export class CitoidMetadataService implements IMetadataService {
     }
 
     // If no 'author' type, try other primary creator types in order of preference
+    // Based on the Zotero schema, these are the most common primary creator types
     const primaryTypes = [
-      'artist',
-      'performer',
-      'director',
-      'podcaster',
-      'cartographer',
-      'programmer',
-      'presenter',
-      'sponsor',
-      'inventor',
+      'artist',           // artwork
+      'performer',        // audioRecording
+      'director',         // film, tvBroadcast, radioBroadcast, videoRecording
+      'podcaster',        // podcast
+      'cartographer',     // map
+      'programmer',       // computerProgram
+      'presenter',        // presentation
+      'sponsor',          // bill
+      'inventor',         // patent
+      'interviewee',      // interview
+      'bookAuthor',       // bookSection
+      'editor',           // various types
+      'contributor',      // fallback for many types
     ];
 
     for (const type of primaryTypes) {
@@ -292,31 +295,133 @@ export class CitoidMetadataService implements IMetadataService {
   }
 
   private determineSiteName(data: CitoidResponse): string | undefined {
-    // Try different fields in order of preference for site name
-    return (
-      data.publicationTitle ||
-      data.websiteTitle ||
-      data.blogTitle ||
-      data.forumTitle ||
-      data.repository ||
-      data.libraryCatalog ||
-      data.institution ||
-      data.university ||
-      data.publisher
-    );
+    // Determine site name based on item type for better accuracy
+    const itemType = data.itemType;
+    
+    // Type-specific site name logic based on Zotero schema
+    switch (itemType) {
+      case 'journalArticle':
+      case 'magazineArticle':
+      case 'newspaperArticle':
+        return data.publicationTitle || data.publisher;
+      
+      case 'blogPost':
+        return data.blogTitle || data.websiteTitle;
+      
+      case 'forumPost':
+        return data.forumTitle;
+      
+      case 'webpage':
+        return data.websiteTitle;
+      
+      case 'book':
+      case 'bookSection':
+        return data.publisher || data.series;
+      
+      case 'conferencePaper':
+        return data.proceedingsTitle || data.conferenceName || data.publisher;
+      
+      case 'thesis':
+        return data.university || data.institution;
+      
+      case 'report':
+        return data.institution || data.publisher;
+      
+      case 'dataset':
+      case 'preprint':
+        return data.repository || data.institution;
+      
+      case 'podcast':
+        return data.seriesTitle || data.network;
+      
+      case 'tvBroadcast':
+      case 'radioBroadcast':
+        return data.network || data.programTitle;
+      
+      case 'film':
+      case 'videoRecording':
+        return data.distributor || data.studio;
+      
+      case 'audioRecording':
+        return data.label || data.publisher;
+      
+      default:
+        // Fallback to general logic for other types
+        return (
+          data.publicationTitle ||
+          data.websiteTitle ||
+          data.blogTitle ||
+          data.forumTitle ||
+          data.repository ||
+          data.libraryCatalog ||
+          data.institution ||
+          data.university ||
+          data.publisher
+        );
+    }
+  }
+
+  private extractPublishedDate(data: CitoidResponse): Date | undefined {
+    // Try type-specific date fields first, then fall back to general 'date' field
+    const itemType = data.itemType;
+    
+    let dateString: string | undefined;
+    
+    switch (itemType) {
+      case 'case':
+        dateString = data.dateDecided || data.date;
+        break;
+      case 'statute':
+        dateString = data.dateEnacted || data.date;
+        break;
+      case 'patent':
+        dateString = data.issueDate || data.filingDate || data.date;
+        break;
+      default:
+        dateString = data.date;
+        break;
+    }
+    
+    return dateString ? this.parseDate(dateString) : undefined;
   }
 
   private parseDate(dateString: string): Date | undefined {
     try {
-      // Handle ISO date format (YYYY-MM-DD) which is common in Citoid responses
+      // Handle various date formats common in Citoid responses
+      
+      // ISO date format (YYYY-MM-DD)
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         const parsed = new Date(dateString + 'T00:00:00.000Z');
         if (!isNaN(parsed.getTime())) {
           return parsed;
         }
       }
+      
+      // ISO datetime format (YYYY-MM-DDTHH:mm:ss.sssZ)
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateString)) {
+        const parsed = new Date(dateString);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+      
+      // Year only (YYYY)
+      if (/^\d{4}$/.test(dateString)) {
+        const parsed = new Date(`${dateString}-01-01T00:00:00.000Z`);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+      
+      // Month and year (YYYY-MM)
+      if (/^\d{4}-\d{2}$/.test(dateString)) {
+        const parsed = new Date(`${dateString}-01T00:00:00.000Z`);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
 
-      // Try to parse the date string as-is
+      // Try to parse the date string as-is for other formats
       const parsed = new Date(dateString);
 
       // Check if the date is valid
