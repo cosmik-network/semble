@@ -73,7 +73,7 @@ export const CitoidToUrlTypeMapper: Record<CitoidUrlTypes, UrlType> = {
   [CitoidUrlTypes.PRESENTATION]: UrlType.RESEARCH,
   [CitoidUrlTypes.RADIO_BROADCAST]: UrlType.AUDIO,
   [CitoidUrlTypes.REPORT]: UrlType.RESEARCH,
-  [CitoidUrlTypes.COMPUTER_PROGRAM]: UrlType.LINK,
+  [CitoidUrlTypes.COMPUTER_PROGRAM]: UrlType.SOFTWARE,
   [CitoidUrlTypes.STANDARD]: UrlType.LINK,
   [CitoidUrlTypes.STATUTE]: UrlType.LINK,
   [CitoidUrlTypes.THESIS]: UrlType.RESEARCH,

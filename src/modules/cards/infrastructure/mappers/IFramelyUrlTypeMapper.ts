@@ -29,7 +29,7 @@ export const IFramelyToUrlTypeMapper: Record<IFramelyUrlTypes, UrlType> = {
   [IFramelyUrlTypes.FILE]: UrlType.LINK,
   [IFramelyUrlTypes.ARTICLE]: UrlType.ARTICLE,
   [IFramelyUrlTypes.READER]: UrlType.ARTICLE,
-  [IFramelyUrlTypes.EVENT]: UrlType.LINK,
+  [IFramelyUrlTypes.EVENT]: UrlType.EVENT,
   [IFramelyUrlTypes.PRODUCT]: UrlType.LINK,
   [IFramelyUrlTypes.SURVEY]: UrlType.LINK,
   [IFramelyUrlTypes.FORM]: UrlType.LINK,

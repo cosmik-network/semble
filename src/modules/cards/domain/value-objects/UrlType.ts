@@ -6,4 +6,6 @@ export enum UrlType {
   AUDIO = 'audio',
   VIDEO = 'video',
   SOCIAL = 'social',
+  EVENT = 'event',
+  SOFTWARE = 'software',
 }
