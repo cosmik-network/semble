@@ -12,7 +12,7 @@ export class GetCollectionPageController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { collectionId } = req.params;
-      const { page, limit, sortBy, sortOrder } = req.query;
+      const { page, limit, sortBy, sortOrder, urlType } = req.query;
       const callerDid = req.did;
 
       if (!collectionId) {
@@ -26,6 +26,7 @@ export class GetCollectionPageController extends Controller {
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,
         sortOrder: sortOrder as SortOrder,
+        urlType: urlType as any,
       });
 
       if (result.isErr()) {

@@ -13,6 +13,7 @@ import {
   CardSortField,
   SortOrder,
 } from 'src/modules/cards/domain/ICardQueryRepository';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 
 export interface GetCollectionPageByAtUriQuery {
   handle: string;
@@ -22,6 +23,7 @@ export interface GetCollectionPageByAtUriQuery {
   limit?: number;
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 export class GetCollectionPageByAtUriUseCase
@@ -93,6 +95,7 @@ export class GetCollectionPageByAtUriUseCase
       limit: query.limit,
       sortBy: query.sortBy,
       sortOrder: query.sortOrder,
+      urlType: query.urlType,
     });
   }
 }

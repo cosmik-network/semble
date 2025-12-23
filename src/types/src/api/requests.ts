@@ -69,13 +69,18 @@ export interface DeleteCollectionRequest {
 }
 
 // Query parameters
-export interface GetMyUrlCardsParams extends PaginatedSortedParams {}
+export interface GetMyUrlCardsParams extends PaginatedSortedParams {
+  urlType?: string;
+}
 
 export interface GetUrlCardsParams extends PaginatedSortedParams {
   identifier: string; // Can be DID or handle
+  urlType?: string;
 }
 
-export interface GetCollectionPageParams extends PaginatedSortedParams {}
+export interface GetCollectionPageParams extends PaginatedSortedParams {
+  urlType?: string;
+}
 
 export interface GetMyCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
@@ -89,6 +94,7 @@ export interface GetCollectionsParams extends PaginatedSortedParams {
 export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
   handle: string;
   recordKey: string;
+  urlType?: string;
 }
 
 export interface GetGlobalFeedParams extends PaginationParams {
