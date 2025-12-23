@@ -153,10 +153,25 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection 
     ON collection_cards(card_id) INCLUDE (collection_id)
   `);
+  // Feed activities indexes
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_feed_activities_created_at ON feed_activities(created_at DESC);
+    CREATE INDEX IF NOT EXISTS feed_activities_type_idx ON feed_activities(type);
   `);
-
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_url_type_idx ON feed_activities(url_type);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_created_at_idx ON feed_activities(created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_type_created_at_idx ON feed_activities(type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_url_type_created_at_idx ON feed_activities(url_type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_type_url_type_created_at_idx ON feed_activities(type, url_type, created_at DESC);
+  `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);

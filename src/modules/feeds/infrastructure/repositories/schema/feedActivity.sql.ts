@@ -18,4 +18,6 @@ export const feedActivities = pgTable('feed_activities', {
   typeCreatedAtIdx: index('feed_activities_type_created_at_idx').on(table.type, table.createdAt.desc()),
   // Composite index for URL type filtering with date sorting
   urlTypeCreatedAtIdx: index('feed_activities_url_type_created_at_idx').on(table.urlType, table.createdAt.desc()),
+  // Composite index for filtering by both type and URL type with date sorting
+  typeUrlTypeCreatedAtIdx: index('feed_activities_type_url_type_created_at_idx').on(table.type, table.urlType, table.createdAt.desc()),
 }));
