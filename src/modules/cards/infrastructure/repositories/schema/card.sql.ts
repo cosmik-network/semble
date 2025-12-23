@@ -19,6 +19,7 @@ export const cards: PgTableWithColumns<any> = pgTable(
     type: text('type').notNull(), // URL, NOTE, HIGHLIGHT
     contentData: jsonb('content_data').notNull(),
     url: text('url'), // Optional URL field for all card types
+    urlType: text('url_type'), // Optional URL type field (article, video, etc.)
     parentCardId: uuid('parent_card_id').references(() => cards.id),
     viaCardId: uuid('via_card_id').references(() => cards.id),
     publishedRecordId: uuid('published_record_id').references(
@@ -44,6 +45,8 @@ export const cards: PgTableWithColumns<any> = pgTable(
       ),
       // Index for getLibrariesForUrl and getCollectionsWithUrl - fast URL+type lookups
       urlTypeIdx: index('idx_cards_url_type').on(table.url, table.type),
+      // Index for filtering by URL type
+      urlTypeFilterIdx: index('idx_cards_url_type_filter').on(table.urlType),
       // Partial index for finding NOTE cards by parent - only indexes NOTE type cards
       parentTypeIdx: index('idx_cards_parent_type')
         .on(table.parentCardId, table.type)

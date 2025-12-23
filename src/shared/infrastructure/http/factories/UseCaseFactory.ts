@@ -268,6 +268,7 @@ export class UseCaseFactory {
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
+        repositories.cardRepository,
       ),
       // Search use cases
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
@@ -300,6 +301,7 @@ export class UseCaseFactory {
       // Feed use cases (only ones needed by workers)
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
+        repositories.cardRepository,
       ),
       // Search use cases (only ones needed by workers)
       indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(

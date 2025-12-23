@@ -1,10 +1,12 @@
 import { CardTypeEnum } from './value-objects/CardType';
+import { UrlType } from './value-objects/UrlType';
 
 export interface CardQueryOptions {
   page: number;
   limit: number;
   sortBy: CardSortField;
   sortOrder: SortOrder;
+  urlType?: UrlType;
 }
 
 export interface PaginatedQueryResult<T> {

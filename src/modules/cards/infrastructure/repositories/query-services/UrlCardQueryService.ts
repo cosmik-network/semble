@@ -1,4 +1,5 @@
 import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { UrlCardView } from '../../../domain/ICardQueryRepository';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
@@ -31,6 +32,16 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
+      // Build where conditions
+      const whereConditions = [
+        eq(cards.authorId, userId),
+        eq(cards.type, CardTypeEnum.URL),
+      ];
+
+      if (options.urlType) {
+        whereConditions.push(eq(cards.urlType, options.urlType));
+      }
+
       // For LIBRARY_COUNT sorting, we need to handle urlLibraryCount calculation and sorting separately
       if (sortBy === CardSortField.LIBRARY_COUNT) {
         // Get all URL cards for the user first
@@ -45,9 +56,7 @@ export class UrlCardQueryService {
             updatedAt: cards.updatedAt,
           })
           .from(cards)
-          .where(
-            and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
-          );
+          .where(and(...whereConditions));
 
         const allUrlCardsResult = await allUrlCardsQuery;
 
@@ -259,9 +268,7 @@ export class UrlCardQueryService {
           updatedAt: cards.updatedAt,
         })
         .from(cards)
-        .where(
-          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
-        )
+        .where(and(...whereConditions))
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
@@ -368,9 +375,7 @@ export class UrlCardQueryService {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(cards)
-        .where(
-          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
-        );
+        .where(and(...whereConditions));
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + urlCardsResult.length < totalCount;

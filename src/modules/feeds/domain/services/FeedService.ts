@@ -5,6 +5,7 @@ import { IFeedRepository } from '../IFeedRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 
 export class FeedServiceError extends Error {
   constructor(message: string) {
@@ -20,12 +21,14 @@ export class FeedService implements DomainService {
     actorId: CuratorId,
     cardId: CardId,
     collectionIds?: CollectionId[],
+    urlType?: UrlType,
   ): Promise<Result<FeedActivity, FeedServiceError>> {
     try {
       const activityResult = FeedActivity.createCardCollected(
         actorId,
         cardId,
         collectionIds,
+        urlType,
       );
 
       if (activityResult.isErr()) {

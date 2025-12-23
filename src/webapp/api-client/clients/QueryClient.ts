@@ -43,6 +43,7 @@ export class QueryClient extends BaseClient {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params?.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -60,6 +61,7 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -102,6 +104,7 @@ export class QueryClient extends BaseClient {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params?.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -123,6 +126,7 @@ export class QueryClient extends BaseClient {
     if (queryParams.sortBy) searchParams.set('sortBy', queryParams.sortBy);
     if (queryParams.sortOrder)
       searchParams.set('sortOrder', queryParams.sortOrder);
+    if (queryParams.urlType) searchParams.set('urlType', queryParams.urlType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -233,6 +237,7 @@ export class QueryClient extends BaseClient {
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params.threshold)
       searchParams.set('threshold', params.threshold.toString());
+    if (params.urlType) searchParams.set('urlType', params.urlType);
 
     return this.request<GetSimilarUrlsForUrlResponse>(
       'GET',

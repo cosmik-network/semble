@@ -17,7 +17,7 @@ export class GetCollectionPageByAtUriController extends Controller {
       if (!handle || !recordKey) {
         return this.badRequest(res, 'Handle and recordKey are required');
       }
-      const { page, limit, sortBy, sortOrder } = req.query;
+      const { page, limit, sortBy, sortOrder, urlType } = req.query;
       const callerDid = req.did;
 
       const result = await this.getCollectionPageByAtUriUseCase.execute({
@@ -28,6 +28,7 @@ export class GetCollectionPageByAtUriController extends Controller {
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,
         sortOrder: sortOrder as SortOrder,
+        urlType: urlType as any,
       });
 
       if (result.isErr()) {
