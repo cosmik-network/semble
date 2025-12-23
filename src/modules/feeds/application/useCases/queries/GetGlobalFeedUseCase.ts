@@ -11,7 +11,7 @@ import {
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
-import { UrlType } from '../../../cards/domain/value-objects/UrlType';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGlobalFeedQuery {

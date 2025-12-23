@@ -16,7 +16,7 @@ import {
   SortOrder,
 } from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
-import { UrlType } from '../../../cards/domain/value-objects/UrlType';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGemActivityFeedQuery {

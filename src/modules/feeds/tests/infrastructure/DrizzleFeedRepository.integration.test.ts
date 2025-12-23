@@ -116,12 +116,14 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       cardId,
       [collectionId],
+      undefined,
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
     const activity2 = FeedActivity.createCardCollected(
       anotherCuratorId,
       anotherCardId,
+      undefined,
       undefined,
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
@@ -130,6 +132,7 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       anotherCardId,
       [collectionId],
+      undefined,
       new Date(baseTime.getTime()), // newest
     ).unwrap();
 
@@ -181,6 +184,7 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       cardId,
       undefined,
+      undefined,
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
@@ -188,12 +192,14 @@ describe('DrizzleFeedRepository', () => {
       anotherCuratorId,
       anotherCardId,
       undefined,
+      undefined,
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
     const activity3 = FeedActivity.createCardCollected(
       curatorId,
       anotherCardId,
+      undefined,
       undefined,
       new Date(baseTime.getTime()), // newest
     ).unwrap();
@@ -321,6 +327,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         cardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 300),
       ).unwrap();
 
@@ -329,6 +336,7 @@ describe('DrizzleFeedRepository', () => {
         anotherCuratorId,
         anotherCardId,
         [collection2],
+        undefined,
         new Date(baseTime.getTime() - 200),
       ).unwrap();
 
@@ -337,6 +345,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         anotherCardId,
         [collection1, collection3],
+        undefined,
         new Date(baseTime.getTime() - 100),
       ).unwrap();
 
@@ -344,6 +353,7 @@ describe('DrizzleFeedRepository', () => {
       const activity4 = FeedActivity.createCardCollected(
         anotherCuratorId,
         cardId,
+        undefined,
         undefined,
         new Date(baseTime.getTime()),
       ).unwrap();
@@ -419,6 +429,7 @@ describe('DrizzleFeedRepository', () => {
           curatorId,
           CardId.createFromString(`card-${i}`).unwrap(),
           [collection1],
+          undefined,
           new Date(baseTime.getTime() - i * 100),
         ).unwrap();
         activities.push(activity);
@@ -469,6 +480,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         cardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 300), // oldest
       ).unwrap();
 
@@ -476,6 +488,7 @@ describe('DrizzleFeedRepository', () => {
         anotherCuratorId,
         anotherCardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 200), // middle
       ).unwrap();
 
@@ -483,6 +496,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         CardId.createFromString('card-999').unwrap(),
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 100), // newest
       ).unwrap();
 
