@@ -46,6 +46,7 @@ export interface CardPersistenceData {
     type: string;
     contentData: CardContentData;
     url?: string;
+    urlType?: string;
     parentCardId?: string;
     viaCardId?: string;
     libraryCount: number;
@@ -101,6 +102,7 @@ export interface CardDTO {
   type: string;
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
+  urlType?: string;
   parentCardId?: string;
   viaCardId?: string;
   publishedRecordId?: {
@@ -344,6 +346,7 @@ export class CardMapper {
         type: card.type.value,
         contentData,
         url: card.url?.value,
+        urlType: content.type === CardTypeEnum.URL ? content.urlContent?.metadata?.type : undefined,
         parentCardId: card.parentCardId?.getStringValue(),
         viaCardId: card.viaCardId?.getStringValue(),
         libraryCount: card.libraryCount,

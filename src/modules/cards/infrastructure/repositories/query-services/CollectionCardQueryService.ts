@@ -1,4 +1,5 @@
 import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,
@@ -48,6 +49,16 @@ export class CollectionCardQueryService {
 
       const collectionAuthorId = collectionResult[0]!.authorId;
 
+      // Build where conditions
+      const whereConditions = [
+        eq(collectionCards.collectionId, collectionId),
+        eq(cards.type, CardTypeEnum.URL),
+      ];
+      
+      if (options.urlType) {
+        whereConditions.push(eq(cards.urlType, options.urlType));
+      }
+
       // Get cards in collection - use standard query for all sort fields
       const cardsQuery = this.db
         .select({
@@ -61,12 +72,7 @@ export class CollectionCardQueryService {
         })
         .from(cards)
         .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
-        .where(
-          and(
-            eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
-        );
+        .where(and(...whereConditions));
 
       // For LIBRARY_COUNT sorting, we need to sort by urlLibraryCount after calculating it
       let cardsWithUrlLibraryCount: Array<{
@@ -270,12 +276,7 @@ export class CollectionCardQueryService {
         .select({ count: count() })
         .from(cards)
         .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
-        .where(
-          and(
-            eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
-        );
+        .where(and(...whereConditions));
 
       const totalCount = totalCountResult[0]?.count || 0;
       // const offset = (page - 1) * limit;
