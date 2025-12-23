@@ -8,6 +8,8 @@ import {
 import { UserAuthenticationService } from '../../../../modules/user/infrastructure/services/UserAuthenticationService';
 import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
 import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
+import { CitoidMetadataService } from '../../../../modules/cards/infrastructure/CitoidMetadataService';
+import { CompositeMetadataService } from '../../../../modules/cards/infrastructure/CompositeMetadataService';
 import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
@@ -256,8 +258,16 @@ export class ServiceFactory {
       ? new FakeAgentService()
       : new ATProtoAgentService(nodeOauthClient, appPasswordSessionService);
 
-    const metadataService = new IFramelyMetadataService(
+    // Create individual metadata services
+    const iframelyService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
+    );
+    const citoidService = new CitoidMetadataService();
+
+    // Create composite metadata service
+    const metadataService = new CompositeMetadataService(
+      iframelyService,
+      citoidService,
     );
 
     // Profile Service with Redis caching

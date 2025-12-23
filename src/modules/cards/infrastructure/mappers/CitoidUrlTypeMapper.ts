@@ -1,0 +1,93 @@
+import { UrlType } from '../../domain/value-objects/UrlType';
+
+export enum CitoidUrlTypes {
+  ARTWORK = 'artwork',
+  AUDIO_RECORDING = 'audioRecording',
+  BILL = 'bill',
+  BLOG_POST = 'blogPost',
+  BOOK = 'book',
+  BOOK_SECTION = 'bookSection',
+  CASE = 'case',
+  CONFERENCE_PAPER = 'conferencePaper',
+  DATASET = 'dataset',
+  DICTIONARY_ENTRY = 'dictionaryEntry',
+  DOCUMENT = 'document',
+  EMAIL = 'email',
+  ENCYCLOPEDIA_ARTICLE = 'encyclopediaArticle',
+  FILM = 'film',
+  FORUM_POST = 'forumPost',
+  HEARING = 'hearing',
+  INSTANT_MESSAGE = 'instantMessage',
+  INTERVIEW = 'interview',
+  JOURNAL_ARTICLE = 'journalArticle',
+  LETTER = 'letter',
+  MAGAZINE_ARTICLE = 'magazineArticle',
+  MANUSCRIPT = 'manuscript',
+  MAP = 'map',
+  NEWSPAPER_ARTICLE = 'newspaperArticle',
+  NOTE = 'note',
+  PATENT = 'patent',
+  PODCAST = 'podcast',
+  PREPRINT = 'preprint',
+  PRESENTATION = 'presentation',
+  RADIO_BROADCAST = 'radioBroadcast',
+  REPORT = 'report',
+  COMPUTER_PROGRAM = 'computerProgram',
+  STANDARD = 'standard',
+  STATUTE = 'statute',
+  THESIS = 'thesis',
+  TV_BROADCAST = 'tvBroadcast',
+  VIDEO_RECORDING = 'videoRecording',
+  WEBPAGE = 'webpage',
+}
+
+export const CitoidToUrlTypeMapper: Record<CitoidUrlTypes, UrlType> = {
+  [CitoidUrlTypes.ARTWORK]: UrlType.LINK,
+  [CitoidUrlTypes.AUDIO_RECORDING]: UrlType.AUDIO,
+  [CitoidUrlTypes.BILL]: UrlType.LINK,
+  [CitoidUrlTypes.BLOG_POST]: UrlType.ARTICLE,
+  [CitoidUrlTypes.BOOK]: UrlType.BOOK,
+  [CitoidUrlTypes.BOOK_SECTION]: UrlType.BOOK,
+  [CitoidUrlTypes.CASE]: UrlType.LINK,
+  [CitoidUrlTypes.CONFERENCE_PAPER]: UrlType.RESEARCH,
+  [CitoidUrlTypes.DATASET]: UrlType.RESEARCH,
+  [CitoidUrlTypes.DICTIONARY_ENTRY]: UrlType.LINK,
+  [CitoidUrlTypes.DOCUMENT]: UrlType.LINK,
+  [CitoidUrlTypes.EMAIL]: UrlType.LINK,
+  [CitoidUrlTypes.ENCYCLOPEDIA_ARTICLE]: UrlType.ARTICLE,
+  [CitoidUrlTypes.FILM]: UrlType.VIDEO,
+  [CitoidUrlTypes.FORUM_POST]: UrlType.SOCIAL,
+  [CitoidUrlTypes.HEARING]: UrlType.LINK,
+  [CitoidUrlTypes.INSTANT_MESSAGE]: UrlType.LINK,
+  [CitoidUrlTypes.INTERVIEW]: UrlType.LINK,
+  [CitoidUrlTypes.JOURNAL_ARTICLE]: UrlType.RESEARCH,
+  [CitoidUrlTypes.LETTER]: UrlType.LINK,
+  [CitoidUrlTypes.MAGAZINE_ARTICLE]: UrlType.ARTICLE,
+  [CitoidUrlTypes.MANUSCRIPT]: UrlType.RESEARCH,
+  [CitoidUrlTypes.MAP]: UrlType.LINK,
+  [CitoidUrlTypes.NEWSPAPER_ARTICLE]: UrlType.ARTICLE,
+  [CitoidUrlTypes.NOTE]: UrlType.LINK,
+  [CitoidUrlTypes.PATENT]: UrlType.LINK,
+  [CitoidUrlTypes.PODCAST]: UrlType.AUDIO,
+  [CitoidUrlTypes.PREPRINT]: UrlType.RESEARCH,
+  [CitoidUrlTypes.PRESENTATION]: UrlType.RESEARCH,
+  [CitoidUrlTypes.RADIO_BROADCAST]: UrlType.AUDIO,
+  [CitoidUrlTypes.REPORT]: UrlType.RESEARCH,
+  [CitoidUrlTypes.COMPUTER_PROGRAM]: UrlType.SOFTWARE,
+  [CitoidUrlTypes.STANDARD]: UrlType.LINK,
+  [CitoidUrlTypes.STATUTE]: UrlType.LINK,
+  [CitoidUrlTypes.THESIS]: UrlType.RESEARCH,
+  [CitoidUrlTypes.TV_BROADCAST]: UrlType.VIDEO,
+  [CitoidUrlTypes.VIDEO_RECORDING]: UrlType.VIDEO,
+  [CitoidUrlTypes.WEBPAGE]: UrlType.LINK,
+};
+
+export function mapCitoidUrlType(citoidType?: string): UrlType {
+  if (!citoidType) {
+    return UrlType.LINK;
+  }
+
+  // Convert camelCase to match enum keys
+  const normalizedType = citoidType as CitoidUrlTypes;
+  return CitoidToUrlTypeMapper[normalizedType] || UrlType.LINK;
+}

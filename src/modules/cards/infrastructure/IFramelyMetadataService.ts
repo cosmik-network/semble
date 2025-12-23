@@ -2,6 +2,7 @@ import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, err } from '../../../shared/core/Result';
+import { mapIFramelyUrlType } from './mappers/IFramelyUrlTypeMapper';
 
 interface IFramelyMeta {
   title?: string;
@@ -93,7 +94,7 @@ export class IFramelyMetadataService implements IMetadataService {
         publishedDate,
         siteName: meta.site,
         imageUrl,
-        type: meta.medium,
+        type: mapIFramelyUrlType(meta.medium),
       });
 
       return metadataResult;
