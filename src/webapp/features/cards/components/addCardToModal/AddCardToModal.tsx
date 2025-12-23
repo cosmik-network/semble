@@ -1,3 +1,4 @@
+import type { UrlCard } from '@semble/types';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { Modal, Stack, Text } from '@mantine/core';
 import { Suspense } from 'react';
@@ -13,6 +14,7 @@ interface Props {
   isInYourLibrary?: boolean;
   urlLibraryCount: number;
   viaCardId?: string;
+  cardContent?: UrlCard['cardContent'];
 }
 
 export default function AddCardToModal(props: Props) {
@@ -51,6 +53,7 @@ export default function AddCardToModal(props: Props) {
           onClose={props.onClose}
           url={props.url}
           cardId={props.cardId}
+          cardContent={props.cardContent}
           note={props.note}
           viaCardId={props.viaCardId}
         />
