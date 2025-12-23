@@ -2,7 +2,10 @@ import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok, err } from '../../../shared/core/Result';
-import { mapCitoidUrlType, CitoidUrlTypes } from './mappers/CitoidUrlTypeMapper';
+import {
+  mapCitoidUrlType,
+  CitoidUrlTypes,
+} from './mappers/CitoidUrlTypeMapper';
 
 interface CitoidCreator {
   firstName?: string;
@@ -250,19 +253,19 @@ export class CitoidMetadataService implements IMetadataService {
     // If no 'author' type, try other primary creator types in order of preference
     // Based on the Zotero schema, these are the most common primary creator types
     const primaryTypes = [
-      'artist',           // artwork
-      'performer',        // audioRecording
-      'director',         // film, tvBroadcast, radioBroadcast, videoRecording
-      'podcaster',        // podcast
-      'cartographer',     // map
-      'programmer',       // computerProgram
-      'presenter',        // presentation
-      'sponsor',          // bill
-      'inventor',         // patent
-      'interviewee',      // interview
-      'bookAuthor',       // bookSection
-      'editor',           // various types
-      'contributor',      // fallback for many types
+      'artist', // artwork
+      'performer', // audioRecording
+      'director', // film, tvBroadcast, radioBroadcast, videoRecording
+      'podcaster', // podcast
+      'cartographer', // map
+      'programmer', // computerProgram
+      'presenter', // presentation
+      'sponsor', // bill
+      'inventor', // patent
+      'interviewee', // interview
+      'bookAuthor', // bookSection
+      'editor', // various types
+      'contributor', // fallback for many types
     ];
 
     for (const type of primaryTypes) {
@@ -299,54 +302,54 @@ export class CitoidMetadataService implements IMetadataService {
   private determineSiteName(data: CitoidResponse): string | undefined {
     // Determine site name based on item type for better accuracy
     const itemType = data.itemType;
-    
+
     // Type-specific site name logic based on Zotero schema
     switch (itemType) {
       case CitoidUrlTypes.JOURNAL_ARTICLE:
       case CitoidUrlTypes.MAGAZINE_ARTICLE:
       case CitoidUrlTypes.NEWSPAPER_ARTICLE:
         return data.publicationTitle || data.publisher;
-      
+
       case CitoidUrlTypes.BLOG_POST:
         return data.blogTitle || data.websiteTitle;
-      
+
       case CitoidUrlTypes.FORUM_POST:
         return data.forumTitle;
-      
+
       case CitoidUrlTypes.WEBPAGE:
         return data.websiteTitle;
-      
+
       case CitoidUrlTypes.BOOK:
       case CitoidUrlTypes.BOOK_SECTION:
         return data.publisher || data.series;
-      
+
       case CitoidUrlTypes.CONFERENCE_PAPER:
         return data.proceedingsTitle || data.conferenceName || data.publisher;
-      
+
       case CitoidUrlTypes.THESIS:
         return data.university || data.institution;
-      
+
       case CitoidUrlTypes.REPORT:
         return data.institution || data.publisher;
-      
+
       case CitoidUrlTypes.DATASET:
       case CitoidUrlTypes.PREPRINT:
         return data.repository || data.institution;
-      
+
       case CitoidUrlTypes.PODCAST:
         return data.seriesTitle || data.network;
-      
+
       case CitoidUrlTypes.TV_BROADCAST:
       case CitoidUrlTypes.RADIO_BROADCAST:
         return data.network || data.programTitle;
-      
+
       case CitoidUrlTypes.FILM:
       case CitoidUrlTypes.VIDEO_RECORDING:
         return data.distributor || data.studio;
-      
+
       case CitoidUrlTypes.AUDIO_RECORDING:
         return data.label || data.publisher;
-      
+
       default:
         // Fallback to general logic for other types
         return (
@@ -366,9 +369,9 @@ export class CitoidMetadataService implements IMetadataService {
   private extractPublishedDate(data: CitoidResponse): Date | undefined {
     // Try type-specific date fields first, then fall back to general 'date' field
     const itemType = data.itemType;
-    
+
     let dateString: string | undefined;
-    
+
     switch (itemType) {
       case CitoidUrlTypes.CASE:
         dateString = data.dateDecided || data.date;
@@ -383,14 +386,14 @@ export class CitoidMetadataService implements IMetadataService {
         dateString = data.date;
         break;
     }
-    
+
     return dateString ? this.parseDate(dateString) : undefined;
   }
 
   private parseDate(dateString: string): Date | undefined {
     try {
       // Handle various date formats common in Citoid responses
-      
+
       // ISO date format (YYYY-MM-DD)
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         const parsed = new Date(dateString + 'T00:00:00.000Z');
@@ -398,7 +401,7 @@ export class CitoidMetadataService implements IMetadataService {
           return parsed;
         }
       }
-      
+
       // ISO datetime format (YYYY-MM-DDTHH:mm:ss.sssZ)
       if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateString)) {
         const parsed = new Date(dateString);
@@ -406,7 +409,7 @@ export class CitoidMetadataService implements IMetadataService {
           return parsed;
         }
       }
-      
+
       // Year only (YYYY)
       if (/^\d{4}$/.test(dateString)) {
         const parsed = new Date(`${dateString}-01-01T00:00:00.000Z`);
@@ -414,7 +417,7 @@ export class CitoidMetadataService implements IMetadataService {
           return parsed;
         }
       }
-      
+
       // Month and year (YYYY-MM)
       if (/^\d{4}-\d{2}$/.test(dateString)) {
         const parsed = new Date(`${dateString}-01T00:00:00.000Z`);

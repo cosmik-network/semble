@@ -263,7 +263,7 @@ export class ServiceFactory {
       configService.getIFramelyApiKey(),
     );
     const citoidService = new CitoidMetadataService();
-    
+
     // Create composite metadata service
     const metadataService = new CompositeMetadataService(
       iframelyService,
