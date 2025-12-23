@@ -23,6 +23,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       content_data JSONB NOT NULL,
       url TEXT,
+      url_type TEXT,
       parent_card_id UUID REFERENCES cards(id),
       via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
@@ -125,6 +126,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_cards_url_type 
     ON cards(url, type) INCLUDE (id)
+  `);
+
+  // Index for filtering by URL type
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_url_type_filter 
+    ON cards(url_type)
   `);
 
   // Covering index for getCardsInCollection - sorted by add time with cardId included
