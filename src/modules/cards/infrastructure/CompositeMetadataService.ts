@@ -40,23 +40,23 @@ export class CompositeMetadataService implements IMetadataService {
     // Extract successful results
     const iframelySuccess =
       iframelyResult.status === 'fulfilled' && iframelyResult.value.isOk()
-        ? iframelyResult.value.getValue()
+        ? iframelyResult.value.value
         : null;
 
     const citoidSuccess =
       citoidResult.status === 'fulfilled' && citoidResult.value.isOk()
-        ? citoidResult.value.getValue()
+        ? citoidResult.value.value
         : null;
 
     // If both failed, return an error
     if (!iframelySuccess && !citoidSuccess) {
       const iframelyError =
         iframelyResult.status === 'fulfilled'
-          ? iframelyResult.value.getError()
+          ? iframelyResult.value.isErr() ? iframelyResult.value.error : new Error('Iframely service failed')
           : new Error('Iframely service failed');
       const citoidError =
         citoidResult.status === 'fulfilled'
-          ? citoidResult.value.getError()
+          ? citoidResult.value.isErr() ? citoidResult.value.error : new Error('Citoid service failed')
           : new Error('Citoid service failed');
 
       return err(
