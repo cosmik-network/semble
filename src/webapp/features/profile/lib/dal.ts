@@ -12,7 +12,7 @@ export const getProfile = cache(async (didOrHandle: string) => {
 });
 
 export const getMyProfile = cache(async () => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getMyProfile();

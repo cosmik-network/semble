@@ -53,7 +53,7 @@ export const getCollections = cache(
 
 export const getMyCollections = cache(
   async (params?: PageParams & SearchParams) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.getMyCollections({
@@ -76,7 +76,7 @@ export const getMyCollections = cache(
 
 export const createCollection = cache(
   async (newCollection: { name: string; description: string }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.createCollection(newCollection);
@@ -86,7 +86,7 @@ export const createCollection = cache(
 );
 
 export const deleteCollection = cache(async (id: string) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.deleteCollection({ collectionId: id });
@@ -101,7 +101,7 @@ export const updateCollection = cache(
     name: string;
     description?: string;
   }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.updateCollection(collection);

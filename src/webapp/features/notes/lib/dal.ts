@@ -22,7 +22,7 @@ export const getNoteCardsForUrl = cache(
 
 export const updateNoteCard = cache(
   async (note: { cardId: string; note: string }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.updateNoteCard(note);
