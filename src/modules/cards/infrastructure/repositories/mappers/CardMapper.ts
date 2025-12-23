@@ -346,7 +346,10 @@ export class CardMapper {
         type: card.type.value,
         contentData,
         url: card.url?.value,
-        urlType: content.type === CardTypeEnum.URL ? content.urlContent?.metadata?.type : undefined,
+        urlType:
+          content.type === CardTypeEnum.URL
+            ? content.urlContent?.metadata?.type
+            : undefined,
         parentCardId: card.parentCardId?.getStringValue(),
         viaCardId: card.viaCardId?.getStringValue(),
         libraryCount: card.libraryCount,

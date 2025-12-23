@@ -37,7 +37,7 @@ export class UrlCardQueryService {
         eq(cards.authorId, userId),
         eq(cards.type, CardTypeEnum.URL),
       ];
-      
+
       if (options.urlType) {
         whereConditions.push(eq(cards.urlType, options.urlType));
       }

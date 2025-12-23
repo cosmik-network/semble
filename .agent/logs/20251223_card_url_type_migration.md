@@ -1,7 +1,7 @@
 # Card URL Type Migration Plan
 
 **Date:** 2025-12-23  
-**Status:** Planning Phase  
+**Status:** Planning Phase
 
 ## Overview
 
@@ -10,18 +10,21 @@ Adding a dedicated `urlType` field to the cards table to enable efficient queryi
 ## Approach: Incremental Migration
 
 ### Phase 1: Add Optional Field (Immediate)
+
 - Add `url_type` TEXT column to cards table (nullable)
 - Update CardMapper to populate urlType for new cards
 - Add indexes for performance
 - New cards will be immediately queryable by type
 
 ### Phase 2: Hybrid Queries (Temporary)
+
 - Update query services to handle mixed data:
   - Fast indexed lookup for new cards (urlType field)
   - Fallback JSON query for old cards (contentData.metadata.type)
 - Use OR conditions to support both data states
 
 ### Phase 3: Backfill Migration (Later)
+
 - Run SQL update to populate urlType for existing cards
 - Remove fallback JSON queries once migration complete
 - Simplify query logic to use only indexed field
@@ -31,7 +34,7 @@ Adding a dedicated `urlType` field to the cards table to enable efficient queryi
 ✅ **Zero downtime** - No breaking changes  
 ✅ **Immediate value** - New cards queryable by type right away  
 ✅ **Gradual migration** - Can backfill when convenient  
-✅ **Performance** - Indexed queries for new data  
+✅ **Performance** - Indexed queries for new data
 
 ## Implementation Notes
 
@@ -42,10 +45,10 @@ Adding a dedicated `urlType` field to the cards table to enable efficient queryi
 ## Migration SQL (for Phase 3)
 
 ```sql
-UPDATE cards 
+UPDATE cards
 SET url_type = content_data #>> '{metadata,type}'
-WHERE type = 'URL' 
-  AND url_type IS NULL 
+WHERE type = 'URL'
+  AND url_type IS NULL
   AND content_data #>> '{metadata,type}' IS NOT NULL;
 ```
 

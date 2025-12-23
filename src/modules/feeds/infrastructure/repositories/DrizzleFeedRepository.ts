@@ -69,7 +69,10 @@ export class DrizzleFeedRepository implements IFeedRepository {
           .limit(1);
 
         if (beforeActivity.length > 0) {
-          const conditions = [lt(feedActivities.createdAt, beforeActivity[0]!.createdAt), ...whereConditions];
+          const conditions = [
+            lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
+            ...whereConditions,
+          ];
           activitiesResult = await this.db
             .select()
             .from(feedActivities)
@@ -82,14 +85,16 @@ export class DrizzleFeedRepository implements IFeedRepository {
         }
       } else {
         // Regular pagination without cursor
-        const query = this.db
-          .select()
-          .from(feedActivities);
-        
+        const query = this.db.select().from(feedActivities);
+
         if (whereConditions.length > 0) {
-          query.where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0]);
+          query.where(
+            whereConditions.length > 1
+              ? and(...whereConditions)
+              : whereConditions[0],
+          );
         }
-        
+
         activitiesResult = await query
           .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
           .limit(limit)
@@ -100,11 +105,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const countQuery = this.db
         .select({ count: count() })
         .from(feedActivities);
-      
+
       if (whereConditions.length > 0) {
-        countQuery.where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0]);
+        countQuery.where(
+          whereConditions.length > 1
+            ? and(...whereConditions)
+            : whereConditions[0],
+        );
       }
-      
+
       const totalCountResult = await countQuery;
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -206,7 +215,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           const conditions = [
             lt(feedActivities.createdAt, beforeActivity[0]!.createdAt),
             jsonArrayCondition,
-            ...whereConditions
+            ...whereConditions,
           ];
           activitiesResult = await this.db
             .select()
@@ -235,7 +244,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
       if (options.urlType) {
         conditions.push(eq(feedActivities.urlType, options.urlType));
       }
-      
+
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(feedActivities)

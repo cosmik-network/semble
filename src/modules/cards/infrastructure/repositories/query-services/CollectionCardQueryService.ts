@@ -54,7 +54,7 @@ export class CollectionCardQueryService {
         eq(collectionCards.collectionId, collectionId),
         eq(cards.type, CardTypeEnum.URL),
       ];
-      
+
       if (options.urlType) {
         whereConditions.push(eq(cards.urlType, options.urlType));
       }

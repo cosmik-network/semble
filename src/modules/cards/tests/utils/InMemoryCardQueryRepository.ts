@@ -32,12 +32,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     try {
       // Get all cards and filter by user's library membership
       const allCards = this.cardRepository.getAllCards();
-      let userCards = allCards
-        .filter(
-          (card) =>
-            card.isUrlCard &&
-            card.isInLibrary(CuratorId.create(userId).unwrap()),
-        );
+      let userCards = allCards.filter(
+        (card) =>
+          card.isUrlCard && card.isInLibrary(CuratorId.create(userId).unwrap()),
+      );
 
       // Filter by urlType if specified
       if (options.urlType) {
@@ -244,8 +242,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       );
       let collectionCards = allCards.filter(
         (card) =>
-          collectionCardIds.has(card.cardId.getStringValue()) &&
-          card.isUrlCard,
+          collectionCardIds.has(card.cardId.getStringValue()) && card.isUrlCard,
       );
 
       // Filter by urlType if specified
