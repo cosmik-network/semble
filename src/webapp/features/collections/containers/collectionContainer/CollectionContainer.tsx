@@ -106,9 +106,6 @@ export default function CollectionContainer(props: Props) {
           </Stack>
 
           <Group gap={'xs'}>
-            <Text fw={600} c="gray">
-              By
-            </Text>
             <Group gap={5}>
               <Avatar
                 size={'sm'}
