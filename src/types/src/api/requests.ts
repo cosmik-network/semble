@@ -161,6 +161,7 @@ export interface GetCollectionsForUrlParams extends PaginatedSortedParams {
 export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   url: string;
   threshold?: number;
+  urlType?: string;
 }
 
 export interface GetGemActivityFeedParams extends PaginationParams {

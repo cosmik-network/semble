@@ -69,7 +69,7 @@ export class SearchService {
 
   async findSimilarUrls(
     url: URL,
-    options: { limit: number; threshold?: number; callingUserId?: string },
+    options: { limit: number; threshold?: number; urlType?: UrlType; callingUserId?: string },
   ): Promise<Result<UrlView[]>> {
     try {
       // 1. Find similar URLs from vector database
@@ -77,6 +77,7 @@ export class SearchService {
         url: url.value,
         limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
+        urlType: options.urlType,
       };
 
       const similarResult =

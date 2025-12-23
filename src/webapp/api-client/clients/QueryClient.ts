@@ -237,6 +237,7 @@ export class QueryClient extends BaseClient {
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params.threshold)
       searchParams.set('threshold', params.threshold.toString());
+    if (params.urlType) searchParams.set('urlType', params.urlType);
 
     return this.request<GetSimilarUrlsForUrlResponse>(
       'GET',
