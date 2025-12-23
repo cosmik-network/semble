@@ -2,7 +2,7 @@ import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok, err } from '../../../shared/core/Result';
-import { mapCitoidUrlType } from './mappers/CitoidUrlTypeMapper';
+import { mapCitoidUrlType, CitoidUrlTypes } from './mappers/CitoidUrlTypeMapper';
 
 interface CitoidCreator {
   firstName?: string;
@@ -300,49 +300,49 @@ export class CitoidMetadataService implements IMetadataService {
     
     // Type-specific site name logic based on Zotero schema
     switch (itemType) {
-      case 'journalArticle':
-      case 'magazineArticle':
-      case 'newspaperArticle':
+      case CitoidUrlTypes.JOURNAL_ARTICLE:
+      case CitoidUrlTypes.MAGAZINE_ARTICLE:
+      case CitoidUrlTypes.NEWSPAPER_ARTICLE:
         return data.publicationTitle || data.publisher;
       
-      case 'blogPost':
+      case CitoidUrlTypes.BLOG_POST:
         return data.blogTitle || data.websiteTitle;
       
-      case 'forumPost':
+      case CitoidUrlTypes.FORUM_POST:
         return data.forumTitle;
       
-      case 'webpage':
+      case CitoidUrlTypes.WEBPAGE:
         return data.websiteTitle;
       
-      case 'book':
-      case 'bookSection':
+      case CitoidUrlTypes.BOOK:
+      case CitoidUrlTypes.BOOK_SECTION:
         return data.publisher || data.series;
       
-      case 'conferencePaper':
+      case CitoidUrlTypes.CONFERENCE_PAPER:
         return data.proceedingsTitle || data.conferenceName || data.publisher;
       
-      case 'thesis':
+      case CitoidUrlTypes.THESIS:
         return data.university || data.institution;
       
-      case 'report':
+      case CitoidUrlTypes.REPORT:
         return data.institution || data.publisher;
       
-      case 'dataset':
-      case 'preprint':
+      case CitoidUrlTypes.DATASET:
+      case CitoidUrlTypes.PREPRINT:
         return data.repository || data.institution;
       
-      case 'podcast':
+      case CitoidUrlTypes.PODCAST:
         return data.seriesTitle || data.network;
       
-      case 'tvBroadcast':
-      case 'radioBroadcast':
+      case CitoidUrlTypes.TV_BROADCAST:
+      case CitoidUrlTypes.RADIO_BROADCAST:
         return data.network || data.programTitle;
       
-      case 'film':
-      case 'videoRecording':
+      case CitoidUrlTypes.FILM:
+      case CitoidUrlTypes.VIDEO_RECORDING:
         return data.distributor || data.studio;
       
-      case 'audioRecording':
+      case CitoidUrlTypes.AUDIO_RECORDING:
         return data.label || data.publisher;
       
       default:
@@ -368,13 +368,13 @@ export class CitoidMetadataService implements IMetadataService {
     let dateString: string | undefined;
     
     switch (itemType) {
-      case 'case':
+      case CitoidUrlTypes.CASE:
         dateString = data.dateDecided || data.date;
         break;
-      case 'statute':
+      case CitoidUrlTypes.STATUTE:
         dateString = data.dateEnacted || data.date;
         break;
-      case 'patent':
+      case CitoidUrlTypes.PATENT:
         dateString = data.issueDate || data.filingDate || data.date;
         break;
       default:
