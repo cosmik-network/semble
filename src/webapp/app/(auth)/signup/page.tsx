@@ -1,63 +1,12 @@
-'use client';
-
 import SignUpForm from '@/features/auth/components/signUpForm/SignUpForm';
-import {
-  Stack,
-  Title,
-  Text,
-  Anchor,
-  Image,
-  Loader,
-  Badge,
-} from '@mantine/core';
+import { Stack, Title, Text, Anchor, Image, Badge } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { redirect } from 'next/navigation';
 
-export default function Page() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    if (isAuthenticated) {
-      setIsRedirecting(true);
-
-      // redirect after 1 second
-      timeoutId = setTimeout(() => {
-        router.push('/home');
-      }, 1000);
-    }
-
-    // clean up
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isAuthenticated, router]);
-
-  if (isLoading) {
-    return (
-      <Stack align="center">
-        <Loader type="dots" />
-      </Stack>
-    );
-  }
-
-  if (isRedirecting) {
-    return (
-      <Stack align="center">
-        <Text fw={500} fz={'xl'}>
-          Already logged in, redirecting you to library
-        </Text>
-        <Loader type="dots" />
-      </Stack>
-    );
-  }
+export default async function Page() {
+  const session = await verifySessionOnServer();
+  if (session) redirect('/home');
 
   return (
     <Stack align="center" gap="xl" maw={450}>
