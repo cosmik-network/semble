@@ -137,6 +137,14 @@ export const schemaDict = {
             format: 'datetime',
             description: 'When the metadata was retrieved',
           },
+          doi: {
+            type: 'string',
+            description: 'Digital Object Identifier (DOI) for academic content',
+          },
+          isbn: {
+            type: 'string',
+            description: 'International Standard Book Number (ISBN) for books',
+          },
         },
       },
     },
