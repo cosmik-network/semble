@@ -7,6 +7,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 import { v4 as uuid } from 'uuid';
 import {
@@ -245,7 +246,7 @@ export class CardMapper {
                 : undefined,
               siteName: urlData.metadata.siteName,
               imageUrl: urlData.metadata.imageUrl,
-              type: urlData.metadata.type,
+              type: urlData.metadata.type as UrlType,
               retrievedAt: new Date(urlData.metadata.retrievedAt),
             });
             if (metadataResult.isErr()) return err(metadataResult.error);
