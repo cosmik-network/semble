@@ -13,6 +13,19 @@ export interface PaginatedSortedParams
   extends PaginationParams,
     SortingParams {}
 
+// URL Type enum for filtering
+export enum UrlType {
+  ARTICLE = 'article',
+  LINK = 'link',
+  BOOK = 'book',
+  RESEARCH = 'research',
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  SOCIAL = 'social',
+  EVENT = 'event',
+  SOFTWARE = 'software',
+}
+
 // Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -70,16 +83,16 @@ export interface DeleteCollectionRequest {
 
 // Query parameters
 export interface GetMyUrlCardsParams extends PaginatedSortedParams {
-  urlType?: string;
+  urlType?: UrlType;
 }
 
 export interface GetUrlCardsParams extends PaginatedSortedParams {
   identifier: string; // Can be DID or handle
-  urlType?: string;
+  urlType?: UrlType;
 }
 
 export interface GetCollectionPageParams extends PaginatedSortedParams {
-  urlType?: string;
+  urlType?: UrlType;
 }
 
 export interface GetMyCollectionsParams extends PaginatedSortedParams {
@@ -94,7 +107,7 @@ export interface GetCollectionsParams extends PaginatedSortedParams {
 export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
   handle: string;
   recordKey: string;
-  urlType?: string;
+  urlType?: UrlType;
 }
 
 export interface GetGlobalFeedParams extends PaginationParams {
