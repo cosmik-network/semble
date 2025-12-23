@@ -1,7 +1,7 @@
 'use client';
 
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
 
 export default function AccountSummary() {
