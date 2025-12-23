@@ -10,6 +10,7 @@ import {
   UrlMetadataProps,
 } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../value-objects/Chunk';
+import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
 
 export class SearchService {
   constructor(
@@ -69,7 +70,12 @@ export class SearchService {
 
   async findSimilarUrls(
     url: URL,
-    options: { limit: number; threshold?: number; urlType?: UrlType; callingUserId?: string },
+    options: {
+      limit: number;
+      threshold?: number;
+      urlType?: UrlType;
+      callingUserId?: string;
+    },
   ): Promise<Result<UrlView[]>> {
     try {
       // 1. Find similar URLs from vector database
