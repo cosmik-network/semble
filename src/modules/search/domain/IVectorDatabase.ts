@@ -1,3 +1,4 @@
+import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
 import { Result } from '../../../shared/core/Result';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
@@ -7,6 +8,7 @@ export interface FindSimilarUrlsParams {
   url: string;
   limit: number;
   threshold?: number; // Similarity threshold (0-1)
+  urlType?: UrlType; // Optional URL type to filter results
 }
 
 export interface UrlSearchResult {

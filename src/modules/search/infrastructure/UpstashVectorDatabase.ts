@@ -78,6 +78,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
         topK,
         includeMetadata: true,
         includeVectors: false, // We don't need the vectors in the response
+        filter: params.urlType ? `type = '${params.urlType}'` : undefined,
       });
 
       // Filter out the query URL itself and apply threshold
