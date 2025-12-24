@@ -1,12 +1,37 @@
-import SignUpForm from '@/features/auth/components/signUpForm/SignUpForm';
-import { Stack, Title, Text, Anchor, Image, Badge } from '@mantine/core';
-import SembleLogo from '@/assets/semble-logo.svg';
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import { redirect } from 'next/navigation';
+'use client';
 
-export default async function Page() {
-  const session = await verifySessionOnServer();
-  if (session) redirect('/home');
+import SignUpForm from '@/features/auth/components/signUpForm/SignUpForm';
+import {
+  Stack,
+  Title,
+  Text,
+  Anchor,
+  Image,
+  Loader,
+  Badge,
+} from '@mantine/core';
+import SembleLogo from '@/assets/semble-logo.svg';
+import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function Page() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/home');
+    }
+  }, [isAuthenticated, router]);
+
+  if (isAuthenticated || isLoading) {
+    return (
+      <Stack align="center">
+        <Loader type="dots" />
+      </Stack>
+    );
+  }
 
   return (
     <Stack align="center" gap="xl" maw={450}>

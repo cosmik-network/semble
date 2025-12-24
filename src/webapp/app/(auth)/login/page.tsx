@@ -1,3 +1,5 @@
+'use client';
+
 import LoginForm from '@/features/auth/components/loginForm/LoginForm';
 import {
   Stack,
@@ -9,17 +11,36 @@ import {
   Button,
   PopoverTarget,
   PopoverDropdown,
+  Loader,
   Badge,
 } from '@mantine/core';
+import { useEffect } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import { redirect } from 'next/navigation';
 
-export default async function Page() {
-  const session = await verifySessionOnServer();
-  if (session) redirect('/home');
+export default function Page() {
+  const { isAuthenticated, isLoading, refreshAuth } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
+
+  useEffect(() => {
+    if (isAuthenticated && !isExtensionLogin) {
+      refreshAuth();
+      router.push('/home');
+    }
+  }, [isAuthenticated, router, isExtensionLogin, refreshAuth]);
+
+  if (isAuthenticated || isLoading) {
+    return (
+      <Stack align="center">
+        <Loader type="dots" />
+      </Stack>
+    );
+  }
 
   return (
     <Stack gap={'xl'} align="center">
