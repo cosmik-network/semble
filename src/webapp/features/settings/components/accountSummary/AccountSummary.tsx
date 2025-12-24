@@ -1,11 +1,15 @@
-'use client';
-
-import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { Avatar, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
+import { createServerSembleClient } from '@/services/server.apiClient';
+import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { redirect } from 'next/navigation';
 
-export default function AccountSummary() {
-  const { data: profile } = useMyProfile();
+export default async function AccountSummary() {
+  const session = await verifySessionOnServer();
+  if (!session) redirect('/login');
+
+  const client = await createServerSembleClient();
+  const profile = await client.getMyProfile();
 
   return (
     <Stack gap={'xs'} align="center">
