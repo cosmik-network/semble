@@ -47,7 +47,10 @@ export default function CollectionCard(props: Props) {
                   <Avatar
                     component={Link}
                     href={`/profile/${collection.author.handle}`}
-                    src={collection.author.avatarUrl}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
                     alt={`${collection.author.handle}'s avatar`}
                     size={'sm'}
                   />

@@ -12,7 +12,7 @@ export default function AccountSummary() {
       <Avatar
         component={Link}
         href={`/profile/${profile.handle}`}
-        src={profile.avatarUrl}
+        src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
         alt={`${profile.name}'s' avatar`}
         size={'xl'}
         radius={'lg'}

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { notificationKeys } from '../notificationKeys';
 
 export default function useMarkAllNotificationsAsRead() {

@@ -45,7 +45,11 @@ export default function BottomBar() {
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           title={'Me'}
-          icon={<Avatar src={profile.avatarUrl} />}
+          icon={
+            <Avatar
+              src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+            />
+          }
         />
       </Group>
     </AppShellFooter>

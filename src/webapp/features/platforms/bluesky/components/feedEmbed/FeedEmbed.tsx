@@ -14,7 +14,10 @@ export default function FeedEmbed(props: Props) {
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">
           {props.feed.avatar && (
-            <Avatar src={props.feed.avatar} alt={props.feed.displayName} />
+            <Avatar
+              src={props.feed.avatar?.replace('avatar', 'avatar_thumbnail')}
+              alt={props.feed.displayName}
+            />
           )}
 
           <Stack gap={0}>
@@ -40,7 +43,10 @@ export default function FeedEmbed(props: Props) {
     >
       <Group gap={'xs'} wrap="nowrap">
         {props.feed.avatar && (
-          <Avatar src={props.feed.avatar} alt={props.feed.displayName} />
+          <Avatar
+            src={props.feed.avatar?.replace('avatar', 'avatar_thumbnail')}
+            alt={props.feed.displayName}
+          />
         )}
 
         <Stack gap={0}>

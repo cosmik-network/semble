@@ -62,7 +62,7 @@ export default function BlueskyPost(props: Props) {
       <Group gap="xs" justify="space-between" wrap="nowrap" w={'100%'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar
-            src={post.author.avatar}
+            src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
             alt={`${post.author.handle} avatar`}
             size={'sm'}
             radius="xl"

@@ -11,7 +11,7 @@ export default function MinimalProfileHeader(props: Props) {
     <Container p={'xs'} size={'xl'} mx={0}>
       <Group gap={'sm'}>
         <Avatar
-          src={props.avatarUrl}
+          src={props.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
           alt={`${props.name}'s avatar`}
           size={'md'}
         />

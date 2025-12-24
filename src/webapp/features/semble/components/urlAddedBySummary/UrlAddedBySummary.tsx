@@ -26,7 +26,7 @@ export default async function UrlAddedBySummary(props: Props) {
             key={i}
             component={Link}
             href={`/profile/${p.user.handle}`}
-            src={p.user.avatarUrl}
+            src={p.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={p.user.handle}
             name={p.user.handle}
           />

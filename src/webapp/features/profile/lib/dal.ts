@@ -1,5 +1,5 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
 export const getProfile = cache(async (didOrHandle: string) => {
@@ -19,3 +19,4 @@ export const getMyProfile = cache(async () => {
 
   return response;
 });
+

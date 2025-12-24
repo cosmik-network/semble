@@ -13,6 +13,7 @@ export default function SettingsContainer() {
     <Container p={'xs'} size={'xs'}>
       <Stack gap={'xl'}>
         <AccountSummary />
+
         <Stack>
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>

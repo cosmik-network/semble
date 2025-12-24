@@ -1,5 +1,5 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { CardSortField, CollectionSortField, SortOrder } from '@semble/types';
 import { cache } from 'react';
 

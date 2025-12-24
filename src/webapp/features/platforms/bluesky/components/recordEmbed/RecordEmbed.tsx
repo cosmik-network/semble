@@ -32,7 +32,7 @@ export default function RecordEmbed(props: Props) {
         <Stack justify="space-between" align="start" gap="xs">
           <Group gap="xs" wrap="nowrap">
             <Avatar
-              src={post.author.avatar}
+              src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
               alt={`${post.author.handle} avatar`}
               radius="xl"
               size={'sm'}

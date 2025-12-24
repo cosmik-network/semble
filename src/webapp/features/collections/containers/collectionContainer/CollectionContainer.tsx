@@ -111,7 +111,10 @@ export default function CollectionContainer(props: Props) {
                 size={'sm'}
                 component={Link}
                 href={`/profile/${firstPage.author.handle}`}
-                src={firstPage.author.avatarUrl}
+                src={firstPage.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
                 alt={`${firstPage.author.name}'s' avatar`}
               />
               <Anchor

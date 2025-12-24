@@ -53,7 +53,9 @@ export default function ProfileMenu() {
             <UnstyledButton>
               <Group justify="space-between" wrap="nowrap">
                 <Group gap={'xs'} c={'bright'} wrap="nowrap">
-                  <Avatar src={data.avatarUrl} />
+                  <Avatar
+                    src={data.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+                  />
                   <Text fw={600} lineClamp={1}>
                     {data.name}
                   </Text>

@@ -75,7 +75,10 @@ export default function CollectionEmbedContainer(props: Props) {
                 component={Link}
                 href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
-                src={firstPage.author.avatarUrl}
+                src={firstPage.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
                 alt={`${firstPage.author.name}'s' avatar`}
               />
               <Anchor
