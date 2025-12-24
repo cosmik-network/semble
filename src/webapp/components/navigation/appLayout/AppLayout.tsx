@@ -29,12 +29,12 @@ export default function AppLayout(props: Props) {
       navbar={{
         width: 300,
         breakpoint: 'xs',
-        collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+        collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },        
       }}
       aside={{
         width: asideWidth,
         breakpoint: 'xl',
-        collapsed: { mobile: true },
+        collapsed: { mobile: true },        
       }}
       footer={{
         height: isMobile ? 85 : 0,
