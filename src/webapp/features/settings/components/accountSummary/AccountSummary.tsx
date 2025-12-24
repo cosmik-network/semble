@@ -2,11 +2,9 @@ import { Avatar, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
 import { createServerSembleClient } from '@/services/server.apiClient';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import { redirect } from 'next/navigation';
 
 export default async function AccountSummary() {
-  const session = await verifySessionOnServer();
-  if (!session) redirect('/login');
+  await verifySessionOnServer({ redirectOnFail: true });
 
   const client = await createServerSembleClient();
   const profile = await client.getMyProfile();
