@@ -10,7 +10,7 @@ import { isCollectionPage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { CardSize } from '../../types';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import { CodeHighlightTabs } from '@mantine/code-highlight';
+import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 
 interface Props {
   size?: CardSize;
@@ -60,24 +60,9 @@ export default function UrlCard(props: Props) {
         />
 
         {settings.tinkerMode && (
-          <CodeHighlightTabs
-            code={[
-              {
-                fileName: 'Card content',
-                code: JSON.stringify(props.cardContent, null, 2),
-                language: 'json',
-              },
-              {
-                fileName: 'Card author',
-                code: JSON.stringify(props.cardAuthor, null, 2),
-                language: 'json',
-              },
-            ]}
-            radius={'md'}
-            withBorder
-            onClick={(e) => e.stopPropagation()}
-            style={{ cursor: 'auto' }}
-            defaultExpanded={false}
+          <UrlCardDebugView
+            cardContent={props.cardContent}
+            cardAuthor={props.cardAuthor}
           />
         )}
 
