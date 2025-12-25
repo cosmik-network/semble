@@ -59,25 +59,27 @@ export default function UrlCard(props: Props) {
           cardSize={props.size}
         />
 
-        <CodeHighlightTabs
-          code={[
-            {
-              fileName: 'Card content',
-              code: JSON.stringify(props.cardContent, null, 2),
-              language: 'json',
-            },
-            {
-              fileName: 'Card author',
-              code: JSON.stringify(props.cardAuthor, null, 2),
-              language: 'json',
-            },
-          ]}
-          radius={'md'}
-          withBorder
-          onClick={(e) => e.stopPropagation()}
-          style={{ cursor: 'auto' }}
-          defaultExpanded={false}
-        />
+        {settings.tinkerMode && (
+          <CodeHighlightTabs
+            code={[
+              {
+                fileName: 'Card content',
+                code: JSON.stringify(props.cardContent, null, 2),
+                language: 'json',
+              },
+              {
+                fileName: 'Card author',
+                code: JSON.stringify(props.cardAuthor, null, 2),
+                language: 'json',
+              },
+            ]}
+            radius={'md'}
+            withBorder
+            onClick={(e) => e.stopPropagation()}
+            style={{ cursor: 'auto' }}
+            defaultExpanded={false}
+          />
+        )}
 
         <UrlCardActions
           cardAuthor={props.cardAuthor}
