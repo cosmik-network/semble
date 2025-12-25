@@ -33,7 +33,7 @@ export default function InfiniteScroll(props: Props) {
   }, [entry?.isIntersecting, hasMore, isLoading, loadMore]);
 
   return (
-    <Stack>
+    <Stack w={'100%'}>
       {props.children}
       {props.isLoading &&
         (props.loader || (
