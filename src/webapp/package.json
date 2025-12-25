@@ -47,7 +47,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-error-boundary": "^6.0.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "shiki": "^3.20.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.0",
