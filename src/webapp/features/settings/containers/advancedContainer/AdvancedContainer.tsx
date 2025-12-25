@@ -15,7 +15,9 @@ export default function AdvancedContainer() {
               <Text fw={500} c={'gray'}>
                 Tinker mode
               </Text>
-              <Text c={'gray'}>See the Matrix (data exposed as raw JSON)</Text>
+              <Text fw={500} c={'gray'} fz={'sm'}>
+                See the Matrix (data exposed as raw JSON)
+              </Text>
             </Stack>
             <Switch
               size="md"
