@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import { isCollectionPage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { CardSize } from '../../types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { CodeHighlight } from '@mantine/code-highlight';
 
 interface Props {
   size?: CardSize;
@@ -26,6 +28,7 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const router = useRouter();
+  const { settings } = useUserSettings();
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -50,11 +53,22 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
-        <UrlCardContent
-          url={props.url}
-          cardContent={props.cardContent}
-          cardSize={props.size}
-        />
+        {settings.tinkerMode ? (
+          <CodeHighlight
+            code={JSON.stringify(props.cardContent, null, 2)}
+            language="json"
+            radius={'md'}
+            withBorder
+            onClick={(e) => e.stopPropagation()}
+            style={{ cursor: 'auto' }}
+          />
+        ) : (
+          <UrlCardContent
+            url={props.url}
+            cardContent={props.cardContent}
+            cardSize={props.size}
+          />
+        )}
 
         <UrlCardActions
           cardAuthor={props.cardAuthor}
