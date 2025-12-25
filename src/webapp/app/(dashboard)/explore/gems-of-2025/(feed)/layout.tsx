@@ -29,7 +29,13 @@ export default async function Layout(props: Props) {
           <BackButton href="/">Learn more</BackButton>
         )}
       </Header>
-      <Paper pos={'sticky'} top={55} style={{ zIndex: 1 }}>
+      <Paper
+        pos={'sticky'}
+        top={55}
+        style={{ zIndex: 1 }}
+        maw={600}
+        mx={'auto'}
+      >
         <FeedTabs />
         <Button
           component={Link}
