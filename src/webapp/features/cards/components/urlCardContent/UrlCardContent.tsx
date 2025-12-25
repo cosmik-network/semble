@@ -8,16 +8,16 @@ import { ErrorBoundary } from 'react-error-boundary';
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
 import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
-import { CardSize } from '../../types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   url: string;
   cardContent: UrlCard['cardContent'];
-  cardSize?: CardSize;
 }
 
 export default function UrlCardContent(props: Props) {
   const platform = detectUrlPlatform(props.url);
+  const { settings } = useUserSettings();
 
   if (platform.type === SupportedPlatform.SEMBLE_COLLECTION) {
     return <SembleCollectionCardContent cardContent={props.cardContent} />;
@@ -37,7 +37,6 @@ export default function UrlCardContent(props: Props) {
             fallbackCardContent={
               <LinkCardContent cardContent={props.cardContent} />
             }
-            cardSize={props.cardSize}
           />
         </Suspense>
       </ErrorBoundary>
@@ -46,22 +45,17 @@ export default function UrlCardContent(props: Props) {
 
   if (
     platform.type === SupportedPlatform.YOUTUBE_VIDEO &&
-    props.cardSize !== 'List'
+    settings.cardView !== 'list'
   ) {
     return <YoutubeVideo url={platform.url} cardContent={props.cardContent} />;
   }
 
   if (
     platform.type === SupportedPlatform.SPOTIFY &&
-    props.cardSize !== 'List'
+    settings.cardView !== 'list'
   ) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
-  return (
-    <LinkCardContent
-      cardContent={props.cardContent}
-      cardSize={props.cardSize}
-    />
-  );
+  return <LinkCardContent cardContent={props.cardContent} />;
 }

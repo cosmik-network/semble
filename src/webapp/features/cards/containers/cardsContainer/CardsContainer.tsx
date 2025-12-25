@@ -5,9 +5,8 @@ import { Suspense, useState } from 'react';
 import { SortOrder, CardSortField } from '@semble/types';
 import CardsContainerContent from '../cardsContainerContent/CardsContainerContent';
 import CardsContainerContentSkeleton from '../cardsContainerContent/Skeleton.CardsContainerContent';
-import { useToggle } from '@mantine/hooks';
-import { CardSize } from '../../types';
 import { BsFillGridFill, BsListTask } from 'react-icons/bs';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   handle: string;
@@ -16,7 +15,7 @@ interface Props {
 type SortOption = 'newest' | 'oldest' | 'most-popular';
 
 export default function CardsContainer(props: Props) {
-  const [cardSize, toggle] = useToggle<CardSize>(['Grid', 'List']);
+  const { settings, updateSetting } = useUserSettings();
   const [sortOption, setSortOption] = useState<SortOption>('newest');
 
   const getSortParams = (option: SortOption) => {
@@ -57,11 +56,16 @@ export default function CardsContainer(props: Props) {
             variant="light"
             color="gray"
             leftSection={
-              cardSize === 'Grid' ? <BsFillGridFill /> : <BsListTask />
+              settings.cardView === 'grid' ? <BsFillGridFill /> : <BsListTask />
             }
-            onClick={() => toggle()}
+            onClick={() =>
+              updateSetting(
+                'cardView',
+                settings.cardView === 'grid' ? 'list' : 'grid',
+              )
+            }
           >
-            {cardSize}
+            {settings.cardView === 'grid' ? 'Grid' : 'List'}
           </Button>
         </Group>
         <Suspense fallback={<CardsContainerContentSkeleton />}>
@@ -69,7 +73,6 @@ export default function CardsContainer(props: Props) {
             handle={props.handle}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            cardSize={cardSize}
           />
         </Suspense>
       </Stack>

@@ -2,10 +2,12 @@ import { useLocalStorage } from '@mantine/hooks';
 
 interface UserSettings {
   tinkerMode: boolean;
+  cardView: 'grid' | 'list';
 }
 
 const defaultSettings: UserSettings = {
   tinkerMode: false,
+  cardView: 'grid',
 };
 
 export function useUserSettings() {

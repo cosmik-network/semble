@@ -1,15 +1,17 @@
 import { AppBskyFeedDefs } from '@atproto/api';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
-import type { EmbedMode } from '../../types';
+
 import { getFeedLink } from '../../lib/utils/link';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   feed: AppBskyFeedDefs.GeneratorView;
-  mode?: EmbedMode;
 }
 
 export default function FeedEmbed(props: Props) {
-  if (props.mode === 'card') {
+  const { settings } = useUserSettings();
+
+  if (settings.cardView === 'grid') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">
