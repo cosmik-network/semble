@@ -34,7 +34,7 @@ export default function CollectionCardDebugView(props: Props) {
         <CodeHighlightControl
           key="pdsls"
           component="a"
-          href={`https://pdsls.dev/at://${props.collection.uri}`}
+          href={`https://pdsls.dev/${props.collection.uri}`}
           target="_blank"
           tooltipLabel="View collection on pdsls"
         >
