@@ -13,12 +13,12 @@ export default function UrlCardDebugView(props: Props) {
     <CodeHighlightTabs
       code={[
         {
-          fileName: 'Card content',
+          fileName: 'Content',
           code: JSON.stringify(props.cardContent, null, 2),
           language: 'json',
         },
         {
-          fileName: 'Card author',
+          fileName: 'Author',
           code: JSON.stringify(props.cardAuthor, null, 2),
           language: 'json',
         },
