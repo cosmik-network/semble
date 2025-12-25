@@ -44,7 +44,7 @@ export default function CollectionCardDebugView(props: Props) {
       radius="md"
       withBorder
       onClick={(e) => e.stopPropagation()}
-      style={{ cursor: 'auto' }}
+      style={{ cursor: 'auto', zIndex: 0 }}
       defaultExpanded={false}
     />
   );
