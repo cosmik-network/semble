@@ -10,7 +10,7 @@ import { isCollectionPage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { CardSize } from '../../types';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import { CodeHighlight } from '@mantine/code-highlight';
+import { CodeHighlightTabs } from '@mantine/code-highlight';
 
 interface Props {
   size?: CardSize;
@@ -53,22 +53,31 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
-        {settings.tinkerMode ? (
-          <CodeHighlight
-            code={JSON.stringify(props.cardContent, null, 2)}
-            language="json"
-            radius={'md'}
-            withBorder
-            onClick={(e) => e.stopPropagation()}
-            style={{ cursor: 'auto' }}
-          />
-        ) : (
-          <UrlCardContent
-            url={props.url}
-            cardContent={props.cardContent}
-            cardSize={props.size}
-          />
-        )}
+        <UrlCardContent
+          url={props.url}
+          cardContent={props.cardContent}
+          cardSize={props.size}
+        />
+
+        <CodeHighlightTabs
+          code={[
+            {
+              fileName: 'Card content',
+              code: JSON.stringify(props.cardContent, null, 2),
+              language: 'json',
+            },
+            {
+              fileName: 'Card author',
+              code: JSON.stringify(props.cardAuthor, null, 2),
+              language: 'json',
+            },
+          ]}
+          radius={'md'}
+          withBorder
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: 'auto' }}
+          defaultExpanded={false}
+        />
 
         <UrlCardActions
           cardAuthor={props.cardAuthor}
