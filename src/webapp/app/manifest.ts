@@ -30,5 +30,12 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'maskable',
       },
     ],
+    share_target: {
+      action: '/home',
+      method: 'GET',
+      params: {
+        url: 'addUrl',
+      },
+    },
   };
 }

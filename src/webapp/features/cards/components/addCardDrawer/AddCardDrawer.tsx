@@ -13,7 +13,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useAddCard from '../../lib/mutations/useAddCard';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
@@ -26,6 +26,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   selectedCollection?: SelectableCollectionItem;
+  initialUrl?: string;
 }
 
 export default function AddCardDrawer(props: Props) {
@@ -45,11 +46,17 @@ export default function AddCardDrawer(props: Props) {
 
   const form = useForm({
     initialValues: {
-      url: '',
+      url: props.initialUrl || '',
       note: '',
       collections: selectedCollections,
     },
   });
+
+  useEffect(() => {
+    if (props.initialUrl) {
+      form.setValues({ url: props.initialUrl });
+    }
+  }, [props.initialUrl]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +72,7 @@ export default function AddCardDrawer(props: Props) {
         onSuccess: () => {
           setSelectedCollections([]);
           props.onClose();
+          window.history.replaceState({}, '', window.location.pathname);
         },
         onError: () => {
           notifications.show({
