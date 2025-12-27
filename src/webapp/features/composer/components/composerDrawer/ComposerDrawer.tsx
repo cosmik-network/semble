@@ -1,8 +1,8 @@
 import { ActionIcon, Affix } from '@mantine/core';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
-import { useMediaQuery } from '@mantine/hooks';
+import { useMediaQuery, useSearchParams } from '@mantine/hooks';
 import { useNavbarContext } from '@/providers/navbar';
 
 export default function ComposerDrawer() {
@@ -11,6 +11,13 @@ export default function ComposerDrawer() {
   const isNavOpen = isDesktop ? desktopOpened : mobileOpened;
   const shouldShowFab = !isNavOpen;
   const [opened, setOpened] = useState(false);
+  const addUrl = useSearchParams().get('addUrl');
+
+  useEffect(() => {
+    if (addUrl) {
+      setOpened(true);
+    }
+  }, [addUrl]);
 
   return (
     <Fragment key={shouldShowFab.toString()}>
@@ -32,7 +39,11 @@ export default function ComposerDrawer() {
         </Affix>
       )}
 
-      <AddCardDrawer isOpen={opened} onClose={() => setOpened(false)} />
+      <AddCardDrawer
+        isOpen={opened}
+        initialUrl={addUrl}
+        onClose={() => setOpened(false)}
+      />
     </Fragment>
   );
 }
