@@ -1,6 +1,9 @@
 import Redis from 'ioredis';
 import { IMetadataService } from '../domain/services/IMetadataService';
-import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
+import {
+  UrlMetadata,
+  UrlMetadataProps,
+} from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok } from '../../../shared/core/Result';
 
@@ -26,7 +29,15 @@ export class CachedMetadataService implements IMetadataService {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
         try {
-          const metadata = JSON.parse(cached) as UrlMetadata;
+          const metadataResult = UrlMetadata.create(
+            JSON.parse(cached) as UrlMetadataProps,
+          );
+          if (metadataResult.isErr()) {
+            throw new Error(
+              `Invalid cached metadata for ${url.value} from ${this.serviceName}: ${metadataResult.error.message}`,
+            );
+          }
+          const metadata = metadataResult.value;
           return ok(metadata);
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
