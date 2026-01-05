@@ -19,4 +19,3 @@ export const getMyProfile = cache(async () => {
 
   return response;
 });
-

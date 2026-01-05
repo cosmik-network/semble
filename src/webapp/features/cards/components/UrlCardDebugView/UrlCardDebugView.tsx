@@ -10,17 +10,17 @@ interface Props {
 
 export default function UrlCardDebugView(props: Props) {
   return (
-    <CodeHighlightTabs    
+    <CodeHighlightTabs
       code={[
         {
           fileName: 'Content',
           code: JSON.stringify(props.cardContent, null, 2),
-          language: 'json',          
+          language: 'json',
         },
         {
           fileName: 'Author',
           code: JSON.stringify(props.cardAuthor, null, 2),
-          language: 'json',          
+          language: 'json',
         },
       ]}
       radius="md"
