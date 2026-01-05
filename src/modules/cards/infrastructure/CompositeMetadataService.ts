@@ -79,13 +79,17 @@ export class CompositeMetadataService implements IMetadataService {
       return ok(citoidSuccess);
     }
 
-    // Both succeeded, apply selection logic
+    // Both succeeded, apply selection logic and merge missing fields
     if (iframelySuccess && citoidSuccess) {
       const selectedMetadata = this.selectBestMetadata(
         iframelySuccess,
         citoidSuccess,
       );
-      return ok(selectedMetadata);
+      const mergedMetadata = this.mergeMetadata(
+        selectedMetadata,
+        selectedMetadata === iframelySuccess ? citoidSuccess : iframelySuccess,
+      );
+      return ok(mergedMetadata);
     }
 
     // This should never happen, but just in case
@@ -153,5 +157,32 @@ export class CompositeMetadataService implements IMetadataService {
    */
   public async fetchFromCitoid(url: URL): Promise<Result<UrlMetadata>> {
     return this.citoidService.fetchMetadata(url);
+  }
+
+  /**
+   * Merge metadata by taking missing fields from the fallback metadata
+   */
+  private mergeMetadata(
+    primary: UrlMetadata,
+    fallback: UrlMetadata,
+  ): UrlMetadata {
+    // Create merged props by taking primary values first, then fallback for missing fields
+    const mergedProps = {
+      url: primary.url, // URL should always be the same
+      title: primary.title || fallback.title,
+      description: primary.description || fallback.description,
+      author: primary.author || fallback.author,
+      publishedDate: primary.publishedDate || fallback.publishedDate,
+      siteName: primary.siteName || fallback.siteName,
+      imageUrl: primary.imageUrl || fallback.imageUrl,
+      type: primary.type || fallback.type,
+      retrievedAt: primary.retrievedAt || fallback.retrievedAt,
+      doi: primary.doi || fallback.doi,
+      isbn: primary.isbn || fallback.isbn,
+    };
+
+    // Create new UrlMetadata with merged props
+    // We know this will succeed since both primary and fallback are valid
+    return UrlMetadata.create(mergedProps).unwrap();
   }
 }
