@@ -57,7 +57,7 @@ export class CachedMetadataService implements IMetadataService {
           await this.redis.setex(
             cacheKey,
             this.CACHE_TTL_SECONDS,
-            JSON.stringify(result.value),
+            JSON.stringify(result.value.props),
           );
         } catch (cacheError) {
           // Log cache error but don't fail the request
