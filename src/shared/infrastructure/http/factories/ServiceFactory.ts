@@ -285,13 +285,13 @@ export class ServiceFactory {
         baseIframelyService,
         redis,
         'iframely',
-        3600, // 1 hour TTL
+        3600 * 24 * 7, // 7 day TTL
       );
       citoidService = new CachedMetadataService(
         baseCitoidService,
         redis,
         'citoid',
-        7200, // 2 hour TTL (academic content changes less frequently)
+        3600 * 24 * 7, // 7 day TTL
       );
     }
 
