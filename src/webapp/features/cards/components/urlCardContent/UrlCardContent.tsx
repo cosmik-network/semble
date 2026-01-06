@@ -1,3 +1,5 @@
+'use client';
+
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { UrlCard } from '@semble/types';
 import SembleCollectionCardContent from './SembleCollectionCardContent';

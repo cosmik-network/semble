@@ -1,3 +1,5 @@
+'use client';
+
 import { AppBskyGraphDefs } from '@atproto/api';
 import { BsFillPeopleFill } from 'react-icons/bs';
 import { Card, Group, Text } from '@mantine/core';

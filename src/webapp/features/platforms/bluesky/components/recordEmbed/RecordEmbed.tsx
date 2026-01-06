@@ -1,3 +1,5 @@
+'use client';
+
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import {
   AppBskyEmbedRecord,

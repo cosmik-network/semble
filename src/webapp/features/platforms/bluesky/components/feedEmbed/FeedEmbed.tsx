@@ -1,3 +1,5 @@
+'use client';
+
 import { AppBskyFeedDefs } from '@atproto/api';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 

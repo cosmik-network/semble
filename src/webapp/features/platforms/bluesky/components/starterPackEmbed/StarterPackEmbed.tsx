@@ -1,3 +1,5 @@
+'use client';
+
 import { AppBskyGraphDefs, AppBskyGraphStarterpack } from '@atproto/api';
 import {
   AspectRatio,

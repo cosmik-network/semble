@@ -1,3 +1,5 @@
+'use client';
+
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { getDomain } from '@/lib/utils/link';
 import { AppBskyEmbedExternal } from '@atproto/api';
