@@ -839,7 +839,7 @@ describe('GetCollectionPageUseCase', () => {
       expect(response.urlCards[0]?.cardContent.title).toBeUndefined();
       expect(response.urlCards[0]?.cardContent.description).toBeUndefined();
       expect(response.urlCards[0]?.cardContent.author).toBeUndefined();
-      expect(response.urlCards[0]?.cardContent.thumbnailUrl).toBeUndefined();
+      expect(response.urlCards[0]?.cardContent.imageUrl).toBeUndefined();
     });
 
     it('should handle author profile with minimal data', async () => {

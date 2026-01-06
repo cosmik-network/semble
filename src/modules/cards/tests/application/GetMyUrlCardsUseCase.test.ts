@@ -735,7 +735,7 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[0]?.cardContent.title).toBeUndefined();
       expect(response.cards[0]?.cardContent.description).toBeUndefined();
       expect(response.cards[0]?.cardContent.author).toBeUndefined();
-      expect(response.cards[0]?.cardContent.thumbnailUrl).toBeUndefined();
+      expect(response.cards[0]?.cardContent.imageUrl).toBeUndefined();
       expect(response.cards[0]?.author.id).toBe(curatorId.value);
       expect(response.cards[0]?.author.name).toBe('Test Curator');
     });
