@@ -1,3 +1,5 @@
+'use client';
+
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
 import { Group, Stack, Text, Avatar, Box, Image } from '@mantine/core';
