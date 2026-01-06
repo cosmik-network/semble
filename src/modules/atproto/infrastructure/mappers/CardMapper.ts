@@ -104,7 +104,6 @@ export class CardMapper {
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,
-      publishedDate: metadata.publishedDate?.toISOString(),
       siteName: metadata.siteName,
       imageUrl: metadata.imageUrl,
       type: metadata.type,
