@@ -138,7 +138,7 @@ export default function AddCardToModalContent(props: Props) {
         <CardToBeAddedPreview
           url={props.url}
           title={props.cardContent?.title}
-          thumbnailUrl={props.cardContent?.imageUrl}
+          imageUrl={props.cardContent?.imageUrl}
         />
         <AddCardActions
           note={isMyCard ? note : cardStatus.data.card?.note?.text}
