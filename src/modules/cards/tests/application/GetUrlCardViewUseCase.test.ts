@@ -152,7 +152,7 @@ describe('GetUrlCardViewUseCase', () => {
         'Description of test article',
       );
       expect(response.cardContent.author).toBe('John Doe');
-      expect(response.cardContent.thumbnailUrl).toBe(
+      expect(response.cardContent.imageUrl).toBe(
         'https://example.com/thumb1.jpg',
       );
       expect(response.libraryCount).toBe(1);
@@ -268,7 +268,7 @@ describe('GetUrlCardViewUseCase', () => {
       expect(response.cardContent.title).toBeUndefined();
       expect(response.cardContent.description).toBeUndefined();
       expect(response.cardContent.author).toBeUndefined();
-      expect(response.cardContent.thumbnailUrl).toBeUndefined();
+      expect(response.cardContent.imageUrl).toBeUndefined();
       expect(response.libraries).toHaveLength(1);
     });
 

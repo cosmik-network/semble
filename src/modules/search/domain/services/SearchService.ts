@@ -168,7 +168,9 @@ export class SearchService {
             siteName: result.metadata.siteName,
             imageUrl: result.metadata.imageUrl,
             type: result.metadata.type,
-            thumbnailUrl: result.metadata.imageUrl, // Use imageUrl as thumbnailUrl
+            retrievedAt: result.metadata.retrievedAt?.toISOString(),
+            doi: result.metadata.doi,
+            isbn: result.metadata.isbn,
           },
           urlLibraryCount,
           urlInLibrary,

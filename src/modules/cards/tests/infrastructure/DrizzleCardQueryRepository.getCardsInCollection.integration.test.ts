@@ -183,7 +183,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         'First article in collection',
       );
       expect(card1Result?.cardContent.author).toBe('John Doe');
-      expect(card1Result?.cardContent.thumbnailUrl).toBe(
+      expect(card1Result?.cardContent.imageUrl).toBe(
         'https://example.com/image1.jpg',
       );
 

@@ -57,9 +57,13 @@ export interface UrlMetadata {
   title?: string;
   description?: string;
   author?: string;
+  publishedDate?: string;
   siteName?: string;
   imageUrl?: string;
   type?: string;
+  retrievedAt?: string;
+  doi?: string;
+  isbn?: string;
 }
 
 export interface GetUrlMetadataResponse {
@@ -71,13 +75,7 @@ export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
+  cardContent: UrlMetadata;
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
@@ -226,13 +224,7 @@ export interface GetCollectionsForUrlResponse {
 // Search response types
 export interface UrlView {
   url: string;
-  metadata: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
+  metadata: UrlMetadata;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
 }

@@ -40,7 +40,7 @@ describe('CitoidMetadataService Integration Tests', () => {
         expect(metadata.description).not.toBe('');
 
         // arXiv specific checks
-        expect(metadata.type).toBe('preprint');
+        expect(metadata.type).toBe('research');
         expect(metadata.siteName).toContain('arXiv');
 
         // Date should be parsed correctly

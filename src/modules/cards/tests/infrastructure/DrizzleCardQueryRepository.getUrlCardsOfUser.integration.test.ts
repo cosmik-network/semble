@@ -152,7 +152,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
         'A great article about testing',
       );
       expect(card1Result?.cardContent.author).toBe('John Doe');
-      expect(card1Result?.cardContent.thumbnailUrl).toBe(
+      expect(card1Result?.cardContent.imageUrl).toBe(
         'https://example.com/image1.jpg',
       );
 
@@ -479,7 +479,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
         'An article with notes and collections',
       );
       expect(urlCardResult?.cardContent.author).toBe('Jane Smith');
-      expect(urlCardResult?.cardContent.thumbnailUrl).toBe(
+      expect(urlCardResult?.cardContent.imageUrl).toBe(
         'https://example.com/complex.jpg',
       );
 

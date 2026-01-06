@@ -152,10 +152,10 @@ export default function NoteCardModalContent(props: Props) {
       <Card withBorder component="article" p={'xs'} radius={'lg'}>
         <Stack>
           <Group gap={'sm'} justify="space-between">
-            {props.cardContent.thumbnailUrl && (
+            {props.cardContent.imageUrl && (
               <AspectRatio ratio={1 / 1} flex={0.1}>
                 <Image
-                  src={props.cardContent.thumbnailUrl}
+                  src={props.cardContent.imageUrl}
                   alt={`${props.cardContent.url} social preview image`}
                   radius={'md'}
                   w={45}
