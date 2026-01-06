@@ -107,7 +107,6 @@ export class CardMapper {
       siteName: metadata.siteName,
       imageUrl: metadata.imageUrl,
       type: metadata.type,
-      retrievedAt: metadata.retrievedAt?.toISOString(),
       doi: metadata.doi,
       isbn: metadata.isbn,
     };
