@@ -14,14 +14,14 @@ import {
   Loader,
   Badge,
 } from '@mantine/core';
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-function InnerPage() {
+export default function Page() {
   const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ function InnerPage() {
     }
   }, [isAuthenticated, router, isExtensionLogin, refreshAuth]);
 
-  if (isAuthenticated) {
+  if (isAuthenticated || isLoading) {
     return (
       <Stack align="center">
         <Loader type="dots" />
@@ -107,13 +107,5 @@ function InnerPage() {
         </Anchor>
       </Text>
     </Stack>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense>
-      <InnerPage />
-    </Suspense>
   );
 }

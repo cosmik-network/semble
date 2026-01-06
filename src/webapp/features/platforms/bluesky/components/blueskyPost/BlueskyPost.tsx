@@ -9,18 +9,18 @@ import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
-import { CardSize } from '@/features/cards/types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   url: string;
   fallbackCardContent: ReactElement;
-  cardSize?: CardSize;
 }
 
 export default function BlueskyPost(props: Props) {
+  const { settings } = useUserSettings();
   const uri = getPostUriFromUrl(props.url);
   const { data, error } = useGetBlueskyPost({ uri });
-  const showEmbed = props.cardSize !== 'List';
+  const showEmbed = settings.cardView !== 'list';
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
     platform.type === SupportedPlatform.BLUESKY_POST ? (
@@ -62,7 +62,7 @@ export default function BlueskyPost(props: Props) {
       <Group gap="xs" justify="space-between" wrap="nowrap" w={'100%'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar
-            src={post.author.avatar}
+            src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
             alt={`${post.author.handle} avatar`}
             size={'sm'}
             radius="xl"
@@ -78,12 +78,10 @@ export default function BlueskyPost(props: Props) {
         <Box>
           <RichTextRenderer
             text={record.text}
-            textProps={{ lineClamp: props.cardSize === 'List' ? 1 : 3 }}
+            textProps={{ lineClamp: settings.cardView === 'list' ? 1 : 3 }}
           />
         </Box>
-        {post.embed && showEmbed && (
-          <PostEmbed embed={post.embed} mode="card" />
-        )}
+        {post.embed && showEmbed && <PostEmbed embed={post.embed} />}
       </Stack>
     </Stack>
   );

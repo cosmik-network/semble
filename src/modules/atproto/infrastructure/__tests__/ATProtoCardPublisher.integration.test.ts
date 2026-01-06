@@ -2,6 +2,7 @@ import { ATProtoCardPublisher } from '../publishers/ATProtoCardPublisher';
 import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
 import { URL } from 'src/modules/cards/domain/value-objects/URL';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import dotenv from 'dotenv';
 import { AppPasswordAgentService } from './AppPasswordAgentService';
@@ -76,7 +77,7 @@ describe.skip('ATProtoCardPublisher', () => {
         description: 'A test article for card publishing',
         author: 'Test Author',
         siteName: 'Example.com',
-        type: 'article',
+        type: UrlType.ARTICLE,
         retrievedAt: new Date(),
       }).unwrap();
 
@@ -269,7 +270,7 @@ describe.skip('ATProtoCardPublisher', () => {
         description: 'An article that will be referenced by a note',
         author: 'Parent Author',
         siteName: 'Example.com',
-        type: 'article',
+        type: UrlType.ARTICLE,
         retrievedAt: new Date(),
       }).unwrap();
 

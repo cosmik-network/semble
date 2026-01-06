@@ -1,8 +1,9 @@
 'use client';
 
+import type { UrlCard } from '@semble/types';
 import { Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import CollectionSelectorError from '@/features/collections/components/collectionSelector/Error.CollectionSelector';
 import CardToBeAddedPreview from '@/features/cards/components/cardToBeAddedPreview/CardToBeAddedPreview';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
@@ -10,8 +11,9 @@ import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFrom
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
-import useUrlMetadata from '../../lib/queries/useUrlMetadata';
 import { track } from '@vercel/analytics';
+import AddCardActions from '../addCardActions/AddCardActions';
+import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 
 interface SelectableCollectionItem {
   id: string;
@@ -24,13 +26,11 @@ interface Props {
   url: string;
   cardId?: string;
   note?: string;
+  cardContent?: UrlCard['cardContent'];
   viaCardId?: string;
 }
 
 export default function AddCardToModalContent(props: Props) {
-  const {
-    data: { metadata },
-  } = useUrlMetadata({ url: props.url });
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isMyCard = props?.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(isMyCard ? props.note : '');
@@ -134,28 +134,34 @@ export default function AddCardToModalContent(props: Props) {
 
   return (
     <Stack justify="space-between">
-      <CardToBeAddedPreview
-        url={props.url}
-        thumbnailUrl={metadata.imageUrl}
-        title={metadata.title}
-        note={isMyCard ? note : cardStatus.data.card?.note?.text}
-        noteId={cardStatus.data.card?.note?.id}
-        onUpdateNote={setNote}
-        onClose={props.onClose}
-      />
+      <Stack gap={'xs'}>
+        <CardToBeAddedPreview
+          url={props.url}
+          title={props.cardContent?.title}
+          thumbnailUrl={props.cardContent?.thumbnailUrl}
+        />
+        <AddCardActions
+          note={isMyCard ? note : cardStatus.data.card?.note?.text}
+          noteId={cardStatus.data.card?.note?.id}
+          onUpdateNote={setNote}
+          onClose={props.onClose}
+        />
+      </Stack>
 
-      <CollectionSelector
-        isOpen={true}
-        onClose={props.onClose}
-        onCancel={() => {
-          props.onClose();
-          setSelectedCollections(collectionsWithCard);
-        }}
-        onSave={handleUpdateCard}
-        isSaving={isSaving}
-        selectedCollections={selectedCollections}
-        onSelectedCollectionsChange={setSelectedCollections}
-      />
+      <Suspense fallback={<CollectionSelectorSkeleton />}>
+        <CollectionSelector
+          isOpen={true}
+          onClose={props.onClose}
+          onCancel={() => {
+            props.onClose();
+            setSelectedCollections(collectionsWithCard);
+          }}
+          onSave={handleUpdateCard}
+          isSaving={isSaving}
+          selectedCollections={selectedCollections}
+          onSelectedCollectionsChange={setSelectedCollections}
+        />
+      </Suspense>
     </Stack>
   );
 }

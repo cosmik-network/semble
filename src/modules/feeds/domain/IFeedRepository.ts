@@ -2,11 +2,13 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { Result } from '../../../shared/core/Result';
 import { FeedActivity } from './FeedActivity';
 import { ActivityId } from './value-objects/ActivityId';
+import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
 export interface FeedQueryOptions {
   page: number;
   limit: number;
   beforeActivityId?: ActivityId; // For cursor-based pagination
+  urlType?: UrlType; // Filter by URL type
 }
 
 export interface PaginatedFeedResult {

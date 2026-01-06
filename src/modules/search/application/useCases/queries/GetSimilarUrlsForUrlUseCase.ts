@@ -7,6 +7,7 @@ import { SearchService } from '../../../domain/services/SearchService';
 import { GetSimilarUrlsForUrlParams } from '@semble/types/api/requests';
 import { UrlView } from '@semble/types/api/responses';
 import { Pagination } from '@semble/types/api/common';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 
 export interface GetSimilarUrlsForUrlQuery extends GetSimilarUrlsForUrlParams {
   callingUserId?: string;
@@ -57,6 +58,17 @@ export class GetSimilarUrlsForUrlUseCase
         );
       }
 
+      // Parse urlType if provided
+      let urlType: UrlType | undefined;
+      if (query.urlType) {
+        // Validate that the urlType is a valid enum value
+        if (Object.values(UrlType).includes(query.urlType as UrlType)) {
+          urlType = query.urlType as UrlType;
+        } else {
+          return err(new ValidationError(`Invalid URL type: ${query.urlType}`));
+        }
+      }
+
       // Always get 50 results from vector database
       const vectorDbLimit = 50;
       const similarUrlsResult = await this.searchService.findSimilarUrls(
@@ -64,6 +76,7 @@ export class GetSimilarUrlsForUrlUseCase
         {
           limit: vectorDbLimit,
           threshold,
+          urlType,
           callingUserId: query.callingUserId,
         },
       );

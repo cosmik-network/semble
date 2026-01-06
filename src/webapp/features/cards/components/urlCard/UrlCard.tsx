@@ -8,10 +8,10 @@ import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
-import { CardSize } from '../../types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 
 interface Props {
-  size?: CardSize;
   id: string;
   url: string;
   cardContent: UrlCard['cardContent'];
@@ -26,6 +26,7 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const router = useRouter();
+  const { settings } = useUserSettings();
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -50,11 +51,14 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
-        <UrlCardContent
-          url={props.url}
-          cardContent={props.cardContent}
-          cardSize={props.size}
-        />
+        <UrlCardContent url={props.url} cardContent={props.cardContent} />
+
+        {settings.tinkerMode && (
+          <UrlCardDebugView
+            cardContent={props.cardContent}
+            cardAuthor={props.cardAuthor}
+          />
+        )}
 
         <UrlCardActions
           cardAuthor={props.cardAuthor}

@@ -130,7 +130,10 @@ export default function NoteCardModalContent(props: Props) {
             component={Link}
             href={`/profile/${props.cardAuthor.handle}`}
             target="_blank"
-            src={props.cardAuthor.avatarUrl}
+            src={props.cardAuthor.avatarUrl?.replace(
+              'avatar',
+              'avatar_thumbnail',
+            )}
             alt={`${props.cardAuthor.name}'s' avatar`}
           />
           <Anchor

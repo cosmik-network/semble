@@ -1,5 +1,5 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
 interface PageParams {
@@ -22,7 +22,7 @@ export const getNoteCardsForUrl = cache(
 
 export const updateNoteCard = cache(
   async (note: { cardId: string; note: string }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.updateNoteCard(note);

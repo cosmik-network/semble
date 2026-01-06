@@ -7,6 +7,7 @@ import {
   IoMdInformationCircle,
 } from 'react-icons/io';
 import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutItem';
+import { MdScience } from 'react-icons/md';
 
 export default function SettingsContainer() {
   return (
@@ -17,6 +18,9 @@ export default function SettingsContainer() {
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
               Appearance
+            </SettingItem>
+            <SettingItem href="/settings/advanced" icon={MdScience}>
+              Advanced
             </SettingItem>
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
               Help

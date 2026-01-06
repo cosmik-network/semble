@@ -6,6 +6,7 @@ import { ActivityType, ActivityTypeEnum } from './value-objects/ActivityType';
 import { CuratorId } from '../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
 export class ActivityValidationError extends Error {
   constructor(message: string) {
@@ -25,6 +26,7 @@ interface ActivityProps {
   actorId: CuratorId; // The user who performed the activity
   type: ActivityType; // The type of activity
   metadata: ActivityMetadata; // Additional metadata specific to the activity type
+  urlType?: UrlType; // Optional URL type from the card
   createdAt: Date;
 }
 
@@ -49,6 +51,10 @@ export class FeedActivity extends Entity<ActivityProps> {
     return this.props.createdAt;
   }
 
+  get urlType(): UrlType | undefined {
+    return this.props.urlType;
+  }
+
   // Type guards for metadata
   get cardCollected(): boolean {
     return this.props.type.value === ActivityTypeEnum.CARD_COLLECTED;
@@ -62,6 +68,7 @@ export class FeedActivity extends Entity<ActivityProps> {
     actorId: CuratorId,
     cardId: CardId,
     collectionIds?: CollectionId[],
+    urlType?: UrlType,
     createdAt?: Date,
     id?: UniqueEntityID,
   ): Result<FeedActivity, ActivityValidationError> {
@@ -83,6 +90,7 @@ export class FeedActivity extends Entity<ActivityProps> {
       actorId,
       type: typeResult.value,
       metadata,
+      urlType,
       createdAt: createdAt || new Date(),
     };
 

@@ -71,7 +71,7 @@ export default async function BlueskySemblePost(props: Props) {
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Stack gap={'xs'}>
+    <Stack gap={'xs'} align="start">
       <Tooltip label={props.url}>
         <Anchor
           component={Link}
@@ -94,7 +94,7 @@ export default async function BlueskySemblePost(props: Props) {
           <Group gap="xs" justify="space-between" wrap="nowrap">
             <Group gap={'xs'} wrap="nowrap">
               <Avatar
-                src={post.author.avatar}
+                src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
                 alt={`${post.author.handle} social preview image`}
                 radius="xl"
               />

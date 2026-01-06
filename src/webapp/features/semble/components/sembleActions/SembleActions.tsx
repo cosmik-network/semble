@@ -88,6 +88,7 @@ export default function SembleActions(props: Props) {
         isOpen={showAddToModal}
         onClose={() => setShowAddToModal(false)}
         url={props.url}
+        cardContent={cardStatus.data.card?.cardContent}
         cardId={cardStatus.data.card?.id}
         note={cardStatus.data.card?.note?.text}
         isInYourLibrary={cardStatus.data.card?.urlInLibrary}

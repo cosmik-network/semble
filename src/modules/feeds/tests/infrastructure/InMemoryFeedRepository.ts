@@ -42,8 +42,15 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
-      const { page, limit, beforeActivityId } = options;
+      const { page, limit, beforeActivityId, urlType } = options;
       let filteredActivities = [...this.activities];
+
+      // Filter by URL type if provided
+      if (urlType) {
+        filteredActivities = filteredActivities.filter(
+          (activity) => activity.urlType === urlType,
+        );
+      }
 
       // Filter by cursor if provided
       if (beforeActivityId) {
@@ -87,7 +94,7 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
-      const { page, limit, beforeActivityId } = options;
+      const { page, limit, beforeActivityId, urlType } = options;
       const collectionIdStrings = collectionIds.map((id) =>
         id.getStringValue(),
       );
@@ -104,6 +111,13 @@ export class InMemoryFeedRepository implements IFeedRepository {
         }
         return false;
       });
+
+      // Filter by URL type if provided
+      if (urlType) {
+        filteredActivities = filteredActivities.filter(
+          (activity) => activity.urlType === urlType,
+        );
+      }
 
       // Apply cursor filtering if needed
       if (beforeActivityId) {

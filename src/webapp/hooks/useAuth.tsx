@@ -50,10 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    // If we have no user data and we're not loading, redirect from /home
-    if (!query.data && !query.isLoading && pathname === '/home') {
-      router.push('/explore');
-    }
     // Handle other auth errors
     if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.data, query.isError, query.isLoading, pathname, router, logout]);

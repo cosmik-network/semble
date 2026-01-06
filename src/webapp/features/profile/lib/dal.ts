@@ -1,5 +1,5 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
 export const getProfile = cache(async (didOrHandle: string) => {
@@ -12,7 +12,7 @@ export const getProfile = cache(async (didOrHandle: string) => {
 });
 
 export const getMyProfile = cache(async () => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getMyProfile();

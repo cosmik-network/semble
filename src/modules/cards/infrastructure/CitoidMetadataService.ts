@@ -2,17 +2,29 @@ import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { Result, ok, err } from '../../../shared/core/Result';
+import {
+  mapCitoidUrlType,
+  CitoidUrlTypes,
+} from './mappers/CitoidUrlTypeMapper';
+
+interface CitoidCreator {
+  firstName?: string;
+  lastName?: string;
+  creatorType?: string;
+  name?: string; // For single-field names (organizations)
+}
+
+interface CitoidTag {
+  tag: string;
+  type?: number;
+}
 
 interface CitoidResponse {
   key?: string;
   version?: number;
   itemType?: string;
-  creators?: Array<{
-    firstName?: string;
-    lastName?: string;
-    creatorType?: string;
-  }>;
-  tags?: string[];
+  creators?: CitoidCreator[];
+  tags?: CitoidTag[];
   title?: string;
   date?: string;
   url?: string;
@@ -21,6 +33,111 @@ interface CitoidResponse {
   language?: string;
   libraryCatalog?: string;
   accessDate?: string;
+  repository?: string;
+  archiveID?: string;
+  DOI?: string;
+  extra?: string;
+  websiteTitle?: string;
+  blogTitle?: string;
+  forumTitle?: string;
+  websiteType?: string;
+  medium?: string;
+  artworkSize?: string;
+  runningTime?: string;
+  ISBN?: string;
+  ISSN?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  edition?: string;
+  series?: string;
+  seriesNumber?: string;
+  place?: string;
+  publisher?: string;
+  institution?: string;
+  university?: string;
+  conferenceName?: string;
+  proceedingsTitle?: string;
+  meetingName?: string;
+  reportType?: string;
+  reportNumber?: string;
+  type?: string;
+  // Additional fields from the schema
+  numPages?: string;
+  numberOfVolumes?: string;
+  archive?: string;
+  archiveLocation?: string;
+  callNumber?: string;
+  rights?: string;
+  shortTitle?: string;
+  artworkMedium?: string;
+  audioRecordingFormat?: string;
+  seriesTitle?: string;
+  label?: string;
+  videoRecordingFormat?: string;
+  genre?: string;
+  distributor?: string;
+  studio?: string;
+  network?: string;
+  episodeNumber?: string;
+  programTitle?: string;
+  billNumber?: string;
+  code?: string;
+  codeVolume?: string;
+  section?: string;
+  codePages?: string;
+  legislativeBody?: string;
+  session?: string;
+  history?: string;
+  bookTitle?: string;
+  caseName?: string;
+  court?: string;
+  dateDecided?: string;
+  docketNumber?: string;
+  reporter?: string;
+  reporterVolume?: string;
+  firstPage?: string;
+  dictionaryTitle?: string;
+  encyclopediaTitle?: string;
+  subject?: string;
+  letterType?: string;
+  interviewMedium?: string;
+  journalAbbreviation?: string;
+  seriesText?: string;
+  manuscriptType?: string;
+  mapType?: string;
+  scale?: string;
+  postType?: string;
+  committee?: string;
+  documentNumber?: string;
+  patentNumber?: string;
+  filingDate?: string;
+  applicationNumber?: string;
+  priorityNumbers?: string;
+  issueDate?: string;
+  references?: string;
+  legalStatus?: string;
+  assignee?: string;
+  issuingAuthority?: string;
+  country?: string;
+  presentationType?: string;
+  thesisType?: string;
+  identifier?: string;
+  versionNumber?: string;
+  repositoryLocation?: string;
+  format?: string;
+  citationKey?: string;
+  audioFileType?: string;
+  programmingLanguage?: string;
+  system?: string;
+  company?: string;
+  status?: string;
+  nameOfAct?: string;
+  publicLawNumber?: string;
+  codeNumber?: string;
+  dateEnacted?: string;
+  organization?: string;
+  number?: string;
 }
 
 interface CitoidErrorResponse {
@@ -72,16 +189,14 @@ export class CitoidMetadataService implements IMetadataService {
         return err(new Error('Invalid metadata format from Citoid'));
       }
 
-      // Extract author from creators array
-      const author =
-        citoidData.creators && citoidData.creators.length > 0
-          ? this.formatAuthor(citoidData.creators[0]!)
-          : undefined;
+      // Extract author from creators array - prioritize 'author' type creators
+      const author = this.extractPrimaryAuthor(citoidData.creators);
 
-      // Parse published date
-      const publishedDate = citoidData.date
-        ? this.parseDate(citoidData.date)
-        : undefined;
+      // Determine site name from various possible fields
+      const siteName = this.determineSiteName(citoidData);
+
+      // Parse published date - try specific date fields first based on item type
+      const publishedDate = this.extractPublishedDate(citoidData);
 
       const metadataResult = UrlMetadata.create({
         url: url.value,
@@ -89,8 +204,10 @@ export class CitoidMetadataService implements IMetadataService {
         description: citoidData.abstractNote,
         author,
         publishedDate,
-        siteName: citoidData.publicationTitle || citoidData.libraryCatalog,
-        type: citoidData.itemType,
+        siteName,
+        type: mapCitoidUrlType(citoidData.itemType),
+        doi: citoidData.DOI,
+        isbn: citoidData.ISBN,
       });
 
       return metadataResult;
@@ -119,12 +236,58 @@ export class CitoidMetadataService implements IMetadataService {
     }
   }
 
-  private formatAuthor(creator: {
-    firstName?: string;
-    lastName?: string;
-  }): string {
-    const { firstName, lastName } = creator;
+  private extractPrimaryAuthor(creators?: CitoidCreator[]): string | undefined {
+    if (!creators || creators.length === 0) {
+      return undefined;
+    }
 
+    // First, try to find a creator with type 'author'
+    const authorCreator = creators.find(
+      (creator) => creator.creatorType === 'author',
+    );
+
+    if (authorCreator) {
+      return this.formatAuthor(authorCreator);
+    }
+
+    // If no 'author' type, try other primary creator types in order of preference
+    // Based on the Zotero schema, these are the most common primary creator types
+    const primaryTypes = [
+      'artist', // artwork
+      'performer', // audioRecording
+      'director', // film, tvBroadcast, radioBroadcast, videoRecording
+      'podcaster', // podcast
+      'cartographer', // map
+      'programmer', // computerProgram
+      'presenter', // presentation
+      'sponsor', // bill
+      'inventor', // patent
+      'interviewee', // interview
+      'bookAuthor', // bookSection
+      'editor', // various types
+      'contributor', // fallback for many types
+    ];
+
+    for (const type of primaryTypes) {
+      const creator = creators.find((c) => c.creatorType === type);
+      if (creator) {
+        return this.formatAuthor(creator);
+      }
+    }
+
+    // Fall back to the first creator
+    return this.formatAuthor(creators[0]!);
+  }
+
+  private formatAuthor(creator: CitoidCreator): string {
+    const { firstName, lastName, name } = creator;
+
+    // Handle single-field names (typically organizations)
+    if (name) {
+      return name;
+    }
+
+    // Handle two-field names
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (lastName) {
@@ -136,9 +299,134 @@ export class CitoidMetadataService implements IMetadataService {
     return '';
   }
 
+  private determineSiteName(data: CitoidResponse): string | undefined {
+    // Determine site name based on item type for better accuracy
+    const itemType = data.itemType;
+
+    // Type-specific site name logic based on Zotero schema
+    switch (itemType) {
+      case CitoidUrlTypes.JOURNAL_ARTICLE:
+      case CitoidUrlTypes.MAGAZINE_ARTICLE:
+      case CitoidUrlTypes.NEWSPAPER_ARTICLE:
+        return data.publicationTitle || data.publisher;
+
+      case CitoidUrlTypes.BLOG_POST:
+        return data.blogTitle || data.websiteTitle;
+
+      case CitoidUrlTypes.FORUM_POST:
+        return data.forumTitle;
+
+      case CitoidUrlTypes.WEBPAGE:
+        return data.websiteTitle;
+
+      case CitoidUrlTypes.BOOK:
+      case CitoidUrlTypes.BOOK_SECTION:
+        return data.publisher || data.series;
+
+      case CitoidUrlTypes.CONFERENCE_PAPER:
+        return data.proceedingsTitle || data.conferenceName || data.publisher;
+
+      case CitoidUrlTypes.THESIS:
+        return data.university || data.institution;
+
+      case CitoidUrlTypes.REPORT:
+        return data.institution || data.publisher;
+
+      case CitoidUrlTypes.DATASET:
+      case CitoidUrlTypes.PREPRINT:
+        return data.repository || data.institution;
+
+      case CitoidUrlTypes.PODCAST:
+        return data.seriesTitle || data.network;
+
+      case CitoidUrlTypes.TV_BROADCAST:
+      case CitoidUrlTypes.RADIO_BROADCAST:
+        return data.network || data.programTitle;
+
+      case CitoidUrlTypes.FILM:
+      case CitoidUrlTypes.VIDEO_RECORDING:
+        return data.distributor || data.studio;
+
+      case CitoidUrlTypes.AUDIO_RECORDING:
+        return data.label || data.publisher;
+
+      default:
+        // Fallback to general logic for other types
+        return (
+          data.publicationTitle ||
+          data.websiteTitle ||
+          data.blogTitle ||
+          data.forumTitle ||
+          data.repository ||
+          data.libraryCatalog ||
+          data.institution ||
+          data.university ||
+          data.publisher
+        );
+    }
+  }
+
+  private extractPublishedDate(data: CitoidResponse): Date | undefined {
+    // Try type-specific date fields first, then fall back to general 'date' field
+    const itemType = data.itemType;
+
+    let dateString: string | undefined;
+
+    switch (itemType) {
+      case CitoidUrlTypes.CASE:
+        dateString = data.dateDecided || data.date;
+        break;
+      case CitoidUrlTypes.STATUTE:
+        dateString = data.dateEnacted || data.date;
+        break;
+      case CitoidUrlTypes.PATENT:
+        dateString = data.issueDate || data.filingDate || data.date;
+        break;
+      default:
+        dateString = data.date;
+        break;
+    }
+
+    return dateString ? this.parseDate(dateString) : undefined;
+  }
+
   private parseDate(dateString: string): Date | undefined {
     try {
-      // Try to parse the date string
+      // Handle various date formats common in Citoid responses
+
+      // ISO date format (YYYY-MM-DD)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const parsed = new Date(dateString + 'T00:00:00.000Z');
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // ISO datetime format (YYYY-MM-DDTHH:mm:ss.sssZ)
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateString)) {
+        const parsed = new Date(dateString);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Year only (YYYY)
+      if (/^\d{4}$/.test(dateString)) {
+        const parsed = new Date(`${dateString}-01-01T00:00:00.000Z`);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Month and year (YYYY-MM)
+      if (/^\d{4}-\d{2}$/.test(dateString)) {
+        const parsed = new Date(`${dateString}-01T00:00:00.000Z`);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Try to parse the date string as-is for other formats
       const parsed = new Date(dateString);
 
       // Check if the date is valid

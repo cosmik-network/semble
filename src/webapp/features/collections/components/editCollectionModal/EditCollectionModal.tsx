@@ -1,8 +1,8 @@
 import {
   Button,
   Container,
-  Drawer,
   Group,
+  Modal,
   Stack,
   Textarea,
   TextInput,
@@ -23,7 +23,7 @@ interface Props {
   };
 }
 
-export default function EditCollectionDrawer(props: Props) {
+export default function EditCollectionModal(props: Props) {
   const updateCollection = useUpdateCollection();
 
   const form = useForm({
@@ -58,20 +58,13 @@ export default function EditCollectionDrawer(props: Props) {
   };
 
   return (
-    <Drawer
+    <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      withCloseButton={false}
-      position="bottom"
-      size={'30rem'}
+      title="Edit Collection"
+      centered
       overlayProps={UPDATE_OVERLAY_PROPS}
     >
-      <Drawer.Header>
-        <Drawer.Title fz="xl" fw={600} mx="auto">
-          Edit Collection
-        </Drawer.Title>
-      </Drawer.Header>
-
       <Container size="sm" p={0}>
         <form onSubmit={handleUpdateCollection}>
           <Stack>
@@ -93,7 +86,7 @@ export default function EditCollectionDrawer(props: Props) {
               placeholder="Describe what this collection is about"
               variant="filled"
               size="md"
-              rows={8}
+              rows={5}
               maxLength={500}
               key={form.key('description')}
               {...form.getInputProps('description')}
@@ -119,6 +112,6 @@ export default function EditCollectionDrawer(props: Props) {
           </Stack>
         </form>
       </Container>
-    </Drawer>
+    </Modal>
   );
 }

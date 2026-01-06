@@ -85,6 +85,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
         // Skip the query URL itself
         if (url === params.url) continue;
 
+        // Filter by URL type if specified
+        if (params.urlType && indexed.metadata.type !== params.urlType) {
+          continue;
+        }
+
         const similarity = this.calculateSimilarity(
           queryContent,
           indexed.content,

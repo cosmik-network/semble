@@ -1,4 +1,4 @@
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
 interface PageParams {

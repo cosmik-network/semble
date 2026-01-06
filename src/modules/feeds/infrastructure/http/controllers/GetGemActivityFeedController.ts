@@ -10,6 +10,7 @@ const querySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
   beforeActivityId: z.string().optional(),
+  urlType: z.string().optional(),
 });
 
 export class GetGemActivityFeedController extends Controller {
@@ -33,6 +34,7 @@ export class GetGemActivityFeedController extends Controller {
         page: params.page || 1,
         limit: params.limit || 20,
         beforeActivityId: params.beforeActivityId,
+        urlType: params.urlType,
       });
 
       if (result.isErr()) {

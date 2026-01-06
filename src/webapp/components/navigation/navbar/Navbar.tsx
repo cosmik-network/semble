@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Badge,
+  Indicator,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -27,7 +28,7 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
-import NotificationsDropdown from '@/features/notifications/components/notificationsDropdown/NotificationsDropdown';
+import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -36,7 +37,7 @@ export default function Navbar() {
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
-        <Anchor component={Link} href={'/home'}>
+        <Anchor component={Link} href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
             <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
             <Badge size="xs" style={{ cursor: 'pointer' }}>
@@ -60,14 +61,15 @@ export default function Navbar() {
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
             />
-            <NotificationsDropdown />
+            <NotificationNavItem />
+
             <NavItem
               href={`/profile/${profile.handle}/cards`}
               label="Cards"
               icon={<FaRegNoteSticky size={25} />}
             />
             <NavItem
-              href={`/settings`}
+              href="/settings"
               label="Settings"
               icon={<TbSettings size={25} />}
             />

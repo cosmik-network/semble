@@ -17,43 +17,17 @@ import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
     if (isAuthenticated) {
-      setIsRedirecting(true);
-
-      // redirect after 1 second
-      timeoutId = setTimeout(() => {
-        router.push('/home');
-      }, 1000);
+      router.push('/home');
     }
-
-    // clean up
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
   }, [isAuthenticated, router]);
 
-  if (isLoading) {
+  if (isAuthenticated || isLoading) {
     return (
       <Stack align="center">
-        <Loader type="dots" />
-      </Stack>
-    );
-  }
-
-  if (isRedirecting) {
-    return (
-      <Stack align="center">
-        <Text fw={500} fz={'xl'}>
-          Already logged in, redirecting you to library
-        </Text>
         <Loader type="dots" />
       </Stack>
     );
