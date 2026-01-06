@@ -286,11 +286,9 @@ export class CardMapper {
               title: urlContent.metadata.title,
               description: urlContent.metadata.description,
               author: urlContent.metadata.author,
-              publishedDate: urlContent.metadata.publishedDate?.toISOString(),
               siteName: urlContent.metadata.siteName,
               imageUrl: urlContent.metadata.imageUrl,
               type: urlContent.metadata.type,
-              retrievedAt: urlContent.metadata.retrievedAt?.toISOString(),
             }
           : undefined,
       } as UrlContentData;
