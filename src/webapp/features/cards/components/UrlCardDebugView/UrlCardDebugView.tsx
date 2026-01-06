@@ -1,7 +1,7 @@
 'use client';
 
 import { CodeHighlightTabs } from '@mantine/code-highlight';
-import type { UrlCard, User } from '@/api-client';
+import { UrlCard, User } from '@semble/types';
 
 interface Props {
   cardContent: UrlCard['cardContent'];

@@ -29,6 +29,8 @@ interface UrlContentData {
     imageUrl?: string;
     type?: string;
     retrievedAt: string;
+    doi?: string;
+    isbn?: string;
   };
 }
 
@@ -289,6 +291,8 @@ export class CardMapper {
               siteName: urlContent.metadata.siteName,
               imageUrl: urlContent.metadata.imageUrl,
               type: urlContent.metadata.type,
+              doi: urlContent.metadata.doi,
+              isbn: urlContent.metadata.isbn,
             }
           : undefined,
       } as UrlContentData;
@@ -372,7 +376,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData
@@ -420,7 +434,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData
@@ -476,7 +500,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData

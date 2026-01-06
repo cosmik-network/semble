@@ -156,7 +156,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         title: card.content.urlContent.metadata?.title,
         description: card.content.urlContent.metadata?.description,
         author: card.content.urlContent.metadata?.author,
-        thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+        imageUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
       urlLibraryCount: this.getUrlLibraryCount(
@@ -407,7 +407,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         title: card.content.urlContent!.metadata?.title,
         description: card.content.urlContent!.metadata?.description,
         author: card.content.urlContent!.metadata?.author,
-        thumbnailUrl: card.content.urlContent!.metadata?.imageUrl,
+        imageUrl: card.content.urlContent!.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
       urlLibraryCount: this.getUrlLibraryCount(
@@ -470,7 +470,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
                 title: card.content.urlContent.metadata?.title,
                 description: card.content.urlContent.metadata?.description,
                 author: card.content.urlContent.metadata?.author,
-                thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+                imageUrl: card.content.urlContent.metadata?.imageUrl,
               },
               libraryCount: this.getLibraryCountForCard(
                 card.cardId.getStringValue(),

@@ -694,7 +694,17 @@ export class UrlCardQueryService {
                 title: lib.contentData?.metadata?.title,
                 description: lib.contentData?.metadata?.description,
                 author: lib.contentData?.metadata?.author,
-                thumbnailUrl: lib.contentData?.metadata?.imageUrl,
+                publishedDate: lib.contentData?.metadata?.publishedDate
+                  ? new Date(lib.contentData.metadata.publishedDate)
+                  : undefined,
+                siteName: lib.contentData?.metadata?.siteName,
+                imageUrl: lib.contentData?.metadata?.imageUrl,
+                type: lib.contentData?.metadata?.type,
+                retrievedAt: lib.contentData?.metadata?.retrievedAt
+                  ? new Date(lib.contentData.metadata.retrievedAt)
+                  : undefined,
+                doi: lib.contentData?.metadata?.doi,
+                isbn: lib.contentData?.metadata?.isbn,
               },
               libraryCount: lib.libraryCount,
               urlLibraryCount: lib.urlLibraryCount,
@@ -801,7 +811,17 @@ export class UrlCardQueryService {
               title: lib.contentData?.metadata?.title,
               description: lib.contentData?.metadata?.description,
               author: lib.contentData?.metadata?.author,
-              thumbnailUrl: lib.contentData?.metadata?.imageUrl,
+              publishedDate: lib.contentData?.metadata?.publishedDate
+                ? new Date(lib.contentData.metadata.publishedDate)
+                : undefined,
+              siteName: lib.contentData?.metadata?.siteName,
+              imageUrl: lib.contentData?.metadata?.imageUrl,
+              type: lib.contentData?.metadata?.type,
+              retrievedAt: lib.contentData?.metadata?.retrievedAt
+                ? new Date(lib.contentData.metadata.retrievedAt)
+                : undefined,
+              doi: lib.contentData?.metadata?.doi,
+              isbn: lib.contentData?.metadata?.isbn,
             },
             libraryCount: lib.libraryCount,
             urlLibraryCount,
