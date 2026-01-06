@@ -25,10 +25,10 @@ export default function CardToBeAddedPreview(props: Props) {
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Stack>
         <Group gap={'sm'} justify="space-between">
-          {props.thumbnailUrl && (
+          {props.imageUrl && (
             <AspectRatio ratio={1 / 1} flex={0.1}>
               <Image
-                src={props.thumbnailUrl}
+                src={props.imageUrl}
                 alt={`${props.url} social preview image`}
                 radius={'md'}
                 w={45}

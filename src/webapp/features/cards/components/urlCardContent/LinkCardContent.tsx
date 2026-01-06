@@ -61,10 +61,10 @@ export default function LinkCardContent(props: Props) {
           </Text>
         )}
       </Stack>
-      {props.cardContent.thumbnailUrl && !imageError && (
+      {props.cardContent.imageUrl && !imageError && (
         <AspectRatio ratio={1 / 1}>
           <Image
-            src={props.cardContent.thumbnailUrl}
+            src={props.cardContent.imageUrl}
             alt={`${props.cardContent.url} social preview image`}
             radius={'md'}
             w={settings.cardView === 'list' ? 45 : 75}

@@ -24,10 +24,10 @@ export default function CollectionCardPreview(props: Props) {
     <Grid gutter={'xs'}>
       {cards.map((c) => (
         <Grid.Col key={c.id} span={3}>
-          {c.cardContent.thumbnailUrl && !imageError ? (
+          {c.cardContent.imageUrl && !imageError ? (
             <AspectRatio ratio={16 / 9}>
               <Image
-                src={c.cardContent.thumbnailUrl}
+                src={c.cardContent.imageUrl}
                 alt={`${c.cardContent.url} social preview image`}
                 radius={'md'}
                 h={45}
