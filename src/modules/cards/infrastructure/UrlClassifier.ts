@@ -9,32 +9,32 @@ export interface UrlPattern {
 export class UrlClassifier {
   private static readonly patterns: UrlPattern[] = [
     {
-      regex: /^https:\/\/bsky\.app\/profile\/[^\/]+\/post\/[^\/]+$/,
+      regex: /^https:\/\/bsky\.app\/profile\/[^/]+\/post\/[^/]+$/,
       type: UrlType.SOCIAL,
       description: 'Bluesky post',
     },
     {
-      regex: /^https:\/\/blacksky\.community\/profile\/[^\/]+\/post\/[^\/]+$/,
+      regex: /^https:\/\/blacksky\.community\/profile\/[^/]+\/post\/[^/]+$/,
       type: UrlType.SOCIAL,
       description: 'Blacksky community post',
     },
     {
-      regex: /^https:\/\/deer\.social\/profile\/[^\/]+\/post\/[^\/]+$/,
+      regex: /^https:\/\/deer\.social\/profile\/[^/]+\/post\/[^/]+$/,
       type: UrlType.SOCIAL,
       description: 'Deer social post',
     },
     {
-      regex: /^https:\/\/smokesignal\.events\/[^\/]+\/[^\/]+$/,
+      regex: /^https:\/\/smokesignal\.events\/[^/]+\/[^/]+$/,
       type: UrlType.EVENT,
       description: 'Smokesignal event',
     },
     {
-      regex: /^https:\/\/tangled\.org\/[^\/]+\/[^\/]+$/,
+      regex: /^https:\/\/tangled\.org\/[^/]+\/[^/]+$/,
       type: UrlType.SOFTWARE,
       description: 'Tangled repo',
     },
     {
-      regex: /^https:\/\/[^.\/]+\.leaflet\.pub\/[^\/]+$/,
+      regex: /^https:\/\/[^./]+\.leaflet\.pub\/[^/]+$/,
       type: UrlType.ARTICLE,
       description: 'Leaflet article',
     },
