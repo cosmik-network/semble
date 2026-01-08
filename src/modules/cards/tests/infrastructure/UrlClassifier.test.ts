@@ -10,19 +10,22 @@ describe('UrlClassifier Unit Tests', () => {
     });
 
     it('should classify Blacksky community post URL as SOCIAL', () => {
-      const url = 'https://blacksky.community/profile/did:plc:aax2d4gyu4vmlccwdtgci474/post/3mbur3zuius2o';
+      const url =
+        'https://blacksky.community/profile/did:plc:aax2d4gyu4vmlccwdtgci474/post/3mbur3zuius2o';
       const result = UrlClassifier.classifyUrl(url);
       expect(result).toBe(UrlType.SOCIAL);
     });
 
     it('should classify Deer social post URL as SOCIAL', () => {
-      const url = 'https://deer.social/profile/did:plc:25j5r47em2gmbiypflegz6bk/post/3mbsjeqolzs2y';
+      const url =
+        'https://deer.social/profile/did:plc:25j5r47em2gmbiypflegz6bk/post/3mbsjeqolzs2y';
       const result = UrlClassifier.classifyUrl(url);
       expect(result).toBe(UrlType.SOCIAL);
     });
 
     it('should classify Smokesignal event URL as EVENT', () => {
-      const url = 'https://smokesignal.events/did:plc:2zmxikig2sj7gqaezl5gntae/3m7542ymkcu2j';
+      const url =
+        'https://smokesignal.events/did:plc:2zmxikig2sj7gqaezl5gntae/3m7542ymkcu2j';
       const result = UrlClassifier.classifyUrl(url);
       expect(result).toBe(UrlType.EVENT);
     });
@@ -43,10 +46,10 @@ describe('UrlClassifier Unit Tests', () => {
   describe('pattern matching validation', () => {
     it('should have all expected patterns configured', () => {
       const patterns = UrlClassifier.getPatterns();
-      
+
       // Check that we have patterns for the expected services
-      const descriptions = patterns.map(p => p.description);
-      
+      const descriptions = patterns.map((p) => p.description);
+
       expect(descriptions).toContain('Bluesky post');
       expect(descriptions).toContain('Blacksky community post');
       expect(descriptions).toContain('Deer social post');
@@ -62,7 +65,7 @@ describe('UrlClassifier Unit Tests', () => {
         'https://random-site.org/content',
       ];
 
-      unmatchedUrls.forEach(url => {
+      unmatchedUrls.forEach((url) => {
         expect(UrlClassifier.classifyUrl(url)).toBeNull();
       });
     });

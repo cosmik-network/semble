@@ -169,7 +169,7 @@ export class CompositeMetadataService implements IMetadataService {
    */
   private applyUrlClassification(metadata: UrlMetadata, url: URL): UrlMetadata {
     const classifiedType = UrlClassifier.classifyUrl(url.value);
-    
+
     if (classifiedType) {
       // Override the type with the classified type
       const updatedProps = {
