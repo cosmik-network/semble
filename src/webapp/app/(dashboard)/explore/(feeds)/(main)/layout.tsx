@@ -3,7 +3,7 @@ import Header from '@/components/navigation/header/Header';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import FeedTabs from '@/features/feeds/components/feedTabs/FeedTabs';
+import FeedControls from '@/features/feeds/components/feedControls/FeedControls';
 import { Paper } from '@mantine/core';
 
 export const metadata: Metadata = {
@@ -31,10 +31,12 @@ export default async function Layout(props: Props) {
         pos={'sticky'}
         top={55}
         style={{ zIndex: 1 }}
-        maw={600}
+        maw={620}
+        p={'xs'}
+        radius={0}
         mx={'auto'}
       >
-        <FeedTabs />
+        <FeedControls />
       </Paper>
 
       {props.children}

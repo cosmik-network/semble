@@ -12,13 +12,12 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default async function Layout(props: Props) {
+export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header title="Gems of 2025">
-        <BackButton href="/explore/gems-of-2025">Explore</BackButton>
+      <Header title="Gem Collections">
+        <BackButton href="/explore/gems-of-2025">Gems of 2025</BackButton>
       </Header>
-
       {props.children}
     </Fragment>
   );
