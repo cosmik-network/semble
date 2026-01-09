@@ -52,8 +52,10 @@ export class FakeAgentService implements IAgentService {
 
   async getAuthenticatedServiceAccountAgent(): Promise<Result<Agent, Error>> {
     try {
-      const serviceAccountIdentifier = process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER;
-      const serviceAccountAppPassword = process.env.BSKY_SERVICE_ACCOUNT_APP_PASSWORD;
+      const serviceAccountIdentifier =
+        process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER;
+      const serviceAccountAppPassword =
+        process.env.BSKY_SERVICE_ACCOUNT_APP_PASSWORD;
 
       if (!serviceAccountIdentifier || !serviceAccountAppPassword) {
         return err(

@@ -257,7 +257,11 @@ export class ServiceFactory {
     // ATProto Agent Service
     const atProtoAgentService = useMockAuth
       ? new FakeAgentService()
-      : new ATProtoAgentService(nodeOauthClient, appPasswordSessionService, configService);
+      : new ATProtoAgentService(
+          nodeOauthClient,
+          appPasswordSessionService,
+          configService,
+        );
 
     // Create individual metadata services
     const baseIframelyService = new IFramelyMetadataService(

@@ -4,7 +4,9 @@ import { SearchBskyPostsForUrlUseCase } from '../../../application/use-cases/Sea
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class SearchBskyPostsForUrlController extends Controller {
-  constructor(private searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase) {
+  constructor(
+    private searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase,
+  ) {
     super();
   }
 

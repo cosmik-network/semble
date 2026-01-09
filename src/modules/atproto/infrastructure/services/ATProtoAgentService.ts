@@ -109,7 +109,7 @@ export class ATProtoAgentService implements IAgentService {
   async getAuthenticatedServiceAccountAgent(): Promise<Result<Agent, Error>> {
     try {
       const serviceAccount = this.configService.getAtProtoServiceAccount();
-      
+
       if (!serviceAccount.identifier || !serviceAccount.appPassword) {
         return err(
           new AuthenticationError(
@@ -121,7 +121,7 @@ export class ATProtoAgentService implements IAgentService {
       // First try to get existing session using the service account identifier as DID
       // We need to convert the identifier to a DID format for session lookup
       let serviceAccountDid: string;
-      
+
       // If identifier is already a DID, use it directly
       if (serviceAccount.identifier.startsWith('did:')) {
         serviceAccountDid = serviceAccount.identifier;
@@ -133,7 +133,8 @@ export class ATProtoAgentService implements IAgentService {
 
       // Try to get existing session first (only if we have a proper DID)
       if (serviceAccountDid.startsWith('did:')) {
-        const existingSessionResult = await this.appPasswordSessionService.getSession(serviceAccountDid);
+        const existingSessionResult =
+          await this.appPasswordSessionService.getSession(serviceAccountDid);
         if (existingSessionResult.isOk()) {
           const session = existingSessionResult.value;
           const agent = new AtpAgent({
@@ -145,10 +146,11 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // If no existing session or session failed, create a new one
-      const newSessionResult = await this.appPasswordSessionService.createSession(
-        serviceAccount.identifier,
-        serviceAccount.appPassword,
-      );
+      const newSessionResult =
+        await this.appPasswordSessionService.createSession(
+          serviceAccount.identifier,
+          serviceAccount.appPassword,
+        );
 
       if (newSessionResult.isErr()) {
         return err(

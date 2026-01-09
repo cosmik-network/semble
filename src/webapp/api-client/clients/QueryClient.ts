@@ -260,7 +260,7 @@ export class QueryClient extends BaseClient {
     if (params.domain) searchParams.set('domain', params.domain);
     if (params.url) searchParams.set('url', params.url);
     if (params.tag) {
-      params.tag.forEach(t => searchParams.append('tag', t));
+      params.tag.forEach((t) => searchParams.append('tag', t));
     }
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.cursor) searchParams.set('cursor', params.cursor);
