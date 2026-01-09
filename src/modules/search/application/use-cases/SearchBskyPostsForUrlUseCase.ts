@@ -3,9 +3,13 @@ import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
 import { IAgentService } from 'src/modules/atproto/application/IAgentService';
 import { DID } from 'src/modules/atproto/domain/DID';
-import { SearchBskyPostsForUrlParams, SearchBskyPostsForUrlResponse } from '@semble/types';
+import {
+  SearchBskyPostsForUrlParams,
+  SearchBskyPostsForUrlResponse,
+} from '@semble/types';
 
-export interface SearchBskyPostsForUrlRequest extends SearchBskyPostsForUrlParams {
+export interface SearchBskyPostsForUrlRequest
+  extends SearchBskyPostsForUrlParams {
   userDid?: string; // Optional - if provided, use authenticated agent
 }
 
@@ -15,11 +19,14 @@ export type SearchBskyPostsForUrlResult = Result<
 >;
 
 export class SearchBskyPostsForUrlUseCase
-  implements UseCase<SearchBskyPostsForUrlRequest, Promise<SearchBskyPostsForUrlResult>>
+  implements
+    UseCase<SearchBskyPostsForUrlRequest, Promise<SearchBskyPostsForUrlResult>>
 {
   constructor(private agentService: IAgentService) {}
 
-  async execute(request: SearchBskyPostsForUrlRequest): Promise<SearchBskyPostsForUrlResult> {
+  async execute(
+    request: SearchBskyPostsForUrlRequest,
+  ): Promise<SearchBskyPostsForUrlResult> {
     try {
       let agentResult;
 
@@ -29,16 +36,20 @@ export class SearchBskyPostsForUrlUseCase
         if (didResult.isErr()) {
           return err(new AppError.UnexpectedError(didResult.error));
         }
-        
-        agentResult = await this.agentService.getAuthenticatedAgent(didResult.value);
-        
+
+        agentResult = await this.agentService.getAuthenticatedAgent(
+          didResult.value,
+        );
+
         // If user authentication fails, fall back to service account
         if (agentResult.isErr()) {
-          agentResult = await this.agentService.getAuthenticatedServiceAccountAgent();
+          agentResult =
+            await this.agentService.getAuthenticatedServiceAccountAgent();
         }
       } else {
         // No user authentication, use service account
-        agentResult = await this.agentService.getAuthenticatedServiceAccountAgent();
+        agentResult =
+          await this.agentService.getAuthenticatedServiceAccountAgent();
       }
 
       if (agentResult.isErr()) {
@@ -66,10 +77,13 @@ export class SearchBskyPostsForUrlUseCase
       if (request.cursor) searchParams.cursor = request.cursor;
 
       // Make the search request
-      const searchResponse = await agent.app.bsky.feed.searchPosts(searchParams);
+      const searchResponse =
+        await agent.app.bsky.feed.searchPosts(searchParams);
 
       if (!searchResponse.success) {
-        return err(new AppError.UnexpectedError(new Error('Search request failed')));
+        return err(
+          new AppError.UnexpectedError(new Error('Search request failed')),
+        );
       }
 
       return ok({
