@@ -1,67 +1,76 @@
 'use client';
 
-import { AppShellAside, Stack, Text } from '@mantine/core';
-import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import AddedByCard from '../../components/addedByCard/AddedByCard';
-import useSembleLibraries from '../../lib/queries/useSembleLibraries';
-import useSembleCollections from '@/features/collections/lib/queries/useSembleCollectionts';
+import { AppShellAside, Grid, Stack, Text } from '@mantine/core';
+import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
+import SembleSimilarCardsContainerError from '../sembleSimilarCardsContainer/Error.SembleSimilarCardsContainer';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 
 interface Props {
   url: string;
 }
 
 export default function SembleAside(props: Props) {
-  const { data: libraries } = useSembleLibraries({ url: props.url, limit: 3 });
-  const { data: collections } = useSembleCollections({
-    url: props.url,
-    limit: 3,
-  });
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+  } = useSembleSimilarCards({ url: props.url });
 
-  const recentLibraries =
-    libraries?.pages.flatMap((page) => page.libraries ?? []) ?? [];
-  const recentCollections =
-    collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
+  const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
-  return (
-    <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
-      <Stack gap={'xl'}>
+  if (error) {
+    return (
+      <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
             Added recently by
           </Text>
-          {recentLibraries.length === 0 ? (
-            <Text c={'gray'} fw={600}>
-              No one has added this to their library... yet
-            </Text>
-          ) : (
-            <Stack gap={'xs'}>
-              {recentLibraries.slice(0, 3).map((lib) => (
-                <AddedByCard key={lib.card.id} item={lib} />
-              ))}
-            </Stack>
-          )}
+          <SembleSimilarCardsContainerError />
         </Stack>
+      </AppShellAside>
+    );
+  }
 
+  if (allSimilarUrls.length === 0) {
+    return (
+      <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
-            Recent collections
+            Added recently by
           </Text>
-          {recentCollections.length === 0 ? (
-            <Text c={'gray'} fw={600}>
-              No one has added this to their collections... yet
-            </Text>
-          ) : (
-            <Stack gap={'xs'}>
-              {recentCollections.slice(0, 3).map((col) => (
-                <CollectionCard
-                  key={col.uri}
-                  collection={col}
-                  showAuthor={true}
-                />
-              ))}
-            </Stack>
-          )}
+          <Text c={'gray'} fw={600}>
+            No similar cards found
+          </Text>          
         </Stack>
+      </AppShellAside>
+    );
+  }
+
+  return (
+    <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
+      <Stack gap={'xs'}>
+        <Text fz={'xl'} fw={600}>
+          Added recently by
+        </Text>
+        <InfiniteScroll
+          dataLength={allSimilarUrls.length}
+          hasMore={!!hasNextPage}
+          isInitialLoading={isPending}
+          isLoading={isFetchingNextPage}
+          loadMore={fetchNextPage}
+        >
+          <Grid gutter="xs" mx={'auto'} maw={'100%'}>
+            {allSimilarUrls.map((urlView) => (
+              <Grid.Col key={urlView.url} span={12}>
+                <SimilarUrlCard urlView={urlView} />
+              </Grid.Col>
+            ))}
+          </Grid>
+        </InfiniteScroll>
       </Stack>
     </AppShellAside>
   );
