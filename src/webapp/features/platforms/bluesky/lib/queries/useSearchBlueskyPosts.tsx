@@ -20,7 +20,7 @@ export default function useSearchBlueskyPosts(props: Props) {
         page: pageParam,
       });
     },
-    getNextPageParam: (lastPage) => lastPage?.data.cursor,
+    getNextPageParam: (lastPage) => lastPage.cursor,
   });
 
   return posts;

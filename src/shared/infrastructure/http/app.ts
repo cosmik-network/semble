@@ -126,6 +126,7 @@ export const createExpressApp = (
   const searchRouter = createSearchRoutes(
     services.authMiddleware,
     controllers.getSimilarUrlsForUrlController,
+    controllers.searchBskyPostsForUrlController,
   );
 
   const notificationRouter = createNotificationRoutes(

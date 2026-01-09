@@ -31,6 +31,10 @@ export interface EnvironmentConfig {
       collection: string;
       collectionLink: string;
     };
+    serviceAccount: {
+      identifier: string;
+      appPassword: string;
+    };
   };
   server: {
     port: number;
@@ -115,6 +119,10 @@ export class EnvironmentConfigService {
               ? 'network.cosmik.collectionLink'
               : `network.cosmik.${environment}.collectionLink`,
         },
+        serviceAccount: {
+          identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',
+          appPassword: process.env.BSKY_SERVICE_ACCOUNT_APP_PASSWORD || '',
+        },
       },
       server: {
         port: parseInt(process.env.PORT || '3000'),
@@ -186,6 +194,10 @@ export class EnvironmentConfigService {
 
   public getAtProtoBaseCollection() {
     return this.config.atproto.baseCollection;
+  }
+
+  public getAtProtoServiceAccount() {
+    return this.config.atproto.serviceAccount;
   }
 
   public getServerConfig() {
