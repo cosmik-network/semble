@@ -89,7 +89,7 @@ export class SearchBskyPostsForUrlUseCase
       return ok({
         cursor: searchResponse.data.cursor,
         hitsTotal: searchResponse.data.hitsTotal,
-        posts: searchResponse.data.posts,
+        posts: searchResponse.data.posts as any, // Type assertion to handle API type differences
       });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
