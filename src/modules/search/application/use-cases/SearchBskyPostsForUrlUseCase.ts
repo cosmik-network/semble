@@ -46,6 +46,13 @@ export class SearchBskyPostsForUrlUseCase
           agentResult =
             await this.agentService.getAuthenticatedServiceAccountAgent();
         }
+        if (agentResult.isOk() && !agentResult.value.sessionManager?.did) {
+          console.log(
+            'Fallback to service account due to missing DID in session - IN MOCK MODE ONLY',
+          );
+          agentResult =
+            await this.agentService.getAuthenticatedServiceAccountAgent();
+        }
       } else {
         // No user authentication, use service account
         agentResult =
