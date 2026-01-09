@@ -34,6 +34,7 @@ import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/applicati
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
+import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
@@ -97,6 +98,7 @@ export interface UseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
+  searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
   // Notification use cases
   getMyNotificationsUseCase: GetMyNotificationsUseCase;
   getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
@@ -273,6 +275,9 @@ export class UseCaseFactory {
       // Search use cases
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
         services.searchService,
+      ),
+      searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
+        services.atProtoAgentService,
       ),
       // Notification use cases
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(

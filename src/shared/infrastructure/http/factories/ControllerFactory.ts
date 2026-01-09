@@ -21,6 +21,7 @@ import { GetMyCollectionsController } from '../../../../modules/cards/infrastruc
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGemActivityFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
+import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -80,6 +81,7 @@ export interface Controllers {
   getGemActivityFeedController: GetGemActivityFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
+  searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   // Notification controllers
   getMyNotificationsController: GetMyNotificationsController;
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
@@ -208,6 +210,9 @@ export class ControllerFactory {
       // Search controllers
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(
         useCases.getSimilarUrlsForUrlUseCase,
+      ),
+      searchBskyPostsForUrlController: new SearchBskyPostsForUrlController(
+        useCases.searchBskyPostsForUrlUseCase,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(
