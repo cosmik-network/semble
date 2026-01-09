@@ -1,3 +1,4 @@
+import { createSembleClient } from '@/services/client.apiClient';
 import { AtpAgent } from '@atproto/api';
 import { cache } from 'react';
 
@@ -49,13 +50,13 @@ interface PageParams {
 
 export const searchBlueskyPosts = cache(
   async (params: PageParams & SearchParams) => {
-    const agent = new AtpAgent({ service: 'https://public.api.bsky.app' });
-    const posts = await agent.app.bsky.feed.searchPosts({
+    const client = createSembleClient();
+    const response = await client.searchBskyPosts({
       q: params.searchText,
       limit: params?.limit,
       cursor: params.page,
     });
 
-    return posts;
+    return response;
   },
 );
