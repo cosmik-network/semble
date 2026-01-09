@@ -6,7 +6,7 @@ export default function SembleAsideSkeleton() {
     <AppShellAside p={'sm'}>
       <Stack gap={'xs'}>
         <Text fz={'xl'} fw={600}>
-          Added recently by
+          Similar cards
         </Text>
         <Stack gap={'xs'}>
           <UrlCardSkeleton />

@@ -27,7 +27,7 @@ export default function SembleAside(props: Props) {
       <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
-            Added recently by
+            Similar cards
           </Text>
           <SembleSimilarCardsContainerError />
         </Stack>
@@ -40,11 +40,11 @@ export default function SembleAside(props: Props) {
       <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
-            Added recently by
+            Similar cards
           </Text>
           <Text c={'gray'} fw={600}>
             No similar cards found
-          </Text>          
+          </Text>
         </Stack>
       </AppShellAside>
     );
@@ -54,7 +54,7 @@ export default function SembleAside(props: Props) {
     <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
       <Stack gap={'xs'}>
         <Text fz={'xl'} fw={600}>
-          Added recently by
+          Similar cards
         </Text>
         <InfiniteScroll
           dataLength={allSimilarUrls.length}
