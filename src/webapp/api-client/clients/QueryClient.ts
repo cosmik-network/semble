@@ -24,6 +24,8 @@ import {
   GetCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
+  SearchBskyPostsForUrlParams,
+  SearchBskyPostsForUrlResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -242,6 +244,30 @@ export class QueryClient extends BaseClient {
     return this.request<GetSimilarUrlsForUrlResponse>(
       'GET',
       `/api/search/similar-urls?${searchParams}`,
+    );
+  }
+
+  async searchBskyPosts(
+    params: SearchBskyPostsForUrlParams,
+  ): Promise<SearchBskyPostsForUrlResponse> {
+    const searchParams = new URLSearchParams({ q: params.q });
+    if (params.sort) searchParams.set('sort', params.sort);
+    if (params.since) searchParams.set('since', params.since);
+    if (params.until) searchParams.set('until', params.until);
+    if (params.mentions) searchParams.set('mentions', params.mentions);
+    if (params.author) searchParams.set('author', params.author);
+    if (params.lang) searchParams.set('lang', params.lang);
+    if (params.domain) searchParams.set('domain', params.domain);
+    if (params.url) searchParams.set('url', params.url);
+    if (params.tag) {
+      params.tag.forEach(t => searchParams.append('tag', t));
+    }
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.cursor) searchParams.set('cursor', params.cursor);
+
+    return this.request<SearchBskyPostsForUrlResponse>(
+      'GET',
+      `/api/search/bsky-posts?${searchParams}`,
     );
   }
 }

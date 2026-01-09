@@ -234,6 +234,55 @@ export interface GetSimilarUrlsForUrlResponse {
   pagination: Pagination;
 }
 
+// Bluesky search response types
+export interface PostView {
+  uri: string;
+  cid: string;
+  author: {
+    did: string;
+    handle: string;
+    displayName?: string;
+    avatar?: string;
+    associated?: {
+      chat?: {
+        allowIncoming: 'all' | 'none' | 'following';
+      };
+    };
+    viewer?: {
+      muted?: boolean;
+      blockedBy?: boolean;
+      blocking?: string;
+      following?: string;
+      followedBy?: string;
+    };
+    labels?: any[];
+    createdAt?: string;
+  };
+  record: { [key: string]: unknown };
+  embed?: any;
+  replyCount?: number;
+  repostCount?: number;
+  likeCount?: number;
+  quoteCount?: number;
+  indexedAt: string;
+  viewer?: {
+    repost?: string;
+    like?: string;
+    threadMuted?: boolean;
+    replyDisabled?: boolean;
+    embeddingDisabled?: boolean;
+    pinned?: boolean;
+  };
+  labels?: any[];
+  threadgate?: any;
+}
+
+export interface SearchBskyPostsForUrlResponse {
+  cursor?: string;
+  hitsTotal?: number;
+  posts: PostView[];
+}
+
 // Notification types
 export enum NotificationType {
   USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',

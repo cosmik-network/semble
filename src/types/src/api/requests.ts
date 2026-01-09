@@ -164,6 +164,21 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   urlType?: string;
 }
 
+export interface SearchBskyPostsForUrlParams {
+  q: string;
+  sort?: 'top' | 'latest' | string;
+  since?: string;
+  until?: string;
+  mentions?: string;
+  author?: string;
+  lang?: string;
+  domain?: string;
+  url?: string;
+  tag?: string[];
+  limit?: number;
+  cursor?: string;
+}
+
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type

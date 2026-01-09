@@ -3,69 +3,10 @@ import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
 import { IAgentService } from 'src/modules/atproto/application/IAgentService';
 import { DID } from 'src/modules/atproto/domain/DID';
+import { SearchBskyPostsForUrlParams, SearchBskyPostsForUrlResponse } from '@semble/types';
 
-export interface SearchBskyPostsForUrlRequest {
-  q: string;
-  sort?: 'top' | 'latest' | string;
-  since?: string;
-  until?: string;
-  mentions?: string;
-  author?: string;
-  lang?: string;
-  domain?: string;
-  url?: string;
-  tag?: string[];
-  limit?: number;
-  cursor?: string;
+export interface SearchBskyPostsForUrlRequest extends SearchBskyPostsForUrlParams {
   userDid?: string; // Optional - if provided, use authenticated agent
-}
-
-export interface PostView {
-  uri: string;
-  cid: string;
-  author: {
-    did: string;
-    handle: string;
-    displayName?: string;
-    avatar?: string;
-    associated?: {
-      chat?: {
-        allowIncoming: 'all' | 'none' | 'following';
-      };
-    };
-    viewer?: {
-      muted?: boolean;
-      blockedBy?: boolean;
-      blocking?: string;
-      following?: string;
-      followedBy?: string;
-    };
-    labels?: any[];
-    createdAt?: string;
-  };
-  record: { [key: string]: unknown };
-  embed?: any;
-  replyCount?: number;
-  repostCount?: number;
-  likeCount?: number;
-  quoteCount?: number;
-  indexedAt: string;
-  viewer?: {
-    repost?: string;
-    like?: string;
-    threadMuted?: boolean;
-    replyDisabled?: boolean;
-    embeddingDisabled?: boolean;
-    pinned?: boolean;
-  };
-  labels?: any[];
-  threadgate?: any;
-}
-
-export interface SearchBskyPostsForUrlResponse {
-  cursor?: string;
-  hitsTotal?: number;
-  posts: PostView[];
 }
 
 export type SearchBskyPostsForUrlResult = Result<
