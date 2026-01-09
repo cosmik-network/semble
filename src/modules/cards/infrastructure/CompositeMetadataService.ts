@@ -3,6 +3,7 @@ import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { UrlType } from '../domain/value-objects/UrlType';
 import { Result, ok, err } from '../../../shared/core/Result';
+import { UrlClassifier } from './UrlClassifier';
 
 export enum DefaultServicePreference {
   IFRAMELY = 'iframely',
@@ -72,11 +73,13 @@ export class CompositeMetadataService implements IMetadataService {
 
     // If only one succeeded, use that one
     if (iframelySuccess && !citoidSuccess) {
-      return ok(iframelySuccess);
+      const finalMetadata = this.applyUrlClassification(iframelySuccess, url);
+      return ok(finalMetadata);
     }
 
     if (citoidSuccess && !iframelySuccess) {
-      return ok(citoidSuccess);
+      const finalMetadata = this.applyUrlClassification(citoidSuccess, url);
+      return ok(finalMetadata);
     }
 
     // Both succeeded, apply selection logic and merge missing fields
@@ -89,7 +92,8 @@ export class CompositeMetadataService implements IMetadataService {
         selectedMetadata,
         selectedMetadata === iframelySuccess ? citoidSuccess : iframelySuccess,
       );
-      return ok(mergedMetadata);
+      const finalMetadata = this.applyUrlClassification(mergedMetadata, url);
+      return ok(finalMetadata);
     }
 
     // This should never happen, but just in case
@@ -157,6 +161,37 @@ export class CompositeMetadataService implements IMetadataService {
    */
   public async fetchFromCitoid(url: URL): Promise<Result<UrlMetadata>> {
     return this.citoidService.fetchMetadata(url);
+  }
+
+  /**
+   * Apply URL classification based on hardcoded regex patterns
+   * This overrides the type from metadata services if a pattern matches
+   */
+  private applyUrlClassification(metadata: UrlMetadata, url: URL): UrlMetadata {
+    const classifiedType = UrlClassifier.classifyUrl(url.value);
+
+    if (classifiedType) {
+      // Override the type with the classified type
+      const updatedProps = {
+        url: metadata.url,
+        title: metadata.title,
+        description: metadata.description,
+        author: metadata.author,
+        publishedDate: metadata.publishedDate,
+        siteName: metadata.siteName,
+        imageUrl: metadata.imageUrl,
+        type: classifiedType, // Override with classified type
+        retrievedAt: metadata.retrievedAt,
+        doi: metadata.doi,
+        isbn: metadata.isbn,
+      };
+
+      // Create new UrlMetadata with updated type
+      return UrlMetadata.create(updatedProps).unwrap();
+    }
+
+    // No classification found, return original metadata
+    return metadata;
   }
 
   /**
