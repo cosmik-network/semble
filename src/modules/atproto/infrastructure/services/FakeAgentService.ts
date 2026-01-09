@@ -49,6 +49,15 @@ export class FakeAgentService implements IAgentService {
     }
   }
 
+  async getAuthenticatedServiceAccountAgent(): Promise<Result<Agent, Error>> {
+    try {
+      // Return the same mock agent for service account requests
+      return this.getUnauthenticatedAgent();
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   private getMockDataForUserId(userId: string): {
     name: string;
     handle: string;
