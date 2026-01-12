@@ -10,6 +10,7 @@ import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 
 export interface SemanticSearchUrlsQuery extends SemanticSearchUrlsParams {
   callingUserId?: string;
+  filterByUserId?: string;
 }
 
 export interface SemanticSearchUrlsResult {
@@ -62,8 +63,8 @@ export class SemanticSearchUrlsUseCase
         }
       }
 
-      // Always get 50 results from vector database
-      const vectorDbLimit = 50;
+      // Get more results if filtering by user to account for filtering
+      const vectorDbLimit = query.filterByUserId ? 100 : 50;
       const searchResult = await this.searchService.semanticSearchUrls(
         query.query.trim(),
         {
@@ -71,6 +72,7 @@ export class SemanticSearchUrlsUseCase
           threshold,
           urlType,
           callingUserId: query.callingUserId,
+          filterByUserId: query.filterByUserId,
         },
       );
 
