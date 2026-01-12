@@ -2,7 +2,6 @@ import { Result, ok, err } from '../../../shared/core/Result';
 import {
   IVectorDatabase,
   IndexUrlParams,
-  FindSimilarUrlsParams,
   SemanticSearchUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
@@ -68,28 +67,6 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     }
   }
 
-  async findSimilarUrls(
-    params: FindSimilarUrlsParams,
-  ): Promise<Result<UrlSearchResult[]>> {
-    try {
-      // Get the query URL's content for comparison
-      const queryUrl = this.urls.get(params.url);
-      const queryContent = queryUrl?.content || params.url;
-
-      return this.semanticSearchUrls({
-        query: queryContent,
-        limit: params.limit,
-        threshold: params.threshold,
-        urlType: params.urlType,
-      });
-    } catch (error) {
-      return err(
-        new Error(
-          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        ),
-      );
-    }
-  }
 
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,

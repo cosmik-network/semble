@@ -4,12 +4,6 @@ import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
 export type IndexUrlParams = UrlMetadataProps;
 
-export interface FindSimilarUrlsParams {
-  url: string;
-  limit: number;
-  threshold?: number; // Similarity threshold (0-1)
-  urlType?: UrlType; // Optional URL type to filter results
-}
 
 export interface SemanticSearchUrlsParams {
   query: string;
@@ -29,13 +23,6 @@ export interface IVectorDatabase {
    * Index a URL with its metadata for similarity search
    */
   indexUrl(params: IndexUrlParams): Promise<Result<void>>;
-
-  /**
-   * Find URLs similar to the given URL
-   */
-  findSimilarUrls(
-    params: FindSimilarUrlsParams,
-  ): Promise<Result<UrlSearchResult[]>>;
 
   /**
    * Find URLs similar to the given query string

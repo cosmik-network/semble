@@ -3,7 +3,6 @@ import { Result, ok, err } from '../../../shared/core/Result';
 import {
   IVectorDatabase,
   IndexUrlParams,
-  FindSimilarUrlsParams,
   SemanticSearchUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
@@ -62,28 +61,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     }
   }
 
-  async findSimilarUrls(
-    params: FindSimilarUrlsParams,
-  ): Promise<Result<UrlSearchResult[]>> {
-    try {
-      // Use the URL itself as the query data for now
-      // In a more sophisticated implementation, we could fetch the indexed data
-      const queryData = params.url;
-
-      return this.semanticSearchUrls({
-        query: queryData,
-        limit: params.limit,
-        threshold: params.threshold,
-        urlType: params.urlType,
-      });
-    } catch (error) {
-      return err(
-        new Error(
-          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        ),
-      );
-    }
-  }
 
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
