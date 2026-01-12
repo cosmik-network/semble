@@ -100,7 +100,10 @@ export class SearchService {
         urlType: options.urlType,
       };
 
-      return await this.processSemanticSearchResults(searchParams, options);
+      return await this.processSemanticSearchResults(searchParams, {
+        ...options,
+        excludeUrl: url.value,
+      });
     } catch (error) {
       return err(
         new Error(
@@ -146,6 +149,7 @@ export class SearchService {
     options: {
       limit: number;
       callingUserId?: string;
+      excludeUrl?: string;
     },
   ): Promise<Result<UrlView[]>> {
     // 1. Search URLs from vector database
@@ -157,8 +161,13 @@ export class SearchService {
       );
     }
 
-    // 2. Filter out results with insufficient content
+    // 2. Filter out excluded URL and results with insufficient content
     const filteredResults = searchResult.value.filter((result) => {
+      // Filter out the excluded URL if specified
+      if (options.excludeUrl && result.url === options.excludeUrl) {
+        return false;
+      }
+
       // Create UrlMetadata from the search result metadata
       const metadataResult = UrlMetadata.create(result.metadata);
       if (metadataResult.isErr()) {
