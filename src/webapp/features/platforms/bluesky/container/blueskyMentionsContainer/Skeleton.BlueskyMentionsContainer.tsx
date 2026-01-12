@@ -1,7 +1,7 @@
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import { Grid, GridCol, Stack } from '@mantine/core';
 
-export default function SembleSimilarCardsContainerSkeleton() {
+export default function BlueskyMentionsContainerSkeleton() {
   return (
     <Stack>
       <Grid gutter="sm" mx={'auto'} maw={600}>
