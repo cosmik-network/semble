@@ -4,7 +4,6 @@ import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
 export type IndexUrlParams = UrlMetadataProps;
 
-
 export interface SemanticSearchUrlsParams {
   query: string;
   limit: number;

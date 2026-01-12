@@ -38,10 +38,7 @@ export class SemanticSearchUrlsUseCase
   async execute(
     query: SemanticSearchUrlsQuery,
   ): Promise<
-    Result<
-      SemanticSearchUrlsResult,
-      ValidationError | AppError.UnexpectedError
-    >
+    Result<SemanticSearchUrlsResult, ValidationError | AppError.UnexpectedError>
   > {
     try {
       // Set defaults

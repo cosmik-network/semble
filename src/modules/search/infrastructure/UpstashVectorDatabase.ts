@@ -61,7 +61,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     }
   }
 
-
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {

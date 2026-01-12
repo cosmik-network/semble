@@ -67,7 +67,6 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     }
   }
 
-
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
