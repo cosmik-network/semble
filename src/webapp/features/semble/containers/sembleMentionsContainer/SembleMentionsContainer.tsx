@@ -9,7 +9,6 @@ import {
   useCombobox,
 } from '@mantine/core';
 import { Suspense, useState } from 'react';
-import SembleMentionsContainerSkeleton from './Skeleton.SembleMentionsContainer';
 import BlueskyMentionsContainerSkeleton from '@/features/platforms/bluesky/container/blueskyMentionsContainer/Skeleton.BlueskyMentionsContainer';
 
 interface Props {
@@ -37,7 +36,6 @@ export default function SembleMentionsContainer(props: Props) {
             <Button
               variant="light"
               color="gray"
-              leftSection={<Combobox.Chevron />}
               onClick={() => combobox.toggleDropdown()}
             >
               {platform}
