@@ -25,6 +25,8 @@ import SembleLibrariesContainerSkeleton from '../../containers/sembleLibrariesCo
 
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarCardsContainer/Skeleton.SembleSimilarCardsContainer';
+import SembleMentionsContainer from '../../containers/sembleMentionsContainer/SembleMentionsContainer';
+import SembleMentionsContainerSkeleton from '../../containers/sembleMentionsContainer/Skeleton.SembleMentionsContainer';
 
 interface Props {
   url: string;
@@ -45,6 +47,7 @@ export default function SembleTabs(props: Props) {
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
             <TabItem value="similar">Similar cards</TabItem>
+            <TabItem value="mentions">Mentions</TabItem>
           </Group>
         </TabsList>
       </ScrollAreaAutosize>
@@ -77,6 +80,12 @@ export default function SembleTabs(props: Props) {
         <TabsPanel value="similar">
           <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
             <SembleSimilarCardsContainer url={props.url} />
+          </Suspense>
+        </TabsPanel>
+
+        <TabsPanel value="mentions">
+          <Suspense fallback={<SembleMentionsContainerSkeleton />}>
+            <SembleMentionsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
       </Box>

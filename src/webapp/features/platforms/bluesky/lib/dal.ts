@@ -45,7 +45,7 @@ interface SearchParams {
 interface PageParams {
   page?: string;
   limit?: number;
-  sortBy?: string;
+  sortBy?: 'latest' | 'top';
 }
 
 export const searchBlueskyPosts = cache(
@@ -55,6 +55,7 @@ export const searchBlueskyPosts = cache(
       q: params.searchText,
       limit: params?.limit,
       cursor: params.page,
+      sort: params.sortBy,
     });
 
     return response;
