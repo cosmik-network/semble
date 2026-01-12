@@ -2,6 +2,7 @@ import { AppShellFooter, Avatar, Group, Indicator } from '@mantine/core';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { BiSearch } from 'react-icons/bi';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { RiNotification2Line } from 'react-icons/ri';
@@ -20,11 +21,7 @@ export default function BottomBar() {
           title="Explore"
           icon={MdOutlineEmojiNature}
         />
-        <BottomBarItem
-          href={`/profile/${profile.handle}/cards`}
-          title="Cards"
-          icon={FaRegNoteSticky}
-        />
+        <BottomBarItem href="/search" title="Search" icon={BiSearch} />
 
         <BottomBarItem
           href="/notifications"

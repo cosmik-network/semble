@@ -18,6 +18,7 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
+import { BiSearch } from 'react-icons/bi';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
@@ -60,6 +61,11 @@ export default function Navbar() {
               href="/explore"
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
+            />
+            <NavItem
+              href="/search"
+              label="Search"
+              icon={<BiSearch size={25} />}
             />
             <NotificationNavItem />
 
