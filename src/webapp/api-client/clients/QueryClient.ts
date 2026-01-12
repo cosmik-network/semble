@@ -260,6 +260,7 @@ export class QueryClient extends BaseClient {
     if (params.threshold)
       searchParams.set('threshold', params.threshold.toString());
     if (params.urlType) searchParams.set('urlType', params.urlType);
+    if (params.userId) searchParams.set('userId', params.userId);
 
     return this.request<SemanticSearchUrlsResponse>(
       'GET',
