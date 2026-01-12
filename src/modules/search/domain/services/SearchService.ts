@@ -2,7 +2,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
-import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
+import { IVectorDatabase, FindSimilarUrlsParams, UrlSearchResult } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
 import { CardSortField, SortOrder } from '@semble/types/api/common';
 import {
@@ -96,6 +96,60 @@ export class SearchService {
 
       // 2. Filter out results with insufficient content
       const filteredResults = similarResult.value.filter((result) => {
+        // Create UrlMetadata from the search result metadata
+        const metadataResult = UrlMetadata.create(result.metadata);
+        if (metadataResult.isErr()) {
+          return false;
+        }
+        const chunk = Chunk.create(metadataResult.value);
+        return chunk.meetsMinLength();
+      });
+
+      // 3. Limit to requested amount after filtering
+      const limitedResults = filteredResults.slice(0, options.limit);
+
+      // 4. Enrich results with library counts and context
+      const enrichedUrls = await this.enrichUrlsWithContext(
+        limitedResults,
+        options.callingUserId,
+      );
+
+      return ok(enrichedUrls);
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async semanticSearchUrls(
+    query: string,
+    options: {
+      limit: number;
+      threshold?: number;
+      urlType?: UrlType;
+      callingUserId?: string;
+    },
+  ): Promise<Result<UrlView[]>> {
+    try {
+      // 1. Search URLs from vector database
+      const searchResult = await this.vectorDatabase.semanticSearchUrls({
+        query,
+        limit: options.limit * 2, // Get more results to account for filtering
+        threshold: options.threshold,
+        urlType: options.urlType,
+      });
+
+      if (searchResult.isErr()) {
+        return err(
+          new Error(`Vector search failed: ${searchResult.error.message}`),
+        );
+      }
+
+      // 2. Filter out results with insufficient content
+      const filteredResults = searchResult.value.filter((result) => {
         // Create UrlMetadata from the search result metadata
         const metadataResult = UrlMetadata.create(result.metadata);
         if (metadataResult.isErr()) {
