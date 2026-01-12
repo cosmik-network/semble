@@ -65,6 +65,8 @@ import type {
   GetCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
+  SemanticSearchUrlsParams,
+  SemanticSearchUrlsResponse,
   SearchBskyPostsForUrlParams,
   SearchBskyPostsForUrlResponse,
   GetMyNotificationsParams,
@@ -184,6 +186,12 @@ export class ApiClient {
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
     return this.queryClient.getSimilarUrlsForUrl(params);
+  }
+
+  async semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
+  ): Promise<SemanticSearchUrlsResponse> {
+    return this.queryClient.semanticSearchUrls(params);
   }
 
   async searchBskyPosts(

@@ -11,6 +11,13 @@ export interface FindSimilarUrlsParams {
   urlType?: UrlType; // Optional URL type to filter results
 }
 
+export interface SemanticSearchUrlsParams {
+  query: string;
+  limit: number;
+  threshold?: number; // Similarity threshold (0-1)
+  urlType?: UrlType; // Optional URL type to filter results
+}
+
 export interface UrlSearchResult {
   url: string;
   similarity: number;
@@ -28,6 +35,13 @@ export interface IVectorDatabase {
    */
   findSimilarUrls(
     params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>>;
+
+  /**
+   * Find URLs similar to the given query string
+   */
+  semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>>;
 
   /**

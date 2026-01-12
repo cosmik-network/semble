@@ -234,6 +234,11 @@ export interface GetSimilarUrlsForUrlResponse {
   pagination: Pagination;
 }
 
+export interface SemanticSearchUrlsResponse {
+  urls: UrlView[];
+  pagination: Pagination;
+}
+
 // Bluesky search response types
 export interface PostView {
   uri: string;

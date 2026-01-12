@@ -4,6 +4,7 @@ import {
   IVectorDatabase,
   IndexUrlParams,
   FindSimilarUrlsParams,
+  SemanticSearchUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import {
@@ -65,30 +66,45 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     params: FindSimilarUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
     try {
-      // Get the query URL's content for comparison
-      // We'll use the URL itself as the query data for now
+      // Use the URL itself as the query data for now
       // In a more sophisticated implementation, we could fetch the indexed data
       const queryData = params.url;
 
+      return this.semanticSearchUrls({
+        query: queryData,
+        limit: params.limit,
+        threshold: params.threshold,
+        urlType: params.urlType,
+      });
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>> {
+    try {
       // Fetch top 100 results (naive pagination approach)
       const topK = Math.min(params.limit * 10, 100); // Get more results for pagination
 
       const queryResult = await this.index.query({
-        data: queryData,
+        data: params.query,
         topK,
         includeMetadata: true,
         includeVectors: false, // We don't need the vectors in the response
         filter: params.urlType ? `type = '${params.urlType}'` : undefined,
       });
 
-      // Filter out the query URL itself and apply threshold
+      // Apply threshold filter
       const threshold = params.threshold || 0.3;
       const results: UrlSearchResult[] = [];
 
       for (const result of queryResult) {
-        // Skip the query URL itself
-        if (result.id === params.url) continue;
-
         // Apply threshold filter
         if (result.score < threshold) continue;
 
@@ -116,7 +132,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     } catch (error) {
       return err(
         new Error(
-          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to search URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }
