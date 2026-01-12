@@ -100,35 +100,7 @@ export class SearchService {
         urlType: options.urlType,
       };
 
-      const similarResult =
-        await this.vectorDatabase.semanticSearchUrls(searchParams);
-      if (similarResult.isErr()) {
-        return err(
-          new Error(`Vector search failed: ${similarResult.error.message}`),
-        );
-      }
-
-      // 2. Filter out results with insufficient content
-      const filteredResults = similarResult.value.filter((result) => {
-        // Create UrlMetadata from the search result metadata
-        const metadataResult = UrlMetadata.create(result.metadata);
-        if (metadataResult.isErr()) {
-          return false;
-        }
-        const chunk = Chunk.create(metadataResult.value);
-        return chunk.meetsMinLength();
-      });
-
-      // 3. Limit to requested amount after filtering
-      const limitedResults = filteredResults.slice(0, options.limit);
-
-      // 4. Enrich results with library counts and context
-      const enrichedUrls = await this.enrichUrlsWithContext(
-        limitedResults,
-        options.callingUserId,
-      );
-
-      return ok(enrichedUrls);
+      return await this.processSemanticSearchResults(searchParams, options);
     } catch (error) {
       return err(
         new Error(
@@ -148,41 +120,14 @@ export class SearchService {
     },
   ): Promise<Result<UrlView[]>> {
     try {
-      // 1. Search URLs from vector database
-      const searchResult = await this.vectorDatabase.semanticSearchUrls({
+      const searchParams: SemanticSearchUrlsParams = {
         query,
         limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
         urlType: options.urlType,
-      });
+      };
 
-      if (searchResult.isErr()) {
-        return err(
-          new Error(`Vector search failed: ${searchResult.error.message}`),
-        );
-      }
-
-      // 2. Filter out results with insufficient content
-      const filteredResults = searchResult.value.filter((result) => {
-        // Create UrlMetadata from the search result metadata
-        const metadataResult = UrlMetadata.create(result.metadata);
-        if (metadataResult.isErr()) {
-          return false;
-        }
-        const chunk = Chunk.create(metadataResult.value);
-        return chunk.meetsMinLength();
-      });
-
-      // 3. Limit to requested amount after filtering
-      const limitedResults = filteredResults.slice(0, options.limit);
-
-      // 4. Enrich results with library counts and context
-      const enrichedUrls = await this.enrichUrlsWithContext(
-        limitedResults,
-        options.callingUserId,
-      );
-
-      return ok(enrichedUrls);
+      return await this.processSemanticSearchResults(searchParams, options);
     } catch (error) {
       return err(
         new Error(
@@ -194,6 +139,45 @@ export class SearchService {
 
   async healthCheck(): Promise<Result<boolean>> {
     return await this.vectorDatabase.healthCheck();
+  }
+
+  private async processSemanticSearchResults(
+    searchParams: SemanticSearchUrlsParams,
+    options: {
+      limit: number;
+      callingUserId?: string;
+    },
+  ): Promise<Result<UrlView[]>> {
+    // 1. Search URLs from vector database
+    const searchResult =
+      await this.vectorDatabase.semanticSearchUrls(searchParams);
+    if (searchResult.isErr()) {
+      return err(
+        new Error(`Vector search failed: ${searchResult.error.message}`),
+      );
+    }
+
+    // 2. Filter out results with insufficient content
+    const filteredResults = searchResult.value.filter((result) => {
+      // Create UrlMetadata from the search result metadata
+      const metadataResult = UrlMetadata.create(result.metadata);
+      if (metadataResult.isErr()) {
+        return false;
+      }
+      const chunk = Chunk.create(metadataResult.value);
+      return chunk.meetsMinLength();
+    });
+
+    // 3. Limit to requested amount after filtering
+    const limitedResults = filteredResults.slice(0, options.limit);
+
+    // 4. Enrich results with library counts and context
+    const enrichedUrls = await this.enrichUrlsWithContext(
+      limitedResults,
+      options.callingUserId,
+    );
+
+    return ok(enrichedUrls);
   }
 
   private async enrichUrlsWithContext(
