@@ -2,7 +2,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
-import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
+import { IVectorDatabase, SemanticSearchUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
 import { CardSortField, SortOrder } from '@semble/types/api/common';
 import {
@@ -78,43 +78,59 @@ export class SearchService {
     },
   ): Promise<Result<UrlView[]>> {
     try {
-      // 1. Find similar URLs from vector database
-      const findParams: FindSimilarUrlsParams = {
-        url: url.value,
+      // 1. Get metadata for the URL to extract title + description
+      const metadataResult = await this.metadataService.fetchMetadata(url);
+      if (metadataResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch metadata for similarity search: ${metadataResult.error.message}`,
+          ),
+        );
+      }
+
+      // 2. Create chunk from metadata to get searchable content
+      const chunk = Chunk.create(metadataResult.value);
+      const searchQuery = chunk.value || url.value; // Fallback to URL if no content
+
+      // 3. Find similar URLs using the content as query
+      const searchParams: SemanticSearchUrlsParams = {
+        query: searchQuery,
         limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
         urlType: options.urlType,
       };
 
-      const similarResult =
-        await this.vectorDatabase.findSimilarUrls(findParams);
-      if (similarResult.isErr()) {
-        return err(
-          new Error(`Vector search failed: ${similarResult.error.message}`),
-        );
-      }
-
-      // 2. Filter out results with insufficient content
-      const filteredResults = similarResult.value.filter((result) => {
-        // Create UrlMetadata from the search result metadata
-        const metadataResult = UrlMetadata.create(result.metadata);
-        if (metadataResult.isErr()) {
-          return false;
-        }
-        const chunk = Chunk.create(metadataResult.value);
-        return chunk.meetsMinLength();
+      return await this.processSemanticSearchResults(searchParams, {
+        ...options,
+        excludeUrl: url.value,
       });
-
-      // 3. Limit to requested amount after filtering
-      const limitedResults = filteredResults.slice(0, options.limit);
-
-      // 4. Enrich results with library counts and context
-      const enrichedUrls = await this.enrichUrlsWithContext(
-        limitedResults,
-        options.callingUserId,
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
+    }
+  }
 
-      return ok(enrichedUrls);
+  async semanticSearchUrls(
+    query: string,
+    options: {
+      limit: number;
+      threshold?: number;
+      urlType?: UrlType;
+      callingUserId?: string;
+    },
+  ): Promise<Result<UrlView[]>> {
+    try {
+      const searchParams: SemanticSearchUrlsParams = {
+        query,
+        limit: options.limit * 2, // Get more results to account for filtering
+        threshold: options.threshold,
+        urlType: options.urlType,
+      };
+
+      return await this.processSemanticSearchResults(searchParams, options);
     } catch (error) {
       return err(
         new Error(
@@ -126,6 +142,51 @@ export class SearchService {
 
   async healthCheck(): Promise<Result<boolean>> {
     return await this.vectorDatabase.healthCheck();
+  }
+
+  private async processSemanticSearchResults(
+    searchParams: SemanticSearchUrlsParams,
+    options: {
+      limit: number;
+      callingUserId?: string;
+      excludeUrl?: string;
+    },
+  ): Promise<Result<UrlView[]>> {
+    // 1. Search URLs from vector database
+    const searchResult =
+      await this.vectorDatabase.semanticSearchUrls(searchParams);
+    if (searchResult.isErr()) {
+      return err(
+        new Error(`Vector search failed: ${searchResult.error.message}`),
+      );
+    }
+
+    // 2. Filter out excluded URL and results with insufficient content
+    const filteredResults = searchResult.value.filter((result) => {
+      // Filter out the excluded URL if specified
+      if (options.excludeUrl && result.url === options.excludeUrl) {
+        return false;
+      }
+
+      // Create UrlMetadata from the search result metadata
+      const metadataResult = UrlMetadata.create(result.metadata);
+      if (metadataResult.isErr()) {
+        return false;
+      }
+      const chunk = Chunk.create(metadataResult.value);
+      return chunk.meetsMinLength();
+    });
+
+    // 3. Limit to requested amount after filtering
+    const limitedResults = filteredResults.slice(0, options.limit);
+
+    // 4. Enrich results with library counts and context
+    const enrichedUrls = await this.enrichUrlsWithContext(
+      limitedResults,
+      options.callingUserId,
+    );
+
+    return ok(enrichedUrls);
   }
 
   private async enrichUrlsWithContext(

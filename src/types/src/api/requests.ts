@@ -164,6 +164,12 @@ export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
   urlType?: string;
 }
 
+export interface SemanticSearchUrlsParams extends PaginatedSortedParams {
+  query: string;
+  threshold?: number;
+  urlType?: string;
+}
+
 export interface SearchBskyPostsForUrlParams {
   q: string;
   sort?: 'top' | 'latest' | string;

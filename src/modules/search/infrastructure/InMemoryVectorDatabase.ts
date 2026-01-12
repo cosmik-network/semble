@@ -2,7 +2,7 @@ import { Result, ok, err } from '../../../shared/core/Result';
 import {
   IVectorDatabase,
   IndexUrlParams,
-  FindSimilarUrlsParams,
+  SemanticSearchUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
@@ -67,36 +67,29 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     }
   }
 
-  async findSimilarUrls(
-    params: FindSimilarUrlsParams,
+  async semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
     try {
       console.log('all urls to compare', this.urls);
       const threshold = params.threshold || 0; // Lower default threshold for more matches
       const results: UrlSearchResult[] = [];
 
-      // Get the query URL's content for comparison
-      const queryUrl = this.urls.get(params.url);
-      const queryContent = queryUrl?.content || params.url;
-
-      console.log('Query content for similarity:', queryContent);
+      console.log('Query content for similarity:', params.query);
 
       for (const [url, indexed] of this.urls.entries()) {
-        // Skip the query URL itself
-        if (url === params.url) continue;
-
         // Filter by URL type if specified
         if (params.urlType && indexed.metadata.type !== params.urlType) {
           continue;
         }
 
         const similarity = this.calculateSimilarity(
-          queryContent,
+          params.query,
           indexed.content,
         );
 
         console.log(
-          `Similarity between "${queryContent}" and "${indexed.content}": ${similarity}`,
+          `Similarity between "${params.query}" and "${indexed.content}": ${similarity}`,
         );
 
         if (similarity >= threshold) {
@@ -120,7 +113,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     } catch (error) {
       return err(
         new Error(
-          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to search URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }
