@@ -120,6 +120,7 @@ export class SearchService {
       threshold?: number;
       urlType?: UrlType;
       callingUserId?: string;
+      filterByUserId?: string;
     },
   ): Promise<Result<UrlView[]>> {
     try {
@@ -130,7 +131,10 @@ export class SearchService {
         urlType: options.urlType,
       };
 
-      return await this.processSemanticSearchResults(searchParams, options);
+      return await this.processSemanticSearchResults(searchParams, {
+        ...options,
+        filterByUserId: options.filterByUserId,
+      });
     } catch (error) {
       return err(
         new Error(
@@ -150,11 +154,18 @@ export class SearchService {
       limit: number;
       callingUserId?: string;
       excludeUrl?: string;
+      filterByUserId?: string;
     },
   ): Promise<Result<UrlView[]>> {
-    // 1. Search URLs from vector database
+    // 1. Search URLs from vector database - get more results if filtering by user
+    const adjustedParams = {
+      ...searchParams,
+      limit: options.filterByUserId
+        ? Math.max(searchParams.limit * 3, 100)
+        : searchParams.limit,
+    };
     const searchResult =
-      await this.vectorDatabase.semanticSearchUrls(searchParams);
+      await this.vectorDatabase.semanticSearchUrls(adjustedParams);
     if (searchResult.isErr()) {
       return err(
         new Error(`Vector search failed: ${searchResult.error.message}`),
@@ -180,10 +191,12 @@ export class SearchService {
     // 3. Limit to requested amount after filtering
     const limitedResults = filteredResults.slice(0, options.limit);
 
-    // 4. Enrich results with library counts and context
+    // 4. Enrich results with library counts and context, and filter by user if needed
     const enrichedUrls = await this.enrichUrlsWithContext(
       limitedResults,
       options.callingUserId,
+      options.filterByUserId,
+      options.limit,
     );
 
     return ok(enrichedUrls);
@@ -196,8 +209,10 @@ export class SearchService {
       metadata: UrlMetadataProps;
     }>,
     callingUserId?: string,
+    filterByUserId?: string,
+    finalLimit?: number,
   ): Promise<UrlView[]> {
-    // Enrich each URL with library context
+    // Enrich each URL with library context and filter by user if needed
     const enrichedResults = await Promise.all(
       searchResults.map(async (result) => {
         // Get library information for this URL
@@ -208,6 +223,16 @@ export class SearchService {
             sortBy: CardSortField.CREATED_AT,
             sortOrder: SortOrder.DESC,
           });
+
+        // If filtering by user, check if this user has the URL
+        if (filterByUserId) {
+          const userHasUrl = librariesResult.items.some(
+            (library) => library.userId === filterByUserId,
+          );
+          if (!userHasUrl) {
+            return null; // Filter out this result
+          }
+        }
 
         const urlLibraryCount = librariesResult.totalCount;
 
@@ -239,6 +264,9 @@ export class SearchService {
       }),
     );
 
-    return enrichedResults;
+    // Filter out null results and limit to requested amount
+    const filteredResults = enrichedResults.filter((result) => result !== null);
+
+    return finalLimit ? filteredResults.slice(0, finalLimit) : filteredResults;
   }
 }

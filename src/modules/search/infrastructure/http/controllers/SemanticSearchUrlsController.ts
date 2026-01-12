@@ -10,7 +10,7 @@ export class SemanticSearchUrlsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { query, page, limit, threshold, urlType } = req.query;
+      const { query, page, limit, threshold, urlType, userId } = req.query;
 
       if (!query || typeof query !== 'string') {
         return this.fail(res, 'Query parameter is required');
@@ -19,6 +19,7 @@ export class SemanticSearchUrlsController extends Controller {
       const result = await this.semanticSearchUrlsUseCase.execute({
         query,
         callingUserId: req.did, // Pass through the authenticated user's DID
+        filterByUserId: userId as string | undefined,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         threshold: threshold ? parseFloat(threshold as string) : undefined,
