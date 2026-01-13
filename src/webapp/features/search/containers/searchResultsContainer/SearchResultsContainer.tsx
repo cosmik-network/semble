@@ -9,6 +9,7 @@ import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyR
 
 interface Props {
   query: string;
+  userId?: string;
 }
 
 export default function SearchResultsContainer(props: Props) {
@@ -19,7 +20,7 @@ export default function SearchResultsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSemanticSearch({ query: props.query });
+  } = useSemanticSearch({ query: props.query, userId: props.userId });
 
   const allUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
