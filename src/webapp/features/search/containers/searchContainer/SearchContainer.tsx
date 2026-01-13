@@ -10,8 +10,12 @@ import type { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/a
 export default function SearchContainer() {
   const [query, setQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<ProfileViewBasic | null>(null);
-  const [searchUserId, setSearchUserId] = useState<string | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = useState<ProfileViewBasic | null>(
+    null,
+  );
+  const [searchUserId, setSearchUserId] = useState<string | undefined>(
+    undefined,
+  );
 
   const handleSearch = () => {
     if (query.trim()) {
@@ -47,7 +51,9 @@ export default function SearchContainer() {
           </Button>
         </Group>
 
-        {searchQuery && <SearchResultsContainer query={searchQuery} userId={searchUserId} />}
+        {searchQuery && (
+          <SearchResultsContainer query={searchQuery} userId={searchUserId} />
+        )}
       </Stack>
     </Container>
   );

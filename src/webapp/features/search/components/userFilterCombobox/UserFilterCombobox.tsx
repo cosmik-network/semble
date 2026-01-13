@@ -86,7 +86,9 @@ export default function UserFilterCombobox(props: Props) {
         store={combobox}
         withinPortal={false}
         onOptionSubmit={(handleValue) => {
-          const selectedActor = actors.find((actor) => actor.handle === handleValue);
+          const selectedActor = actors.find(
+            (actor) => actor.handle === handleValue,
+          );
           if (selectedActor) {
             props.onUserSelect(selectedActor);
             setInputValue('');
@@ -101,7 +103,10 @@ export default function UserFilterCombobox(props: Props) {
             onChange={(e) => {
               const val = e.currentTarget.value;
               setInputValue(val);
-              if (props.selectedUser && val !== `@${props.selectedUser.handle}`) {
+              if (
+                props.selectedUser &&
+                val !== `@${props.selectedUser.handle}`
+              ) {
                 props.onUserSelect(null);
               }
               combobox.openDropdown();
@@ -114,14 +119,14 @@ export default function UserFilterCombobox(props: Props) {
           />
         </Combobox.Target>
 
-        <Combobox.Dropdown hidden={debounced.trim().length === 0 && !props.selectedUser}>
+        <Combobox.Dropdown
+          hidden={debounced.trim().length === 0 && !props.selectedUser}
+        >
           <Combobox.Options>
             <ScrollArea.Autosize type="scroll" mah={200}>
               {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
               {error && (
-                <Combobox.Empty>
-                  Could not search for profiles
-                </Combobox.Empty>
+                <Combobox.Empty>Could not search for profiles</Combobox.Empty>
               )}
               {empty && <Combobox.Empty>No profiles found</Combobox.Empty>}
               {options.length > 0 && options}
