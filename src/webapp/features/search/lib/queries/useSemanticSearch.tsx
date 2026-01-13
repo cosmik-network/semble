@@ -14,7 +14,7 @@ export default function useSemanticSearch(props: Props) {
   const limit = props?.limit ?? 16;
 
   const searchResults = useSuspenseInfiniteQuery({
-    queryKey: searchKeys.semanticSearchInfinite(props.query, props.limit),
+    queryKey: searchKeys.semanticSearchInfinite(props.query, props.limit, props.threshold, props.urlType, props.userId),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return semanticSearchUrls(props.query, {
