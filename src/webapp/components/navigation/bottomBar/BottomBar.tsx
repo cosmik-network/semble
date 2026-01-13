@@ -23,6 +23,11 @@ export default function BottomBar() {
           title="Explore"
           icon={MdOutlineEmojiNature}
         />
+        <BottomBarItem
+          href={`/profile/${profile.handle}/cards`}
+          title="Cards"
+          icon={FaRegNoteSticky}
+        />
         {featureFlags?.cardSearch && (
           <BottomBarItem href="/search" title="Search" icon={BiSearch} />
         )}
