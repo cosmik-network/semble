@@ -37,7 +37,7 @@ export default function SearchContainer() {
             Search
           </Button>
         </Group>
-        
+
         {searchQuery && <SearchResultsContainer query={searchQuery} />}
       </Stack>
     </Container>
