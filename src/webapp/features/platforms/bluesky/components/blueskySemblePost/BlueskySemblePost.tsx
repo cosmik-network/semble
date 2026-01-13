@@ -78,7 +78,7 @@ export default async function BlueskySemblePost(props: Props) {
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Stack gap={'xs'} align="start">
+    <Stack gap={'xs'}>
       <Group gap={'xs'}>
         <Badge size="xs" color="lime" leftSection={<IconComponent />}>
           {UrlType.SOCIAL}
