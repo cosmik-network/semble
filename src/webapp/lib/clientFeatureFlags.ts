@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 
 interface FeatureFlags {
-  similarCards: boolean;
   cardSearch: boolean;
 }
 
