@@ -83,7 +83,7 @@ export default async function BlueskySemblePost(props: Props) {
     <Stack gap={'xs'}>
       <Group gap={'xs'}>
         <Badge size="xs" color="lime" leftSection={<IconComponent />}>
-          {UrlType.SOCIAL}
+          {metadata.type}
         </Badge>
         <Tooltip label={props.url}>
           <Anchor
