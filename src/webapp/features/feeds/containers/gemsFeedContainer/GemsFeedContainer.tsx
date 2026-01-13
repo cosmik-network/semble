@@ -7,8 +7,13 @@ import GemsFeedContainerSkeleton from './Skeleton.GemsFeedContainer';
 import GemsFeedContainerError from './Error.GemsFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
+import { useSearchParams } from 'next/navigation';
+import { UrlType } from '@semble/types';
 
 export default function GemsFeedContainer() {
+  const searchParams = useSearchParams();
+  const selectedUrlType = searchParams.get('type') as UrlType;
+
   const {
     data,
     error,
@@ -18,7 +23,7 @@ export default function GemsFeedContainer() {
     isFetchingNextPage,
     isRefetching,
     refetch,
-  } = useGemsFeed();
+  } = useGemsFeed({ urlType: selectedUrlType });
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
