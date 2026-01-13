@@ -19,6 +19,7 @@ import {
   Box,
   Image,
   Text,
+  Badge,
 } from '@mantine/core';
 import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
@@ -26,6 +27,9 @@ import PostEmbed from '../postEmbed/PostEmbed';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { RiArrowRightUpLine } from 'react-icons/ri';
+import { UrlType } from '@semble/types';
+import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { IconType } from 'react-icons/lib';
 
 interface Props {
   url: string;
@@ -67,26 +71,34 @@ export default async function BlueskySemblePost(props: Props) {
     return <SembleHeader url={props.url} />;
   }
 
+  const urlTypeIcon = getUrlTypeIcon(UrlType.SOCIAL);
+  const IconComponent = urlTypeIcon as IconType;
+
   const post = data.thread.post;
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
     <Stack gap={'xs'} align="start">
-      <Tooltip label={props.url}>
-        <Anchor
-          component={Link}
-          target="_blank"
-          fw={700}
-          c="blue"
-          href={props.url}
-          style={{ display: 'inline-block' }}
-        >
-          <Group gap={0} align="center" wrap="nowrap">
-            {getDomain(props.url)}
-            <RiArrowRightUpLine />
-          </Group>
-        </Anchor>
-      </Tooltip>
+      <Group gap={'xs'}>
+        <Badge size="xs" color="lime" leftSection={<IconComponent />}>
+          {UrlType.SOCIAL}
+        </Badge>
+        <Tooltip label={props.url}>
+          <Anchor
+            component={Link}
+            target="_blank"
+            fw={700}
+            c="blue"
+            href={props.url}
+            style={{ display: 'inline-block' }}
+          >
+            <Group gap={0} align="center" wrap="nowrap">
+              {getDomain(props.url)}
+              <RiArrowRightUpLine />
+            </Group>
+          </Anchor>
+        </Tooltip>
+      </Group>
 
       {/* Post */}
       <Card radius={'lg'} withBorder>
