@@ -40,7 +40,7 @@ export default function FeedControls() {
   return (
     <ScrollAreaAutosize type="scroll">
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
-        <Group gap={'xs'}>
+        <Group gap={'xs'} wrap="nowrap">
           <Combobox
             store={combobox}
             onOptionSubmit={(value) => {
