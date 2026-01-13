@@ -9,5 +9,6 @@ export async function getServerFeatureFlags() {
 
   return {
     cardSearch: isApprovedUser || process.env.VERCEL_ENV !== 'production',
+    urlTypeFilter: isApprovedUser || process.env.VERCEL_ENV !== 'production',
   };
 }
