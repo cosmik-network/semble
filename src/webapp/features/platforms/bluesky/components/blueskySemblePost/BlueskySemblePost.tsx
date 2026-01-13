@@ -30,6 +30,7 @@ import { RiArrowRightUpLine } from 'react-icons/ri';
 import { UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { IconType } from 'react-icons/lib';
+import { getUrlMetadata } from '@/features/cards/lib/dal';
 
 interface Props {
   url: string;
@@ -38,6 +39,10 @@ interface Props {
 export default async function BlueskySemblePost(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
+  const { metadata } = await getUrlMetadata(props.url);
+  const urlTypeIcon = getUrlTypeIcon(metadata.type as UrlType);
+  const IconComponent = urlTypeIcon as IconType;
+
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
     platform.type === SupportedPlatform.BLUESKY_POST ? (
@@ -70,9 +75,6 @@ export default async function BlueskySemblePost(props: Props) {
     // fallback
     return <SembleHeader url={props.url} />;
   }
-
-  const urlTypeIcon = getUrlTypeIcon(UrlType.SOCIAL);
-  const IconComponent = urlTypeIcon as IconType;
 
   const post = data.thread.post;
   const record = post.record as AppBskyFeedPost.Record;
