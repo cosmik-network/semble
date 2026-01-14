@@ -14,14 +14,34 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
   }
 
   async generateAuthUrl(handle: string): Promise<Result<string>> {
-    try {
-      const url = await this.client.authorize(handle, {
-        scope: this.client.clientMetadata.scope,
-      });
-      return ok(url.toString());
-    } catch (error: any) {
-      return err(error);
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1 second
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const url = await this.client.authorize(handle, {
+          scope: this.client.clientMetadata.scope,
+        });
+        return ok(url.toString());
+      } catch (error: any) {
+        // If it's a client metadata error and we have retries left, wait and retry
+        if (error.error === 'invalid_client_metadata' && attempt < maxRetries) {
+          console.log(
+            `OAuth client metadata fetch failed (attempt ${attempt}/${maxRetries}), retrying in ${retryDelay}ms...`,
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryDelay * attempt),
+          );
+          continue;
+        }
+
+        // If it's the final attempt or a different error, return the error
+        return err(error);
+      }
     }
+
+    // This should never be reached, but TypeScript requires it
+    return err(new Error('Unexpected error in generateAuthUrl'));
   }
 
   async processCallback(params: OAuthCallbackDTO): Promise<Result<AuthResult>> {

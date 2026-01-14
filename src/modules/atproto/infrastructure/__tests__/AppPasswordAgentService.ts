@@ -37,4 +37,27 @@ export class AppPasswordAgentService implements IAgentService {
       );
     }
   }
+
+  async getAuthenticatedServiceAccountAgent(): Promise<Result<Agent, Error>> {
+    try {
+      const agent = new AtpAgent({
+        service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
+      });
+
+      await agent.login({
+        identifier: this.props.did,
+        password: this.props.password,
+      });
+
+      return ok(agent);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to get authenticated service account agent: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -8,6 +8,7 @@ interface PageParams {
   limit?: number;
   cardSortBy?: CardSortField;
   cardSortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 export const getUrlMetadata = cache(async (url: string) => {
@@ -77,6 +78,7 @@ export const getUrlCards = cache(
       limit: params?.limit,
       sortBy: params?.cardSortBy,
       sortOrder: params?.cardSortOrder,
+      urlType: params?.urlType,
     });
 
     return response;

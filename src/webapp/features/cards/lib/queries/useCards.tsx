@@ -1,13 +1,14 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getUrlCards } from '../dal';
 import { cardKeys } from '../cardKeys';
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 
 interface Props {
   didOrHandle: string;
   limit?: number;
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 export default function useCards(props: Props) {
@@ -19,6 +20,7 @@ export default function useCards(props: Props) {
       props.limit,
       props.sortBy,
       props.sortOrder,
+      props.urlType,
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
@@ -27,6 +29,7 @@ export default function useCards(props: Props) {
         page: pageParam,
         cardSortBy: props.sortBy,
         cardSortOrder: props.sortOrder,
+        urlType: props.urlType,
       });
     },
     getNextPageParam: (lastPage) => {

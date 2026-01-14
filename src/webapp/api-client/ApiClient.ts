@@ -65,6 +65,10 @@ import type {
   GetCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
+  SemanticSearchUrlsParams,
+  SemanticSearchUrlsResponse,
+  SearchBskyPostsForUrlParams,
+  SearchBskyPostsForUrlResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -182,6 +186,18 @@ export class ApiClient {
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
     return this.queryClient.getSimilarUrlsForUrl(params);
+  }
+
+  async semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
+  ): Promise<SemanticSearchUrlsResponse> {
+    return this.queryClient.semanticSearchUrls(params);
+  }
+
+  async searchBskyPosts(
+    params: SearchBskyPostsForUrlParams,
+  ): Promise<SearchBskyPostsForUrlResponse> {
+    return this.queryClient.searchBskyPosts(params);
   }
 
   // Card operations - delegate to CardClient

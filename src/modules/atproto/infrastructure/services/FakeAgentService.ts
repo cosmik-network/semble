@@ -1,7 +1,8 @@
 import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
-import { Agent } from '@atproto/api';
+import { Agent, AtpAgent } from '@atproto/api';
+import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
 
 export class FakeAgentService implements IAgentService {
   getUnauthenticatedAgent(): Result<Agent, Error> {
@@ -46,6 +47,42 @@ export class FakeAgentService implements IAgentService {
       return this.getUnauthenticatedAgent();
     } catch (error: any) {
       return err(error);
+    }
+  }
+
+  async getAuthenticatedServiceAccountAgent(): Promise<Result<Agent, Error>> {
+    try {
+      const serviceAccountIdentifier =
+        process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER;
+      const serviceAccountAppPassword =
+        process.env.BSKY_SERVICE_ACCOUNT_APP_PASSWORD;
+
+      if (!serviceAccountIdentifier || !serviceAccountAppPassword) {
+        return err(
+          new Error(
+            'Service account credentials not configured. Please set BSKY_SERVICE_ACCOUNT_IDENTIFIER and BSKY_SERVICE_ACCOUNT_APP_PASSWORD environment variables.',
+          ),
+        );
+      }
+
+      const agent = new AtpAgent({
+        service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
+      });
+
+      await agent.login({
+        identifier: serviceAccountIdentifier,
+        password: serviceAccountAppPassword,
+      });
+
+      return ok(agent);
+    } catch (error: any) {
+      return err(
+        new Error(
+          `Failed to authenticate service account: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
     }
   }
 
