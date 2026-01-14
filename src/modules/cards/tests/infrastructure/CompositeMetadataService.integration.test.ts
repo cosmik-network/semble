@@ -15,10 +15,10 @@ describe('CompositeMetadataService Manual Tests', () => {
 
   it('should fetch metadata for manual URL testing', async () => {
     // CHANGE THIS URL TO TEST DIFFERENT LINKS
-    const testUrl = 'https://arxiv.org/abs/2502.10834';
-    
+    const testUrl = 'https://www.science.org/doi/10.1126/science.adt7790';
+
     console.log(`\n🔍 Testing URL: ${testUrl}`);
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     const urlResult = URL.create(testUrl);
     expect(urlResult.isOk()).toBe(true);
@@ -29,12 +29,12 @@ describe('CompositeMetadataService Manual Tests', () => {
 
     if (result.isOk()) {
       const metadata = result.unwrap();
-      
+
       console.log('✅ SUCCESS - Metadata fetched:');
       console.log({
         url: metadata.url,
         title: metadata.title,
-        description: metadata.description?.substring(0, 100) + (metadata.description?.length > 100 ? '...' : ''),
+        description: metadata.description,
         author: metadata.author,
         type: metadata.type,
         siteName: metadata.siteName,
