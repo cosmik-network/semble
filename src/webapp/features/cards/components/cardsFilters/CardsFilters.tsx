@@ -9,11 +9,13 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { useState, useTransition } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { BsFillGridFill, BsListTask } from 'react-icons/bs';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function CardsFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { settings, updateSetting } = useUserSettings();
+  const { data: featureFlags } = useFeatureFlags();
   const [, startTransition] = useTransition();
 
   // sort
@@ -70,48 +72,50 @@ export default function CardsFilters() {
 
       <Group gap={'xs'}>
         {/* type */}
-        <Popover opened={opened} onChange={setOpened} shadow="sm">
-          <Popover.Target>
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<SelectedIcon />}
-              onClick={() => setOpened((o) => !o)}
-            >
-              {typeFromUrl ? upperFirst(typeFromUrl) : 'All Types'}
-            </Button>
-          </Popover.Target>
-
-          <Popover.Dropdown maw={300}>
-            <Group gap={6}>
+        {featureFlags?.urlTypeFilter && (
+          <Popover opened={opened} onChange={setOpened} shadow="sm">
+            <Popover.Target>
               <Button
-                size="xs"
-                color="lime"
-                variant={typeFromUrl === null ? 'filled' : 'light'}
-                onClick={() => handleTypeChange()}
+                variant="light"
+                color="gray"
+                leftSection={<SelectedIcon />}
+                onClick={() => setOpened((o) => !o)}
               >
-                All Types
+                {typeFromUrl ? upperFirst(typeFromUrl) : 'All Types'}
               </Button>
+            </Popover.Target>
 
-              {Object.values(UrlType).map((type) => {
-                const Icon = getUrlTypeIcon(type);
+            <Popover.Dropdown maw={300}>
+              <Group gap={6}>
+                <Button
+                  size="xs"
+                  color="lime"
+                  variant={typeFromUrl === null ? 'filled' : 'light'}
+                  onClick={() => handleTypeChange()}
+                >
+                  All Types
+                </Button>
 
-                return (
-                  <Button
-                    key={type}
-                    size="xs"
-                    color="lime"
-                    variant={typeFromUrl === type ? 'filled' : 'light'}
-                    leftSection={<Icon />}
-                    onClick={() => handleTypeChange(type)}
-                  >
-                    {upperFirst(type)}
-                  </Button>
-                );
-              })}
-            </Group>
-          </Popover.Dropdown>
-        </Popover>
+                {Object.values(UrlType).map((type) => {
+                  const Icon = getUrlTypeIcon(type);
+
+                  return (
+                    <Button
+                      key={type}
+                      size="xs"
+                      color="lime"
+                      variant={typeFromUrl === type ? 'filled' : 'light'}
+                      leftSection={<Icon />}
+                      onClick={() => handleTypeChange(type)}
+                    >
+                      {upperFirst(type)}
+                    </Button>
+                  );
+                })}
+              </Group>
+            </Popover.Dropdown>
+          </Popover>
+        )}
 
         {/* card view */}
         <Button
