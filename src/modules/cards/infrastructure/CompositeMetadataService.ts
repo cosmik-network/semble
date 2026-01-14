@@ -126,8 +126,8 @@ export class CompositeMetadataService implements IMetadataService {
       return iframelyMetadata;
     }
 
-    // If both return the same type or different specific types, use default preference
-    if (this.config.defaultService === DefaultServicePreference.CITOID) {
+    // If both return different types, prefer Citoid (for scholarly content)
+    if (citoidType !== iframelyType) {
       return citoidMetadata;
     }
 
