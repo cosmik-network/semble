@@ -23,7 +23,7 @@ export default function BlueskyMentionPost(props: Props) {
     e.stopPropagation();
 
     router.push(
-      `https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
+      `/url?id=https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
     );
   };
 
