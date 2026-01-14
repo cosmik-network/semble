@@ -19,4 +19,5 @@ module.exports = {
   },
   // Increase timeout for tests that use containers
   testTimeout: 60000,
+  setupFiles: ['<rootDir>/jest.setup.js'],
 };
