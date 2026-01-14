@@ -1,6 +1,11 @@
 import { getServerAuthStatus } from './serverAuth';
 
-const APPROVED_HANDLES = ['wesleyfinck.org', 'ronentk.me', 'pouriade.com'];
+const APPROVED_HANDLES = [
+  'wesleyfinck.org',
+  'ronentk.me',
+  'pouriade.com',
+  'bmann.ca',
+];
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
