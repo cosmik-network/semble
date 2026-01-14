@@ -1,14 +1,14 @@
 'use client';
 
-import { Select, Button, Group, Popover } from '@mantine/core';
 import { CardSortField, UrlType } from '@semble/types';
+import { Select, Button, Group, Popover } from '@mantine/core';
+import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MdFilterList } from 'react-icons/md';
 import { upperFirst } from '@mantine/hooks';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
-import { useState, useTransition } from 'react';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { MdFilterList } from 'react-icons/md';
 import { BsFillGridFill, BsListTask } from 'react-icons/bs';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function CardsFilters() {
