@@ -58,7 +58,10 @@ export default function CardsContainerContent(props: Props) {
   if (allCards.length === 0) {
     return (
       <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab message="No cards" icon={FaRegNoteSticky} />
+        <ProfileEmptyTab
+          message={`No ${selectedUrlType} cards`}
+          icon={FaRegNoteSticky}
+        />
       </Container>
     );
   }

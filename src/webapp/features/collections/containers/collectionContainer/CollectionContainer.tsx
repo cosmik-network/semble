@@ -26,6 +26,7 @@ import { FiPlus } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
+import CardsFilters from '@/features/cards/components/cardsFilters/CardsFilters';
 
 interface Props {
   rkey: string;
@@ -43,28 +44,9 @@ export default function CollectionContainer(props: Props) {
   });
 
   const firstPage = data.pages[0];
-  const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { data: searchResults, isLoading: isLoadingSearchResults } =
     useCollectionSearch({ query: '💎' });
-
-  const getSortParams = (option: SortOption) => {
-    switch (option) {
-      case 'newest':
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
-      case 'oldest':
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.ASC };
-      case 'most-popular':
-        return {
-          sortBy: CardSortField.LIBRARY_COUNT,
-          sortOrder: SortOrder.DESC,
-        };
-      default:
-        return { sortBy: CardSortField.CREATED_AT, sortOrder: SortOrder.DESC };
-    }
-  };
-
-  const { sortBy, sortOrder } = getSortParams(sortOption);
 
   // Check if this is a gems collection and if user has their own gems collection
   const isGemsCollection =
@@ -129,79 +111,60 @@ export default function CollectionContainer(props: Props) {
           </Group>
         </Group>
 
-        <Group justify="space-between" align="end">
-          <Select
-            mr={'auto'}
-            size="sm"
-            variant="filled"
-            allowDeselect={false}
-            value={sortOption}
-            onChange={(value) => setSortOption(value as SortOption)}
-            data={[
-              { value: 'newest', label: 'Newest' },
-              { value: 'oldest', label: 'Oldest' },
-              { value: 'most-popular', label: 'Most Popular' },
-            ]}
-          />
+        <Group justify="space-between">
+          <CardsFilters />
 
-          <Group gap={'xs'}>
-            {isGemsCollection && (
-              <Group gap={'xs'}>
+          {isGemsCollection && (
+            <Group gap={'xs'}>
+              <Button
+                component={Link}
+                href="/explore/gems-of-2025"
+                variant="light"
+                color="blue"
+                leftSection={<>💎</>}
+              >
+                See all picks
+              </Button>
+
+              {isAuthor && (
                 <Button
-                  component={Link}
-                  href="/explore/gems-of-2025"
+                  component="a"
+                  href={blueskyShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   variant="light"
-                  color="blue"
-                  leftSection={<>💎</>}
+                  color="cyan"
+                  leftSection={<FaBluesky />}
                 >
-                  See all picks
+                  Share on Bluesky
                 </Button>
+              )}
 
-                {isAuthor && (
-                  <Button
-                    component="a"
-                    href={blueskyShareUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="light"
-                    color="cyan"
-                    leftSection={<FaBluesky />}
-                  >
-                    Share on Bluesky
-                  </Button>
-                )}
+              {!isLoadingSearchResults && !hasOwnGemsCollection && (
+                <Button
+                  variant="light"
+                  color="grape"
+                  size="sm"
+                  leftSection={<FiPlus />}
+                  onClick={() => setIsDrawerOpen(true)}
+                >
+                  Create your own 💎 picks
+                </Button>
+              )}
+            </Group>
+          )}
 
-                {!isLoadingSearchResults && !hasOwnGemsCollection && (
-                  <Button
-                    variant="light"
-                    color="grape"
-                    size="sm"
-                    leftSection={<FiPlus />}
-                    onClick={() => setIsDrawerOpen(true)}
-                  >
-                    Create your own 💎 picks
-                  </Button>
-                )}
-              </Group>
-            )}
-
-            <CollectionActions
-              id={firstPage.id}
-              rkey={props.rkey}
-              name={firstPage.name}
-              description={firstPage.description}
-              authorHandle={firstPage.author.handle}
-            />
-          </Group>
+          <CollectionActions
+            id={firstPage.id}
+            rkey={props.rkey}
+            name={firstPage.name}
+            description={firstPage.description}
+            authorHandle={firstPage.author.handle}
+          />
         </Group>
 
         <Suspense fallback={<CollectionContainerContentSkeleton />}>
-          <CollectionContainerContent
-            rkey={props.rkey}
-            handle={props.handle}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-          />
+          <CollectionContainerContent rkey={props.rkey} handle={props.handle} />
         </Suspense>
       </Stack>
 
