@@ -1,4 +1,4 @@
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';
 import { Container, Grid } from '@mantine/core';
@@ -9,16 +9,28 @@ import useCards from '../../lib/queries/useCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSearchParams } from 'next/navigation';
 
 interface Props {
   handle: string;
-  sortBy?: CardSortField;
-  sortOrder?: SortOrder;
 }
+
+const sortOrderMap: Record<CardSortField, SortOrder> = {
+  [CardSortField.UPDATED_AT]: SortOrder.DESC,
+  [CardSortField.CREATED_AT]: SortOrder.ASC,
+  [CardSortField.LIBRARY_COUNT]: SortOrder.DESC,
+};
 
 export default function CardsContainerContent(props: Props) {
   const { desktopOpened } = useNavbarContext();
   const { settings } = useUserSettings();
+
+  const searchParams = useSearchParams();
+  const selectedUrlType = searchParams.get('type') as UrlType;
+
+  const sortBy =
+    (searchParams.get('sort') as CardSortField) ?? CardSortField.UPDATED_AT;
+
   const {
     data,
     error,
@@ -28,8 +40,9 @@ export default function CardsContainerContent(props: Props) {
     isPending,
   } = useCards({
     didOrHandle: props.handle,
-    sortBy: props.sortBy,
-    sortOrder: props.sortOrder,
+    sortBy: sortBy,
+    sortOrder: sortOrderMap[sortBy],
+    urlType: selectedUrlType,
   });
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
