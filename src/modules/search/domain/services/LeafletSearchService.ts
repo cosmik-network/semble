@@ -65,19 +65,27 @@ export class LeafletSearchService {
       const backlinks = backlinksResult.value;
       const results: LeafletDocumentResult[] = [];
 
-      // Step 2: Process each linking record
-      for (const record of backlinks.linking_records) {
+      // Step 2: Process all linking records in parallel
+      const documentPromises = backlinks.linking_records.map(async (record) => {
         try {
           const documentResult = await this.processLeafletDocument(record);
-          if (documentResult.isOk()) {
-            results.push(documentResult.value);
-          }
+          return documentResult.isOk() ? documentResult.value : null;
         } catch (error) {
           // Continue processing other records if one fails
           console.warn(
             `Failed to process leaflet document ${record.did}/${record.rkey}:`,
             error,
           );
+          return null;
+        }
+      });
+
+      const documentResults = await Promise.all(documentPromises);
+      
+      // Filter out null results
+      for (const result of documentResults) {
+        if (result !== null) {
+          results.push(result);
         }
       }
 
