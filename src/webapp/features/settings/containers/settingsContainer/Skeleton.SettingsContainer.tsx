@@ -12,6 +12,7 @@ export default function SettingsContainerSkeleton() {
             <SettingItemSkeleton />
             <SettingItemSkeleton />
             <SettingItemSkeleton />
+            <SettingItemSkeleton />
           </ButtonGroup>
           <SettingItemSkeleton />
         </Stack>

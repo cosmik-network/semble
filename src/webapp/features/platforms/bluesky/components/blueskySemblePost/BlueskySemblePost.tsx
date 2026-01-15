@@ -19,6 +19,7 @@ import {
   Box,
   Image,
   Text,
+  Badge,
 } from '@mantine/core';
 import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
@@ -26,6 +27,10 @@ import PostEmbed from '../postEmbed/PostEmbed';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { RiArrowRightUpLine } from 'react-icons/ri';
+import { UrlType } from '@semble/types';
+import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { IconType } from 'react-icons/lib';
+import { getUrlMetadata } from '@/features/cards/lib/dal';
 
 interface Props {
   url: string;
@@ -34,6 +39,10 @@ interface Props {
 export default async function BlueskySemblePost(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
+  const { metadata } = await getUrlMetadata(props.url);
+  const urlTypeIcon = getUrlTypeIcon(metadata.type as UrlType);
+  const IconComponent = urlTypeIcon as IconType;
+
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
     platform.type === SupportedPlatform.BLUESKY_POST ? (
@@ -72,21 +81,26 @@ export default async function BlueskySemblePost(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      <Tooltip label={props.url}>
-        <Anchor
-          component={Link}
-          target="_blank"
-          fw={700}
-          c="blue"
-          href={props.url}
-          style={{ display: 'inline-block' }}
-        >
-          <Group gap={0} align="center" wrap="nowrap">
-            {getDomain(props.url)}
-            <RiArrowRightUpLine />
-          </Group>
-        </Anchor>
-      </Tooltip>
+      <Group gap={'xs'}>
+        <Badge size="xs" color="lime" leftSection={<IconComponent />}>
+          {metadata.type}
+        </Badge>
+        <Tooltip label={props.url}>
+          <Anchor
+            component={Link}
+            target="_blank"
+            fw={700}
+            c="blue"
+            href={props.url}
+            style={{ display: 'inline-block' }}
+          >
+            <Group gap={0} align="center" wrap="nowrap">
+              {getDomain(props.url)}
+              <RiArrowRightUpLine />
+            </Group>
+          </Anchor>
+        </Tooltip>
+      </Group>
 
       {/* Post */}
       <Card radius={'lg'} withBorder>
@@ -94,7 +108,7 @@ export default async function BlueskySemblePost(props: Props) {
           <Group gap="xs" justify="space-between" wrap="nowrap">
             <Group gap={'xs'} wrap="nowrap">
               <Avatar
-                src={post.author.avatar}
+                src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
                 alt={`${post.author.handle} social preview image`}
                 radius="xl"
               />

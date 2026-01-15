@@ -15,20 +15,18 @@ import ListEmbed from '../listEmbed/ListEmbed';
 import StarterPackEmbed from '../starterPackEmbed/StarterPackEmbed';
 import FeedEmbed from '../feedEmbed/FeedEmbed';
 import RecordEmbed from '../recordEmbed/RecordEmbed';
-import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
-  mode?: EmbedMode;
 }
 
 export default function PostEmbed(props: Props) {
   switch (true) {
     case AppBskyEmbedImages.isView(props.embed):
-      return <ImageEmbed images={props.embed.images} mode={props.mode} />;
+      return <ImageEmbed images={props.embed.images} />;
 
     case AppBskyEmbedExternal.isView(props.embed):
-      return <ExternalEmbed embed={props.embed} mode={props.mode} />;
+      return <ExternalEmbed embed={props.embed} />;
 
     case AppBskyEmbedVideo.isView(props.embed):
       return <VideoEmbed embed={props.embed} />;
@@ -38,18 +36,18 @@ export default function PostEmbed(props: Props) {
       const record = props.embed.record;
 
       if (AppBskyGraphDefs.isStarterPackViewBasic(record)) {
-        return <StarterPackEmbed embed={record} mode={props.mode} />;
+        return <StarterPackEmbed embed={record} />;
       }
 
       if (AppBskyFeedDefs.isGeneratorView(record)) {
-        return <FeedEmbed feed={record} mode={props.mode} />;
+        return <FeedEmbed feed={record} />;
       }
 
       if (AppBskyGraphDefs.isListView(record)) {
-        return <ListEmbed list={record} mode={props.mode} />;
+        return <ListEmbed list={record} />;
       }
 
-      return <RecordEmbed embed={record} mode={props.mode} />;
+      return <RecordEmbed embed={record} />;
     }
 
     case AppBskyEmbedRecordWithMedia.isView(props.embed):
@@ -57,7 +55,6 @@ export default function PostEmbed(props: Props) {
         <RecordEmbed
           embed={props.embed.record.record}
           media={props.embed.media}
-          mode={props.mode}
         />
       );
 

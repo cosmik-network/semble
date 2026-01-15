@@ -25,7 +25,7 @@ export default function NoteCard(props: Props) {
           <Avatar
             component={Link}
             href={`/profile/${props.author.handle}`}
-            src={props.author.avatarUrl}
+            src={props.author.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${props.author.handle}'s avatar`}
             size={'sm'}
           />

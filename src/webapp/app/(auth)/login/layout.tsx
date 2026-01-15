@@ -10,7 +10,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function Layout(props: Props) {
+export default async function Layout(props: Props) {
   return (
     <Container>
       <Center h={'100svh'} p={'sm'}>

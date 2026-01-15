@@ -11,14 +11,17 @@ import {
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 
 // Database representation of a feed activity
 export interface FeedActivityDTO {
   id: string;
   actorId: string;
+  cardId?: string;
   type: string;
   metadata: ActivityMetadata;
+  urlType?: string;
   createdAt: Date;
 }
 
@@ -53,10 +56,16 @@ export class FeedActivityMapper {
           collectionIds = collectionIdResults.map((result) => result.unwrap());
         }
 
+        let urlType: UrlType | undefined;
+        if (dto.urlType) {
+          urlType = dto.urlType as UrlType;
+        }
+
         const activityResult = FeedActivity.createCardCollected(
           actorIdResult.value,
           cardIdResult.value,
           collectionIds,
+          urlType,
           dto.createdAt,
           new UniqueEntityID(dto.id),
         );
@@ -73,11 +82,21 @@ export class FeedActivityMapper {
   }
 
   public static toPersistence(activity: FeedActivity): FeedActivityDTO {
+    let cardId: string | undefined;
+
+    // Extract cardId for CARD_COLLECTED activities
+    if (activity.cardCollected) {
+      const metadata = activity.metadata as CardCollectedMetadata;
+      cardId = metadata.cardId;
+    }
+
     return {
       id: activity.activityId.getStringValue(),
       actorId: activity.actorId.value,
+      cardId,
       type: activity.type.value,
       metadata: activity.metadata,
+      urlType: activity.urlType,
       createdAt: activity.createdAt,
     };
   }

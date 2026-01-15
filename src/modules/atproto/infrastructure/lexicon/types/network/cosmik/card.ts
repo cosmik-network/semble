@@ -95,6 +95,10 @@ export interface UrlMetadata {
   type?: string;
   /** When the metadata was retrieved */
   retrievedAt?: string;
+  /** Digital Object Identifier (DOI) for academic content */
+  doi?: string;
+  /** International Standard Book Number (ISBN) for books */
+  isbn?: string;
 }
 
 const hashUrlMetadata = 'urlMetadata';

@@ -23,6 +23,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       content_data JSONB NOT NULL,
       url TEXT,
+      url_type TEXT,
       parent_card_id UUID REFERENCES cards(id),
       via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
@@ -76,8 +77,10 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE TABLE IF NOT EXISTS feed_activities (
       id UUID PRIMARY KEY,
       actor_id TEXT NOT NULL,
+      card_id TEXT,
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
+      url_type TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
 
@@ -127,6 +130,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     ON cards(url, type) INCLUDE (id)
   `);
 
+  // Index for filtering by URL type
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_url_type_filter 
+    ON cards(url_type)
+  `);
+
   // Covering index for getCardsInCollection - sorted by add time with cardId included
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_collection_cards_collection_added 
@@ -145,10 +154,31 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection 
     ON collection_cards(card_id) INCLUDE (collection_id)
   `);
+  // Feed activities indexes
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_feed_activities_created_at ON feed_activities(created_at DESC);
+    CREATE INDEX IF NOT EXISTS feed_activities_type_idx ON feed_activities(type);
   `);
-
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_url_type_idx ON feed_activities(url_type);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_created_at_idx ON feed_activities(created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_type_created_at_idx ON feed_activities(type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_url_type_created_at_idx ON feed_activities(url_type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_type_url_type_created_at_idx ON feed_activities(type, url_type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_dedup_idx ON feed_activities(actor_id, card_id, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_card_id_idx ON feed_activities(card_id);
+  `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);

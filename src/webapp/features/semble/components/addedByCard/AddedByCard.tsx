@@ -24,7 +24,10 @@ export default function AddedByCard(props: Props) {
       <Group gap={'xs'} justify="space-between">
         <Group gap={'xs'}>
           <Avatar
-            src={props.item.card.author.avatarUrl}
+            src={props.item.card.author.avatarUrl?.replace(
+              'avatar',
+              'avatar_thumbnail',
+            )}
             alt={`${props.item.card.author.handle}'s avatar`}
           />
 

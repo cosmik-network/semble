@@ -26,7 +26,10 @@ export default function ProfileHoverCard(props: Props) {
       <HoverCardDropdown p={'xs'}>
         <Stack gap={'sm'}>
           <Group gap={'xs'}>
-            <Avatar src={profile.avatarUrl} size={'lg'} />
+            <Avatar
+              src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+              size={'lg'}
+            />
             <Stack gap={0}>
               <Text fw={600} c={'bright'}>
                 {profile.name}

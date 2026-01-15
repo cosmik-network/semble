@@ -65,6 +65,12 @@ import type {
   GetCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
+  SemanticSearchUrlsParams,
+  SemanticSearchUrlsResponse,
+  SearchBskyPostsForUrlParams,
+  SearchBskyPostsForUrlResponse,
+  SearchAtProtoAccountsParams,
+  SearchAtProtoAccountsResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -84,13 +90,16 @@ export class ApiClient {
   private feedClient: FeedClient;
   private notificationClient: NotificationClient;
 
-  constructor(private baseUrl: string) {
-    this.queryClient = new QueryClient(baseUrl);
-    this.cardClient = new CardClient(baseUrl);
-    this.collectionClient = new CollectionClient(baseUrl);
-    this.userClient = new UserClient(baseUrl);
-    this.feedClient = new FeedClient(baseUrl);
-    this.notificationClient = new NotificationClient(baseUrl);
+  constructor(
+    private baseUrl: string,
+    accessToken?: string,
+  ) {
+    this.queryClient = new QueryClient(baseUrl, accessToken);
+    this.cardClient = new CardClient(baseUrl, accessToken);
+    this.collectionClient = new CollectionClient(baseUrl, accessToken);
+    this.userClient = new UserClient(baseUrl, accessToken);
+    this.feedClient = new FeedClient(baseUrl, accessToken);
+    this.notificationClient = new NotificationClient(baseUrl, accessToken);
   }
 
   // Query operations - delegate to QueryClient
@@ -179,6 +188,24 @@ export class ApiClient {
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
     return this.queryClient.getSimilarUrlsForUrl(params);
+  }
+
+  async semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
+  ): Promise<SemanticSearchUrlsResponse> {
+    return this.queryClient.semanticSearchUrls(params);
+  }
+
+  async searchBskyPosts(
+    params: SearchBskyPostsForUrlParams,
+  ): Promise<SearchBskyPostsForUrlResponse> {
+    return this.queryClient.searchBskyPosts(params);
+  }
+
+  async searchAtProtoAccounts(
+    params: SearchAtProtoAccountsParams,
+  ): Promise<SearchAtProtoAccountsResponse> {
+    return this.queryClient.searchAtProtoAccounts(params);
   }
 
   // Card operations - delegate to CardClient
@@ -329,9 +356,10 @@ export const createApiClient = () => {
   );
 };
 
-export const createServerApiClient = () => {
+export const createServerApiClient = (accessToken?: string) => {
   return new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    accessToken,
   );
 };
 

@@ -23,6 +23,7 @@ import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { UrlType } from '../../domain/value-objects/UrlType';
 
 describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
   let container: StartedPostgreSqlContainer;
@@ -182,7 +183,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         'First article in collection',
       );
       expect(card1Result?.cardContent.author).toBe('John Doe');
-      expect(card1Result?.cardContent.thumbnailUrl).toBe(
+      expect(card1Result?.cardContent.imageUrl).toBe(
         'https://example.com/image1.jpg',
       );
 
@@ -1057,6 +1058,132 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       expect(result.items[0]?.url).toBe(sharedUrl);
       expect(result.items[0]?.urlInLibrary).toBe(false); // thirdCurator doesn't have this URL
       expect(result.items[0]?.urlLibraryCount).toBe(2); // But 2 users have it
+    });
+  });
+
+  describe('URL type filtering', () => {
+    it('should filter collection cards by urlType', async () => {
+      // Create URL cards with different types
+      const articleUrl = URL.create('https://example.com/article').unwrap();
+      const articleMetadata = UrlMetadata.create({
+        url: articleUrl.value,
+        title: 'Test Article',
+        type: UrlType.ARTICLE,
+      }).unwrap();
+
+      const videoUrl = URL.create('https://example.com/video').unwrap();
+      const videoMetadata = UrlMetadata.create({
+        url: videoUrl.value,
+        title: 'Test Video',
+        type: UrlType.VIDEO,
+      }).unwrap();
+
+      const articleCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(articleUrl, articleMetadata)
+        .buildOrThrow();
+
+      const videoCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(videoUrl, videoMetadata)
+        .buildOrThrow();
+
+      await cardRepository.save(articleCard);
+      await cardRepository.save(videoCard);
+
+      // Create collection and add both cards
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Mixed Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      collection.addCard(articleCard.cardId, curatorId);
+      collection.addCard(videoCard.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      // Query for only article type
+      const articleResult = await queryRepository.getCardsInCollection(
+        collection.collectionId.getStringValue(),
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+          urlType: UrlType.ARTICLE,
+        },
+      );
+
+      expect(articleResult.items).toHaveLength(1);
+      expect(articleResult.items[0]?.url).toBe(articleUrl.value);
+
+      // Query for only video type
+      const videoResult = await queryRepository.getCardsInCollection(
+        collection.collectionId.getStringValue(),
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+          urlType: UrlType.VIDEO,
+        },
+      );
+
+      expect(videoResult.items).toHaveLength(1);
+      expect(videoResult.items[0]?.url).toBe(videoUrl.value);
+    });
+
+    it('should return empty result when no collection cards match the urlType filter', async () => {
+      const articleUrl = URL.create('https://example.com/article').unwrap();
+      const articleMetadata = UrlMetadata.create({
+        url: articleUrl.value,
+        title: 'Test Article',
+        type: UrlType.ARTICLE,
+      }).unwrap();
+
+      const articleCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(articleUrl, articleMetadata)
+        .buildOrThrow();
+
+      await cardRepository.save(articleCard);
+
+      // Create collection and add article card
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Article Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      collection.addCard(articleCard.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      // Query for video type when only article exists
+      const result = await queryRepository.getCardsInCollection(
+        collection.collectionId.getStringValue(),
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+          urlType: UrlType.VIDEO,
+        },
+      );
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
     });
   });
 });

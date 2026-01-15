@@ -29,3 +29,9 @@ export const getListLink = (list: AppBskyGraphDefs.ListView) => {
 
   return `https://bsky.app/profile/${handleOrDid}/lists/${rkey}`;
 };
+
+export const getPostRkeyFromUri = (uri: string) => {
+  const URI = new AtUri(uri);
+
+  return URI.rkey;
+};

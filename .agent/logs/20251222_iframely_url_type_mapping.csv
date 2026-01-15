@@ -1,0 +1,17 @@
+﻿iframely item type,Description,Semble Type
+video,Video content,Video
+audio,Audio content,Audio
+playlist,Collections of media items,Link
+slideshow,Presentation-style content,Link
+gifv,Animated GIF-style videos,Link
+3d,Three-dimensional content,Link
+image,Static images,Link
+file,Downloadable files,Link
+article,Web pages that identify as articles,Article
+reader,Content optimized for reading,Article
+event,Event information,Link
+product,Product listings,Link
+survey,Survey forms,Link
+form,General forms,Link
+link,Optimized social-sharing links that don't fit other categories,Link
+undefined,medium property not defined or included,Link

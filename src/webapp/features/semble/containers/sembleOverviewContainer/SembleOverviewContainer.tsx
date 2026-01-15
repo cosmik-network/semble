@@ -122,7 +122,11 @@ export default function SembleOverviewContainer(props: Props) {
           ) : allCollections.length > 0 ? (
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
               {allCollections.map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  showAuthor
+                />
               ))}
             </SimpleGrid>
           ) : (

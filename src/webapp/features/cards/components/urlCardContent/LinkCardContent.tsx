@@ -1,5 +1,6 @@
 'use client';
 
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { getDomain } from '@/lib/utils/link';
 import {
   Anchor,
@@ -13,16 +14,15 @@ import {
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { useState } from 'react';
-import { CardSize } from '../../types';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
-  cardSize?: CardSize;
 }
 
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
   const [imageError, setImageError] = useState(false);
+  const { settings } = useUserSettings();
 
   return (
     <Group justify="space-between" align="start" gap={'lg'}>
@@ -55,20 +55,20 @@ export default function LinkCardContent(props: Props) {
             {props.cardContent.title}
           </Anchor>
         )}
-        {props.cardContent.description && props.cardSize !== 'List' && (
+        {props.cardContent.description && settings.cardView !== 'list' && (
           <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
             {props.cardContent.description}
           </Text>
         )}
       </Stack>
-      {props.cardContent.thumbnailUrl && !imageError && (
+      {props.cardContent.imageUrl && !imageError && (
         <AspectRatio ratio={1 / 1}>
           <Image
-            src={props.cardContent.thumbnailUrl}
+            src={props.cardContent.imageUrl}
             alt={`${props.cardContent.url} social preview image`}
             radius={'md'}
-            w={props.cardSize === 'List' ? 45 : 75}
-            h={props.cardSize === 'List' ? 45 : 75}
+            w={settings.cardView === 'list' ? 45 : 75}
+            h={settings.cardView === 'list' ? 45 : 75}
             onError={() => setImageError(true)}
           />
         </AspectRatio>

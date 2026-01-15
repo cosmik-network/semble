@@ -1,16 +1,19 @@
+'use client';
+
 import { AppBskyGraphDefs } from '@atproto/api';
 import { BsFillPeopleFill } from 'react-icons/bs';
 import { Card, Group, Text } from '@mantine/core';
-import type { EmbedMode } from '../../types';
 import { getListLink } from '../../lib/utils/link';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   list: AppBskyGraphDefs.ListView;
-  mode?: EmbedMode;
 }
 
 export default function ListEmbed(props: Props) {
-  if (props.mode === 'card') {
+  const { settings } = useUserSettings();
+
+  if (settings.cardView === 'grid') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'}>

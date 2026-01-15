@@ -57,9 +57,13 @@ export interface UrlMetadata {
   title?: string;
   description?: string;
   author?: string;
+  publishedDate?: string;
   siteName?: string;
   imageUrl?: string;
   type?: string;
+  retrievedAt?: string;
+  doi?: string;
+  isbn?: string;
 }
 
 export interface GetUrlMetadataResponse {
@@ -71,13 +75,7 @@ export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
+  cardContent: UrlMetadata;
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
@@ -226,13 +224,7 @@ export interface GetCollectionsForUrlResponse {
 // Search response types
 export interface UrlView {
   url: string;
-  metadata: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
+  metadata: UrlMetadata;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
 }
@@ -240,6 +232,91 @@ export interface UrlView {
 export interface GetSimilarUrlsForUrlResponse {
   urls: UrlView[];
   pagination: Pagination;
+}
+
+export interface SemanticSearchUrlsResponse {
+  urls: UrlView[];
+  pagination: Pagination;
+}
+
+// Bluesky search response types
+export interface PostView {
+  uri: string;
+  cid: string;
+  author: {
+    did: string;
+    handle: string;
+    displayName?: string;
+    avatar?: string;
+    associated?: {
+      chat?: {
+        allowIncoming: 'all' | 'none' | 'following';
+      };
+    };
+    viewer?: {
+      muted?: boolean;
+      blockedBy?: boolean;
+      blocking?: string;
+      following?: string;
+      followedBy?: string;
+    };
+    labels?: any[];
+    createdAt?: string;
+  };
+  record: { [key: string]: unknown };
+  embed?: any;
+  replyCount?: number;
+  repostCount?: number;
+  likeCount?: number;
+  quoteCount?: number;
+  indexedAt: string;
+  viewer?: {
+    repost?: string;
+    like?: string;
+    threadMuted?: boolean;
+    replyDisabled?: boolean;
+    embeddingDisabled?: boolean;
+    pinned?: boolean;
+  };
+  labels?: any[];
+  threadgate?: any;
+}
+
+export interface SearchBskyPostsForUrlResponse {
+  cursor?: string;
+  hitsTotal?: number;
+  posts: PostView[];
+}
+
+// AtProto account search response types
+export interface ProfileView {
+  did: string;
+  handle: string;
+  displayName?: string;
+  description?: string;
+  avatar?: string;
+  associated?: {
+    chat?: {
+      allowIncoming: 'all' | 'none' | 'following';
+    };
+  };
+  indexedAt?: string;
+  createdAt?: string;
+  viewer?: {
+    muted?: boolean;
+    blockedBy?: boolean;
+    blocking?: string;
+    following?: string;
+    followedBy?: string;
+  };
+  labels?: any[];
+  verification?: any;
+  status?: any;
+}
+
+export interface SearchAtProtoAccountsResponse {
+  cursor?: string;
+  actors: ProfileView[];
 }
 
 // Notification types

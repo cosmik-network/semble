@@ -67,7 +67,10 @@ export default function AppPasswordLoginForm(props: Props) {
   const options = suggestions.map((user) => (
     <Combobox.Option key={user.did} value={user.handle} p={5}>
       <Group gap={'xs'} wrap="nowrap">
-        <Avatar src={user.avatar} alt={`${user.handle}'s avatar`} />
+        <Avatar
+          src={user.avatar?.replace('avatar', 'avatar_thumbnail')}
+          alt={`${user.handle}'s avatar`}
+        />
         <Stack gap={0}>
           <Text fw={500} c={'bright'} lineClamp={1}>
             {user.displayName || user.handle}

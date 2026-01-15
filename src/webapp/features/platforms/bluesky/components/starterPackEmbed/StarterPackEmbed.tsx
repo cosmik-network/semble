@@ -1,3 +1,5 @@
+'use client';
+
 import { AppBskyGraphDefs, AppBskyGraphStarterpack } from '@atproto/api';
 import {
   AspectRatio,
@@ -10,11 +12,10 @@ import {
   Text,
 } from '@mantine/core';
 import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
-import type { EmbedMode } from '../../types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
-  mode?: EmbedMode;
 }
 
 export default function StarterPackEmbed(props: Props) {
@@ -23,8 +24,9 @@ export default function StarterPackEmbed(props: Props) {
   }
 
   const image = getStarterPackImage(props.embed);
+  const { settings } = useUserSettings();
 
-  if (props.mode === 'card') {
+  if (settings.cardView === 'grid') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">

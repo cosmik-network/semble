@@ -1,6 +1,6 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
-import { CardSortField, SortOrder } from '@semble/types';
+import { createSembleClient } from '@/services/client.apiClient';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -8,6 +8,7 @@ interface PageParams {
   limit?: number;
   cardSortBy?: CardSortField;
   cardSortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 export const getUrlMetadata = cache(async (url: string) => {
@@ -18,7 +19,7 @@ export const getUrlMetadata = cache(async (url: string) => {
 });
 
 export const getCardFromMyLibrary = cache(async (url: string) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getUrlStatusForMyLibrary({ url: url });
@@ -27,7 +28,7 @@ export const getCardFromMyLibrary = cache(async (url: string) => {
 });
 
 export const getMyUrlCards = cache(async (params?: PageParams) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getMyUrlCards({
@@ -47,7 +48,7 @@ export const addUrlToLibrary = cache(
       viaCardId,
     }: { note?: string; collectionIds?: string[]; viaCardId?: string },
   ) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.addUrlToLibrary({
@@ -77,6 +78,7 @@ export const getUrlCards = cache(
       limit: params?.limit,
       sortBy: params?.cardSortBy,
       sortOrder: params?.cardSortOrder,
+      urlType: params?.urlType,
     });
 
     return response;
@@ -91,7 +93,7 @@ export const removeCardFromCollection = cache(
     cardId: string;
     collectionIds: string[];
   }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.removeCardFromCollection({
@@ -104,7 +106,7 @@ export const removeCardFromCollection = cache(
 );
 
 export const removeCardFromLibrary = cache(async (cardId: string) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.removeCardFromLibrary({ cardId });
@@ -113,7 +115,7 @@ export const removeCardFromLibrary = cache(async (cardId: string) => {
 });
 
 export const getLibrariesForCard = cache(async (cardId: string) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getLibrariesForCard(cardId);

@@ -2,14 +2,17 @@ import { AppShellFooter, Avatar, Group, Indicator } from '@mantine/core';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { BiSearch } from 'react-icons/bi';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { RiNotification2Line } from 'react-icons/ri';
 import useUnreadNotificationCount from '@/features/notifications/lib/queries/useUnreadNotificationCount';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function BottomBar() {
   const { data: profile } = useMyProfile();
   const { data: notificationData } = useUnreadNotificationCount();
+  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <AppShellFooter px={'sm'} pb={'lg'} py={'xs'} hiddenFrom="sm">
@@ -20,11 +23,9 @@ export default function BottomBar() {
           title="Explore"
           icon={MdOutlineEmojiNature}
         />
-        <BottomBarItem
-          href={`/profile/${profile.handle}/cards`}
-          title="Cards"
-          icon={FaRegNoteSticky}
-        />
+        {featureFlags?.cardSearch && (
+          <BottomBarItem href="/search" title="Search" icon={BiSearch} />
+        )}
 
         <BottomBarItem
           href="/notifications"
@@ -45,7 +46,11 @@ export default function BottomBar() {
         <BottomBarItem
           href={`/profile/${profile.handle}`}
           title={'Me'}
-          icon={<Avatar src={profile.avatarUrl} />}
+          icon={
+            <Avatar
+              src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+            />
+          }
         />
       </Group>
     </AppShellFooter>

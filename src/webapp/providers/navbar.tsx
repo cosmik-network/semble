@@ -17,11 +17,11 @@ const NavbarContext = createContext<NavbarContext>({
   toggleDesktop: () => {},
 });
 
-interface ProviderProps {
+interface Props {
   children: React.ReactNode;
 }
 
-export function NavbarProvider({ children }: ProviderProps) {
+export function NavbarProvider(props: Props) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure(false);
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
@@ -29,7 +29,7 @@ export function NavbarProvider({ children }: ProviderProps) {
     <NavbarContext.Provider
       value={{ mobileOpened, desktopOpened, toggleMobile, toggleDesktop }}
     >
-      {children}
+      {props.children}
     </NavbarContext.Provider>
   );
 }

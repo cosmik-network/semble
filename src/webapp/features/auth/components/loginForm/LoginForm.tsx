@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useForm } from '@mantine/form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import OAuthLoginForm from './OAuthLoginForm';
 import AppPasswordLoginForm from './AppPasswordLoginForm';
 

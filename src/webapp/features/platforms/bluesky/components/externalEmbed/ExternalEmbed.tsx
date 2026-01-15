@@ -1,3 +1,6 @@
+'use client';
+
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { getDomain } from '@/lib/utils/link';
 import { AppBskyEmbedExternal } from '@atproto/api';
 import {
@@ -9,15 +12,15 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyEmbedExternal.View;
-  mode?: EmbedMode;
 }
 
 export default function ExternalEmbed(props: Props) {
-  if (props.mode === 'card') {
+  const { settings } = useUserSettings();
+
+  if (settings.cardView === 'grid') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">

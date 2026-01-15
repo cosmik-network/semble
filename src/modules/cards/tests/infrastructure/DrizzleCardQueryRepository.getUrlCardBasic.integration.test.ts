@@ -119,7 +119,7 @@ describe('DrizzleCardQueryRepository - getUrlCardBasic', () => {
         'A test article description',
       );
       expect(result?.cardContent.author).toBe('John Doe');
-      expect(result?.cardContent.thumbnailUrl).toBe(
+      expect(result?.cardContent.imageUrl).toBe(
         'https://example.com/image.jpg',
       );
       expect(result?.note).toBeUndefined();
@@ -204,7 +204,7 @@ describe('DrizzleCardQueryRepository - getUrlCardBasic', () => {
       expect(result?.cardContent.title).toBeUndefined();
       expect(result?.cardContent.description).toBeUndefined();
       expect(result?.cardContent.author).toBeUndefined();
-      expect(result?.cardContent.thumbnailUrl).toBeUndefined();
+      expect(result?.cardContent.imageUrl).toBeUndefined();
       expect(result?.note).toBeUndefined();
     });
   });

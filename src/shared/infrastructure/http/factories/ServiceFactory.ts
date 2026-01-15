@@ -8,6 +8,9 @@ import {
 import { UserAuthenticationService } from '../../../../modules/user/infrastructure/services/UserAuthenticationService';
 import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
 import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
+import { CitoidMetadataService } from '../../../../modules/cards/infrastructure/CitoidMetadataService';
+import { CompositeMetadataService } from '../../../../modules/cards/infrastructure/CompositeMetadataService';
+import { CachedMetadataService } from '../../../../modules/cards/infrastructure/CachedMetadataService';
 import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
@@ -254,17 +257,58 @@ export class ServiceFactory {
     // ATProto Agent Service
     const atProtoAgentService = useMockAuth
       ? new FakeAgentService()
-      : new ATProtoAgentService(nodeOauthClient, appPasswordSessionService);
+      : new ATProtoAgentService(
+          nodeOauthClient,
+          appPasswordSessionService,
+          configService,
+        );
 
-    const metadataService = new IFramelyMetadataService(
+    // Create individual metadata services
+    const baseIframelyService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
+    );
+    const baseCitoidService = new CitoidMetadataService();
+
+    // Apply caching conditionally (similar to profile service)
+    const useMockPersistence = configService.shouldUseMockPersistence();
+
+    let iframelyService: IMetadataService;
+    let citoidService: IMetadataService;
+
+    if (useMockPersistence) {
+      // No caching for mock persistence
+      iframelyService = baseIframelyService;
+      citoidService = baseCitoidService;
+    } else {
+      // Create Redis connection for caching
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+
+      // Wrap services with caching - different TTLs for different services
+      iframelyService = new CachedMetadataService(
+        baseIframelyService,
+        redis,
+        'iframely',
+        3600 * 24 * 7, // 7 day TTL
+      );
+      citoidService = new CachedMetadataService(
+        baseCitoidService,
+        redis,
+        'citoid',
+        3600 * 24 * 7, // 7 day TTL
+      );
+    }
+
+    // Create composite metadata service
+    const metadataService = new CompositeMetadataService(
+      iframelyService,
+      citoidService,
     );
 
     // Profile Service with Redis caching
     const baseProfileService = new BlueskyProfileService(atProtoAgentService);
 
     let profileService: IProfileService;
-    const useMockPersistence = configService.shouldUseMockPersistence();
 
     // caching requires persistence
     if (useMockPersistence) {

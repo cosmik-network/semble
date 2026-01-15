@@ -131,7 +131,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         'A test article description',
       );
       expect(result?.cardContent.author).toBe('John Doe');
-      expect(result?.cardContent.thumbnailUrl).toBe(
+      expect(result?.cardContent.imageUrl).toBe(
         'https://example.com/image.jpg',
       );
       expect(result?.libraries).toEqual([]);
@@ -159,7 +159,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       expect(result?.cardContent.title).toBeUndefined();
       expect(result?.cardContent.description).toBeUndefined();
       expect(result?.cardContent.author).toBeUndefined();
-      expect(result?.cardContent.thumbnailUrl).toBeUndefined();
+      expect(result?.cardContent.imageUrl).toBeUndefined();
     });
 
     it('should include creator in library when URL card is in their library', async () => {
@@ -337,7 +337,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         'An article with everything',
       );
       expect(result?.cardContent.author).toBe('Jane Smith');
-      expect(result?.cardContent.thumbnailUrl).toBe(
+      expect(result?.cardContent.imageUrl).toBe(
         'https://example.com/comprehensive.jpg',
       );
 
@@ -581,7 +581,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         'An article that has a connected note',
       );
       expect(result?.cardContent.author).toBe('Jane Doe');
-      expect(result?.cardContent.thumbnailUrl).toBe(
+      expect(result?.cardContent.imageUrl).toBe(
         'https://example.com/note-article.jpg',
       );
 

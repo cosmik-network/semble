@@ -116,12 +116,14 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       cardId,
       [collectionId],
+      undefined,
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
     const activity2 = FeedActivity.createCardCollected(
       anotherCuratorId,
       anotherCardId,
+      undefined,
       undefined,
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
@@ -130,6 +132,7 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       anotherCardId,
       [collectionId],
+      undefined,
       new Date(baseTime.getTime()), // newest
     ).unwrap();
 
@@ -181,6 +184,7 @@ describe('DrizzleFeedRepository', () => {
       curatorId,
       cardId,
       undefined,
+      undefined,
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
@@ -188,12 +192,14 @@ describe('DrizzleFeedRepository', () => {
       anotherCuratorId,
       anotherCardId,
       undefined,
+      undefined,
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
     const activity3 = FeedActivity.createCardCollected(
       curatorId,
       anotherCardId,
+      undefined,
       undefined,
       new Date(baseTime.getTime()), // newest
     ).unwrap();
@@ -302,6 +308,209 @@ describe('DrizzleFeedRepository', () => {
     ]);
   });
 
+  describe('deduplication and merging', () => {
+    it('should find recent card collected activity within time window', async () => {
+      const baseTime = new Date();
+
+      // Create an activity 1 minute ago
+      const recentActivity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [collectionId],
+        undefined,
+        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+      ).unwrap();
+
+      await feedRepository.addActivity(recentActivity);
+
+      // Should find the activity within 2 minutes
+      const foundResult = await feedRepository.findRecentCardCollectedActivity(
+        curatorId,
+        cardId,
+        2, // within 2 minutes
+      );
+
+      expect(foundResult.isOk()).toBe(true);
+      const foundActivity = foundResult.unwrap();
+      expect(foundActivity).not.toBeNull();
+      expect(foundActivity?.activityId.getStringValue()).toBe(
+        recentActivity.activityId.getStringValue(),
+      );
+    });
+
+    it('should not find activity outside time window', async () => {
+      const baseTime = new Date();
+
+      // Create an activity 3 minutes ago
+      const oldActivity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [collectionId],
+        undefined,
+        new Date(baseTime.getTime() - 3 * 60 * 1000), // 3 minutes ago
+      ).unwrap();
+
+      await feedRepository.addActivity(oldActivity);
+
+      // Should not find the activity within 2 minutes
+      const foundResult = await feedRepository.findRecentCardCollectedActivity(
+        curatorId,
+        cardId,
+        2, // within 2 minutes
+      );
+
+      expect(foundResult.isOk()).toBe(true);
+      expect(foundResult.unwrap()).toBeNull();
+    });
+
+    it('should not find activity for different actor', async () => {
+      const baseTime = new Date();
+
+      // Create an activity for different actor
+      const activity = FeedActivity.createCardCollected(
+        anotherCuratorId, // different actor
+        cardId,
+        [collectionId],
+        undefined,
+        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+      ).unwrap();
+
+      await feedRepository.addActivity(activity);
+
+      // Should not find the activity for different actor
+      const foundResult = await feedRepository.findRecentCardCollectedActivity(
+        curatorId, // searching for different actor
+        cardId,
+        2,
+      );
+
+      expect(foundResult.isOk()).toBe(true);
+      expect(foundResult.unwrap()).toBeNull();
+    });
+
+    it('should not find activity for different card', async () => {
+      const baseTime = new Date();
+
+      // Create an activity for different card
+      const activity = FeedActivity.createCardCollected(
+        curatorId,
+        anotherCardId, // different card
+        [collectionId],
+        undefined,
+        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+      ).unwrap();
+
+      await feedRepository.addActivity(activity);
+
+      // Should not find the activity for different card
+      const foundResult = await feedRepository.findRecentCardCollectedActivity(
+        curatorId,
+        cardId, // searching for different card
+        2,
+      );
+
+      expect(foundResult.isOk()).toBe(true);
+      expect(foundResult.unwrap()).toBeNull();
+    });
+
+    it('should update activity metadata correctly', async () => {
+      const originalCollections = [collectionId];
+      const activity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        originalCollections,
+      ).unwrap();
+
+      await feedRepository.addActivity(activity);
+
+      // Merge new collections
+      const newCollection =
+        CollectionId.createFromString('new-collection').unwrap();
+      activity.mergeCollections([newCollection]);
+
+      // Update the activity
+      const updateResult = await feedRepository.updateActivity(activity);
+      expect(updateResult.isOk()).toBe(true);
+
+      // Retrieve and verify the updated activity
+      const retrievedResult = await feedRepository.findById(
+        activity.activityId,
+      );
+      const retrievedActivity = retrievedResult.unwrap();
+
+      expect(retrievedActivity?.metadata.collectionIds).toEqual([
+        collectionId.getStringValue(),
+        newCollection.getStringValue(),
+      ]);
+    });
+
+    it('should handle merging duplicate collections correctly', async () => {
+      const originalCollections = [collectionId];
+      const activity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        originalCollections,
+      ).unwrap();
+
+      await feedRepository.addActivity(activity);
+
+      // Try to merge the same collection again
+      activity.mergeCollections([collectionId]); // duplicate
+
+      // Update the activity
+      await feedRepository.updateActivity(activity);
+
+      // Retrieve and verify no duplicates
+      const retrievedResult = await feedRepository.findById(
+        activity.activityId,
+      );
+      const retrievedActivity = retrievedResult.unwrap();
+
+      expect(retrievedActivity?.metadata.collectionIds).toEqual([
+        collectionId.getStringValue(),
+      ]);
+      expect(retrievedActivity?.metadata.collectionIds).toHaveLength(1);
+    });
+
+    it('should find most recent activity when multiple exist', async () => {
+      const baseTime = new Date();
+
+      // Create older activity (2 minutes ago)
+      const olderActivity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [collectionId],
+        undefined,
+        new Date(baseTime.getTime() - 2 * 60 * 1000),
+      ).unwrap();
+
+      // Create newer activity (1 minute ago)
+      const newerActivity = FeedActivity.createCardCollected(
+        curatorId,
+        cardId,
+        [CollectionId.createFromString('another-collection').unwrap()],
+        undefined,
+        new Date(baseTime.getTime() - 60 * 1000),
+      ).unwrap();
+
+      await feedRepository.addActivity(olderActivity);
+      await feedRepository.addActivity(newerActivity);
+
+      // Should find the newer activity
+      const foundResult = await feedRepository.findRecentCardCollectedActivity(
+        curatorId,
+        cardId,
+        3, // within 3 minutes
+      );
+
+      expect(foundResult.isOk()).toBe(true);
+      const foundActivity = foundResult.unwrap();
+      expect(foundActivity?.activityId.getStringValue()).toBe(
+        newerActivity.activityId.getStringValue(),
+      );
+    });
+  });
+
   describe('getGemsFeed', () => {
     let collection1: CollectionId;
     let collection2: CollectionId;
@@ -321,6 +530,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         cardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 300),
       ).unwrap();
 
@@ -329,6 +539,7 @@ describe('DrizzleFeedRepository', () => {
         anotherCuratorId,
         anotherCardId,
         [collection2],
+        undefined,
         new Date(baseTime.getTime() - 200),
       ).unwrap();
 
@@ -337,6 +548,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         anotherCardId,
         [collection1, collection3],
+        undefined,
         new Date(baseTime.getTime() - 100),
       ).unwrap();
 
@@ -344,6 +556,7 @@ describe('DrizzleFeedRepository', () => {
       const activity4 = FeedActivity.createCardCollected(
         anotherCuratorId,
         cardId,
+        undefined,
         undefined,
         new Date(baseTime.getTime()),
       ).unwrap();
@@ -419,6 +632,7 @@ describe('DrizzleFeedRepository', () => {
           curatorId,
           CardId.createFromString(`card-${i}`).unwrap(),
           [collection1],
+          undefined,
           new Date(baseTime.getTime() - i * 100),
         ).unwrap();
         activities.push(activity);
@@ -469,6 +683,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         cardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 300), // oldest
       ).unwrap();
 
@@ -476,6 +691,7 @@ describe('DrizzleFeedRepository', () => {
         anotherCuratorId,
         anotherCardId,
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 200), // middle
       ).unwrap();
 
@@ -483,6 +699,7 @@ describe('DrizzleFeedRepository', () => {
         curatorId,
         CardId.createFromString('card-999').unwrap(),
         [collection1],
+        undefined,
         new Date(baseTime.getTime() - 100), // newest
       ).unwrap();
 

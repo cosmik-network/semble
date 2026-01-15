@@ -16,6 +16,7 @@ import {
   SortOrder,
 } from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGemActivityFeedQuery {
@@ -23,6 +24,7 @@ export interface GetGemActivityFeedQuery {
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
+  urlType?: string; // Filter by URL type
 }
 
 // Use the shared API type directly
@@ -127,11 +129,18 @@ export class GetGemActivityFeedUseCase
         beforeActivityId = activityIdResult.value;
       }
 
+      // Parse urlType if provided
+      let urlType: UrlType | undefined;
+      if (query.urlType) {
+        urlType = query.urlType as UrlType;
+      }
+
       // Fetch activities from repository using gems feed
       const feedResult = await this.feedRepository.getGemsFeed(collectionIds, {
         page,
         limit,
         beforeActivityId,
+        urlType,
       });
 
       if (feedResult.isErr()) {
@@ -376,7 +385,19 @@ export class GetGemActivityFeedUseCase
           id: cardView.id,
           type: 'URL' as const,
           url: cardView.url,
-          cardContent: cardView.cardContent,
+          cardContent: {
+            url: cardView.cardContent.url,
+            title: cardView.cardContent.title,
+            description: cardView.cardContent.description,
+            author: cardView.cardContent.author,
+            publishedDate: cardView.cardContent.publishedDate?.toISOString(),
+            siteName: cardView.cardContent.siteName,
+            imageUrl: cardView.cardContent.imageUrl,
+            type: cardView.cardContent.type,
+            retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
+            doi: cardView.cardContent.doi,
+            isbn: cardView.cardContent.isbn,
+          },
           libraryCount: cardView.libraryCount,
           urlLibraryCount: cardView.urlLibraryCount,
           urlInLibrary: cardView.urlInLibrary,

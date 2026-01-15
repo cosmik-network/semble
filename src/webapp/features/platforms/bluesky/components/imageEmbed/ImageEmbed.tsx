@@ -9,16 +9,17 @@ import {
   Spoiler,
   Button,
 } from '@mantine/core';
-import type { EmbedMode } from '../../types';
 import styles from './ImageEmbed.module.css';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   images: AppBskyEmbedImages.ViewImage[];
-  mode?: EmbedMode;
 }
 
 export default function ImageEmbed(props: Props) {
-  if (props.mode === 'card') {
+  const { settings } = useUserSettings();
+
+  if (settings.cardView === 'grid') {
     return (
       <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
         {props.images.map((img, i) => {

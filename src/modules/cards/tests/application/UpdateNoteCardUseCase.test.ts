@@ -10,6 +10,7 @@ import {
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CardLibraryService } from '../../domain/services/CardLibraryService';
 import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
+import { UrlType } from '../../domain/value-objects/UrlType';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { CardCollectionService } from '../../domain/services/CardCollectionService';
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
@@ -241,7 +242,7 @@ describe('UpdateNoteCardUseCase', () => {
           title: 'Example URL',
           description: 'This is an example URL card',
           imageUrl: 'https://example.com/image.png',
-          type: 'article',
+          type: UrlType.ARTICLE,
           url: 'https://example.com',
           author: 'John Doe',
           publishedDate: new Date('2023-01-01'),

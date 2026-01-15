@@ -13,8 +13,9 @@ export default function CardsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Group gap={'xs'} justify="space-between">
+        <Group gap={'xs'}>
           <Select disabled variant="filled" size="sm" />
+          <Skeleton w={113} h={36} radius={'xl'} />
           <Skeleton w={84} h={36} radius={'xl'} />
         </Group>
 

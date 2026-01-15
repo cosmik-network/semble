@@ -71,6 +71,27 @@
       "when": 1765356227606,
       "tag": "0009_stormy_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1766492444234,
+      "tag": "0010_boring_blazing_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1766497443674,
+      "tag": "0011_quick_reavers",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1768445052274,
+      "tag": "0012_yielding_fixer",
+      "breakpoints": true
     }
   ]
 }

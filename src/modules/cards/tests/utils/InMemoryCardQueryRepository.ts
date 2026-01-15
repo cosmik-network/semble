@@ -32,17 +32,25 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     try {
       // Get all cards and filter by user's library membership
       const allCards = this.cardRepository.getAllCards();
-      const userCards = allCards
-        .filter(
-          (card) =>
-            card.isUrlCard &&
-            card.isInLibrary(CuratorId.create(userId).unwrap()),
-        )
-        .map((card) => this.cardToUrlCardQueryResult(card, callingUserId));
+      let userCards = allCards.filter(
+        (card) =>
+          card.isUrlCard && card.isInLibrary(CuratorId.create(userId).unwrap()),
+      );
+
+      // Filter by urlType if specified
+      if (options.urlType) {
+        userCards = userCards.filter(
+          (card) => card.content.urlContent?.metadata?.type === options.urlType,
+        );
+      }
+
+      const userCardResults = userCards.map((card) =>
+        this.cardToUrlCardQueryResult(card, callingUserId),
+      );
 
       // Sort cards
       const sortedCards = this.sortCards(
-        userCards,
+        userCardResults,
         options.sortBy,
         options.sortOrder,
       );
@@ -54,8 +62,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
       return {
         items: paginatedCards,
-        totalCount: userCards.length,
-        hasMore: endIndex < userCards.length,
+        totalCount: userCardResults.length,
+        hasMore: endIndex < userCardResults.length,
       };
     } catch (error) {
       throw new Error(
@@ -148,7 +156,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         title: card.content.urlContent.metadata?.title,
         description: card.content.urlContent.metadata?.description,
         author: card.content.urlContent.metadata?.author,
-        thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+        imageUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
       urlLibraryCount: this.getUrlLibraryCount(
@@ -232,21 +240,27 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       const collectionCardIds = new Set(
         collection.cardIds.map((id) => id.getStringValue()),
       );
-      const collectionCards = allCards
-        .filter(
-          (card) =>
-            collectionCardIds.has(card.cardId.getStringValue()) &&
-            card.isUrlCard,
-        )
-        .map((card) =>
-          this.toCollectionCardQueryResult(
-            this.cardToUrlCardQueryResult(card, callingUserId),
-          ),
+      let collectionCards = allCards.filter(
+        (card) =>
+          collectionCardIds.has(card.cardId.getStringValue()) && card.isUrlCard,
+      );
+
+      // Filter by urlType if specified
+      if (options.urlType) {
+        collectionCards = collectionCards.filter(
+          (card) => card.content.urlContent?.metadata?.type === options.urlType,
         );
+      }
+
+      const collectionCardResults = collectionCards.map((card) =>
+        this.toCollectionCardQueryResult(
+          this.cardToUrlCardQueryResult(card, callingUserId),
+        ),
+      );
 
       // Sort cards
       const sortedCards = this.sortCollectionCards(
-        collectionCards,
+        collectionCardResults,
         options.sortBy,
         options.sortOrder,
       );
@@ -258,8 +272,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
       return {
         items: paginatedCards,
-        totalCount: collectionCards.length,
-        hasMore: endIndex < collectionCards.length,
+        totalCount: collectionCardResults.length,
+        hasMore: endIndex < collectionCardResults.length,
       };
     } catch (error) {
       throw new Error(
@@ -393,7 +407,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         title: card.content.urlContent!.metadata?.title,
         description: card.content.urlContent!.metadata?.description,
         author: card.content.urlContent!.metadata?.author,
-        thumbnailUrl: card.content.urlContent!.metadata?.imageUrl,
+        imageUrl: card.content.urlContent!.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
       urlLibraryCount: this.getUrlLibraryCount(
@@ -456,7 +470,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
                 title: card.content.urlContent.metadata?.title,
                 description: card.content.urlContent.metadata?.description,
                 author: card.content.urlContent.metadata?.author,
-                thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+                imageUrl: card.content.urlContent.metadata?.imageUrl,
               },
               libraryCount: this.getLibraryCountForCard(
                 card.cardId.getStringValue(),

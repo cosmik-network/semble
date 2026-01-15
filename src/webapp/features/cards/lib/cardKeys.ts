@@ -1,4 +1,4 @@
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 
 export const cardKeys = {
   all: () => ['cards'] as const,
@@ -13,5 +13,14 @@ export const cardKeys = {
     limit?: number,
     sortBy?: CardSortField,
     sortOrder?: SortOrder,
-  ) => [...cardKeys.all(), 'infinite', didOrHandle, limit, sortBy, sortOrder],
+    urlType?: UrlType,
+  ) => [
+    ...cardKeys.all(),
+    'infinite',
+    didOrHandle,
+    limit,
+    sortBy,
+    sortOrder,
+    urlType,
+  ],
 };

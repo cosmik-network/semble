@@ -7,6 +7,7 @@ import {
   SortOrder,
   UrlCardView,
 } from '../../../domain/ICardQueryRepository';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 
@@ -17,6 +18,7 @@ export interface GetCollectionPageQuery {
   limit?: number;
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 export type CollectionPageUrlCardDTO = UrlCardView;
@@ -76,6 +78,7 @@ export class GetCollectionPageUseCase
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
     const sortBy = query.sortBy || CardSortField.UPDATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
+    const urlType = query.urlType;
 
     // Validate collection ID
     const collectionIdResult = CollectionId.createFromString(
@@ -132,6 +135,7 @@ export class GetCollectionPageUseCase
           limit,
           sortBy,
           sortOrder,
+          urlType,
         },
         query.callingUserId,
       );

@@ -1,10 +1,12 @@
 import { CardTypeEnum } from './value-objects/CardType';
+import { UrlType } from './value-objects/UrlType';
 
 export interface CardQueryOptions {
   page: number;
   limit: number;
   sortBy: CardSortField;
   sortOrder: SortOrder;
+  urlType?: UrlType;
 }
 
 export interface PaginatedQueryResult<T> {
@@ -34,7 +36,13 @@ export interface UrlCardView {
     title?: string;
     description?: string;
     author?: string;
-    thumbnailUrl?: string;
+    publishedDate?: Date;
+    siteName?: string;
+    imageUrl?: string;
+    type?: string;
+    retrievedAt?: Date;
+    doi?: string;
+    isbn?: string;
   };
   libraryCount: number;
   urlLibraryCount: number;
@@ -73,7 +81,13 @@ export interface LibraryForUrlDTO {
       title?: string;
       description?: string;
       author?: string;
-      thumbnailUrl?: string;
+      publishedDate?: Date;
+      siteName?: string;
+      imageUrl?: string;
+      type?: string;
+      retrievedAt?: Date;
+      doi?: string;
+      isbn?: string;
     };
     libraryCount: number;
     urlLibraryCount: number;

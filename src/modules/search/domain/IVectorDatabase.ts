@@ -1,12 +1,14 @@
+import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
 import { Result } from '../../../shared/core/Result';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
 export type IndexUrlParams = UrlMetadataProps;
 
-export interface FindSimilarUrlsParams {
-  url: string;
+export interface SemanticSearchUrlsParams {
+  query: string;
   limit: number;
   threshold?: number; // Similarity threshold (0-1)
+  urlType?: UrlType; // Optional URL type to filter results
 }
 
 export interface UrlSearchResult {
@@ -22,10 +24,10 @@ export interface IVectorDatabase {
   indexUrl(params: IndexUrlParams): Promise<Result<void>>;
 
   /**
-   * Find URLs similar to the given URL
+   * Find URLs similar to the given query string
    */
-  findSimilarUrls(
-    params: FindSimilarUrlsParams,
+  semanticSearchUrls(
+    params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>>;
 
   /**

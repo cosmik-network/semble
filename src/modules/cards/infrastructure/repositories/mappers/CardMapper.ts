@@ -7,6 +7,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 import { v4 as uuid } from 'uuid';
 import {
@@ -28,6 +29,8 @@ interface UrlContentData {
     imageUrl?: string;
     type?: string;
     retrievedAt: string;
+    doi?: string;
+    isbn?: string;
   };
 }
 
@@ -45,6 +48,7 @@ export interface CardPersistenceData {
     type: string;
     contentData: CardContentData;
     url?: string;
+    urlType?: string;
     parentCardId?: string;
     viaCardId?: string;
     libraryCount: number;
@@ -100,6 +104,7 @@ export interface CardDTO {
   type: string;
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
+  urlType?: string;
   parentCardId?: string;
   viaCardId?: string;
   publishedRecordId?: {
@@ -245,7 +250,7 @@ export class CardMapper {
                 : undefined,
               siteName: urlData.metadata.siteName,
               imageUrl: urlData.metadata.imageUrl,
-              type: urlData.metadata.type,
+              type: urlData.metadata.type as UrlType,
               retrievedAt: new Date(urlData.metadata.retrievedAt),
             });
             if (metadataResult.isErr()) return err(metadataResult.error);
@@ -283,11 +288,11 @@ export class CardMapper {
               title: urlContent.metadata.title,
               description: urlContent.metadata.description,
               author: urlContent.metadata.author,
-              publishedDate: urlContent.metadata.publishedDate?.toISOString(),
               siteName: urlContent.metadata.siteName,
               imageUrl: urlContent.metadata.imageUrl,
               type: urlContent.metadata.type,
-              retrievedAt: urlContent.metadata.retrievedAt?.toISOString(),
+              doi: urlContent.metadata.doi,
+              isbn: urlContent.metadata.isbn,
             }
           : undefined,
       } as UrlContentData;
@@ -343,6 +348,10 @@ export class CardMapper {
         type: card.type.value,
         contentData,
         url: card.url?.value,
+        urlType:
+          content.type === CardTypeEnum.URL
+            ? content.urlContent?.metadata?.type
+            : undefined,
         parentCardId: card.parentCardId?.getStringValue(),
         viaCardId: card.viaCardId?.getStringValue(),
         libraryCount: card.libraryCount,
@@ -367,7 +376,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData
@@ -415,7 +434,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData
@@ -471,7 +500,17 @@ export class CardMapper {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
-      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+      publishedDate: raw.contentData?.metadata?.publishedDate
+        ? new Date(raw.contentData.metadata.publishedDate)
+        : undefined,
+      siteName: raw.contentData?.metadata?.siteName,
+      imageUrl: raw.contentData?.metadata?.imageUrl,
+      type: raw.contentData?.metadata?.type,
+      retrievedAt: raw.contentData?.metadata?.retrievedAt
+        ? new Date(raw.contentData.metadata.retrievedAt)
+        : undefined,
+      doi: raw.contentData?.metadata?.doi,
+      isbn: raw.contentData?.metadata?.isbn,
     };
 
     // Extract note text from note's contentData

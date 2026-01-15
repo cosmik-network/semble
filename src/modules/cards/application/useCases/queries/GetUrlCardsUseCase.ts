@@ -7,6 +7,7 @@ import {
   WithCollections,
   UrlCardView,
 } from '../../../domain/ICardQueryRepository';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { IProfileService } from '../../../domain/services/IProfileService';
@@ -19,6 +20,7 @@ export interface GetUrlCardsQuery {
   limit?: number;
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
+  urlType?: UrlType;
 }
 
 // Enriched data for the final use case result
@@ -62,6 +64,7 @@ export class GetUrlCardsUseCase
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
     const sortBy = query.sortBy || CardSortField.UPDATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
+    const urlType = query.urlType;
 
     // Parse and validate user identifier
     const identifierResult = DIDOrHandle.create(query.userId);
@@ -90,6 +93,7 @@ export class GetUrlCardsUseCase
           limit,
           sortBy,
           sortOrder,
+          urlType,
         },
         query.callingUserId,
       );

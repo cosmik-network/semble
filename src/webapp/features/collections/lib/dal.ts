@@ -1,6 +1,11 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { createSembleClient } from '@/services/apiClient';
-import { CardSortField, CollectionSortField, SortOrder } from '@semble/types';
+import { createSembleClient } from '@/services/client.apiClient';
+import {
+  CardSortField,
+  CollectionSortField,
+  SortOrder,
+  UrlType,
+} from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -14,6 +19,7 @@ interface SearchParams {
   sortBy?: string;
   sortOrder?: SortOrder;
   searchText?: string;
+  urlType?: UrlType;
 }
 
 export const getCollectionsForUrl = cache(
@@ -53,7 +59,7 @@ export const getCollections = cache(
 
 export const getMyCollections = cache(
   async (params?: PageParams & SearchParams) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.getMyCollections({
@@ -76,7 +82,7 @@ export const getMyCollections = cache(
 
 export const createCollection = cache(
   async (newCollection: { name: string; description: string }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.createCollection(newCollection);
@@ -86,7 +92,7 @@ export const createCollection = cache(
 );
 
 export const deleteCollection = cache(async (id: string) => {
-  const session = await verifySessionOnClient();
+  const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.deleteCollection({ collectionId: id });
@@ -101,7 +107,7 @@ export const updateCollection = cache(
     name: string;
     description?: string;
   }) => {
-    const session = await verifySessionOnClient();
+    const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.updateCollection(collection);
@@ -128,6 +134,7 @@ export const getCollectionPageByAtUri = cache(
       limit: params?.limit,
       sortBy: params?.cardSortBy,
       sortOrder: params?.sortOrder,
+      urlType: params?.urlType,
     });
 
     return response;

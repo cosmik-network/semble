@@ -24,13 +24,13 @@ export default function CollectionContainerSkeleton() {
         </Group>
 
         <Group justify="space-between" align="end" gap={'xs'}>
-          <Select
-            disabled
-            mr={'auto'}
-            variant="filled"
-            size="sm"
-            allowDeselect={false}
-          />
+          <Group gap={'xs'} justify="space-between">
+            <Select disabled variant="filled" size="sm" />
+            <Group gap={'xs'}>
+              <Skeleton w={113} h={36} radius={'xl'} />
+              <Skeleton w={84} h={36} radius={'xl'} />
+            </Group>
+          </Group>
           {/* Actions */}
           <Group gap={'xs'}>
             <Skeleton w={100} h={32} radius={'xl'} />

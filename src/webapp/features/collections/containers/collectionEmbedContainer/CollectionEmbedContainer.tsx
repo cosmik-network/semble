@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Anchor,
   Container,
@@ -18,22 +20,27 @@ import { getCollectionPageByAtUri } from '../../lib/dal';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import { isCollectionPage } from '@/lib/utils/link';
+import useCollection from '../../lib/queries/useCollection';
+import { Fragment } from 'react';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   rkey: string;
   handle: string;
 }
 
-export default async function CollectionEmbedContainer(props: Props) {
-  const data = await getCollectionPageByAtUri({
-    recordKey: props.rkey,
-    handle: props.handle,
-    params: {
-      limit: 16,
-    },
-  });
+export default function CollectionEmbedContainer(props: Props) {
+  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useCollection({
+      rkey: props.rkey,
+      handle: props.handle,
+    });
 
+  const firstPage = data.pages[0];
+  const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
+  const router = useRouter();
 
   return (
     <Container p="xs" fluid>
@@ -48,11 +55,11 @@ export default async function CollectionEmbedContainer(props: Props) {
                 Collection
               </Text>
               <Title order={1} fz={'xl'}>
-                {data.name}
+                {firstPage.name}
               </Title>
-              {data.description && (
+              {firstPage.description && (
                 <Text c="gray" mt="lg">
-                  {data.description}
+                  {firstPage.description}
                 </Text>
               )}
             </Stack>
@@ -66,61 +73,85 @@ export default async function CollectionEmbedContainer(props: Props) {
               <Avatar
                 size={'sm'}
                 component={Link}
-                href={`/profile/${data.author.handle}`}
+                href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
-                src={data.author.avatarUrl}
-                alt={`${data.author.name}'s' avatar`}
+                src={firstPage.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${firstPage.author.name}'s' avatar`}
               />
               <Anchor
                 component={Link}
-                href={`/profile/${data.author.handle}`}
+                href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
                 fw={600}
                 c="bright"
               >
-                {data.author.name}
+                {firstPage.author.name}
               </Anchor>
             </Group>
           </Group>
         </Group>
 
-        <Grid gutter="xs">
-          {data.urlCards.map((card) => (
-            <GridCol
-              key={card.id}
-              span={{
-                base: 12,
-                xs: 6,
-                sm: 4,
-                lg: 3,
-              }}
+        <Fragment>
+          {allCards.length > 0 ? (
+            <InfiniteScroll
+              dataLength={allCards.length}
+              hasMore={!!hasNextPage}
+              isInitialLoading={isPending}
+              isLoading={isFetchingNextPage}
+              loadMore={fetchNextPage}
             >
-              <Anchor
-                component={Link}
-                href={`${isCollectionPage(card.url) ? card.url : `/url?id=${card.cardContent.url}`}`}
-                target="_blank"
-                underline="never"
-              >
-                <Card
-                  component="article"
-                  radius={'lg'}
-                  p={'sm'}
-                  flex={1}
-                  h={'100%'}
-                  withBorder
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Stack justify="space-between" gap={'sm'} flex={1}>
-                    <UrlCardContent
-                      url={card.url}
-                      cardContent={card.cardContent}
-                    />
-                  </Stack>
-                </Card>
-              </Anchor>
-            </GridCol>
-          ))}
-        </Grid>
+              <Grid gutter="xs">
+                {allCards.map((card) => (
+                  <Grid.Col
+                    key={card.id}
+                    span={{
+                      base: 12,
+                      xs: 6,
+                      sm: 4,
+                      lg: 3,
+                    }}
+                  >
+                    <Card
+                      component="article"
+                      radius={'lg'}
+                      p={'sm'}
+                      flex={1}
+                      h={'100%'}
+                      withBorder
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+
+                        if (isCollectionPage(card.url)) {
+                          router.push(card.url);
+                          return;
+                        }
+
+                        router.push(`/url?id=${card.cardContent.url}`);
+                      }}
+                    >
+                      <Stack justify="space-between" gap={'sm'} flex={1}>
+                        <UrlCardContent
+                          url={card.url}
+                          cardContent={card.cardContent}
+                        />
+                      </Stack>
+                    </Card>
+                  </Grid.Col>
+                ))}
+              </Grid>
+            </InfiniteScroll>
+          ) : (
+            <Stack align="center" gap="xs">
+              <Text fz="h3" fw={600} c="gray">
+                No cards
+              </Text>
+            </Stack>
+          )}
+        </Fragment>
 
         <Stack align="center" mt={'md'}>
           <Button

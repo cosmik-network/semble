@@ -1,4 +1,4 @@
-import { createSembleClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/client.apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cardKeys } from '../cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
