@@ -15,7 +15,6 @@ import {
 export interface SearchLeafletDocsForUrlRequest
   extends SearchLeafletDocsForUrlParams {
   userDid?: string; // Optional - for authenticated features
-  callingUserId?: string; // Optional - to check if user has URLs in library
 }
 
 export type SearchLeafletDocsForUrlResult = Result<
@@ -74,9 +73,9 @@ export class SearchLeafletDocsForUrlUseCase
 
           // Check if calling user has this URL in their library
           // Default to false if no calling user (unauthenticated request)
-          const urlInLibrary = request.callingUserId
+          const urlInLibrary = request.userDid
             ? librariesResult.items.some(
-                (library) => library.userId === request.callingUserId,
+                (library) => library.userId === request.userDid,
               )
             : false;
 
