@@ -8,7 +8,6 @@ import {
   Text,
   Title,
   Avatar,
-  Select,
   Button,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
@@ -17,7 +16,6 @@ import { Suspense, useState } from 'react';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
-import { CardSortField, SortOrder } from '@semble/types';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
@@ -26,14 +24,15 @@ import { FiPlus } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
-import CardsFilters from '@/features/cards/components/cardsFilters/CardsFilters';
+import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
+import CardSortSelect from '@/features/cards/components/cardFilters/CardSortSelect';
+import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
+import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
 
 interface Props {
   rkey: string;
   handle: string;
 }
-
-type SortOption = 'newest' | 'oldest' | 'most-popular';
 
 export default function CollectionContainer(props: Props) {
   const os = useOs();
@@ -112,7 +111,11 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         <Group justify="space-between">
-          <CardsFilters />
+          <CardFilters>
+            <CardSortSelect />
+            <CardTypeFilter />
+            <CardViewToggle />
+          </CardFilters>
 
           {isGemsCollection && (
             <Group gap={'xs'}>

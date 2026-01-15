@@ -2,17 +2,25 @@
 
 import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid } from '@mantine/core';
+import { Grid, Group, Stack } from '@mantine/core';
 import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContainer';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
+import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
+import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
+import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
+import { useSearchParams } from 'next/navigation';
+import { UrlType } from '@semble/types';
 
 interface Props {
   url: string;
 }
 
 export default function SembleSimilarCardsContainer(props: Props) {
+  const searchParams = useSearchParams();
+  const selectedUrlType = searchParams.get('type') as UrlType;
+
   const {
     data,
     error,
@@ -20,7 +28,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSembleSimilarCards({ url: props.url });
+  } = useSembleSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
@@ -28,25 +36,33 @@ export default function SembleSimilarCardsContainer(props: Props) {
     return <SembleSimilarCardsContainerError />;
   }
 
-  if (allSimilarUrls.length === 0) {
-    return <SembleEmptyTab message="No similar cards found" icon={BiLink} />;
-  }
-
   return (
-    <InfiniteScroll
-      dataLength={allSimilarUrls.length}
-      hasMore={!!hasNextPage}
-      isInitialLoading={isPending}
-      isLoading={isFetchingNextPage}
-      loadMore={fetchNextPage}
-    >
-      <Grid gutter="sm" mx={'auto'} maw={600}>
-        {allSimilarUrls.map((urlView) => (
-          <Grid.Col key={urlView.url} span={12}>
-            <SimilarUrlCard urlView={urlView} />
-          </Grid.Col>
-        ))}
-      </Grid>
-    </InfiniteScroll>
+    <Stack gap={'xs'} align="center">
+      <Group justify="space-between" w={'100%'} maw={600}>
+        <CardFilters>
+          <CardTypeFilter />
+          <CardViewToggle />
+        </CardFilters>
+      </Group>
+      <InfiniteScroll
+        dataLength={allSimilarUrls.length}
+        hasMore={!!hasNextPage}
+        isInitialLoading={isPending}
+        isLoading={isFetchingNextPage}
+        loadMore={fetchNextPage}
+      >
+        {allSimilarUrls.length === 0 ? (
+          <SembleEmptyTab message="No similar cards found" icon={BiLink} />
+        ) : (
+          <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+            {allSimilarUrls.map((urlView) => (
+              <Grid.Col key={urlView.url} span={12}>
+                <SimilarUrlCard urlView={urlView} />
+              </Grid.Col>
+            ))}
+          </Grid>
+        )}
+      </InfiniteScroll>
+    </Stack>
   );
 }

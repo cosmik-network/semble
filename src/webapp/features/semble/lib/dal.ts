@@ -1,9 +1,11 @@
 import { createSembleClient } from '@/services/client.apiClient';
+import { UrlType } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
   page?: number;
   limit?: number;
+  urlType?: UrlType;
 }
 
 interface SimilarUrlsParams extends PageParams {
@@ -31,6 +33,7 @@ export const getSimilarUrlsForUrl = cache(
       page: params?.page,
       limit: params?.limit,
       threshold: params?.threshold,
+      urlType: params?.urlType,
     });
 
     return response;
