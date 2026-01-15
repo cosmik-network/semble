@@ -17,4 +17,8 @@ export const searchKeys = {
       urlType,
       userId,
     ] as const,
+  profileSearch: (query: string) =>
+    [...searchKeys.all(), 'profile', query] as const,
+  profileSearchInfinite: (query: string, limit?: number) =>
+    [...searchKeys.profileSearch(query), 'infinite', limit] as const,
 };
