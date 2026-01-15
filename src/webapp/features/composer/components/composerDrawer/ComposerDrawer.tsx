@@ -2,8 +2,9 @@ import { ActionIcon, Affix } from '@mantine/core';
 import { Fragment, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
-import { useMediaQuery, useSearchParams } from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import { useNavbarContext } from '@/providers/navbar';
+import { useSearchParams } from 'next/navigation';
 
 export default function ComposerDrawer() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
@@ -41,7 +42,7 @@ export default function ComposerDrawer() {
 
       <AddCardDrawer
         isOpen={opened}
-        initialUrl={addUrl}
+        initialUrl={addUrl || undefined}
         onClose={() => setOpened(false)}
       />
     </Fragment>
