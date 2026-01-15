@@ -30,6 +30,8 @@ import {
   SearchBskyPostsForUrlResponse,
   SearchAtProtoAccountsParams,
   SearchAtProtoAccountsResponse,
+  SearchLeafletDocsForUrlParams,
+  SearchLeafletDocsForUrlResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -306,6 +308,19 @@ export class QueryClient extends BaseClient {
     return this.request<SearchAtProtoAccountsResponse>(
       'GET',
       `/api/search/accounts?${searchParams}`,
+    );
+  }
+
+  async searchLeafletDocs(
+    params: SearchLeafletDocsForUrlParams,
+  ): Promise<SearchLeafletDocsForUrlResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.cursor) searchParams.set('cursor', params.cursor);
+
+    return this.request<SearchLeafletDocsForUrlResponse>(
+      'GET',
+      `/api/search/leaflet-docs?${searchParams}`,
     );
   }
 }

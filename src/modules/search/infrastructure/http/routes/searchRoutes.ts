@@ -3,6 +3,7 @@ import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsFor
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
 import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAccountsController';
+import { SearchLeafletDocsForUrlController } from '../controllers/SearchLeafletDocsForUrlController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export function createSearchRoutes(
@@ -11,6 +12,7 @@ export function createSearchRoutes(
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController,
   semanticSearchUrlsController: SemanticSearchUrlsController,
   searchAtProtoAccountsController: SearchAtProtoAccountsController,
+  searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController,
 ): Router {
   const router = Router();
 
@@ -32,6 +34,11 @@ export function createSearchRoutes(
   // GET /api/search/accounts - Search AtProto accounts
   router.get('/accounts', authMiddleware.optionalAuth(), (req, res) =>
     searchAtProtoAccountsController.execute(req, res),
+  );
+
+  // GET /api/search/leaflet-docs - Search Leaflet documents that link to a URL
+  router.get('/leaflet-docs', authMiddleware.optionalAuth(), (req, res) =>
+    searchLeafletDocsForUrlController.execute(req, res),
   );
 
   return router;

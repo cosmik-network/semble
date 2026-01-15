@@ -71,6 +71,8 @@ import type {
   SearchBskyPostsForUrlResponse,
   SearchAtProtoAccountsParams,
   SearchAtProtoAccountsResponse,
+  SearchLeafletDocsForUrlParams,
+  SearchLeafletDocsForUrlResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -206,6 +208,12 @@ export class ApiClient {
     params: SearchAtProtoAccountsParams,
   ): Promise<SearchAtProtoAccountsResponse> {
     return this.queryClient.searchAtProtoAccounts(params);
+  }
+
+  async searchLeafletDocs(
+    params: SearchLeafletDocsForUrlParams,
+  ): Promise<SearchLeafletDocsForUrlResponse> {
+    return this.queryClient.searchLeafletDocs(params);
   }
 
   // Card operations - delegate to CardClient

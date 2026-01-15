@@ -37,6 +37,7 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/applicat
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
+import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
@@ -103,6 +104,7 @@ export interface UseCases {
   semanticSearchUrlsUseCase: SemanticSearchUrlsUseCase;
   searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
   searchAtProtoAccountsUseCase: SearchAtProtoAccountsUseCase;
+  searchLeafletDocsForUrlUseCase: SearchLeafletDocsForUrlUseCase;
   // Notification use cases
   getMyNotificationsUseCase: GetMyNotificationsUseCase;
   getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
@@ -289,6 +291,9 @@ export class UseCaseFactory {
       ),
       searchAtProtoAccountsUseCase: new SearchAtProtoAccountsUseCase(
         services.atProtoAgentService,
+      ),
+      searchLeafletDocsForUrlUseCase: new SearchLeafletDocsForUrlUseCase(
+        services.leafletSearchService,
       ),
       // Notification use cases
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(

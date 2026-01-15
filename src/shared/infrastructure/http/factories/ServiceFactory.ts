@@ -417,3 +417,4 @@ export class ServiceFactory {
     };
   }
 }
+import { LeafletSearchService } from '../../../../modules/search/domain/services/LeafletSearchService';

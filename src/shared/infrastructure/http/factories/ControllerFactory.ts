@@ -24,6 +24,7 @@ import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infra
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
+import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -86,6 +87,7 @@ export interface Controllers {
   semanticSearchUrlsController: SemanticSearchUrlsController;
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   searchAtProtoAccountsController: SearchAtProtoAccountsController;
+  searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController;
   // Notification controllers
   getMyNotificationsController: GetMyNotificationsController;
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
@@ -223,6 +225,9 @@ export class ControllerFactory {
       ),
       searchAtProtoAccountsController: new SearchAtProtoAccountsController(
         useCases.searchAtProtoAccountsUseCase,
+      ),
+      searchLeafletDocsForUrlController: new SearchLeafletDocsForUrlController(
+        useCases.searchLeafletDocsForUrlUseCase,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(
