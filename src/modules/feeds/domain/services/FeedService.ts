@@ -46,9 +46,8 @@ export class FeedService implements DomainService {
         // Update existing activity by merging collections
         recentActivity.mergeCollections(collectionIds);
 
-        const updateResult = await this.feedRepository.updateActivity(
-          recentActivity,
-        );
+        const updateResult =
+          await this.feedRepository.updateActivity(recentActivity);
 
         if (updateResult.isErr()) {
           return err(

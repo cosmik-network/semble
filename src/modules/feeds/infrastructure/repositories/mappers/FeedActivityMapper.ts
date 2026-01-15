@@ -83,7 +83,7 @@ export class FeedActivityMapper {
 
   public static toPersistence(activity: FeedActivity): FeedActivityDTO {
     let cardId: string | undefined;
-    
+
     // Extract cardId for CARD_COLLECTED activities
     if (activity.cardCollected) {
       const metadata = activity.metadata as CardCollectedMetadata;

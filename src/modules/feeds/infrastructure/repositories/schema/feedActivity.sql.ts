@@ -6,7 +6,6 @@ import {
   uuid,
   index,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
 export const feedActivities = pgTable(
   'feed_activities',
@@ -50,8 +49,5 @@ export const feedActivities = pgTable(
     ),
     // Index for card-based queries
     cardIdIdx: index('feed_activities_card_id_idx').on(table.cardId),
-    // GIN index for collection queries in JSONB
-    collectionsGinIdx: index('feed_activities_collections_gin_idx')
-      .using('gin', sql`(metadata->'collectionIds')`),
   }),
 );
