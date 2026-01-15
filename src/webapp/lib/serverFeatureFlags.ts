@@ -7,6 +7,7 @@ const APPROVED_HANDLES = [
   'bmann.ca',
   'tynanpurdy.com',
   'erlend.sh',
+  'tgoerke.bsky.social',
 ];
 
 export async function getServerFeatureFlags() {
