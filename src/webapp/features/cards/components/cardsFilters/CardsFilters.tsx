@@ -2,7 +2,7 @@
 
 import { CardSortField, UrlType } from '@semble/types';
 import { Select, Button, Group, Popover } from '@mantine/core';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useOptimistic } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { upperFirst } from '@mantine/hooks';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
@@ -14,16 +14,27 @@ import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 export default function CardsFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { settings, updateSetting } = useUserSettings();
-  const { data: featureFlags } = useFeatureFlags();
   const [, startTransition] = useTransition();
 
-  // sort
-  const sortValue =
+  const { settings, updateSetting } = useUserSettings();
+  const { data: featureFlags } = useFeatureFlags();
+
+  const typeFromUrl = searchParams.get('type') as UrlType | null;
+
+  const sortFromUrl =
     (searchParams.get('sort') as CardSortField) ?? CardSortField.UPDATED_AT;
+
+  const [optimisticType, setOptimisticType] = useOptimistic<UrlType | null>(
+    typeFromUrl,
+  );
+
+  const [optimisticSort, setOptimisticSort] =
+    useOptimistic<CardSortField>(sortFromUrl);
 
   const onSortChange = (next: CardSortField) => {
     startTransition(() => {
+      setOptimisticSort(next); // ✅ instant UI
+
       const params = new URLSearchParams(searchParams.toString());
       params.set('sort', next);
 
@@ -31,19 +42,17 @@ export default function CardsFilters() {
     });
   };
 
-  // url type
   const [opened, setOpened] = useState(false);
-  const typeFromUrl = searchParams.get('type') as UrlType | null;
-
-  const SelectedIcon =
-    typeFromUrl === null ? MdFilterList : getUrlTypeIcon(typeFromUrl);
 
   const handleTypeChange = (type?: UrlType) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
+    const nextType = type ?? null;
 
-      if (type) {
-        params.set('type', type);
+    startTransition(() => {
+      setOptimisticType(nextType); // ✅ instant UI
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (nextType) {
+        params.set('type', nextType);
       } else {
         params.delete('type');
       }
@@ -53,6 +62,8 @@ export default function CardsFilters() {
 
     setOpened(false);
   };
+  const SelectedIcon =
+    optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
   return (
     <Group gap="xs" justify="space-between">
@@ -61,7 +72,7 @@ export default function CardsFilters() {
         allowDeselect={false}
         variant="filled"
         size="sm"
-        value={sortValue}
+        value={optimisticSort}
         onChange={(v) => onSortChange(v as CardSortField)}
         data={[
           { value: CardSortField.UPDATED_AT, label: 'Newest' },
@@ -70,8 +81,8 @@ export default function CardsFilters() {
         ]}
       />
 
-      <Group gap={'xs'}>
-        {/* type */}
+      <Group gap="xs">
+        {/* type filter */}
         {featureFlags?.urlTypeFilter && (
           <Popover opened={opened} onChange={setOpened} shadow="sm">
             <Popover.Target>
@@ -81,7 +92,7 @@ export default function CardsFilters() {
                 leftSection={<SelectedIcon />}
                 onClick={() => setOpened((o) => !o)}
               >
-                {typeFromUrl ? upperFirst(typeFromUrl) : 'All Types'}
+                {optimisticType ? upperFirst(optimisticType) : 'All Types'}
               </Button>
             </Popover.Target>
 
@@ -90,7 +101,7 @@ export default function CardsFilters() {
                 <Button
                   size="xs"
                   color="lime"
-                  variant={typeFromUrl === null ? 'filled' : 'light'}
+                  variant={optimisticType === null ? 'filled' : 'light'}
                   onClick={() => handleTypeChange()}
                 >
                   All Types
@@ -104,7 +115,7 @@ export default function CardsFilters() {
                       key={type}
                       size="xs"
                       color="lime"
-                      variant={typeFromUrl === type ? 'filled' : 'light'}
+                      variant={optimisticType === type ? 'filled' : 'light'}
                       leftSection={<Icon />}
                       onClick={() => handleTypeChange(type)}
                     >
