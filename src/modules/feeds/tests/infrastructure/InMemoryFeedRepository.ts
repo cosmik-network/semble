@@ -168,8 +168,8 @@ export class InMemoryFeedRepository implements IFeedRepository {
   }
 
   async findRecentCardCollectedActivity(
-    actorId: import('../../cards/domain/value-objects/CuratorId').CuratorId,
-    cardId: import('../../cards/domain/value-objects/CardId').CardId,
+    actorId: import('../../../cards/domain/value-objects/CuratorId').CuratorId,
+    cardId: import('../../../cards/domain/value-objects/CardId').CardId,
     withinMinutes: number,
   ): Promise<Result<FeedActivity | null>> {
     try {
@@ -178,7 +178,7 @@ export class InMemoryFeedRepository implements IFeedRepository {
       const recentActivity = this.activities.find((activity) => {
         if (!activity.cardCollected) return false;
 
-        const metadata = activity.metadata as import('../../domain/FeedActivity').CardCollectedMetadata;
+        const metadata = activity.metadata as CardCollectedMetadata;
         return (
           activity.actorId.value === actorId.value &&
           metadata.cardId === cardId.getStringValue() &&
