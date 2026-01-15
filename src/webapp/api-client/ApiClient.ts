@@ -69,6 +69,8 @@ import type {
   SemanticSearchUrlsResponse,
   SearchBskyPostsForUrlParams,
   SearchBskyPostsForUrlResponse,
+  SearchAtProtoAccountsParams,
+  SearchAtProtoAccountsResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -198,6 +200,12 @@ export class ApiClient {
     params: SearchBskyPostsForUrlParams,
   ): Promise<SearchBskyPostsForUrlResponse> {
     return this.queryClient.searchBskyPosts(params);
+  }
+
+  async searchAtProtoAccounts(
+    params: SearchAtProtoAccountsParams,
+  ): Promise<SearchAtProtoAccountsResponse> {
+    return this.queryClient.searchAtProtoAccounts(params);
   }
 
   // Card operations - delegate to CardClient

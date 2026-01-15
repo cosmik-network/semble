@@ -36,6 +36,7 @@ import { IndexUrlForSearchUseCase } from '../../../../modules/search/application
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
+import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
@@ -101,6 +102,7 @@ export interface UseCases {
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
   semanticSearchUrlsUseCase: SemanticSearchUrlsUseCase;
   searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
+  searchAtProtoAccountsUseCase: SearchAtProtoAccountsUseCase;
   // Notification use cases
   getMyNotificationsUseCase: GetMyNotificationsUseCase;
   getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
@@ -282,6 +284,9 @@ export class UseCaseFactory {
         services.searchService,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
+        services.atProtoAgentService,
+      ),
+      searchAtProtoAccountsUseCase: new SearchAtProtoAccountsUseCase(
         services.atProtoAgentService,
       ),
       // Notification use cases

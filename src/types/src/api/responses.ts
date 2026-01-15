@@ -288,6 +288,37 @@ export interface SearchBskyPostsForUrlResponse {
   posts: PostView[];
 }
 
+// AtProto account search response types
+export interface ProfileView {
+  did: string;
+  handle: string;
+  displayName?: string;
+  description?: string;
+  avatar?: string;
+  associated?: {
+    chat?: {
+      allowIncoming: 'all' | 'none' | 'following';
+    };
+  };
+  indexedAt?: string;
+  createdAt?: string;
+  viewer?: {
+    muted?: boolean;
+    blockedBy?: boolean;
+    blocking?: string;
+    following?: string;
+    followedBy?: string;
+  };
+  labels?: any[];
+  verification?: any;
+  status?: any;
+}
+
+export interface SearchAtProtoAccountsResponse {
+  cursor?: string;
+  actors: ProfileView[];
+}
+
 // Notification types
 export enum NotificationType {
   USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',

@@ -186,6 +186,15 @@ export interface SearchBskyPostsForUrlParams {
   cursor?: string;
 }
 
+export interface SearchAtProtoAccountsParams {
+  /** DEPRECATED: use 'q' instead. */
+  term?: string;
+  /** Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended. */
+  q?: string;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
