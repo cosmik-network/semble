@@ -12,6 +12,7 @@ import {
 import { Suspense, useState } from 'react';
 import BlueskyMentionsContainerSkeleton from '@/features/platforms/bluesky/container/blueskyMentionsContainer/Skeleton.BlueskyMentionsContainer';
 import LeafletMentionsContainerSkeleton from '@/features/platforms/leaflet/container/leafletMentionsContainer/Skeleton.LeafletMentionsContainer';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   url: string;
@@ -20,6 +21,7 @@ interface Props {
 type Platform = 'Bluesky' | 'Leaflet';
 
 export default function SembleMentionsContainer(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
   const combobox = useCombobox();
   const [platform, setPlatform] = useState<Platform>('Bluesky');
 
@@ -67,7 +69,9 @@ export default function SembleMentionsContainer(props: Props) {
           </Combobox.Target>
           <Combobox.Dropdown>
             <Combobox.Option value="Bluesky">Bluesky</Combobox.Option>
-            <Combobox.Option value="Leaflet">Leaflet</Combobox.Option>
+            {featureFlags?.leafletMentions && (
+              <Combobox.Option value="Leaflet">Leaflet</Combobox.Option>
+            )}
           </Combobox.Dropdown>
         </Combobox>
         {platform === 'Bluesky' && (
