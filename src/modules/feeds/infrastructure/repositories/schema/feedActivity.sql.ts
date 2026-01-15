@@ -12,6 +12,7 @@ export const feedActivities = pgTable(
   {
     id: uuid('id').primaryKey(),
     actorId: text('actor_id').notNull(), // The DID of the user who performed the activity
+    cardId: text('card_id'), // Extracted card ID for faster deduplication queries
     type: text('type').notNull(), // The type of activity (e.g., 'CARD_COLLECTED')
     metadata: jsonb('metadata').notNull(), // Activity-specific metadata
     urlType: text('url_type'), // Optional URL type from the card
@@ -40,5 +41,13 @@ export const feedActivities = pgTable(
     typeUrlTypeCreatedAtIdx: index(
       'feed_activities_type_url_type_created_at_idx',
     ).on(table.type, table.urlType, table.createdAt.desc()),
+    // Index for deduplication queries (actor + card + time)
+    dedupIdx: index('feed_activities_dedup_idx').on(
+      table.actorId,
+      table.cardId,
+      table.createdAt.desc(),
+    ),
+    // Index for card-based queries
+    cardIdIdx: index('feed_activities_card_id_idx').on(table.cardId),
   }),
 );

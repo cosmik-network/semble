@@ -168,7 +168,7 @@ export interface SemanticSearchUrlsParams extends PaginatedSortedParams {
   query: string;
   threshold?: number;
   urlType?: string;
-  userId?: string;
+  identifier?: string; // Can be DID or handle
 }
 
 export interface SearchBskyPostsForUrlParams {
@@ -182,6 +182,15 @@ export interface SearchBskyPostsForUrlParams {
   domain?: string;
   url?: string;
   tag?: string[];
+  limit?: number;
+  cursor?: string;
+}
+
+export interface SearchAtProtoAccountsParams {
+  /** DEPRECATED: use 'q' instead. */
+  term?: string;
+  /** Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended. */
+  q?: string;
   limit?: number;
   cursor?: string;
 }

@@ -77,6 +77,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE TABLE IF NOT EXISTS feed_activities (
       id UUID PRIMARY KEY,
       actor_id TEXT NOT NULL,
+      card_id TEXT,
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       url_type TEXT,
@@ -171,6 +172,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS feed_activities_type_url_type_created_at_idx ON feed_activities(type, url_type, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_dedup_idx ON feed_activities(actor_id, card_id, created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_card_id_idx ON feed_activities(card_id);
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);

@@ -29,7 +29,7 @@ export default function SearchResultsContainer(props: Props) {
   }
 
   if (!isPending && allUrls.length === 0) {
-    return <SearchEmptyResults query={props.query} />;
+    return <SearchEmptyResults query={props.query} type="cards" />;
   }
 
   return (

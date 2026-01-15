@@ -167,6 +167,51 @@ export class InMemoryFeedRepository implements IFeedRepository {
     }
   }
 
+  async findRecentCardCollectedActivity(
+    actorId: import('../../../cards/domain/value-objects/CuratorId').CuratorId,
+    cardId: import('../../../cards/domain/value-objects/CardId').CardId,
+    withinMinutes: number,
+  ): Promise<Result<FeedActivity | null>> {
+    try {
+      const cutoffTime = new Date(Date.now() - withinMinutes * 60 * 1000);
+
+      const recentActivity = this.activities.find((activity) => {
+        if (!activity.cardCollected) return false;
+
+        const metadata = activity.metadata as CardCollectedMetadata;
+        return (
+          activity.actorId.value === actorId.value &&
+          metadata.cardId === cardId.getStringValue() &&
+          activity.createdAt >= cutoffTime
+        );
+      });
+
+      return ok(recentActivity || null);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async updateActivity(activity: FeedActivity): Promise<Result<void>> {
+    try {
+      const index = this.activities.findIndex((a) =>
+        a.activityId.equals(activity.activityId),
+      );
+
+      if (index >= 0) {
+        this.activities[index] = activity;
+        // Re-sort after update
+        this.activities.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   // Test helper methods
   clear(): void {
     this.activities = [];

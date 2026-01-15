@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsForUrlController';
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
+import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAccountsController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export function createSearchRoutes(
@@ -9,6 +10,7 @@ export function createSearchRoutes(
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController,
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController,
   semanticSearchUrlsController: SemanticSearchUrlsController,
+  searchAtProtoAccountsController: SearchAtProtoAccountsController,
 ): Router {
   const router = Router();
 
@@ -25,6 +27,11 @@ export function createSearchRoutes(
   // GET /api/search/semantic - Semantic search for URLs
   router.get('/semantic', authMiddleware.optionalAuth(), (req, res) =>
     semanticSearchUrlsController.execute(req, res),
+  );
+
+  // GET /api/search/accounts - Search AtProto accounts
+  router.get('/accounts', authMiddleware.optionalAuth(), (req, res) =>
+    searchAtProtoAccountsController.execute(req, res),
   );
 
   return router;
