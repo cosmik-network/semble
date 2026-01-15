@@ -357,10 +357,7 @@ export class ServiceFactory {
     );
 
     // Create LeafletSearchService
-    const leafletSearchService = new LeafletSearchService(
-      atProtoAgentService,
-      metadataService,
-    );
+    const leafletSearchService = new LeafletSearchService(metadataService);
 
     // Create publishers needed for shared services
     const useFakePublishers = configService.shouldUseFakePublishers();

@@ -1,6 +1,5 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { AppError } from '../../../../shared/core/AppError';
-import { IAgentService } from '../../../atproto/application/IAgentService';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { URL } from '../../../cards/domain/value-objects/URL';
@@ -41,13 +40,11 @@ export interface LeafletDocumentResult {
 }
 
 export class LeafletSearchService {
-  private readonly CONSTELLATION_BASE_URL = 'https://constellation.microcosm.blue';
+  private readonly CONSTELLATION_BASE_URL =
+    'https://constellation.microcosm.blue';
   private readonly ATPROTO_XRPC_BASE_URL = 'https://bsky.social/xrpc';
 
-  constructor(
-    private agentService: IAgentService,
-    private metadataService: IMetadataService,
-  ) {}
+  constructor(private metadataService: IMetadataService) {}
 
   async searchLeafletDocsForUrl(
     targetUrl: string,
@@ -141,9 +138,8 @@ export class LeafletSearchService {
 
       // Step 2: Get the publication record
       const publicationAtUri = document.publication;
-      const publicationResult = await this.getLeafletPublicationFromAtUri(
-        publicationAtUri,
-      );
+      const publicationResult =
+        await this.getLeafletPublicationFromAtUri(publicationAtUri);
       if (publicationResult.isErr()) {
         return err(publicationResult.error);
       }
@@ -238,7 +234,9 @@ export class LeafletSearchService {
       // Validate that all parts exist
       if (!did || !collection || !rkey) {
         return err(
-          new AppError.UnexpectedError(new Error(`Invalid AT URI parts: ${atUri}`)),
+          new AppError.UnexpectedError(
+            new Error(`Invalid AT URI parts: ${atUri}`),
+          ),
         );
       }
 
