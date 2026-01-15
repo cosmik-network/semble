@@ -1,34 +1,18 @@
 import { LeafletSearchService } from '../LeafletSearchService';
-import { IMetadataService } from '../../../../cards/domain/services/IMetadataService';
-import { UrlMetadata } from '../../../../cards/domain/value-objects/UrlMetadata';
-import { URL } from '../../../../cards/domain/value-objects/URL';
-import { Result, ok } from '../../../../../shared/core/Result';
-
-// Mock metadata service for testing
-class MockMetadataService implements IMetadataService {
-  async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
-    // Simple mock that creates basic metadata
-    const metadata = UrlMetadata.create({
-      url: url.value,
-      title: 'Mock Title',
-      description: 'Mock Description',
-      siteName: 'Mock Site',
-    });
-    return metadata;
-  }
-
-  async isAvailable(): Promise<boolean> {
-    return true;
-  }
-}
+import { CompositeMetadataService } from '../../../../cards/infrastructure/CompositeMetadataService';
+import { IFramelyMetadataService } from '../../../../cards/infrastructure/IFramelyMetadataService';
+import { CitoidMetadataService } from '../../../../cards/infrastructure/CitoidMetadataService';
 
 describe('LeafletSearchService', () => {
   let service: LeafletSearchService;
-  let mockMetadataService: MockMetadataService;
+  let metadataService: CompositeMetadataService;
 
   beforeEach(() => {
-    mockMetadataService = new MockMetadataService();
-    service = new LeafletSearchService(mockMetadataService);
+    const testApiKey = process.env.IFRAMELY_API_KEY || 'test-api-key';
+    const iframelyService = new IFramelyMetadataService(testApiKey);
+    const citoidService = new CitoidMetadataService();
+    metadataService = new CompositeMetadataService(iframelyService, citoidService);
+    service = new LeafletSearchService(metadataService);
   });
 
   it('should search for leaflet documents linking to a URL', async () => {
