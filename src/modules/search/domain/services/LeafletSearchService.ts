@@ -3,6 +3,7 @@ import { AppError } from '../../../../shared/core/AppError';
 import { IAgentService } from '../../../atproto/application/IAgentService';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
+import { URL } from '../../../cards/domain/value-objects/URL';
 
 export interface LeafletLinkingRecord {
   did: string;
@@ -153,8 +154,13 @@ export class LeafletSearchService {
       const documentUrl = `https://${publication.base_path}/${record.rkey}`;
 
       // Step 4: Fetch metadata
+      const urlResult = URL.create(documentUrl);
+      if (urlResult.isErr()) {
+        return err(new AppError.UnexpectedError(urlResult.error));
+      }
+
       const metadataResult = await this.metadataService.fetchMetadata(
-        new URL(documentUrl),
+        urlResult.value,
       );
       if (metadataResult.isErr()) {
         // If metadata fetch fails, create basic metadata from document
@@ -228,6 +234,13 @@ export class LeafletSearchService {
       }
 
       const [did, collection, rkey] = uriParts;
+
+      // Validate that all parts exist
+      if (!did || !collection || !rkey) {
+        return err(
+          new AppError.UnexpectedError(new Error(`Invalid AT URI parts: ${atUri}`)),
+        );
+      }
 
       const params = new URLSearchParams();
       params.set('repo', did);
