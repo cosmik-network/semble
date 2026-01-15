@@ -24,6 +24,46 @@ export class FeedService implements DomainService {
     urlType?: UrlType,
   ): Promise<Result<FeedActivity, FeedServiceError>> {
     try {
+      // Check for recent duplicate activity (within 2 minutes)
+      const recentActivityResult =
+        await this.feedRepository.findRecentCardCollectedActivity(
+          actorId,
+          cardId,
+          2, // 2 minutes
+        );
+
+      if (recentActivityResult.isErr()) {
+        return err(
+          new FeedServiceError(
+            `Failed to check for recent activity: ${recentActivityResult.error.message}`,
+          ),
+        );
+      }
+
+      const recentActivity = recentActivityResult.value;
+
+      if (recentActivity && collectionIds && collectionIds.length > 0) {
+        // Update existing activity by merging collections
+        recentActivity.mergeCollections(collectionIds);
+
+        const updateResult =
+          await this.feedRepository.updateActivity(recentActivity);
+
+        if (updateResult.isErr()) {
+          return err(
+            new FeedServiceError(
+              `Failed to update activity: ${updateResult.error.message}`,
+            ),
+          );
+        }
+
+        return ok(recentActivity);
+      } else if (recentActivity) {
+        // Recent activity exists but no new collections to add, return existing
+        return ok(recentActivity);
+      }
+
+      // No recent activity found, create new one
       const activityResult = FeedActivity.createCardCollected(
         actorId,
         cardId,

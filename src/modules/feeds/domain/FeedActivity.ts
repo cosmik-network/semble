@@ -60,6 +60,18 @@ export class FeedActivity extends Entity<ActivityProps> {
     return this.props.type.value === ActivityTypeEnum.CARD_COLLECTED;
   }
 
+  // Helper method to merge collections for deduplication
+  public mergeCollections(newCollectionIds: CollectionId[]): void {
+    if (!this.cardCollected) return;
+
+    const metadata = this.props.metadata as CardCollectedMetadata;
+    const existingIds = new Set(metadata.collectionIds || []);
+    const newIds = newCollectionIds.map((id) => id.getStringValue());
+
+    newIds.forEach((id) => existingIds.add(id));
+    metadata.collectionIds = Array.from(existingIds);
+  }
+
   private constructor(props: ActivityProps, id?: UniqueEntityID) {
     super(props, id);
   }
