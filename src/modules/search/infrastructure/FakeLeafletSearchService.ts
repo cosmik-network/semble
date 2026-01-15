@@ -32,7 +32,8 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     const limitedResults = limit ? results.slice(0, limit) : results;
 
     // Simulate cursor for pagination (fake implementation)
-    const nextCursor = limit && results.length > limit ? 'fake-cursor-next' : undefined;
+    const nextCursor =
+      limit && results.length > limit ? 'fake-cursor-next' : undefined;
 
     return ok({
       documents: limitedResults,
