@@ -76,7 +76,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
-  leafletSearchService: CachedLeafletSearchService;
+  leafletSearchService: ILeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
@@ -357,21 +357,14 @@ export class ServiceFactory {
     );
 
     // Create LeafletSearchService with caching
-    const baseLeafletSearchService = new LeafletSearchService(metadataService);
-    
-    let leafletSearchService: CachedLeafletSearchService;
+    let leafletSearchService: ILeafletSearchService;
     
     if (useMockPersistence) {
-      // For mock persistence, we still need Redis for caching, so create a minimal wrapper
-      // that just passes through to the base service without caching
-      leafletSearchService = {
-        searchLeafletDocsForUrl: baseLeafletSearchService.searchLeafletDocsForUrl.bind(baseLeafletSearchService),
-        invalidateUrl: async () => {},
-        clearAllCache: async () => {},
-        warmCache: async () => {},
-      } as CachedLeafletSearchService;
+      // Use fake implementation for mock persistence
+      leafletSearchService = new FakeLeafletSearchService();
     } else {
-      // Create Redis connection for caching
+      // Use real Constellation service with caching
+      const baseLeafletSearchService = new ConstellationLeafletSearchService(metadataService);
       const redisConfig = configService.getRedisConfig();
       const redis = RedisFactory.createConnection(redisConfig);
       leafletSearchService = new CachedLeafletSearchService(
@@ -443,5 +436,7 @@ export class ServiceFactory {
     };
   }
 }
-import { LeafletSearchService } from '../../../../modules/search/domain/services/LeafletSearchService';
+import { ConstellationLeafletSearchService } from '../../../../modules/search/domain/services/LeafletSearchService';
+import { FakeLeafletSearchService } from '../../../../modules/search/infrastructure/FakeLeafletSearchService';
 import { CachedLeafletSearchService } from '../../../../modules/search/infrastructure/CachedLeafletSearchService';
+import { ILeafletSearchService } from '../../../../modules/search/domain/services/ILeafletSearchService';

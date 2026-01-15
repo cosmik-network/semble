@@ -3,7 +3,8 @@ import { AppError } from '../../../../shared/core/AppError';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { URL } from '../../../cards/domain/value-objects/URL';
-import atpi from 'atpi';
+import { ILeafletSearchService, LeafletDocumentResult } from './ILeafletSearchService';
+const atpi = require('atpi');
 
 export interface LeafletLinkingRecord {
   did: string;
@@ -35,12 +36,7 @@ export interface LeafletPublicationRecord {
   preferences?: any;
 }
 
-export interface LeafletDocumentResult {
-  url: string;
-  metadata: UrlMetadata;
-}
-
-export class LeafletSearchService {
+export class ConstellationLeafletSearchService implements ILeafletSearchService {
   private readonly CONSTELLATION_BASE_URL =
     'https://constellation.microcosm.blue';
 

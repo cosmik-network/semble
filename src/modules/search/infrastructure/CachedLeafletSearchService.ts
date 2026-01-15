@@ -1,14 +1,14 @@
 import Redis from 'ioredis';
-import { LeafletSearchService, LeafletDocumentResult } from '../domain/services/LeafletSearchService';
+import { ILeafletSearchService, LeafletDocumentResult } from '../domain/services/ILeafletSearchService';
 import { Result, ok } from '../../../shared/core/Result';
 import { AppError } from '../../../shared/core/AppError';
 
-export class CachedLeafletSearchService {
+export class CachedLeafletSearchService implements ILeafletSearchService {
   private readonly CACHE_TTL_SECONDS = 3600 * 24; // 24 hours
   private readonly CACHE_KEY_PREFIX = 'leaflet_search:';
 
   constructor(
-    private readonly leafletSearchService: LeafletSearchService,
+    private readonly leafletSearchService: ILeafletSearchService,
     private readonly redis: Redis,
   ) {}
 
