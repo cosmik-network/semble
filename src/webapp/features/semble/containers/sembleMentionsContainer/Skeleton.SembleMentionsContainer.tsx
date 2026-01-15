@@ -6,6 +6,7 @@ import {
   GridCol,
   Group,
   Select,
+  Skeleton,
   Stack,
 } from '@mantine/core';
 
@@ -15,19 +16,15 @@ export default function SembleMentionsContainerSkeleton() {
       <Group justify="space-between" w={'100%'} maw={600}>
         <Combobox>
           <Combobox.Target>
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<Combobox.Chevron />}
-              loading
-            />
+            <Button variant="light" color="gray" loading>
+              <Skeleton height={16} width={60} />
+            </Button>
           </Combobox.Target>
         </Combobox>
         <Select ml={'auto'} size="sm" variant="filled" disabled />
       </Group>
       <Stack>
         <Grid gutter="sm" mx={'auto'} maw={600}>
-          {/* not necessary to check if navbar is open */}
           {Array.from({ length: 8 }).map((_, i) => (
             <GridCol key={i} span={12}>
               <UrlCardSkeleton />

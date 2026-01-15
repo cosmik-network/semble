@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 interface FeatureFlags {
   cardSearch: boolean;
   urlTypeFilter: boolean;
+  leafletMentions: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {
