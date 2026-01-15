@@ -6,8 +6,8 @@ export default function useUnreadNotificationCount() {
   const query = useSuspenseQuery({
     queryKey: notificationKeys.unreadCount(),
     queryFn: getUnreadNotificationCount,
-    staleTime: 3000, // 20 seconds
-    refetchInterval: 5000, // Refetch every 30 seconds
+    staleTime: 3000,
+    refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
 
