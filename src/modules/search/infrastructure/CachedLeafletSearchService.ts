@@ -2,6 +2,7 @@ import Redis from 'ioredis';
 import {
   ILeafletSearchService,
   LeafletDocumentResult,
+  LeafletSearchResult,
 } from '../domain/services/ILeafletSearchService';
 import { Result, ok } from '../../../shared/core/Result';
 import { AppError } from '../../../shared/core/AppError';
@@ -19,7 +20,7 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
     targetUrl: string,
     limit?: number,
     cursor?: string,
-  ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
+  ): Promise<Result<LeafletSearchResult, AppError.UnexpectedError>> {
     const cacheKey = this.getCacheKey(targetUrl, limit, cursor);
 
     try {
@@ -27,7 +28,7 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
         try {
-          const results = JSON.parse(cached) as LeafletDocumentResult[];
+          const results = JSON.parse(cached) as LeafletSearchResult;
           return ok(results);
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
