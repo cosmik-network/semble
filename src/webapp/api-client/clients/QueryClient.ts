@@ -28,6 +28,8 @@ import {
   SemanticSearchUrlsResponse,
   SearchBskyPostsForUrlParams,
   SearchBskyPostsForUrlResponse,
+  SearchAtProtoAccountsParams,
+  SearchAtProtoAccountsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -289,6 +291,21 @@ export class QueryClient extends BaseClient {
     return this.request<SearchBskyPostsForUrlResponse>(
       'GET',
       `/api/search/bsky-posts?${searchParams}`,
+    );
+  }
+
+  async searchAtProtoAccounts(
+    params: SearchAtProtoAccountsParams,
+  ): Promise<SearchAtProtoAccountsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.term) searchParams.set('term', params.term);
+    if (params.q) searchParams.set('q', params.q);
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.cursor) searchParams.set('cursor', params.cursor);
+
+    return this.request<SearchAtProtoAccountsResponse>(
+      'GET',
+      `/api/search/accounts?${searchParams}`,
     );
   }
 }

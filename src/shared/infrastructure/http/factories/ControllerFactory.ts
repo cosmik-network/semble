@@ -23,6 +23,7 @@ import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastr
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
+import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -84,6 +85,7 @@ export interface Controllers {
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   semanticSearchUrlsController: SemanticSearchUrlsController;
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
+  searchAtProtoAccountsController: SearchAtProtoAccountsController;
   // Notification controllers
   getMyNotificationsController: GetMyNotificationsController;
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
@@ -218,6 +220,9 @@ export class ControllerFactory {
       ),
       searchBskyPostsForUrlController: new SearchBskyPostsForUrlController(
         useCases.searchBskyPostsForUrlUseCase,
+      ),
+      searchAtProtoAccountsController: new SearchAtProtoAccountsController(
+        useCases.searchAtProtoAccountsUseCase,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(
