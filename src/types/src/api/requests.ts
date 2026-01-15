@@ -195,6 +195,12 @@ export interface SearchAtProtoAccountsParams {
   cursor?: string;
 }
 
+export interface SearchLeafletDocsForUrlParams {
+  url: string;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
