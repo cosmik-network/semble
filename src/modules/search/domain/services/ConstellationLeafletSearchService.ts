@@ -113,6 +113,11 @@ export class ConstellationLeafletSearchService
 
       const response = await fetch(
         `${this.CONSTELLATION_BASE_URL}/links?${params}`,
+        {
+          headers: {
+            'User-Agent': 'Semble (@semble.so)',
+          },
+        },
       );
 
       if (!response.ok) {
