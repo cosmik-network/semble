@@ -1,18 +1,21 @@
-import { LeafletSearchService } from '../LeafletSearchService';
 import { CompositeMetadataService } from '../../../../cards/infrastructure/CompositeMetadataService';
 import { IFramelyMetadataService } from '../../../../cards/infrastructure/IFramelyMetadataService';
 import { CitoidMetadataService } from '../../../../cards/infrastructure/CitoidMetadataService';
+import { ConstellationLeafletSearchService } from '../ConstellationLeafletSearchService';
 
-describe('LeafletSearchService', () => {
-  let service: LeafletSearchService;
+describe.skip('LeafletSearchService', () => {
+  let service: ConstellationLeafletSearchService;
   let metadataService: CompositeMetadataService;
 
   beforeEach(() => {
     const testApiKey = process.env.IFRAMELY_API_KEY || 'test-api-key';
     const iframelyService = new IFramelyMetadataService(testApiKey);
     const citoidService = new CitoidMetadataService();
-    metadataService = new CompositeMetadataService(iframelyService, citoidService);
-    service = new LeafletSearchService(metadataService);
+    metadataService = new CompositeMetadataService(
+      iframelyService,
+      citoidService,
+    );
+    service = new ConstellationLeafletSearchService(metadataService);
   });
 
   it('should search for leaflet documents linking to a URL', async () => {

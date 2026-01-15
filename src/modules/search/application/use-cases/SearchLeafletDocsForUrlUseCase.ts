@@ -1,11 +1,11 @@
 import { UseCase } from 'src/shared/core/UseCase';
 import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
-import { LeafletSearchService } from '../../domain/services/LeafletSearchService';
 import {
   SearchLeafletDocsForUrlParams,
   SearchLeafletDocsForUrlResponse,
 } from '@semble/types';
+import { ILeafletSearchService } from '../../domain/services/ILeafletSearchService';
 
 export interface SearchLeafletDocsForUrlRequest
   extends SearchLeafletDocsForUrlParams {
@@ -24,7 +24,7 @@ export class SearchLeafletDocsForUrlUseCase
       Promise<SearchLeafletDocsForUrlResult>
     >
 {
-  constructor(private leafletSearchService: LeafletSearchService) {}
+  constructor(private leafletSearchService: ILeafletSearchService) {}
 
   async execute(
     request: SearchLeafletDocsForUrlRequest,
@@ -32,17 +32,16 @@ export class SearchLeafletDocsForUrlUseCase
     try {
       if (!request.url || typeof request.url !== 'string') {
         return err(
-          new AppError.UnexpectedError(
-            new Error('URL parameter is required'),
-          ),
+          new AppError.UnexpectedError(new Error('URL parameter is required')),
         );
       }
 
-      const searchResult = await this.leafletSearchService.searchLeafletDocsForUrl(
-        request.url,
-        request.limit,
-        request.cursor,
-      );
+      const searchResult =
+        await this.leafletSearchService.searchLeafletDocsForUrl(
+          request.url,
+          request.limit,
+          request.cursor,
+        );
 
       if (searchResult.isErr()) {
         return err(searchResult.error);
