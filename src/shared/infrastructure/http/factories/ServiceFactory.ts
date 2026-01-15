@@ -76,7 +76,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
-  leafletSearchService: LeafletSearchService;
+  leafletSearchService: CachedLeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
@@ -356,8 +356,29 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
-    // Create LeafletSearchService
-    const leafletSearchService = new LeafletSearchService(metadataService);
+    // Create LeafletSearchService with caching
+    const baseLeafletSearchService = new LeafletSearchService(metadataService);
+    
+    let leafletSearchService: CachedLeafletSearchService;
+    
+    if (useMockPersistence) {
+      // For mock persistence, we still need Redis for caching, so create a minimal wrapper
+      // that just passes through to the base service without caching
+      leafletSearchService = {
+        searchLeafletDocsForUrl: baseLeafletSearchService.searchLeafletDocsForUrl.bind(baseLeafletSearchService),
+        invalidateUrl: async () => {},
+        clearAllCache: async () => {},
+        warmCache: async () => {},
+      } as CachedLeafletSearchService;
+    } else {
+      // Create Redis connection for caching
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+      leafletSearchService = new CachedLeafletSearchService(
+        baseLeafletSearchService,
+        redis,
+      );
+    }
 
     // Create publishers needed for shared services
     const useFakePublishers = configService.shouldUseFakePublishers();
@@ -423,3 +444,4 @@ export class ServiceFactory {
   }
 }
 import { LeafletSearchService } from '../../../../modules/search/domain/services/LeafletSearchService';
+import { CachedLeafletSearchService } from '../../../../modules/search/infrastructure/CachedLeafletSearchService';
