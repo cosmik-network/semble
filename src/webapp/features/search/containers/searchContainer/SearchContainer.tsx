@@ -13,6 +13,7 @@ import { BiSearch } from 'react-icons/bi';
 import SearchResultsContainer from '../searchResultsContainer/SearchResultsContainer';
 import ProfileSearchResultsContainer from '../profileSearchResultsContainer/ProfileSearchResultsContainer';
 import UserFilterCombobox from '../../components/userFilterCombobox/UserFilterCombobox';
+import ProfileQuickSelect from '../../components/profileQuickSelect/ProfileQuickSelect';
 import type { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
 
 type SearchType = 'cards' | 'profiles';
@@ -81,6 +82,7 @@ export default function SearchContainer() {
               onUserSelect={setSelectedUser}
             />
           )}
+          {searchType === 'profiles' && <ProfileQuickSelect />}
           <Button onClick={handleSearch} disabled={!query.trim()}>
             Search
           </Button>
