@@ -33,7 +33,7 @@ export default function CardsFilters() {
 
   const onSortChange = (next: CardSortField) => {
     startTransition(() => {
-      setOptimisticSort(next); // ✅ instant UI
+      setOptimisticSort(next);
 
       const params = new URLSearchParams(searchParams.toString());
       params.set('sort', next);
@@ -42,13 +42,13 @@ export default function CardsFilters() {
     });
   };
 
-  const [opened, setOpened] = useState(false);
+  const [popoverOpened, setPopoverOpened] = useState(false);
 
   const handleTypeChange = (type?: UrlType) => {
     const nextType = type ?? null;
 
     startTransition(() => {
-      setOptimisticType(nextType); // ✅ instant UI
+      setOptimisticType(nextType);
 
       const params = new URLSearchParams(searchParams.toString());
       if (nextType) {
@@ -60,7 +60,7 @@ export default function CardsFilters() {
       router.replace(`?${params.toString()}`, { scroll: false });
     });
 
-    setOpened(false);
+    setPopoverOpened(false);
   };
   const SelectedIcon =
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
@@ -87,13 +87,17 @@ export default function CardsFilters() {
       <Group gap="xs">
         {/* type filter */}
         {featureFlags?.urlTypeFilter && (
-          <Popover opened={opened} onChange={setOpened} shadow="sm">
+          <Popover
+            opened={popoverOpened}
+            onChange={setPopoverOpened}
+            shadow="sm"
+          >
             <Popover.Target>
               <Button
                 variant="light"
                 color="gray"
                 leftSection={<SelectedIcon />}
-                onClick={() => setOpened((o) => !o)}
+                onClick={() => setPopoverOpened((o) => !o)}
               >
                 {optimisticType ? upperFirst(optimisticType) : 'All Types'}
               </Button>
