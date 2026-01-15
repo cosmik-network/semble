@@ -18,6 +18,7 @@ import { err, ok, Result } from '../../../../../shared/core/Result';
 export interface FeedActivityDTO {
   id: string;
   actorId: string;
+  cardId?: string;
   type: string;
   metadata: ActivityMetadata;
   urlType?: string;
@@ -81,9 +82,18 @@ export class FeedActivityMapper {
   }
 
   public static toPersistence(activity: FeedActivity): FeedActivityDTO {
+    let cardId: string | undefined;
+    
+    // Extract cardId for CARD_COLLECTED activities
+    if (activity.cardCollected) {
+      const metadata = activity.metadata as CardCollectedMetadata;
+      cardId = metadata.cardId;
+    }
+
     return {
       id: activity.activityId.getStringValue(),
       actorId: activity.actorId.value,
+      cardId,
       type: activity.type.value,
       metadata: activity.metadata,
       urlType: activity.urlType,

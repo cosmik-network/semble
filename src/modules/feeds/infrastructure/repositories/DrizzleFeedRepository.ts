@@ -1,4 +1,4 @@
-import { eq, desc, lt, count, sql, and } from 'drizzle-orm';
+import { eq, desc, lt, count, sql, and, gte } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   IFeedRepository,
@@ -14,6 +14,9 @@ import {
 } from './mappers/FeedActivityMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
+import { CardId } from '../../../cards/domain/value-objects/CardId';
+import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 
 export class DrizzleFeedRepository implements IFeedRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -25,6 +28,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
       await this.db.insert(feedActivities).values({
         id: dto.id,
         actorId: dto.actorId,
+        cardId: dto.cardId,
         type: dto.type,
         metadata: dto.metadata,
         urlType: dto.urlType,
@@ -118,25 +122,6 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
       const totalCount = totalCountResult[0]?.count || 0;
 
-      // Map to domain objects
-      const activities: FeedActivity[] = [];
-      for (const activityData of activitiesResult) {
-        const dto: FeedActivityDTO = {
-          id: activityData.id,
-          actorId: activityData.actorId,
-          type: activityData.type,
-          metadata: activityData.metadata as any,
-          urlType: activityData.urlType || undefined,
-          createdAt: activityData.createdAt,
-        };
-
-        const domainResult = FeedActivityMapper.toDomain(dto);
-        if (domainResult.isErr()) {
-          return err(domainResult.error);
-        }
-
-        activities.push(domainResult.value);
-      }
 
       // Determine if there are more activities
       const hasMore = offset + activities.length < totalCount;
@@ -258,6 +243,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         const dto: FeedActivityDTO = {
           id: activityData.id,
           actorId: activityData.actorId,
+          cardId: activityData.cardId || undefined,
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
@@ -309,6 +295,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const dto: FeedActivityDTO = {
         id: activityData.id,
         actorId: activityData.actorId,
+        cardId: activityData.cardId || undefined,
         type: activityData.type,
         metadata: activityData.metadata as any,
         urlType: activityData.urlType || undefined,
