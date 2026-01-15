@@ -168,7 +168,7 @@ export interface SemanticSearchUrlsParams extends PaginatedSortedParams {
   query: string;
   threshold?: number;
   urlType?: string;
-  userId?: string;
+  identifier?: string; // Can be DID or handle
 }
 
 export interface SearchBskyPostsForUrlParams {
