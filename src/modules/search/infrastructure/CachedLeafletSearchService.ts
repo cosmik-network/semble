@@ -1,5 +1,8 @@
 import Redis from 'ioredis';
-import { ILeafletSearchService, LeafletDocumentResult } from '../domain/services/ILeafletSearchService';
+import {
+  ILeafletSearchService,
+  LeafletDocumentResult,
+} from '../domain/services/ILeafletSearchService';
 import { Result, ok } from '../../../shared/core/Result';
 import { AppError } from '../../../shared/core/AppError';
 
@@ -74,14 +77,18 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
     }
   }
 
-  private getCacheKey(targetUrl: string, limit?: number, cursor?: string): string {
+  private getCacheKey(
+    targetUrl: string,
+    limit?: number,
+    cursor?: string,
+  ): string {
     // Create a deterministic cache key that includes all parameters
     const params = [
       targetUrl,
       limit?.toString() || 'no_limit',
       cursor || 'no_cursor',
     ].join('|');
-    
+
     return `${this.CACHE_KEY_PREFIX}${params}`;
   }
 
@@ -94,7 +101,7 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       // we'll use a pattern to delete all keys for this URL
       const pattern = `${this.CACHE_KEY_PREFIX}${targetUrl}|*`;
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
@@ -113,7 +120,7 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
     try {
       const pattern = `${this.CACHE_KEY_PREFIX}*`;
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
@@ -125,7 +132,11 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
   /**
    * Warm the cache by pre-fetching results for a URL
    */
-  async warmCache(targetUrl: string, limit?: number, cursor?: string): Promise<void> {
+  async warmCache(
+    targetUrl: string,
+    limit?: number,
+    cursor?: string,
+  ): Promise<void> {
     await this.searchLeafletDocsForUrl(targetUrl, limit, cursor);
   }
 }

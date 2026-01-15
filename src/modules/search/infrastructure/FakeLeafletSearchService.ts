@@ -1,11 +1,15 @@
 import { Result, ok } from '../../../shared/core/Result';
 import { AppError } from '../../../shared/core/AppError';
-import { ILeafletSearchService, LeafletDocumentResult } from '../domain/services/ILeafletSearchService';
+import {
+  ILeafletSearchService,
+  LeafletDocumentResult,
+} from '../domain/services/ILeafletSearchService';
 import { UrlMetadata } from '../../cards/domain/value-objects/UrlMetadata';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
 export class FakeLeafletSearchService implements ILeafletSearchService {
-  private readonly mockResults: Map<string, LeafletDocumentResult[]> = new Map();
+  private readonly mockResults: Map<string, LeafletDocumentResult[]> =
+    new Map();
 
   constructor() {
     // Pre-populate with some mock data
@@ -18,13 +22,14 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     cursor?: string,
   ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
     // Simulate some processing time
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const results = this.mockResults.get(targetUrl) || this.generateMockResults(targetUrl);
-    
+    const results =
+      this.mockResults.get(targetUrl) || this.generateMockResults(targetUrl);
+
     // Apply limit if specified
     const limitedResults = limit ? results.slice(0, limit) : results;
-    
+
     return ok(limitedResults);
   }
 
@@ -46,21 +51,27 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
         url: 'https://academic.leaflet.com/document-456',
       },
     ]);
-    
+
     this.mockResults.set('https://example.com', exampleResults);
 
     // Mock results for science.org URL (commonly used in tests)
-    const scienceResults = this.createMockResults('https://www.science.org/doi/10.1126/science.adt7790', [
-      {
-        title: 'Commentary on Climate Research',
-        author: 'Dr. Climate Researcher',
-        description: 'Analysis of the latest climate science findings',
-        siteName: 'Climate Leaflet',
-        url: 'https://climate.leaflet.com/commentary-789',
-      },
-    ]);
-    
-    this.mockResults.set('https://www.science.org/doi/10.1126/science.adt7790', scienceResults);
+    const scienceResults = this.createMockResults(
+      'https://www.science.org/doi/10.1126/science.adt7790',
+      [
+        {
+          title: 'Commentary on Climate Research',
+          author: 'Dr. Climate Researcher',
+          description: 'Analysis of the latest climate science findings',
+          siteName: 'Climate Leaflet',
+          url: 'https://climate.leaflet.com/commentary-789',
+        },
+      ],
+    );
+
+    this.mockResults.set(
+      'https://www.science.org/doi/10.1126/science.adt7790',
+      scienceResults,
+    );
   }
 
   private generateMockResults(targetUrl: string): LeafletDocumentResult[] {
@@ -83,14 +94,17 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     return results;
   }
 
-  private createMockResults(targetUrl: string, mockData: Array<{
-    title: string;
-    author: string;
-    description: string;
-    siteName: string;
-    url: string;
-  }>): LeafletDocumentResult[] {
-    return mockData.map(data => {
+  private createMockResults(
+    targetUrl: string,
+    mockData: Array<{
+      title: string;
+      author: string;
+      description: string;
+      siteName: string;
+      url: string;
+    }>,
+  ): LeafletDocumentResult[] {
+    return mockData.map((data) => {
       const metadataResult = UrlMetadata.create({
         url: data.url,
         title: data.title,
@@ -98,12 +112,16 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
         description: data.description,
         siteName: data.siteName,
         type: UrlType.ARTICLE,
-        publishedDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000), // Random date within last year
+        publishedDate: new Date(
+          Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
+        ), // Random date within last year
         retrievedAt: new Date(),
       });
 
       if (metadataResult.isErr()) {
-        throw new Error(`Failed to create mock metadata: ${metadataResult.error.message}`);
+        throw new Error(
+          `Failed to create mock metadata: ${metadataResult.error.message}`,
+        );
       }
 
       return {

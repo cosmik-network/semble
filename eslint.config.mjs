@@ -78,6 +78,7 @@ export default [
         setImmediate: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        URL: 'readonly',
       },
     },
     rules: {
