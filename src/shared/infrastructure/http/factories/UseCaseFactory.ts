@@ -294,6 +294,7 @@ export class UseCaseFactory {
       ),
       searchLeafletDocsForUrlUseCase: new SearchLeafletDocsForUrlUseCase(
         services.leafletSearchService,
+        repositories.cardQueryRepository,
       ),
       // Notification use cases
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(

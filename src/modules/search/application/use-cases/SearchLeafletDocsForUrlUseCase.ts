@@ -6,10 +6,16 @@ import {
   SearchLeafletDocsForUrlResponse,
 } from '@semble/types';
 import { ILeafletSearchService } from '../../domain/services/ILeafletSearchService';
+import { ICardQueryRepository } from 'src/modules/cards/domain/ICardQueryRepository';
+import {
+  CardSortField,
+  SortOrder,
+} from 'src/modules/cards/domain/ICardQueryRepository';
 
 export interface SearchLeafletDocsForUrlRequest
   extends SearchLeafletDocsForUrlParams {
-  userDid?: string; // Optional - for future authenticated features
+  userDid?: string; // Optional - for authenticated features
+  callingUserId?: string; // Optional - to check if user has URLs in library
 }
 
 export type SearchLeafletDocsForUrlResult = Result<
@@ -24,7 +30,10 @@ export class SearchLeafletDocsForUrlUseCase
       Promise<SearchLeafletDocsForUrlResult>
     >
 {
-  constructor(private leafletSearchService: ILeafletSearchService) {}
+  constructor(
+    private leafletSearchService: ILeafletSearchService,
+    private cardQueryRepository: ICardQueryRepository,
+  ) {}
 
   async execute(
     request: SearchLeafletDocsForUrlRequest,
@@ -49,22 +58,45 @@ export class SearchLeafletDocsForUrlUseCase
 
       const { documents, cursor, total } = searchResult.value;
 
-      // Transform to UrlView format to match other search endpoints
-      const urls = documents.map((doc) => ({
-        url: doc.url,
-        metadata: {
-          url: doc.metadata.url,
-          title: doc.metadata.title,
-          description: doc.metadata.description,
-          author: doc.metadata.author,
-          publishedDate: doc.metadata.publishedDate?.toISOString(),
-          siteName: doc.metadata.siteName,
-          imageUrl: doc.metadata.imageUrl,
-          type: doc.metadata.type?.toString(),
-        },
-        urlLibraryCount: 0, // We don't have this data from Leaflet
-        urlInLibrary: false, // We don't have this data without user context
-      }));
+      // Enrich URLs with library information
+      const urls = await Promise.all(
+        documents.map(async (doc) => {
+          // Get library information for this URL
+          const librariesResult =
+            await this.cardQueryRepository.getLibrariesForUrl(doc.url, {
+              page: 1,
+              limit: 1000, // Get all libraries to count them
+              sortBy: CardSortField.CREATED_AT,
+              sortOrder: SortOrder.DESC,
+            });
+
+          const urlLibraryCount = librariesResult.totalCount;
+
+          // Check if calling user has this URL in their library
+          // Default to false if no calling user (unauthenticated request)
+          const urlInLibrary = request.callingUserId
+            ? librariesResult.items.some(
+                (library) => library.userId === request.callingUserId,
+              )
+            : false;
+
+          return {
+            url: doc.url,
+            metadata: {
+              url: doc.metadata.url,
+              title: doc.metadata.title,
+              description: doc.metadata.description,
+              author: doc.metadata.author,
+              publishedDate: doc.metadata.publishedDate?.toISOString(),
+              siteName: doc.metadata.siteName,
+              imageUrl: doc.metadata.imageUrl,
+              type: doc.metadata.type?.toString(),
+            },
+            urlLibraryCount,
+            urlInLibrary,
+          };
+        }),
+      );
 
       return ok({
         urls,
