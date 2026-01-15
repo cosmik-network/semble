@@ -129,6 +129,7 @@ export const createExpressApp = (
     controllers.searchBskyPostsForUrlController,
     controllers.semanticSearchUrlsController,
     controllers.searchAtProtoAccountsController,
+    controllers.searchLeafletDocsForUrlController,
   );
 
   const notificationRouter = createNotificationRoutes(

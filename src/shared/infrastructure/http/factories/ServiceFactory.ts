@@ -76,6 +76,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  leafletSearchService: LeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
@@ -355,6 +356,12 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
+    // Create LeafletSearchService
+    const leafletSearchService = new LeafletSearchService(
+      atProtoAgentService,
+      metadataService,
+    );
+
     // Create publishers needed for shared services
     const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
@@ -410,6 +417,7 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      leafletSearchService,
       cardLibraryService,
       cardCollectionService,
       eventPublisher,

@@ -70,7 +70,7 @@ export class SearchLeafletDocsForUrlUseCase
 
       return ok({
         urls,
-        cursor: null, // Constellation API doesn't seem to use cursors in the example
+        cursor: undefined, // Constellation API doesn't seem to use cursors in the example
         total: documents.length,
       });
     } catch (error: any) {

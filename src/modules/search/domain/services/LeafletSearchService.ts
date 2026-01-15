@@ -153,8 +153,8 @@ export class LeafletSearchService {
       const documentUrl = `https://${publication.base_path}/${record.rkey}`;
 
       // Step 4: Fetch metadata
-      const metadataResult = await this.metadataService.getUrlMetadata(
-        documentUrl,
+      const metadataResult = await this.metadataService.fetchMetadata(
+        new URL(documentUrl),
       );
       if (metadataResult.isErr()) {
         // If metadata fetch fails, create basic metadata from document
@@ -191,11 +191,10 @@ export class LeafletSearchService {
     rkey: string,
   ): Promise<Result<LeafletDocumentRecord, AppError.UnexpectedError>> {
     try {
-      const params = new URLSearchParams({
-        repo: did,
-        collection: 'pub.leaflet.document',
-        rkey: rkey,
-      });
+      const params = new URLSearchParams();
+      params.set('repo', did);
+      params.set('collection', 'pub.leaflet.document');
+      params.set('rkey', rkey);
 
       const response = await fetch(
         `${this.ATPROTO_XRPC_BASE_URL}/com.atproto.repo.getRecord?${params}`,
@@ -230,11 +229,10 @@ export class LeafletSearchService {
 
       const [did, collection, rkey] = uriParts;
 
-      const params = new URLSearchParams({
-        repo: did,
-        collection: collection,
-        rkey: rkey,
-      });
+      const params = new URLSearchParams();
+      params.set('repo', did);
+      params.set('collection', collection);
+      params.set('rkey', rkey);
 
       const response = await fetch(
         `${this.ATPROTO_XRPC_BASE_URL}/com.atproto.repo.getRecord?${params}`,
