@@ -25,7 +25,7 @@ export const semanticSearchUrls = cache(
       limit: params?.limit,
       threshold: params?.threshold,
       urlType: params?.urlType,
-      userId: params?.userId,
+      identifier: params?.userId,
     });
 
     return response;
