@@ -17,8 +17,6 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     limit?: number,
     cursor?: string,
   ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
-    console.log(`🔍 [FAKE] Searching for leaflet docs linking to: ${targetUrl}`);
-    
     // Simulate some processing time
     await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -26,8 +24,6 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     
     // Apply limit if specified
     const limitedResults = limit ? results.slice(0, limit) : results;
-    
-    console.log(`✅ [FAKE] Found ${limitedResults.length} mock results`);
     
     return ok(limitedResults);
   }

@@ -18,7 +18,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
     cursor?: string,
   ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
     const cacheKey = this.getCacheKey(targetUrl, limit, cursor);
-    console.log(`🔍 Checking cache for key: ${cacheKey}`);
 
     try {
       // Try cache first
@@ -26,7 +25,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       if (cached) {
         try {
           const results = JSON.parse(cached) as LeafletDocumentResult[];
-          console.log(`✅ Cache hit! Found ${results.length} cached results`);
           return ok(results);
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
@@ -37,8 +35,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
         }
       }
 
-      console.log(`❌ Cache miss, fetching fresh results`);
-      
       // Cache miss or parse error - fetch from underlying service
       const result = await this.leafletSearchService.searchLeafletDocsForUrl(
         targetUrl,
@@ -54,7 +50,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
             this.CACHE_TTL_SECONDS,
             JSON.stringify(result.value),
           );
-          console.log(`💾 Cached ${result.value.length} results for 24 hours`);
         } catch (cacheError) {
           // Log cache error but don't fail the request
           console.warn(
@@ -102,7 +97,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       
       if (keys.length > 0) {
         await this.redis.del(...keys);
-        console.log(`🗑️  Invalidated ${keys.length} cache entries for ${targetUrl}`);
       }
     } catch (error) {
       console.warn(
@@ -122,7 +116,6 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       
       if (keys.length > 0) {
         await this.redis.del(...keys);
-        console.log(`🗑️  Cleared ${keys.length} leaflet search cache entries`);
       }
     } catch (error) {
       console.warn('Failed to clear leaflet search cache:', error);
