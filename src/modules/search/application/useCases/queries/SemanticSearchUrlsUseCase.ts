@@ -7,10 +7,12 @@ import { SemanticSearchUrlsParams } from '@semble/types/api/requests';
 import { UrlView } from '@semble/types/api/responses';
 import { Pagination } from '@semble/types/api/common';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
+import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 
 export interface SemanticSearchUrlsQuery extends SemanticSearchUrlsParams {
   callingUserId?: string;
-  filterByUserId?: string;
+  filterByIdentifier?: string;
 }
 
 export interface SemanticSearchUrlsResult {
@@ -34,7 +36,10 @@ export class SemanticSearchUrlsUseCase
       >
     >
 {
-  constructor(private searchService: SearchService) {}
+  constructor(
+    private searchService: SearchService,
+    private identityResolutionService: IIdentityResolutionService,
+  ) {}
 
   async execute(
     query: SemanticSearchUrlsQuery,
@@ -63,8 +68,34 @@ export class SemanticSearchUrlsUseCase
         }
       }
 
+      // Resolve identifier to DID if provided
+      let filterByUserId: string | undefined;
+      if (query.filterByIdentifier) {
+        const identifierResult = DIDOrHandle.create(query.filterByIdentifier);
+        if (identifierResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid identifier: ${identifierResult.error.message}`,
+            ),
+          );
+        }
+
+        const didResult = await this.identityResolutionService.resolveToDID(
+          identifierResult.value,
+        );
+        if (didResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Failed to resolve identifier to DID: ${didResult.error.message}`,
+            ),
+          );
+        }
+
+        filterByUserId = didResult.value.value;
+      }
+
       // Get more results if filtering by user to account for filtering
-      const vectorDbLimit = query.filterByUserId ? 100 : 50;
+      const vectorDbLimit = filterByUserId ? 100 : 50;
       const searchResult = await this.searchService.semanticSearchUrls(
         query.query.trim(),
         {
@@ -72,7 +103,7 @@ export class SemanticSearchUrlsUseCase
           threshold,
           urlType,
           callingUserId: query.callingUserId,
-          filterByUserId: query.filterByUserId,
+          filterByUserId,
         },
       );
 

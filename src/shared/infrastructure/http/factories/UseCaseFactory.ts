@@ -282,6 +282,7 @@ export class UseCaseFactory {
       ),
       semanticSearchUrlsUseCase: new SemanticSearchUrlsUseCase(
         services.searchService,
+        services.identityResolutionService,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
         services.atProtoAgentService,
