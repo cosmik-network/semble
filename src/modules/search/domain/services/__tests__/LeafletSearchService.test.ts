@@ -33,18 +33,12 @@ describe('LeafletSearchService', () => {
 
   it('should search for leaflet documents linking to a URL', async () => {
     // Change this URL to test different targets
-    const targetUrl = 'https://example.com';
-    
-    // Set a breakpoint here to inspect the service and parameters
-    debugger;
-    
-    const result = await service.searchLeafletDocsForUrl(targetUrl, 10);
-    
-    // Set another breakpoint here to inspect the results
-    debugger;
-    
+    const targetUrl = 'https://semble.so';
+
+    const result = await service.searchLeafletDocsForUrl(targetUrl, 16);
+
     console.log('Search result:', result);
-    
+
     if (result.isOk()) {
       console.log('Found documents:', result.value);
       result.value.forEach((doc, index) => {
@@ -66,15 +60,11 @@ describe('LeafletSearchService', () => {
   it('should handle empty results gracefully', async () => {
     // Test with a URL that likely won't have any backlinks
     const targetUrl = 'https://nonexistent-domain-12345.com/test';
-    
-    debugger;
-    
+
     const result = await service.searchLeafletDocsForUrl(targetUrl, 5);
-    
-    debugger;
-    
+
     console.log('Empty search result:', result);
-    
+
     if (result.isOk()) {
       expect(Array.isArray(result.value)).toBe(true);
       console.log('Number of results:', result.value.length);

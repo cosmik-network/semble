@@ -3,7 +3,7 @@ import { AppError } from '../../../../shared/core/AppError';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { URL } from '../../../cards/domain/value-objects/URL';
-const atpi = require('atpi');
+import atpi from 'atpi';
 
 export interface LeafletLinkingRecord {
   did: string;
@@ -195,7 +195,7 @@ export class LeafletSearchService {
     try {
       const atUri = `at://${did}/pub.leaflet.document/${rkey}`;
       const data = await atpi.resolve(atUri);
-      return ok(data as LeafletDocumentRecord);
+      return ok(data.value as LeafletDocumentRecord);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }
@@ -206,7 +206,7 @@ export class LeafletSearchService {
   ): Promise<Result<LeafletPublicationRecord, AppError.UnexpectedError>> {
     try {
       const data = await atpi.resolve(atUri);
-      return ok(data as LeafletPublicationRecord);
+      return ok(data.value as LeafletPublicationRecord);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }
