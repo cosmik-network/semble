@@ -319,6 +319,12 @@ export interface SearchAtProtoAccountsResponse {
   actors: ProfileView[];
 }
 
+export interface SearchLeafletDocsForUrlResponse {
+  urls: UrlView[];
+  cursor?: string;
+  total: number;
+}
+
 // Notification types
 export enum NotificationType {
   USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',

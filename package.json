@@ -73,6 +73,7 @@
     "@atproto/xrpc-server": "^0.7.15",
     "@semble/types": "*",
     "@upstash/vector": "^1.2.2",
+    "atpi": "^1.0.7",
     "bullmq": "^5.56.8",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

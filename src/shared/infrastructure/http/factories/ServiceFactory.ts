@@ -61,6 +61,10 @@ import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDataba
 import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
 import { UpstashVectorDatabase } from '../../../../modules/search/infrastructure/UpstashVectorDatabase';
 import { NotificationService } from '../../../../modules/notifications/domain/services/NotificationService';
+import { FakeLeafletSearchService } from 'src/modules/search/infrastructure/FakeLeafletSearchService';
+import { ILeafletSearchService } from 'src/modules/search/domain/services/ILeafletSearchService';
+import { ConstellationLeafletSearchService } from 'src/modules/search/domain/services/ConstellationLeafletSearchService';
+import { CachedLeafletSearchService } from 'src/modules/search/infrastructure/CachedLeafletSearchService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -76,6 +80,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  leafletSearchService: ILeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
@@ -355,6 +360,25 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
+    // Create LeafletSearchService with caching
+    let leafletSearchService: ILeafletSearchService;
+
+    if (useMockPersistence) {
+      // Use fake implementation for mock persistence
+      leafletSearchService = new FakeLeafletSearchService();
+    } else {
+      // Use real Constellation service with caching
+      const baseLeafletSearchService = new ConstellationLeafletSearchService(
+        metadataService,
+      );
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+      leafletSearchService = new CachedLeafletSearchService(
+        baseLeafletSearchService,
+        redis,
+      );
+    }
+
     // Create publishers needed for shared services
     const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
@@ -410,6 +434,7 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      leafletSearchService,
       cardLibraryService,
       cardCollectionService,
       eventPublisher,
