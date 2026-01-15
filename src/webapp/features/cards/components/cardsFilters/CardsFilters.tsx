@@ -65,6 +65,9 @@ export default function CardsFilters() {
   const SelectedIcon =
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
+  const toggleCardView = () =>
+    updateSetting('cardView', settings.cardView === 'grid' ? 'list' : 'grid');
+
   return (
     <Group gap="xs" justify="space-between">
       {/* sort */}
@@ -135,14 +138,9 @@ export default function CardsFilters() {
           leftSection={
             settings.cardView === 'grid' ? <BsFillGridFill /> : <BsListTask />
           }
-          onClick={() =>
-            updateSetting(
-              'cardView',
-              settings.cardView === 'grid' ? 'list' : 'grid',
-            )
-          }
+          onClick={toggleCardView}
         >
-          {settings.cardView === 'grid' ? 'Grid' : 'List'}
+          {upperFirst(settings.cardView)}
         </Button>
       </Group>
     </Group>
