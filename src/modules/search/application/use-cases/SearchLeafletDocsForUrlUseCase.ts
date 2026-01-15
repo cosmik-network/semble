@@ -69,8 +69,8 @@ export class SearchLeafletDocsForUrlUseCase
 
       return ok({
         urls,
-        cursor: backlinks.cursor, // Pass through the cursor from Constellation API
-        total: backlinks.total, // Use the total from Constellation API
+        cursor: undefined, // TODO: Need to modify ILeafletSearchService to return cursor
+        total: documents.length, // Use the number of documents returned
       });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
