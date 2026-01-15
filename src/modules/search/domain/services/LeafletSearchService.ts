@@ -3,6 +3,7 @@ import { AppError } from '../../../../shared/core/AppError';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { URL } from '../../../cards/domain/value-objects/URL';
+const atpi = require('atpi');
 
 export interface LeafletLinkingRecord {
   did: string;
@@ -42,7 +43,6 @@ export interface LeafletDocumentResult {
 export class LeafletSearchService {
   private readonly CONSTELLATION_BASE_URL =
     'https://constellation.microcosm.blue';
-  private readonly ATPROTO_XRPC_BASE_URL = 'https://bsky.social/xrpc';
 
   constructor(private metadataService: IMetadataService) {}
 
@@ -193,25 +193,9 @@ export class LeafletSearchService {
     rkey: string,
   ): Promise<Result<LeafletDocumentRecord, AppError.UnexpectedError>> {
     try {
-      const params = new URLSearchParams();
-      params.set('repo', did);
-      params.set('collection', 'pub.leaflet.document');
-      params.set('rkey', rkey);
-
-      const response = await fetch(
-        `${this.ATPROTO_XRPC_BASE_URL}/com.atproto.repo.getRecord?${params}`,
-      );
-
-      if (!response.ok) {
-        return err(
-          new AppError.UnexpectedError(
-            new Error(`ATProto API error: ${response.statusText}`),
-          ),
-        );
-      }
-
-      const data = await response.json();
-      return ok(data.value as LeafletDocumentRecord);
+      const atUri = `at://${did}/pub.leaflet.document/${rkey}`;
+      const data = await atpi.resolve(atUri);
+      return ok(data as LeafletDocumentRecord);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }
@@ -221,44 +205,8 @@ export class LeafletSearchService {
     atUri: string,
   ): Promise<Result<LeafletPublicationRecord, AppError.UnexpectedError>> {
     try {
-      // Parse AT URI: at://did:plc:6z5botgrc5vekq7j26xnvawq/pub.leaflet.publication/3ly4c4cmyn22t
-      const uriParts = atUri.replace('at://', '').split('/');
-      if (uriParts.length !== 3) {
-        return err(
-          new AppError.UnexpectedError(new Error(`Invalid AT URI: ${atUri}`)),
-        );
-      }
-
-      const [did, collection, rkey] = uriParts;
-
-      // Validate that all parts exist
-      if (!did || !collection || !rkey) {
-        return err(
-          new AppError.UnexpectedError(
-            new Error(`Invalid AT URI parts: ${atUri}`),
-          ),
-        );
-      }
-
-      const params = new URLSearchParams();
-      params.set('repo', did);
-      params.set('collection', collection);
-      params.set('rkey', rkey);
-
-      const response = await fetch(
-        `${this.ATPROTO_XRPC_BASE_URL}/com.atproto.repo.getRecord?${params}`,
-      );
-
-      if (!response.ok) {
-        return err(
-          new AppError.UnexpectedError(
-            new Error(`ATProto API error: ${response.statusText}`),
-          ),
-        );
-      }
-
-      const data = await response.json();
-      return ok(data.value as LeafletPublicationRecord);
+      const data = await atpi.resolve(atUri);
+      return ok(data as LeafletPublicationRecord);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }
