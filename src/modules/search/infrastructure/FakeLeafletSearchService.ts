@@ -3,6 +3,7 @@ import { AppError } from '../../../shared/core/AppError';
 import {
   ILeafletSearchService,
   LeafletDocumentResult,
+  LeafletSearchResult,
 } from '../domain/services/ILeafletSearchService';
 import { UrlMetadata } from '../../cards/domain/value-objects/UrlMetadata';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
@@ -20,7 +21,7 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     targetUrl: string,
     limit?: number,
     cursor?: string,
-  ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
+  ): Promise<Result<LeafletSearchResult, AppError.UnexpectedError>> {
     // Simulate some processing time
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -30,7 +31,14 @@ export class FakeLeafletSearchService implements ILeafletSearchService {
     // Apply limit if specified
     const limitedResults = limit ? results.slice(0, limit) : results;
 
-    return ok(limitedResults);
+    // Simulate cursor for pagination (fake implementation)
+    const nextCursor = limit && results.length > limit ? 'fake-cursor-next' : undefined;
+
+    return ok({
+      documents: limitedResults,
+      cursor: nextCursor,
+      total: results.length,
+    });
   }
 
   private setupMockData(): void {

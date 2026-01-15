@@ -6,6 +6,7 @@ import { URL } from '../../../cards/domain/value-objects/URL';
 import {
   ILeafletSearchService,
   LeafletDocumentResult,
+  LeafletSearchResult,
 } from './ILeafletSearchService';
 const atpi = require('atpi');
 
@@ -51,7 +52,7 @@ export class ConstellationLeafletSearchService
     targetUrl: string,
     limit?: number,
     cursor?: string,
-  ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>> {
+  ): Promise<Result<LeafletSearchResult, AppError.UnexpectedError>> {
     try {
       // Step 1: Get backlinks from Constellation
       const backlinksResult = await this.getBacklinksFromConstellation(
@@ -90,7 +91,11 @@ export class ConstellationLeafletSearchService
         }
       }
 
-      return ok(results);
+      return ok({
+        documents: results,
+        cursor: backlinks.cursor || undefined,
+        total: backlinks.total,
+      });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }

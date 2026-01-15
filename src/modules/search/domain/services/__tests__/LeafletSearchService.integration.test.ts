@@ -28,7 +28,7 @@ describe.skip('LeafletSearchService', () => {
 
     if (result.isOk()) {
       console.log('Found documents:', result.value);
-      result.value.forEach((doc, index) => {
+      result.value.documents.forEach((doc, index) => {
         console.log(`Document ${index + 1}:`, {
           url: doc.url,
           title: doc.metadata.title,
@@ -54,7 +54,7 @@ describe.skip('LeafletSearchService', () => {
 
     if (result.isOk()) {
       expect(Array.isArray(result.value)).toBe(true);
-      console.log('Number of results:', result.value.length);
+      console.log('Number of results:', result.value.documents.length);
     }
   });
 });

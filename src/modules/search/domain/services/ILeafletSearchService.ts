@@ -7,6 +7,12 @@ export interface LeafletDocumentResult {
   metadata: UrlMetadata;
 }
 
+export interface LeafletSearchResult {
+  documents: LeafletDocumentResult[];
+  cursor?: string;
+  total: number;
+}
+
 export interface ILeafletSearchService {
   /**
    * Search for Leaflet documents that link to a specific URL
@@ -15,5 +21,5 @@ export interface ILeafletSearchService {
     targetUrl: string,
     limit?: number,
     cursor?: string,
-  ): Promise<Result<LeafletDocumentResult[], AppError.UnexpectedError>>;
+  ): Promise<Result<LeafletSearchResult, AppError.UnexpectedError>>;
 }

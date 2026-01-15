@@ -47,7 +47,7 @@ export class SearchLeafletDocsForUrlUseCase
         return err(searchResult.error);
       }
 
-      const documents = searchResult.value;
+      const { documents, cursor, total } = searchResult.value;
 
       // Transform to UrlView format to match other search endpoints
       const urls = documents.map((doc) => ({
@@ -69,8 +69,8 @@ export class SearchLeafletDocsForUrlUseCase
 
       return ok({
         urls,
-        cursor: undefined, // TODO: Need to modify ILeafletSearchService to return cursor
-        total: documents.length, // Use the number of documents returned
+        cursor,
+        total,
       });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
