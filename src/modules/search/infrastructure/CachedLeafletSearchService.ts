@@ -1,11 +1,11 @@
 import Redis from 'ioredis';
 import {
   ILeafletSearchService,
-  LeafletDocumentResult,
   LeafletSearchResult,
 } from '../domain/services/ILeafletSearchService';
 import { Result, ok } from '../../../shared/core/Result';
 import { AppError } from '../../../shared/core/AppError';
+import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 
 export class CachedLeafletSearchService implements ILeafletSearchService {
   private readonly CACHE_TTL_SECONDS = 3600 * 24; // 24 hours
@@ -28,8 +28,17 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
         try {
-          const results = JSON.parse(cached) as LeafletSearchResult;
-          return ok(results);
+          const cachedData = JSON.parse(cached);
+          // Reconstruct UrlMetadata objects from cached data
+          const reconstructedResults: LeafletSearchResult = {
+            documents: cachedData.documents.map((doc: any) => ({
+              url: doc.url,
+              metadata: UrlMetadata.create(doc.metadata).unwrap(),
+            })),
+            cursor: cachedData.cursor,
+            total: cachedData.total,
+          };
+          return ok(reconstructedResults);
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
           console.warn(
@@ -47,12 +56,21 @@ export class CachedLeafletSearchService implements ILeafletSearchService {
       );
 
       if (result.isOk()) {
-        // Cache the successful result
+        // Cache the successful result - serialize metadata props for proper reconstruction
         try {
+          const cacheableResult = {
+            documents: result.value.documents.map((doc) => ({
+              url: doc.url,
+              metadata: doc.metadata.props, // Store the props for reconstruction
+            })),
+            cursor: result.value.cursor,
+            total: result.value.total,
+          };
+
           await this.redis.setex(
             cacheKey,
             this.CACHE_TTL_SECONDS,
-            JSON.stringify(result.value),
+            JSON.stringify(cacheableResult),
           );
         } catch (cacheError) {
           // Log cache error but don't fail the request

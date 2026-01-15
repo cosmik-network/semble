@@ -61,7 +61,6 @@ export class SearchLeafletDocsForUrlUseCase
           siteName: doc.metadata.siteName,
           imageUrl: doc.metadata.imageUrl,
           type: doc.metadata.type?.toString(),
-          retrievedAt: doc.metadata.retrievedAt?.toISOString(),
         },
         urlLibraryCount: 0, // We don't have this data from Leaflet
         urlInLibrary: false, // We don't have this data without user context
