@@ -4,13 +4,14 @@ import { useNavbarContext } from '@/providers/navbar';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { Anchor, Box, Button, Grid, Stack, Text } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
+import { useSearchParams } from 'next/navigation';
 
 interface Props {
   rkey: string;
@@ -19,17 +20,30 @@ interface Props {
   sortOrder?: SortOrder;
 }
 
+const sortOrderMap: Record<CardSortField, SortOrder> = {
+  [CardSortField.UPDATED_AT]: SortOrder.DESC,
+  [CardSortField.CREATED_AT]: SortOrder.ASC,
+  [CardSortField.LIBRARY_COUNT]: SortOrder.DESC,
+};
+
 export default function CollectionContainerContent(props: Props) {
   const { desktopOpened } = useNavbarContext();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { user } = useAuth();
 
+  const searchParams = useSearchParams();
+  const selectedUrlType = searchParams.get('type') as UrlType;
+
+  const sortBy =
+    (searchParams.get('sort') as CardSortField) ?? CardSortField.UPDATED_AT;
+
   const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useCollection({
       rkey: props.rkey,
       handle: props.handle,
-      sortBy: props.sortBy,
-      sortOrder: props.sortOrder,
+      sortBy: sortBy,
+      sortOrder: sortOrderMap[sortBy],
+      urlType: selectedUrlType,
     });
 
   const firstPage = data.pages[0];
@@ -76,25 +90,27 @@ export default function CollectionContainerContent(props: Props) {
       ) : (
         <Stack align="center" gap="xs">
           <Text fz="h3" fw={600} c="gray">
-            No cards
+            No {selectedUrlType} cards
           </Text>
-          {firstPage.author.handle == user?.handle && (
-            <Button
-              variant="light"
-              color="gray"
-              size="md"
-              rightSection={<FiPlus size={22} />}
-              onClick={() => setShowAddDrawer(true)}
-            >
-              Add your first card
-            </Button>
+          {!selectedUrlType && firstPage.author.handle == user?.handle && (
+            <Stack align="center" gap={'xs'}>
+              <Button
+                variant="light"
+                color="gray"
+                size="md"
+                rightSection={<FiPlus size={22} />}
+                onClick={() => setShowAddDrawer(true)}
+              >
+                Add your first card
+              </Button>
+              <Text ta={'center'} fw={500} c={'gray'}>
+                Need inspiration?{' '}
+                <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
+                  Explore cards from the community
+                </Anchor>
+              </Text>
+            </Stack>
           )}
-          <Text ta={'center'} fw={500} c={'gray'}>
-            Need inspiration?{' '}
-            <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
-              Explore cards from the community
-            </Anchor>
-          </Text>
         </Stack>
       )}
 
