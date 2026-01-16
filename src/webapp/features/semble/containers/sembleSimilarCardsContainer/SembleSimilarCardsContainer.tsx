@@ -52,7 +52,10 @@ export default function SembleSimilarCardsContainer(props: Props) {
         loadMore={fetchNextPage}
       >
         {allSimilarUrls.length === 0 ? (
-          <SembleEmptyTab message="No similar cards found" icon={BiLink} />
+          <SembleEmptyTab
+            message={`No similar  ${selectedUrlType} cards found`}
+            icon={BiLink}
+          />
         ) : (
           <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
             {allSimilarUrls.map((urlView) => (
