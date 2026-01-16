@@ -1,16 +1,23 @@
 'use client';
 
-import { AppShellAside, Grid, Stack, Text } from '@mantine/core';
+import { AppShellAside, Grid, Group, Stack, Text } from '@mantine/core';
 import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
 import SembleSimilarCardsContainerError from '../sembleSimilarCardsContainer/Error.SembleSimilarCardsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
+import { useSearchParams } from 'next/navigation';
+import { UrlType } from '@semble/types';
+import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
+import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
 
 interface Props {
   url: string;
 }
 
 export default function SembleAside(props: Props) {
+  const searchParams = useSearchParams();
+  const selectedUrlType = searchParams.get('type') as UrlType;
+
   const {
     data,
     error,
@@ -18,7 +25,7 @@ export default function SembleAside(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSembleSimilarCards({ url: props.url });
+  } = useSembleSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
@@ -39,11 +46,16 @@ export default function SembleAside(props: Props) {
     return (
       <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
         <Stack gap={'xs'}>
-          <Text fz={'xl'} fw={600}>
-            Similar cards
-          </Text>
+          <Group gap={'xs'} justify="space-between">
+            <Text fz={'xl'} fw={600}>
+              Similar cards
+            </Text>
+            <CardFilters>
+              <CardTypeFilter />
+            </CardFilters>
+          </Group>
           <Text c={'gray'} fw={600}>
-            No similar cards found
+            No similar {selectedUrlType} cards found
           </Text>
         </Stack>
       </AppShellAside>
@@ -53,9 +65,14 @@ export default function SembleAside(props: Props) {
   return (
     <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
       <Stack gap={'xs'}>
-        <Text fz={'xl'} fw={600}>
-          Similar cards
-        </Text>
+        <Group gap={'xs'} justify="space-between">
+          <Text fz={'xl'} fw={600}>
+            Similar cards
+          </Text>
+          <CardFilters>
+            <CardTypeFilter />
+          </CardFilters>
+        </Group>
         <InfiniteScroll
           dataLength={allSimilarUrls.length}
           hasMore={!!hasNextPage}
