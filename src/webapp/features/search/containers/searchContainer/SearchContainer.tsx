@@ -11,6 +11,7 @@ export default function SearchContainer() {
         <Stack align="center" maw={600} w={'100%'}>
           <Title order={2}>Let's find something great</Title>
           <SearchBar />
+
           <Group gap={'xs'}>
             <Button
               component={Link}
