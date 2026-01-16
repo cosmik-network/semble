@@ -19,7 +19,6 @@ import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
-import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import { FiPlus } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +27,7 @@ import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
 import CardSortSelect from '@/features/cards/components/cardFilters/CardSortSelect';
 import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
 import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
+import useGemCollectionSearch from '../../lib/queries/useGemCollectionSearch';
 
 interface Props {
   rkey: string;
@@ -45,7 +45,7 @@ export default function CollectionContainer(props: Props) {
   const firstPage = data.pages[0];
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { data: searchResults, isLoading: isLoadingSearchResults } =
-    useCollectionSearch({ query: '💎' });
+    useGemCollectionSearch();
 
   // Check if this is a gems collection and if user has their own gems collection
   const isGemsCollection =
