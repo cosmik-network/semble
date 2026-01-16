@@ -1,41 +1,59 @@
-import { Button, Center, Container, Group, Stack, Title } from '@mantine/core';
+'use client';
+
+import {
+  BackgroundImage,
+  Button,
+  Center,
+  Container,
+  Group,
+  Stack,
+  Title,
+  useMantineColorScheme,
+} from '@mantine/core';
 import SearchBar from '../../components/searchBar/SearchBar';
 import Link from 'next/link';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { BiCollection } from 'react-icons/bi';
+import BG from '@/assets/semble-bg.webp';
+import DarkBG from '@/assets/semble-bg-dark.png';
 
 export default function SearchContainer() {
-  return (
-    <Container p="xs" size="xl">
-      <Center h={'75svh'}>
-        <Stack align="center" maw={600} w={'100%'}>
-          <Title order={2}>Let's find something great</Title>
-          <SearchBar />
+  const { colorScheme } = useMantineColorScheme();
+  const bgSrc = colorScheme === 'dark' ? DarkBG.src : BG.src;
 
-          <Group gap={'xs'}>
-            <Button
-              component={Link}
-              href={'explore'}
-              variant="light"
-              color="blue"
-              leftSection={<MdOutlineEmojiNature size={18} />}
-            >
-              Explore
-            </Button>
-            <Button
-              component={Link}
-              href="/explore/gems-of-2025/collections"
-              size="sm"
-              variant="light"
-              color={'grape'}
-              leftSection={<BiCollection size={18} />}
-            >
-              Gem Collections
-            </Button>
-          </Group>
-        </Stack>
-      </Center>
-    </Container>
+  return (
+    <BackgroundImage src={bgSrc} h="75svh" top={0} left={0}>
+      <Container p="xs" size="xl">
+        <Center h={'75svh'}>
+          <Stack align="center" maw={600} w={'100%'}>
+            <Title order={2}>Let's find something great</Title>
+            <SearchBar />
+
+            <Group gap={'xs'}>
+              <Button
+                component={Link}
+                href={'explore'}
+                variant="light"
+                color="blue"
+                leftSection={<MdOutlineEmojiNature size={18} />}
+              >
+                Explore
+              </Button>
+              <Button
+                component={Link}
+                href="/explore/gems-of-2025/collections"
+                size="sm"
+                variant="light"
+                color={'grape'}
+                leftSection={<BiCollection size={18} />}
+              >
+                Gem Collections
+              </Button>
+            </Group>
+          </Stack>
+        </Center>
+      </Container>
+    </BackgroundImage>
   );
 }
 
