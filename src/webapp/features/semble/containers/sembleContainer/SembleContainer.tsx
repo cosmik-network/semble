@@ -23,12 +23,18 @@ export default function SembleContainer(props: Props) {
           {platform.type === SupportedPlatform.BLUESKY_POST ||
           platform.type === SupportedPlatform.BLACKSKY_POST ? (
             <Box maw={600} w={'100%'} mx={'auto'}>
-              <Suspense fallback={<BlueskySembleHeaderSkeleton />}>
+              <Suspense
+                fallback={<BlueskySembleHeaderSkeleton />}
+                key={props.url + 'bluesky header'}
+              >
                 <BlueskySembleHeader url={props.url} />
               </Suspense>
             </Box>
           ) : (
-            <Suspense fallback={<SembleHeaderSkeleton />}>
+            <Suspense
+              fallback={<SembleHeaderSkeleton />}
+              key={props.url + 'semble header'}
+            >
               <SembleHeader url={props.url} />
             </Suspense>
           )}
