@@ -105,6 +105,21 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(undefined);
   }
 
+  async findByCardAndUsers(
+    cardId: string,
+    recipientId: CuratorId,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(this.notifications.values()).filter(
+      (notification) =>
+        notification.metadata.cardId === cardId &&
+        notification.recipientUserId.equals(recipientId) &&
+        notification.actorUserId.equals(actorUserId),
+    );
+
+    return ok(matchingNotifications);
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     let markedCount = 0;
 

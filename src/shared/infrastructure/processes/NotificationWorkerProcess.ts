@@ -44,6 +44,7 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       useCases.createNotificationUseCase,
       services.sagaStateStore,
       repositories.cardRepository,
+      repositories.notificationRepository,
     );
 
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
@@ -53,7 +54,7 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       cardNotificationSaga,
     );
     const cardRemovedFromLibraryHandler = new CardRemovedFromLibraryEventHandler(
-      repositories.notificationRepository,
+      cardNotificationSaga,
     );
 
     await subscriber.subscribe(

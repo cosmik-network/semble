@@ -1,6 +1,7 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../../cards/domain/events/CardAddedToCollectionEvent';
+import { CardRemovedFromLibraryEvent } from '../../../cards/domain/events/CardRemovedFromLibraryEvent';
 import {
   CreateNotificationUseCase,
   CreateUserAddedYourCardNotificationDTO,
@@ -8,6 +9,8 @@ import {
 import { NotificationType } from '@semble/types';
 import { ISagaStateStore } from '../../../feeds/application/sagas/ISagaStateStore';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
+import { INotificationRepository } from '../../domain/INotificationRepository';
+import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 
 interface PendingCardNotification {
   cardId: string;
@@ -27,9 +30,86 @@ export class CardNotificationSaga {
     private createNotificationUseCase: CreateNotificationUseCase,
     private stateStore: ISagaStateStore,
     private cardRepository: ICardRepository,
+    private notificationRepository: INotificationRepository,
   ) {}
 
   async handleCardEvent(
+    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
+  ): Promise<Result<void>> {
+    // Handle card removal events
+    if (event instanceof CardRemovedFromLibraryEvent) {
+      return this.handleCardRemovedEvent(event);
+    }
+
+    // Handle card addition events (existing logic)
+    return this.handleCardAddedEvent(event);
+  }
+
+  private async handleCardRemovedEvent(
+    event: CardRemovedFromLibraryEvent,
+  ): Promise<Result<void>> {
+    try {
+      // Get the card to check if it has a viaCardId
+      const cardResult = await this.cardRepository.findById(event.cardId);
+
+      if (cardResult.isErr() || !cardResult.value) {
+        // Card not found, nothing to do
+        return ok(undefined);
+      }
+
+      const card = cardResult.value;
+
+      // Only handle notifications for cards that have a viaCardId
+      if (!card.viaCardId) {
+        return ok(undefined);
+      }
+
+      // Get the via card to determine the recipient
+      const viaCardResult = await this.cardRepository.findById(card.viaCardId);
+      if (viaCardResult.isErr() || !viaCardResult.value) {
+        // Via card not found, nothing to do
+        return ok(undefined);
+      }
+
+      const viaCard = viaCardResult.value;
+      const recipientUserId = CuratorId.create(viaCard.curatorId.value);
+      const actorUserId = CuratorId.create(event.curatorId.value);
+
+      if (recipientUserId.isErr() || actorUserId.isErr()) {
+        console.error('Invalid curator IDs in CardRemovedFromLibraryEvent');
+        return ok(undefined);
+      }
+
+      // Delete any pending notification in the saga state
+      const aggregationKey = this.createKey(event, recipientUserId.value.value);
+      await this.deletePendingNotification(aggregationKey);
+
+      // Find and delete any existing notifications for this card/user combination
+      const existingNotificationsResult = await this.notificationRepository.findByCardAndUsers(
+        event.cardId.getStringValue(),
+        recipientUserId.value,
+        actorUserId.value,
+      );
+
+      if (existingNotificationsResult.isOk()) {
+        const notifications = existingNotificationsResult.value;
+        for (const notification of notifications) {
+          const deleteResult = await this.notificationRepository.delete(notification.notificationId);
+          if (deleteResult.isErr()) {
+            console.error('Failed to delete notification:', deleteResult.error);
+            // Continue with other notifications even if one fails
+          }
+        }
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      console.error('Error in CardNotificationSaga handleCardRemovedEvent:', error);
+      return err(error as Error);
+    }
+  }
+
+  private async handleCardAddedEvent(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): Promise<Result<void>> {
     try {
@@ -172,7 +252,7 @@ export class CardNotificationSaga {
   }
 
   private createKey(
-    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
+    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
     recipientUserId: string,
   ): string {
     const cardId = event.cardId.getStringValue();
@@ -181,10 +261,10 @@ export class CardNotificationSaga {
   }
 
   private getActorId(
-    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
+    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
   ): string {
     if ('curatorId' in event) {
-      return event.curatorId.value; // CardAddedToLibraryEvent
+      return event.curatorId.value; // CardAddedToLibraryEvent or CardRemovedFromLibraryEvent
     } else {
       return event.addedBy.value; // CardAddedToCollectionEvent
     }
@@ -221,10 +301,10 @@ export class CardNotificationSaga {
     existing: PendingCardNotification,
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): void {
-    if ('curatorId' in event) {
+    if ('curatorId' in event && event instanceof CardAddedToLibraryEvent) {
       // CardAddedToLibraryEvent
       existing.hasLibraryEvent = true;
-    } else {
+    } else if (event instanceof CardAddedToCollectionEvent) {
       // CardAddedToCollectionEvent
       existing.hasCollectionEvents = true;
       const collectionId = event.collectionId.getStringValue();
