@@ -26,7 +26,8 @@ import { URL } from '../../../cards/domain/value-objects/URL';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { createTestSchema } from '../../../cards/tests/test-utils/createTestSchema';
 import { Notification } from '../../domain/Notification';
-import { NotificationType } from '../../domain/value-objects/NotificationType';
+import { NotificationType, NotificationTypeEnum } from '../../domain/value-objects/NotificationType';
+import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 
 describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
   let container: StartedPostgreSqlContainer;
@@ -109,7 +110,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         publishedDate: new Date('2024-01-15'),
         siteName: 'Example Site',
         imageUrl: 'https://example.com/image.jpg',
-        type: 'article',
+        type: UrlType.ARTICLE,
         doi: '10.1000/test',
         isbn: '978-0123456789',
       }).unwrap();
