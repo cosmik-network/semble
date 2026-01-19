@@ -151,7 +151,7 @@ export class GetMyNotificationsUseCase
                 updatedAt: collection.updatedAt.toISOString(),
               };
             })
-            .filter(Boolean);
+            .filter((collection): collection is NonNullable<typeof collection> => collection !== null);
 
           const notificationItem: NotificationItemDTO = {
             id: notification.id,
@@ -195,7 +195,7 @@ export class GetMyNotificationsUseCase
             },
             createdAt: notification.createdAt.toISOString(),
             collections,
-            type: notification.type,
+            type: notification.type as any, // Cast to NotificationType enum
             read: notification.read,
           };
 
