@@ -109,7 +109,9 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     cardId: string,
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>> {
-    const matchingNotifications = Array.from(this.notifications.values()).filter(
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter(
       (notification) =>
         notification.metadata.cardId === cardId &&
         notification.actorUserId.equals(actorUserId),

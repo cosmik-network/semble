@@ -99,7 +99,9 @@ export class GetMyNotificationsUseCase
           );
           if (actorProfileResult.isErr()) {
             // Delete notification if we can't resolve the actor profile
-            await this.notificationRepository.delete(notification.notificationId);
+            await this.notificationRepository.delete(
+              notification.notificationId,
+            );
             continue;
           }
 
@@ -110,7 +112,9 @@ export class GetMyNotificationsUseCase
           );
           if (!cardView) {
             // Delete notification if we can't resolve the card
-            await this.notificationRepository.delete(notification.notificationId);
+            await this.notificationRepository.delete(
+              notification.notificationId,
+            );
             continue;
           }
 
@@ -120,7 +124,9 @@ export class GetMyNotificationsUseCase
           );
           if (cardAuthorProfileResult.isErr()) {
             // Delete notification if we can't resolve the card author profile
-            await this.notificationRepository.delete(notification.notificationId);
+            await this.notificationRepository.delete(
+              notification.notificationId,
+            );
             continue;
           }
 

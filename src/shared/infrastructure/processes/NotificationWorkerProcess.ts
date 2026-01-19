@@ -53,9 +53,8 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
       cardNotificationSaga,
     );
-    const cardRemovedFromLibraryHandler = new CardRemovedFromLibraryEventHandler(
-      cardNotificationSaga,
-    );
+    const cardRemovedFromLibraryHandler =
+      new CardRemovedFromLibraryEventHandler(cardNotificationSaga);
 
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,

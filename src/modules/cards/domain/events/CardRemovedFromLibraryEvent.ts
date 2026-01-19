@@ -29,7 +29,9 @@ export class CardRemovedFromLibraryEvent implements IDomainEvent {
     curatorId: CuratorId,
     dateTimeOccurred: Date,
   ): Result<CardRemovedFromLibraryEvent> {
-    return ok(new CardRemovedFromLibraryEvent(cardId, curatorId, dateTimeOccurred));
+    return ok(
+      new CardRemovedFromLibraryEvent(cardId, curatorId, dateTimeOccurred),
+    );
   }
 
   getAggregateId(): UniqueEntityID {

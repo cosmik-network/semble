@@ -383,6 +383,7 @@ export class UseCaseFactory {
         new RemoveCardFromLibraryUseCase(
           repositories.cardRepository,
           services.cardLibraryService,
+          services.eventPublisher,
         ),
         repositories.cardRepository,
       ),

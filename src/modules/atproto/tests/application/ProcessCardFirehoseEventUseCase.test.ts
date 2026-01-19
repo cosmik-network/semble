@@ -79,6 +79,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
       cardRepository,
       cardLibraryService,
+      eventPublisher,
     );
 
     useCase = new ProcessCardFirehoseEventUseCase(

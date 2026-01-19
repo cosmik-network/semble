@@ -150,7 +150,8 @@ export class RemoveCardFromLibraryUseCase extends BaseUseCase<
       }
 
       // Publish events for the updated card (events are raised in removeFromLibrary method)
-      const publishCardResult = await this.publishEventsForAggregate(updatedCard);
+      const publishCardResult =
+        await this.publishEventsForAggregate(updatedCard);
       if (publishCardResult.isErr()) {
         console.error(
           'Failed to publish events for removed card:',

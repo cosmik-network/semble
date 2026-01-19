@@ -34,7 +34,10 @@ export class CardNotificationSaga {
   ) {}
 
   async handleCardEvent(
-    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
+    event:
+      | CardAddedToLibraryEvent
+      | CardAddedToCollectionEvent
+      | CardRemovedFromLibraryEvent,
   ): Promise<Result<void>> {
     // Handle card removal events
     if (event instanceof CardRemovedFromLibraryEvent) {
@@ -57,20 +60,26 @@ export class CardNotificationSaga {
       }
 
       // Find and delete any existing notifications for this card/actor combination
-      const existingNotificationsResult = await this.notificationRepository.findByCardAndActor(
-        event.cardId.getStringValue(),
-        actorUserId.value,
-      );
+      const existingNotificationsResult =
+        await this.notificationRepository.findByCardAndActor(
+          event.cardId.getStringValue(),
+          actorUserId.value,
+        );
 
       if (existingNotificationsResult.isOk()) {
         const notifications = existingNotificationsResult.value;
         for (const notification of notifications) {
           // Delete any pending notification in the saga state for this specific notification
-          const aggregationKey = this.createKey(event, notification.recipientUserId.value);
+          const aggregationKey = this.createKey(
+            event,
+            notification.recipientUserId.value,
+          );
           await this.deletePendingNotification(aggregationKey);
 
           // Delete the existing notification
-          const deleteResult = await this.notificationRepository.delete(notification.notificationId);
+          const deleteResult = await this.notificationRepository.delete(
+            notification.notificationId,
+          );
           if (deleteResult.isErr()) {
             console.error('Failed to delete notification:', deleteResult.error);
             // Continue with other notifications even if one fails
@@ -80,7 +89,10 @@ export class CardNotificationSaga {
 
       return ok(undefined);
     } catch (error) {
-      console.error('Error in CardNotificationSaga handleCardRemovedEvent:', error);
+      console.error(
+        'Error in CardNotificationSaga handleCardRemovedEvent:',
+        error,
+      );
       return err(error as Error);
     }
   }
@@ -228,7 +240,10 @@ export class CardNotificationSaga {
   }
 
   private createKey(
-    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
+    event:
+      | CardAddedToLibraryEvent
+      | CardAddedToCollectionEvent
+      | CardRemovedFromLibraryEvent,
     recipientUserId: string,
   ): string {
     const cardId = event.cardId.getStringValue();
@@ -237,7 +252,10 @@ export class CardNotificationSaga {
   }
 
   private getActorId(
-    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent | CardRemovedFromLibraryEvent,
+    event:
+      | CardAddedToLibraryEvent
+      | CardAddedToCollectionEvent
+      | CardRemovedFromLibraryEvent,
   ): string {
     if ('curatorId' in event) {
       return event.curatorId.value; // CardAddedToLibraryEvent or CardRemovedFromLibraryEvent
