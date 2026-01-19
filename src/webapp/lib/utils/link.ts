@@ -26,6 +26,20 @@ export const isCollectionPage = (url: string = window.location.pathname) => {
   }
 };
 
+export const isProfilePage = (url: string = window.location.pathname) => {
+  try {
+    const { pathname } = new URL(url, window.location.origin);
+    // matches:
+    // /profile/:handle
+    // /profile/:handle/:subroute
+    const pattern = /^\/profile\/[^/]+(?:\/[^/]+)?\/?$/;
+    return pattern.test(pathname);
+  } catch {
+    // invalid URL
+    return false;
+  }
+};
+
 export enum SupportedPlatform {
   BLUESKY_POST = 'bluesky post',
   BLACKSKY_POST = 'blacksky post',

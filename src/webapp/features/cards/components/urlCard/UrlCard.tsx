@@ -6,7 +6,7 @@ import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { MouseEvent } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
-import { isCollectionPage } from '@/lib/utils/link';
+import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
@@ -31,7 +31,7 @@ export default function UrlCard(props: Props) {
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
 
-    if (isCollectionPage(props.url)) {
+    if (isCollectionPage(props.url) || isProfilePage(props.url)) {
       router.push(props.url);
       return;
     }
