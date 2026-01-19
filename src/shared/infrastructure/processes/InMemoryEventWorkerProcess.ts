@@ -69,6 +69,7 @@ export class InMemoryEventWorkerProcess implements IProcess {
       useCases.createNotificationUseCase,
       services.sagaStateStore,
       repositories.cardRepository,
+      repositories.notificationRepository,
     );
 
     const notificationCardAddedToLibraryHandler =

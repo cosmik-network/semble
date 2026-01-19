@@ -1,6 +1,7 @@
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events/CardAddedToCollectionEvent';
+import { CardRemovedFromLibraryEvent } from '../../../modules/cards/domain/events/CardRemovedFromLibraryEvent';
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
@@ -26,6 +27,12 @@ export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
   addedBy: string;
 }
 
+export interface SerializedCardRemovedFromLibraryEvent extends SerializedEvent {
+  eventType: typeof EventNames.CARD_REMOVED_FROM_LIBRARY;
+  cardId: string;
+  curatorId: string;
+}
+
 export interface SerializedCollectionCreatedEvent extends SerializedEvent {
   eventType: typeof EventNames.COLLECTION_CREATED;
   collectionId: string;
@@ -36,6 +43,7 @@ export interface SerializedCollectionCreatedEvent extends SerializedEvent {
 export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
+  | SerializedCardRemovedFromLibraryEvent
   | SerializedCollectionCreatedEvent;
 
 export class EventMapper {
@@ -58,6 +66,16 @@ export class EventMapper {
         cardId: event.cardId.getValue().toString(),
         collectionId: event.collectionId.getValue().toString(),
         addedBy: event.addedBy.value,
+      };
+    }
+
+    if (event instanceof CardRemovedFromLibraryEvent) {
+      return {
+        eventType: EventNames.CARD_REMOVED_FROM_LIBRARY,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        cardId: event.cardId.getValue().toString(),
+        curatorId: event.curatorId.value,
       };
     }
 
@@ -102,6 +120,17 @@ export class EventMapper {
           cardId,
           collectionId,
           addedBy,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CARD_REMOVED_FROM_LIBRARY: {
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return CardRemovedFromLibraryEvent.reconstruct(
+          cardId,
+          curatorId,
           dateTimeOccurred,
         ).unwrap();
       }

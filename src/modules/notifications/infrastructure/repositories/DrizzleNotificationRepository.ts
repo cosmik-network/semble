@@ -209,6 +209,47 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findByCardAndActor(
+    cardId: string,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>> {
+    try {
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.actorUserId, actorUserId.value));
+
+      // Filter by cardId in metadata
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const metadata = notificationData.metadata as any;
+        if (metadata.cardId === cardId) {
+          const dto: NotificationDTO = {
+            id: notificationData.id,
+            recipientUserId: notificationData.recipientUserId,
+            actorUserId: notificationData.actorUserId,
+            type: notificationData.type,
+            metadata: notificationData.metadata as any,
+            read: notificationData.read,
+            createdAt: notificationData.createdAt,
+            updatedAt: notificationData.updatedAt,
+          };
+
+          const domainResult = NotificationMapper.toDomain(dto);
+          if (domainResult.isErr()) {
+            return err(domainResult.error);
+          }
+
+          matchingNotifications.push(domainResult.value);
+        }
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     try {
       const result = await this.db
@@ -227,6 +268,18 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       // For PostgreSQL with drizzle-orm, we need to handle the result differently
       // The result might not have rowCount, so we'll return 0 as a fallback
       return ok(0);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async delete(id: NotificationId): Promise<Result<void>> {
+    try {
+      await this.db
+        .delete(notifications)
+        .where(eq(notifications.id, id.getStringValue()));
+
+      return ok(undefined);
     } catch (error) {
       return err(error as Error);
     }

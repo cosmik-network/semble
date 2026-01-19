@@ -187,6 +187,7 @@ export class UseCaseFactory {
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,
         services.cardLibraryService,
+        services.eventPublisher,
       ),
       removeCardFromCollectionUseCase: new RemoveCardFromCollectionUseCase(
         repositories.cardRepository,
@@ -350,6 +351,7 @@ export class UseCaseFactory {
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,
         services.cardLibraryService,
+        services.eventPublisher,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
@@ -381,6 +383,7 @@ export class UseCaseFactory {
         new RemoveCardFromLibraryUseCase(
           repositories.cardRepository,
           services.cardLibraryService,
+          services.eventPublisher,
         ),
         repositories.cardRepository,
       ),
