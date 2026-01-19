@@ -1,7 +1,7 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import { ActionIcon, Button, Group, Menu } from '@mantine/core';
+import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
@@ -96,18 +96,24 @@ export default function UrlCardActions(props: Props) {
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<MdIosShare />}
-              onClick={(e) => {
-                e.stopPropagation();
-                notifications.show({
-                  message: 'Link copied!',
-                  position: 'bottom-center',
-                });
-              }}
-            >
-              Copy share link
-            </Menu.Item>
+            <CopyButton value={props.cardContent.url}>
+              {({ copy }) => (
+                <Menu.Item
+                  leftSection={<MdIosShare />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copy();
+                    notifications.show({
+                      message: 'Link copied!',
+                      position: 'bottom-center',
+                    });
+                  }}
+                >
+                  Copy share link
+                </Menu.Item>
+              )}
+            </CopyButton>
+
             {props.currentCollection && isAuthor && (
               <Menu.Item
                 leftSection={<LuUnplug />}

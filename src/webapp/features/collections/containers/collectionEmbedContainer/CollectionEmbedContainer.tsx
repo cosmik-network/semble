@@ -9,7 +9,6 @@ import {
   Title,
   Avatar,
   Grid,
-  GridCol,
   Image,
   Button,
   Card,
