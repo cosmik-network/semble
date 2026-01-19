@@ -231,4 +231,16 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       return err(error as Error);
     }
   }
+
+  async delete(id: NotificationId): Promise<Result<void>> {
+    try {
+      await this.db
+        .delete(notifications)
+        .where(eq(notifications.id, id.getStringValue()));
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
 }

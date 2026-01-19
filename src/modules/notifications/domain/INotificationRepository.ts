@@ -26,4 +26,5 @@ export interface INotificationRepository {
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
   markAsRead(notificationIds: NotificationId[]): Promise<Result<void>>;
   markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>>;
+  delete(id: NotificationId): Promise<Result<void>>;
 }

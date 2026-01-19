@@ -98,7 +98,9 @@ export class GetMyNotificationsUseCase
             notification.actorUserId.value,
           );
           if (actorProfileResult.isErr()) {
-            continue; // Skip this notification if we can't get the actor profile
+            // Delete notification if we can't resolve the actor profile
+            await this.notificationRepository.delete(notification.notificationId);
+            continue;
           }
 
           // Get card data
@@ -115,6 +117,8 @@ export class GetMyNotificationsUseCase
             cardView.authorId,
           );
           if (cardAuthorProfileResult.isErr()) {
+            // Delete notification if we can't resolve the card author profile
+            await this.notificationRepository.delete(notification.notificationId);
             continue;
           }
 

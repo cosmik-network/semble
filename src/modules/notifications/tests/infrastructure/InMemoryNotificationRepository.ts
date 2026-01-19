@@ -120,4 +120,9 @@ export class InMemoryNotificationRepository implements INotificationRepository {
 
     return ok(markedCount);
   }
+
+  async delete(id: NotificationId): Promise<Result<void>> {
+    this.notifications.delete(id.getStringValue());
+    return ok(undefined);
+  }
 }
