@@ -7,7 +7,7 @@ export default function useUnreadNotificationCount() {
     queryKey: notificationKeys.unreadCount(),
     queryFn: getUnreadNotificationCount,
     staleTime: 3000,
-    refetchInterval: 5000,
+    refetchInterval: 20000,
     refetchOnWindowFocus: true,
   });
 

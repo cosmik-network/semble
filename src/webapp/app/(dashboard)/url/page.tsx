@@ -6,6 +6,7 @@ import SembleAside from '@/features/semble/containers/sembleAside/SembleAside';
 import SembleAsideSkeleton from '@/features/semble/containers/sembleAside/Skeleton.SembleAside';
 import SembleContainer from '@/features/semble/containers/sembleContainer/SembleContainer';
 import { Fragment, Suspense } from 'react';
+import SembleContainerSkeleton from '@/features/semble/containers/sembleContainer/Skeleton.SembleContainer';
 
 interface Props {
   searchParams: Promise<{ id: string | undefined }>;
@@ -50,8 +51,10 @@ export default async function Page(props: Props) {
   }
 
   return (
-    <Fragment>
-      <SembleContainer url={url} />
+    <Fragment key={url + 'page'}>
+      <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
+        <SembleContainer url={url} />
+      </Suspense>
       <Suspense fallback={<SembleAsideSkeleton />} key={url}>
         <SembleAside url={url} />
       </Suspense>

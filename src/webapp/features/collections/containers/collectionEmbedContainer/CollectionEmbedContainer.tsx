@@ -16,10 +16,9 @@ import {
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
-import { getCollectionPageByAtUri } from '../../lib/dal';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import { isCollectionPage } from '@/lib/utils/link';
+import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment } from 'react';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -125,7 +124,10 @@ export default function CollectionEmbedContainer(props: Props) {
                       onClick={(e) => {
                         e.stopPropagation();
 
-                        if (isCollectionPage(card.url)) {
+                        if (
+                          isCollectionPage(card.url) ||
+                          isProfilePage(card.url)
+                        ) {
                           router.push(card.url);
                           return;
                         }
