@@ -17,15 +17,16 @@ import {
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { notifications } from '../../infrastructure/repositories/schema/notification.sql';
-import { Collection, CollectionAccessType } from '../../../cards/domain/Collection';
+import {
+  Collection,
+  CollectionAccessType,
+} from '../../../cards/domain/Collection';
 import { CardBuilder } from '../../../cards/tests/utils/builders/CardBuilder';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { createTestSchema } from '../../../cards/tests/test-utils/createTestSchema';
-import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { Notification } from '../../domain/Notification';
 import { NotificationType } from '../../domain/value-objects/NotificationType';
-import { NotificationTypeEnum } from '../../domain/value-objects/NotificationType';
 
 describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
   let container: StartedPostgreSqlContainer;
@@ -86,7 +87,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
     it('should return empty result when no notifications exist', async () => {
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -128,7 +129,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const notification = Notification.create({
         recipientUserId: recipientId,
         actorUserId: actorId,
-        type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
         metadata: {
           cardId: urlCard.cardId.getStringValue(),
         },
@@ -141,7 +144,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -152,10 +155,14 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(data.unreadCount).toBe(1);
 
       const enrichedNotification = data.notifications[0]!;
-      
+
       // Check notification data
-      expect(enrichedNotification.id).toBe(notification.notificationId.getStringValue());
-      expect(enrichedNotification.type).toBe(NotificationTypeEnum.USER_ADDED_YOUR_CARD);
+      expect(enrichedNotification.id).toBe(
+        notification.notificationId.getStringValue(),
+      );
+      expect(enrichedNotification.type).toBe(
+        NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+      );
       expect(enrichedNotification.read).toBe(false);
       expect(enrichedNotification.actorUserId).toBe(actorId.value);
       expect(enrichedNotification.cardAuthorId).toBe(cardAuthorId.value);
@@ -164,11 +171,17 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(enrichedNotification.cardId).toBe(urlCard.cardId.getStringValue());
       expect(enrichedNotification.cardUrl).toBe(url.value);
       expect(enrichedNotification.cardTitle).toBe('Test Article');
-      expect(enrichedNotification.cardDescription).toBe('A test article description');
+      expect(enrichedNotification.cardDescription).toBe(
+        'A test article description',
+      );
       expect(enrichedNotification.cardAuthor).toBe('John Doe');
-      expect(enrichedNotification.cardPublishedDate).toEqual(new Date('2024-01-15'));
+      expect(enrichedNotification.cardPublishedDate).toEqual(
+        new Date('2024-01-15'),
+      );
       expect(enrichedNotification.cardSiteName).toBe('Example Site');
-      expect(enrichedNotification.cardImageUrl).toBe('https://example.com/image.jpg');
+      expect(enrichedNotification.cardImageUrl).toBe(
+        'https://example.com/image.jpg',
+      );
       expect(enrichedNotification.cardType).toBe('article');
       expect(enrichedNotification.cardDoi).toBe('10.1000/test');
       expect(enrichedNotification.cardIsbn).toBe('978-0123456789');
@@ -200,7 +213,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const notification = Notification.create({
         recipientUserId: recipientId,
         actorUserId: actorId,
-        type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
         metadata: {
           cardId: urlCard.cardId.getStringValue(),
         },
@@ -213,7 +228,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -222,13 +237,19 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const enrichedNotification = data.notifications[0]!;
       expect(enrichedNotification.cardNote).toBeDefined();
-      expect(enrichedNotification.cardNote?.id).toBe(noteCard.cardId.getStringValue());
-      expect(enrichedNotification.cardNote?.text).toBe('This is my detailed analysis of the article.');
+      expect(enrichedNotification.cardNote?.id).toBe(
+        noteCard.cardId.getStringValue(),
+      );
+      expect(enrichedNotification.cardNote?.text).toBe(
+        'This is my detailed analysis of the article.',
+      );
     });
 
     it('should include collection data when card is in collections', async () => {
       // Create URL card
-      const url = URL.create('https://example.com/article-in-collections').unwrap();
+      const url = URL.create(
+        'https://example.com/article-in-collections',
+      ).unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(cardAuthorId.value)
         .withUrlCard(url)
@@ -273,7 +294,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const notification = Notification.create({
         recipientUserId: recipientId,
         actorUserId: actorId,
-        type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
         metadata: {
           cardId: urlCard.cardId.getStringValue(),
           collectionIds: [
@@ -290,7 +313,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -301,10 +324,14 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(enrichedNotification.collections).toHaveLength(2);
 
       // Check collection data
-      const collectionNames = enrichedNotification.collections.map(c => c.name).sort();
+      const collectionNames = enrichedNotification.collections
+        .map((c) => c.name)
+        .sort();
       expect(collectionNames).toEqual(['My Favorites', 'Reading List']);
 
-      const readingList = enrichedNotification.collections.find(c => c.name === 'Reading List');
+      const readingList = enrichedNotification.collections.find(
+        (c) => c.name === 'Reading List',
+      );
       expect(readingList?.id).toBe(collection1.collectionId.getStringValue());
       expect(readingList?.description).toBe('Articles to read');
       expect(readingList?.authorId).toBe(collectionAuthorId.value);
@@ -312,7 +339,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(readingList?.createdAt).toEqual(new Date('2024-01-10'));
       expect(readingList?.updatedAt).toEqual(new Date('2024-01-15'));
 
-      const myFavorites = enrichedNotification.collections.find(c => c.name === 'My Favorites');
+      const myFavorites = enrichedNotification.collections.find(
+        (c) => c.name === 'My Favorites',
+      );
       expect(myFavorites?.id).toBe(collection2.collectionId.getStringValue());
       expect(myFavorites?.description).toBeUndefined();
       expect(myFavorites?.authorId).toBe(cardAuthorId.value);
@@ -345,7 +374,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const notification = Notification.create({
         recipientUserId: recipientId,
         actorUserId: actorId,
-        type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
         metadata: {
           cardId: urlCard1.cardId.getStringValue(),
         },
@@ -358,7 +389,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -385,7 +416,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         const notification = Notification.create({
           recipientUserId: recipientId,
           actorUserId: actorId,
-          type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+          type: NotificationType.create(
+            NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+          ).unwrap(),
           metadata: {
             cardId: urlCard.cardId.getStringValue(),
           },
@@ -401,7 +434,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Test first page
       const page1Result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 2 }
+        { page: 1, limit: 2 },
       );
 
       expect(page1Result.isOk()).toBe(true);
@@ -414,7 +447,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Test second page
       const page2Result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 2, limit: 2 }
+        { page: 2, limit: 2 },
       );
 
       expect(page2Result.isOk()).toBe(true);
@@ -426,7 +459,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Test last page
       const page3Result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 3, limit: 2 }
+        { page: 3, limit: 2 },
       );
 
       expect(page3Result.isOk()).toBe(true);
@@ -450,7 +483,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         const notification = Notification.create({
           recipientUserId: recipientId,
           actorUserId: actorId,
-          type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+          type: NotificationType.create(
+            NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+          ).unwrap(),
           metadata: {
             cardId: urlCard.cardId.getStringValue(),
           },
@@ -465,7 +500,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Test all notifications
       const allResult = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(allResult.isOk()).toBe(true);
@@ -477,7 +512,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Test unread only
       const unreadResult = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10, unreadOnly: true }
+        { page: 1, limit: 10, unreadOnly: true },
       );
 
       expect(unreadResult.isOk()).toBe(true);
@@ -487,7 +522,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(unreadData.unreadCount).toBe(2);
 
       // Verify all returned notifications are unread
-      unreadData.notifications.forEach(notification => {
+      unreadData.notifications.forEach((notification) => {
         expect(notification.read).toBe(false);
       });
     });
@@ -497,7 +532,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const notification = Notification.create({
         recipientUserId: recipientId,
         actorUserId: actorId,
-        type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
         metadata: {
           cardId: new UniqueEntityID().toString(), // Non-existent card
         },
@@ -510,7 +547,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -542,7 +579,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         const notification = Notification.create({
           recipientUserId: recipientId,
           actorUserId: actorId,
-          type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+          type: NotificationType.create(
+            NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+          ).unwrap(),
           metadata: {
             cardId: urlCard.cardId.getStringValue(),
           },
@@ -556,7 +595,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
 
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -564,7 +603,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(data.notifications).toHaveLength(4);
 
       // Should be ordered by creation date descending (newest first)
-      const createdDates = data.notifications.map(n => n.createdAt.getTime());
+      const createdDates = data.notifications.map((n) => n.createdAt.getTime());
       expect(createdDates).toEqual([
         new Date('2024-01-20').getTime(),
         new Date('2024-01-15').getTime(),
@@ -574,11 +613,15 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
     });
 
     it('should only return notifications for the specified recipient', async () => {
-      const otherRecipientId = CuratorId.create('did:plc:otherrecipient').unwrap();
+      const otherRecipientId = CuratorId.create(
+        'did:plc:otherrecipient',
+      ).unwrap();
 
       // Create notifications for different recipients
       for (const recipient of [recipientId, otherRecipientId]) {
-        const url = URL.create(`https://example.com/article-${recipient.value}`).unwrap();
+        const url = URL.create(
+          `https://example.com/article-${recipient.value}`,
+        ).unwrap();
         const urlCard = new CardBuilder()
           .withCuratorId(cardAuthorId.value)
           .withUrlCard(url)
@@ -589,7 +632,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         const notification = Notification.create({
           recipientUserId: recipient,
           actorUserId: actorId,
-          type: NotificationType.create(NotificationTypeEnum.USER_ADDED_YOUR_CARD).unwrap(),
+          type: NotificationType.create(
+            NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+          ).unwrap(),
           metadata: {
             cardId: urlCard.cardId.getStringValue(),
           },
@@ -604,7 +649,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       // Query for specific recipient
       const result = await notificationRepository.findByRecipientEnriched(
         recipientId,
-        { page: 1, limit: 10 }
+        { page: 1, limit: 10 },
       );
 
       expect(result.isOk()).toBe(true);
@@ -614,7 +659,9 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(data.unreadCount).toBe(1);
 
       // Verify it's the correct notification
-      expect(data.notifications[0]?.cardUrl).toBe(`https://example.com/article-${recipientId.value}`);
+      expect(data.notifications[0]?.cardUrl).toBe(
+        `https://example.com/article-${recipientId.value}`,
+      );
     });
   });
 });
