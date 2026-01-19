@@ -1,7 +1,7 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import { ActionIcon, Button, Group, Menu } from '@mantine/core';
+import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
@@ -9,10 +9,11 @@ import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
-import { MdOutlineStickyNote2 } from 'react-icons/md';
+import { MdIosShare, MdOutlineStickyNote2 } from 'react-icons/md';
 import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
 import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
+import { notifications } from '@mantine/notifications';
 
 interface Props {
   id: string;
@@ -82,30 +83,49 @@ export default function UrlCardActions(props: Props) {
             </ActionIcon>
           )}
         </Group>
-        {isAuthor && (
-          <Menu shadow="sm">
-            <Menu.Target>
-              <ActionIcon
-                variant="light"
-                color={'gray'}
-                radius={'xl'}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <BsThreeDots size={18} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {props.currentCollection && (
+
+        <Menu shadow="sm">
+          <Menu.Target>
+            <ActionIcon
+              variant="light"
+              color={'gray'}
+              radius={'xl'}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <BsThreeDots size={18} />
+            </ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <CopyButton value={props.cardContent.url}>
+              {({ copy }) => (
                 <Menu.Item
-                  leftSection={<LuUnplug />}
+                  leftSection={<MdIosShare />}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowRemoveFromCollectionModal(true);
+                    copy();
+                    notifications.show({
+                      message: 'Link copied!',
+                      position: 'bottom-center',
+                    });
                   }}
                 >
-                  Remove from this collection
+                  Copy share link
                 </Menu.Item>
               )}
+            </CopyButton>
+
+            {props.currentCollection && isAuthor && (
+              <Menu.Item
+                leftSection={<LuUnplug />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowRemoveFromCollectionModal(true);
+                }}
+              >
+                Remove from this collection
+              </Menu.Item>
+            )}
+            {isAuthor && (
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}
@@ -116,9 +136,9 @@ export default function UrlCardActions(props: Props) {
               >
                 Remove from library
               </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        )}
+            )}
+          </Menu.Dropdown>
+        </Menu>
       </Group>
 
       <AddCardToModal
