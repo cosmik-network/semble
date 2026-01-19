@@ -29,12 +29,11 @@ export default function UrlCardSkeleton() {
           </Group>
 
           {/* Url card actions */}
-
           <Group justify="space-between">
             <Group gap={'xs'}>
-              <Skeleton w={22} h={22} />
+              <Skeleton w={60} h={26} radius={'xl'} />
             </Group>
-            <Skeleton w={22} h={22} />
+            <Skeleton w={26} h={26} circle />
           </Group>
         </Stack>
       </Card>

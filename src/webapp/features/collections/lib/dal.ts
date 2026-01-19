@@ -80,6 +80,27 @@ export const getMyCollections = cache(
   },
 );
 
+export const getMyGemCollections = cache(
+  async (params?: PageParams & SearchParams) => {
+    const client = createSembleClient();
+    const response = await client.getMyCollections({
+      page: params?.page,
+      limit: params?.limit,
+      sortBy: params?.collectionSortBy,
+      sortOrder: params?.sortOrder,
+      searchText: params?.searchText,
+    });
+
+    // Temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
+  },
+);
+
 export const createCollection = cache(
   async (newCollection: { name: string; description: string }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
