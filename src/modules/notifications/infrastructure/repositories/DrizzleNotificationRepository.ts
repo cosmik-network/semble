@@ -17,7 +17,10 @@ import {
 } from './mappers/NotificationMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { cards } from '../../../cards/infrastructure/repositories/schema/card.sql';
-import { collections, collectionCards } from '../../../cards/infrastructure/repositories/schema/collection.sql';
+import {
+  collections,
+  collectionCards,
+} from '../../../cards/infrastructure/repositories/schema/collection.sql';
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { countDistinct } from 'drizzle-orm';
@@ -312,7 +315,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           createdAt: notifications.createdAt,
           actorUserId: notifications.actorUserId,
           metadata: notifications.metadata,
-          
+
           // Card fields
           cardId: cards.id,
           cardAuthorId: cards.authorId,
@@ -373,7 +376,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
       // Extract card IDs from metadata
       const cardIds = notificationsResult
-        .map(n => (n.metadata as any)?.cardId)
+        .map((n) => (n.metadata as any)?.cardId)
         .filter(Boolean);
 
       if (cardIds.length === 0) {
@@ -398,16 +401,13 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         })
         .from(cards)
         .where(
-          and(
-            inArray(cards.id, cardIds),
-            eq(cards.type, CardTypeEnum.URL)
-          )
+          and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
         );
 
       const cardsResult = await cardsQuery;
 
       // Get URL library counts for these cards
-      const urls = cardsResult.map(card => card.url).filter(Boolean);
+      const urls = cardsResult.map((card) => card.url).filter(Boolean);
       const urlLibraryCountsQuery = this.db
         .select({
           url: cards.url,
@@ -415,17 +415,12 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         })
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(
-          and(
-            eq(cards.type, CardTypeEnum.URL),
-            inArray(cards.url, urls)
-          )
-        )
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
         .groupBy(cards.url);
 
       const urlLibraryCountsResult = await urlLibraryCountsQuery;
       const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach(row => {
+      urlLibraryCountsResult.forEach((row) => {
         if (row.url) {
           urlLibraryCountMap.set(row.url, row.count);
         }
@@ -442,8 +437,8 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .where(
           and(
             eq(cards.type, CardTypeEnum.NOTE),
-            inArray(cards.parentCardId, cardIds)
-          )
+            inArray(cards.parentCardId, cardIds),
+          ),
         );
 
       const notesResult = await notesQuery;
@@ -462,13 +457,16 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           collectionUpdatedAt: collections.updatedAt,
         })
         .from(collectionCards)
-        .innerJoin(collections, eq(collectionCards.collectionId, collections.id))
+        .innerJoin(
+          collections,
+          eq(collectionCards.collectionId, collections.id),
+        )
         .where(inArray(collectionCards.cardId, cardIds));
 
       const collectionsResult = await collectionsQuery;
 
       // Build card lookup map
-      const cardMap = new Map(cardsResult.map(card => [card.id, card]));
+      const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
 
       // Build enriched notifications
       const enrichedNotifications: EnrichedNotificationResult[] = [];
@@ -476,16 +474,16 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       for (const notification of notificationsResult) {
         const metadata = notification.metadata as any;
         const cardId = metadata?.cardId;
-        
+
         if (!cardId) continue;
 
         const card = cardMap.get(cardId);
         if (!card) continue;
 
-        const note = notesResult.find(n => n.parentCardId === cardId);
+        const note = notesResult.find((n) => n.parentCardId === cardId);
         const cardCollections = collectionsResult
-          .filter(c => c.cardId === cardId)
-          .map(c => ({
+          .filter((c) => c.cardId === cardId)
+          .map((c) => ({
             id: c.collectionId,
             uri: c.collectionUri || undefined,
             name: c.collectionName,
@@ -510,14 +508,14 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           cardTitle: card.contentData?.metadata?.title,
           cardDescription: card.contentData?.metadata?.description,
           cardAuthor: card.contentData?.metadata?.author,
-          cardPublishedDate: card.contentData?.metadata?.publishedDate 
-            ? new Date(card.contentData.metadata.publishedDate) 
+          cardPublishedDate: card.contentData?.metadata?.publishedDate
+            ? new Date(card.contentData.metadata.publishedDate)
             : undefined,
           cardSiteName: card.contentData?.metadata?.siteName,
           cardImageUrl: card.contentData?.metadata?.imageUrl,
           cardType: card.contentData?.metadata?.type,
-          cardRetrievedAt: card.contentData?.metadata?.retrievedAt 
-            ? new Date(card.contentData.metadata.retrievedAt) 
+          cardRetrievedAt: card.contentData?.metadata?.retrievedAt
+            ? new Date(card.contentData.metadata.retrievedAt)
             : undefined,
           cardDoi: card.contentData?.metadata?.doi,
           cardIsbn: card.contentData?.metadata?.isbn,
@@ -526,10 +524,12 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           cardUrlInLibrary: undefined, // Would need calling user ID to determine this
           cardCreatedAt: card.createdAt,
           cardUpdatedAt: card.updatedAt,
-          cardNote: note ? {
-            id: note.id,
-            text: note.contentData?.text || '',
-          } : undefined,
+          cardNote: note
+            ? {
+                id: note.id,
+                text: note.contentData?.text || '',
+              }
+            : undefined,
           collections: cardCollections,
         });
       }

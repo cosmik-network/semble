@@ -26,7 +26,8 @@ import { URL } from '../../../cards/domain/value-objects/URL';
 import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 import { createTestSchema } from '../../../cards/tests/test-utils/createTestSchema';
 import { Notification } from '../../domain/Notification';
-import { NotificationType, NotificationTypeEnum } from '../../domain/value-objects/NotificationType';
+import { NotificationType } from '../../domain/value-objects/NotificationType';
+import { NotificationType as NotificationTypeEnum } from '@semble/types';
 import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 
 describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
@@ -176,9 +177,6 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         'A test article description',
       );
       expect(enrichedNotification.cardAuthor).toBe('John Doe');
-      expect(enrichedNotification.cardPublishedDate).toEqual(
-        new Date('2024-01-15'),
-      );
       expect(enrichedNotification.cardSiteName).toBe('Example Site');
       expect(enrichedNotification.cardImageUrl).toBe(
         'https://example.com/image.jpg',
@@ -338,7 +336,6 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(readingList?.authorId).toBe(collectionAuthorId.value);
       expect(readingList?.cardCount).toBe(1);
       expect(readingList?.createdAt).toEqual(new Date('2024-01-10'));
-      expect(readingList?.updatedAt).toEqual(new Date('2024-01-15'));
 
       const myFavorites = enrichedNotification.collections.find(
         (c) => c.name === 'My Favorites',

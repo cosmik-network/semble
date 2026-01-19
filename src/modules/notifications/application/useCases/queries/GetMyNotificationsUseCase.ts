@@ -91,23 +91,23 @@ export class GetMyNotificationsUseCase
 
       // Collect all unique user IDs for bulk profile fetching
       const userIds = new Set<string>();
-      notifications.forEach(notification => {
+      notifications.forEach((notification) => {
         userIds.add(notification.actorUserId);
         userIds.add(notification.cardAuthorId);
-        notification.collections.forEach(collection => {
+        notification.collections.forEach((collection) => {
           userIds.add(collection.authorId);
         });
       });
 
       // Bulk fetch all profiles
-      const profilePromises = Array.from(userIds).map(id => 
-        this.profileService.getProfile(id)
+      const profilePromises = Array.from(userIds).map((id) =>
+        this.profileService.getProfile(id),
       );
       const profileResults = await Promise.all(profilePromises);
-      
+
       // Build profile lookup map
       const profileMap = new Map<string, any>();
-      profileResults.forEach(result => {
+      profileResults.forEach((result) => {
         if (result.isOk()) {
           profileMap.set(result.value.id, result.value);
         }
@@ -128,8 +128,10 @@ export class GetMyNotificationsUseCase
 
           // Transform collections with author profiles
           const collections = notification.collections
-            .map(collection => {
-              const collectionAuthorProfile = profileMap.get(collection.authorId);
+            .map((collection) => {
+              const collectionAuthorProfile = profileMap.get(
+                collection.authorId,
+              );
               if (!collectionAuthorProfile) {
                 return null;
               }
@@ -151,7 +153,10 @@ export class GetMyNotificationsUseCase
                 updatedAt: collection.updatedAt.toISOString(),
               };
             })
-            .filter((collection): collection is NonNullable<typeof collection> => collection !== null);
+            .filter(
+              (collection): collection is NonNullable<typeof collection> =>
+                collection !== null,
+            );
 
           const notificationItem: NotificationItemDTO = {
             id: notification.id,

@@ -22,11 +22,11 @@ export interface EnrichedNotificationResult {
   type: string;
   read: boolean;
   createdAt: Date;
-  
+
   // User IDs (still need profile enrichment)
   actorUserId: string;
   cardAuthorId: string;
-  
+
   // Card data - fully enriched from JOIN
   cardId: string;
   cardUrl: string;
@@ -49,7 +49,7 @@ export interface EnrichedNotificationResult {
     id: string;
     text: string;
   };
-  
+
   // Collections - fully enriched from JOIN
   collections: Array<{
     id: string;
