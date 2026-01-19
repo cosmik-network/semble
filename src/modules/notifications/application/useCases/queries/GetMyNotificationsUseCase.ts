@@ -109,6 +109,8 @@ export class GetMyNotificationsUseCase
             request.userId,
           );
           if (!cardView) {
+            // Delete notification if we can't resolve the card
+            await this.notificationRepository.delete(notification.notificationId);
             continue;
           }
 
