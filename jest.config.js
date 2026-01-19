@@ -15,6 +15,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   // Map 'src/*' paths to '<rootDir>/src/*'
   moduleNameMapper: {
+    '^@semble/types$': '<rootDir>/src/types/src/index.ts',
     '^src/(.*)$': '<rootDir>/src/$1',
   },
   // Increase timeout for tests that use containers
