@@ -209,21 +209,15 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
-  async findByCardAndUsers(
+  async findByCardAndActor(
     cardId: string,
-    recipientId: CuratorId,
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>> {
     try {
       const result = await this.db
         .select()
         .from(notifications)
-        .where(
-          and(
-            eq(notifications.recipientUserId, recipientId.value),
-            eq(notifications.actorUserId, actorUserId.value),
-          ),
-        );
+        .where(eq(notifications.actorUserId, actorUserId.value));
 
       // Filter by cardId in metadata
       const matchingNotifications: Notification[] = [];

@@ -49,51 +49,27 @@ export class CardNotificationSaga {
     event: CardRemovedFromLibraryEvent,
   ): Promise<Result<void>> {
     try {
-      // Get the card to check if it has a viaCardId
-      const cardResult = await this.cardRepository.findById(event.cardId);
-
-      if (cardResult.isErr() || !cardResult.value) {
-        // Card not found, nothing to do
-        return ok(undefined);
-      }
-
-      const card = cardResult.value;
-
-      // Only handle notifications for cards that have a viaCardId
-      if (!card.viaCardId) {
-        return ok(undefined);
-      }
-
-      // Get the via card to determine the recipient
-      const viaCardResult = await this.cardRepository.findById(card.viaCardId);
-      if (viaCardResult.isErr() || !viaCardResult.value) {
-        // Via card not found, nothing to do
-        return ok(undefined);
-      }
-
-      const viaCard = viaCardResult.value;
-      const recipientUserId = CuratorId.create(viaCard.curatorId.value);
       const actorUserId = CuratorId.create(event.curatorId.value);
 
-      if (recipientUserId.isErr() || actorUserId.isErr()) {
-        console.error('Invalid curator IDs in CardRemovedFromLibraryEvent');
+      if (actorUserId.isErr()) {
+        console.error('Invalid curator ID in CardRemovedFromLibraryEvent');
         return ok(undefined);
       }
 
-      // Delete any pending notification in the saga state
-      const aggregationKey = this.createKey(event, recipientUserId.value.value);
-      await this.deletePendingNotification(aggregationKey);
-
-      // Find and delete any existing notifications for this card/user combination
-      const existingNotificationsResult = await this.notificationRepository.findByCardAndUsers(
+      // Find and delete any existing notifications for this card/actor combination
+      const existingNotificationsResult = await this.notificationRepository.findByCardAndActor(
         event.cardId.getStringValue(),
-        recipientUserId.value,
         actorUserId.value,
       );
 
       if (existingNotificationsResult.isOk()) {
         const notifications = existingNotificationsResult.value;
         for (const notification of notifications) {
+          // Delete any pending notification in the saga state for this specific notification
+          const aggregationKey = this.createKey(event, notification.recipientUserId.value);
+          await this.deletePendingNotification(aggregationKey);
+
+          // Delete the existing notification
           const deleteResult = await this.notificationRepository.delete(notification.notificationId);
           if (deleteResult.isErr()) {
             console.error('Failed to delete notification:', deleteResult.error);

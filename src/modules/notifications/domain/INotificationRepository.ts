@@ -23,9 +23,8 @@ export interface INotificationRepository {
     recipientId: CuratorId,
     options: NotificationQueryOptions,
   ): Promise<Result<PaginatedNotificationResult>>;
-  findByCardAndUsers(
+  findByCardAndActor(
     cardId: string,
-    recipientId: CuratorId,
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
