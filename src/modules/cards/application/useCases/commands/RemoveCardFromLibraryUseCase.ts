@@ -1,7 +1,8 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
-import { UseCase } from '../../../../../shared/core/UseCase';
+import { BaseUseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
@@ -25,20 +26,20 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class RemoveCardFromLibraryUseCase
-  implements
-    UseCase<
-      RemoveCardFromLibraryDTO,
-      Result<
-        RemoveCardFromLibraryResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class RemoveCardFromLibraryUseCase extends BaseUseCase<
+  RemoveCardFromLibraryDTO,
+  Result<
+    RemoveCardFromLibraryResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private cardLibraryService: CardLibraryService,
-  ) {}
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
 
   async execute(
     request: RemoveCardFromLibraryDTO,
@@ -146,6 +147,16 @@ export class RemoveCardFromLibraryUseCase
         if (deleteResult.isErr()) {
           return err(AppError.UnexpectedError.create(deleteResult.error));
         }
+      }
+
+      // Publish events for the updated card (events are raised in removeFromLibrary method)
+      const publishCardResult = await this.publishEventsForAggregate(updatedCard);
+      if (publishCardResult.isErr()) {
+        console.error(
+          'Failed to publish events for removed card:',
+          publishCardResult.error,
+        );
+        // Don't fail the operation if event publishing fails
       }
 
       return ok({
