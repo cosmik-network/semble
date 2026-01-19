@@ -2,6 +2,7 @@ import {
   INotificationRepository,
   NotificationQueryOptions,
   PaginatedNotificationResult,
+  PaginatedEnrichedNotificationResult,
 } from '../../domain/INotificationRepository';
 import { Notification } from '../../domain/Notification';
 import { NotificationId } from '../../domain/value-objects/NotificationId';
@@ -134,6 +135,20 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     }
 
     return ok(markedCount);
+  }
+
+  async findByRecipientEnriched(
+    recipientId: CuratorId,
+    options: NotificationQueryOptions,
+  ): Promise<Result<PaginatedEnrichedNotificationResult>> {
+    // For testing purposes, return empty result
+    // In a real implementation, this would need to join with card and collection data
+    return ok({
+      notifications: [],
+      totalCount: 0,
+      hasMore: false,
+      unreadCount: 0,
+    });
   }
 
   async delete(id: NotificationId): Promise<Result<void>> {
