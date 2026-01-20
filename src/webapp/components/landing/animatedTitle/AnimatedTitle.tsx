@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Title, Text, Transition, Box } from '@mantine/core';
 
-const words = ['creators', 'researchers', 'designers', 'writers', 'thinkers'];
+const words = [
+  'creators',
+  'researchers',
+  'designers',
+  'writers',
+  'thinkers',
+  'you',
+];
 
 export default function AnimatedTitle() {
   const [index, setIndex] = useState(0);
