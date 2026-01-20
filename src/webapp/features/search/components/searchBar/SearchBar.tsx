@@ -5,7 +5,11 @@ import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
-export default function SearchBar() {
+interface Props {
+  variant?: 'compact' | 'large';
+}
+
+export default function SearchBar(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState('');

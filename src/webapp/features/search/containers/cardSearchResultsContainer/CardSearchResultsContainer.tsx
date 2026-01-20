@@ -8,12 +8,17 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Grid } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import { useNavbarContext } from '@/providers/navbar';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   query: string;
 }
 
 export default function CardSearchResultsContainer(props: Props) {
+  const { desktopOpened } = useNavbarContext();
+  const { settings } = useUserSettings();
+
   const [user, setUser] = useState();
   const [type, setType] = useState<UrlType>();
 
@@ -44,9 +49,18 @@ export default function CardSearchResultsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="xs" mx={'auto'} maw={600}>
+      <Grid gutter="xs" mx={'auto'}>
         {allUrls.map((urlView) => (
-          <Grid.Col key={urlView.url} span={12}>
+          <Grid.Col
+            key={urlView.url}
+            span={{
+              base: 12,
+              xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+              sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+              md: settings.cardView !== 'grid' ? 12 : 4,
+              lg: settings.cardView !== 'grid' ? 12 : 3,
+            }}
+          >
             <SimilarUrlCard urlView={urlView} />
           </Grid.Col>
         ))}

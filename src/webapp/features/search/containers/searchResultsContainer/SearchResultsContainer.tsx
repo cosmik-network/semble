@@ -1,6 +1,7 @@
 import {
   Box,
   Container,
+  ScrollAreaAutosize,
   Stack,
   Tabs,
   TabsList,
@@ -9,6 +10,7 @@ import {
   Text,
 } from '@mantine/core';
 import CardSearchResultsContainer from '../cardSearchResultsContainer/CardSearchResultsContainer';
+import ProfileSearchResultsContainer from '../profileSearchResultsContainer/ProfileSearchResultsContainer';
 
 interface Props {
   query: string;
@@ -26,15 +28,22 @@ export default function SearchResultsContainer(props: Props) {
               zIndex: 1,
             }}
           >
-            <TabsList justify="center" bg={'var(--mantine-color-body'} grow>
-              <TabsTab value="cards">Cards</TabsTab>
-              <TabsTab value="collections">Collections</TabsTab>
-              <TabsTab value="profiles">Profiles</TabsTab>
-            </TabsList>
+            <ScrollAreaAutosize type="scroll">
+              <TabsList bg={'var(--mantine-color-body'}>
+                <TabsTab value="cards">Cards</TabsTab>
+                <TabsTab value="collections">Collections</TabsTab>
+                <TabsTab value="profiles">Profiles</TabsTab>
+              </TabsList>
+            </ScrollAreaAutosize>
           </Box>
           <TabsPanel value="cards">
             <Container py="xs" px={0} size="xl">
               <CardSearchResultsContainer query={props.query} />
+            </Container>
+          </TabsPanel>
+          <TabsPanel value="profiles">
+            <Container py={'xs'} px={0} size={'xl'}>
+              <ProfileSearchResultsContainer query={props.query} />
             </Container>
           </TabsPanel>
         </Tabs>
