@@ -27,7 +27,9 @@ export default function SearchContainer() {
       <Container p="xs" size="xl">
         <Center h={'75svh'}>
           <Stack align="center" maw={600} w={'100%'}>
-            <Title order={2}>Let's find something great</Title>
+            <Title order={2} ta={'center'}>
+              Let's find something great
+            </Title>
             <SearchBar />
 
             <Group gap={'xs'}>
