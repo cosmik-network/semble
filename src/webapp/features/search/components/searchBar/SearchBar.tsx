@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  ActionIcon,
-  Button,
-  Card,
-  CloseButton,
-  Group,
-  TextInput,
-} from '@mantine/core';
+import { ActionIcon, Card, CloseButton, Group, TextInput } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -34,49 +27,14 @@ export default function SearchBar(props: Props) {
     router.push(`?${params.toString()}`);
   };
 
-  if (props.variant === 'compact') {
-    return (
-      <Card pr="6" py="2" radius="lg" w="100%" withBorder>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (search) onSearch();
-          }}
-        >
-          <Group gap="xs" justify="space-between" w="100%">
-            <TextInput
-              variant="unstyled"
-              placeholder={'Find cards, collections, and more'}
-              flex={1}
-              miw={200}
-              size="md"
-              value={search}
-              onChange={(e) => setSearch(e.currentTarget.value)}
-              rightSection={
-                <CloseButton
-                  radius={'xl'}
-                  aria-label="Clear input"
-                  onClick={() => setSearch('')}
-                  style={{ display: search ? undefined : 'none' }}
-                />
-              }
-            />
-            <ActionIcon
-              type="submit"
-              size={'lg'}
-              radius={'xl'}
-              disabled={!search}
-            >
-              <IoSearch size={20} />
-            </ActionIcon>
-          </Group>
-        </form>
-      </Card>
-    );
-  }
-
   return (
-    <Card pr="8" py="6" radius="lg" w="100%" withBorder>
+    <Card
+      px="6"
+      py={props.variant === 'compact' ? '2' : '6'}
+      radius="lg"
+      w="100%"
+      withBorder
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -86,7 +44,7 @@ export default function SearchBar(props: Props) {
         <Group gap="xs" justify="space-between" w="100%">
           <TextInput
             variant="unstyled"
-            placeholder="Find cards, collections, and more"
+            placeholder={'Find cards, collections, and more'}
             flex={1}
             miw={200}
             size="md"
@@ -101,9 +59,14 @@ export default function SearchBar(props: Props) {
               />
             }
           />
-          <Button type="submit" rightSection={<IoSearch />} disabled={!search}>
-            Search
-          </Button>
+          <ActionIcon
+            type="submit"
+            size={'lg'}
+            radius={'xl'}
+            disabled={!search}
+          >
+            <IoSearch size={20} />
+          </ActionIcon>
         </Group>
       </form>
     </Card>
