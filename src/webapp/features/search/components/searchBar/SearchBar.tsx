@@ -3,7 +3,7 @@
 import { ActionIcon, Card, CloseButton, Group, TextInput } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface Props {
   variant?: 'compact' | 'large';
@@ -14,6 +14,7 @@ export default function SearchBar(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(props.query ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -43,8 +44,9 @@ export default function SearchBar(props: Props) {
       >
         <Group gap="xs" justify="space-between" w="100%">
           <TextInput
+            ref={inputRef}
             variant="unstyled"
-            placeholder={'Find cards, collections, and more'}
+            placeholder="Find cards, collections, and more"
             flex={1}
             miw={200}
             size="md"
@@ -52,19 +54,20 @@ export default function SearchBar(props: Props) {
             onChange={(e) => setSearch(e.currentTarget.value)}
             rightSection={
               <CloseButton
-                radius={'xl'}
+                radius="xl"
                 aria-label="Clear input"
-                onClick={() => setSearch('')}
                 style={{ display: search ? undefined : 'none' }}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // don't blur
+                }}
+                onClick={() => {
+                  setSearch('');
+                  inputRef.current?.focus(); // refocus
+                }}
               />
             }
           />
-          <ActionIcon
-            type="submit"
-            size={'lg'}
-            radius={'xl'}
-            disabled={!search}
-          >
+          <ActionIcon type="submit" size="lg" radius="xl" disabled={!search}>
             <IoSearch size={20} />
           </ActionIcon>
         </Group>
