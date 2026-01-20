@@ -32,7 +32,7 @@ export default function SearchContainer() {
             </Title>
             <SearchBar />
 
-            <Group gap={'xs'}>
+            <Group gap={'xs'} justify="center">
               <Button
                 component={Link}
                 href={'explore'}
