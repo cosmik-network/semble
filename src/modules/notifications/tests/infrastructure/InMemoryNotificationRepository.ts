@@ -2,6 +2,7 @@ import {
   INotificationRepository,
   NotificationQueryOptions,
   PaginatedNotificationResult,
+  PaginatedEnrichedNotificationResult,
 } from '../../domain/INotificationRepository';
 import { Notification } from '../../domain/Notification';
 import { NotificationId } from '../../domain/value-objects/NotificationId';
@@ -105,6 +106,21 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(undefined);
   }
 
+  async findByCardAndActor(
+    cardId: string,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter(
+      (notification) =>
+        notification.metadata.cardId === cardId &&
+        notification.actorUserId.equals(actorUserId),
+    );
+
+    return ok(matchingNotifications);
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     let markedCount = 0;
 
@@ -119,5 +135,24 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     }
 
     return ok(markedCount);
+  }
+
+  async findByRecipientEnriched(
+    recipientId: CuratorId,
+    options: NotificationQueryOptions,
+  ): Promise<Result<PaginatedEnrichedNotificationResult>> {
+    // For testing purposes, return empty result
+    // In a real implementation, this would need to join with card and collection data
+    return ok({
+      notifications: [],
+      totalCount: 0,
+      hasMore: false,
+      unreadCount: 0,
+    });
+  }
+
+  async delete(id: NotificationId): Promise<Result<void>> {
+    this.notifications.delete(id.getStringValue());
+    return ok(undefined);
   }
 }

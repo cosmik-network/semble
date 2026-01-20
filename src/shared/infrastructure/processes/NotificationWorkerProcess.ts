@@ -6,6 +6,7 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { CardRemovedFromLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardRemovedFromLibraryEventHandler';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
@@ -43,6 +44,7 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       useCases.createNotificationUseCase,
       services.sagaStateStore,
       repositories.cardRepository,
+      repositories.notificationRepository,
     );
 
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
@@ -51,6 +53,8 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
       cardNotificationSaga,
     );
+    const cardRemovedFromLibraryHandler =
+      new CardRemovedFromLibraryEventHandler(cardNotificationSaga);
 
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -60,6 +64,11 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       cardAddedToCollectionHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_LIBRARY,
+      cardRemovedFromLibraryHandler,
     );
   }
 }

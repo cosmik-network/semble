@@ -8,6 +8,7 @@ import { CuratorId } from './value-objects/CuratorId';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { URL } from './value-objects/URL';
 import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
+import { CardRemovedFromLibraryEvent } from './events/CardRemovedFromLibraryEvent';
 
 export const CARD_ERROR_MESSAGES = {
   CARD_TYPE_CONTENT_MISMATCH: 'Card type must match content type',
@@ -293,6 +294,13 @@ export class Card extends AggregateRoot<CardProps> {
     );
     this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
+
+    // Raise domain event
+    const domainEvent = CardRemovedFromLibraryEvent.create(this.cardId, userId);
+    if (domainEvent.isErr()) {
+      return err(new CardValidationError(domainEvent.error.message));
+    }
+    this.addDomainEvent(domainEvent.value);
 
     return ok(undefined);
   }

@@ -9,6 +9,7 @@ import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionReposit
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { CardCollectionService } from '../../domain/services/CardCollectionService';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 
 describe('RemoveCardFromLibraryUseCase', () => {
   let useCase: RemoveCardFromLibraryUseCase;
@@ -20,6 +21,7 @@ describe('RemoveCardFromLibraryUseCase', () => {
   let cardLibraryService: CardLibraryService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
+  let eventPublisher: FakeEventPublisher;
 
   beforeEach(() => {
     cardRepository = InMemoryCardRepository.getInstance();
@@ -37,10 +39,12 @@ describe('RemoveCardFromLibraryUseCase', () => {
       collectionRepository,
       cardCollectionService,
     );
+    eventPublisher = new FakeEventPublisher();
 
     useCase = new RemoveCardFromLibraryUseCase(
       cardRepository,
       cardLibraryService,
+      eventPublisher,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();

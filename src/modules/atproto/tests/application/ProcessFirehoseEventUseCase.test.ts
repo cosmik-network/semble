@@ -96,6 +96,7 @@ describe('ProcessFirehoseEventUseCase', () => {
     removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
       cardRepository,
       cardLibraryService,
+      eventPublisher,
     );
 
     // Create use cases for collection processing
