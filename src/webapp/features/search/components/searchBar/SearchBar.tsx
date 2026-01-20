@@ -29,7 +29,7 @@ export default function SearchBar(props: Props) {
 
   return (
     <Card
-      px="6"
+      pr="6"
       py={props.variant === 'compact' ? '2' : '6'}
       radius="lg"
       w="100%"
