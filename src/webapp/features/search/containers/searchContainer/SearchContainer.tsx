@@ -5,7 +5,10 @@ import {
   Button,
   Center,
   Container,
+  Grid,
+  GridCol,
   Group,
+  Paper,
   Stack,
   Title,
   useMantineColorScheme,
@@ -28,9 +31,35 @@ export default function SearchContainer(props: Props) {
 
   if (props.query) {
     return (
-      <BackgroundImage src={bgSrc} h="75svh" top={0} left={0}>
-        <SearchResultsContainer query={props.query} />
-      </BackgroundImage>
+      <Grid style={{ height: '100vh' }} columns={1} gutter={0} grow>
+        <GridCol
+          span={12}
+          style={{
+            overflowY: 'auto',
+            paddingBottom: '80px',
+          }}
+        >
+          <SearchResultsContainer query={props.query} />
+        </GridCol>
+
+        <GridCol
+          span={12}
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+          }}
+          mx={'auto'}
+          py={'xs'}
+          maw={600}
+        >
+          <Paper shadow="md" radius={"lg"}>
+            <SearchBar />
+          </Paper>
+        </GridCol>
+      </Grid>
     );
   }
 

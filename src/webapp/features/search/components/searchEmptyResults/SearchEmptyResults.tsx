@@ -1,24 +1,25 @@
-import { Stack, Text, Center } from '@mantine/core';
+import { Stack, Text, Center, Title } from '@mantine/core';
 import { BiSearch } from 'react-icons/bi';
 
 interface Props {
   query: string;
-  type?: 'cards' | 'profiles';
+  type?: 'cards' | 'profiles' | 'collections';
 }
 
 export default function SearchEmptyResults(props: Props) {
-  const type = props.type || 'results';
-
   return (
     <Center py="xl">
-      <Stack align="center" gap="sm">
+      <Stack align="center" gap="xs">
         <BiSearch size={48} opacity={0.5} />
-        <Text size="lg" fw={500} c="dimmed">
-          No results found
-        </Text>
-        <Text size="sm" c="dimmed" ta="center">
-          No {type} found for "{props.query}". Try a different search term.
-        </Text>
+        <Stack align="center" gap={0}>
+          <Title order={2} size={'h3'} fw={600} c="dimmed">
+            No results found
+          </Title>
+          <Text fw={500} c="dimmed" ta="center">
+            No {props.type} found for "{props.query}". Try a different search
+            term.
+          </Text>
+        </Stack>
       </Stack>
     </Center>
   );
