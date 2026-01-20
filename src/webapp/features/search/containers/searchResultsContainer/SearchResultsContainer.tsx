@@ -21,6 +21,7 @@ import { Suspense } from 'react';
 import CollectionSearchResultsContainerSkeleton from '../collectionSearchResultsContainer/Skeleton.CollectionSearchResultsContainer';
 import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
 import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
+import SearchTabItem from '../../components/searchTabItem/SearchTabItem';
 
 interface Props {
   query: string;
@@ -45,18 +46,23 @@ export default function SearchResultsContainer(props: Props) {
             <ScrollAreaAutosize type="scroll">
               <TabsList>
                 <Group gap={0} wrap="nowrap">
-                  <TabsTab value="cards" leftSection={<FaRegNoteSticky />}>
-                    Cards
-                  </TabsTab>
-                  <TabsTab value="collections" leftSection={<BiCollection />}>
-                    Collections
-                  </TabsTab>
-                  <TabsTab
+                  <SearchTabItem
+                    value="cards"
+                    label="Cards"
+                    icon={<FaRegNoteSticky />}
+                  />
+
+                  <SearchTabItem
+                    value="collections"
+                    label="Collections"
+                    icon={<BiCollection />}
+                  />
+
+                  <SearchTabItem
                     value="profiles"
-                    leftSection={<MdOutlinePeopleAlt />}
-                  >
-                    Profiles
-                  </TabsTab>
+                    label="Profiles"
+                    icon={<MdOutlinePeopleAlt />}
+                  />
                 </Group>
               </TabsList>
             </ScrollAreaAutosize>
