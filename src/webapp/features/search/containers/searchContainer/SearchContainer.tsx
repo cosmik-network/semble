@@ -16,10 +16,23 @@ import { MdOutlineEmojiNature } from 'react-icons/md';
 import { BiCollection } from 'react-icons/bi';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
+import SearchResultsContainer from '../searchResultsContainer/SearchResultsContainer';
 
-export default function SearchContainer() {
+interface Props {
+  query?: string;
+}
+
+export default function SearchContainer(props: Props) {
   const { colorScheme } = useMantineColorScheme();
   const bgSrc = colorScheme === 'dark' ? DarkBG.src : BG.src;
+
+  if (props.query) {
+    return (
+      <BackgroundImage src={bgSrc} h="75svh" top={0} left={0}>
+        <SearchResultsContainer query={props.query} />
+      </BackgroundImage>
+    );
+  }
 
   return (
     <BackgroundImage src={bgSrc} h="75svh" top={0} left={0}>
