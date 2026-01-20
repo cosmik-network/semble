@@ -13,7 +13,7 @@ interface Props {
 export default function SearchBar(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState(props.query);
+  const [search, setSearch] = useState(props.query ?? '');
 
   const onSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
