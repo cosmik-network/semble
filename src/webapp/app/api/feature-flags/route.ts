@@ -12,6 +12,7 @@ export async function GET() {
       similarCards: false,
       cardSearch: false,
       urlTypeFilter: false,
+      animatedLandingTitle: false,
     });
   }
 }
