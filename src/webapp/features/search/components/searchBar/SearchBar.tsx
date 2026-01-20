@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, Card, Group, TextInput } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Card,
+  CloseButton,
+  Group,
+  TextInput,
+} from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -13,7 +20,7 @@ interface Props {
 export default function SearchBar(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(props.query);
 
   const onSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -29,7 +36,7 @@ export default function SearchBar(props: Props) {
 
   if (props.variant === 'compact') {
     return (
-      <Card px="6" py="2" radius="xl" w="100%" withBorder>
+      <Card pr="6" py="2" radius="xl" w="100%" withBorder>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -45,14 +52,23 @@ export default function SearchBar(props: Props) {
               size="md"
               value={search}
               onChange={(e) => setSearch(e.currentTarget.value)}
+              rightSection={
+                <CloseButton
+                  radius={'xl'}
+                  aria-label="Clear input"
+                  onClick={() => setSearch('')}
+                  style={{ display: search ? undefined : 'none' }}
+                />
+              }
             />
-            <Button
+            <ActionIcon
               type="submit"
-              rightSection={<IoSearch />}
+              size={'lg'}
+              radius={'xl'}
               disabled={!search}
             >
-              Search
-            </Button>
+              <IoSearch size={20} />
+            </ActionIcon>
           </Group>
         </form>
       </Card>
@@ -60,7 +76,7 @@ export default function SearchBar(props: Props) {
   }
 
   return (
-    <Card px="8" py="6" radius="xl" w="100%" withBorder>
+    <Card pr="8" py="6" radius="xl" w="100%" withBorder>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -76,6 +92,14 @@ export default function SearchBar(props: Props) {
             size="md"
             value={search}
             onChange={(e) => setSearch(e.currentTarget.value)}
+            rightSection={
+              <CloseButton
+                radius={'xl'}
+                aria-label="Clear input"
+                onClick={() => setSearch('')}
+                style={{ display: search ? undefined : 'none' }}
+              />
+            }
           />
           <Button type="submit" rightSection={<IoSearch />} disabled={!search}>
             Search

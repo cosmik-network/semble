@@ -1,22 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
-import useSemanticSearch from '../../lib/queries/useSemanticSearch';
-import { UrlType } from '@semble/types';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid } from '@mantine/core';
-import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 
 interface Props {
   query: string;
 }
 
-export default function CardSearchResultsContainer(props: Props) {
-  const [user, setUser] = useState();
-  const [type, setType] = useState<UrlType>();
-
+export default function CollectionSearchResultsContainer(props: Props) {
   const {
     data,
     error,
@@ -24,30 +19,31 @@ export default function CardSearchResultsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSemanticSearch({ query: props.query, userId: user });
+  } = useSearchCollections({ searchText: props.query });
 
-  const allUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
+  const allCollections =
+    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
     return <SearchResultsContainerError />;
   }
 
-  if (!isPending && allUrls.length === 0) {
+  if (!isPending && allCollections.length === 0) {
     return <SearchEmptyResults query={props.query} type="cards" />;
   }
 
   return (
     <InfiniteScroll
-      dataLength={allUrls.length}
+      dataLength={allCollections.length}
       hasMore={!!hasNextPage}
       isInitialLoading={isPending}
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
       <Grid gutter="xs">
-        {allUrls.map((urlView) => (
-          <Grid.Col key={urlView.url} span={12}>
-            <SimilarUrlCard urlView={urlView} />
+        {allCollections.map((collection) => (
+          <Grid.Col key={collection.id} span={12}>
+            <CollectionCard collection={collection} showAuthor />
           </Grid.Col>
         ))}
       </Grid>

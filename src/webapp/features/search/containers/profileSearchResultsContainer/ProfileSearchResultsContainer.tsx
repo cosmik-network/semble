@@ -39,7 +39,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="xs" mx={'auto'} maw={600}>
+      <Grid gutter="xs">
         {allProfiles.map((profile) => (
           <Grid.Col key={profile.did} span={12}>
             <ProfileCard profile={profile} />
