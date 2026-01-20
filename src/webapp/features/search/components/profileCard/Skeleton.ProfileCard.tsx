@@ -3,7 +3,7 @@ import { Avatar, Card, Group, Skeleton, Stack } from '@mantine/core';
 export default function ProfileCardSkeleton() {
   return (
     <Card withBorder radius={'lg'} p={'sm'} h={'100%'}>
-      <Stack gap={'xs'}>
+      <Stack gap={'md'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar />
 

@@ -65,21 +65,30 @@ export default function SearchResultsContainer(props: Props) {
 
         <TabsPanel value="cards">
           <Container py="xs" px={0} size="xl">
-            <Suspense fallback={<CardSearchResultsContainerSkeleton />}>
+            <Suspense
+              fallback={<CardSearchResultsContainerSkeleton />}
+              key={props.query}
+            >
               <CardSearchResultsContainer query={props.query} />
             </Suspense>
           </Container>
         </TabsPanel>
         <TabsPanel value="collections">
           <Container py={'xs'} px={0} size={'xl'}>
-            <Suspense fallback={<CollectionSearchResultsContainerSkeleton />}>
+            <Suspense
+              fallback={<CollectionSearchResultsContainerSkeleton />}
+              key={props.query}
+            >
               <CollectionSearchResultsContainer query={props.query} />
             </Suspense>
           </Container>
         </TabsPanel>
         <TabsPanel value="profiles">
           <Container py={'xs'} px={0} size={'xl'}>
-            <Suspense fallback={<ProfileSearchResultsContainerSkeleton />}>
+            <Suspense
+              fallback={<ProfileSearchResultsContainerSkeleton />}
+              key={props.query}
+            >
               <ProfileSearchResultsContainer query={props.query} />
             </Suspense>
           </Container>
