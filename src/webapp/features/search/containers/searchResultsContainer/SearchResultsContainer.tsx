@@ -17,6 +17,10 @@ import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import CollectionSearchResultsContainer from '../collectionSearchResultsContainer/CollectionSearchResultsContainer';
+import { Suspense } from 'react';
+import CollectionSearchResultsContainerSkeleton from '../collectionSearchResultsContainer/Skeleton.CollectionSearchResultsContainer';
+import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
+import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
 
 interface Props {
   query: string;
@@ -61,17 +65,23 @@ export default function SearchResultsContainer(props: Props) {
 
         <TabsPanel value="cards">
           <Container py="xs" px={0} size="xl">
-            <CardSearchResultsContainer query={props.query} />
+            <Suspense fallback={<CardSearchResultsContainerSkeleton />}>
+              <CardSearchResultsContainer query={props.query} />
+            </Suspense>
           </Container>
         </TabsPanel>
         <TabsPanel value="collections">
           <Container py={'xs'} px={0} size={'xl'}>
-            <CollectionSearchResultsContainer query={props.query} />
+            <Suspense fallback={<CollectionSearchResultsContainerSkeleton />}>
+              <CollectionSearchResultsContainer query={props.query} />
+            </Suspense>
           </Container>
         </TabsPanel>
         <TabsPanel value="profiles">
           <Container py={'xs'} px={0} size={'xl'}>
-            <ProfileSearchResultsContainer query={props.query} />
+            <Suspense fallback={<ProfileSearchResultsContainerSkeleton />}>
+              <ProfileSearchResultsContainer query={props.query} />
+            </Suspense>
           </Container>
         </TabsPanel>
       </Tabs>
