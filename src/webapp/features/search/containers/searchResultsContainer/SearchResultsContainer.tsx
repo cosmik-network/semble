@@ -11,6 +11,7 @@ import {
 } from '@mantine/core';
 import CardSearchResultsContainer from '../cardSearchResultsContainer/CardSearchResultsContainer';
 import ProfileSearchResultsContainer from '../profileSearchResultsContainer/ProfileSearchResultsContainer';
+import SearchBar from '../../components/searchBar/SearchBar';
 
 interface Props {
   query: string;
@@ -19,35 +20,38 @@ interface Props {
 export default function SearchResultsContainer(props: Props) {
   return (
     <Container p={'xs'} pt={0} size={'xl'}>
-      <Stack gap={'xs'}>
-        <Tabs defaultValue={'cards'}>
-          <Box
-            style={{
-              position: 'sticky',
-              top: 55,
-              zIndex: 1,
-            }}
-          >
-            <ScrollAreaAutosize type="scroll">
-              <TabsList bg={'var(--mantine-color-body'}>
-                <TabsTab value="cards">Cards</TabsTab>
-                <TabsTab value="collections">Collections</TabsTab>
-                <TabsTab value="profiles">Profiles</TabsTab>
-              </TabsList>
-            </ScrollAreaAutosize>
-          </Box>
-          <TabsPanel value="cards">
-            <Container py="xs" px={0} size="xl">
-              <CardSearchResultsContainer query={props.query} />
-            </Container>
-          </TabsPanel>
-          <TabsPanel value="profiles">
-            <Container py={'xs'} px={0} size={'xl'}>
-              <ProfileSearchResultsContainer query={props.query} />
-            </Container>
-          </TabsPanel>
-        </Tabs>
-      </Stack>
+      <Tabs defaultValue={'cards'} radius={'xl'}>
+        <Box
+          style={{
+            position: 'sticky',
+            top: 55,
+            zIndex: 1,
+          }}
+          pt={'xs'}
+          bg={'var(--mantine-color-body'}
+        >
+          <Stack gap={'xs'}>
+            <SearchBar variant="compact" />
+
+            <TabsList>
+              <TabsTab value="cards">Cards</TabsTab>
+              <TabsTab value="collections">Collections</TabsTab>
+              <TabsTab value="profiles">Profiles</TabsTab>
+            </TabsList>
+          </Stack>
+        </Box>
+
+        <TabsPanel value="cards">
+          <Container py="xs" px={0} size="xl">
+            <CardSearchResultsContainer query={props.query} />
+          </Container>
+        </TabsPanel>
+        <TabsPanel value="profiles">
+          <Container py={'xs'} px={0} size={'xl'}>
+            <ProfileSearchResultsContainer query={props.query} />
+          </Container>
+        </TabsPanel>
+      </Tabs>
     </Container>
   );
 }

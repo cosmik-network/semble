@@ -17,7 +17,7 @@ export default function SearchEmptyResults(props: Props) {
           </Title>
           <Text fw={500} c="dimmed" ta="center">
             No {props.type} found for "{props.query}". Try a different search
-            term.
+            term
           </Text>
         </Stack>
       </Stack>
