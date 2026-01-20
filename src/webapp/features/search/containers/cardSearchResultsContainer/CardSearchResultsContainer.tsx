@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
 import useSemanticSearch from '../../lib/queries/useSemanticSearch';

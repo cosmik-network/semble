@@ -5,8 +5,6 @@ import {
   Button,
   Center,
   Container,
-  Grid,
-  GridCol,
   Group,
   Paper,
   Stack,
@@ -19,49 +17,10 @@ import { MdOutlineEmojiNature } from 'react-icons/md';
 import { BiCollection } from 'react-icons/bi';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
-import SearchResultsContainer from '../searchResultsContainer/SearchResultsContainer';
 
-interface Props {
-  query?: string;
-}
-
-export default function SearchContainer(props: Props) {
+export default function SearchContainer() {
   const { colorScheme } = useMantineColorScheme();
   const bgSrc = colorScheme === 'dark' ? DarkBG.src : BG.src;
-
-  if (props.query) {
-    return (
-      <Grid style={{ height: '100vh' }} columns={1} gutter={0} grow>
-        <GridCol
-          span={12}
-          style={{
-            overflowY: 'auto',
-            paddingBottom: '80px',
-          }}
-        >
-          <SearchResultsContainer query={props.query} />
-        </GridCol>
-
-        <GridCol
-          span={12}
-          style={{
-            position: 'sticky',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1,
-          }}
-          mx={'auto'}
-          py={'xs'}
-          maw={600}
-        >
-          <Paper shadow="md" radius={"lg"}>
-            <SearchBar />
-          </Paper>
-        </GridCol>
-      </Grid>
-    );
-  }
 
   return (
     <BackgroundImage src={bgSrc} h="75svh" top={0} left={0}>

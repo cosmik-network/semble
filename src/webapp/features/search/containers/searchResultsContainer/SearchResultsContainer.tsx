@@ -1,4 +1,5 @@
 import {
+  Box,
   Container,
   Stack,
   Tabs,
@@ -15,20 +16,22 @@ interface Props {
 
 export default function SearchResultsContainer(props: Props) {
   return (
-    <Container p={'xs'} size={'xl'} >
+    <Container p={'xs'} pt={0} size={'xl'}>
       <Stack gap={'xs'}>
-        <Text fw={500} c={'gray'}>
-          Search results for:{' '}
-          <Text fw={600} c={'dark'} span>
-            {props.query}
-          </Text>
-        </Text>
         <Tabs defaultValue={'cards'}>
-          <TabsList>
-            <TabsTab value="cards">Cards</TabsTab>
-            <TabsTab value="collections">Collections</TabsTab>
-            <TabsTab value="profiles">Profiles</TabsTab>
-          </TabsList>
+          <Box
+            style={{
+              position: 'sticky',
+              top: 55,
+              zIndex: 1,
+            }}
+          >
+            <TabsList justify="center" bg={'var(--mantine-color-body'} grow>
+              <TabsTab value="cards">Cards</TabsTab>
+              <TabsTab value="collections">Collections</TabsTab>
+              <TabsTab value="profiles">Profiles</TabsTab>
+            </TabsList>
+          </Box>
           <TabsPanel value="cards">
             <Container py="xs" px={0} size="xl">
               <CardSearchResultsContainer query={props.query} />
