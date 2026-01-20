@@ -36,7 +36,7 @@ export default function SearchBar(props: Props) {
 
   if (props.variant === 'compact') {
     return (
-      <Card pr="6" py="2" radius="xl" w="100%" withBorder>
+      <Card pr="6" py="2" radius="lg" w="100%" withBorder>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -76,7 +76,7 @@ export default function SearchBar(props: Props) {
   }
 
   return (
-    <Card pr="8" py="6" radius="xl" w="100%" withBorder>
+    <Card pr="8" py="6" radius="lg" w="100%" withBorder>
       <form
         onSubmit={(e) => {
           e.preventDefault();

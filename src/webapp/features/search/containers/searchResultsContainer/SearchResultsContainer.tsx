@@ -25,7 +25,7 @@ interface Props {
 export default function SearchResultsContainer(props: Props) {
   return (
     <Container p={'xs'} pt={0} size={'sm'}>
-      <Tabs defaultValue={'cards'}>
+      <Tabs defaultValue={'cards'} keepMounted={false}>
         <Box
           style={{
             position: 'sticky',
