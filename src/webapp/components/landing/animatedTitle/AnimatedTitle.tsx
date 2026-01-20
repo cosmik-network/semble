@@ -36,7 +36,7 @@ export default function AnimatedTitle() {
       >
         <Transition
           mounted={opened}
-          transition="slide-up"
+          transition="fade"
           duration={400}
           timingFunction="ease"
         >
