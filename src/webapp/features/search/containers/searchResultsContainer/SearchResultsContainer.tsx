@@ -1,7 +1,5 @@
 import {
-  Alert,
   Box,
-  Card,
   Container,
   Group,
   ScrollAreaAutosize,
@@ -9,8 +7,6 @@ import {
   Tabs,
   TabsList,
   TabsPanel,
-  TabsTab,
-  Text,
 } from '@mantine/core';
 import CardSearchResultsContainer from '../cardSearchResultsContainer/CardSearchResultsContainer';
 import ProfileSearchResultsContainer from '../profileSearchResultsContainer/ProfileSearchResultsContainer';
