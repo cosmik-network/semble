@@ -315,6 +315,7 @@ export function Actions() {
       <Group justify="space-between" gap={'xs'} grow>
         <Button
           variant="light"
+          size="md"
           color="gray"
           onClick={() => ctx.setOpened(false)}
         >
@@ -322,12 +323,17 @@ export function Actions() {
         </Button>
 
         {hasAnyActiveFilters && (
-          <Button variant="light" color="red" onClick={handleClear}>
+          <Button variant="light" size="md" color="red" onClick={handleClear}>
             Clear all
           </Button>
         )}
 
-        <Button variant="filled" onClick={handleApply} disabled={isInvalid}>
+        <Button
+          variant="filled"
+          size="md"
+          onClick={handleApply}
+          disabled={isInvalid}
+        >
           Apply
         </Button>
       </Group>
