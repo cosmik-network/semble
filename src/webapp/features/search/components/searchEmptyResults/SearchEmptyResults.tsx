@@ -13,11 +13,10 @@ export default function SearchEmptyResults(props: Props) {
         <BiSearch size={48} opacity={0.5} />
         <Stack align="center" gap={0}>
           <Title order={2} size={'h3'} fw={600} c="dimmed">
-            No results found
+            No {props.type} found
           </Title>
           <Text fw={500} c="dimmed" ta="center">
-            No {props.type} found for "{props.query}". Try a different search
-            term
+            Try a different search term
           </Text>
         </Stack>
       </Stack>
