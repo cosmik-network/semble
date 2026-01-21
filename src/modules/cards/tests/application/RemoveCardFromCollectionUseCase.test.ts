@@ -214,7 +214,43 @@ describe('RemoveCardFromCollectionUseCase', () => {
       }
     });
 
-    it('should allow removal from open collection by any user', async () => {
+    it('should allow removal from open collection by collection author (can remove any card)', async () => {
+      const card = await createCard();
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Open Collection')
+        .withAccessType('OPEN')
+        .withPublished(true)
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add card to collection (as collection owner)
+      await addCardToCollection(card, collection, curatorId);
+
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from collection
+      const removedLinks = collectionPublisher.getRemovedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(removedLinks).toHaveLength(1);
+      expect(removedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
+    });
+
+    it('should allow removal from open collection by non-author (can remove any card)', async () => {
       const card = await createCard();
       const collection = new CollectionBuilder()
         .withAuthorId(otherCuratorId.value)
@@ -241,14 +277,29 @@ describe('RemoveCardFromCollectionUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from collection
+      const removedLinks = collectionPublisher.getRemovedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(removedLinks).toHaveLength(1);
+      expect(removedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
     });
 
-    it('should allow collection author to remove any card', async () => {
+    it('should allow collection author to remove any card from closed collection', async () => {
       const card = await createCard();
-      const collection = await createCollection(
-        curatorId,
-        "Author's Collection",
-      );
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Closed Collection')
+        .withAccessType('CLOSED')
+        .withPublished(true)
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
 
       await addCardToCollection(card, collection, curatorId);
 
@@ -261,6 +312,110 @@ describe('RemoveCardFromCollectionUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from collection
+      const removedLinks = collectionPublisher.getRemovedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(removedLinks).toHaveLength(1);
+      expect(removedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
+    });
+
+    it('should allow collaborator to remove cards from closed collection', async () => {
+      const card = await createCard();
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Closed Collaborative Collection')
+        .withAccessType('CLOSED')
+        .withCollaborators([curatorId.value])
+        .withPublished(true)
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add card to collection first (as collection owner)
+      await addCardToCollection(card, collection, otherCuratorId);
+
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from collection
+      const removedLinks = collectionPublisher.getRemovedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(removedLinks).toHaveLength(1);
+      expect(removedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
+    });
+
+    it('should handle mixed collection permissions when removing cards', async () => {
+      const card = await createCard();
+
+      // Create an open collection and a closed collection without permission
+      const openCollection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Open Collection')
+        .withAccessType('OPEN')
+        .withPublished(true)
+        .build();
+
+      const closedCollection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Closed Collection')
+        .withAccessType('CLOSED')
+        .withPublished(true)
+        .build();
+
+      if (
+        openCollection instanceof Error ||
+        closedCollection instanceof Error
+      ) {
+        throw new Error('Failed to create collections');
+      }
+
+      await collectionRepository.save(openCollection);
+      await collectionRepository.save(closedCollection);
+
+      // Add card to both collections (as collection owner)
+      await addCardToCollection(card, openCollection, otherCuratorId);
+      await addCardToCollection(card, closedCollection, otherCuratorId);
+
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        collectionIds: [
+          openCollection.collectionId.getStringValue(),
+          closedCollection.collectionId.getStringValue(),
+        ],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('does not have permission');
+      }
+
+      // Verify no cards were removed from either collection
+      const openRemovedLinks = collectionPublisher.getRemovedLinksForCollection(
+        openCollection.collectionId.getStringValue(),
+      );
+      const closedRemovedLinks =
+        collectionPublisher.getRemovedLinksForCollection(
+          closedCollection.collectionId.getStringValue(),
+        );
+      expect(openRemovedLinks).toHaveLength(0);
+      expect(closedRemovedLinks).toHaveLength(0);
     });
   });
 

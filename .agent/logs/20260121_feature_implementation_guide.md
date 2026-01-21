@@ -5,6 +5,7 @@ This guide outlines the standard pattern for implementing a complete feature in 
 ## Overview
 
 Each feature follows a consistent layered architecture:
+
 - **API Client** - TypeScript types and client methods
 - **HTTP Layer** - Controllers and routes
 - **Application Layer** - Use cases (business logic)
@@ -18,6 +19,7 @@ Each feature follows a consistent layered architecture:
 Start by defining the request/response types that will be used across the API:
 
 **Request Types** (`requests.ts`):
+
 ```typescript
 export interface MyFeatureRequest {
   param1: string;
@@ -26,6 +28,7 @@ export interface MyFeatureRequest {
 ```
 
 **Response Types** (`responses.ts`):
+
 ```typescript
 export interface MyFeatureResponse {
   id: string;
@@ -68,11 +71,11 @@ export class MyFeatureController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     const result = await this.useCase.execute(req.body);
-    
+
     if (result.isErr()) {
       return this.fail(res, result.error);
     }
-    
+
     return this.ok(res, result.value);
   }
 }
@@ -91,6 +94,7 @@ router.post('/my-feature', authMiddleware.ensureAuthenticated(), (req, res) =>
 ### 5. Wire Dependencies (`src/shared/infrastructure/http/factories/`)
 
 **UseCaseFactory.ts** - Add use case instantiation:
+
 ```typescript
 myFeatureUseCase: new MyFeatureUseCase(
   repositories.myRepository,
@@ -100,6 +104,7 @@ myFeatureUseCase: new MyFeatureUseCase(
 ```
 
 **ControllerFactory.ts** - Add controller instantiation:
+
 ```typescript
 myFeatureController: new MyFeatureController(
   useCases.myFeatureUseCase,
@@ -109,6 +114,7 @@ myFeatureController: new MyFeatureController(
 ### 6. Add API Client Method (`src/webapp/api-client/`)
 
 **Client Class** (`clients/MyClient.ts`):
+
 ```typescript
 export class MyClient extends BaseClient {
   async myFeature(request: MyFeatureRequest): Promise<MyFeatureResponse> {
@@ -118,6 +124,7 @@ export class MyClient extends BaseClient {
 ```
 
 **Main API Client** (`ApiClient.ts`):
+
 ```typescript
 async myFeature(request: MyFeatureRequest): Promise<MyFeatureResponse> {
   return this.myClient.myFeature(request);
@@ -127,31 +134,37 @@ async myFeature(request: MyFeatureRequest): Promise<MyFeatureResponse> {
 ## Key Patterns
 
 ### Repository Pattern
+
 - Interface in domain layer (`src/modules/{module}/domain/`)
 - Implementation in infrastructure layer (`src/modules/{module}/infrastructure/repositories/`)
 - Both real (Drizzle) and in-memory test implementations
 
 ### Domain Services
+
 - Business logic that doesn't belong to a single entity
 - Located in `src/modules/{module}/domain/services/`
 - Injected into use cases
 
 ### Value Objects
+
 - Immutable objects representing domain concepts
 - Located in `src/modules/{module}/domain/value-objects/`
 - Include validation logic
 
 ### Error Handling
+
 - Use `Result<T, E>` pattern for error handling
 - Custom error types extend `UseCaseError`
 - Controllers handle different error types appropriately
 
 ### Authentication
+
 - Use `AuthMiddleware.ensureAuthenticated()` for protected routes
 - Use `AuthMiddleware.optionalAuth()` for routes that work with/without auth
 - Access user DID via `req.did` in controllers
 
 ### Event Publishing
+
 - Use cases extend `BaseUseCase` for event publishing
 - Call `this.publishEventsForAggregate(entity)` after operations
 - Events are handled by separate worker processes
