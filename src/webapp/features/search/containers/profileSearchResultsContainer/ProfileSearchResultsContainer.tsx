@@ -6,6 +6,7 @@ import { Grid } from '@mantine/core';
 import ProfileSearchResultsContainerError from './Error.ProfileSearchResultsContainer';
 import ProfileCard from '../../components/profileCard/ProfileCard';
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
+import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 
 interface Props {
   query: string;
@@ -39,6 +40,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
+      <SearchQueryAlert query={props.query} />
       <Grid gutter="xs">
         {allProfiles.map((profile) => (
           <Grid.Col key={profile.did} span={12}>

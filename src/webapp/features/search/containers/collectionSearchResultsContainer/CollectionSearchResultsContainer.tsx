@@ -6,6 +6,7 @@ import { Grid } from '@mantine/core';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 
 interface Props {
   query: string;
@@ -40,6 +41,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
+      <SearchQueryAlert query={props.query} />
       <Grid gutter="xs">
         {allCollections.map((collection) => (
           <Grid.Col key={collection.id} span={12}>

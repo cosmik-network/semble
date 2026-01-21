@@ -9,7 +9,7 @@ import { Grid, Group } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
-import UsernameSearch from '../../components/usernameSearch/UsernameSearch';
+import { SearchFilters } from '../../components/searchFilters/SearchFilters';
 
 interface Props {
   query: string;
@@ -46,8 +46,11 @@ export default function CardSearchResultsContainer(props: Props) {
     >
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
         <SearchQueryAlert query={props.query} handle={props.handle} />
-
-        <UsernameSearch />
+        <SearchFilters.Root>
+          <SearchFilters.ProfileFilter />
+          <SearchFilters.UrlTypeFilter />
+          <SearchFilters.Actions />
+        </SearchFilters.Root>
       </Group>
       <Grid gutter="xs">
         {allUrls.map((urlView) => (

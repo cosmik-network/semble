@@ -15,13 +15,11 @@ import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import CollectionSearchResultsContainer from '../collectionSearchResultsContainer/CollectionSearchResultsContainer';
-import { Suspense } from 'react';
 import CollectionSearchResultsContainerSkeleton from '../collectionSearchResultsContainer/Skeleton.CollectionSearchResultsContainer';
 import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
 import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
 import SearchTabItem from '../../components/searchTabItem/SearchTabItem';
-import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
-import UsernameSearch from '../../components/usernameSearch/UsernameSearch';
+import { Suspense } from 'react';
 
 interface Props {
   query: string;
@@ -89,10 +87,7 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<CollectionSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <Stack gap={'xs'}>
-                <SearchQueryAlert query={props.query} />
-                <CollectionSearchResultsContainer query={props.query} />
-              </Stack>
+              <CollectionSearchResultsContainer query={props.query} />
             </Suspense>
           </Container>
         </TabsPanel>
@@ -102,10 +97,7 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<ProfileSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <Stack gap={'xs'}>
-                <SearchQueryAlert query={props.query} />
-                <ProfileSearchResultsContainer query={props.query} />
-              </Stack>
+              <ProfileSearchResultsContainer query={props.query} />
             </Suspense>
           </Container>
         </TabsPanel>
