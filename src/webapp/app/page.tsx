@@ -31,6 +31,8 @@ import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import { useOs } from '@mantine/hooks';
+import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function Home() {
   return (
@@ -50,6 +52,7 @@ export default function Home() {
 
 function Content() {
   const os = useOs();
+  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <>
@@ -92,32 +95,22 @@ function Content() {
         <Container size="xl" p="md" my="auto">
           <Stack align="center" gap="5rem">
             <Stack gap="xs" align="center" maw={550} mx="auto">
-              <Title order={1} fw={600} fz="3rem" ta="center">
-                A social knowledge network for researchers
-              </Title>
+              {featureFlags?.animatedLandingTitle ? (
+                <AnimatedTitle />
+              ) : (
+                <Title order={1} fw={600} fz="3rem" ta="center">
+                  A social knowledge network for researchers
+                </Title>
+              )}
 
               {/* light mode subtitle */}
-              <Title
-                order={2}
-                fw={600}
-                fz="xl"
-                c="#1F6144"
-                ta="center"
-                darkHidden
-              >
+              <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
 
               {/* dark mode subtitle */}
-              <Title
-                order={2}
-                fw={600}
-                fz="xl"
-                c="#1e4dd9"
-                ta="center"
-                lightHidden
-              >
+              <Title order={2} fw={600} fz="xl" c="#1e4dd9" lightHidden>
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
