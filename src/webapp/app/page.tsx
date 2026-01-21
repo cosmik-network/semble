@@ -32,7 +32,6 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import { useOs } from '@mantine/hooks';
 import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function Home() {
   const fadeStyle = {
@@ -71,7 +70,6 @@ export default function Home() {
 
 function Content() {
   const os = useOs();
-  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <>
@@ -113,14 +111,8 @@ function Content() {
       <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="md" my="auto">
           <Stack align="center" gap="5rem">
-            <Stack gap="xs" align="center" maw={550} mx="auto">
-              {featureFlags?.animatedLandingTitle ? (
-                <AnimatedTitle />
-              ) : (
-                <Title order={1} fw={600} fz="3rem" ta="center">
-                  A social knowledge network for researchers
-                </Title>
-              )}
+            <Stack gap="xs" maw={550} mx="auto">
+              <AnimatedTitle />
 
               {/* light mode subtitle */}
               <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
