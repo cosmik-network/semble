@@ -236,7 +236,7 @@ export function UrlTypeFilter() {
         Content type
       </Text>
       <ScrollArea scrollbars="x" offsetScrollbars={false} scrollbarSize={0}>
-        <Group gap={8} wrap="nowrap" pb="xs">
+        <Group gap={'xs'} wrap="nowrap" pb="xs">
           <Button
             size="sm"
             color="lime"
