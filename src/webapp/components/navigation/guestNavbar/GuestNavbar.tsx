@@ -39,7 +39,7 @@ export default function GuestNavbar() {
         <Stack mt={'xl'}>
           <Stack>
             <Text fw={600} fz={'xl'}>
-              A social knowledge network for researchers
+              A social knowledge network for research
             </Text>
             <Group grow>
               <Button component={Link} href="/signup">
