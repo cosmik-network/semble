@@ -35,18 +35,37 @@ import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function Home() {
-  return (
-    <>
-      {/* light mode background */}
-      <BackgroundImage src={BG.src} darkHidden h="100svh">
-        <Content />
-      </BackgroundImage>
+  const fadeStyle = {
+    inset: 0,
+    WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    maskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    zIndex: 0,
+  };
 
-      {/* dark mode background */}
-      <BackgroundImage src={DarkBG.src} lightHidden h="100svh">
+  return (
+    <Box component="section" pos="relative" h="100svh" w="100%">
+      {/* light mode bg */}
+      <BackgroundImage
+        src={BG.src}
+        darkHidden
+        h="100svh"
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      {/* dark mode bg */}
+      <BackgroundImage
+        src={DarkBG.src}
+        lightHidden
+        h="100svh"
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      <Box pos="relative" style={{ zIndex: 1 }}>
         <Content />
-      </BackgroundImage>
-    </>
+      </Box>
+    </Box>
   );
 }
 

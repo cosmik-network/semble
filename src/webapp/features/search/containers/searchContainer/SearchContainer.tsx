@@ -1,5 +1,6 @@
 import {
   BackgroundImage,
+  Box,
   Button,
   Center,
   Container,
@@ -53,15 +54,35 @@ function Content() {
 }
 
 export default function SearchContainer() {
-  return (
-    <Fragment>
-      <BackgroundImage src={BG.src} darkHidden h="75svh" top={0} left={0}>
-        <Content />
-      </BackgroundImage>
+  const fadeStyle = {
+    inset: 0,
+    WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    maskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    zIndex: 0,
+  };
 
-      <BackgroundImage src={DarkBG.src} lightHidden h="75svh" top={0} left={0}>
+  return (
+    <Box component="section" pos="relative" h="100svh" w="100%">
+      {/* light mode bg */}
+      <BackgroundImage
+        src={BG.src}
+        darkHidden
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      {/* dark mode bg */}
+      <BackgroundImage
+        src={DarkBG.src}
+        lightHidden
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      {/* content positioned relative and higher z-index to stay sharp */}
+      <Box pos="relative" style={{ zIndex: 1 }}>
         <Content />
-      </BackgroundImage>
-    </Fragment>
+      </Box>
+    </Box>
   );
 }
