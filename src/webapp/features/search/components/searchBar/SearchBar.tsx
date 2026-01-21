@@ -42,13 +42,12 @@ export default function SearchBar(props: Props) {
           if (search) onSearch();
         }}
       >
-        <Group gap="xs" justify="space-between" w="100%">
+        <Group gap="xs" justify="space-between" wrap="nowrap" w="100%">
           <TextInput
             ref={inputRef}
             variant="unstyled"
             placeholder="Find cards, collections, and more"
             flex={1}
-            miw={200}
             size="md"
             value={search}
             onChange={(e) => setSearch(e.currentTarget.value)}

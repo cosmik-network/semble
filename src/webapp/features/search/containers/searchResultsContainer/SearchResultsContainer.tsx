@@ -1,5 +1,7 @@
 import {
+  Alert,
   Box,
+  Card,
   Container,
   Group,
   ScrollAreaAutosize,
@@ -22,6 +24,7 @@ import CollectionSearchResultsContainerSkeleton from '../collectionSearchResults
 import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
 import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
 import SearchTabItem from '../../components/searchTabItem/SearchTabItem';
+import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 
 interface Props {
   query: string;
@@ -41,7 +44,10 @@ export default function SearchResultsContainer(props: Props) {
           bg={'var(--mantine-color-body'}
         >
           <Stack gap={'xs'}>
-            <SearchBar variant="compact" query={props.query} />
+            <Group wrap="nowrap">
+              <SearchBar variant="compact" query={props.query} />
+              test
+            </Group>
 
             <ScrollAreaAutosize type="scroll">
               <TabsList>
@@ -75,7 +81,10 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<CardSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <CardSearchResultsContainer query={props.query} />
+              <Stack gap={'xs'}>
+                <SearchQueryAlert query={props.query} />
+                <CardSearchResultsContainer query={props.query} />
+              </Stack>
             </Suspense>
           </Container>
         </TabsPanel>
@@ -85,7 +94,10 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<CollectionSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <CollectionSearchResultsContainer query={props.query} />
+              <Stack gap={'xs'}>
+                <SearchQueryAlert query={props.query} />
+                <CollectionSearchResultsContainer query={props.query} />
+              </Stack>
             </Suspense>
           </Container>
         </TabsPanel>
@@ -95,7 +107,10 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<ProfileSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <ProfileSearchResultsContainer query={props.query} />
+              <Stack gap={'xs'}>
+                <SearchQueryAlert query={props.query} />
+                <ProfileSearchResultsContainer query={props.query} />
+              </Stack>
             </Suspense>
           </Container>
         </TabsPanel>
