@@ -60,7 +60,7 @@ export function Root(props: { children: ReactNode }) {
   const searchParams = useSearchParams();
 
   const appliedHandle = searchParams.get('handle') ?? '';
-  const appliedType = searchParams.get('type') as UrlType | null;
+  const appliedType = searchParams.get('urlType') as UrlType | null;
 
   const [searchQuery, setSearchQuery] = useState(appliedHandle);
   const [selectedHandle, setSelectedHandle] = useState(appliedHandle);
@@ -288,8 +288,8 @@ export function Actions() {
     if (ctx.selectedHandle) params.set('handle', ctx.selectedHandle);
     else params.delete('handle');
 
-    if (ctx.localType) params.set('type', ctx.localType);
-    else params.delete('type');
+    if (ctx.localType) params.set('urlType', ctx.localType);
+    else params.delete('urlType');
 
     router.replace(`?${params.toString()}`, { scroll: false });
     ctx.setOpened(false);
@@ -298,7 +298,7 @@ export function Actions() {
   const handleClear = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('handle');
-    params.delete('type');
+    params.delete('urlType');
 
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
