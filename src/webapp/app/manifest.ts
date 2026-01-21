@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Semble',
     short_name: 'Semble',
-    description: 'A social knowledge network for researchers',
+    description: 'A social knowledge network for research',
     start_url: '/home',
     display: 'standalone',
     background_color: '#ffffff',

@@ -67,7 +67,7 @@ function Content() {
 
           <Stack>
             <Text fz={'h1'} fw={600} ta={'center'}>
-              A social knowledge network for researchers
+              A social knowledge network for research
             </Text>
             <Text fz={'h3'} fw={600} c={'#1e4dd9'} ta={'center'} lightHidden>
               Follow your peers’ research trails. Surface and discover new

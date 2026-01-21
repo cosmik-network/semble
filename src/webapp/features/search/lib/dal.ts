@@ -1,4 +1,5 @@
 import { createSembleClient } from '@/services/client.apiClient';
+import { UrlType } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -8,7 +9,7 @@ interface PageParams {
 
 interface SemanticSearchParams extends PageParams {
   threshold?: number;
-  urlType?: string;
+  urlType?: UrlType;
   userId?: string;
 }
 

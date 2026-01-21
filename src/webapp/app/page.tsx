@@ -31,20 +31,40 @@ import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import { useOs } from '@mantine/hooks';
+import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
 
 export default function Home() {
-  return (
-    <>
-      {/* light mode background */}
-      <BackgroundImage src={BG.src} darkHidden h="100svh">
-        <Content />
-      </BackgroundImage>
+  const fadeStyle = {
+    inset: 0,
+    WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    maskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    zIndex: 0,
+  };
 
-      {/* dark mode background */}
-      <BackgroundImage src={DarkBG.src} lightHidden h="100svh">
+  return (
+    <Box component="section" pos="relative" h="100svh" w="100%">
+      {/* light mode bg */}
+      <BackgroundImage
+        src={BG.src}
+        darkHidden
+        h="100svh"
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      {/* dark mode bg */}
+      <BackgroundImage
+        src={DarkBG.src}
+        lightHidden
+        h="100svh"
+        pos={'absolute'}
+        style={fadeStyle}
+      />
+
+      <Box pos="relative" style={{ zIndex: 1 }}>
         <Content />
-      </BackgroundImage>
-    </>
+      </Box>
+    </Box>
   );
 }
 
@@ -91,33 +111,17 @@ function Content() {
       <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="md" my="auto">
           <Stack align="center" gap="5rem">
-            <Stack gap="xs" align="center" maw={550} mx="auto">
-              <Title order={1} fw={600} fz="3rem" ta="center">
-                A social knowledge network for researchers
-              </Title>
+            <Stack gap="xs" maw={550} mx="auto">
+              <AnimatedTitle />
 
               {/* light mode subtitle */}
-              <Title
-                order={2}
-                fw={600}
-                fz="xl"
-                c="#1F6144"
-                ta="center"
-                darkHidden
-              >
+              <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
 
               {/* dark mode subtitle */}
-              <Title
-                order={2}
-                fw={600}
-                fz="xl"
-                c="#1e4dd9"
-                ta="center"
-                lightHidden
-              >
+              <Title order={2} fw={600} fz="xl" c="#1e4dd9" lightHidden>
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
@@ -190,8 +194,8 @@ function Content() {
                     See the bigger picture.
                   </Text>{' '}
                   <Text fw={500} fz="lg" c="dark.2" span>
-                    Find relevant research based on your network. Get the extra
-                    context that matters before you dive into a long read.
+                    Find what's relevant through your network. Get the extra
+                    context that matters before you dive into content.
                   </Text>
                 </Text>
               </Stack>

@@ -53,14 +53,11 @@ export class BullMQEventPublisher implements IEventPublisher {
   private getTargetQueues(eventName: EventName): QueueName[] {
     switch (eventName) {
       case EventNames.CARD_ADDED_TO_LIBRARY:
-        return [
-          QueueNames.FEEDS,
-          QueueNames.SEARCH,
-          QueueNames.ANALYTICS,
-          QueueNames.NOTIFICATIONS,
-        ];
+        return [QueueNames.FEEDS, QueueNames.SEARCH, QueueNames.NOTIFICATIONS];
       case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS];
+      case EventNames.CARD_REMOVED_FROM_LIBRARY:
+        return [QueueNames.NOTIFICATIONS];
       default:
         return [QueueNames.FEEDS];
     }
