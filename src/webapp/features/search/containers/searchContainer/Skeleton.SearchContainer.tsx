@@ -1,14 +1,24 @@
-import { Container, Stack, Skeleton, Group } from '@mantine/core';
+import { BackgroundImage, Center, Loader, Stack } from '@mantine/core';
+import BG from '@/assets/semble-bg.webp';
+import DarkBG from '@/assets/semble-bg-dark.png';
 
 export default function SearchContainerSkeleton() {
   return (
-    <Container p="xs" size="xl">
-      <Stack gap="lg">
-        <Group gap="xs">
-          <Skeleton flex={1} h={36} />
-          <Skeleton w={80} h={36} />
-        </Group>
-      </Stack>
-    </Container>
+    <>
+      <BackgroundImage src={BG.src} darkHidden h="75svh" top={0} left={0}>
+        <Center h={'75svh'} p={'sm'}>
+          <Stack align="center">
+            <Loader type="dots" />
+          </Stack>
+        </Center>
+      </BackgroundImage>
+      <BackgroundImage src={DarkBG.src} lightHidden h="75svh" top={0} left={0}>
+        <Center h={'75svh'} p={'sm'}>
+          <Stack align="center">
+            <Loader type="dots" />
+          </Stack>
+        </Center>
+      </BackgroundImage>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import { Fragment } from 'react';
 
 export const metadata: Metadata = {
   title: 'Search',
-  description: 'Search for cards',
+  description: 'Search for cards, collections, and more',
 };
 
 interface Props {
