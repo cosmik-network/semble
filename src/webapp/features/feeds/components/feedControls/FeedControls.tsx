@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { BiCollection } from 'react-icons/bi';
 import FeedFilters from '../feedFilters/FeedFilters';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const options = [
   { value: 'explore', label: 'Latest', href: '/explore' },
@@ -25,7 +24,6 @@ const options = [
 export default function FeedControls() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: featureFlags } = useFeatureFlags();
 
   const segment = pathname.split('/')[2];
   const currentValue = segment || 'explore';
@@ -89,7 +87,7 @@ export default function FeedControls() {
             </Button>
           )}
         </Group>
-        {featureFlags?.urlTypeFilter && <FeedFilters />}
+        <FeedFilters />
       </Group>
     </ScrollAreaAutosize>
   );
