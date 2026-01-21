@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { Result, err, ok } from 'src/shared/core/Result';
 import {
   ITokenRepository,
@@ -114,6 +114,88 @@ export class DrizzleTokenRepository implements ITokenRepository {
     } catch (error: any) {
       console.log(
         `[DrizzleTokenRepository] Failed to revoke refresh token: ${error.message}`,
+      );
+      return err(error);
+    }
+  }
+
+  /**
+   * Atomically finds a refresh token with row-level lock, saves a new token, and revokes the old one.
+   * This prevents concurrent refresh operations from creating duplicate tokens.
+   */
+  async atomicRefreshTokenOperation(
+    oldRefreshToken: string,
+    newToken: RefreshToken,
+  ): Promise<Result<RefreshToken | null>> {
+    try {
+      const tokenPreview = '...' + oldRefreshToken.slice(-8);
+      console.log(
+        `[DrizzleTokenRepository] Starting atomic refresh for token: ${tokenPreview}`,
+      );
+
+      return await this.db.transaction(async (tx) => {
+        // Find and lock the old token for update
+        const result = await tx
+          .select()
+          .from(authRefreshTokens)
+          .where(
+            and(
+              eq(authRefreshTokens.refreshToken, oldRefreshToken),
+              eq(authRefreshTokens.revoked, false),
+            ),
+          )
+          .for('update')
+          .limit(1);
+
+        if (result.length === 0) {
+          console.log(
+            `[DrizzleTokenRepository] Token not found or already revoked: ${tokenPreview}`,
+          );
+          return ok(null);
+        }
+
+        const oldToken = result[0]!;
+
+        // Check if token is expired
+        const now = new Date();
+        if (now > oldToken.expiresAt) {
+          // Revoke expired token
+          await tx
+            .update(authRefreshTokens)
+            .set({ revoked: true })
+            .where(eq(authRefreshTokens.refreshToken, oldRefreshToken));
+
+          console.log(
+            `[DrizzleTokenRepository] Token expired and revoked: ${tokenPreview}`,
+          );
+          return ok(null);
+        }
+
+        // Insert new refresh token
+        await tx.insert(authRefreshTokens).values({
+          tokenId: newToken.tokenId,
+          userDid: newToken.userDid,
+          refreshToken: newToken.refreshToken,
+          issuedAt: newToken.issuedAt,
+          expiresAt: newToken.expiresAt,
+          revoked: newToken.revoked,
+        });
+
+        // Revoke old token
+        await tx
+          .update(authRefreshTokens)
+          .set({ revoked: true })
+          .where(eq(authRefreshTokens.refreshToken, oldRefreshToken));
+
+        console.log(
+          `[DrizzleTokenRepository] Atomic refresh completed successfully`,
+        );
+
+        return ok({ ...oldToken, revoked: false });
+      });
+    } catch (error: any) {
+      console.log(
+        `[DrizzleTokenRepository] Atomic refresh failed: ${error.message}`,
       );
       return err(error);
     }
