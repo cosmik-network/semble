@@ -3,10 +3,10 @@ import { Title, Text, Transition, Box } from '@mantine/core';
 
 const words = [
   'creators',
-  'researchers',
-  'designers',
-  'writers',
   'thinkers',
+  'researchers',
+  'learners',
+  'writers',
   'you',
 ];
 
