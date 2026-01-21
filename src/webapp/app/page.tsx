@@ -194,8 +194,8 @@ function Content() {
                     See the bigger picture.
                   </Text>{' '}
                   <Text fw={500} fz="lg" c="dark.2" span>
-                    Find relevant research based on your network. Get the extra
-                    context that matters before you dive into a long read.
+                    Find what's relevant through your network. Get the extra
+                    context that matters before you dive into content.
                   </Text>
                 </Text>
               </Stack>
