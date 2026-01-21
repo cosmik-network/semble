@@ -5,18 +5,18 @@ import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyR
 import useSemanticSearch from '../../lib/queries/useSemanticSearch';
 import { UrlType } from '@semble/types';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid } from '@mantine/core';
+import { Grid, Group } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
+import UsernameSearch from '../../components/usernameSearch/UsernameSearch';
 
 interface Props {
   query: string;
+  handle?: string;
 }
 
 export default function CardSearchResultsContainer(props: Props) {
-  const [user, setUser] = useState();
-  const [type, setType] = useState<UrlType>();
-
   const {
     data,
     error,
@@ -24,7 +24,7 @@ export default function CardSearchResultsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSemanticSearch({ query: props.query, userId: user });
+  } = useSemanticSearch({ query: props.query, userId: props.handle });
 
   const allUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
@@ -44,6 +44,11 @@ export default function CardSearchResultsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
+      <Group gap={'xs'} justify="space-between" wrap="nowrap">
+        <SearchQueryAlert query={props.query} handle={props.handle} />
+
+        <UsernameSearch />
+      </Group>
       <Grid gutter="xs">
         {allUrls.map((urlView) => (
           <Grid.Col key={urlView.url} span={12}>

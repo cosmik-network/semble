@@ -21,9 +21,11 @@ import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Sk
 import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
 import SearchTabItem from '../../components/searchTabItem/SearchTabItem';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
+import UsernameSearch from '../../components/usernameSearch/UsernameSearch';
 
 interface Props {
   query: string;
+  handle?: string;
 }
 
 export default function SearchResultsContainer(props: Props) {
@@ -40,10 +42,7 @@ export default function SearchResultsContainer(props: Props) {
           bg={'var(--mantine-color-body'}
         >
           <Stack gap={'xs'}>
-            <Group wrap="nowrap">
-              <SearchBar variant="compact" query={props.query} />
-              test
-            </Group>
+            <SearchBar variant="compact" query={props.query} />
 
             <ScrollAreaAutosize type="scroll">
               <TabsList>
@@ -77,10 +76,10 @@ export default function SearchResultsContainer(props: Props) {
               fallback={<CardSearchResultsContainerSkeleton />}
               key={props.query}
             >
-              <Stack gap={'xs'}>
-                <SearchQueryAlert query={props.query} />
-                <CardSearchResultsContainer query={props.query} />
-              </Stack>
+              <CardSearchResultsContainer
+                query={props.query}
+                handle={props.handle}
+              />
             </Suspense>
           </Container>
         </TabsPanel>
