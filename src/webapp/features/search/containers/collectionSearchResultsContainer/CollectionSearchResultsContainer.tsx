@@ -2,7 +2,7 @@
 
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid } from '@mantine/core';
+import { Grid, Stack } from '@mantine/core';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
@@ -25,30 +25,31 @@ export default function CollectionSearchResultsContainer(props: Props) {
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
-  if (error) {
-    return <SearchResultsContainerError />;
-  }
-
-  if (!isPending && allCollections.length === 0) {
-    return <SearchEmptyResults query={props.query} type="cards" />;
-  }
-
   return (
-    <InfiniteScroll
-      dataLength={allCollections.length}
-      hasMore={!!hasNextPage}
-      isInitialLoading={isPending}
-      isLoading={isFetchingNextPage}
-      loadMore={fetchNextPage}
-    >
+    <Stack gap="md">
       <SearchQueryAlert query={props.query} />
-      <Grid gutter="xs">
-        {allCollections.map((collection) => (
-          <Grid.Col key={collection.id} span={12}>
-            <CollectionCard collection={collection} showAuthor />
-          </Grid.Col>
-        ))}
-      </Grid>
-    </InfiniteScroll>
+
+      {error ? (
+        <SearchResultsContainerError />
+      ) : !isPending && allCollections.length === 0 ? (
+        <SearchEmptyResults query={props.query} type="cards" />
+      ) : (
+        <InfiniteScroll
+          dataLength={allCollections.length}
+          hasMore={!!hasNextPage}
+          isInitialLoading={isPending}
+          isLoading={isFetchingNextPage}
+          loadMore={fetchNextPage}
+        >
+          <Grid gutter="xs">
+            {allCollections.map((collection) => (
+              <Grid.Col key={collection.id} span={12}>
+                <CollectionCard collection={collection} showAuthor />
+              </Grid.Col>
+            ))}
+          </Grid>
+        </InfiniteScroll>
+      )}
+    </Stack>
   );
 }

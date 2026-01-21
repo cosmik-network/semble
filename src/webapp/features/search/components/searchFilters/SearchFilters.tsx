@@ -177,7 +177,7 @@ export function ProfileFilter() {
     >
       <Combobox.Target>
         <TextInput
-          label="By user"
+          label="User"
           variant="filled"
           size="md"
           placeholder="Search for handle"
@@ -233,7 +233,7 @@ export function UrlTypeFilter() {
   return (
     <Box>
       <Text fw={500} mb="xs">
-        By content type
+        Content type
       </Text>
       <ScrollArea scrollbars="x" offsetScrollbars={false} scrollbarSize={0}>
         <Group gap={8} wrap="nowrap" pb="xs">
@@ -303,6 +303,7 @@ export function Actions() {
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
     ctx.setLocalType(null);
+    ctx.setOpened(false);
 
     router.replace(`?${params.toString()}`, { scroll: false });
   };

@@ -20,10 +20,12 @@ import CardSearchResultsContainerSkeleton from '../cardSearchResultsContainer/Sk
 import ProfileSearchResultsContainerSkeleton from '../profileSearchResultsContainer/Skeleton.ProfileSearchResultsContainer';
 import SearchTabItem from '../../components/searchTabItem/SearchTabItem';
 import { Suspense } from 'react';
+import { UrlType } from '@semble/types';
 
 interface Props {
   query: string;
   handle?: string;
+  urlType?: UrlType;
 }
 
 export default function SearchResultsContainer(props: Props) {
@@ -77,6 +79,7 @@ export default function SearchResultsContainer(props: Props) {
               <CardSearchResultsContainer
                 query={props.query}
                 handle={props.handle}
+                urlType={props.urlType}
               />
             </Suspense>
           </Container>

@@ -1,13 +1,14 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { semanticSearchUrls } from '../dal';
 import { searchKeys } from '../searchKeys';
+import { UrlType } from '@semble/types';
 
 interface Props {
   query: string;
   limit?: number;
   threshold?: number;
-  urlType?: string;
   userId?: string;
+  urlType?: UrlType;
 }
 
 export default function useSemanticSearch(props: Props) {
@@ -22,13 +23,14 @@ export default function useSemanticSearch(props: Props) {
       props.userId,
     ),
     initialPageParam: 1,
-    queryFn: ({ pageParam = 1 }) => {
+    queryFn: ({ pageParam }) => {
+      const { threshold, urlType, userId } = props;
       return semanticSearchUrls(props.query, {
         page: pageParam,
         limit,
-        ...(props.threshold && { threshold: props.threshold }),
-        ...(props.urlType && { urlType: props.urlType }),
-        ...(props.userId && { userId: props.userId }),
+        threshold,
+        urlType,
+        userId,
       });
     },
     getNextPageParam: (lastPage) => {
