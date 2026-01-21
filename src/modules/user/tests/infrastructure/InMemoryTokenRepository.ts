@@ -53,6 +53,38 @@ export class InMemoryTokenRepository implements ITokenRepository {
     }
   }
 
+  async atomicRefreshTokenOperation(
+    oldRefreshToken: string,
+    newToken: RefreshToken,
+  ): Promise<Result<RefreshToken | null>> {
+    try {
+      // Find old token
+      const oldToken = this.tokens.get(oldRefreshToken);
+      if (!oldToken || oldToken.revoked) {
+        return ok(null);
+      }
+
+      // Check if expired
+      const now = new Date();
+      if (now > oldToken.expiresAt) {
+        oldToken.revoked = true;
+        this.tokens.set(oldRefreshToken, oldToken);
+        return ok(null);
+      }
+
+      // Save new token
+      this.tokens.set(newToken.refreshToken, newToken);
+
+      // Revoke old token
+      oldToken.revoked = true;
+      this.tokens.set(oldRefreshToken, oldToken);
+
+      return ok({ ...oldToken, revoked: false });
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.tokens.clear();

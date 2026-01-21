@@ -24,12 +24,11 @@ export class RedisLockService implements ILockService {
 
   createRequestLock(): RuntimeLock {
     return async (key: string, fn: () => any) => {
-      // Include Fly.io instance info in lock key
-      const instanceId = process.env.FLY_ALLOC_ID || 'local';
-      const lockKey = `oauth:lock:${instanceId}:${key}`;
+      // Use shared lock key across all instances for proper distributed locking
+      const lockKey = `oauth:lock:${key}`;
 
-      // 30 seconds for Fly.io (containers restart more frequently)
-      const lock = await this.redlock.acquire([lockKey], 30000);
+      // Reduced to 10 seconds to prevent long-lived locks on container restarts
+      const lock = await this.redlock.acquire([lockKey], 10000);
 
       try {
         return await fn();
