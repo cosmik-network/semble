@@ -31,6 +31,7 @@ export default function CollectionsContainer(props: Props) {
       <Stack>
         <Group align="end" gap={'xs'}>
           <Select
+            w={140}
             allowDeselect={false}
             mr={'auto'}
             size="sm"
