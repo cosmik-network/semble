@@ -42,18 +42,9 @@ export default function LinkCardContent(props: Props) {
           </Anchor>
         </Tooltip>
         {props.cardContent.title && (
-          <Anchor
-            onClick={(e) => e.stopPropagation()}
-            component={Link}
-            href={props.cardContent.url}
-            target="_blank"
-            c={'bright'}
-            lineClamp={2}
-            fw={500}
-            w={'fit-content'}
-          >
+          <Text c={'bright'} lineClamp={2} fw={500}>
             {props.cardContent.title}
-          </Anchor>
+          </Text>
         )}
         {props.cardContent.description && settings.cardView !== 'list' && (
           <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
