@@ -34,7 +34,7 @@ export default function SearchContainer() {
   };
 
   return (
-    <Box component="section" pos="relative" h="100svh" w="100%">
+    <Box component="section" pos="relative" h="72svh" w="100%">
       {/* light mode bg */}
       <BackgroundImage
         src={BG.src}
