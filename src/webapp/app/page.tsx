@@ -1,5 +1,3 @@
-'use client';
-
 import {
   ActionIcon,
   SimpleGrid,
@@ -30,10 +28,10 @@ import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
-import { useOs } from '@mantine/hooks';
 import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
+import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcutButton';
 
-export default function Home() {
+export default async function Page() {
   const fadeStyle = {
     inset: 0,
     WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
@@ -69,8 +67,6 @@ export default function Home() {
 }
 
 function Content() {
-  const os = useOs();
-
   return (
     <>
       <script async src="https://tally.so/widgets/embed.js" />
@@ -81,19 +77,7 @@ function Content() {
             <Badge size="sm">Alpha</Badge>
           </Stack>
           <Group gap={'sm'}>
-            {os === 'ios' && (
-              <Button
-                component={Link}
-                href={
-                  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
-                }
-                target="_blank"
-                variant="light"
-                color="grape"
-              >
-                iOS shortcut
-              </Button>
-            )}
+            <IosShortcutButton />
             <Button
               data-tally-open="31a9Ng"
               data-tally-hide-title="1"
