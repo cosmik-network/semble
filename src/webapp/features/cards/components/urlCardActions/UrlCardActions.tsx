@@ -130,7 +130,7 @@ export default function UrlCardActions(props: Props) {
                     });
                   }}
                 >
-                  Share Semble link
+                  Share Semble page
                 </Menu.Item>
               )}
             </CopyButton>
