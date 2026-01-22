@@ -2,7 +2,6 @@
 
 import {
   Tabs,
-  Box,
   Stack,
   ScrollAreaAutosize,
   TabsList,
@@ -43,46 +42,36 @@ export default function SearchTabs() {
 
   return (
     <Tabs value={activeTab} keepMounted={false}>
-      <Box
-        style={{
-          position: 'sticky',
-          top: 55,
-          zIndex: 1,
-        }}
-        pt={'xs'}
-        bg={'var(--mantine-color-body)'}
-      >
-        <Stack gap={'xs'}>
-          <SearchBar variant="compact" query={query} />
+      <Stack gap={'xs'}>
+        <SearchBar variant="compact" query={query} />
 
-          <ScrollAreaAutosize type="scroll">
-            <TabsList>
-              <Group gap={0} wrap="nowrap">
-                <SearchTabItem
-                  value="cards"
-                  label="Cards"
-                  icon={<FaRegNoteSticky />}
-                  href={buildTabHref('cards')}
-                />
+        <ScrollAreaAutosize type="scroll">
+          <TabsList>
+            <Group gap={0} wrap="nowrap">
+              <SearchTabItem
+                value="cards"
+                label="Cards"
+                icon={<FaRegNoteSticky />}
+                href={buildTabHref('cards')}
+              />
 
-                <SearchTabItem
-                  value="collections"
-                  label="Collections"
-                  icon={<BiCollection />}
-                  href={buildTabHref('collections')}
-                />
+              <SearchTabItem
+                value="collections"
+                label="Collections"
+                icon={<BiCollection />}
+                href={buildTabHref('collections')}
+              />
 
-                <SearchTabItem
-                  value="profiles"
-                  label="Profiles"
-                  icon={<MdOutlinePeopleAlt />}
-                  href={buildTabHref('profiles')}
-                />
-              </Group>
-            </TabsList>
-          </ScrollAreaAutosize>
-        </Stack>
-      </Box>
+              <SearchTabItem
+                value="profiles"
+                label="Profiles"
+                icon={<MdOutlinePeopleAlt />}
+                href={buildTabHref('profiles')}
+              />
+            </Group>
+          </TabsList>
+        </ScrollAreaAutosize>
+      </Stack>
     </Tabs>
   );
 }
