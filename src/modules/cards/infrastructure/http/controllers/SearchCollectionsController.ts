@@ -5,6 +5,7 @@ import {
   CollectionSortField,
   SortOrder,
 } from '../../../domain/ICollectionQueryRepository';
+import { CollectionAccessType } from '../../../domain/Collection';
 
 export class SearchCollectionsController extends Controller {
   constructor(private searchCollectionsUseCase: SearchCollectionsUseCase) {
@@ -13,7 +14,15 @@ export class SearchCollectionsController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { page, limit, sortBy, sortOrder, searchText } = req.query;
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        searchText,
+        identifier,
+        accessType,
+      } = req.query;
 
       const result = await this.searchCollectionsUseCase.execute({
         page: page ? parseInt(page as string) : undefined,
@@ -21,6 +30,8 @@ export class SearchCollectionsController extends Controller {
         sortBy: sortBy as CollectionSortField,
         sortOrder: sortOrder as SortOrder,
         searchText: searchText as string,
+        identifier: identifier as string,
+        accessType: accessType as CollectionAccessType,
       });
 
       if (result.isErr()) {

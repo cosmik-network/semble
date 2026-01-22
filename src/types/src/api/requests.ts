@@ -208,6 +208,8 @@ export interface GetGemActivityFeedParams extends PaginationParams {
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
+  identifier?: string; // Can be DID or handle
+  accessType?: 'OPEN' | 'CLOSED';
 }
 
 // Notification request types

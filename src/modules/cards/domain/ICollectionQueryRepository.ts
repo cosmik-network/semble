@@ -78,6 +78,8 @@ export interface SearchCollectionsOptions {
   sortBy: CollectionSortField;
   sortOrder: SortOrder;
   searchText?: string;
+  authorId?: string; // Filter by author DID
+  accessType?: string; // Filter by access type (OPEN or CLOSED)
 }
 
 export interface ICollectionQueryRepository {

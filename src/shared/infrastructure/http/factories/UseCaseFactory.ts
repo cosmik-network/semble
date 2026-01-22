@@ -238,6 +238,7 @@ export class UseCaseFactory {
       searchCollectionsUseCase: new SearchCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+        services.identityResolutionService,
       ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
