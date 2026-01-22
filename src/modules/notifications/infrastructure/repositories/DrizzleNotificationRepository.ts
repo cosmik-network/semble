@@ -21,6 +21,7 @@ import {
   collections,
   collectionCards,
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
+import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { countDistinct } from 'drizzle-orm';
@@ -473,7 +474,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .select({
           cardId: collectionCards.cardId,
           collectionId: collections.id,
-          collectionUri: collections.publishedRecordId,
+          collectionUri: publishedRecords.uri,
           collectionName: collections.name,
           collectionDescription: collections.description,
           collectionAuthorId: collections.authorId,
@@ -485,6 +486,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .innerJoin(
           collections,
           eq(collectionCards.collectionId, collections.id),
+        )
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .where(inArray(collectionCards.cardId, cardIds));
 
