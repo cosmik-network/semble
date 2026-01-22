@@ -35,7 +35,11 @@ export default function SembleTabs(props: Props) {
   const [activeTab, setActiveTab] = useState<TabValue>('similar');
 
   return (
-    <Tabs value={activeTab} onChange={(val) => setActiveTab(val as TabValue)}>
+    <Tabs
+      keepMounted={false}
+      value={activeTab}
+      onChange={(val) => setActiveTab(val as TabValue)}
+    >
       <ScrollAreaAutosize type="scroll">
         <TabsList>
           <Group wrap="nowrap">
