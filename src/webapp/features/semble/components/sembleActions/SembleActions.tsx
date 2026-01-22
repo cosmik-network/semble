@@ -27,10 +27,7 @@ export default function SembleActions(props: Props) {
 
   const urlLibraryCount = allLibraries.length ?? 0;
 
-  const shareLink =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/url?id=${props.url}`
-      : '';
+  const shareLink = `${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.url}`;
 
   if (cardStatus.error) {
     return null;
