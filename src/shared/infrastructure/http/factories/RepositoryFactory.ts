@@ -82,6 +82,8 @@ export class RepositoryFactory {
       );
       const notificationRepository =
         InMemoryNotificationRepository.getInstance();
+      // Inject dependencies into notification repository
+      notificationRepository.setDependencies(cardQueryRepository);
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
 
