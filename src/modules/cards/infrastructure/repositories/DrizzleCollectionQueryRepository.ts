@@ -264,7 +264,15 @@ export class DrizzleCollectionQueryRepository
     options: SearchCollectionsOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      const { page, limit, sortBy, sortOrder, searchText } = options;
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        searchText,
+        authorId,
+        accessType,
+      } = options;
       const offset = (page - 1) * limit;
 
       // Build the sort order
@@ -272,6 +280,16 @@ export class DrizzleCollectionQueryRepository
 
       // Build where conditions
       const whereConditions = [];
+
+      // Add author filter if provided
+      if (authorId) {
+        whereConditions.push(eq(collections.authorId, authorId));
+      }
+
+      // Add access type filter if provided
+      if (accessType) {
+        whereConditions.push(eq(collections.accessType, accessType));
+      }
 
       // Add tokenized search condition if searchText is provided
       if (searchText && searchText.trim()) {

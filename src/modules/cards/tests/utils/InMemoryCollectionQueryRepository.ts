@@ -228,6 +228,20 @@ export class InMemoryCollectionQueryRepository
     try {
       let allCollections = this.collectionRepository.getAllCollections();
 
+      // Apply author filter if provided
+      if (options.authorId) {
+        allCollections = allCollections.filter(
+          (collection) => collection.authorId.value === options.authorId,
+        );
+      }
+
+      // Apply access type filter if provided
+      if (options.accessType) {
+        allCollections = allCollections.filter(
+          (collection) => collection.accessType === options.accessType,
+        );
+      }
+
       // Apply tokenized search if searchText is provided
       if (options.searchText && options.searchText.trim()) {
         const searchWords = options.searchText
