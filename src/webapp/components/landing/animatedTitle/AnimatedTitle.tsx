@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Title, Text, Transition, Box } from '@mantine/core';
 
