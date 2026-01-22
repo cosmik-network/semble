@@ -11,9 +11,6 @@ import {
 } from '@mantine/core';
 import TabItem from './TabItem';
 
-import SembleOverviewContainer from '../../containers/sembleOverviewContainer/SembleOverviewContainer';
-import SembleOverviewContainerSkeleton from '../../containers/sembleOverviewContainer/Skeleton.SembleOverviewContainer';
-
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
 
@@ -32,19 +29,18 @@ interface Props {
   url: string;
 }
 
-type TabValue = 'overview' | 'notes' | 'collections' | 'addedBy' | 'similar';
+type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar';
 
 export default function SembleTabs(props: Props) {
-  const [activeTab, setActiveTab] = useState<TabValue>('overview');
+  const [activeTab, setActiveTab] = useState<TabValue>('similar');
 
   return (
     <Tabs value={activeTab} onChange={(val) => setActiveTab(val as TabValue)}>
       <ScrollAreaAutosize type="scroll">
         <TabsList>
           <Group wrap="nowrap">
-            <TabItem value="overview">Overview</TabItem>
-            <TabItem value="notes">Notes</TabItem>
             <TabItem value="similar">Similar cards</TabItem>
+            <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
             <TabItem value="mentions">Mentions</TabItem>
@@ -53,12 +49,6 @@ export default function SembleTabs(props: Props) {
       </ScrollAreaAutosize>
 
       <Box mt="md">
-        <TabsPanel value="overview">
-          <Suspense fallback={<SembleOverviewContainerSkeleton />}>
-            <SembleOverviewContainer url={props.url} onViewTab={setActiveTab} />
-          </Suspense>
-        </TabsPanel>
-
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />}>
             <SembleNotesContainer url={props.url} />
