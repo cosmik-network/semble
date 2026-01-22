@@ -3,17 +3,25 @@ import {
   NotificationQueryOptions,
   PaginatedNotificationResult,
   PaginatedEnrichedNotificationResult,
+  EnrichedNotificationResult,
 } from '../../domain/INotificationRepository';
 import { Notification } from '../../domain/Notification';
 import { NotificationId } from '../../domain/value-objects/NotificationId';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 
 export class InMemoryNotificationRepository implements INotificationRepository {
   private static instance: InMemoryNotificationRepository;
   private notifications: Map<string, Notification> = new Map();
+  private cardQueryRepository?: ICardQueryRepository;
 
   private constructor() {}
+
+  // Method to inject dependencies after singleton creation
+  public setDependencies(cardQueryRepository: ICardQueryRepository): void {
+    this.cardQueryRepository = cardQueryRepository;
+  }
 
   public static getInstance(): InMemoryNotificationRepository {
     if (!InMemoryNotificationRepository.instance) {
@@ -141,13 +149,108 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     recipientId: CuratorId,
     options: NotificationQueryOptions,
   ): Promise<Result<PaginatedEnrichedNotificationResult>> {
-    // For testing purposes, return empty result
-    // In a real implementation, this would need to join with card and collection data
+    // If dependencies not set, return empty result
+    if (!this.cardQueryRepository) {
+      return ok({
+        notifications: [],
+        totalCount: 0,
+        hasMore: false,
+        unreadCount: 0,
+      });
+    }
+
+    const { page, limit, unreadOnly } = options;
+    const offset = (page - 1) * limit;
+
+    // Filter notifications by recipient
+    let filteredNotifications = Array.from(this.notifications.values()).filter(
+      (notification) => notification.recipientUserId.equals(recipientId),
+    );
+
+    // Filter by read status if requested
+    if (unreadOnly) {
+      filteredNotifications = filteredNotifications.filter(
+        (notification) => !notification.read,
+      );
+    }
+
+    // Sort by creation date (newest first)
+    filteredNotifications.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+
+    const totalCount = filteredNotifications.length;
+    const paginatedNotifications = filteredNotifications.slice(
+      offset,
+      offset + limit,
+    );
+    const hasMore = offset + paginatedNotifications.length < totalCount;
+
+    // Calculate unread count
+    const unreadCount = Array.from(this.notifications.values()).filter(
+      (notification) =>
+        notification.recipientUserId.equals(recipientId) && !notification.read,
+    ).length;
+
+    // Enrich notifications with card data using cardQueryRepository
+    const enrichedNotifications: EnrichedNotificationResult[] = [];
+
+    for (const notification of paginatedNotifications) {
+      const cardId = notification.metadata.cardId;
+      if (!cardId) continue;
+
+      // Get enriched card data using the card query repository
+      const cardView = await this.cardQueryRepository.getUrlCardView(
+        cardId,
+        recipientId.value,
+      );
+
+      if (!cardView) continue;
+
+      // Build enriched notification result
+      enrichedNotifications.push({
+        id: notification.notificationId.getStringValue(),
+        type: notification.type.value, // Extract the NotificationTypeEnum value as string
+        read: notification.read,
+        createdAt: notification.createdAt,
+        actorUserId: notification.actorUserId.value,
+        cardAuthorId: cardView.authorId,
+        cardId: cardView.id,
+        cardUrl: cardView.url,
+        cardTitle: cardView.cardContent.title,
+        cardDescription: cardView.cardContent.description,
+        cardAuthor: cardView.cardContent.author,
+        cardPublishedDate: undefined, // Not in cardView
+        cardSiteName: undefined, // Not in cardView
+        cardImageUrl: cardView.cardContent.imageUrl,
+        cardType: undefined, // Not in cardView
+        cardRetrievedAt: undefined, // Not in cardView
+        cardDoi: undefined, // Not in cardView
+        cardIsbn: undefined, // Not in cardView
+        cardLibraryCount: cardView.libraryCount,
+        cardUrlLibraryCount: cardView.urlLibraryCount,
+        cardUrlInLibrary: cardView.urlInLibrary,
+        cardCreatedAt: cardView.createdAt,
+        cardUpdatedAt: cardView.updatedAt,
+        cardNote: cardView.note,
+        collections: cardView.collections.map((c) => ({
+          id: c.id,
+          uri: `at://${c.authorId}/network.cosmik.local.collection/${c.id}`,
+          name: c.name,
+          description: undefined, // Not in collection result
+          authorId: c.authorId,
+          cardCount: 0, // Not in collection result
+          createdAt: new Date(), // Not in collection result
+          updatedAt: new Date(), // Not in collection result
+        })),
+      });
+    }
+
     return ok({
-      notifications: [],
-      totalCount: 0,
-      hasMore: false,
-      unreadCount: 0,
+      notifications: enrichedNotifications,
+      totalCount,
+      hasMore,
+      unreadCount,
     });
   }
 

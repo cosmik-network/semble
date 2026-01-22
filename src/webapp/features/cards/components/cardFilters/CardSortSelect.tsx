@@ -29,6 +29,7 @@ export default function CardSortSelect() {
 
   return (
     <Select
+      w={140}
       allowDeselect={false}
       variant="filled"
       size="sm"
