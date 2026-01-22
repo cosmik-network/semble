@@ -1,7 +1,7 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
+import { Box } from '@mantine/core';
 import type { Metadata } from 'next';
-import { Fragment } from 'react';
 
 export const metadata: Metadata = {
   title: 'Search',
@@ -14,11 +14,12 @@ interface Props {
 
 export default function Layout(props: Props) {
   return (
-    <Fragment>
+    <Box pos={'relative'}>
       <Header title="Search">
         <BackButton href="/home">Home</BackButton>
       </Header>
+
       {props.children}
-    </Fragment>
+    </Box>
   );
 }
