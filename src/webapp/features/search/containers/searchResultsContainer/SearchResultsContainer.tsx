@@ -26,12 +26,27 @@ interface Props {
   query: string;
   handle?: string;
   urlType?: UrlType;
+  content?: string;
 }
 
 export default function SearchResultsContainer(props: Props) {
+  const activeTab = props.content || 'cards';
+
+  // build search params for each tab
+  const buildTabHref = (tabValue: string) => {
+    const params = new URLSearchParams();
+    if (props.query) params.set('query', props.query);
+    if (props.handle) params.set('handle', props.handle);
+    if (props.urlType) params.set('urlType', props.urlType);
+
+    const route = tabValue === 'cards' ? '/search' : `/search/${tabValue}`;
+    const queryString = params.toString();
+    return queryString ? `${route}?${queryString}` : route;
+  };
+
   return (
     <Container p={'xs'} pt={0} size={'sm'}>
-      <Tabs defaultValue={'cards'} keepMounted={false}>
+      <Tabs value={activeTab}>
         <Box
           style={{
             position: 'sticky',
@@ -51,18 +66,21 @@ export default function SearchResultsContainer(props: Props) {
                     value="cards"
                     label="Cards"
                     icon={<FaRegNoteSticky />}
+                    href={buildTabHref('cards')}
                   />
 
                   <SearchTabItem
                     value="collections"
                     label="Collections"
                     icon={<BiCollection />}
+                    href={buildTabHref('collections')}
                   />
 
                   <SearchTabItem
                     value="profiles"
                     label="Profiles"
                     icon={<MdOutlinePeopleAlt />}
+                    href={buildTabHref('profiles')}
                   />
                 </Group>
               </TabsList>
@@ -70,30 +88,6 @@ export default function SearchResultsContainer(props: Props) {
           </Stack>
         </Box>
 
-        <TabsPanel value="cards">
-          <Container py="xs" px={0} size="xl">
-            <Suspense
-              fallback={<CardSearchResultsContainerSkeleton />}
-              key={props.query}
-            >
-              <CardSearchResultsContainer
-                query={props.query}
-                handle={props.handle}
-                urlType={props.urlType}
-              />
-            </Suspense>
-          </Container>
-        </TabsPanel>
-        <TabsPanel value="collections">
-          <Container py={'xs'} px={0} size={'xl'}>
-            <Suspense
-              fallback={<CollectionSearchResultsContainerSkeleton />}
-              key={props.query}
-            >
-              <CollectionSearchResultsContainer query={props.query} />
-            </Suspense>
-          </Container>
-        </TabsPanel>
         <TabsPanel value="profiles">
           <Container py={'xs'} px={0} size={'xl'}>
             <Suspense

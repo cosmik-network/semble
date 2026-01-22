@@ -1,20 +1,14 @@
 import {
   BackgroundImage,
   Box,
-  Button,
   Center,
   Container,
-  Group,
   Stack,
   Title,
 } from '@mantine/core';
-import SearchBar from '../../components/searchBar/SearchBar';
-import Link from 'next/link';
-import { MdOutlineEmojiNature } from 'react-icons/md';
-import { BiCollection } from 'react-icons/bi';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
-import { Fragment } from 'react';
+import ExpandedSearchBar from '../../components/searchBar/ExpandedSearchBar';
 
 function Content() {
   return (
@@ -24,29 +18,7 @@ function Content() {
           <Title order={2} ta={'center'}>
             Let's find something great
           </Title>
-          <SearchBar />
-
-          <Group gap={'xs'} justify="center">
-            <Button
-              component={Link}
-              href={'explore'}
-              variant="light"
-              color="blue"
-              leftSection={<MdOutlineEmojiNature size={18} />}
-            >
-              Explore
-            </Button>
-            <Button
-              component={Link}
-              href="/explore/gems-of-2025/collections"
-              size="sm"
-              variant="light"
-              color={'grape'}
-              leftSection={<BiCollection size={18} />}
-            >
-              Gem Collections
-            </Button>
-          </Group>
+          <ExpandedSearchBar />
         </Stack>
       </Center>
     </Container>

@@ -33,6 +33,7 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 interface FilterContextValue {
   opened: boolean;
   setOpened: (val: boolean) => void;
+  handleOpen: () => void;
   searchQuery: string;
   setSearchQuery: (val: string) => void;
   selectedHandle: string;
@@ -41,6 +42,7 @@ interface FilterContextValue {
   setLocalType: (val: UrlType | null) => void;
   appliedHandle: string;
   appliedType: UrlType | null;
+  hasFilters: boolean;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -55,7 +57,7 @@ const useFilterContext = () => {
 };
 
 // root
-export function Root(props: { children: ReactNode }) {
+export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   const [opened, setOpened] = useState(false);
   const searchParams = useSearchParams();
 
@@ -75,11 +77,37 @@ export function Root(props: { children: ReactNode }) {
 
   const hasFilters = !!appliedHandle || !!appliedType;
 
+  const defaultTrigger = (
+    <Indicator offset={4} disabled={!hasFilters} zIndex={0}>
+      <ActionIcon
+        variant="light"
+        color="gray"
+        size="xl"
+        radius="lg"
+        onClick={handleOpen}
+      >
+        <TbAdjustmentsHorizontal size={20} />
+      </ActionIcon>
+    </Indicator>
+  );
+
+  const customTrigger = props.trigger ? (
+    <Indicator offset={2} disabled={!hasFilters} zIndex={0}>
+      <Box
+        onClick={handleOpen}
+        style={{ cursor: 'pointer', display: 'inline-block' }}
+      >
+        {props.trigger}
+      </Box>
+    </Indicator>
+  ) : null;
+
   return (
     <FilterContext.Provider
       value={{
         opened,
         setOpened,
+        handleOpen,
         searchQuery,
         setSearchQuery,
         selectedHandle,
@@ -88,19 +116,10 @@ export function Root(props: { children: ReactNode }) {
         setLocalType,
         appliedHandle,
         appliedType,
+        hasFilters,
       }}
     >
-      <Indicator offset={4} disabled={!hasFilters} zIndex={0}>
-        <ActionIcon
-          variant="light"
-          color="gray"
-          size="xl"
-          radius="lg"
-          onClick={handleOpen}
-        >
-          <TbAdjustmentsHorizontal size={20} />
-        </ActionIcon>
-      </Indicator>
+      {customTrigger ?? defaultTrigger}
 
       <Drawer
         opened={opened}
@@ -122,6 +141,19 @@ export function Root(props: { children: ReactNode }) {
         </Container>
       </Drawer>
     </FilterContext.Provider>
+  );
+}
+
+// trigger
+export function Trigger(props: { children: ReactNode }) {
+  const ctx = useFilterContext();
+
+  return (
+    <Indicator offset={4} disabled={!ctx.hasFilters} zIndex={0}>
+      <Box onClick={ctx.handleOpen} style={{ cursor: 'pointer' }}>
+        {props.children}
+      </Box>
+    </Indicator>
   );
 }
 
@@ -341,4 +373,10 @@ export function Actions() {
   );
 }
 
-export const SearchFilters = { Root, ProfileFilter, UrlTypeFilter, Actions };
+export const SearchFilters = {
+  Root,
+  Trigger,
+  ProfileFilter,
+  UrlTypeFilter,
+  Actions,
+};
