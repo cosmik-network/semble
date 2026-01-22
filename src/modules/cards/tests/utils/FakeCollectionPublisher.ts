@@ -16,6 +16,15 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   > = new Map();
   private unpublishedCollections: Array<{ uri: string; cid: string }> = [];
   private removedLinks: Array<{ cardId: string; collectionId: string }> = [];
+  private publishedRemovals: Map<
+    string,
+    {
+      cardId: string;
+      collectionId: string;
+      removedLink: PublishedRecordId;
+      removalRecord: PublishedRecordId;
+    }[]
+  > = new Map();
   private shouldFail: boolean = false;
   private shouldFailUnpublish: boolean = false;
   private collectionType =
@@ -23,6 +32,10 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
 
   private cardCollectionLinkType =
     new EnvironmentConfigService().getAtProtoCollections().collectionLink;
+
+  private collectionLinkRemovalType =
+    new EnvironmentConfigService().getAtProtoCollections()
+      .collectionLinkRemoval;
 
   async publish(
     collection: Collection,
@@ -134,6 +147,50 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     return ok(undefined);
   }
 
+  async publishCollectionLinkRemoval(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId,
+    removedLinkRef: PublishedRecordId,
+    reason?: string,
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    if (this.shouldFail) {
+      return err(
+        AppError.UnexpectedError.create(
+          new Error('Simulated collection link removal publish failure'),
+        ),
+      );
+    }
+
+    const collectionId = collection.collectionId.getStringValue();
+    const cardId = card.cardId.getStringValue();
+
+    // Simulate publishing a collection link removal record
+    const fakeRemovalUri = `at://${curatorId.value}/${this.collectionLinkRemovalType}/${collectionId}-${cardId}-removal`;
+    const fakeRemovalCid = `fake-removal-cid-${collectionId}-${cardId}`;
+
+    const removalRecord = PublishedRecordId.create({
+      uri: fakeRemovalUri,
+      cid: fakeRemovalCid,
+    });
+
+    // Store published removal for inspection
+    const existingRemovals = this.publishedRemovals.get(collectionId) || [];
+    existingRemovals.push({
+      cardId,
+      collectionId,
+      removedLink: removedLinkRef,
+      removalRecord,
+    });
+    this.publishedRemovals.set(collectionId, existingRemovals);
+
+    console.log(
+      `[FakeCollectionPublisher] Published removal of card ${cardId} from collection ${collectionId} at ${fakeRemovalUri}`,
+    );
+
+    return ok(removalRecord);
+  }
+
   async unpublish(
     recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
@@ -193,6 +250,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     this.publishedLinks.clear();
     this.unpublishedCollections = [];
     this.removedLinks = [];
+    this.publishedRemovals.clear();
     this.shouldFail = false;
     this.shouldFailUnpublish = false;
   }
@@ -229,5 +287,22 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
       allLinks.push(...links);
     }
     return allLinks;
+  }
+
+  getPublishedRemovalsForCollection(collectionId: string) {
+    return this.publishedRemovals.get(collectionId) || [];
+  }
+
+  getAllPublishedRemovals() {
+    const allRemovals: Array<{
+      cardId: string;
+      collectionId: string;
+      removedLink: PublishedRecordId;
+      removalRecord: PublishedRecordId;
+    }> = [];
+    for (const removals of this.publishedRemovals.values()) {
+      allRemovals.push(...removals);
+    }
+    return allRemovals;
   }
 }

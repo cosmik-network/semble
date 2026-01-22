@@ -6,8 +6,8 @@ import {
   Lexicons,
   ValidationError,
   type ValidationResult,
-} from '@atproto/lexicon';
-import { type $Typed, is$typed, maybe$typed } from './util.js';
+} from '@atproto/lexicon'
+import { type $Typed, is$typed, maybe$typed } from './util.js'
 
 export const schemaDict = {
   NetworkCosmikCard: {
@@ -260,6 +260,54 @@ export const schemaDict = {
       },
     },
   },
+  NetworkCosmikCollectionLinkRemoval: {
+    lexicon: 1,
+    id: 'network.cosmik.collectionLinkRemoval',
+    description:
+      'A record indicating that a card was removed from a collection by the collection owner.',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          "A record representing the removal of a collection link by a collection owner when they cannot delete the original link (which exists in another user's repository).",
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['collection', 'removedLink', 'removedBy', 'removedAt'],
+          properties: {
+            collection: {
+              type: 'ref',
+              description: 'Strong reference to the collection record.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            removedLink: {
+              type: 'ref',
+              description:
+                'Strong reference to the collectionLink record that is being removed.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            removedBy: {
+              type: 'string',
+              format: 'did',
+              description:
+                'DID of the user who removed the link (typically the collection owner).',
+            },
+            removedAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when the link was removed from the collection.',
+            },
+            reason: {
+              type: 'string',
+              maxLength: 300,
+              description: 'Optional reason for the removal.',
+            },
+          },
+        },
+      },
+    },
+  },
   NetworkCosmikDefs: {
     lexicon: 1,
     id: 'network.cosmik.defs',
@@ -300,22 +348,22 @@ export const schemaDict = {
       },
     },
   },
-} as const satisfies Record<string, LexiconDoc>;
-export const schemas = Object.values(schemaDict) satisfies LexiconDoc[];
-export const lexicons: Lexicons = new Lexicons(schemas);
+} as const satisfies Record<string, LexiconDoc>
+export const schemas = Object.values(schemaDict) satisfies LexiconDoc[]
+export const lexicons: Lexicons = new Lexicons(schemas)
 
 export function validate<T extends { $type: string }>(
   v: unknown,
   id: string,
   hash: string,
   requiredType: true,
-): ValidationResult<T>;
+): ValidationResult<T>
 export function validate<T extends { $type?: string }>(
   v: unknown,
   id: string,
   hash: string,
   requiredType?: false,
-): ValidationResult<T>;
+): ValidationResult<T>
 export function validate(
   v: unknown,
   id: string,
@@ -329,13 +377,14 @@ export function validate(
         error: new ValidationError(
           `Must be an object with "${hash === 'main' ? id : `${id}#${hash}`}" $type property`,
         ),
-      };
+      }
 }
 
 export const ids = {
   NetworkCosmikCard: 'network.cosmik.card',
   NetworkCosmikCollection: 'network.cosmik.collection',
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
+  NetworkCosmikCollectionLinkRemoval: 'network.cosmik.collectionLinkRemoval',
   NetworkCosmikDefs: 'network.cosmik.defs',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
-} as const;
+} as const

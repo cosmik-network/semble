@@ -210,22 +210,83 @@ export class CardCollectionService implements DomainService {
         return ok(null);
       }
 
-      // Handle unpublishing based on options
+      // Check permissions FIRST before attempting any publishing operations
+      const canRemoveResult = collection.removeCard(card.cardId, curatorId);
+      if (canRemoveResult.isErr()) {
+        return err(
+          new CardCollectionValidationError(
+            `Failed to remove card from collection: ${canRemoveResult.error.message}`,
+          ),
+        );
+      }
+
+      // Re-add the card since we only wanted to check permissions
+      collection.addCard(card.cardId, cardLink.addedBy, cardLink.viaCardId);
+
+      // Handle unpublishing/removal based on options
       if (!options?.skipPublishing && cardLink.publishedRecordId) {
-        const unpublishLinkResult =
-          await this.collectionPublisher.unpublishCardAddedToCollection(
-            cardLink.publishedRecordId,
-          );
-        if (unpublishLinkResult.isErr()) {
-          // Propagate authentication errors
-          if (unpublishLinkResult.error instanceof AuthenticationError) {
-            return err(unpublishLinkResult.error);
+        // Determine if this is a user removing their own card or collection owner removing someone else's card
+        const isUserRemovingOwnCard = cardLink.addedBy.equals(curatorId);
+        const isCollectionOwner = collection.authorId.equals(curatorId);
+
+        if (isUserRemovingOwnCard) {
+          // User is removing their own card - unpublish the CollectionLink (delete from their repo)
+          const unpublishLinkResult =
+            await this.collectionPublisher.unpublishCardAddedToCollection(
+              cardLink.publishedRecordId,
+            );
+          if (unpublishLinkResult.isErr()) {
+            // Propagate authentication errors
+            if (unpublishLinkResult.error instanceof AuthenticationError) {
+              return err(unpublishLinkResult.error);
+            }
+            return err(
+              new CardCollectionValidationError(
+                `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
+              ),
+            );
           }
-          return err(
-            new CardCollectionValidationError(
-              `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
-            ),
-          );
+        } else if (isCollectionOwner) {
+          // Collection owner is removing someone else's card - publish a CollectionLinkRemoval record
+          const publishRemovalResult =
+            await this.collectionPublisher.publishCollectionLinkRemoval(
+              card,
+              collection,
+              curatorId,
+              cardLink.publishedRecordId,
+            );
+          if (publishRemovalResult.isErr()) {
+            // Propagate authentication errors
+            if (publishRemovalResult.error instanceof AuthenticationError) {
+              return err(publishRemovalResult.error);
+            }
+            return err(
+              new CardCollectionValidationError(
+                `Failed to publish collection link removal: ${publishRemovalResult.error.message}`,
+              ),
+            );
+          }
+        } else {
+          // This is a case where someone (not the owner, not the card adder) is removing a card
+          // In OPEN collections, anyone can remove, but they can't delete the link (not their record)
+          // and they're not the owner (so can't publish removal record)
+          // For now, we just unpublish the link (this will fail at ATProto level if they don't own it)
+          // TODO: Consider if this scenario needs special handling
+          const unpublishLinkResult =
+            await this.collectionPublisher.unpublishCardAddedToCollection(
+              cardLink.publishedRecordId,
+            );
+          if (unpublishLinkResult.isErr()) {
+            // Propagate authentication errors
+            if (unpublishLinkResult.error instanceof AuthenticationError) {
+              return err(unpublishLinkResult.error);
+            }
+            return err(
+              new CardCollectionValidationError(
+                `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
+              ),
+            );
+          }
         }
       }
 

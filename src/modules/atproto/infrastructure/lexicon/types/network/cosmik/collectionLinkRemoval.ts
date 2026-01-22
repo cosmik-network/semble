@@ -6,24 +6,21 @@ import { CID } from 'multiformats/cid'
 import { validate as _validate } from '../../../lexicons'
 import { type $Typed, is$typed as _is$typed, type OmitKey } from '../../../util'
 import type * as ComAtprotoRepoStrongRef from '../../com/atproto/repo/strongRef.js'
-import type * as NetworkCosmikDefs from './defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'network.cosmik.collectionLink'
+const id = 'network.cosmik.collectionLinkRemoval'
 
 export interface Record {
-  $type: 'network.cosmik.collectionLink'
+  $type: 'network.cosmik.collectionLinkRemoval'
   collection: ComAtprotoRepoStrongRef.Main
-  card: ComAtprotoRepoStrongRef.Main
-  originalCard?: ComAtprotoRepoStrongRef.Main
-  /** DID of the user who added the card to the collection */
-  addedBy: string
-  /** Timestamp when the card was added to the collection. */
-  addedAt: string
-  /** Timestamp when this link record was created (usually set by PDS). */
-  createdAt?: string
-  provenance?: NetworkCosmikDefs.Provenance
+  removedLink: ComAtprotoRepoStrongRef.Main
+  /** DID of the user who removed the link (typically the collection owner). */
+  removedBy: string
+  /** Timestamp when the link was removed from the collection. */
+  removedAt: string
+  /** Optional reason for the removal. */
+  reason?: string
   [k: string]: unknown
 }
 
