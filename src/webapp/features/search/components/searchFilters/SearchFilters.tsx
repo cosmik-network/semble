@@ -17,6 +17,7 @@ import {
   Container,
   Combobox,
   useCombobox,
+  Popover,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
@@ -28,6 +29,7 @@ import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { MdFilterList } from 'react-icons/md';
 
 // context
 interface FilterContextValue {
@@ -125,8 +127,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         opened={opened}
         onClose={() => setOpened(false)}
         position="bottom"
-        padding="md"
-        size="sm"
+        size="xs"
         withCloseButton={false}
         overlayProps={UPDATE_OVERLAY_PROPS}
         trapFocus={false}
@@ -258,47 +259,70 @@ export function ProfileFilter() {
   );
 }
 
-// url type filter
+// url type filter (with popover)
 export function UrlTypeFilter() {
   const ctx = useFilterContext();
+  const [opened, setOpened] = useState(false);
+
+  const SelectedIcon =
+    ctx.localType === null ? MdFilterList : getUrlTypeIcon(ctx.localType);
 
   return (
-    <Box>
-      <Text fw={500} mb="xs">
-        Content type
-      </Text>
-      <ScrollArea scrollbars="x" offsetScrollbars={false} scrollbarSize={0}>
-        <Group gap={'xs'} wrap="nowrap" pb="xs">
+    <Popover
+      opened={opened}
+      onChange={setOpened}
+      position="top-start"
+      shadow="sm"
+    >
+      <Popover.Target>
+        <Stack gap={0} align="start">
           <Button
-            size="sm"
+            variant="light"
             color="lime"
-            radius="xl"
-            style={{ flexShrink: 0 }}
+            leftSection={<SelectedIcon />}
+            onClick={() => setOpened((o) => !o)}
+          >
+            {ctx.localType ? upperFirst(ctx.localType) : 'All Cards'}
+          </Button>
+        </Stack>
+      </Popover.Target>
+
+      <Popover.Dropdown maw={300}>
+        <Group gap={6}>
+          <Button
+            size="xs"
+            color="lime"
             variant={ctx.localType === null ? 'filled' : 'light'}
-            onClick={() => ctx.setLocalType(null)}
+            onClick={() => {
+              ctx.setLocalType(null);
+              setOpened(false);
+            }}
           >
             All Cards
           </Button>
+
           {Object.values(UrlType).map((type) => {
             const Icon = getUrlTypeIcon(type);
+
             return (
               <Button
                 key={type}
-                size="sm"
+                size="xs"
                 color="lime"
-                radius="xl"
-                style={{ flexShrink: 0 }}
                 variant={ctx.localType === type ? 'filled' : 'light'}
-                leftSection={<Icon size={14} />}
-                onClick={() => ctx.setLocalType(type)}
+                leftSection={<Icon />}
+                onClick={() => {
+                  ctx.setLocalType(type);
+                  setOpened(false);
+                }}
               >
                 {upperFirst(type)}
               </Button>
             );
           })}
         </Group>
-      </ScrollArea>
-    </Box>
+      </Popover.Dropdown>
+    </Popover>
   );
 }
 
