@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       metadata = {
         ...(result?.metadata || {}),
         domain: getDomain(url),
-        libraries: libraries.pagination.totalCount ?? 0,
+        libraries: Number(libraries.pagination.totalCount) || 0,
       };
     } catch (error) {
       console.error('Error fetching metadata:', error);
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
-            marginTop: '35px',
+            marginTop: 35,
           }}
         >
           {metadata && url && (
@@ -55,36 +55,44 @@ export async function GET(request: NextRequest) {
                 gap: 10,
               }}
             >
+              {/* domain */}
               <p
                 style={{
-                  fontSize: '40px',
-                  lineHeight: '20px',
+                  fontSize: 40,
+                  lineHeight: 1.2,
                   color: '#23AFED',
+                  margin: 0,
                 }}
               >
                 {truncateText(metadata.domain || getDomain(url), 35)}
               </p>
+
+              {/* title */}
               <p
                 style={{
-                  fontSize: '64px',
-                  lineHeight: '20px',
+                  fontSize: 64,
+                  lineHeight: 1.1,
+                  display: 'block',
+                  lineClamp: 2,
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  maxWidth: '85%',
+                  wordBreak: 'break-word',
+                  margin: 0,
                 }}
               >
-                {truncateText(
-                  metadata.title ||
-                    metadata.url ||
-                    metadata.domain ||
-                    'Unknown',
-                  25,
-                )}
+                {metadata.title || metadata.url || metadata.domain || 'Unknown'}
               </p>
-              {metadata.libraries && metadata.libraries > 0 && (
+
+              {/* libraries */}
+              {metadata.libraries !== 0 && (
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 10,
-                    marginTop: '40px',
+                    marginTop: 40,
                   }}
                 >
                   <svg
@@ -106,14 +114,16 @@ export async function GET(request: NextRequest) {
 
                   <p
                     style={{
-                      fontSize: '30px',
-                      lineHeight: '1',
+                      fontSize: 30,
+                      lineHeight: 1,
                       color: '#495057',
                       margin: 0,
                     }}
                   >
                     In {metadata.libraries}{' '}
-                    {metadata.libraries > 1 ? 'libraries' : 'library'}
+                    {metadata.libraries && metadata.libraries > 1
+                      ? 'libraries'
+                      : 'library'}
                   </p>
                 </div>
               )}
