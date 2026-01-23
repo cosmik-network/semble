@@ -69,12 +69,14 @@ export interface RemoveCardFromCollectionRequest {
 export interface CreateCollectionRequest {
   name: string;
   description?: string;
+  accessType?: 'OPEN' | 'CLOSED';
 }
 
 export interface UpdateCollectionRequest {
   collectionId: string;
   name: string;
   description?: string;
+  accessType?: 'OPEN' | 'CLOSED';
 }
 
 export interface DeleteCollectionRequest {

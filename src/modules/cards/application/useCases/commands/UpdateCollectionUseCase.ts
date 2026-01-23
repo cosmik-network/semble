@@ -8,11 +8,13 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { CollectionAccessType } from '../../../domain/Collection';
 
 export interface UpdateCollectionDTO {
   collectionId: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   curatorId: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip republishing if provided
 }
@@ -105,6 +107,17 @@ export class UpdateCollectionUseCase
       );
       if (updateResult.isErr()) {
         return err(new ValidationError(updateResult.error.message));
+      }
+
+      // Update accessType if provided
+      if (request.accessType !== undefined) {
+        const accessTypeResult = collection.changeAccessType(
+          request.accessType,
+          curatorId,
+        );
+        if (accessTypeResult.isErr()) {
+          return err(new ValidationError(accessTypeResult.error.message));
+        }
       }
 
       // Handle republishing - skip if publishedRecordId provided (firehose event)

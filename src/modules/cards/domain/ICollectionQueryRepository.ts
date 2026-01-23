@@ -29,6 +29,7 @@ export interface CollectionQueryResultDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
@@ -48,6 +49,7 @@ export interface CollectionForUrlRawDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   authorId: string;
 }
 
@@ -57,6 +59,7 @@ export interface CollectionForUrlDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   author: {
     id: string;
     name: string;

@@ -12,6 +12,7 @@ import { AuthenticationError } from '../../../../../shared/core/AuthenticationEr
 export interface CreateCollectionDTO {
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   curatorId: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
 }
@@ -66,7 +67,7 @@ export class CreateCollectionUseCase
         authorId: curatorId,
         name: request.name,
         description: request.description,
-        accessType: CollectionAccessType.CLOSED,
+        accessType: request.accessType ?? CollectionAccessType.CLOSED, // Default to CLOSED if not specified
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { UpdateCollectionUseCase } from '../../../application/useCases/commands/UpdateCollectionUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { CollectionAccessType } from '../../../domain/Collection';
 
 export class UpdateCollectionController extends Controller {
   constructor(private updateCollectionUseCase: UpdateCollectionUseCase) {
@@ -12,7 +13,7 @@ export class UpdateCollectionController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { collectionId } = req.params;
-      const { name, description } = req.body;
+      const { name, description, accessType } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -27,10 +28,23 @@ export class UpdateCollectionController extends Controller {
         return this.badRequest(res, 'Collection name is required');
       }
 
+      // Validate accessType if provided
+      if (
+        accessType !== undefined &&
+        accessType !== 'OPEN' &&
+        accessType !== 'CLOSED'
+      ) {
+        return this.badRequest(
+          res,
+          'Invalid accessType. Must be OPEN or CLOSED',
+        );
+      }
+
       const result = await this.updateCollectionUseCase.execute({
         collectionId,
         name,
         description,
+        accessType: accessType as CollectionAccessType | undefined,
         curatorId,
       });
 

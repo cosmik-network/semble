@@ -95,6 +95,7 @@ export interface Collection {
   name: string;
   author: User;
   description?: string;
+  accessType: 'OPEN' | 'CLOSED';
   cardCount: number;
   createdAt: string;
   updatedAt: string;
