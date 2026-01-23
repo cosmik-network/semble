@@ -90,6 +90,7 @@ export interface RawUrlCardData {
     id: string;
     name: string;
     authorId: string;
+    accessType: string;
   }[];
   note?: {
     id: string;
@@ -488,6 +489,7 @@ export class CardMapper {
       id: string;
       name: string;
       authorId: string;
+      accessType: string;
     }[];
     note?: {
       id: string;

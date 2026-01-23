@@ -107,6 +107,7 @@ export class DrizzleCollectionQueryRepository
           uri: raw.uri,
           name: raw.name,
           description: raw.description,
+          accessType: raw.accessType,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -248,6 +249,7 @@ export class DrizzleCollectionQueryRepository
         uri: result.uri || undefined,
         name: result.name,
         description: result.description || undefined,
+        accessType: result.accessType,
         authorId: result.authorId,
       }));
 
@@ -357,6 +359,7 @@ export class DrizzleCollectionQueryRepository
           uri: raw.uri,
           name: raw.name,
           description: raw.description,
+          accessType: raw.accessType,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
