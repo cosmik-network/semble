@@ -2,8 +2,6 @@ import type { Metadata } from 'next';
 import { getDomain } from '@/lib/utils/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { redirect } from 'next/navigation';
-import SembleAside from '@/features/semble/containers/sembleAside/SembleAside';
-import SembleAsideSkeleton from '@/features/semble/containers/sembleAside/Skeleton.SembleAside';
 import SembleContainer from '@/features/semble/containers/sembleContainer/SembleContainer';
 import { Fragment, Suspense } from 'react';
 import SembleContainerSkeleton from '@/features/semble/containers/sembleContainer/Skeleton.SembleContainer';
@@ -54,9 +52,6 @@ export default async function Page(props: Props) {
     <Fragment key={url + 'page'}>
       <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
         <SembleContainer url={url} />
-      </Suspense>
-      <Suspense fallback={<SembleAsideSkeleton />} key={url}>
-        <SembleAside url={url} />
       </Suspense>
     </Fragment>
   );
