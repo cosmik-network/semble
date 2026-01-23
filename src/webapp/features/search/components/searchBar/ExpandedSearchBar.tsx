@@ -96,7 +96,8 @@ export default function SearchBar(props: Props) {
                   { value: 'profiles', label: 'Profiles' },
                 ]}
                 renderOption={renderSelectOption}
-                w={125}
+                leftSection={searchType ? icons[searchType] : null}
+                w={140}
               />
               {searchType === 'cards' && (
                 <SearchFilters.Root
