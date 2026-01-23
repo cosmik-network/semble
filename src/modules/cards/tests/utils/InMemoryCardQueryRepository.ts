@@ -110,7 +110,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     // Find collections this card belongs to by querying the collection repository
     const allCollections = this.collectionRepository.getAllCollections();
-    const collections: { id: string; name: string; authorId: string }[] = [];
+    const collections: { id: string; name: string; authorId: string; accessType: string }[] = [];
 
     for (const collection of allCollections) {
       if (
@@ -122,6 +122,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
           id: collection.collectionId.getStringValue(),
           name: collection.name.value,
           authorId: collection.authorId.value,
+          accessType: collection.accessType,
         });
       }
     }

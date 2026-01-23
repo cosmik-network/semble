@@ -148,6 +148,7 @@ export class GetMyNotificationsUseCase
                   description: collectionAuthorProfile.bio,
                 },
                 description: collection.description,
+                accessType: collection.accessType as 'OPEN' | 'CLOSED',
                 cardCount: collection.cardCount,
                 createdAt: collection.createdAt.toISOString(),
                 updatedAt: collection.updatedAt.toISOString(),

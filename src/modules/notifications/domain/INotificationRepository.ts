@@ -56,6 +56,7 @@ export interface EnrichedNotificationResult {
     uri?: string;
     name: string;
     description?: string;
+    accessType: string;
     authorId: string; // Still need profile enrichment
     cardCount: number;
     createdAt: Date;
