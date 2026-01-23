@@ -26,8 +26,9 @@ export class CreateCollectionController extends Controller {
       // Validate accessType if provided
       if (
         accessType !== undefined &&
-        accessType !== 'OPEN' &&
-        accessType !== 'CLOSED'
+        !Object.values(CollectionAccessType).includes(
+          accessType as CollectionAccessType,
+        )
       ) {
         return this.badRequest(
           res,

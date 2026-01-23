@@ -5,6 +5,7 @@ import {
   CollectionSorting,
   FeedPagination,
 } from './common';
+import { CollectionAccessType } from './requests';
 
 // Command response types
 export interface AddUrlToLibraryResponse {
@@ -95,7 +96,7 @@ export interface Collection {
   name: string;
   author: User;
   description?: string;
-  accessType: 'OPEN' | 'CLOSED';
+  accessType: CollectionAccessType;
   cardCount: number;
   createdAt: string;
   updatedAt: string;

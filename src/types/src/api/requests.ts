@@ -26,6 +26,12 @@ export enum UrlType {
   SOFTWARE = 'software',
 }
 
+// Collection Access Type enum
+export enum CollectionAccessType {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
+
 // Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -69,14 +75,14 @@ export interface RemoveCardFromCollectionRequest {
 export interface CreateCollectionRequest {
   name: string;
   description?: string;
-  accessType?: 'OPEN' | 'CLOSED';
+  accessType?: CollectionAccessType;
 }
 
 export interface UpdateCollectionRequest {
   collectionId: string;
   name: string;
   description?: string;
-  accessType?: 'OPEN' | 'CLOSED';
+  accessType?: CollectionAccessType;
 }
 
 export interface DeleteCollectionRequest {
@@ -211,7 +217,7 @@ export interface GetGemActivityFeedParams extends PaginationParams {
 export interface SearchCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
   identifier?: string; // Can be DID or handle
-  accessType?: 'OPEN' | 'CLOSED';
+  accessType?: CollectionAccessType;
 }
 
 // Notification request types
