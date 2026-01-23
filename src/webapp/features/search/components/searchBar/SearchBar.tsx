@@ -3,7 +3,7 @@
 import { ActionIcon, Card, CloseButton, Group, TextInput } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 
 interface Props {
   variant?: 'compact' | 'large';
@@ -12,6 +12,7 @@ interface Props {
 
 export default function SearchBar(props: Props) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(props.query ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +26,7 @@ export default function SearchBar(props: Props) {
       params.delete('query');
     }
 
-    router.push(`?${params.toString()}`);
+    startTransition(() => router.push(`?${params.toString()}`));
   };
 
   return (
@@ -66,7 +67,13 @@ export default function SearchBar(props: Props) {
               />
             }
           />
-          <ActionIcon type="submit" size="lg" radius="xl" disabled={!search}>
+          <ActionIcon
+            type="submit"
+            size="lg"
+            radius="xl"
+            disabled={!search}
+            loading={isPending}
+          >
             <IoSearch size={20} />
           </ActionIcon>
         </Group>

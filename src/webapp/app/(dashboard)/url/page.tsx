@@ -49,10 +49,8 @@ export default async function Page(props: Props) {
   }
 
   return (
-    <Fragment key={url + 'page'}>
-      <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-        <SembleContainer url={url} />
-      </Suspense>
-    </Fragment>
+    <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
+      <SembleContainer url={url} />
+    </Suspense>
   );
 }

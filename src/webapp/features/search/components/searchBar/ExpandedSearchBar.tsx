@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { BiCollection } from 'react-icons/bi';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
@@ -37,6 +37,7 @@ const renderSelectOption: SelectProps['renderOption'] = ({ option }) => (
 
 export default function SearchBar(props: Props) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(props.query ?? '');
   const [searchType, setSearchType] = useState<string | null>('cards');
@@ -62,7 +63,7 @@ export default function SearchBar(props: Props) {
     const queryString = params.toString();
     const url = queryString ? `${route}?${queryString}` : route;
 
-    router.push(url);
+    startTransition(() => router.push(url));
   };
 
   return (
@@ -119,7 +120,13 @@ export default function SearchBar(props: Props) {
               )}
             </Group>
 
-            <ActionIcon type="submit" size="xl" radius="xl" disabled={!search}>
+            <ActionIcon
+              type="submit"
+              size="xl"
+              radius="xl"
+              disabled={!search}
+              loading={isPending}
+            >
               <IoSearch size={24} />
             </ActionIcon>
           </Group>
