@@ -70,13 +70,13 @@ export async function GET(request: NextRequest) {
               {/* title */}
               <p
                 style={{
-                  fontSize: 64,
+                  fontSize: 50,
                   lineHeight: 1.1,
                   display: 'block', // needed for line clamp
                   lineClamp: 2,
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  maxWidth: '85%',
+                  maxWidth: '900',
                   wordBreak: 'normal', // prevent breaking mid-word
                   overflowWrap: 'normal', // prevent wrapping mid-word
                   margin: 0,
