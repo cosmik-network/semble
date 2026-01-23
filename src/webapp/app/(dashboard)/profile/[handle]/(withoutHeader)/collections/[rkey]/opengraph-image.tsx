@@ -42,10 +42,14 @@ export default async function Image(props: Props) {
           <p
             style={{
               fontSize: '64px',
-              lineHeight: '20px',
+              lineHeight: '100%',
+              lineClamp: 2,
+              display: 'block',
+              maxWidth: '85%',
+              wordBreak: 'break-word',
             }}
           >
-            {truncateText(collection.name, 30)}
+            {collection.name}
           </p>
 
           {collection.description && (
