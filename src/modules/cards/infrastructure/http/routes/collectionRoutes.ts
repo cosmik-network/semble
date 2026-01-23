@@ -51,8 +51,7 @@ export function createCollectionRoutes(
   router.get(
     '/contributed/:identifier',
     authMiddleware.optionalAuth(),
-    (req, res) =>
-      getOpenCollectionsWithContributorController.execute(req, res),
+    (req, res) => getOpenCollectionsWithContributorController.execute(req, res),
   );
 
   // GET /api/collections/at/:handle/:recordKey - Get collection by AT URI

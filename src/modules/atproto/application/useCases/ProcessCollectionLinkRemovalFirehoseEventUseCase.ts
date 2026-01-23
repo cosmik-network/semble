@@ -19,8 +19,7 @@ export interface ProcessCollectionLinkRemovalFirehoseEventDTO {
 const ENABLE_FIREHOSE_LOGGING = true;
 
 export class ProcessCollectionLinkRemovalFirehoseEventUseCase
-  implements
-    UseCase<ProcessCollectionLinkRemovalFirehoseEventDTO, Result<void>>
+  implements UseCase<ProcessCollectionLinkRemovalFirehoseEventDTO, Result<void>>
 {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,

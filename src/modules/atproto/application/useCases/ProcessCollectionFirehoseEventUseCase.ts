@@ -85,7 +85,9 @@ export class ProcessCollectionFirehoseEventUseCase
       const result = await this.createCollectionUseCase.execute({
         name: request.record.name,
         description: request.record.description,
-        accessType: request.record.accessType as CollectionAccessType | undefined,
+        accessType: request.record.accessType as
+          | CollectionAccessType
+          | undefined,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });
@@ -170,7 +172,9 @@ export class ProcessCollectionFirehoseEventUseCase
         collectionId: collectionIdResult.value.getStringValue(),
         name: request.record.name,
         description: request.record.description,
-        accessType: request.record.accessType as CollectionAccessType | undefined,
+        accessType: request.record.accessType as
+          | CollectionAccessType
+          | undefined,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });

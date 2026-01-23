@@ -137,7 +137,9 @@ export class ProcessFirehoseEventUseCase
               !removalRecord.removedAt
             ) {
               return err(
-                new ValidationError('Invalid collection link removal record structure'),
+                new ValidationError(
+                  'Invalid collection link removal record structure',
+                ),
               );
             }
           }

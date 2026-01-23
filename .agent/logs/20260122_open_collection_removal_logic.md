@@ -55,6 +55,7 @@ Created `src/modules/atproto/infrastructure/lexicons/collectionLinkRemoval.json`
 ```
 
 **Design Notes:**
+
 - No `removedBy` field - user identity is derived from the AT-URI of the removal record
 - No `reason` field - kept the schema minimal and focused
 - Uses StrongRef to ensure content-addressable references (URI + CID)
@@ -64,6 +65,7 @@ Created `src/modules/atproto/infrastructure/lexicons/collectionLinkRemoval.json`
 ### Removal Permissions
 
 **For OPEN Collections:**
+
 - ✅ Collection author can remove any card (including cards added by others)
 - ✅ Users can only remove cards they themselves added
 - ❌ Non-authors cannot remove cards added by others
@@ -235,10 +237,12 @@ static toCreateRecordDTO(
 ## Files Modified
 
 ### Created
+
 1. `src/modules/atproto/infrastructure/lexicons/collectionLinkRemoval.json` - Lexicon schema
 2. `src/modules/atproto/infrastructure/mappers/CollectionLinkRemovalMapper.ts` - Mapper for removal records
 
 ### Modified
+
 1. `src/modules/cards/domain/Collection.ts` - Updated `removeCard()` method with proper permissions
 2. `src/modules/cards/domain/services/CardCollectionService.ts` - Updated removal logic with publishing decisions
 3. `src/modules/cards/application/ports/ICollectionPublisher.ts` - Added `publishCollectionLinkRemoval` method signature
@@ -249,11 +253,13 @@ static toCreateRecordDTO(
 8. `src/modules/cards/tests/application/RemoveCardFromCollectionUseCase.test.ts` - Updated/added tests
 
 ### Generated
+
 - TypeScript types regenerated via `npm run lexgen`
 
 ## Test Coverage
 
 ### Test Results
+
 - ✅ 20 tests passed in RemoveCardFromCollectionUseCase
 - ✅ 2 tests skipped (CLOSED collections with collaborators - out of scope)
 - ✅ 148 total collection-related tests passed
@@ -268,6 +274,7 @@ static toCreateRecordDTO(
 ### Skipped Tests (Out of Scope)
 
 The following tests were skipped as CLOSED collection scenarios with collaborators are deferred:
+
 - `should allow collaborator to remove cards from closed collection`
 - `should handle mixed collection permissions when removing cards`
 
@@ -283,12 +290,15 @@ This ensures business rules are properly encapsulated in the domain model where 
 ## Future Work
 
 ### CLOSED Collections with Collaborators
+
 Deferred for future implementation:
+
 - How collaborators can remove cards from CLOSED collections
 - Whether collaborators can remove any card or only their own
 - Permission rules for multi-user CLOSED collection scenarios
 
 ### Potential Enhancements
+
 - Add a `reason` field to collectionLinkRemoval for moderation use cases
 - Implement bulk removal operations
 - Add notifications when cards are removed from collections
