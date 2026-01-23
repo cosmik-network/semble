@@ -220,6 +220,11 @@ export interface SearchCollectionsParams extends PaginatedSortedParams {
   accessType?: CollectionAccessType;
 }
 
+export interface GetOpenCollectionsWithContributorParams
+  extends PaginatedSortedParams {
+  identifier: string; // Can be DID or handle
+}
+
 // Notification request types
 export interface GetMyNotificationsParams extends PaginatedSortedParams {
   unreadOnly?: boolean;

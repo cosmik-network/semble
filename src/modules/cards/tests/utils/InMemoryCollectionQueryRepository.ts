@@ -9,6 +9,7 @@ import {
   SortOrder,
   CollectionForUrlQueryOptions,
   SearchCollectionsOptions,
+  GetOpenCollectionsWithContributorOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -299,6 +300,99 @@ export class InMemoryCollectionQueryRepository
     } catch (error) {
       throw new Error(
         `Failed to search collections: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async getOpenCollectionsWithContributor(
+    options: GetOpenCollectionsWithContributorOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
+    try {
+      const allCollections = this.collectionRepository.getAllCollections();
+
+      // Filter for collections where:
+      // 1. User has added cards (via cardLinks.addedBy)
+      // 2. User is NOT the author
+      // 3. Collection is OPEN
+      let contributedCollections = allCollections.filter((collection) => {
+        const hasContributed = collection.cardLinks.some(
+          (link) => link.addedBy.value === options.contributorId,
+        );
+        const isNotAuthor = collection.authorId.value !== options.contributorId;
+        const isOpen = collection.accessType === 'OPEN';
+
+        return hasContributed && isNotAuthor && isOpen;
+      });
+
+      // Sort by most recent contribution first, then by the specified field
+      const sortedCollections = [...contributedCollections].sort((a, b) => {
+        // Get most recent contribution date for each collection
+        const aLastContribution = Math.max(
+          ...a.cardLinks
+            .filter((link) => link.addedBy.value === options.contributorId)
+            .map((link) => link.addedAt.getTime()),
+        );
+        const bLastContribution = Math.max(
+          ...b.cardLinks
+            .filter((link) => link.addedBy.value === options.contributorId)
+            .map((link) => link.addedAt.getTime()),
+        );
+
+        // Primary sort: by most recent contribution (DESC)
+        const contributionComparison = bLastContribution - aLastContribution;
+        if (contributionComparison !== 0) return contributionComparison;
+
+        // Secondary sort: by the specified field
+        let comparison = 0;
+        switch (options.sortBy) {
+          case CollectionSortField.NAME:
+            comparison = a.name.value.localeCompare(b.name.value);
+            break;
+          case CollectionSortField.CREATED_AT:
+            comparison = a.createdAt.getTime() - b.createdAt.getTime();
+            break;
+          case CollectionSortField.UPDATED_AT:
+            comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+            break;
+          case CollectionSortField.CARD_COUNT:
+            comparison = a.cardCount - b.cardCount;
+            break;
+        }
+        return options.sortOrder === SortOrder.DESC ? -comparison : comparison;
+      });
+
+      const startIndex = (options.page - 1) * options.limit;
+      const endIndex = startIndex + options.limit;
+      const paginatedCollections = sortedCollections.slice(
+        startIndex,
+        endIndex,
+      );
+
+      const items: CollectionQueryResultDTO[] = paginatedCollections.map(
+        (collection) => {
+          const collectionPublishedRecordId = collection.publishedRecordId;
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri: collectionPublishedRecordId?.uri,
+            authorId: collection.authorId.value,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          };
+        },
+      );
+
+      return {
+        items,
+        totalCount: sortedCollections.length,
+        hasMore: endIndex < sortedCollections.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to get open collections with contributor: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

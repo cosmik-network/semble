@@ -85,6 +85,14 @@ export interface SearchCollectionsOptions {
   accessType?: string; // Filter by access type (OPEN or CLOSED)
 }
 
+export interface GetOpenCollectionsWithContributorOptions {
+  contributorId: string; // User DID who contributed cards
+  page: number;
+  limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
+}
+
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
@@ -103,5 +111,9 @@ export interface ICollectionQueryRepository {
 
   searchCollections(
     options: SearchCollectionsOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
+
+  getOpenCollectionsWithContributor(
+    options: GetOpenCollectionsWithContributorOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 }
