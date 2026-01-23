@@ -13,9 +13,7 @@ export class CollectionContributionCleanupEventHandler
     private collectionRepository: ICollectionRepository,
   ) {}
 
-  async handle(
-    event: CardRemovedFromCollectionEvent,
-  ): Promise<Result<void>> {
+  async handle(event: CardRemovedFromCollectionEvent): Promise<Result<void>> {
     try {
       // 1. Get collection to determine the recipient (collection author)
       const collectionResult = await this.collectionRepository.findById(
@@ -72,10 +70,7 @@ export class CollectionContributionCleanupEventHandler
             notification.notificationId,
           );
           if (deleteResult.isErr()) {
-            console.error(
-              'Failed to delete notification:',
-              deleteResult.error,
-            );
+            console.error('Failed to delete notification:', deleteResult.error);
             // Continue with other notifications even if one fails
           }
         }

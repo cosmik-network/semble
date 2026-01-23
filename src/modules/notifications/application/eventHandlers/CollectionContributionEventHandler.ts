@@ -42,14 +42,13 @@ export class CollectionContributionEventHandler
       }
 
       // 5. Create notification directly (no saga aggregation)
-      const notificationResult =
-        await this.createNotificationUseCase.execute({
-          type: NotificationType.USER_ADDED_TO_YOUR_COLLECTION,
-          recipientUserId,
-          actorUserId,
-          cardId: event.cardId.getStringValue(),
-          collectionId: event.collectionId.getStringValue(),
-        });
+      const notificationResult = await this.createNotificationUseCase.execute({
+        type: NotificationType.USER_ADDED_TO_YOUR_COLLECTION,
+        recipientUserId,
+        actorUserId,
+        cardId: event.cardId.getStringValue(),
+        collectionId: event.collectionId.getStringValue(),
+      });
 
       if (notificationResult.isErr()) {
         console.error(
@@ -60,10 +59,7 @@ export class CollectionContributionEventHandler
 
       return ok(undefined);
     } catch (error) {
-      console.error(
-        'Error in CollectionContributionEventHandler:',
-        error,
-      );
+      console.error('Error in CollectionContributionEventHandler:', error);
       return ok(undefined); // Don't fail the event processing
     }
   }

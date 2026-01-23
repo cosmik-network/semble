@@ -145,7 +145,9 @@ export class CreateNotificationUseCase
         // Type exhaustiveness check
         const _exhaustiveCheck: never = request;
         return err(
-          new ValidationError(`Unsupported notification type: ${(_exhaustiveCheck as any).type}`),
+          new ValidationError(
+            `Unsupported notification type: ${(_exhaustiveCheck as any).type}`,
+          ),
         );
       }
 
