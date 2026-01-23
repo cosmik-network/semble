@@ -21,6 +21,7 @@ import {
   collections,
   collectionCards,
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
+import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { countDistinct } from 'drizzle-orm';
@@ -290,6 +291,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     try {
       const { page, limit, unreadOnly } = options;
       const offset = (page - 1) * limit;
+      const callingUserId = recipientId.value;
 
       // Build where conditions for notifications
       const notificationWhereConditions = [
@@ -426,6 +428,30 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         }
       });
 
+      // Check which URLs are in the calling user's library
+      // More efficient: check if user has a card with matching url and authorId
+      const urlInLibraryQuery = this.db
+        .select({
+          url: cards.url,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.URL),
+            inArray(cards.url, urls),
+            eq(cards.authorId, callingUserId),
+          ),
+        )
+        .groupBy(cards.url);
+
+      const urlInLibraryResult = await urlInLibraryQuery;
+      const urlInLibrarySet = new Set<string>();
+      urlInLibraryResult.forEach((row) => {
+        if (row.url) {
+          urlInLibrarySet.add(row.url);
+        }
+      });
+
       // Get notes for these cards
       const notesQuery = this.db
         .select({
@@ -448,7 +474,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .select({
           cardId: collectionCards.cardId,
           collectionId: collections.id,
-          collectionUri: collections.publishedRecordId,
+          collectionUri: publishedRecords.uri,
           collectionName: collections.name,
           collectionDescription: collections.description,
           collectionAuthorId: collections.authorId,
@@ -460,6 +486,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .innerJoin(
           collections,
           eq(collectionCards.collectionId, collections.id),
+        )
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .where(inArray(collectionCards.cardId, cardIds));
 
@@ -495,6 +525,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           }));
 
         const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+        const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
 
         enrichedNotifications.push({
           id: notification.id,
@@ -521,7 +552,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           cardIsbn: card.contentData?.metadata?.isbn,
           cardLibraryCount: card.libraryCount,
           cardUrlLibraryCount: urlLibraryCount,
-          cardUrlInLibrary: undefined, // Would need calling user ID to determine this
+          cardUrlInLibrary: urlInLibrary,
           cardCreatedAt: card.createdAt,
           cardUpdatedAt: card.updatedAt,
           cardNote: note

@@ -7,12 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { upperFirst } from '@mantine/hooks';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function CardTypeFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: featureFlags } = useFeatureFlags();
 
   const [, startTransition] = useTransition();
 
@@ -45,8 +43,6 @@ export default function CardTypeFilter() {
 
   const SelectedIcon =
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
-
-  if (!featureFlags?.urlTypeFilter) return null;
 
   return (
     <Popover opened={opened} onChange={setOpened} shadow="sm">

@@ -29,6 +29,7 @@ import { Notification } from '../../domain/Notification';
 import { NotificationType } from '../../domain/value-objects/NotificationType';
 import { NotificationType as NotificationTypeEnum } from '@semble/types';
 import { UrlType } from '../../../cards/domain/value-objects/UrlType';
+import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 
 describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
   let container: StartedPostgreSqlContainer;
@@ -343,6 +344,115 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(myFavorites?.id).toBe(collection2.collectionId.getStringValue());
       expect(myFavorites?.description).toBeUndefined();
       expect(myFavorites?.authorId).toBe(cardAuthorId.value);
+    });
+
+    it('should include AT URI for published collections', async () => {
+      // Create URL card
+      const url = URL.create(
+        'https://example.com/article-in-published-collection',
+      ).unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(cardAuthorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create a published collection
+      const publishedCollection = Collection.create(
+        {
+          authorId: collectionAuthorId,
+          name: 'Published Reading List',
+          description: 'A published collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date('2024-01-10'),
+          updatedAt: new Date('2024-01-15'),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      // Add card to collection
+      publishedCollection.addCard(urlCard.cardId, collectionAuthorId);
+
+      // Publish the collection (this should create a published record with AT URI)
+      const atUri = `at://did:plc:${collectionAuthorId.value}/com.semble.collection/${publishedCollection.collectionId.getStringValue()}`;
+      const publishedRecordId = PublishedRecordId.create({
+        uri: atUri,
+        cid: 'test-cid-123',
+      });
+      publishedCollection.markAsPublished(publishedRecordId);
+
+      await collectionRepository.save(publishedCollection);
+
+      // Create an unpublished collection for comparison
+      const unpublishedCollection = Collection.create(
+        {
+          authorId: cardAuthorId,
+          name: 'Unpublished Collection',
+          accessType: CollectionAccessType.CLOSED,
+          collaboratorIds: [],
+          createdAt: new Date('2024-01-12'),
+          updatedAt: new Date('2024-01-18'),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      unpublishedCollection.addCard(urlCard.cardId, cardAuthorId);
+      await collectionRepository.save(unpublishedCollection);
+
+      // Create notification
+      const notification = Notification.create({
+        recipientUserId: recipientId,
+        actorUserId: actorId,
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
+        metadata: {
+          cardId: urlCard.cardId.getStringValue(),
+          collectionIds: [
+            publishedCollection.collectionId.getStringValue(),
+            unpublishedCollection.collectionId.getStringValue(),
+          ],
+        },
+        read: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).unwrap();
+
+      await notificationRepository.save(notification);
+
+      const result = await notificationRepository.findByRecipientEnriched(
+        recipientId,
+        { page: 1, limit: 10 },
+      );
+
+      expect(result.isOk()).toBe(true);
+      const data = result.unwrap();
+      expect(data.notifications).toHaveLength(1);
+
+      const enrichedNotification = data.notifications[0]!;
+      expect(enrichedNotification.collections).toHaveLength(2);
+
+      // Check that published collection has AT URI
+      const publishedCollectionData = enrichedNotification.collections.find(
+        (c) => c.name === 'Published Reading List',
+      );
+      expect(publishedCollectionData).toBeDefined();
+      expect(publishedCollectionData?.uri).toBe(atUri);
+      expect(publishedCollectionData?.id).toBe(
+        publishedCollection.collectionId.getStringValue(),
+      );
+
+      // Check that unpublished collection has no URI (or undefined)
+      const unpublishedCollectionData = enrichedNotification.collections.find(
+        (c) => c.name === 'Unpublished Collection',
+      );
+      expect(unpublishedCollectionData).toBeDefined();
+      expect(unpublishedCollectionData?.uri).toBeUndefined();
+      expect(unpublishedCollectionData?.id).toBe(
+        unpublishedCollection.collectionId.getStringValue(),
+      );
     });
 
     it('should calculate URL library count correctly', async () => {

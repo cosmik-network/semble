@@ -44,9 +44,9 @@ export default function SembleTabs(props: Props) {
           <Group wrap="nowrap">
             <TabItem value="overview">Overview</TabItem>
             <TabItem value="notes">Notes</TabItem>
+            <TabItem value="similar">Similar cards</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
-            <TabItem value="similar">Similar cards</TabItem>
             <TabItem value="mentions">Mentions</TabItem>
           </Group>
         </TabsList>
