@@ -16,7 +16,17 @@ export interface CreateUserAddedYourCardNotificationDTO {
   collectionIds?: string[];
 }
 
-export type CreateNotificationDTO = CreateUserAddedYourCardNotificationDTO;
+export interface CreateUserAddedToYourCollectionNotificationDTO {
+  type: NotificationType.USER_ADDED_TO_YOUR_COLLECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  cardId: string;
+  collectionId: string;
+}
+
+export type CreateNotificationDTO =
+  | CreateUserAddedYourCardNotificationDTO
+  | CreateUserAddedToYourCollectionNotificationDTO;
 
 export interface CreateNotificationResponseDTO {
   notificationId: string;
@@ -80,31 +90,64 @@ export class CreateNotificationUseCase
       }
       const cardId = cardIdResult.value;
 
-      // Validate collection IDs if provided
-      let collectionIds: CollectionId[] | undefined;
-      if (request.collectionIds && request.collectionIds.length > 0) {
-        collectionIds = [];
-        for (const collectionIdStr of request.collectionIds) {
-          const collectionIdResult =
-            CollectionId.createFromString(collectionIdStr);
-          if (collectionIdResult.isErr()) {
-            return err(
-              new ValidationError(
-                `Invalid collection ID: ${collectionIdResult.error.message}`,
-              ),
-            );
-          }
-          collectionIds.push(collectionIdResult.value);
-        }
-      }
+      // Handle different notification types
+      let notificationResult;
 
-      const notificationResult =
-        await this.notificationService.createUserAddedYourCardNotification(
-          recipientId,
-          actorId,
-          cardId,
-          collectionIds,
+      if (request.type === NotificationType.USER_ADDED_YOUR_CARD) {
+        // Validate collection IDs if provided
+        let collectionIds: CollectionId[] | undefined;
+        if (request.collectionIds && request.collectionIds.length > 0) {
+          collectionIds = [];
+          for (const collectionIdStr of request.collectionIds) {
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
+            if (collectionIdResult.isErr()) {
+              return err(
+                new ValidationError(
+                  `Invalid collection ID: ${collectionIdResult.error.message}`,
+                ),
+              );
+            }
+            collectionIds.push(collectionIdResult.value);
+          }
+        }
+
+        notificationResult =
+          await this.notificationService.createUserAddedYourCardNotification(
+            recipientId,
+            actorId,
+            cardId,
+            collectionIds,
+          );
+      } else if (
+        request.type === NotificationType.USER_ADDED_TO_YOUR_COLLECTION
+      ) {
+        // Validate collection ID
+        const collectionIdResult = CollectionId.createFromString(
+          request.collectionId,
         );
+        if (collectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid collection ID: ${collectionIdResult.error.message}`,
+            ),
+          );
+        }
+
+        notificationResult =
+          await this.notificationService.createUserAddedToYourCollectionNotification(
+            recipientId,
+            actorId,
+            cardId,
+            collectionIdResult.value,
+          );
+      } else {
+        // Type exhaustiveness check
+        const _exhaustiveCheck: never = request;
+        return err(
+          new ValidationError(`Unsupported notification type: ${(_exhaustiveCheck as any).type}`),
+        );
+      }
 
       if (notificationResult.isErr()) {
         return err(new ValidationError(notificationResult.error.message));

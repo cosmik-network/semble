@@ -8,6 +8,7 @@ import { CollectionName } from './value-objects/CollectionName';
 import { CollectionDescription } from './value-objects/CollectionDescription';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { CardAddedToCollectionEvent } from './events/CardAddedToCollectionEvent';
+import { CardRemovedFromCollectionEvent } from './events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from './events/CollectionCreatedEvent';
 
 export interface CardLink {
@@ -304,6 +305,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     );
     this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
+
+    // Raise domain event
+    this.addDomainEvent(
+      CardRemovedFromCollectionEvent.create(
+        cardId,
+        this.collectionId,
+        userId,
+      ).unwrap(),
+    );
 
     return ok(undefined);
   }

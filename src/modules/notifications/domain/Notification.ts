@@ -103,6 +103,30 @@ export class Notification extends AggregateRoot<NotificationProps> {
     });
   }
 
+  public static createUserAddedToYourCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionId: CollectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userAddedToYourCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: NotificationMetadata = {
+      cardId: cardId.getStringValue(),
+      collectionIds: [collectionId.getStringValue()],
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata,
+    });
+  }
+
   public markAsRead(): void {
     this.props.read = true;
     this.props.updatedAt = new Date();
