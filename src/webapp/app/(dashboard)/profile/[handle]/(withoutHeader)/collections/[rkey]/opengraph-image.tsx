@@ -28,7 +28,6 @@ export default async function Image(props: Props) {
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
-            marginTop: '35px',
           }}
         >
           <p
@@ -43,11 +42,29 @@ export default async function Image(props: Props) {
           <p
             style={{
               fontSize: '64px',
-              lineHeight: '100%',
+              lineHeight: '20px',
             }}
           >
-            {truncateText(truncateText(collection.name), 30)}
+            {truncateText(collection.name, 30)}
           </p>
+
+          {collection.description && (
+            <p
+              style={{
+                fontSize: '40px',
+                lineHeight: '100%',
+                marginTop: '20px',
+                color: '#868e96',
+                display: 'block',
+                lineClamp: 2,
+                maxWidth: '85%',
+                wordBreak: 'break-word',
+              }}
+            >
+              {collection.description}
+            </p>
+          )}
+
           <p
             style={{
               fontSize: '40px',
