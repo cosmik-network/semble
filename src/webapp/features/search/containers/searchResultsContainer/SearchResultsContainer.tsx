@@ -66,21 +66,18 @@ export default function SearchResultsContainer(props: Props) {
                     value="cards"
                     label="Cards"
                     icon={<FaRegNoteSticky />}
-                    href={buildTabHref('cards')}
                   />
 
                   <SearchTabItem
                     value="collections"
                     label="Collections"
                     icon={<BiCollection />}
-                    href={buildTabHref('collections')}
                   />
 
                   <SearchTabItem
                     value="profiles"
                     label="Profiles"
                     icon={<MdOutlinePeopleAlt />}
-                    href={buildTabHref('profiles')}
                   />
                 </Group>
               </TabsList>

@@ -12,11 +12,13 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import SearchBar from '../searchBar/SearchBar';
 import SearchTabItem from '../searchTabItem/SearchTabItem';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { startTransition } from 'react';
 
 export default function SearchTabs() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   const query = searchParams.get('query') || '';
   const handle = searchParams.get('handle') || undefined;
@@ -28,7 +30,6 @@ export default function SearchTabs() {
       ? 'profiles'
       : 'cards';
 
-  // build search params for each tab
   const buildTabHref = (tabValue: string) => {
     const params = new URLSearchParams();
     if (query) params.set('query', query);
@@ -41,8 +42,18 @@ export default function SearchTabs() {
   };
 
   return (
-    <Tabs value={activeTab} keepMounted={false}>
-      <Stack gap={'xs'}>
+    <Tabs
+      value={activeTab}
+      keepMounted={false}
+      onChange={(value) => {
+        if (!value || value === activeTab) return;
+
+        startTransition(() => {
+          router.replace(buildTabHref(value));
+        });
+      }}
+    >
+      <Stack gap="xs">
         <SearchBar variant="compact" query={query} />
 
         <ScrollAreaAutosize type="scroll">
@@ -52,21 +63,16 @@ export default function SearchTabs() {
                 value="cards"
                 label="Cards"
                 icon={<FaRegNoteSticky />}
-                href={buildTabHref('cards')}
               />
-
               <SearchTabItem
                 value="collections"
                 label="Collections"
                 icon={<BiCollection />}
-                href={buildTabHref('collections')}
               />
-
               <SearchTabItem
                 value="profiles"
                 label="Profiles"
                 icon={<MdOutlinePeopleAlt />}
-                href={buildTabHref('profiles')}
               />
             </Group>
           </TabsList>
