@@ -196,6 +196,7 @@ export class UseCaseFactory {
       removeCardFromCollectionUseCase: new RemoveCardFromCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,

@@ -2,6 +2,7 @@ import { RemoveCardFromCollectionUseCase } from '../../application/useCases/comm
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CardCollectionService } from '../../domain/services/CardCollectionService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
@@ -13,6 +14,7 @@ describe('RemoveCardFromCollectionUseCase', () => {
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionPublisher: FakeCollectionPublisher;
+  let eventPublisher: FakeEventPublisher;
   let cardCollectionService: CardCollectionService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
@@ -21,6 +23,7 @@ describe('RemoveCardFromCollectionUseCase', () => {
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
+    eventPublisher = new FakeEventPublisher();
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
@@ -30,6 +33,7 @@ describe('RemoveCardFromCollectionUseCase', () => {
     useCase = new RemoveCardFromCollectionUseCase(
       cardRepository,
       cardCollectionService,
+      eventPublisher,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
@@ -40,6 +44,7 @@ describe('RemoveCardFromCollectionUseCase', () => {
     cardRepository.clear();
     collectionRepository.clear();
     collectionPublisher.clear();
+    eventPublisher.clear();
   });
 
   const createCard = async (type: CardTypeEnum = CardTypeEnum.URL) => {
