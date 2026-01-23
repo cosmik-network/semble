@@ -45,6 +45,8 @@ interface FilterContextValue {
   appliedHandle: string;
   appliedType: UrlType | null;
   hasFilters: boolean;
+  router: ReturnType<typeof useRouter>;
+  searchParams: ReturnType<typeof useSearchParams>;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -62,6 +64,7 @@ const useFilterContext = () => {
 export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   const [opened, setOpened] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const appliedHandle = searchParams.get('handle') ?? '';
   const appliedType = searchParams.get('urlType') as UrlType | null;
@@ -119,6 +122,8 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         appliedHandle,
         appliedType,
         hasFilters,
+        router,
+        searchParams,
       }}
     >
       {customTrigger ?? defaultTrigger}
@@ -204,6 +209,11 @@ export function ProfileFilter() {
         ctx.setSelectedHandle(val);
         ctx.setSearchQuery(val);
         combobox.closeDropdown();
+
+        // apply filter immediately
+        const params = new URLSearchParams(ctx.searchParams.toString());
+        params.set('handle', val);
+        ctx.router.replace(`?${params.toString()}`, { scroll: false });
       }}
       position="bottom"
       middlewares={{ flip: false, shift: true }}
@@ -235,6 +245,15 @@ export function ProfileFilter() {
                   onClick={() => {
                     ctx.setSearchQuery('');
                     ctx.setSelectedHandle('');
+
+                    // remove filter immediately
+                    const params = new URLSearchParams(
+                      ctx.searchParams.toString(),
+                    );
+                    params.delete('handle');
+                    ctx.router.replace(`?${params.toString()}`, {
+                      scroll: false,
+                    });
                   }}
                 />
               )
@@ -296,6 +315,11 @@ export function UrlTypeFilter() {
             onClick={() => {
               ctx.setLocalType(null);
               setOpened(false);
+
+              // remove filter immediately
+              const params = new URLSearchParams(ctx.searchParams.toString());
+              params.delete('urlType');
+              ctx.router.replace(`?${params.toString()}`, { scroll: false });
             }}
           >
             All Cards
@@ -314,6 +338,15 @@ export function UrlTypeFilter() {
                 onClick={() => {
                   ctx.setLocalType(type);
                   setOpened(false);
+
+                  // apply filter immediately
+                  const params = new URLSearchParams(
+                    ctx.searchParams.toString(),
+                  );
+                  params.set('urlType', type);
+                  ctx.router.replace(`?${params.toString()}`, {
+                    scroll: false,
+                  });
                 }}
               >
                 {upperFirst(type)}
@@ -329,8 +362,6 @@ export function UrlTypeFilter() {
 // actions
 export function Actions() {
   const ctx = useFilterContext();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const hasAnyActiveFilters =
     !!ctx.appliedHandle ||
@@ -338,33 +369,17 @@ export function Actions() {
     !!ctx.selectedHandle ||
     ctx.localType !== null;
 
-  const handleApply = () => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (ctx.selectedHandle) params.set('handle', ctx.selectedHandle);
-    else params.delete('handle');
-
-    if (ctx.localType) params.set('urlType', ctx.localType);
-    else params.delete('urlType');
-
-    router.replace(`?${params.toString()}`, { scroll: false });
-    ctx.setOpened(false);
-  };
-
   const handleClear = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(ctx.searchParams.toString());
     params.delete('handle');
     params.delete('urlType');
 
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
     ctx.setLocalType(null);
-    ctx.setOpened(false);
 
-    router.replace(`?${params.toString()}`, { scroll: false });
+    ctx.router.replace(`?${params.toString()}`, { scroll: false });
   };
-
-  const isInvalid = ctx.searchQuery !== ctx.selectedHandle;
 
   return (
     <Stack gap="sm" mt="md">
@@ -377,20 +392,14 @@ export function Actions() {
         >
           Cancel
         </Button>
-
         {hasAnyActiveFilters && (
           <Button variant="light" size="md" color="red" onClick={handleClear}>
             Clear all
           </Button>
         )}
 
-        <Button
-          variant="filled"
-          size="md"
-          onClick={handleApply}
-          disabled={isInvalid}
-        >
-          Apply
+        <Button variant="filled" size="md" onClick={() => ctx.setOpened(false)}>
+          Done
         </Button>
       </Group>
     </Stack>
