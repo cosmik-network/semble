@@ -35,6 +35,7 @@ async function main() {
     useCases.processCardFirehoseEventUseCase,
     useCases.processCollectionFirehoseEventUseCase,
     useCases.processCollectionLinkFirehoseEventUseCase,
+    useCases.processCollectionLinkRemovalFirehoseEventUseCase,
   );
 
   const firehoseEventHandler = new FirehoseEventHandler(

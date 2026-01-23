@@ -555,18 +555,19 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       expect(addResult.isOk()).toBe(true);
       const urlCardId = addResult.unwrap().urlCardId;
 
-      // Manually add card to collection (as collection owner) to simulate existing state
+      // Add card to collection as the current user (curatorId)
+      // In an OPEN collection, users can only remove cards they added themselves
       const cardResult = await cardRepository.findById(
         CardId.createFromString(urlCardId).unwrap(),
       );
       expect(cardResult.isOk()).toBe(true);
       const card = cardResult.unwrap()!;
 
-      const addCardResult = collection.addCard(card.cardId, otherCuratorId);
+      const addCardResult = collection.addCard(card.cardId, curatorId);
       expect(addCardResult.isOk()).toBe(true);
       await collectionRepository.save(collection);
 
-      // Remove from collection
+      // Remove from collection - should succeed because curatorId added the card
       const updateRequest = {
         cardId: urlCardId,
         curatorId: curatorId.value,

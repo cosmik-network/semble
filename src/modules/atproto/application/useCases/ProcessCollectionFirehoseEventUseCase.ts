@@ -8,6 +8,7 @@ import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/n
 import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
+import { CollectionAccessType } from '../../../cards/domain/Collection';
 export interface ProcessCollectionFirehoseEventDTO {
   atUri: string;
   cid: string | null;
@@ -84,6 +85,7 @@ export class ProcessCollectionFirehoseEventUseCase
       const result = await this.createCollectionUseCase.execute({
         name: request.record.name,
         description: request.record.description,
+        accessType: request.record.accessType as CollectionAccessType | undefined,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });
@@ -168,6 +170,7 @@ export class ProcessCollectionFirehoseEventUseCase
         collectionId: collectionIdResult.value.getStringValue(),
         name: request.record.name,
         description: request.record.description,
+        accessType: request.record.accessType as CollectionAccessType | undefined,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });

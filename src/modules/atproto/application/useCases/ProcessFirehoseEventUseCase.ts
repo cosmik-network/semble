@@ -8,10 +8,12 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 import { ProcessCardFirehoseEventUseCase } from './ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from './ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from './ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import type { RepoRecord } from '@atproto/lexicon';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+import { Record as CollectionLinkRemovalRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLinkRemoval';
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
@@ -35,6 +37,7 @@ export class ProcessFirehoseEventUseCase
     private processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase,
     private processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase,
     private processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase,
+    private processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase,
   ) {}
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
@@ -120,6 +123,27 @@ export class ProcessFirehoseEventUseCase
           return this.processCollectionLinkFirehoseEventUseCase.execute({
             ...request,
             record: request.record as CollectionLinkRecord | undefined,
+          });
+        case collections.collectionLinkRemoval:
+          // Validate CollectionLinkRemovalRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const removalRecord = request.record as CollectionLinkRemovalRecord;
+            if (
+              !removalRecord.collection ||
+              !removalRecord.removedLink ||
+              !removalRecord.removedAt
+            ) {
+              return err(
+                new ValidationError('Invalid collection link removal record structure'),
+              );
+            }
+          }
+          return this.processCollectionLinkRemovalFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionLinkRemovalRecord | undefined,
           });
         default:
           return err(

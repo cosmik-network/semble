@@ -41,6 +41,7 @@ import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/appli
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -61,6 +62,7 @@ export interface WorkerUseCases {
   processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -406,6 +408,16 @@ export class UseCaseFactory {
         ),
       processCollectionLinkFirehoseEventUseCase:
         new ProcessCollectionLinkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+        ),
+      processCollectionLinkRemovalFirehoseEventUseCase:
+        new ProcessCollectionLinkRemovalFirehoseEventUseCase(
           repositories.atUriResolutionService,
           new UpdateUrlCardAssociationsUseCase(
             repositories.cardRepository,
