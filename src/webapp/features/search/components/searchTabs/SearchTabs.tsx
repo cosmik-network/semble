@@ -13,7 +13,6 @@ import { MdOutlinePeopleAlt } from 'react-icons/md';
 import SearchBar from '../searchBar/SearchBar';
 import SearchTabItem from '../searchTabItem/SearchTabItem';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { startTransition } from 'react';
 
 export default function SearchTabs() {
   const searchParams = useSearchParams();
@@ -21,8 +20,6 @@ export default function SearchTabs() {
   const router = useRouter();
 
   const query = searchParams.get('query') || '';
-  const handle = searchParams.get('handle') || undefined;
-  const urlType = searchParams.get('urlType') || undefined;
 
   const activeTab = pathname.includes('/collections')
     ? 'collections'
@@ -31,14 +28,8 @@ export default function SearchTabs() {
       : 'cards';
 
   const buildTabHref = (tabValue: string) => {
-    const params = new URLSearchParams();
-    if (query) params.set('query', query);
-    if (handle) params.set('handle', handle);
-    if (urlType) params.set('urlType', urlType);
-
-    const route = `/search/${tabValue}`;
-    const queryString = params.toString();
-    return queryString ? `${route}?${queryString}` : route;
+    const params = new URLSearchParams(searchParams.toString());
+    return `/search/${tabValue}${params.toString() ? `?${params}` : ''}`;
   };
 
   return (
@@ -47,10 +38,7 @@ export default function SearchTabs() {
       keepMounted={false}
       onChange={(value) => {
         if (!value || value === activeTab) return;
-
-        startTransition(() => {
-          router.replace(buildTabHref(value));
-        });
+        router.replace(buildTabHref(value));
       }}
     >
       <Stack gap="xs">
