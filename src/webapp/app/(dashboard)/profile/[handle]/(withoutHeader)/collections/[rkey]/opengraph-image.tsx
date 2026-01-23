@@ -33,7 +33,7 @@ export default async function Image(props: Props) {
           <p
             style={{
               fontSize: '40px',
-              lineHeight: '20px',
+              lineHeight: '20%',
               color: '#e803ff',
             }}
           >
@@ -69,18 +69,28 @@ export default async function Image(props: Props) {
             </p>
           )}
 
-          <p
+          <div
             style={{
-              fontSize: '40px',
-              lineHeight: '20px',
               marginTop: '40px',
+              display: 'flex',
+              gap: 10,
             }}
           >
-            <span>By&nbsp;</span>
-            <span style={{ color: '#23AFED' }}>
+            {collection.author.avatarUrl && (
+              <img
+                src={collection.author.avatarUrl}
+                width={60}
+                height={60}
+                alt={`${handle}'s avatar`}
+                style={{ borderRadius: '20px', marginTop: 'auto' }}
+              />
+            )}
+            <p
+              style={{ color: '#23AFED', fontSize: '40px', lineHeight: '20px' }}
+            >
               @{truncateText(truncateText(collection.author.handle), 35)}
-            </span>
-          </p>
+            </p>
+          </div>
         </div>
       </div>
     ),
