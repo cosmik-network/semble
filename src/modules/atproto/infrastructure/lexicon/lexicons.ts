@@ -269,11 +269,11 @@ export const schemaDict = {
       main: {
         type: 'record',
         description:
-          "A record representing the removal of a collection link by a collection owner when they cannot delete the original link (which exists in another user's repository).",
+          "A record representing the removal of a collection link by a collection owner when they cannot delete the original link (which exists in another user's repository). The creator of this record (determined from the AT-URI) is the user who performed the removal.",
         key: 'tid',
         record: {
           type: 'object',
-          required: ['collection', 'removedLink', 'removedBy', 'removedAt'],
+          required: ['collection', 'removedLink', 'removedAt'],
           properties: {
             collection: {
               type: 'ref',
@@ -286,22 +286,11 @@ export const schemaDict = {
                 'Strong reference to the collectionLink record that is being removed.',
               ref: 'lex:com.atproto.repo.strongRef',
             },
-            removedBy: {
-              type: 'string',
-              format: 'did',
-              description:
-                'DID of the user who removed the link (typically the collection owner).',
-            },
             removedAt: {
               type: 'string',
               format: 'datetime',
               description:
                 'Timestamp when the link was removed from the collection.',
-            },
-            reason: {
-              type: 'string',
-              maxLength: 300,
-              description: 'Optional reason for the removal.',
             },
           },
         },

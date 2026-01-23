@@ -1,5 +1,4 @@
 import { PublishedRecordIdProps } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
-import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { Record } from '../lexicon/types/network/cosmik/collectionLinkRemoval';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
@@ -14,8 +13,6 @@ export class CollectionLinkRemovalMapper {
   static toCreateRecordDTO(
     collectionPublishedRecordId: PublishedRecordIdProps,
     removedLinkPublishedRecordId: PublishedRecordIdProps,
-    removedBy: CuratorId,
-    reason?: string,
   ): CollectionLinkRemovalRecordDTO {
     const record: CollectionLinkRemovalRecordDTO = {
       $type: this.collectionLinkRemovalType as any,
@@ -27,13 +24,8 @@ export class CollectionLinkRemovalMapper {
         uri: removedLinkPublishedRecordId.uri,
         cid: removedLinkPublishedRecordId.cid,
       },
-      removedBy: removedBy.value,
       removedAt: new Date().toISOString(),
     };
-
-    if (reason) {
-      record.reason = reason;
-    }
 
     return record;
   }

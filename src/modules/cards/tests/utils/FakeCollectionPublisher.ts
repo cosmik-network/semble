@@ -152,7 +152,6 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     collection: Collection,
     curatorId: CuratorId,
     removedLinkRef: PublishedRecordId,
-    reason?: string,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(

@@ -29,6 +29,5 @@ export interface ICollectionPublisher {
     collection: Collection,
     curatorId: CuratorId,
     removedLinkRef: PublishedRecordId,
-    reason?: string,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 }

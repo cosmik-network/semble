@@ -282,7 +282,6 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     collection: Collection,
     curatorId: CuratorId,
     removedLinkRef: PublishedRecordId,
-    reason?: string,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const curatorDidResult = DID.create(curatorId.value);
@@ -328,8 +327,6 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       const removalRecordDTO = CollectionLinkRemovalMapper.toCreateRecordDTO(
         collection.publishedRecordId.getValue(),
         removedLinkRef.getValue(),
-        curatorId,
-        reason,
       );
       removalRecordDTO.$type = this.collectionLinkRemovalCollection as any;
 

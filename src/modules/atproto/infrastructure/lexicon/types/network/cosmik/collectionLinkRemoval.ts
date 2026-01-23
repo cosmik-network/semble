@@ -15,12 +15,8 @@ export interface Record {
   $type: 'network.cosmik.collectionLinkRemoval'
   collection: ComAtprotoRepoStrongRef.Main
   removedLink: ComAtprotoRepoStrongRef.Main
-  /** DID of the user who removed the link (typically the collection owner). */
-  removedBy: string
   /** Timestamp when the link was removed from the collection. */
   removedAt: string
-  /** Optional reason for the removal. */
-  reason?: string
   [k: string]: unknown
 }
 
