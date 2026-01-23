@@ -72,13 +72,13 @@ export async function GET(request: NextRequest) {
                 style={{
                   fontSize: 64,
                   lineHeight: 1.1,
-                  display: 'block',
+                  display: 'block', // needed for line clamp
                   lineClamp: 2,
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
                   maxWidth: '85%',
-                  wordBreak: 'break-word',
+                  wordBreak: 'normal', // prevent breaking mid-word
+                  overflowWrap: 'normal', // prevent wrapping mid-word
                   margin: 0,
                 }}
               >
