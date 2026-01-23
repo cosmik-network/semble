@@ -205,6 +205,7 @@ export class InMemoryCollectionQueryRepository
             uri: collectionPublishedRecordId?.uri,
             name: collection.name.value,
             description: collection.description?.value,
+            accessType: collection.accessType,
             authorId: collection.authorId.value,
           };
         },

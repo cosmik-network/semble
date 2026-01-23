@@ -103,6 +103,7 @@ export class GetCollectionsUseCase
           uri: item.uri,
           name: item.name,
           description: item.description,
+          accessType: item.accessType as 'OPEN' | 'CLOSED',
           updatedAt: item.updatedAt.toISOString(),
           createdAt: item.createdAt.toISOString(),
           cardCount: item.cardCount,
