@@ -96,7 +96,7 @@ export interface Collection {
   name: string;
   author: User;
   description?: string;
-  accessType: CollectionAccessType;
+  accessType?: CollectionAccessType;
   cardCount: number;
   createdAt: string;
   updatedAt: string;
@@ -138,6 +138,7 @@ export interface GetCollectionPageResponse {
   uri?: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   author: User;
   urlCards: UrlCard[];
   cardCount: number;
