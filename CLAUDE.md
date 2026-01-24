@@ -1,0 +1,1 @@
+- use npm run webapp:type-check to check type errors in frontend
