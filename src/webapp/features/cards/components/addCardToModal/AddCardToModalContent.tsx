@@ -7,6 +7,8 @@ import { Suspense, useState } from 'react';
 import CollectionSelectorError from '@/features/collections/components/collectionSelector/Error.CollectionSelector';
 import CardToBeAddedPreview from '@/features/cards/components/cardToBeAddedPreview/CardToBeAddedPreview';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
+import CollectionSelectorWithOpenCollections from '@/features/collections/components/collectionSelectorWithOpenCollections/CollectionSelectorWithOpenCollections';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
@@ -31,6 +33,7 @@ interface Props {
 }
 
 export default function AddCardToModalContent(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isMyCard = props?.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(isMyCard ? props.note : '');
@@ -149,18 +152,33 @@ export default function AddCardToModalContent(props: Props) {
       </Stack>
 
       <Suspense fallback={<CollectionSelectorSkeleton />}>
-        <CollectionSelector
-          isOpen={true}
-          onClose={props.onClose}
-          onCancel={() => {
-            props.onClose();
-            setSelectedCollections(collectionsWithCard);
-          }}
-          onSave={handleUpdateCard}
-          isSaving={isSaving}
-          selectedCollections={selectedCollections}
-          onSelectedCollectionsChange={setSelectedCollections}
-        />
+        {featureFlags?.openCollections ? (
+          <CollectionSelectorWithOpenCollections
+            isOpen={true}
+            onClose={props.onClose}
+            onCancel={() => {
+              props.onClose();
+              setSelectedCollections(collectionsWithCard);
+            }}
+            onSave={handleUpdateCard}
+            isSaving={isSaving}
+            selectedCollections={selectedCollections}
+            onSelectedCollectionsChange={setSelectedCollections}
+          />
+        ) : (
+          <CollectionSelector
+            isOpen={true}
+            onClose={props.onClose}
+            onCancel={() => {
+              props.onClose();
+              setSelectedCollections(collectionsWithCard);
+            }}
+            onSave={handleUpdateCard}
+            isSaving={isSaving}
+            selectedCollections={selectedCollections}
+            onSelectedCollectionsChange={setSelectedCollections}
+          />
+        )}
       </Suspense>
     </Stack>
   );

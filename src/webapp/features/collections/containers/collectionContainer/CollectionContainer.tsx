@@ -9,6 +9,7 @@ import {
   Title,
   Avatar,
   Button,
+  Badge,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import Link from 'next/link';
@@ -19,7 +20,7 @@ import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiLock, FiUnlock } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
@@ -28,6 +29,8 @@ import CardSortSelect from '@/features/cards/components/cardFilters/CardSortSele
 import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
 import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
 import useGemCollectionSearch from '../../lib/queries/useGemCollectionSearch';
+import { CollectionAccessType } from '@semble/types';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   rkey: string;
@@ -37,6 +40,7 @@ interface Props {
 export default function CollectionContainer(props: Props) {
   const os = useOs();
   const { user } = useAuth();
+  const { data: featureFlags } = useFeatureFlags();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -75,9 +79,27 @@ export default function CollectionContainer(props: Props) {
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
           <Stack gap={0}>
-            <Text fw={700} c="grape">
-              Collection
-            </Text>
+            <Group gap="xs">
+              <Text fw={700} c="grape">
+                Collection
+              </Text>
+              {featureFlags?.openCollections && firstPage.accessType && (
+                <Badge
+                  variant="light"
+                  color={firstPage.accessType === CollectionAccessType.OPEN ? "teal" : "gray"}
+                  leftSection={
+                    firstPage.accessType === CollectionAccessType.OPEN ? (
+                      <FiUnlock size={12} />
+                    ) : (
+                      <FiLock size={12} />
+                    )
+                  }
+                  size="sm"
+                >
+                  {firstPage.accessType === CollectionAccessType.OPEN ? "Open" : "Closed"}
+                </Badge>
+              )}
+            </Group>
             <Title order={1}>{firstPage.name}</Title>
             {firstPage.description && (
               <Text c="gray" mt="lg">
@@ -162,6 +184,7 @@ export default function CollectionContainer(props: Props) {
             rkey={props.rkey}
             name={firstPage.name}
             description={firstPage.description}
+            accessType={firstPage.accessType}
             authorHandle={firstPage.author.handle}
           />
         </Group>

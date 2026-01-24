@@ -3,7 +3,7 @@
 import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
@@ -12,6 +12,9 @@ import Link from 'next/link';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
+import { CollectionAccessType } from '@semble/types';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { FiUnlock } from 'react-icons/fi';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -21,12 +24,14 @@ interface Props {
 
 export default function CollectionCard(props: Props) {
   const { collection } = props;
+  const { data: featureFlags } = useFeatureFlags();
   const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
   const { settings } = useUserSettings();
   const router = useRouter();
+  const isOpenCollection = collection.accessType === CollectionAccessType.OPEN;
 
   return (
     <Card
@@ -43,9 +48,21 @@ export default function CollectionCard(props: Props) {
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
+              <Group gap="xs" wrap="nowrap">
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {featureFlags?.openCollections && isOpenCollection && (
+                  <Badge
+                    variant="light"
+                    color="teal"
+                    leftSection={<FiUnlock size={10} />}
+                    size="xs"
+                  >
+                    Open
+                  </Badge>
+                )}
+              </Group>
               {props.showAuthor && (
                 <Avatar
                   component={Link}

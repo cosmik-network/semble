@@ -14,6 +14,8 @@ import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardMod
 import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
+import { CollectionAccessType } from '@semble/types';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   id: string;
@@ -30,11 +32,23 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
+  const { data: featureFlags } = useFeatureFlags();
   const isAuthorByHandle =
     props.authorHandle && user?.handle === props.authorHandle;
   const isAuthorById =
     !props.authorHandle && props.cardAuthor && user?.id === props.cardAuthor.id;
   const isAuthor = Boolean(user && (isAuthorByHandle || isAuthorById));
+
+  // For open collections, check if user is the card adder or collection creator
+  const isOpenCollection = featureFlags?.openCollections &&
+    props.currentCollection?.accessType === CollectionAccessType.OPEN;
+  const isCardAdder = Boolean(user && props.cardAuthor && user.id === props.cardAuthor.id);
+  const isCollectionOwner = Boolean(
+    user && props.currentCollection &&
+    props.currentCollection.author.id === user.id
+  );
+  const canRemoveFromOpenCollection = isOpenCollection && (isCardAdder || isCollectionOwner);
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -114,7 +128,7 @@ export default function UrlCardActions(props: Props) {
               )}
             </CopyButton>
 
-            {props.currentCollection && isAuthor && (
+            {props.currentCollection && (isAuthor || canRemoveFromOpenCollection) && (
               <Menu.Item
                 leftSection={<LuUnplug />}
                 onClick={(e) => {
