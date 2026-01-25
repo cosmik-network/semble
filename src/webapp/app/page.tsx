@@ -11,6 +11,8 @@ import {
   Center,
   Group,
   Badge,
+  Grid,
+  GridCol,
 } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import BG from '@/assets/semble-bg.webp';
@@ -25,6 +27,7 @@ import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
 import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcutButton';
 import { Fragment } from 'react';
 import Footer from '@/components/landing/footer/Footer';
+import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
 
 export default async function Page() {
   const fadeStyle = {
@@ -89,38 +92,46 @@ function Content() {
 
       <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="md" my="auto">
-          <Stack align="center" gap="5rem">
-            <Stack gap="xs" maw={550} mx="auto">
-              <AnimatedTitle />
+          <Stack gap="5rem">
+            <Grid gutter="xl" align="center">
+              <GridCol span={{ sm: 5, md: 6 }}>
+                <Stack gap="xs" maw={550}>
+                  <AnimatedTitle />
 
-              {/* light mode subtitle */}
-              <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
-                Follow your peers’ research trails. Surface and discover new
-                connections. Built on ATProto so you own your data.
-              </Title>
+                  {/* light mode subtitle */}
+                  <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
+                    Follow your peers’ research trails. Surface and discover new
+                    connections. Built on ATProto so you own your data.
+                  </Title>
 
-              {/* dark mode subtitle */}
-              <Title order={2} fw={600} fz="xl" c="#1e4dd9" lightHidden>
-                Follow your peers’ research trails. Surface and discover new
-                connections. Built on ATProto so you own your data.
-              </Title>
+                  {/* dark mode subtitle */}
+                  <Title order={2} fw={600} fz="xl" c="#1e4dd9" lightHidden>
+                    Follow your peers’ research trails. Surface and discover new
+                    connections. Built on ATProto so you own your data.
+                  </Title>
 
-              <Group gap="md" mt="lg">
-                <Button component={Link} href="/signup" size="lg">
-                  Sign up
-                </Button>
+                  <Group gap="md" mt="lg">
+                    <Button component={Link} href="/signup" size="lg">
+                      Sign up
+                    </Button>
 
-                <Button
-                  component={Link}
-                  href="/login"
-                  size="lg"
-                  color="var(--mantine-color-dark-filled)"
-                  rightSection={<BiRightArrowAlt size={22} />}
-                >
-                  Log in
-                </Button>
-              </Group>
-            </Stack>
+                    <Button
+                      component={Link}
+                      href="/login"
+                      size="lg"
+                      color="var(--mantine-color-dark-filled)"
+                      rightSection={<BiRightArrowAlt size={22} />}
+                    >
+                      Log in
+                    </Button>
+                  </Group>
+                </Stack>
+              </GridCol>
+
+              <GridCol span={{ sm: 7, md: 6 }}>
+                <RecentActivity />
+              </GridCol>
+            </Grid>
 
             <SimpleGrid
               cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
