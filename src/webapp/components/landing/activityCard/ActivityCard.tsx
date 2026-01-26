@@ -82,6 +82,7 @@ export default function ActivityCard(props: Props) {
         flex={1}
         h={'100%'}
         onClick={handleNavigateToSemblePage}
+        style={{ cursor: 'pointer' }}
         withBorder
       >
         <Stack justify="space-between" gap={'sm'} flex={1}>
