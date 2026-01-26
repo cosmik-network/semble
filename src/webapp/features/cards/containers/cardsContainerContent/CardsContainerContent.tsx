@@ -59,7 +59,7 @@ export default function CardsContainerContent(props: Props) {
     return (
       <Container px="xs" py={'xl'} size="xl">
         <ProfileEmptyTab
-          message={`No ${selectedUrlType} cards`}
+          message={selectedUrlType ? `No ${selectedUrlType} cards` : 'No cards'}
           icon={FaRegNoteSticky}
         />
       </Container>
