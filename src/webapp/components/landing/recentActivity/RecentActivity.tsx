@@ -65,7 +65,15 @@ export default async function RecentActivity() {
           <Stack gap="lg">
             {combined.map((card, i) => (
               <Suspense key={i} fallback={<ActivityCardSkeleton />}>
-                <ActivityCard {...card} />
+                <ActivityCard
+                  id={card.id}
+                  url={card.url}
+                  note={card.note}
+                  cardAuthor={card.author}
+                  cardContent={card.cardContent}
+                  createdAt={card.createdAt}
+                  urlLibraryCount={card.urlLibraryCount}
+                />
               </Suspense>
             ))}
           </Stack>
