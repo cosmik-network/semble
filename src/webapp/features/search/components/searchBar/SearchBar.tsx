@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
 
 interface Props {
-  variant?: 'compact' | 'large';
   query?: string;
 }
 
@@ -30,13 +29,7 @@ export default function SearchBar(props: Props) {
   };
 
   return (
-    <Card
-      pr="6"
-      py={props.variant === 'compact' ? '2' : '6'}
-      radius="lg"
-      w="100%"
-      withBorder
-    >
+    <Card pr="6" py="6" radius="lg" w="100%" withBorder>
       <form
         onSubmit={(e) => {
           e.preventDefault();
