@@ -23,10 +23,7 @@ import { FiPlus } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
-import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
-import CardSortSelect from '@/features/cards/components/cardFilters/CardSortSelect';
-import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
-import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
+import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import useGemCollectionSearch from '../../lib/queries/useGemCollectionSearch';
 
 interface Props {
@@ -111,11 +108,11 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         <Group justify="space-between">
-          <CardFilters>
-            <CardSortSelect />
-            <CardTypeFilter />
-            <CardViewToggle />
-          </CardFilters>
+          <CardFilters.Root>
+            <CardFilters.SortSelect />
+            <CardFilters.TypeFilter />
+            <CardFilters.ViewToggle />
+          </CardFilters.Root>
 
           {isGemsCollection && (
             <Group gap={'xs'}>
