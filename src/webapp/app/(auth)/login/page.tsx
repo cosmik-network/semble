@@ -84,8 +84,8 @@ export default function Page() {
             <PopoverDropdown>
               <Text fw={500} ta="center" maw={380}>
                 If you have a Bluesky account, you can sign in with it; no new
-                account is needed. In future, your account will be seamlessly
-                migrated to the{' '}
+                account is needed. In future, you will have the option to
+                migrate your account to the{' '}
                 <Anchor
                   href="https://cosmik.network"
                   target="_blank"
