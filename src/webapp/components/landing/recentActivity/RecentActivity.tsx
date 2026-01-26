@@ -16,23 +16,27 @@ import { unstable_cache } from 'next/cache';
 
 const getRecentActivity = unstable_cache(
   async () => {
-    const results = await Promise.all([
-      getUrlCards('ronentk.me', { limit: 1 }),
-      getUrlCards('wesleyfinck.org', { limit: 1 }),
-      getUrlCards('pouriade.com', { limit: 1 }),
-      getUrlCards('tynanpurdy.com', { limit: 1 }),
-      getUrlCards('erlend.sh', { limit: 1 }),
-      getUrlCards('bmann.ca', { limit: 1 }),
-      getUrlCards('tgoerke.bsky.social', { limit: 1 }),
-      getUrlCards('psingletary.com', { limit: 1 }),
-    ]);
+    try {
+      const results = await Promise.all([
+        getUrlCards('ronentk.me', { limit: 1 }),
+        getUrlCards('wesleyfinck.org', { limit: 1 }),
+        getUrlCards('pouriade.com', { limit: 1 }),
+        getUrlCards('tynanpurdy.com', { limit: 1 }),
+        getUrlCards('erlend.sh', { limit: 1 }),
+        getUrlCards('bmann.ca', { limit: 1 }),
+        getUrlCards('tgoerke.bsky.social', { limit: 1 }),
+        getUrlCards('psingletary.com', { limit: 1 }),
+      ]);
 
-    return results
-      .flatMap((result) => result.cards)
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      );
+      return results
+        .flatMap((result) => result.cards)
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        );
+    } catch (err) {
+      return null;
+    }
   },
   ['recent-activity-cards'],
   {
@@ -41,7 +45,9 @@ const getRecentActivity = unstable_cache(
 );
 
 export default async function RecentActivity() {
-  const combined = await getRecentActivity();
+  const cards = await getRecentActivity();
+
+  if (!cards) return null;
 
   return (
     <Card withBorder component="article" p="xs" radius="lg">
@@ -63,16 +69,16 @@ export default async function RecentActivity() {
 
         <ScrollAreaAutosize type="auto" mah={{ base: 250, xs: 400 }}>
           <Stack gap="lg">
-            {combined.map((card, i) => (
+            {cards.map((c, i) => (
               <Suspense key={i} fallback={<ActivityCardSkeleton />}>
                 <ActivityCard
-                  id={card.id}
-                  url={card.url}
-                  note={card.note}
-                  cardAuthor={card.author}
-                  cardContent={card.cardContent}
-                  createdAt={card.createdAt}
-                  urlLibraryCount={card.urlLibraryCount}
+                  id={c.id}
+                  url={c.url}
+                  note={c.note}
+                  cardAuthor={c.author}
+                  cardContent={c.cardContent}
+                  createdAt={c.createdAt}
+                  urlLibraryCount={c.urlLibraryCount}
                 />
               </Suspense>
             ))}
