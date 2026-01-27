@@ -39,7 +39,7 @@ export default function CollectionsContainer(props: Props) {
           />
           <Button
             component={Link}
-            href={`/search/collections?handle:${props.handle}`}
+            href={`/search/collections?handle=${props.handle}`}
             variant="light"
             color="gray"
             rightSection={<IoSearch />}

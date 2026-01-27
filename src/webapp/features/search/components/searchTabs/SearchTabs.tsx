@@ -42,7 +42,7 @@ export default function SearchTabs() {
       }}
     >
       <Stack gap="xs">
-        <SearchBar variant="compact" query={query} />
+        <SearchBar query={query} />
 
         <ScrollAreaAutosize type="scroll">
           <TabsList>

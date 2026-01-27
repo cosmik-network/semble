@@ -20,6 +20,7 @@ interface SearchParams {
   sortOrder?: SortOrder;
   searchText?: string;
   urlType?: UrlType;
+  handleOrDid?: string;
 }
 
 export const getCollectionsForUrl = cache(
@@ -37,10 +38,10 @@ export const getCollectionsForUrl = cache(
 );
 
 export const getCollections = cache(
-  async (didOrHandle: string, params?: PageParams & SearchParams) => {
+  async (handleOrDid: string, params?: PageParams & SearchParams) => {
     const client = createSembleClient();
     const response = await client.getCollections({
-      identifier: didOrHandle,
+      identifier: handleOrDid,
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
@@ -171,6 +172,7 @@ export const searchCollections = cache(
       sortBy: params?.collectionSortBy,
       sortOrder: params?.sortOrder,
       searchText: params?.searchText,
+      // handleOrDid: params?.handleOrDid, // TODO: add later
     });
 
     // Temp fix: filter out collections without uri

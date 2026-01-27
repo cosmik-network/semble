@@ -43,6 +43,16 @@ export default function SearchBar(props: Props) {
   const [searchType, setSearchType] = useState<string | null>('cards');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const getPlaceholderText = () => {
+    if (!searchType) return 'Find cards, collections, and more';
+
+    const handle = searchParams.get('handle');
+
+    return handle && ['cards', 'collections'].includes(searchType)
+      ? `Search for @${handle}'s ${searchType}`
+      : `Search for ${searchType.toLowerCase()}`;
+  };
+
   const onSearch = () => {
     const params = new URLSearchParams();
 
@@ -50,10 +60,11 @@ export default function SearchBar(props: Props) {
       params.set('query', search);
     }
 
-    // preserve handle and urlType if they exist for cards
-    if (searchType === 'cards') {
+    // preserve handle (and urlType) for cards + collections
+    if (searchType === 'cards' || searchType === 'collections') {
       const handle = searchParams.get('handle');
       const urlType = searchParams.get('urlType');
+
       if (handle) params.set('handle', handle);
       if (urlType) params.set('urlType', urlType);
     }
@@ -78,7 +89,7 @@ export default function SearchBar(props: Props) {
           <TextInput
             ref={inputRef}
             variant="unstyled"
-            placeholder="Find cards, collections, and more"
+            placeholder={getPlaceholderText()}
             flex={1}
             size="md"
             value={search}
@@ -100,7 +111,7 @@ export default function SearchBar(props: Props) {
                 leftSection={searchType ? icons[searchType] : null}
                 w={140}
               />
-              {searchType === 'cards' && (
+              {searchType !== 'profiles' && (
                 <SearchFilters.Root
                   trigger={
                     <ActionIcon
@@ -114,7 +125,7 @@ export default function SearchBar(props: Props) {
                   }
                 >
                   <SearchFilters.ProfileFilter />
-                  <SearchFilters.UrlTypeFilter />
+                  {searchType === 'cards' && <SearchFilters.UrlTypeFilter />}
                   <SearchFilters.Actions />
                 </SearchFilters.Root>
               )}

@@ -13,12 +13,18 @@ export default function SearchQueryAlert(props: Props) {
       color="gray"
       w={'100%'}
       title={
-        <Text fz={'sm'} fw={500} c={'dimmed'} lineClamp={1}>
-          Showing results for{' '}
-          <Text fz={'sm'} fw={600} c={'bright'} span>
-            "{props.query}"
+        props.query ? (
+          <Text fz={'sm'} fw={500} c={'dimmed'} lineClamp={1}>
+            Showing results for{' '}
+            <Text fz={'sm'} fw={600} c={'bright'} span>
+              "{props.query}"
+            </Text>
           </Text>
-        </Text>
+        ) : (
+          <Text fz={'sm'} fw={500} c={'dimmed'} lineClamp={1}>
+            Search to get started
+          </Text>
+        )
       }
     />
   );

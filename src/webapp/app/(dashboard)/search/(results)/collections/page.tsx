@@ -12,14 +12,14 @@ interface Props {
 }
 
 export default async function Page(props: Props) {
-  const { query } = await props.searchParams;
+  const { query, handle } = await props.searchParams;
 
   return (
     <Suspense
       fallback={<CollectionSearchResultsContainerSkeleton />}
-      key={query}
+      key={query + handle}
     >
-      <CollectionSearchResultsContainer query={query} />
+      <CollectionSearchResultsContainer query={query} handle={handle} />
     </Suspense>
   );
 }

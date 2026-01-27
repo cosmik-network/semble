@@ -22,7 +22,7 @@ export default function CardsContainer(props: Props) {
           <CardFilters.ViewToggle />
           <Button
             component={Link}
-            href={`/search/cards?handle:${props.handle}`}
+            href={`/search/cards?handle=${props.handle}`}
             variant="light"
             color="gray"
             rightSection={<IoSearch />}
