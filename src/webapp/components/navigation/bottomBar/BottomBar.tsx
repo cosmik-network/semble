@@ -7,12 +7,10 @@ import BottomBarItem from '../bottomBarItem/BottomBarItem';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { RiNotification2Line } from 'react-icons/ri';
 import useUnreadNotificationCount from '@/features/notifications/lib/queries/useUnreadNotificationCount';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function BottomBar() {
   const { data: profile } = useMyProfile();
   const { data: notificationData } = useUnreadNotificationCount();
-  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <AppShellFooter px={'sm'} pb={'lg'} py={'xs'} hiddenFrom="sm">
@@ -23,9 +21,8 @@ export default function BottomBar() {
           title="Explore"
           icon={MdOutlineEmojiNature}
         />
-        {featureFlags?.cardSearch && (
-          <BottomBarItem href="/search" title="Search" icon={BiSearch} />
-        )}
+
+        <BottomBarItem href="/search" title="Search" icon={BiSearch} />
 
         <BottomBarItem
           href="/notifications"
