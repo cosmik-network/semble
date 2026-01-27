@@ -26,7 +26,7 @@ export class OAuthClientFactory {
           : `http://localhost?redirect_uri=${enc(`${baseUrl}/api/users/oauth/callback`)}&scope=${enc('atproto transition:generic')}`,
         client_uri: url,
         redirect_uris: [`${baseUrl}/api/users/oauth/callback`],
-        scope: 'atproto transition:generic',
+        scope: 'atproto offline_access blob:* include:network.cosmik.authFull',
         grant_types: ['authorization_code', 'refresh_token'],
         response_types: ['code'],
         application_type: 'web',
