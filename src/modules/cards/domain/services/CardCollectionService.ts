@@ -211,17 +211,13 @@ export class CardCollectionService implements DomainService {
       }
 
       // Check permissions FIRST before attempting any publishing operations
-      const canRemoveResult = collection.removeCard(card.cardId, curatorId);
-      if (canRemoveResult.isErr()) {
+      if (!collection.canRemoveCard(card.cardId, curatorId)) {
         return err(
           new CardCollectionValidationError(
-            `Failed to remove card from collection: ${canRemoveResult.error.message}`,
+            'User does not have permission to remove cards from this collection',
           ),
         );
       }
-
-      // Re-add the card since we only wanted to check permissions
-      collection.addCard(card.cardId, cardLink.addedBy, cardLink.viaCardId);
 
       // Handle unpublishing/removal based on options
       if (!options?.skipPublishing && cardLink.publishedRecordId) {
