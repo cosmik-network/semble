@@ -1,4 +1,4 @@
-import { verifySessionOnClient } from '@/lib/auth/dal';
+import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
   CardSortField,
@@ -107,9 +107,14 @@ export const createCollection = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.createCollection(newCollection);
 
-    return response;
+    try {
+      const response = await client.createCollection(newCollection);
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
@@ -117,9 +122,14 @@ export const deleteCollection = cache(async (id: string) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
-  const response = await client.deleteCollection({ collectionId: id });
 
-  return response;
+  try {
+    const response = await client.deleteCollection({ collectionId: id });
+
+    return response;
+  } catch (error) {
+    await logoutUser();
+  }
 });
 
 export const updateCollection = cache(
@@ -132,9 +142,14 @@ export const updateCollection = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.updateCollection(collection);
 
-    return response;
+    try {
+      const response = await client.updateCollection(collection);
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
