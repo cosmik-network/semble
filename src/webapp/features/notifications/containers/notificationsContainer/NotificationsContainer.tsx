@@ -2,13 +2,24 @@
 
 import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifications';
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
-import { Stack, Text, Center, Container, Box, Loader } from '@mantine/core';
+import {
+  Stack,
+  Text,
+  Center,
+  Container,
+  Box,
+  Loader,
+  Button,
+  Group,
+} from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotificationsAsRead';
 import { useEffect, useRef } from 'react';
+import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
+import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 
 export default function NotificationsContainer() {
   const {
@@ -22,11 +33,21 @@ export default function NotificationsContainer() {
     refetch,
   } = useMyNotifications();
 
+  const markAllAsRead = useMarkAllNotificationsAsRead();
   const markAsRead = useMarkNotificationsAsRead();
   const hasMarkedAsRead = useRef(false);
 
   const allNotifications =
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
+
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
+
+  const handleMarkAllAsRead = () => {
+    if (unreadCount > 0) {
+      hasMarkedAsRead.current = true;
+      markAllAsRead.mutate();
+    }
+  };
 
   // Mark unread notifications as read when component unmounts
   useEffect(() => {
@@ -55,6 +76,20 @@ export default function NotificationsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
+        {allNotifications.length > 0 && unreadCount > 0 && (
+          <Group justify="end" mb="md">
+            <Button
+              onClick={handleMarkAllAsRead}
+              variant="subtle"
+              color="tangerine"
+              size="sm"
+              leftSection={<IoCheckmarkDoneSharp size={18} />}
+              loading={markAllAsRead.isPending}
+            >
+              Mark all as read
+            </Button>
+          </Group>
+        )}
         {isRefetching && (
           <Stack align="center" gap={'xs'}>
             <Loader color={'gray'} />
