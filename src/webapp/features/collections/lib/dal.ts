@@ -3,6 +3,7 @@ import { createSembleClient } from '@/services/client.apiClient';
 import {
   CardSortField,
   CollectionSortField,
+  CollectionAccessType,
   SortOrder,
   UrlType,
 } from '@semble/types';
@@ -20,6 +21,8 @@ interface SearchParams {
   sortOrder?: SortOrder;
   searchText?: string;
   urlType?: UrlType;
+  accessType?: CollectionAccessType;
+  identifier?: string;
 }
 
 export const getCollectionsForUrl = cache(
@@ -102,7 +105,11 @@ export const getMyGemCollections = cache(
 );
 
 export const createCollection = cache(
-  async (newCollection: { name: string; description: string }) => {
+  async (newCollection: {
+    name: string;
+    description: string;
+    accessType?: CollectionAccessType;
+  }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
@@ -127,6 +134,7 @@ export const updateCollection = cache(
     rkey: string;
     name: string;
     description?: string;
+    accessType?: CollectionAccessType;
   }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
@@ -162,6 +170,24 @@ export const getCollectionPageByAtUri = cache(
   },
 );
 
+export const getOpenCollectionsWithContributor = cache(
+  async (params?: PageParams & { identifier: string }) => {
+    const client = createSembleClient();
+    const response = await client.getOpenCollectionsWithContributor({
+      identifier: params?.identifier || '',
+      page: params?.page,
+      limit: params?.limit,
+      sortBy: params?.collectionSortBy,
+    });
+
+    // Temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter((c) => !!c.uri),
+    };
+  },
+);
+
 export const searchCollections = cache(
   async (params?: PageParams & SearchParams) => {
     const client = createSembleClient();
@@ -171,6 +197,8 @@ export const searchCollections = cache(
       sortBy: params?.collectionSortBy,
       sortOrder: params?.sortOrder,
       searchText: params?.searchText,
+      accessType: params?.accessType,
+      identifier: params?.identifier,
     });
 
     // Temp fix: filter out collections without uri

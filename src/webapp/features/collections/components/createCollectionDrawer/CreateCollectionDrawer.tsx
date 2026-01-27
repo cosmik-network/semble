@@ -6,11 +6,16 @@ import {
   Stack,
   Textarea,
   TextInput,
+  SegmentedControl,
+  Text,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { CollectionAccessType } from '@semble/types';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { FiLock, FiUnlock } from 'react-icons/fi';
 
 interface Props {
   isOpen: boolean;
@@ -21,14 +26,17 @@ interface Props {
     name: string;
     cardCount: number;
   }) => void;
+  onSuccess?: (collectionId: string, collectionName: string) => void;
 }
 
 export default function createCollectionDrawer(props: Props) {
   const createCollection = useCreateCollection();
+  const { data: featureFlags } = useFeatureFlags();
   const form = useForm({
     initialValues: {
       name: props.initialName ?? '',
       description: '',
+      accessType: CollectionAccessType.CLOSED,
     },
   });
 
@@ -40,6 +48,9 @@ export default function createCollectionDrawer(props: Props) {
       {
         name: form.getValues().name,
         description: form.getValues().description,
+        accessType: featureFlags?.openCollections
+          ? form.getValues().accessType
+          : undefined,
       },
       {
         onSuccess: (newCollection) => {
@@ -50,6 +61,8 @@ export default function createCollectionDrawer(props: Props) {
               name: form.getValues().name,
               cardCount: 0,
             });
+          props.onSuccess &&
+            props.onSuccess(newCollection.collectionId, form.getValues().name);
         },
         onError: () => {
           notifications.show({
@@ -104,6 +117,44 @@ export default function createCollectionDrawer(props: Props) {
               key={form.key('description')}
               {...form.getInputProps('description')}
             />
+
+            {featureFlags?.openCollections && (
+              <Stack gap="xs">
+                <Text size="sm" fw={500}>
+                  Access Type
+                </Text>
+                <SegmentedControl
+                  data={[
+                    {
+                      label: (
+                        <Group gap="xs">
+                          <FiUnlock size={14} />
+                          <Text size="sm">Open</Text>
+                        </Group>
+                      ),
+                      value: CollectionAccessType.OPEN,
+                    },
+                    {
+                      label: (
+                        <Group gap="xs">
+                          <FiLock size={14} />
+                          <Text size="sm">Closed</Text>
+                        </Group>
+                      ),
+                      value: CollectionAccessType.CLOSED,
+                    },
+                  ]}
+                  key={form.key('accessType')}
+                  {...form.getInputProps('accessType')}
+                />
+                <Text size="xs" c="dimmed">
+                  {form.getValues().accessType === CollectionAccessType.OPEN
+                    ? 'Anyone can add cards to this collection'
+                    : 'Only you can add cards to this collection'}
+                </Text>
+              </Stack>
+            )}
+
             <Group justify="space-between" gap={'xs'} grow>
               <Button
                 variant="light"

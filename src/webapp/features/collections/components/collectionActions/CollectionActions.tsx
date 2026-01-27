@@ -5,12 +5,14 @@ import { BsThreeDots, BsPencilFill, BsTrash2Fill } from 'react-icons/bs';
 import { MdIosShare } from 'react-icons/md';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   id: string;
   rkey: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   authorHandle: string;
 }
 
@@ -81,6 +83,7 @@ export default function CollectionActions(props: Props) {
           rkey: props.rkey,
           name: props.name,
           description: props.description,
+          accessType: props.accessType,
         }}
       />
       <DeleteCollectionModal

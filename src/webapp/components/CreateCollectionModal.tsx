@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ApiClient } from '@/api-client/ApiClient';
+import { ApiClient, CollectionAccessType } from '@/api-client/ApiClient';
 import {
   Modal,
   Stack,
@@ -10,8 +10,12 @@ import {
   Button,
   Group,
   Alert,
+  SegmentedControl,
+  Text,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { FiLock, FiUnlock } from 'react-icons/fi';
 
 interface CreateCollectionModalProps {
   isOpen: boolean;
@@ -28,10 +32,12 @@ export function CreateCollectionModal({
   apiClient,
   initialName = '',
 }: CreateCollectionModalProps) {
+  const { data: featureFlags } = useFeatureFlags();
   const form = useForm({
     initialValues: {
       name: initialName,
       description: '',
+      accessType: CollectionAccessType.CLOSED,
     },
   });
 
@@ -54,6 +60,9 @@ export function CreateCollectionModal({
       const response = await apiClient.createCollection({
         name: form.getValues().name.trim(),
         description: form.getValues().description.trim() || undefined,
+        accessType: featureFlags?.openCollections
+          ? form.getValues().accessType
+          : undefined,
       });
 
       // Success
@@ -112,6 +121,44 @@ export function CreateCollectionModal({
             key={form.key('description')}
             {...form.getInputProps('description')}
           />
+
+          {featureFlags?.openCollections && (
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>
+                Access Type
+              </Text>
+              <SegmentedControl
+                data={[
+                  {
+                    label: (
+                      <Group gap="xs">
+                        <FiUnlock size={14} />
+                        <Text size="sm">Open</Text>
+                      </Group>
+                    ),
+                    value: CollectionAccessType.OPEN,
+                  },
+                  {
+                    label: (
+                      <Group gap="xs">
+                        <FiLock size={14} />
+                        <Text size="sm">Closed</Text>
+                      </Group>
+                    ),
+                    value: CollectionAccessType.CLOSED,
+                  },
+                ]}
+                disabled={loading}
+                key={form.key('accessType')}
+                {...form.getInputProps('accessType')}
+              />
+              <Text size="xs" c="dimmed">
+                {form.getValues().accessType === CollectionAccessType.OPEN
+                  ? 'Anyone can add cards to this collection'
+                  : 'Only you can add cards to this collection'}
+              </Text>
+            </Stack>
+          )}
 
           {error && (
             <Alert color="red" title="Error">

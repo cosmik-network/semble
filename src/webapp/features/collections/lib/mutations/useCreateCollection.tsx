@@ -6,7 +6,11 @@ export default function useCreateCollection() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (newCollection: { name: string; description: string }) => {
+    mutationFn: (newCollection: {
+      name: string;
+      description: string;
+      accessType?: import('@semble/types').CollectionAccessType;
+    }) => {
       return createCollection(newCollection);
     },
 
