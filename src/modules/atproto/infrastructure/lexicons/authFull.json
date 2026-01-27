@@ -1,0 +1,26 @@
+{
+  "lexicon": 1,
+  "id": "network.cosmik.authFull",
+  "defs": {
+    "main": {
+      "type": "permission-set",
+      "title": "Semble",
+      "detail": "Full access to Semble features.",
+      "permissions": [
+        {
+          "type": "permission",
+          "action": ["create", "update", "delete"],
+          "resource": "repo",
+          "collection": [
+            "network.cosmik.card",
+            "network.cosmik.collection",
+            "network.cosmik.collectionLink",
+            "network.cosmik.collectionLinkRemoval"
+          ]
+        }
+      ],
+      "title:langs": {},
+      "detail:langs": {}
+    }
+  }
+}
