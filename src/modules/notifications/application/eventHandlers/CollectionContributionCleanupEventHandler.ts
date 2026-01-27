@@ -26,23 +26,13 @@ export class CollectionContributionCleanupEventHandler
 
       const collection = collectionResult.value;
       const recipientUserId = collection.authorId.value;
-      const actorUserId = event.removedBy.value;
 
-      // 2. Create CuratorId for actor
-      const actorIdResult = CuratorId.create(actorUserId);
-      if (actorIdResult.isErr()) {
-        console.error('Invalid curator ID in CardRemovedFromCollectionEvent');
-        return ok(undefined);
-      }
-
-      // 3. Find notifications for this card/actor combination
-      // Note: findByCardAndActor returns all notifications for this card/actor
-      // We need to filter for USER_ADDED_TO_YOUR_COLLECTION type and matching collection
-      const notificationsResult =
-        await this.notificationRepository.findByCardAndActor(
-          event.cardId.getStringValue(),
-          actorIdResult.value,
-        );
+      // 2. Find notifications for this card
+      // Note: We query by card only, not by actor, because the notification actor
+      // is the person who added the card (not necessarily who removed it)
+      const notificationsResult = await this.notificationRepository.findByCard(
+        event.cardId.getStringValue(),
+      );
 
       if (notificationsResult.isErr()) {
         console.error(
