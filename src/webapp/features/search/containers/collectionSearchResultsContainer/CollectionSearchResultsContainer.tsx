@@ -42,7 +42,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
 
       {error ? (
         <SearchResultsContainerError />
-      ) : !isPending && allCollections.length === 0 ? (
+      ) : !isPending && props.query && allCollections.length === 0 ? (
         <SearchEmptyResults query={props.query} type="collections" />
       ) : (
         <InfiniteScroll

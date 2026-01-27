@@ -172,7 +172,7 @@ export const searchCollections = cache(
       sortBy: params?.collectionSortBy,
       sortOrder: params?.sortOrder,
       searchText: params?.searchText,
-      // handleOrDid: params?.handleOrDid, // TODO: add later
+      identifier: params?.handleOrDid,
     });
 
     // Temp fix: filter out collections without uri
