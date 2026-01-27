@@ -152,7 +152,9 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                       <Text>No collections found</Text>
                     ) : (
                       <CollectionSelectorItemList
-                        collections={searchedCollections.data?.collections ?? []}
+                        collections={
+                          searchedCollections.data?.collections ?? []
+                        }
                         selectedCollections={props.selectedCollections}
                         onChange={handleCollectionChange}
                       />
@@ -185,7 +187,8 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                     ) : (
                       !hasSelectedCollections && (
                         <Alert color="gray">
-                          You don't have any collections yet. Create your first one!
+                          You don't have any collections yet. Create your first
+                          one!
                         </Alert>
                       )
                     )}
@@ -254,7 +257,10 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
           <Tabs.Tab value="my-collections" leftSection={<FiLock size={14} />}>
             My Collections
           </Tabs.Tab>
-          <Tabs.Tab value="open-collections" leftSection={<FiUnlock size={14} />}>
+          <Tabs.Tab
+            value="open-collections"
+            leftSection={<FiUnlock size={14} />}
+          >
             Open Collections
           </Tabs.Tab>
         </Tabs.List>
@@ -294,7 +300,9 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                         <Text>No collections found</Text>
                       ) : (
                         <CollectionSelectorItemList
-                          collections={searchedCollections.data?.collections ?? []}
+                          collections={
+                            searchedCollections.data?.collections ?? []
+                          }
                           selectedCollections={props.selectedCollections}
                           onChange={handleCollectionChange}
                         />
@@ -327,7 +335,8 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                       ) : (
                         !hasSelectedCollections && (
                           <Alert color="gray">
-                            You don't have any collections yet. Create your first one!
+                            You don't have any collections yet. Create your
+                            first one!
                           </Alert>
                         )
                       )}
@@ -419,9 +428,14 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                         <Stack gap={'xs'}>
                           <Text fw={600}>Selected</Text>
                           <CollectionSelectorItemList
-                            collections={props.selectedCollections.filter((c) =>
-                              allOpenCollections.some((oc) => oc.id === c.id) ||
-                              recentOpenCollectionsList.some((rc) => rc.id === c.id)
+                            collections={props.selectedCollections.filter(
+                              (c) =>
+                                allOpenCollections.some(
+                                  (oc) => oc.id === c.id,
+                                ) ||
+                                recentOpenCollectionsList.some(
+                                  (rc) => rc.id === c.id,
+                                ),
                             )}
                             selectedCollections={props.selectedCollections}
                             onChange={handleCollectionChange}
@@ -434,7 +448,10 @@ export default function CollectionSelectorWithOpenCollections(props: Props) {
                           <Text fw={600}>Recently Contributed To</Text>
                           <CollectionSelectorItemList
                             collections={recentOpenCollectionsList.filter(
-                              (c) => !props.selectedCollections.some((sel) => sel.id === c.id)
+                              (c) =>
+                                !props.selectedCollections.some(
+                                  (sel) => sel.id === c.id,
+                                ),
                             )}
                             selectedCollections={props.selectedCollections}
                             onChange={handleCollectionChange}

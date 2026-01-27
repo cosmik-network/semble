@@ -1,7 +1,11 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { searchCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
-import { CollectionSortField, CollectionAccessType, GetCollectionsResponse } from '@semble/types';
+import {
+  CollectionSortField,
+  CollectionAccessType,
+  GetCollectionsResponse,
+} from '@semble/types';
 
 interface Props {
   searchText?: string;

@@ -11,8 +11,22 @@ export const collectionKeys = {
   collection: (id: string) => [...collectionKeys.all(), id] as const,
   mine: (limit?: number, query?: string) =>
     [...collectionKeys.all(), 'mine', query, limit] as const,
-  search: (searchText?: string, limit?: number, sortBy?: string, accessType?: CollectionAccessType, identifier?: string) =>
-    [...collectionKeys.all(), 'search', searchText, limit, sortBy, accessType, identifier] as const,
+  search: (
+    searchText?: string,
+    limit?: number,
+    sortBy?: string,
+    accessType?: CollectionAccessType,
+    identifier?: string,
+  ) =>
+    [
+      ...collectionKeys.all(),
+      'search',
+      searchText,
+      limit,
+      sortBy,
+      accessType,
+      identifier,
+    ] as const,
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
   infinite: (
     id?: string,

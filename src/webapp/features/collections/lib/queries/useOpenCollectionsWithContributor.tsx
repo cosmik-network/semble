@@ -14,7 +14,13 @@ export default function useOpenCollectionsWithContributor(props: Props) {
   const limit = props?.limit ?? 10;
 
   return useInfiniteQuery<GetCollectionsResponse>({
-    queryKey: [...collectionKeys.all(), 'openWithContributor', props.identifier, props.limit, props.sortBy],
+    queryKey: [
+      ...collectionKeys.all(),
+      'openWithContributor',
+      props.identifier,
+      props.limit,
+      props.sortBy,
+    ],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getOpenCollectionsWithContributor({

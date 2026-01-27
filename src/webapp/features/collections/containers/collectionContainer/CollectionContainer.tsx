@@ -86,7 +86,11 @@ export default function CollectionContainer(props: Props) {
               {featureFlags?.openCollections && firstPage.accessType && (
                 <Badge
                   variant="light"
-                  color={firstPage.accessType === CollectionAccessType.OPEN ? "teal" : "gray"}
+                  color={
+                    firstPage.accessType === CollectionAccessType.OPEN
+                      ? 'teal'
+                      : 'gray'
+                  }
                   leftSection={
                     firstPage.accessType === CollectionAccessType.OPEN ? (
                       <FiUnlock size={12} />
@@ -96,7 +100,9 @@ export default function CollectionContainer(props: Props) {
                   }
                   size="sm"
                 >
-                  {firstPage.accessType === CollectionAccessType.OPEN ? "Open" : "Closed"}
+                  {firstPage.accessType === CollectionAccessType.OPEN
+                    ? 'Open'
+                    : 'Closed'}
                 </Badge>
               )}
             </Group>

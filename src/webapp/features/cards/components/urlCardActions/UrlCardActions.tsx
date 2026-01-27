@@ -40,14 +40,19 @@ export default function UrlCardActions(props: Props) {
   const isAuthor = Boolean(user && (isAuthorByHandle || isAuthorById));
 
   // For open collections, check if user is the card adder or collection creator
-  const isOpenCollection = featureFlags?.openCollections &&
+  const isOpenCollection =
+    featureFlags?.openCollections &&
     props.currentCollection?.accessType === CollectionAccessType.OPEN;
-  const isCardAdder = Boolean(user && props.cardAuthor && user.id === props.cardAuthor.id);
-  const isCollectionOwner = Boolean(
-    user && props.currentCollection &&
-    props.currentCollection.author.id === user.id
+  const isCardAdder = Boolean(
+    user && props.cardAuthor && user.id === props.cardAuthor.id,
   );
-  const canRemoveFromOpenCollection = isOpenCollection && (isCardAdder || isCollectionOwner);
+  const isCollectionOwner = Boolean(
+    user &&
+      props.currentCollection &&
+      props.currentCollection.author.id === user.id,
+  );
+  const canRemoveFromOpenCollection =
+    isOpenCollection && (isCardAdder || isCollectionOwner);
 
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
@@ -128,17 +133,18 @@ export default function UrlCardActions(props: Props) {
               )}
             </CopyButton>
 
-            {props.currentCollection && (isAuthor || canRemoveFromOpenCollection) && (
-              <Menu.Item
-                leftSection={<LuUnplug />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowRemoveFromCollectionModal(true);
-                }}
-              >
-                Remove from this collection
-              </Menu.Item>
-            )}
+            {props.currentCollection &&
+              (isAuthor || canRemoveFromOpenCollection) && (
+                <Menu.Item
+                  leftSection={<LuUnplug />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRemoveFromCollectionModal(true);
+                  }}
+                >
+                  Remove from this collection
+                </Menu.Item>
+              )}
             {isAuthor && (
               <Menu.Item
                 color="red"
