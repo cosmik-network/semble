@@ -4,6 +4,7 @@ import { ActionIcon, Card, CloseButton, Group, TextInput } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
+import { track } from '@vercel/analytics';
 
 interface Props {
   query?: string;
@@ -85,6 +86,9 @@ export default function SearchBar(props: Props) {
             radius="xl"
             disabled={!search}
             loading={isPending}
+            onClick={() => {
+              track('Search: search button clicked');
+            }}
           >
             <IoSearch size={20} />
           </ActionIcon>

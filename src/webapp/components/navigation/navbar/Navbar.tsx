@@ -12,7 +12,6 @@ import {
   Box,
   Button,
   Badge,
-  Indicator,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
