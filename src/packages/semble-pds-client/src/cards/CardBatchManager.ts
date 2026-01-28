@@ -30,6 +30,8 @@ export class CardBatchManager {
       const cardOptions = options.cards[i];
       const metadata = metadataResults[i];
 
+      if (!cardOptions) continue;
+
       const record = {
         $type: this.cardCollection,
         type: 'URL',
@@ -79,8 +81,11 @@ export class CardBatchManager {
     const noteWrites = [];
     for (let i = 0; i < options.cards.length; i++) {
       const cardOptions = options.cards[i];
+      const urlResult = urlResults[i];
 
-      if (cardOptions.note && urlResults[i]) {
+      if (!cardOptions || !urlResult) continue;
+
+      if (cardOptions.note) {
         const noteRecord = {
           $type: this.cardCollection,
           type: 'NOTE',
@@ -90,8 +95,8 @@ export class CardBatchManager {
             text: cardOptions.note,
           },
           parentCard: {
-            uri: urlResults[i].uri,
-            cid: urlResults[i].cid,
+            uri: urlResult.uri,
+            cid: urlResult.cid,
           },
           createdAt: new Date().toISOString(),
         };
