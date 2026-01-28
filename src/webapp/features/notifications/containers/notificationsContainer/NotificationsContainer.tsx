@@ -20,6 +20,7 @@ import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotifications
 import { useEffect, useRef } from 'react';
 import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 import { IoCheckmarkDoneSharp } from 'react-icons/io5';
+import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
 
 export default function NotificationsContainer() {
   const {
@@ -33,6 +34,9 @@ export default function NotificationsContainer() {
     refetch,
   } = useMyNotifications();
 
+  const { data: unreadData = { unreadCount: 0 } } =
+    useUnreadNotificationCount();
+
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const markAsRead = useMarkNotificationsAsRead();
   const hasMarkedAsRead = useRef(false);
@@ -40,10 +44,8 @@ export default function NotificationsContainer() {
   const allNotifications =
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
 
-  const unreadCount = allNotifications.filter((n) => !n.read).length;
-
   const handleMarkAllAsRead = () => {
-    if (unreadCount > 0) {
+    if (unreadData.unreadCount > 0) {
       hasMarkedAsRead.current = true;
       markAllAsRead.mutate();
     }
@@ -76,7 +78,7 @@ export default function NotificationsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        {allNotifications.length > 0 && unreadCount > 0 && (
+        {unreadData.unreadCount > 0 && (
           <Group justify="end" mb="md">
             <Button
               onClick={handleMarkAllAsRead}
