@@ -44,12 +44,14 @@ export default function createCollectionDrawer(props: Props) {
       {
         onSuccess: (newCollection) => {
           props.onClose();
-          props.onCreate &&
-            props.onCreate({
-              id: newCollection.collectionId,
-              name: form.getValues().name,
-              cardCount: 0,
-            });
+          if (newCollection) {
+            props.onCreate &&
+              props.onCreate({
+                id: newCollection.collectionId,
+                name: form.getValues().name,
+                cardCount: 0,
+              });
+          }
         },
         onError: () => {
           notifications.show({

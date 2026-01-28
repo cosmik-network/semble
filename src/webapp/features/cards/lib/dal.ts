@@ -1,4 +1,4 @@
-import { verifySessionOnClient } from '@/lib/auth/dal';
+import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { cache } from 'react';
@@ -51,14 +51,19 @@ export const addUrlToLibrary = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.addUrlToLibrary({
-      url: url,
-      note: note,
-      collectionIds: collectionIds,
-      viaCardId: viaCardId,
-    });
 
-    return response;
+    try {
+      const response = await client.addUrlToLibrary({
+        url: url,
+        note: note,
+        collectionIds: collectionIds,
+        viaCardId: viaCardId,
+      });
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
@@ -96,12 +101,17 @@ export const removeCardFromCollection = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.removeCardFromCollection({
-      cardId,
-      collectionIds,
-    });
 
-    return response;
+    try {
+      const response = await client.removeCardFromCollection({
+        cardId,
+        collectionIds,
+      });
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
@@ -109,9 +119,14 @@ export const removeCardFromLibrary = cache(async (cardId: string) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
-  const response = await client.removeCardFromLibrary({ cardId });
 
-  return response;
+  try {
+    const response = await client.removeCardFromLibrary({ cardId });
+
+    return response;
+  } catch (error) {
+    await logoutUser();
+  }
 });
 
 export const getLibrariesForCard = cache(async (cardId: string) => {

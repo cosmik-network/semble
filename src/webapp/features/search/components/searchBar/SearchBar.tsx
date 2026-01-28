@@ -2,19 +2,39 @@
 
 import { ActionIcon, Card, CloseButton, Group, TextInput } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRef, useState, useTransition } from 'react';
+import { track } from '@vercel/analytics';
 
 interface Props {
-  variant?: 'compact' | 'large';
   query?: string;
 }
 
 export default function SearchBar(props: Props) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [search, setSearch] = useState(props.query ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const searchType = pathname.includes('/collections')
+    ? 'collections'
+    : pathname.includes('/profiles')
+      ? 'profiles'
+      : pathname.includes('/cards')
+        ? 'cards'
+        : null;
+
+  const getPlaceholderText = () => {
+    const handle = searchParams.get('handle');
+
+    return !searchType
+      ? 'Find cards, collections, and more'
+      : handle && ['cards', 'collections'].includes(searchType)
+        ? `Search for @${handle}'s ${searchType}`
+        : `Search for ${searchType.toLowerCase()}`;
+  };
 
   const onSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -25,17 +45,11 @@ export default function SearchBar(props: Props) {
       params.delete('query');
     }
 
-    router.push(`?${params.toString()}`);
+    startTransition(() => router.push(`?${params.toString()}`));
   };
 
   return (
-    <Card
-      pr="6"
-      py={props.variant === 'compact' ? '2' : '6'}
-      radius="lg"
-      w="100%"
-      withBorder
-    >
+    <Card pr="6" py="6" radius="lg" w="100%" withBorder>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -46,7 +60,7 @@ export default function SearchBar(props: Props) {
           <TextInput
             ref={inputRef}
             variant="unstyled"
-            placeholder="Find cards, collections, and more"
+            placeholder={getPlaceholderText()}
             flex={1}
             size="md"
             value={search}
@@ -66,7 +80,16 @@ export default function SearchBar(props: Props) {
               />
             }
           />
-          <ActionIcon type="submit" size="lg" radius="xl" disabled={!search}>
+          <ActionIcon
+            type="submit"
+            size="lg"
+            radius="xl"
+            disabled={!search}
+            loading={isPending}
+            onClick={() => {
+              track('Search: search button clicked');
+            }}
+          >
             <IoSearch size={20} />
           </ActionIcon>
         </Group>

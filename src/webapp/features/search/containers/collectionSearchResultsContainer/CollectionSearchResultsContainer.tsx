@@ -2,14 +2,16 @@
 
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Stack } from '@mantine/core';
+import { Grid, Group, Stack } from '@mantine/core';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
+import { SearchFilters } from '../../components/searchFilters/SearchFilters';
 
 interface Props {
   query: string;
+  handle?: string;
 }
 
 export default function CollectionSearchResultsContainer(props: Props) {
@@ -20,18 +22,27 @@ export default function CollectionSearchResultsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSearchCollections({ searchText: props.query });
+  } = useSearchCollections({
+    searchText: props.query,
+    handleOrDid: props.handle,
+  });
 
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   return (
     <Stack gap="md">
-      <SearchQueryAlert query={props.query} />
+      <Group gap={'xs'} justify="space-between" wrap="nowrap">
+        <SearchQueryAlert query={props.query} handle={props.handle} />
+        <SearchFilters.Root>
+          <SearchFilters.ProfileFilter />
+          <SearchFilters.Actions />
+        </SearchFilters.Root>
+      </Group>
 
       {error ? (
         <SearchResultsContainerError />
-      ) : !isPending && allCollections.length === 0 ? (
+      ) : !isPending && props.query && allCollections.length === 0 ? (
         <SearchEmptyResults query={props.query} type="collections" />
       ) : (
         <InfiniteScroll

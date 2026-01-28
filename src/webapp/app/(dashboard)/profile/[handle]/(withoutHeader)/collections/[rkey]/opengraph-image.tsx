@@ -28,38 +28,87 @@ export default async function Image(props: Props) {
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
-            marginTop: '35px',
           }}
         >
+          {/* label */}
           <p
             style={{
-              fontSize: '40px',
-              lineHeight: '20px',
+              fontSize: 40,
+              lineHeight: 1.2,
               color: '#e803ff',
+              margin: 0,
             }}
           >
             Collection
           </p>
+
+          {/* collection name */}
           <p
             style={{
-              fontSize: '64px',
-              lineHeight: '100%',
+              fontSize: 50,
+              lineHeight: 1.1,
+              display: 'block',
+              lineClamp: 2,
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              maxWidth: '900',
+              wordBreak: 'break-word',
+              margin: 0,
             }}
           >
-            {truncateText(truncateText(collection.name), 30)}
+            {collection.name}
           </p>
-          <p
+
+          {/* collection description */}
+          {collection.description && (
+            <p
+              style={{
+                fontSize: 35,
+                lineHeight: 1.2,
+                color: '#868e96',
+                marginTop: 20,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                maxWidth: '900',
+                wordBreak: 'break-word',
+              }}
+            >
+              {collection.description}
+            </p>
+          )}
+
+          {/* Author Info */}
+          <div
             style={{
-              fontSize: '40px',
-              lineHeight: '20px',
-              marginTop: '40px',
+              marginTop: 40,
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
             }}
           >
-            <span>By&nbsp;</span>
-            <span style={{ color: '#23AFED' }}>
-              @{truncateText(truncateText(collection.author.handle), 35)}
-            </span>
-          </p>
+            {collection.author.avatarUrl && (
+              <img
+                src={collection.author.avatarUrl}
+                width={60}
+                height={60}
+                alt={`${handle}'s avatar`}
+                style={{ borderRadius: '20px' }}
+              />
+            )}
+            <p
+              style={{
+                color: '#23AFED',
+                fontSize: 40,
+                lineHeight: 1.2,
+                margin: 0,
+              }}
+            >
+              @{truncateText(collection.author.handle, 35)}
+            </p>
+          </div>
         </div>
       </div>
     ),

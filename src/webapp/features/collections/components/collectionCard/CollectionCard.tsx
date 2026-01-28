@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
+import { MouseEvent } from 'react';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -28,6 +29,27 @@ export default function CollectionCard(props: Props) {
   const { settings } = useUserSettings();
   const router = useRouter();
 
+  const handleNavigateToCollection = (e: MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+
+    const targetUrl = `/profile/${collection.author.handle}/collections/${rkey}`;
+
+    // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
+    if (e.metaKey || e.ctrlKey || e.button === 1) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    router.push(targetUrl);
+  };
+
+  const handleAuxClick = (e: MouseEvent<HTMLElement>) => {
+    // Handle middle mouse button (button 1)
+    if (e.button === 1) {
+      handleNavigateToCollection(e);
+    }
+  };
+
   return (
     <Card
       withBorder
@@ -35,9 +57,8 @@ export default function CollectionCard(props: Props) {
       p={'sm'}
       className={styles.root}
       h={'100%'}
-      onClick={() =>
-        router.push(`/profile/${collection.author.handle}/collections/${rkey}`)
-      }
+      onClick={handleNavigateToCollection}
+      onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between">
         <Stack gap={'xs'}>

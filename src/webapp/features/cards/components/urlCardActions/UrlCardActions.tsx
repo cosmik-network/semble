@@ -14,6 +14,7 @@ import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardMod
 import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
+import { BiCopy } from 'react-icons/bi';
 
 interface Props {
   id: string;
@@ -99,7 +100,7 @@ export default function UrlCardActions(props: Props) {
             <CopyButton value={props.cardContent.url}>
               {({ copy }) => (
                 <Menu.Item
-                  leftSection={<MdIosShare />}
+                  leftSection={<BiCopy />}
                   onClick={(e) => {
                     e.stopPropagation();
                     copy();
@@ -109,7 +110,27 @@ export default function UrlCardActions(props: Props) {
                     });
                   }}
                 >
-                  Copy share link
+                  Copy link
+                </Menu.Item>
+              )}
+            </CopyButton>
+
+            <CopyButton
+              value={`${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.cardContent.url}`}
+            >
+              {({ copy }) => (
+                <Menu.Item
+                  leftSection={<MdIosShare />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copy();
+                    notifications.show({
+                      message: 'Semble link copied!',
+                      position: 'bottom-center',
+                    });
+                  }}
+                >
+                  Share Semble page
                 </Menu.Item>
               )}
             </CopyButton>

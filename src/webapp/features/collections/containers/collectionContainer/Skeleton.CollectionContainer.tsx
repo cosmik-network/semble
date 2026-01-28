@@ -25,7 +25,7 @@ export default function CollectionContainerSkeleton() {
 
         <Group justify="space-between" align="end" gap={'xs'}>
           <Group gap={'xs'} justify="space-between">
-            <Select disabled variant="filled" size="sm" />
+            <Select disabled w={140} variant="filled" size="sm" />
             <Group gap={'xs'}>
               <Skeleton w={113} h={36} radius={'xl'} />
               <Skeleton w={84} h={36} radius={'xl'} />

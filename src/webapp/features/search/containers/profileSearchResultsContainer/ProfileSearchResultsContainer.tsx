@@ -13,6 +13,10 @@ interface Props {
 }
 
 export default function ProfileSearchResultsContainer(props: Props) {
+  if (!props.query) {
+    return <SearchQueryAlert query={props.query} />;
+  }
+
   const {
     data,
     error,
@@ -22,7 +26,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
     isPending,
   } = useProfileSearch({ query: props.query });
 
-  const allProfiles = data?.pages.flatMap((page) => page.actors ?? []) ?? [];
+  const allProfiles = data.pages.flatMap((page) => page.actors ?? []);
 
   return (
     <Stack gap="md">

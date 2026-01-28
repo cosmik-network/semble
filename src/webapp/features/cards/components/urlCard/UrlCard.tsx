@@ -31,12 +31,25 @@ export default function UrlCard(props: Props) {
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
 
-    if (isCollectionPage(props.url) || isProfilePage(props.url)) {
-      router.push(props.url);
+    const targetUrl =
+      isCollectionPage(props.url) || isProfilePage(props.url)
+        ? props.url
+        : `/url?id=${props.cardContent.url}`;
+
+    // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
+    if (e.metaKey || e.ctrlKey || e.button === 1) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    router.push(`/url?id=${props.cardContent.url}`);
+    router.push(targetUrl);
+  };
+
+  const handleAuxClick = (e: MouseEvent<HTMLElement>) => {
+    // Handle middle mouse button (button 1)
+    if (e.button === 1) {
+      handleNavigateToSemblePage(e);
+    }
   };
 
   return (
@@ -49,6 +62,7 @@ export default function UrlCard(props: Props) {
       withBorder
       className={styles.root}
       onClick={handleNavigateToSemblePage}
+      onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
         <UrlCardContent url={props.url} cardContent={props.cardContent} />

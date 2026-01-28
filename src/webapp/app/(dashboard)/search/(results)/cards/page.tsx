@@ -15,7 +15,10 @@ export default async function Page(props: Props) {
   const { query, handle, urlType } = await props.searchParams;
 
   return (
-    <Suspense fallback={<CardSearchResultsContainerSkeleton />} key={query}>
+    <Suspense
+      fallback={<CardSearchResultsContainerSkeleton />}
+      key={query + handle + urlType}
+    >
       <CardSearchResultsContainer
         query={query}
         handle={handle}

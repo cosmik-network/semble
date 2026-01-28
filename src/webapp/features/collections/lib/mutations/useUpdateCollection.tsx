@@ -15,7 +15,7 @@ export default function useUpdateCollection() {
       return updateCollection(collection);
     },
 
-    onSuccess: (variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: collectionKeys.collection(variables.collectionId),
       });

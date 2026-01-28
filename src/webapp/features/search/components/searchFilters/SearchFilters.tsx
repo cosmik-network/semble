@@ -17,6 +17,7 @@ import {
   Container,
   Combobox,
   useCombobox,
+  Popover,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
@@ -28,6 +29,7 @@ import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { MdFilterList } from 'react-icons/md';
 
 // context
 interface FilterContextValue {
@@ -43,6 +45,8 @@ interface FilterContextValue {
   appliedHandle: string;
   appliedType: UrlType | null;
   hasFilters: boolean;
+  router: ReturnType<typeof useRouter>;
+  searchParams: ReturnType<typeof useSearchParams>;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -60,6 +64,7 @@ const useFilterContext = () => {
 export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   const [opened, setOpened] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const appliedHandle = searchParams.get('handle') ?? '';
   const appliedType = searchParams.get('urlType') as UrlType | null;
@@ -117,6 +122,8 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         appliedHandle,
         appliedType,
         hasFilters,
+        router,
+        searchParams,
       }}
     >
       {customTrigger ?? defaultTrigger}
@@ -125,8 +132,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         opened={opened}
         onClose={() => setOpened(false)}
         position="bottom"
-        padding="md"
-        size="sm"
+        size="xs"
         withCloseButton={false}
         overlayProps={UPDATE_OVERLAY_PROPS}
         trapFocus={false}
@@ -203,6 +209,11 @@ export function ProfileFilter() {
         ctx.setSelectedHandle(val);
         ctx.setSearchQuery(val);
         combobox.closeDropdown();
+
+        // apply filter immediately
+        const params = new URLSearchParams(ctx.searchParams.toString());
+        params.set('handle', val);
+        ctx.router.replace(`?${params.toString()}`, { scroll: false });
       }}
       position="bottom"
       middlewares={{ flip: false, shift: true }}
@@ -234,6 +245,15 @@ export function ProfileFilter() {
                   onClick={() => {
                     ctx.setSearchQuery('');
                     ctx.setSelectedHandle('');
+
+                    // remove filter immediately
+                    const params = new URLSearchParams(
+                      ctx.searchParams.toString(),
+                    );
+                    params.delete('handle');
+                    ctx.router.replace(`?${params.toString()}`, {
+                      scroll: false,
+                    });
                   }}
                 />
               )
@@ -258,55 +278,90 @@ export function ProfileFilter() {
   );
 }
 
-// url type filter
+// url type filter (with popover)
 export function UrlTypeFilter() {
   const ctx = useFilterContext();
+  const [opened, setOpened] = useState(false);
+
+  const SelectedIcon =
+    ctx.localType === null ? MdFilterList : getUrlTypeIcon(ctx.localType);
 
   return (
-    <Box>
-      <Text fw={500} mb="xs">
-        Content type
-      </Text>
-      <ScrollArea scrollbars="x" offsetScrollbars={false} scrollbarSize={0}>
-        <Group gap={'xs'} wrap="nowrap" pb="xs">
+    <Popover
+      opened={opened}
+      onChange={setOpened}
+      position="top-start"
+      shadow="sm"
+    >
+      <Popover.Target>
+        <Stack gap={0} align="start">
           <Button
-            size="sm"
+            variant="light"
             color="lime"
-            radius="xl"
-            style={{ flexShrink: 0 }}
+            leftSection={<SelectedIcon />}
+            onClick={() => setOpened((o) => !o)}
+          >
+            {ctx.localType ? upperFirst(ctx.localType) : 'All Cards'}
+          </Button>
+        </Stack>
+      </Popover.Target>
+
+      <Popover.Dropdown maw={300}>
+        <Group gap={6}>
+          <Button
+            size="xs"
+            color="lime"
             variant={ctx.localType === null ? 'filled' : 'light'}
-            onClick={() => ctx.setLocalType(null)}
+            onClick={() => {
+              ctx.setLocalType(null);
+              setOpened(false);
+
+              // remove filter immediately
+              const params = new URLSearchParams(ctx.searchParams.toString());
+              params.delete('urlType');
+              ctx.router.replace(`?${params.toString()}`, { scroll: false });
+            }}
           >
             All Cards
           </Button>
+
           {Object.values(UrlType).map((type) => {
             const Icon = getUrlTypeIcon(type);
+
             return (
               <Button
                 key={type}
-                size="sm"
+                size="xs"
                 color="lime"
-                radius="xl"
-                style={{ flexShrink: 0 }}
                 variant={ctx.localType === type ? 'filled' : 'light'}
-                leftSection={<Icon size={14} />}
-                onClick={() => ctx.setLocalType(type)}
+                leftSection={<Icon />}
+                onClick={() => {
+                  ctx.setLocalType(type);
+                  setOpened(false);
+
+                  // apply filter immediately
+                  const params = new URLSearchParams(
+                    ctx.searchParams.toString(),
+                  );
+                  params.set('urlType', type);
+                  ctx.router.replace(`?${params.toString()}`, {
+                    scroll: false,
+                  });
+                }}
               >
                 {upperFirst(type)}
               </Button>
             );
           })}
         </Group>
-      </ScrollArea>
-    </Box>
+      </Popover.Dropdown>
+    </Popover>
   );
 }
 
 // actions
 export function Actions() {
   const ctx = useFilterContext();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const hasAnyActiveFilters =
     !!ctx.appliedHandle ||
@@ -314,33 +369,17 @@ export function Actions() {
     !!ctx.selectedHandle ||
     ctx.localType !== null;
 
-  const handleApply = () => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (ctx.selectedHandle) params.set('handle', ctx.selectedHandle);
-    else params.delete('handle');
-
-    if (ctx.localType) params.set('urlType', ctx.localType);
-    else params.delete('urlType');
-
-    router.replace(`?${params.toString()}`, { scroll: false });
-    ctx.setOpened(false);
-  };
-
   const handleClear = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(ctx.searchParams.toString());
     params.delete('handle');
     params.delete('urlType');
 
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
     ctx.setLocalType(null);
-    ctx.setOpened(false);
 
-    router.replace(`?${params.toString()}`, { scroll: false });
+    ctx.router.replace(`?${params.toString()}`, { scroll: false });
   };
-
-  const isInvalid = ctx.searchQuery !== ctx.selectedHandle;
 
   return (
     <Stack gap="sm" mt="md">
@@ -353,20 +392,14 @@ export function Actions() {
         >
           Cancel
         </Button>
-
         {hasAnyActiveFilters && (
           <Button variant="light" size="md" color="red" onClick={handleClear}>
             Clear all
           </Button>
         )}
 
-        <Button
-          variant="filled"
-          size="md"
-          onClick={handleApply}
-          disabled={isInvalid}
-        >
-          Apply
+        <Button variant="filled" size="md" onClick={() => ctx.setOpened(false)}>
+          Done
         </Button>
       </Group>
     </Stack>

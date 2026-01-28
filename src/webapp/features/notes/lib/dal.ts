@@ -1,4 +1,4 @@
-import { verifySessionOnClient } from '@/lib/auth/dal';
+import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
@@ -25,8 +25,13 @@ export const updateNoteCard = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.updateNoteCard(note);
 
-    return response;
+    try {
+      const response = await client.updateNoteCard(note);
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );

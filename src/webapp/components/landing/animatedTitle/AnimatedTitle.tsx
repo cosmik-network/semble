@@ -33,7 +33,7 @@ export default function AnimatedTitle() {
   }, []);
 
   return (
-    <Title order={1} fw={600} fz="3rem">
+    <Title order={1} fw={600} fz="2.7rem">
       A social knowledge network for{' '}
       <Box
         component="span"
@@ -52,7 +52,7 @@ export default function AnimatedTitle() {
           {(styles) => (
             <Text
               fw={600}
-              fz="3rem"
+              fz="2.7rem"
               style={{
                 ...styles,
               }}

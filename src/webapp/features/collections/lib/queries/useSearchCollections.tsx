@@ -7,6 +7,7 @@ interface Props {
   searchText: string;
   limit?: number;
   sortBy?: CollectionSortField;
+  handleOrDid?: string;
 }
 
 export default function useSearchCollections(props: Props) {
@@ -17,6 +18,7 @@ export default function useSearchCollections(props: Props) {
       props.searchText,
       props.limit,
       props.sortBy,
+      props.handleOrDid,
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
@@ -25,6 +27,7 @@ export default function useSearchCollections(props: Props) {
         limit,
         page: pageParam,
         collectionSortBy: props.sortBy,
+        handleOrDid: props.handleOrDid,
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore

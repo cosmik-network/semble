@@ -7,9 +7,7 @@ import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContaine
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
-import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
-import CardViewToggle from '@/features/cards/components/cardFilters/CardViewToggle';
-import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
+import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { useSearchParams } from 'next/navigation';
 import { UrlType } from '@semble/types';
 
@@ -39,10 +37,10 @@ export default function SembleSimilarCardsContainer(props: Props) {
   return (
     <Stack gap={'xs'} align="center">
       <Group justify="space-between" w={'100%'} maw={600}>
-        <CardFilters>
-          <CardTypeFilter />
-          <CardViewToggle />
-        </CardFilters>
+        <CardFilters.Root>
+          <CardFilters.TypeFilter />
+          <CardFilters.ViewToggle />
+        </CardFilters.Root>
       </Group>
       <InfiniteScroll
         dataLength={allSimilarUrls.length}

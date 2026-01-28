@@ -164,7 +164,7 @@ export default function CollectionEmbedContainer(props: Props) {
             rightSection={<RiArrowRightUpLine />}
             size="md"
           >
-            View more on Semble
+            View on Semble
           </Button>
         </Stack>
       </Stack>

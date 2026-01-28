@@ -3,24 +3,23 @@
 import { TabsTab } from '@mantine/core';
 import { ReactNode } from 'react';
 import styles from './SearchTabItem.module.css';
-import { useRouter } from 'next/navigation';
+import { track } from '@vercel/analytics';
 
 interface Props {
   icon: ReactNode;
   value: string;
   label: string;
-  href: string;
 }
 
 export default function SearchTabItem(props: Props) {
-  const router = useRouter();
-
   return (
     <TabsTab
       classNames={styles}
       value={props.value}
       leftSection={props.icon}
-      onClick={() => router.push(props.href)}
+      onClick={() => {
+        track(`Search: ${props.value} tab clicked`);
+      }}
     >
       {props.label}
     </TabsTab>
