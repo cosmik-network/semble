@@ -81,6 +81,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       url_type TEXT,
+      source TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
 
@@ -181,6 +182,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_source_idx ON feed_activities(source);
   `);
 
   // Index for efficient AT URI look ups

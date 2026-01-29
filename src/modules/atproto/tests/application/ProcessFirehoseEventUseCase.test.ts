@@ -3,6 +3,9 @@ import { InMemoryFirehoseEventDuplicationService } from '../utils/InMemoryFireho
 import { ProcessCardFirehoseEventUseCase } from '../../application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
+import { ProcessMarginCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
+import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
@@ -30,6 +33,9 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   let processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   let processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  let processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
+  let processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
+  let processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
 
   // Dependencies for real use cases
   let atUriResolutionService: InMemoryAtUriResolutionService;
@@ -138,12 +144,36 @@ describe('ProcessFirehoseEventUseCase', () => {
         updateUrlCardAssociationsUseCase,
       );
 
+    processMarginBookmarkFirehoseEventUseCase =
+      new ProcessMarginBookmarkFirehoseEventUseCase(
+        atUriResolutionService,
+        addUrlToLibraryUseCase,
+        removeCardFromLibraryUseCase,
+      );
+
+    processMarginCollectionFirehoseEventUseCase =
+      new ProcessMarginCollectionFirehoseEventUseCase(
+        atUriResolutionService,
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
+
+    processMarginCollectionItemFirehoseEventUseCase =
+      new ProcessMarginCollectionItemFirehoseEventUseCase(
+        atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
       configService,
       processCardFirehoseEventUseCase,
       processCollectionFirehoseEventUseCase,
       processCollectionLinkFirehoseEventUseCase,
+      processMarginBookmarkFirehoseEventUseCase,
+      processMarginCollectionFirehoseEventUseCase,
+      processMarginCollectionItemFirehoseEventUseCase,
     );
   });
 

@@ -32,6 +32,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: dto.type,
         metadata: dto.metadata,
         urlType: dto.urlType,
+        source: dto.source,
         createdAt: dto.createdAt,
       });
 
@@ -56,6 +57,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: string;
         metadata: any;
         urlType: string | null;
+        source: string | null;
         createdAt: Date;
       }>;
 
@@ -133,6 +135,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
+          source: activityData.source || undefined,
           createdAt: activityData.createdAt,
         };
 
@@ -194,6 +197,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: string;
         metadata: any;
         urlType: string | null;
+        source: string | null;
         createdAt: Date;
       }>;
 
@@ -269,6 +273,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
+          source: activityData.source || undefined,
           createdAt: activityData.createdAt,
         };
 

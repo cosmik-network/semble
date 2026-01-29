@@ -151,6 +151,8 @@ export class ServiceFactory {
           sharedServices.atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.marginCollection,
+          collections.marginCollectionItem,
         );
 
     const cardPublisher = useFakePublishers
@@ -158,6 +160,7 @@ export class ServiceFactory {
       : new ATProtoCardPublisher(
           sharedServices.atProtoAgentService,
           collections.card,
+          collections.marginBookmark,
         );
 
     const authMiddleware = new AuthMiddleware(
@@ -389,11 +392,17 @@ export class ServiceFactory {
           atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.marginCollection,
+          collections.marginCollectionItem,
         );
 
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+      : new ATProtoCardPublisher(
+          atProtoAgentService,
+          collections.card,
+          collections.marginBookmark,
+        );
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(
