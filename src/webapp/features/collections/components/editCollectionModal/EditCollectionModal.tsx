@@ -72,48 +72,50 @@ export default function EditCollectionModal(props: Props) {
     >
       <Container size="sm" p={0}>
         <form onSubmit={handleUpdateCollection}>
-          <Stack>
-            <TextInput
-              id="name"
-              label="Name"
-              placeholder="Collection name"
-              variant="filled"
-              size="md"
-              required
-              maxLength={100}
-              key={form.key('name')}
-              {...form.getInputProps('name')}
-            />
+          <Stack gap={'xl'}>
+            <Stack>
+              <TextInput
+                id="name"
+                label="Name"
+                placeholder="Collection name"
+                variant="filled"
+                size="md"
+                required
+                maxLength={100}
+                key={form.key('name')}
+                {...form.getInputProps('name')}
+              />
 
-            <Textarea
-              id="description"
-              label="Description"
-              placeholder="Describe what this collection is about"
-              variant="filled"
-              size="md"
-              rows={4}
-              maxLength={500}
-              key={form.key('description')}
-              {...form.getInputProps('description')}
-            />
+              <Textarea
+                id="description"
+                label="Description"
+                placeholder="Describe what this collection is about"
+                variant="filled"
+                size="md"
+                rows={4}
+                maxLength={500}
+                key={form.key('description')}
+                {...form.getInputProps('description')}
+              />
 
-            <Select
-              variant="filled"
-              size="md"
-              label="Access Level"
-              defaultValue={CollectionAccessType.CLOSED}
-              data={[
-                {
-                  value: CollectionAccessType.CLOSED,
-                  label: 'Closed — Only you can add',
-                },
-                {
-                  value: CollectionAccessType.OPEN,
-                  label: 'Open — Anyone can add',
-                },
-              ]}
-              {...form.getInputProps('accessType')}
-            />
+              <Select
+                variant="filled"
+                size="md"
+                label="Access Level"
+                defaultValue={CollectionAccessType.CLOSED}
+                data={[
+                  {
+                    value: CollectionAccessType.CLOSED,
+                    label: 'Closed — Only you can add',
+                  },
+                  {
+                    value: CollectionAccessType.OPEN,
+                    label: 'Open — Anyone can add',
+                  },
+                ]}
+                {...form.getInputProps('accessType')}
+              />
+            </Stack>
 
             <Group justify="space-between" gap={'xs'} grow>
               <Button
