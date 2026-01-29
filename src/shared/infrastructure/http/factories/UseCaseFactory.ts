@@ -27,6 +27,7 @@ import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
+import { GetOpenCollectionsWithContributorUseCase } from 'src/modules/cards/application/useCases/queries/GetOpenCollectionsWithContributorUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
@@ -41,6 +42,7 @@ import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/appli
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -61,6 +63,7 @@ export interface WorkerUseCases {
   processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -91,6 +94,7 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   searchCollectionsUseCase: SearchCollectionsUseCase;
+  getOpenCollectionsWithContributorUseCase: GetOpenCollectionsWithContributorUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
@@ -192,6 +196,7 @@ export class UseCaseFactory {
       removeCardFromCollectionUseCase: new RemoveCardFromCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,
@@ -240,6 +245,12 @@ export class UseCaseFactory {
         services.profileService,
         services.identityResolutionService,
       ),
+      getOpenCollectionsWithContributorUseCase:
+        new GetOpenCollectionsWithContributorUseCase(
+          repositories.collectionQueryRepository,
+          services.profileService,
+          services.identityResolutionService,
+        ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
         repositories.cardQueryRepository,
@@ -406,6 +417,16 @@ export class UseCaseFactory {
         ),
       processCollectionLinkFirehoseEventUseCase:
         new ProcessCollectionLinkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+        ),
+      processCollectionLinkRemovalFirehoseEventUseCase:
+        new ProcessCollectionLinkRemovalFirehoseEventUseCase(
           repositories.atUriResolutionService,
           new UpdateUrlCardAssociationsUseCase(
             repositories.cardRepository,

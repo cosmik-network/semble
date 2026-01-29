@@ -115,6 +115,7 @@ export const createExpressApp = (
     controllers.getCollectionsController,
     controllers.getCollectionsForUrlController,
     controllers.searchCollectionsController,
+    controllers.getOpenCollectionsWithContributorController,
   );
 
   const feedRouter = createFeedRoutes(

@@ -1,3 +1,4 @@
+import { CollectionAccessType } from '@semble/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateCollection } from '../dal';
 import { collectionKeys } from '../collectionKeys';
@@ -11,6 +12,7 @@ export default function useUpdateCollection() {
       rkey: string;
       name: string;
       description?: string;
+      accessType?: CollectionAccessType;
     }) => {
       return updateCollection(collection);
     },

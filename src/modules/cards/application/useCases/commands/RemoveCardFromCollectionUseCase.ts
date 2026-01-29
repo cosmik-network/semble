@@ -1,5 +1,5 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
-import { UseCase } from '../../../../../shared/core/UseCase';
+import { BaseUseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { ICardRepository } from '../../../domain/ICardRepository';
@@ -8,6 +8,7 @@ import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 
 export interface RemoveCardFromCollectionDTO {
   cardId: string;
@@ -25,20 +26,20 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class RemoveCardFromCollectionUseCase
-  implements
-    UseCase<
-      RemoveCardFromCollectionDTO,
-      Result<
-        RemoveCardFromCollectionResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class RemoveCardFromCollectionUseCase extends BaseUseCase<
+  RemoveCardFromCollectionDTO,
+  Result<
+    RemoveCardFromCollectionResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private cardCollectionService: CardCollectionService,
-  ) {}
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
 
   async execute(
     request: RemoveCardFromCollectionDTO,
@@ -115,6 +116,19 @@ export class RemoveCardFromCollectionUseCase
         return err(
           new ValidationError(removeFromCollectionsResult.error.message),
         );
+      }
+
+      // Publish events for each updated collection
+      const updatedCollections = removeFromCollectionsResult.value;
+      for (const collection of updatedCollections) {
+        const publishResult = await this.publishEventsForAggregate(collection);
+        if (publishResult.isErr()) {
+          console.error(
+            'Failed to publish events for collection:',
+            publishResult.error,
+          );
+          // Don't fail the operation if event publishing fails
+        }
       }
 
       return ok({

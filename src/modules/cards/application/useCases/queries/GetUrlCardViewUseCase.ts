@@ -154,6 +154,7 @@ export class GetUrlCardViewUseCase
             uri: fullCollection.publishedRecordId?.uri,
             name: collection.name,
             description: fullCollection.description?.value,
+            accessType: fullCollection.accessType,
             author: {
               id: collectionAuthor.id,
               name: collectionAuthor.name,

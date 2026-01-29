@@ -33,4 +33,8 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
   public static userAddedYourCollection(): Result<NotificationType> {
     return this.create(NotificationTypeEnum.USER_ADDED_YOUR_COLLECTION);
   }
+
+  public static userAddedToYourCollection(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_ADDED_TO_YOUR_COLLECTION);
+  }
 }

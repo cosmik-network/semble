@@ -41,6 +41,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
       agentService,
       envConfig.getAtProtoConfig().collections.collection,
       envConfig.getAtProtoConfig().collections.collectionLink,
+      envConfig.getAtProtoConfig().collections.collectionLinkRemoval,
     );
     cardPublisher = new FakeCardPublisher();
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
@@ -535,6 +536,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
         invalidAgentService,
         envConfig.getAtProtoConfig().collections.collection,
         envConfig.getAtProtoConfig().collections.collectionLink,
+        envConfig.getAtProtoConfig().collections.collectionLinkRemoval,
       );
 
       const testCollection = new CollectionBuilder()

@@ -1,0 +1,26 @@
+- creating a collection
+  - in create collection drawer, include drop down for selecting the access type
+- updating collection access type
+  - creators can change the access type afterwards
+  -
+- viewing a collection
+  - access type should be visible on the collection page and potentially even from the collection “card” view - means the `Collection` type in responses.ts needs to include the accessType
+  - cards should indicate the author who added it
+    - could be a small footnote “added by user A” or something else - UI needs to know if its an open collection
+    - maybe this should only show if the card author differs from the collection author, that way its the same logic for open and closed and handled the case where an open becomes closed
+- adding to a collection
+  - if creator - will show up as normal
+  - if contributor, will show up in a separate “open collections” tab
+    - consider showing recently added to open collections at the top of the list here
+  - not sure if the feed activity item link to collection needs to look different or not
+- removing from a collection
+  - creator can remove any of the cards in the collection
+    - if not added by them / not their card, then will need to be handled slightly differently (directly added to the collection record itself?)
+  - contributor can only remove the cards they’ve added (straightforward, delete the collection link as normal)
+- notifications
+  - creator is notified whenever someone adds to their collection
+    - user A added to your collection USER_ADDED_TO_YOUR_COLLECTION
+- Semble page
+  - same as current collections tab, perhaps with some visual indication of the changes
+- api client
+  - collection type should include access type

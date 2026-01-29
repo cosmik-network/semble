@@ -1,3 +1,4 @@
+import { CollectionAccessType } from '@semble/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCollection } from '../dal';
 import { collectionKeys } from '../collectionKeys';
@@ -6,7 +7,11 @@ export default function useCreateCollection() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (newCollection: { name: string; description: string }) => {
+    mutationFn: (newCollection: {
+      name: string;
+      description: string;
+      accessType: CollectionAccessType;
+    }) => {
       return createCollection(newCollection);
     },
 

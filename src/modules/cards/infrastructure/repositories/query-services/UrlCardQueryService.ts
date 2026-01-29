@@ -144,6 +144,7 @@ export class UrlCardQueryService {
             collectionId: collections.id,
             collectionName: collections.name,
             authorId: collections.authorId,
+            accessType: collections.accessType,
           })
           .from(collectionCards)
           .innerJoin(
@@ -213,6 +214,7 @@ export class UrlCardQueryService {
               id: c.collectionId,
               name: c.collectionName,
               authorId: c.authorId,
+              accessType: c.accessType,
             }));
 
           // Find note for this card
@@ -293,6 +295,7 @@ export class UrlCardQueryService {
           collectionId: collections.id,
           collectionName: collections.name,
           authorId: collections.authorId,
+          accessType: collections.accessType,
         })
         .from(collectionCards)
         .innerJoin(
@@ -389,6 +392,7 @@ export class UrlCardQueryService {
             id: c.collectionId,
             name: c.collectionName,
             authorId: c.authorId,
+            accessType: c.accessType,
           }));
 
         // Find note for this card
@@ -480,6 +484,7 @@ export class UrlCardQueryService {
           collectionId: collections.id,
           collectionName: collections.name,
           authorId: collections.authorId,
+          accessType: collections.accessType,
         })
         .from(collectionCards)
         .innerJoin(
@@ -559,6 +564,7 @@ export class UrlCardQueryService {
           id: coll.collectionId,
           name: coll.collectionName,
           authorId: coll.authorId,
+          accessType: coll.accessType,
         })),
         note: note
           ? {

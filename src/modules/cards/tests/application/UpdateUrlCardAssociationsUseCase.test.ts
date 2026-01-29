@@ -11,6 +11,7 @@ import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
+import { CardId } from '../../domain/value-objects/CardId';
 
 describe('UpdateUrlCardAssociationsUseCase', () => {
   let useCase: UpdateUrlCardAssociationsUseCase;
@@ -159,17 +160,19 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
   });
 
   describe('Collection management', () => {
-    it('should add URL card to collections', async () => {
+    it('should add URL card to open collections', async () => {
       const url = 'https://example.com/article';
 
-      // Create collections
+      // Create open collections
       const collection1 = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName('Collection 1')
+        .withName('Open Collection 1')
+        .withAccessType('OPEN')
         .build();
       const collection2 = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName('Collection 2')
+        .withName('Open Collection 2')
+        .withAccessType('OPEN')
         .build();
 
       if (collection1 instanceof Error || collection2 instanceof Error) {
@@ -207,6 +210,129 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       );
       expect(response.addedToCollections).toContain(
         collection2.collectionId.getStringValue(),
+      );
+    });
+
+    it('should add URL card to closed collections when user is the author', async () => {
+      const url = 'https://example.com/article';
+
+      // Create closed collection owned by the curator
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Closed Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Add to collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.addedToCollections).toHaveLength(1);
+      expect(response.addedToCollections).toContain(
+        collection.collectionId.getStringValue(),
+      );
+    });
+
+    it('should fail to add URL card to closed collections when user lacks permission', async () => {
+      const url = 'https://example.com/article';
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create closed collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Private Closed Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Try to add to collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('does not have permission');
+      }
+    });
+
+    it('should add URL card to open collections owned by other users', async () => {
+      const url = 'https://example.com/article';
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create open collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Public Open Collection')
+        .withAccessType('OPEN')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Add to collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.addedToCollections).toHaveLength(1);
+      expect(response.addedToCollections).toContain(
+        collection.collectionId.getStringValue(),
       );
     });
 
@@ -269,13 +395,14 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       expect(publishedLink?.cardId).toBe(urlCardId);
     });
 
-    it('should remove URL card from collections', async () => {
+    it('should remove URL card from open collections', async () => {
       const url = 'https://example.com/article';
 
-      // Create collection
+      // Create open collection
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName('Test Collection')
+        .withName('Open Test Collection')
+        .withAccessType('OPEN')
         .build();
 
       if (collection instanceof Error) {
@@ -294,6 +421,153 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       const urlCardId = addResult.unwrap().urlCardId;
 
       // Remove from collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        removeFromCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.removedFromCollections).toHaveLength(1);
+      expect(response.removedFromCollections).toContain(
+        collection.collectionId.getStringValue(),
+      );
+    });
+
+    it('should remove URL card from closed collections when user is the author', async () => {
+      const url = 'https://example.com/article';
+
+      // Create closed collection owned by the curator
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Closed Test Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library and collection
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Remove from collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        removeFromCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.removedFromCollections).toHaveLength(1);
+      expect(response.removedFromCollections).toContain(
+        collection.collectionId.getStringValue(),
+      );
+    });
+
+    it('should fail to remove URL card from closed collections when user lacks permission', async () => {
+      const url = 'https://example.com/article';
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create closed collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Private Closed Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library first
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Manually add card to collection (as collection owner) to simulate existing state
+      const cardResult = await cardRepository.findById(
+        CardId.createFromString(urlCardId).unwrap(),
+      );
+      expect(cardResult.isOk()).toBe(true);
+      const card = cardResult.unwrap()!;
+
+      const addCardResult = collection.addCard(card.cardId, otherCuratorId);
+      expect(addCardResult.isOk()).toBe(true);
+      await collectionRepository.save(collection);
+
+      // Try to remove from collection
+      const updateRequest = {
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        removeFromCollections: [collection.collectionId.getStringValue()],
+      };
+
+      const result = await useCase.execute(updateRequest);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('does not have permission');
+      }
+    });
+
+    it('should remove URL card from open collections owned by other users', async () => {
+      const url = 'https://example.com/article';
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create open collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Public Open Collection')
+        .withAccessType('OPEN')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error('Failed to create collection');
+      }
+
+      await collectionRepository.save(collection);
+
+      // Add URL to library first
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Add card to collection as the current user (curatorId)
+      // In an OPEN collection, users can only remove cards they added themselves
+      const cardResult = await cardRepository.findById(
+        CardId.createFromString(urlCardId).unwrap(),
+      );
+      expect(cardResult.isOk()).toBe(true);
+      const card = cardResult.unwrap()!;
+
+      const addCardResult = collection.addCard(card.cardId, curatorId);
+      expect(addCardResult.isOk()).toBe(true);
+      await collectionRepository.save(collection);
+
+      // Remove from collection - should succeed because curatorId added the card
       const updateRequest = {
         cardId: urlCardId,
         curatorId: curatorId.value,
