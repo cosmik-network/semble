@@ -1,0 +1,273 @@
+{
+  "defs": {
+    "body": {
+      "description": "Annotation body - the content of the annotation",
+      "properties": {
+        "format": {
+          "default": "text/plain",
+          "description": "MIME type of the body content",
+          "type": "string"
+        },
+        "language": {
+          "description": "BCP47 language tag",
+          "type": "string"
+        },
+        "uri": {
+          "description": "Reference to external body content",
+          "format": "uri",
+          "type": "string"
+        },
+        "value": {
+          "description": "Text content of the annotation",
+          "maxGraphemes": 3000,
+          "maxLength": 10000,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "cssSelector": {
+      "description": "W3C CssSelector - select DOM elements by CSS selector",
+      "properties": {
+        "type": {
+          "const": "CssSelector",
+          "type": "string"
+        },
+        "value": {
+          "description": "CSS selector string",
+          "maxLength": 2000,
+          "type": "string"
+        }
+      },
+      "required": ["value"],
+      "type": "object"
+    },
+    "fragmentSelector": {
+      "description": "W3C FragmentSelector - select by URI fragment",
+      "properties": {
+        "conformsTo": {
+          "description": "Specification the fragment conforms to",
+          "format": "uri",
+          "type": "string"
+        },
+        "type": {
+          "const": "FragmentSelector",
+          "type": "string"
+        },
+        "value": {
+          "description": "Fragment identifier value",
+          "maxLength": 1000,
+          "type": "string"
+        }
+      },
+      "required": ["value"],
+      "type": "object"
+    },
+    "main": {
+      "description": "A W3C-compliant web annotation stored on the AT Protocol",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "body": {
+            "description": "The annotation content (text or reference)",
+            "ref": "#body",
+            "type": "ref"
+          },
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "motivation": {
+            "description": "W3C motivation for the annotation",
+            "knownValues": [
+              "commenting",
+              "highlighting",
+              "bookmarking",
+              "tagging",
+              "describing",
+              "linking",
+              "replying",
+              "editing",
+              "questioning",
+              "assessing"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags for categorization",
+            "items": {
+              "maxGraphemes": 32,
+              "maxLength": 64,
+              "type": "string"
+            },
+            "maxLength": 10,
+            "type": "array"
+          },
+          "target": {
+            "description": "The resource being annotated with optional selector",
+            "ref": "#target",
+            "type": "ref"
+          }
+        },
+        "required": ["target", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    },
+    "rangeSelector": {
+      "description": "W3C RangeSelector - select range between two selectors",
+      "properties": {
+        "endSelector": {
+          "description": "Selector for range end",
+          "refs": [
+            "#textQuoteSelector",
+            "#textPositionSelector",
+            "#cssSelector",
+            "#xpathSelector"
+          ],
+          "type": "union"
+        },
+        "startSelector": {
+          "description": "Selector for range start",
+          "refs": [
+            "#textQuoteSelector",
+            "#textPositionSelector",
+            "#cssSelector",
+            "#xpathSelector"
+          ],
+          "type": "union"
+        },
+        "type": {
+          "const": "RangeSelector",
+          "type": "string"
+        }
+      },
+      "required": ["startSelector", "endSelector"],
+      "type": "object"
+    },
+    "target": {
+      "description": "W3C SpecificResource - the target with optional selector",
+      "properties": {
+        "selector": {
+          "description": "Selector to identify the specific segment",
+          "refs": [
+            "#textQuoteSelector",
+            "#textPositionSelector",
+            "#cssSelector",
+            "#xpathSelector",
+            "#fragmentSelector",
+            "#rangeSelector"
+          ],
+          "type": "union"
+        },
+        "source": {
+          "description": "The URL being annotated",
+          "format": "uri",
+          "type": "string"
+        },
+        "sourceHash": {
+          "description": "SHA256 hash of normalized URL for indexing",
+          "type": "string"
+        },
+        "state": {
+          "description": "State of the resource at annotation time",
+          "ref": "#timeState",
+          "type": "ref"
+        },
+        "title": {
+          "description": "Page title at time of annotation",
+          "maxLength": 500,
+          "type": "string"
+        }
+      },
+      "required": ["source"],
+      "type": "object"
+    },
+    "textPositionSelector": {
+      "description": "W3C TextPositionSelector - select by character offsets",
+      "properties": {
+        "end": {
+          "description": "Ending character position (exclusive)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "start": {
+          "description": "Starting character position (0-indexed, inclusive)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": {
+          "const": "TextPositionSelector",
+          "type": "string"
+        }
+      },
+      "required": ["start", "end"],
+      "type": "object"
+    },
+    "textQuoteSelector": {
+      "description": "W3C TextQuoteSelector - select text by quoting it with context",
+      "properties": {
+        "exact": {
+          "description": "The exact text to match",
+          "maxGraphemes": 1500,
+          "maxLength": 5000,
+          "type": "string"
+        },
+        "prefix": {
+          "description": "Text immediately before the selection",
+          "maxGraphemes": 150,
+          "maxLength": 500,
+          "type": "string"
+        },
+        "suffix": {
+          "description": "Text immediately after the selection",
+          "maxGraphemes": 150,
+          "maxLength": 500,
+          "type": "string"
+        },
+        "type": {
+          "const": "TextQuoteSelector",
+          "type": "string"
+        }
+      },
+      "required": ["exact"],
+      "type": "object"
+    },
+    "timeState": {
+      "description": "W3C TimeState - record when content was captured",
+      "properties": {
+        "cached": {
+          "description": "URL to cached/archived version",
+          "format": "uri",
+          "type": "string"
+        },
+        "sourceDate": {
+          "description": "When the source was accessed",
+          "format": "datetime",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "xpathSelector": {
+      "description": "W3C XPathSelector - select by XPath expression",
+      "properties": {
+        "type": {
+          "const": "XPathSelector",
+          "type": "string"
+        },
+        "value": {
+          "description": "XPath expression",
+          "maxLength": 2000,
+          "type": "string"
+        }
+      },
+      "required": ["value"],
+      "type": "object"
+    }
+  },
+  "description": "W3C Web Annotation Data Model compliant annotation record for ATProto",
+  "id": "at.margin.annotation",
+  "lexicon": 1,
+  "revision": 2
+}

@@ -1,0 +1,40 @@
+{
+  "defs": {
+    "main": {
+      "description": "A profile for a user on the Margin network.",
+      "key": "literal:self",
+      "record": {
+        "properties": {
+          "bio": {
+            "description": "User biography or description.",
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "links": {
+            "description": "List of other relevant links (e.g. GitHub, Bluesky, etc).",
+            "items": {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            "maxLength": 20,
+            "type": "array"
+          },
+          "website": {
+            "description": "User website URL.",
+            "maxLength": 1000,
+            "type": "string"
+          }
+        },
+        "required": ["createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    }
+  },
+  "id": "at.margin.profile",
+  "lexicon": 1
+}

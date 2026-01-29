@@ -26,6 +26,12 @@ export enum UrlType {
   SOFTWARE = 'software',
 }
 
+// Activity Source enum for filtering
+export enum ActivitySource {
+  MARGIN = 'margin',
+  SEMBLE = 'semble',
+}
+
 // Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -113,6 +119,7 @@ export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
 export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -204,6 +211,7 @@ export interface SearchLeafletDocsForUrlParams {
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {

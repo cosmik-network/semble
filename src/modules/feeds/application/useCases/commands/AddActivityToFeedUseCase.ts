@@ -8,6 +8,8 @@ import { CollectionId } from '../../../../cards/domain/value-objects/CollectionI
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 import { ICardRepository } from '../../../../cards/domain/ICardRepository';
+import { SourceTypeEnum } from '../../../domain/value-objects/SourceType';
+import { ATPROTO_NSID } from '../../../../../shared/constants/atproto';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;
@@ -90,7 +92,7 @@ export class AddActivityToFeedUseCase
         }
       }
 
-      // Fetch the card to get its URL type
+      // Fetch the card to get its URL type and determine source
       const cardResult = await this.cardRepository.findById(cardId);
       if (cardResult.isErr()) {
         return err(
@@ -101,10 +103,26 @@ export class AddActivityToFeedUseCase
       }
 
       let urlType;
-      if (cardResult.value && cardResult.value.isUrlCard) {
-        const urlCardContent = cardResult.value.content;
-        if (urlCardContent.urlContent?.metadata?.type) {
-          urlType = urlCardContent.urlContent.metadata.type;
+      let source: string | undefined;
+
+      if (cardResult.value) {
+        // Get URL type
+        if (cardResult.value.isUrlCard) {
+          const urlCardContent = cardResult.value.content;
+          if (urlCardContent.urlContent?.metadata?.type) {
+            urlType = urlCardContent.urlContent.metadata.type;
+          }
+        }
+
+        // Determine source from library link's publishedRecordId
+        // Only set source if from Margin - Cosmik remains undefined
+        const libraryInfo = cardResult.value.getLibraryInfo(actorId);
+        if (libraryInfo?.publishedRecordId) {
+          const uri = libraryInfo.publishedRecordId.uri;
+          if (uri.includes(`/${ATPROTO_NSID.MARGIN.NAMESPACE}.`)) {
+            source = SourceTypeEnum.MARGIN;
+          }
+          // Cosmik activities remain undefined (default)
         }
       }
 
@@ -113,6 +131,7 @@ export class AddActivityToFeedUseCase
         cardId,
         collectionIds,
         urlType,
+        source,
       );
 
       if (activityResult.isErr()) {

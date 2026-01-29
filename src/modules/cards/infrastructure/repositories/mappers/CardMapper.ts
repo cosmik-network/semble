@@ -80,6 +80,7 @@ export interface RawUrlCardData {
   id: string;
   authorId: string;
   url: string;
+  uri?: string;
   contentData: any;
   libraryCount: number;
   urlLibraryCount: number;
@@ -401,6 +402,7 @@ export class CardMapper {
       id: raw.id,
       type: CardTypeEnum.URL,
       url: raw.url,
+      uri: raw.uri,
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
@@ -417,6 +419,7 @@ export class CardMapper {
     id: string;
     authorId: string;
     url: string;
+    uri?: string;
     contentData: any;
     libraryCount: number;
     urlLibraryCount: number;
@@ -459,6 +462,7 @@ export class CardMapper {
       id: raw.id,
       type: CardTypeEnum.URL,
       url: raw.url,
+      uri: raw.uri,
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
@@ -475,6 +479,7 @@ export class CardMapper {
     type: string;
     authorId: string;
     url: string;
+    uri?: string;
     contentData: UrlContentData;
     libraryCount: number;
     urlLibraryCount: number;
@@ -525,6 +530,7 @@ export class CardMapper {
       id: raw.id,
       type: CardTypeEnum.URL,
       url: raw.url,
+      uri: raw.uri,
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,

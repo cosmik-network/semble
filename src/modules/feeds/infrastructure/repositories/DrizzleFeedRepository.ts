@@ -17,6 +17,7 @@ import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
+import { ActivitySource } from '@semble/types';
 
 export class DrizzleFeedRepository implements IFeedRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -32,6 +33,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: dto.type,
         metadata: dto.metadata,
         urlType: dto.urlType,
+        source: dto.source,
         createdAt: dto.createdAt,
       });
 
@@ -56,6 +58,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: string;
         metadata: any;
         urlType: string | null;
+        source: string | null;
         createdAt: Date;
       }>;
 
@@ -63,6 +66,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const whereConditions = [];
       if (options.urlType) {
         whereConditions.push(eq(feedActivities.urlType, options.urlType));
+      }
+      if (options.source) {
+        if (options.source === ActivitySource.SEMBLE) {
+          // Semble content has source IS NULL
+          whereConditions.push(sql`${feedActivities.source} IS NULL`);
+        } else {
+          // Direct match for other sources (e.g., ActivitySource.MARGIN)
+          whereConditions.push(eq(feedActivities.source, options.source));
+        }
       }
 
       if (beforeActivityId) {
@@ -133,6 +145,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
+          source: activityData.source || undefined,
           createdAt: activityData.createdAt,
         };
 
@@ -194,6 +207,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         type: string;
         metadata: any;
         urlType: string | null;
+        source: string | null;
         createdAt: Date;
       }>;
 
@@ -201,6 +215,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const whereConditions = [];
       if (options.urlType) {
         whereConditions.push(eq(feedActivities.urlType, options.urlType));
+      }
+      if (options.source) {
+        if (options.source === ActivitySource.SEMBLE) {
+          // Semble content has source IS NULL
+          whereConditions.push(sql`${feedActivities.source} IS NULL`);
+        } else {
+          // Direct match for other sources (e.g., ActivitySource.MARGIN)
+          whereConditions.push(eq(feedActivities.source, options.source));
+        }
       }
 
       // Create the JSON array condition using jsonb_array_elements_text
@@ -269,6 +292,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
+          source: activityData.source || undefined,
           createdAt: activityData.createdAt,
         };
 

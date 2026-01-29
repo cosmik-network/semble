@@ -1,0 +1,37 @@
+{
+  "defs": {
+    "main": {
+      "description": "Associates an annotation with a collection",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "annotation": {
+            "description": "AT URI of the annotation, highlight, or bookmark",
+            "format": "at-uri",
+            "type": "string"
+          },
+          "collection": {
+            "description": "AT URI of the collection",
+            "format": "at-uri",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "position": {
+            "description": "Sort order within the collection",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": ["collection", "annotation", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    }
+  },
+  "description": "An item in a collection (links annotation to collection)",
+  "id": "at.margin.collectionItem",
+  "lexicon": 1
+}

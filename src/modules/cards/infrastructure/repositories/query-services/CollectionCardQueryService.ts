@@ -11,6 +11,7 @@ import {
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
 import { libraryMemberships } from '../schema/libraryMembership.sql';
+import { publishedRecords } from '../schema/publishedRecord.sql';
 import { CardMapper } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 
@@ -65,6 +66,7 @@ export class CollectionCardQueryService {
           id: cards.id,
           authorId: cards.authorId,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
@@ -72,6 +74,10 @@ export class CollectionCardQueryService {
         })
         .from(cards)
         .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(and(...whereConditions));
 
       // For LIBRARY_COUNT sorting, we need to sort by urlLibraryCount after calculating it
@@ -79,6 +85,7 @@ export class CollectionCardQueryService {
         id: string;
         authorId: string;
         url: string | null;
+        publishedRecordUri: string | null;
         contentData: any;
         libraryCount: number;
         createdAt: Date;
@@ -161,6 +168,7 @@ export class CollectionCardQueryService {
         id: string;
         authorId: string;
         url: string | null;
+        publishedRecordUri: string | null;
         contentData: any;
         libraryCount: number;
         createdAt: Date;
@@ -297,6 +305,7 @@ export class CollectionCardQueryService {
           id: card.id,
           authorId: card.authorId,
           url: card.url || '',
+          uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           urlLibraryCount,

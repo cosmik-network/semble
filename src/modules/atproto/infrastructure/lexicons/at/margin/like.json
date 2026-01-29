@@ -1,0 +1,40 @@
+{
+  "defs": {
+    "main": {
+      "description": "A like on an annotation or reply",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "subject": {
+            "description": "Reference to the annotation or reply being liked",
+            "ref": "#subjectRef",
+            "type": "ref"
+          }
+        },
+        "required": ["subject", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    },
+    "subjectRef": {
+      "properties": {
+        "cid": {
+          "format": "cid",
+          "type": "string"
+        },
+        "uri": {
+          "format": "at-uri",
+          "type": "string"
+        }
+      },
+      "required": ["uri", "cid"],
+      "type": "object"
+    }
+  },
+  "id": "at.margin.like",
+  "lexicon": 1
+}

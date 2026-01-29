@@ -30,6 +30,7 @@ export interface EnrichedNotificationResult {
   // Card data - fully enriched from JOIN
   cardId: string;
   cardUrl: string;
+  cardUri?: string;
   cardTitle?: string;
   cardDescription?: string;
   cardAuthor?: string;
