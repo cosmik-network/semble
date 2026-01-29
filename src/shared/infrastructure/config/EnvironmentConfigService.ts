@@ -30,6 +30,9 @@ export interface EnvironmentConfig {
       card: string;
       collection: string;
       collectionLink: string;
+      marginBookmark: string;
+      marginCollection: string;
+      marginCollectionItem: string;
     };
     serviceAccount: {
       identifier: string;
@@ -118,6 +121,10 @@ export class EnvironmentConfigService {
             environment === Environment.PROD
               ? 'network.cosmik.collectionLink'
               : `network.cosmik.${environment}.collectionLink`,
+          // Margin collections - no environment suffix
+          marginBookmark: 'at.margin.bookmark',
+          marginCollection: 'at.margin.collection',
+          marginCollectionItem: 'at.margin.collectionItem',
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',

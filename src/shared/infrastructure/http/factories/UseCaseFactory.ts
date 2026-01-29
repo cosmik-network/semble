@@ -41,6 +41,9 @@ import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/appli
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
+import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
+import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -61,6 +64,9 @@ export interface WorkerUseCases {
   processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
+  processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
+  processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -406,6 +412,48 @@ export class UseCaseFactory {
         ),
       processCollectionLinkFirehoseEventUseCase:
         new ProcessCollectionLinkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+        ),
+      processMarginBookmarkFirehoseEventUseCase:
+        new ProcessMarginBookmarkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new AddUrlToLibraryUseCase(
+            repositories.cardRepository,
+            services.metadataService,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+          new RemoveCardFromLibraryUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.eventPublisher,
+          ),
+        ),
+      processMarginCollectionFirehoseEventUseCase:
+        new ProcessMarginCollectionFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new CreateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new UpdateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new DeleteCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+        ),
+      processMarginCollectionItemFirehoseEventUseCase:
+        new ProcessMarginCollectionItemFirehoseEventUseCase(
           repositories.atUriResolutionService,
           new UpdateUrlCardAssociationsUseCase(
             repositories.cardRepository,
