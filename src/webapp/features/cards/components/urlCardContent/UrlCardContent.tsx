@@ -16,6 +16,7 @@ interface Props {
   url: string;
   uri?: string;
   cardContent: UrlCard['cardContent'];
+  authorHandle?: string;
 }
 
 export default function UrlCardContent(props: Props) {
@@ -32,13 +33,23 @@ export default function UrlCardContent(props: Props) {
   ) {
     return (
       <ErrorBoundary
-        fallback={<LinkCardContent cardContent={props.cardContent} uri={props.uri} />}
+        fallback={
+          <LinkCardContent
+            cardContent={props.cardContent}
+            uri={props.uri}
+            authorHandle={props.authorHandle}
+          />
+        }
       >
         <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
             url={props.url}
             fallbackCardContent={
-              <LinkCardContent cardContent={props.cardContent} uri={props.uri} />
+              <LinkCardContent
+                cardContent={props.cardContent}
+                uri={props.uri}
+                authorHandle={props.authorHandle}
+              />
             }
           />
         </Suspense>
@@ -60,5 +71,11 @@ export default function UrlCardContent(props: Props) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
-  return <LinkCardContent cardContent={props.cardContent} uri={props.uri} />;
+  return (
+    <LinkCardContent
+      cardContent={props.cardContent}
+      uri={props.uri}
+      authorHandle={props.authorHandle}
+    />
+  );
 }

@@ -14,18 +14,20 @@ import {
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { useState } from 'react';
-import { isMarginUri } from '@/lib/utils/margin';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
   uri?: string;
+  authorHandle?: string;
 }
 
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
   const [imageError, setImageError] = useState(false);
   const { settings } = useUserSettings();
+  const marginUrl = getMarginUrl(props.uri, props.authorHandle);
 
   return (
     <Group justify="space-between" align="start" gap={'lg'}>
@@ -45,7 +47,7 @@ export default function LinkCardContent(props: Props) {
               {domain}
             </Anchor>
           </Tooltip>
-          {isMarginUri(props.uri) && <MarginLogo size={12} />}
+          {isMarginUri(props.uri) && <MarginLogo size={12} marginUrl={marginUrl} />}
         </Group>
         {props.cardContent.title && (
           <Text c={'bright'} lineClamp={2} fw={500}>

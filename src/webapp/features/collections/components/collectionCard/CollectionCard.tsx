@@ -13,7 +13,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
-import { isMarginUri } from '@/lib/utils/margin';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
@@ -30,6 +30,7 @@ export default function CollectionCard(props: Props) {
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
   const { settings } = useUserSettings();
   const router = useRouter();
+  const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 
   const handleNavigateToCollection = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -70,7 +71,9 @@ export default function CollectionCard(props: Props) {
                 <Text fw={500} lineClamp={1} c={'bright'}>
                   {collection.name}
                 </Text>
-                {isMarginUri(collection.uri) && <MarginLogo size={14} />}
+                {isMarginUri(collection.uri) && (
+                  <MarginLogo size={14} marginUrl={marginUrl} />
+                )}
               </Group>
               {props.showAuthor && (
                 <Avatar

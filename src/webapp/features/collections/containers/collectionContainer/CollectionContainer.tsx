@@ -25,7 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import useGemCollectionSearch from '../../lib/queries/useGemCollectionSearch';
-import { isMarginUri } from '@/lib/utils/margin';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
@@ -54,6 +54,7 @@ export default function CollectionContainer(props: Props) {
     searchResults &&
     searchResults.collections.length > 0;
   const isAuthor = user?.handle === firstPage?.author.handle;
+  const marginUrl = getMarginUrl(firstPage?.uri, firstPage?.author.handle);
 
   // Create share URL for Bluesky intent
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -79,7 +80,9 @@ export default function CollectionContainer(props: Props) {
             </Text>
             <Group gap={8}>
               <Title order={1}>{firstPage.name}</Title>
-              {isMarginUri(firstPage.uri) && <MarginLogo size={20} />}
+              {isMarginUri(firstPage.uri) && (
+                <MarginLogo size={20} marginUrl={marginUrl} />
+              )}
             </Group>
             {firstPage.description && (
               <Text c="gray" mt="lg">
