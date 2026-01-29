@@ -14,6 +14,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 
 interface Props {
   url: string;
+  uri?: string;
   cardContent: UrlCard['cardContent'];
 }
 
@@ -31,13 +32,13 @@ export default function UrlCardContent(props: Props) {
   ) {
     return (
       <ErrorBoundary
-        fallback={<LinkCardContent cardContent={props.cardContent} />}
+        fallback={<LinkCardContent cardContent={props.cardContent} uri={props.uri} />}
       >
         <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
             url={props.url}
             fallbackCardContent={
-              <LinkCardContent cardContent={props.cardContent} />
+              <LinkCardContent cardContent={props.cardContent} uri={props.uri} />
             }
           />
         </Suspense>
@@ -59,5 +60,5 @@ export default function UrlCardContent(props: Props) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
-  return <LinkCardContent cardContent={props.cardContent} />;
+  return <LinkCardContent cardContent={props.cardContent} uri={props.uri} />;
 }

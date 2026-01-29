@@ -25,6 +25,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOs } from '@mantine/hooks';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import useGemCollectionSearch from '../../lib/queries/useGemCollectionSearch';
+import { isMarginUri } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   rkey: string;
@@ -75,7 +77,10 @@ export default function CollectionContainer(props: Props) {
             <Text fw={700} c="grape">
               Collection
             </Text>
-            <Title order={1}>{firstPage.name}</Title>
+            <Group gap={8}>
+              <Title order={1}>{firstPage.name}</Title>
+              {isMarginUri(firstPage.uri) && <MarginLogo size={20} />}
+            </Group>
             {firstPage.description && (
               <Text c="gray" mt="lg">
                 {firstPage.description}

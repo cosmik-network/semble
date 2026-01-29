@@ -89,6 +89,7 @@ export default function CardsContainerContent(props: Props) {
             <UrlCard
               id={card.id}
               url={card.url}
+              uri={card.uri}
               cardContent={card.cardContent}
               note={card.note}
               authorHandle={props.handle}

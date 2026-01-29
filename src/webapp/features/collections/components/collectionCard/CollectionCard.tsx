@@ -13,6 +13,8 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
+import { isMarginUri } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -64,9 +66,12 @@ export default function CollectionCard(props: Props) {
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
+              <Group gap={4}>
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {isMarginUri(collection.uri) && <MarginLogo size={14} />}
+              </Group>
               {props.showAuthor && (
                 <Avatar
                   component={Link}
