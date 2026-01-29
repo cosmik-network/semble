@@ -1,3 +1,4 @@
+import { CollectionAccessType } from '@semble/types';
 import { Group, Menu, ActionIcon, CopyButton, Button } from '@mantine/core';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
@@ -11,6 +12,7 @@ interface Props {
   rkey: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   authorHandle: string;
 }
 
@@ -81,6 +83,7 @@ export default function CollectionActions(props: Props) {
           rkey: props.rkey,
           name: props.name,
           description: props.description,
+          accessType: props.accessType,
         }}
       />
       <DeleteCollectionModal

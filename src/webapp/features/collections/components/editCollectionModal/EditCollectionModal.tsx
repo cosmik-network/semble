@@ -1,8 +1,10 @@
+import { CollectionAccessType } from '@semble/types';
 import {
   Button,
   Container,
   Group,
   Modal,
+  Select,
   Stack,
   Textarea,
   TextInput,
@@ -20,6 +22,7 @@ interface Props {
     rkey: string;
     name: string;
     description?: string;
+    accessType?: CollectionAccessType;
   };
 }
 
@@ -30,6 +33,7 @@ export default function EditCollectionModal(props: Props) {
     initialValues: {
       name: props.collection.name,
       description: props.collection.description,
+      accessType: props.collection.accessType || CollectionAccessType.CLOSED,
     },
   });
 
@@ -42,6 +46,7 @@ export default function EditCollectionModal(props: Props) {
         rkey: props.collection.rkey,
         name: form.values.name,
         description: form.values.description,
+        accessType: form.values.accessType,
       },
       {
         onError: () => {
@@ -86,10 +91,28 @@ export default function EditCollectionModal(props: Props) {
               placeholder="Describe what this collection is about"
               variant="filled"
               size="md"
-              rows={5}
+              rows={4}
               maxLength={500}
               key={form.key('description')}
               {...form.getInputProps('description')}
+            />
+
+            <Select
+              variant="filled"
+              size="md"
+              label="Access Level"
+              defaultValue={CollectionAccessType.CLOSED}
+              data={[
+                {
+                  value: CollectionAccessType.CLOSED,
+                  label: 'Closed — Only you can add',
+                },
+                {
+                  value: CollectionAccessType.OPEN,
+                  label: 'Open — Anyone can add',
+                },
+              ]}
+              {...form.getInputProps('accessType')}
             />
 
             <Group justify="space-between" gap={'xs'} grow>

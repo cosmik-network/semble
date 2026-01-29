@@ -159,6 +159,7 @@ export default function CollectionContainer(props: Props) {
             rkey={props.rkey}
             name={firstPage.name}
             description={firstPage.description}
+            accessType={firstPage.accessType}
             authorHandle={firstPage.author.handle}
           />
         </Group>
