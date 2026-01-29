@@ -8,6 +8,8 @@ import {
   Text,
   Title,
   Avatar,
+  Tooltip,
+  Badge,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import Link from 'next/link';
@@ -18,6 +20,8 @@ import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import CollectionContainerContent from '../collectionContainerContent/CollectionContainerContent';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
+import { CollectionAccessType } from '@semble/types';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   rkey: string;
@@ -31,6 +35,7 @@ export default function CollectionContainer(props: Props) {
   });
 
   const collection = data.pages[0];
+  const accessType = collection.accessType;
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -45,9 +50,23 @@ export default function CollectionContainer(props: Props) {
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
           <Stack gap={0}>
-            <Text fw={700} c="grape">
-              Collection
-            </Text>
+            <Group gap={'xs'}>
+              <Text fw={700} c="grape">
+                Collection
+              </Text>
+
+              {accessType === CollectionAccessType.OPEN && (
+                <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                  <Badge
+                    color="green"
+                    leftSection={<FaSeedling />}
+                    variant="light"
+                  >
+                    Open
+                  </Badge>
+                </Tooltip>
+              )}
+            </Group>
             <Title order={1}>{collection.name}</Title>
             {collection.description && (
               <Text c="gray" mt="lg">

@@ -1,9 +1,18 @@
 'use client';
 
-import type { Collection } from '@/api-client';
+import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import {
+  ActionIcon,
+  Avatar,
+  Card,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Tooltip,
+} from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
@@ -13,6 +22,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -26,6 +36,7 @@ export default function CollectionCard(props: Props) {
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
+  const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
 
@@ -64,9 +75,23 @@ export default function CollectionCard(props: Props) {
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
+              <Group gap={'xs'} wrap="nowrap">
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <ThemeIcon
+                      size={'sm'}
+                      variant="light"
+                      color={'green'}
+                      radius={'xl'}
+                    >
+                      <FaSeedling size={12} />
+                    </ThemeIcon>
+                  </Tooltip>
+                )}
+              </Group>
               {props.showAuthor && (
                 <Avatar
                   component={Link}
