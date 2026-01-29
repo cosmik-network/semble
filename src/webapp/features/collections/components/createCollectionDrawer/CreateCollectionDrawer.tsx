@@ -1,8 +1,10 @@
+import { CollectionAccessType } from '@semble/types';
 import {
   Button,
   Container,
   Drawer,
   Group,
+  Select,
   Stack,
   Textarea,
   TextInput,
@@ -29,6 +31,7 @@ export default function createCollectionDrawer(props: Props) {
     initialValues: {
       name: props.initialName ?? '',
       description: '',
+      accessType: CollectionAccessType.CLOSED,
     },
   });
 
@@ -40,6 +43,7 @@ export default function createCollectionDrawer(props: Props) {
       {
         name: form.getValues().name,
         description: form.getValues().description,
+        accessType: form.getValues().accessType,
       },
       {
         onSuccess: (newCollection) => {
@@ -101,11 +105,30 @@ export default function createCollectionDrawer(props: Props) {
               placeholder="Describe what this collection is about"
               variant="filled"
               size="md"
-              rows={6}
+              rows={3}
               maxLength={500}
               key={form.key('description')}
               {...form.getInputProps('description')}
             />
+
+            <Select
+              variant="filled"
+              size="md"
+              label="Access Level"
+              defaultValue={CollectionAccessType.CLOSED}
+              data={[
+                {
+                  value: CollectionAccessType.CLOSED,
+                  label: 'Closed — Only you can add',
+                },
+                {
+                  value: CollectionAccessType.OPEN,
+                  label: 'Open — Anyone can add',
+                },
+              ]}
+              {...form.getInputProps('accessType')}
+            />
+
             <Group justify="space-between" gap={'xs'} grow>
               <Button
                 variant="light"
