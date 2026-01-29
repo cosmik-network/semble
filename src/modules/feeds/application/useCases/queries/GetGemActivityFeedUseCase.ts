@@ -385,6 +385,7 @@ export class GetGemActivityFeedUseCase
           id: cardView.id,
           type: 'URL' as const,
           url: cardView.url,
+          uri: cardView.uri,
           cardContent: {
             url: cardView.cardContent.url,
             title: cardView.cardContent.title,

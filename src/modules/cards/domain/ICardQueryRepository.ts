@@ -31,6 +31,7 @@ export interface UrlCardView {
   id: string;
   type: CardTypeEnum.URL;
   url: string;
+  uri?: string;
   cardContent: {
     url: string;
     title?: string;
@@ -76,6 +77,7 @@ export interface LibraryForUrlDTO {
   card: {
     id: string;
     url: string;
+    uri?: string;
     cardContent: {
       url: string;
       title?: string;

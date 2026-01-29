@@ -396,12 +396,17 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           id: cards.id,
           authorId: cards.authorId,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
         })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(
           and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
         );
@@ -536,6 +541,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           cardAuthorId: card.authorId,
           cardId: card.id,
           cardUrl: card.url || '',
+          cardUri: card.publishedRecordUri || undefined,
           cardTitle: card.contentData?.metadata?.title,
           cardDescription: card.contentData?.metadata?.description,
           cardAuthor: card.contentData?.metadata?.author,
