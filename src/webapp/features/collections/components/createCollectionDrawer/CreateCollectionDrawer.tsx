@@ -74,7 +74,10 @@ export default function createCollectionDrawer(props: Props) {
   return (
     <Drawer
       opened={props.isOpen}
-      onClose={props.onClose}
+      onClose={() => {
+        props.onClose();
+        form.reset();
+      }}
       withCloseButton={false}
       size={'31rem'}
       position="bottom"
