@@ -8,11 +8,13 @@ import {
   Stack,
   Textarea,
   TextInput,
+  ThemeIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   isOpen: boolean;
@@ -117,6 +119,18 @@ export default function createCollectionDrawer(props: Props) {
                 variant="filled"
                 size="md"
                 label="Access Level"
+                leftSection={
+                  form.getValues().accessType === CollectionAccessType.OPEN ? (
+                    <ThemeIcon
+                      size={'md'}
+                      variant="light"
+                      color={'green'}
+                      radius={'xl'}
+                    >
+                      <FaSeedling size={14} />
+                    </ThemeIcon>
+                  ) : null
+                }
                 defaultValue={CollectionAccessType.CLOSED}
                 data={[
                   {
