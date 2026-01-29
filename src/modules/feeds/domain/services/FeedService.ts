@@ -22,6 +22,7 @@ export class FeedService implements DomainService {
     cardId: CardId,
     collectionIds?: CollectionId[],
     urlType?: UrlType,
+    source?: string,
   ): Promise<Result<FeedActivity, FeedServiceError>> {
     try {
       // Check for recent duplicate activity (within 2 minutes)
@@ -69,6 +70,7 @@ export class FeedService implements DomainService {
         cardId,
         collectionIds,
         urlType,
+        source,
       );
 
       if (activityResult.isErr()) {

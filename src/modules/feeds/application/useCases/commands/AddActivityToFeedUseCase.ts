@@ -90,7 +90,7 @@ export class AddActivityToFeedUseCase
         }
       }
 
-      // Fetch the card to get its URL type
+      // Fetch the card to get its URL type and determine source
       const cardResult = await this.cardRepository.findById(cardId);
       if (cardResult.isErr()) {
         return err(
@@ -101,10 +101,26 @@ export class AddActivityToFeedUseCase
       }
 
       let urlType;
-      if (cardResult.value && cardResult.value.isUrlCard) {
-        const urlCardContent = cardResult.value.content;
-        if (urlCardContent.urlContent?.metadata?.type) {
-          urlType = urlCardContent.urlContent.metadata.type;
+      let source: string | undefined;
+
+      if (cardResult.value) {
+        // Get URL type
+        if (cardResult.value.isUrlCard) {
+          const urlCardContent = cardResult.value.content;
+          if (urlCardContent.urlContent?.metadata?.type) {
+            urlType = urlCardContent.urlContent.metadata.type;
+          }
+        }
+
+        // Determine source from library link's publishedRecordId
+        // Only set source if from Margin - Cosmik remains undefined
+        const libraryInfo = cardResult.value.getLibraryInfo(actorId);
+        if (libraryInfo?.publishedRecordId) {
+          const uri = libraryInfo.publishedRecordId.uri;
+          if (uri.includes('/at.margin.')) {
+            source = 'margin';
+          }
+          // Cosmik activities remain undefined (default)
         }
       }
 
@@ -113,6 +129,7 @@ export class AddActivityToFeedUseCase
         cardId,
         collectionIds,
         urlType,
+        source,
       );
 
       if (activityResult.isErr()) {
