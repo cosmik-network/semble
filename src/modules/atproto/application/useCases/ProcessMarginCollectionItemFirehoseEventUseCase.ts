@@ -9,6 +9,7 @@ import {
   UpdateUrlCardAssociationsUseCase,
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 
 export interface ProcessMarginCollectionItemFirehoseEventDTO {
   atUri: string;
@@ -96,7 +97,7 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
       }
 
       const annotationCollection = annotationUriResult.value.collection;
-      if (annotationCollection !== 'at.margin.bookmark') {
+      if (annotationCollection !== ATPROTO_NSID.MARGIN.BOOKMARK) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.log(
             `[FirehoseWorker] Ignoring Margin collection item for non-bookmark annotation type: ${annotationCollection}, itemUri: ${request.atUri}`,

@@ -8,6 +8,8 @@ import { CollectionId } from '../../../../cards/domain/value-objects/CollectionI
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 import { ICardRepository } from '../../../../cards/domain/ICardRepository';
+import { SourceTypeEnum } from '../../../domain/value-objects/SourceType';
+import { ATPROTO_NSID } from '../../../../../shared/constants/atproto';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;
@@ -117,8 +119,8 @@ export class AddActivityToFeedUseCase
         const libraryInfo = cardResult.value.getLibraryInfo(actorId);
         if (libraryInfo?.publishedRecordId) {
           const uri = libraryInfo.publishedRecordId.uri;
-          if (uri.includes('/at.margin.')) {
-            source = 'margin';
+          if (uri.includes(`/${ATPROTO_NSID.MARGIN.NAMESPACE}.`)) {
+            source = SourceTypeEnum.MARGIN;
           }
           // Cosmik activities remain undefined (default)
         }
