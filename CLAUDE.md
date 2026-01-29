@@ -1,0 +1,1 @@
+- run npm run build to check type errors after making changes
