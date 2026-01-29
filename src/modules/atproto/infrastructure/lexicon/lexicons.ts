@@ -300,6 +300,594 @@ export const schemaDict = {
       },
     },
   },
+  AtMarginAnnotation: {
+    defs: {
+      body: {
+        description: 'Annotation body - the content of the annotation',
+        properties: {
+          format: {
+            default: 'text/plain',
+            description: 'MIME type of the body content',
+            type: 'string',
+          },
+          language: {
+            description: 'BCP47 language tag',
+            type: 'string',
+          },
+          uri: {
+            description: 'Reference to external body content',
+            format: 'uri',
+            type: 'string',
+          },
+          value: {
+            description: 'Text content of the annotation',
+            maxGraphemes: 3000,
+            maxLength: 10000,
+            type: 'string',
+          },
+        },
+        type: 'object',
+      },
+      cssSelector: {
+        description: 'W3C CssSelector - select DOM elements by CSS selector',
+        properties: {
+          type: {
+            const: 'CssSelector',
+            type: 'string',
+          },
+          value: {
+            description: 'CSS selector string',
+            maxLength: 2000,
+            type: 'string',
+          },
+        },
+        required: ['value'],
+        type: 'object',
+      },
+      fragmentSelector: {
+        description: 'W3C FragmentSelector - select by URI fragment',
+        properties: {
+          conformsTo: {
+            description: 'Specification the fragment conforms to',
+            format: 'uri',
+            type: 'string',
+          },
+          type: {
+            const: 'FragmentSelector',
+            type: 'string',
+          },
+          value: {
+            description: 'Fragment identifier value',
+            maxLength: 1000,
+            type: 'string',
+          },
+        },
+        required: ['value'],
+        type: 'object',
+      },
+      main: {
+        description: 'A W3C-compliant web annotation stored on the AT Protocol',
+        key: 'tid',
+        record: {
+          properties: {
+            body: {
+              description: 'The annotation content (text or reference)',
+              ref: 'lex:at.margin.annotation#body',
+              type: 'ref',
+            },
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            motivation: {
+              description: 'W3C motivation for the annotation',
+              knownValues: [
+                'commenting',
+                'highlighting',
+                'bookmarking',
+                'tagging',
+                'describing',
+                'linking',
+                'replying',
+                'editing',
+                'questioning',
+                'assessing',
+              ],
+              type: 'string',
+            },
+            tags: {
+              description: 'Tags for categorization',
+              items: {
+                maxGraphemes: 32,
+                maxLength: 64,
+                type: 'string',
+              },
+              maxLength: 10,
+              type: 'array',
+            },
+            target: {
+              description:
+                'The resource being annotated with optional selector',
+              ref: 'lex:at.margin.annotation#target',
+              type: 'ref',
+            },
+          },
+          required: ['target', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+      rangeSelector: {
+        description: 'W3C RangeSelector - select range between two selectors',
+        properties: {
+          endSelector: {
+            description: 'Selector for range end',
+            refs: [
+              'lex:at.margin.annotation#textQuoteSelector',
+              'lex:at.margin.annotation#textPositionSelector',
+              'lex:at.margin.annotation#cssSelector',
+              'lex:at.margin.annotation#xpathSelector',
+            ],
+            type: 'union',
+          },
+          startSelector: {
+            description: 'Selector for range start',
+            refs: [
+              'lex:at.margin.annotation#textQuoteSelector',
+              'lex:at.margin.annotation#textPositionSelector',
+              'lex:at.margin.annotation#cssSelector',
+              'lex:at.margin.annotation#xpathSelector',
+            ],
+            type: 'union',
+          },
+          type: {
+            const: 'RangeSelector',
+            type: 'string',
+          },
+        },
+        required: ['startSelector', 'endSelector'],
+        type: 'object',
+      },
+      target: {
+        description: 'W3C SpecificResource - the target with optional selector',
+        properties: {
+          selector: {
+            description: 'Selector to identify the specific segment',
+            refs: [
+              'lex:at.margin.annotation#textQuoteSelector',
+              'lex:at.margin.annotation#textPositionSelector',
+              'lex:at.margin.annotation#cssSelector',
+              'lex:at.margin.annotation#xpathSelector',
+              'lex:at.margin.annotation#fragmentSelector',
+              'lex:at.margin.annotation#rangeSelector',
+            ],
+            type: 'union',
+          },
+          source: {
+            description: 'The URL being annotated',
+            format: 'uri',
+            type: 'string',
+          },
+          sourceHash: {
+            description: 'SHA256 hash of normalized URL for indexing',
+            type: 'string',
+          },
+          state: {
+            description: 'State of the resource at annotation time',
+            ref: 'lex:at.margin.annotation#timeState',
+            type: 'ref',
+          },
+          title: {
+            description: 'Page title at time of annotation',
+            maxLength: 500,
+            type: 'string',
+          },
+        },
+        required: ['source'],
+        type: 'object',
+      },
+      textPositionSelector: {
+        description: 'W3C TextPositionSelector - select by character offsets',
+        properties: {
+          end: {
+            description: 'Ending character position (exclusive)',
+            minimum: 0,
+            type: 'integer',
+          },
+          start: {
+            description: 'Starting character position (0-indexed, inclusive)',
+            minimum: 0,
+            type: 'integer',
+          },
+          type: {
+            const: 'TextPositionSelector',
+            type: 'string',
+          },
+        },
+        required: ['start', 'end'],
+        type: 'object',
+      },
+      textQuoteSelector: {
+        description:
+          'W3C TextQuoteSelector - select text by quoting it with context',
+        properties: {
+          exact: {
+            description: 'The exact text to match',
+            maxGraphemes: 1500,
+            maxLength: 5000,
+            type: 'string',
+          },
+          prefix: {
+            description: 'Text immediately before the selection',
+            maxGraphemes: 150,
+            maxLength: 500,
+            type: 'string',
+          },
+          suffix: {
+            description: 'Text immediately after the selection',
+            maxGraphemes: 150,
+            maxLength: 500,
+            type: 'string',
+          },
+          type: {
+            const: 'TextQuoteSelector',
+            type: 'string',
+          },
+        },
+        required: ['exact'],
+        type: 'object',
+      },
+      timeState: {
+        description: 'W3C TimeState - record when content was captured',
+        properties: {
+          cached: {
+            description: 'URL to cached/archived version',
+            format: 'uri',
+            type: 'string',
+          },
+          sourceDate: {
+            description: 'When the source was accessed',
+            format: 'datetime',
+            type: 'string',
+          },
+        },
+        type: 'object',
+      },
+      xpathSelector: {
+        description: 'W3C XPathSelector - select by XPath expression',
+        properties: {
+          type: {
+            const: 'XPathSelector',
+            type: 'string',
+          },
+          value: {
+            description: 'XPath expression',
+            maxLength: 2000,
+            type: 'string',
+          },
+        },
+        required: ['value'],
+        type: 'object',
+      },
+    },
+    description:
+      'W3C Web Annotation Data Model compliant annotation record for ATProto',
+    id: 'at.margin.annotation',
+    lexicon: 1,
+    revision: 2,
+  },
+  AtMarginBookmark: {
+    defs: {
+      main: {
+        description: 'A bookmarked URL (motivation: bookmarking)',
+        key: 'tid',
+        record: {
+          properties: {
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            description: {
+              description: 'Optional description/note',
+              maxGraphemes: 300,
+              maxLength: 1000,
+              type: 'string',
+            },
+            source: {
+              description: 'The bookmarked URL',
+              format: 'uri',
+              type: 'string',
+            },
+            sourceHash: {
+              description: 'SHA256 hash of normalized URL for indexing',
+              type: 'string',
+            },
+            tags: {
+              description: 'Tags for categorization',
+              items: {
+                maxGraphemes: 32,
+                maxLength: 64,
+                type: 'string',
+              },
+              maxLength: 10,
+              type: 'array',
+            },
+            title: {
+              description: 'Page title',
+              maxLength: 500,
+              type: 'string',
+            },
+          },
+          required: ['source', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+    },
+    description: 'A bookmark record - save URL for later',
+    id: 'at.margin.bookmark',
+    lexicon: 1,
+  },
+  AtMarginCollection: {
+    defs: {
+      main: {
+        description: 'A named collection for organizing annotations',
+        key: 'tid',
+        record: {
+          properties: {
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            description: {
+              description: 'Collection description',
+              maxGraphemes: 150,
+              maxLength: 500,
+              type: 'string',
+            },
+            icon: {
+              description: 'Emoji icon or icon identifier for the collection',
+              maxGraphemes: 100,
+              maxLength: 100,
+              type: 'string',
+            },
+            name: {
+              description: 'Collection name',
+              maxGraphemes: 50,
+              maxLength: 100,
+              type: 'string',
+            },
+          },
+          required: ['name', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+    },
+    description: 'A collection of annotations (like a folder or notebook)',
+    id: 'at.margin.collection',
+    lexicon: 1,
+  },
+  AtMarginCollectionItem: {
+    defs: {
+      main: {
+        description: 'Associates an annotation with a collection',
+        key: 'tid',
+        record: {
+          properties: {
+            annotation: {
+              description: 'AT URI of the annotation, highlight, or bookmark',
+              format: 'at-uri',
+              type: 'string',
+            },
+            collection: {
+              description: 'AT URI of the collection',
+              format: 'at-uri',
+              type: 'string',
+            },
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            position: {
+              description: 'Sort order within the collection',
+              minimum: 0,
+              type: 'integer',
+            },
+          },
+          required: ['collection', 'annotation', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+    },
+    description: 'An item in a collection (links annotation to collection)',
+    id: 'at.margin.collectionItem',
+    lexicon: 1,
+  },
+  AtMarginHighlight: {
+    defs: {
+      main: {
+        description: 'A highlight on a web page (motivation: highlighting)',
+        key: 'tid',
+        record: {
+          properties: {
+            color: {
+              description: 'Highlight color (hex or named)',
+              maxLength: 20,
+              type: 'string',
+            },
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            tags: {
+              description: 'Tags for categorization',
+              items: {
+                maxGraphemes: 32,
+                maxLength: 64,
+                type: 'string',
+              },
+              maxLength: 10,
+              type: 'array',
+            },
+            target: {
+              description: 'The resource and segment being highlighted',
+              ref: 'lex:at.margin.annotation#target',
+              type: 'ref',
+            },
+          },
+          required: ['target', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+    },
+    description:
+      'A lightweight highlight record - annotation without body text',
+    id: 'at.margin.highlight',
+    lexicon: 1,
+  },
+  AtMarginLike: {
+    defs: {
+      main: {
+        description: 'A like on an annotation or reply',
+        key: 'tid',
+        record: {
+          properties: {
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            subject: {
+              description: 'Reference to the annotation or reply being liked',
+              ref: 'lex:at.margin.like#subjectRef',
+              type: 'ref',
+            },
+          },
+          required: ['subject', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+      subjectRef: {
+        properties: {
+          cid: {
+            format: 'cid',
+            type: 'string',
+          },
+          uri: {
+            format: 'at-uri',
+            type: 'string',
+          },
+        },
+        required: ['uri', 'cid'],
+        type: 'object',
+      },
+    },
+    id: 'at.margin.like',
+    lexicon: 1,
+  },
+  AtMarginProfile: {
+    defs: {
+      main: {
+        description: 'A profile for a user on the Margin network.',
+        key: 'literal:self',
+        record: {
+          properties: {
+            bio: {
+              description: 'User biography or description.',
+              maxLength: 5000,
+              type: 'string',
+            },
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            links: {
+              description:
+                'List of other relevant links (e.g. GitHub, Bluesky, etc).',
+              items: {
+                maxLength: 1000,
+                type: 'string',
+              },
+              maxLength: 20,
+              type: 'array',
+            },
+            website: {
+              description: 'User website URL.',
+              maxLength: 1000,
+              type: 'string',
+            },
+          },
+          required: ['createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+    },
+    id: 'at.margin.profile',
+    lexicon: 1,
+  },
+  AtMarginReply: {
+    defs: {
+      main: {
+        description: 'A reply to an annotation (motivation: replying)',
+        key: 'tid',
+        record: {
+          properties: {
+            createdAt: {
+              format: 'datetime',
+              type: 'string',
+            },
+            format: {
+              default: 'text/plain',
+              description: 'MIME type of the text content',
+              type: 'string',
+            },
+            parent: {
+              description: 'Reference to the parent annotation or reply',
+              ref: 'lex:at.margin.reply#replyRef',
+              type: 'ref',
+            },
+            root: {
+              description: 'Reference to the root annotation of the thread',
+              ref: 'lex:at.margin.reply#replyRef',
+              type: 'ref',
+            },
+            text: {
+              description: 'Reply text content',
+              maxGraphemes: 3000,
+              maxLength: 10000,
+              type: 'string',
+            },
+          },
+          required: ['parent', 'root', 'text', 'createdAt'],
+          type: 'object',
+        },
+        type: 'record',
+      },
+      replyRef: {
+        description: 'Strong reference to an annotation or reply',
+        properties: {
+          cid: {
+            format: 'cid',
+            type: 'string',
+          },
+          uri: {
+            format: 'at-uri',
+            type: 'string',
+          },
+        },
+        required: ['uri', 'cid'],
+        type: 'object',
+      },
+    },
+    description: 'A reply to an annotation or another reply',
+    id: 'at.margin.reply',
+    lexicon: 1,
+    revision: 2,
+  },
 } as const satisfies Record<string, LexiconDoc>;
 export const schemas = Object.values(schemaDict) satisfies LexiconDoc[];
 export const lexicons: Lexicons = new Lexicons(schemas);
@@ -338,4 +926,12 @@ export const ids = {
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
   NetworkCosmikDefs: 'network.cosmik.defs',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
+  AtMarginAnnotation: 'at.margin.annotation',
+  AtMarginBookmark: 'at.margin.bookmark',
+  AtMarginCollection: 'at.margin.collection',
+  AtMarginCollectionItem: 'at.margin.collectionItem',
+  AtMarginHighlight: 'at.margin.highlight',
+  AtMarginLike: 'at.margin.like',
+  AtMarginProfile: 'at.margin.profile',
+  AtMarginReply: 'at.margin.reply',
 } as const;

@@ -1,0 +1,30 @@
+{
+  "defs": {
+    "main": {
+      "detail": "Full access to Margin features including annotations, highlights, bookmarks, and collections.",
+      "detail:langs": {},
+      "permissions": [
+        {
+          "action": ["create", "update", "delete"],
+          "collection": [
+            "at.margin.annotation",
+            "at.margin.highlight",
+            "at.margin.bookmark",
+            "at.margin.reply",
+            "at.margin.like",
+            "at.margin.collection",
+            "at.margin.collectionItem",
+            "at.margin.profile"
+          ],
+          "resource": "repo",
+          "type": "permission"
+        }
+      ],
+      "title": "Margin",
+      "title:langs": {},
+      "type": "permission-set"
+    }
+  },
+  "id": "at.margin.authFull",
+  "lexicon": 1
+}
