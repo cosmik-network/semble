@@ -80,7 +80,7 @@ export default function CollectionContainer(props: Props) {
           </Group>
         </Group>
 
-        <Group justify="space-between">
+        <Group justify="space-between" gap={'xs'}>
           <CardFilters.Root>
             <CardFilters.SortSelect />
             <CardFilters.TypeFilter />
