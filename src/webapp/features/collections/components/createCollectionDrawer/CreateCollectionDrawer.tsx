@@ -74,78 +74,81 @@ export default function createCollectionDrawer(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       withCloseButton={false}
+      size={'31rem'}
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
         <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
-          Create Collection
+          New Collection
         </Drawer.Title>
       </Drawer.Header>
 
       <Container size={'sm'} p={0}>
         <form onSubmit={handleCreateCollection}>
           <Stack>
-            <TextInput
-              id="name"
-              label="Name"
-              type="text"
-              placeholder="Collection name"
-              variant="filled"
-              size="md"
-              required
-              maxLength={100}
-              key={form.key('name')}
-              {...form.getInputProps('name')}
-            />
-
-            <Textarea
-              id="description"
-              label="Description"
-              placeholder="Describe what this collection is about"
-              variant="filled"
-              size="md"
-              rows={3}
-              maxLength={500}
-              key={form.key('description')}
-              {...form.getInputProps('description')}
-            />
-
-            <Select
-              variant="filled"
-              size="md"
-              label="Access Level"
-              defaultValue={CollectionAccessType.CLOSED}
-              data={[
-                {
-                  value: CollectionAccessType.CLOSED,
-                  label: 'Closed — Only you can add',
-                },
-                {
-                  value: CollectionAccessType.OPEN,
-                  label: 'Open — Anyone can add',
-                },
-              ]}
-              {...form.getInputProps('accessType')}
-            />
-
-            <Group justify="space-between" gap={'xs'} grow>
-              <Button
-                variant="light"
+            <Stack gap={'xl'}>
+              <TextInput
+                id="name"
+                label="Name"
+                type="text"
+                placeholder="Collection name"
+                variant="filled"
                 size="md"
-                color={'gray'}
-                onClick={props.onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
+                required
+                maxLength={100}
+                key={form.key('name')}
+                {...form.getInputProps('name')}
+              />
+
+              <Textarea
+                id="description"
+                label="Description"
+                placeholder="Describe what this collection is about"
+                variant="filled"
                 size="md"
-                loading={createCollection.isPending}
-              >
-                Create
-              </Button>
-            </Group>
+                rows={3}
+                maxLength={500}
+                key={form.key('description')}
+                {...form.getInputProps('description')}
+              />
+
+              <Select
+                variant="filled"
+                size="md"
+                label="Access Level"
+                defaultValue={CollectionAccessType.CLOSED}
+                data={[
+                  {
+                    value: CollectionAccessType.CLOSED,
+                    label: 'Closed — Only you can add',
+                  },
+                  {
+                    value: CollectionAccessType.OPEN,
+                    label: 'Open — Anyone can add',
+                  },
+                ]}
+                {...form.getInputProps('accessType')}
+              />
+
+              <Group justify="space-between" gap={'xs'} grow>
+                <Button
+                  variant="light"
+                  size="md"
+                  color={'gray'}
+                  onClick={props.onClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="md"
+                  loading={createCollection.isPending}
+                >
+                  Create
+                </Button>
+              </Group>
+            </Stack>
           </Stack>
         </form>
       </Container>
