@@ -235,6 +235,7 @@ export class UseCaseFactory {
         repositories.atUriResolutionService,
         getCollectionPageUseCase,
         services.configService.getAtProtoCollections().collection,
+        services.configService.getAtProtoCollections().marginCollection,
       ),
       getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,
