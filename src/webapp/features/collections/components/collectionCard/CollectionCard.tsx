@@ -75,10 +75,11 @@ export default function CollectionCard(props: Props) {
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
+              <Text fw={500} lineClamp={1} c={'bright'}>
+                {collection.name}
+              </Text>
+
               <Group gap={'xs'} wrap="nowrap">
-                <Text fw={500} lineClamp={1} c={'bright'}>
-                  {collection.name}
-                </Text>
                 {accessType === CollectionAccessType.OPEN && (
                   <Tooltip label="This collection is open to everyone; add cards to help it grow.">
                     <ThemeIcon
@@ -91,19 +92,19 @@ export default function CollectionCard(props: Props) {
                     </ThemeIcon>
                   </Tooltip>
                 )}
+                {props.showAuthor && (
+                  <Avatar
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${collection.author.handle}'s avatar`}
+                    size={'sm'}
+                  />
+                )}
               </Group>
-              {props.showAuthor && (
-                <Avatar
-                  component={Link}
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
-              )}
             </Group>
             {collection.description && (
               <Text c={'gray'} lineClamp={2}>
