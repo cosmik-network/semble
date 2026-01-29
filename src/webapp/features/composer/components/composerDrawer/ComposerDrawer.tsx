@@ -12,7 +12,12 @@ export default function ComposerDrawer() {
   const isNavOpen = isDesktop ? desktopOpened : mobileOpened;
   const shouldShowFab = !isNavOpen;
   const [opened, setOpened] = useState(false);
-  const addUrl = useSearchParams().get('addUrl');
+
+  // share_target support. on android could be any of these.
+  const shareUrl = useSearchParams().get('addUrl');
+  const shareText = useSearchParams().get('addText');
+  const shareTitle = useSearchParams().get('addTitle');
+  const addUrl = shareUrl || shareText || shareTitle;
 
   useEffect(() => {
     if (addUrl) {
