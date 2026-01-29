@@ -1,1 +1,2 @@
 - run npm run build to check type errors after making changes
+- whenever we make changes to sql schemas (denoted by .sql. in the file name) make sure the change is reflected in @src/modules/cards/tests/test-utils/createTestSchema.ts and generate the migration files by running `npm run db:generate`
