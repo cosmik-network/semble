@@ -33,6 +33,7 @@
     "test:unit:watch": "jest --watch --testPathIgnorePatterns='.integration.test.' --testPathIgnorePatterns='.e2e.test.'",
     "test:integration:watch": "jest --watch --testPathPattern='.integration.test.'",
     "build": "tsup",
+    "build:check": "tsc --noEmit",
     "build:watch": "tsc --watch",
     "dev:app:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,APP -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"",
     "dev:worker:feeds:inner": "dotenv -e .env.local -- concurrently -k -n WORKER -c green \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"",

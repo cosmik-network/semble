@@ -117,6 +117,7 @@ describe('DrizzleFeedRepository', () => {
       cardId,
       [collectionId],
       undefined,
+      undefined, // source
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
@@ -125,6 +126,7 @@ describe('DrizzleFeedRepository', () => {
       anotherCardId,
       undefined,
       undefined,
+      undefined, // source
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
@@ -133,6 +135,7 @@ describe('DrizzleFeedRepository', () => {
       anotherCardId,
       [collectionId],
       undefined,
+      undefined, // source
       new Date(baseTime.getTime()), // newest
     ).unwrap();
 
@@ -185,6 +188,7 @@ describe('DrizzleFeedRepository', () => {
       cardId,
       undefined,
       undefined,
+      undefined, // source
       new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
@@ -193,6 +197,7 @@ describe('DrizzleFeedRepository', () => {
       anotherCardId,
       undefined,
       undefined,
+      undefined, // source
       new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
@@ -201,6 +206,7 @@ describe('DrizzleFeedRepository', () => {
       anotherCardId,
       undefined,
       undefined,
+      undefined, // source
       new Date(baseTime.getTime()), // newest
     ).unwrap();
 
@@ -318,7 +324,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collectionId],
         undefined,
-        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+        undefined, // source
+      new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
       ).unwrap();
 
       await feedRepository.addActivity(recentActivity);
@@ -347,7 +354,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collectionId],
         undefined,
-        new Date(baseTime.getTime() - 3 * 60 * 1000), // 3 minutes ago
+        undefined, // source
+      new Date(baseTime.getTime() - 3 * 60 * 1000), // 3 minutes ago
       ).unwrap();
 
       await feedRepository.addActivity(oldActivity);
@@ -372,7 +380,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collectionId],
         undefined,
-        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+        undefined, // source
+      new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
       ).unwrap();
 
       await feedRepository.addActivity(activity);
@@ -397,7 +406,8 @@ describe('DrizzleFeedRepository', () => {
         anotherCardId, // different card
         [collectionId],
         undefined,
-        new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
+        undefined, // source
+      new Date(baseTime.getTime() - 60 * 1000), // 1 minute ago
       ).unwrap();
 
       await feedRepository.addActivity(activity);
@@ -481,7 +491,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collectionId],
         undefined,
-        new Date(baseTime.getTime() - 2 * 60 * 1000),
+        undefined, // source
+      new Date(baseTime.getTime() - 2 * 60 * 1000),
       ).unwrap();
 
       // Create newer activity (1 minute ago)
@@ -490,7 +501,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [CollectionId.createFromString('another-collection').unwrap()],
         undefined,
-        new Date(baseTime.getTime() - 60 * 1000),
+        undefined, // source
+      new Date(baseTime.getTime() - 60 * 1000),
       ).unwrap();
 
       await feedRepository.addActivity(olderActivity);
@@ -531,7 +543,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collection1],
         undefined,
-        new Date(baseTime.getTime() - 300),
+        undefined, // source
+      new Date(baseTime.getTime() - 300),
       ).unwrap();
 
       // Activity with collection2
@@ -540,7 +553,8 @@ describe('DrizzleFeedRepository', () => {
         anotherCardId,
         [collection2],
         undefined,
-        new Date(baseTime.getTime() - 200),
+        undefined, // source
+      new Date(baseTime.getTime() - 200),
       ).unwrap();
 
       // Activity with both collection1 and collection3
@@ -549,7 +563,8 @@ describe('DrizzleFeedRepository', () => {
         anotherCardId,
         [collection1, collection3],
         undefined,
-        new Date(baseTime.getTime() - 100),
+        undefined, // source
+      new Date(baseTime.getTime() - 100),
       ).unwrap();
 
       // Activity with no collections
@@ -558,7 +573,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         undefined,
         undefined,
-        new Date(baseTime.getTime()),
+        undefined, // source
+      new Date(baseTime.getTime()),
       ).unwrap();
 
       await feedRepository.addActivity(activity1);
@@ -633,7 +649,8 @@ describe('DrizzleFeedRepository', () => {
           CardId.createFromString(`card-${i}`).unwrap(),
           [collection1],
           undefined,
-          new Date(baseTime.getTime() - i * 100),
+          undefined, // source
+      new Date(baseTime.getTime() - i * 100),
         ).unwrap();
         activities.push(activity);
         await feedRepository.addActivity(activity);
@@ -684,7 +701,8 @@ describe('DrizzleFeedRepository', () => {
         cardId,
         [collection1],
         undefined,
-        new Date(baseTime.getTime() - 300), // oldest
+        undefined, // source
+      new Date(baseTime.getTime() - 300), // oldest
       ).unwrap();
 
       const activity2 = FeedActivity.createCardCollected(
@@ -692,7 +710,8 @@ describe('DrizzleFeedRepository', () => {
         anotherCardId,
         [collection1],
         undefined,
-        new Date(baseTime.getTime() - 200), // middle
+        undefined, // source
+      new Date(baseTime.getTime() - 200), // middle
       ).unwrap();
 
       const activity3 = FeedActivity.createCardCollected(
@@ -700,7 +719,8 @@ describe('DrizzleFeedRepository', () => {
         CardId.createFromString('card-999').unwrap(),
         [collection1],
         undefined,
-        new Date(baseTime.getTime() - 100), // newest
+        undefined, // source
+      new Date(baseTime.getTime() - 100), // newest
       ).unwrap();
 
       await feedRepository.addActivity(activity1);
