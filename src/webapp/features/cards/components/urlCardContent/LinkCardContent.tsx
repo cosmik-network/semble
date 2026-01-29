@@ -47,7 +47,9 @@ export default function LinkCardContent(props: Props) {
               {domain}
             </Anchor>
           </Tooltip>
-          {isMarginUri(props.uri) && <MarginLogo size={12} marginUrl={marginUrl} />}
+          {isMarginUri(props.uri) && (
+            <MarginLogo size={12} marginUrl={marginUrl} />
+          )}
         </Group>
         {props.cardContent.title && (
           <Text c={'bright'} lineClamp={2} fw={500}>
