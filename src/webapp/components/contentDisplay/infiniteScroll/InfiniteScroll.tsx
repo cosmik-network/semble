@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, startTransition, useRef } from 'react';
-import { Center, Button, Stack, Text, Loader, Divider } from '@mantine/core';
+import { Center, Button, Stack, Loader, Divider } from '@mantine/core';
 import { useIntersection } from '@mantine/hooks';
 
 interface Props {
