@@ -1,18 +1,19 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getGemsActivityFeed } from '../dal';
 import { feedKeys } from '../feedKeys';
-import { UrlType } from '@semble/types';
+import { UrlType, ActivitySource } from '@semble/types';
 
 interface Props {
   limit?: number;
   urlType?: UrlType;
+  source?: ActivitySource;
 }
 
 export default function useGemsFeed(props?: Props) {
   const limit = props?.limit ?? 15;
 
   const query = useSuspenseInfiniteQuery({
-    queryKey: feedKeys.gemsInfinite(limit, props?.urlType),
+    queryKey: feedKeys.gemsInfinite(limit, props?.urlType, props?.source),
     staleTime: 10000,
     initialPageParam: 1,
     refetchOnWindowFocus: false,
@@ -21,6 +22,7 @@ export default function useGemsFeed(props?: Props) {
         limit,
         page: pageParam,
         urlType: props?.urlType,
+        source: props?.source,
       });
     },
     getNextPageParam: (lastPage) => {

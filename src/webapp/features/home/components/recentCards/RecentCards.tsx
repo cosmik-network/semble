@@ -51,6 +51,7 @@ export default function RecentCards() {
               <UrlCard
                 id={card.id}
                 url={card.url}
+                uri={card.uri}
                 cardContent={card.cardContent}
                 note={card.note}
                 urlLibraryCount={card.urlLibraryCount}

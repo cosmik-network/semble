@@ -7,12 +7,13 @@ import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
-import { UrlType } from '@semble/types';
+import { UrlType, ActivitySource } from '@semble/types';
 import { useSearchParams } from 'next/navigation';
 
 export default function MyFeedContainer() {
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
+  const selectedSource = searchParams.get('source') as ActivitySource;
 
   const {
     data,
@@ -23,7 +24,7 @@ export default function MyFeedContainer() {
     isFetchingNextPage,
     isRefetching,
     refetch,
-  } = useGlobalFeed({ urlType: selectedUrlType });
+  } = useGlobalFeed({ urlType: selectedUrlType, source: selectedSource });
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];

@@ -8,9 +8,11 @@ import {
   Group,
 } from '@mantine/core';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { BiCollection } from 'react-icons/bi';
 import FeedFilters from '../feedFilters/FeedFilters';
+import { ActivitySource } from '@semble/types';
+import { useOptimistic, useTransition } from 'react';
 
 const options = [
   { value: 'explore', label: 'Latest', href: '/explore' },
@@ -21,19 +23,56 @@ const options = [
   },
 ];
 
+const sourceOptions = [
+  { value: null, label: 'All Sources' },
+  { value: ActivitySource.SEMBLE, label: 'Semble' },
+  { value: ActivitySource.MARGIN, label: 'Margin' },
+];
+
 export default function FeedControls() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const segment = pathname.split('/')[2];
   const currentValue = segment || 'explore';
   const isGemsFeed = currentValue === 'gems-of-2025';
 
+  const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
+
+  const [optimisticSource, setOptimisticSource] =
+    useOptimistic<ActivitySource | null>(sourceFromUrl);
+
+  const [, startTransition] = useTransition();
+
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
+  const sourceCombobox = useCombobox({
+    onDropdownClose: () => sourceCombobox.resetSelectedOption(),
+  });
+
   const selected = options.find((o) => o.value === currentValue);
+  const selectedSource =
+    sourceOptions.find((o) => o.value === optimisticSource) || sourceOptions[0];
+
+  const handleSourceClick = (source: ActivitySource | null) => {
+    startTransition(() => {
+      setOptimisticSource(source);
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (source) {
+        params.set('source', source);
+      } else {
+        params.delete('source');
+      }
+
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
+
+    sourceCombobox.closeDropdown();
+  };
 
   return (
     <ScrollAreaAutosize type="scroll">
@@ -75,6 +114,45 @@ export default function FeedControls() {
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>
+
+          <Combobox
+            store={sourceCombobox}
+            onOptionSubmit={(value) => {
+              const option = sourceOptions.find(
+                (o) => String(o.value) === value,
+              );
+              if (option) {
+                handleSourceClick(option.value);
+              }
+            }}
+            width={150}
+          >
+            <Combobox.Target>
+              <Button
+                variant="light"
+                color="cyan"
+                leftSection={<Combobox.Chevron />}
+                onClick={() => sourceCombobox.toggleDropdown()}
+              >
+                {selectedSource?.label}
+              </Button>
+            </Combobox.Target>
+
+            <Combobox.Dropdown>
+              <Combobox.Options>
+                {sourceOptions.map((option) => (
+                  <Combobox.Option
+                    key={String(option.value)}
+                    value={String(option.value)}
+                    active={option.value === optimisticSource}
+                  >
+                    {option.label}
+                  </Combobox.Option>
+                ))}
+              </Combobox.Options>
+            </Combobox.Dropdown>
+          </Combobox>
+
           {isGemsFeed && (
             <Button
               variant="light"

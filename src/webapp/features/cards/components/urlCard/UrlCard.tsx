@@ -14,6 +14,7 @@ import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 interface Props {
   id: string;
   url: string;
+  uri?: string;
   cardContent: UrlCard['cardContent'];
   note?: UrlCard['note'];
   currentCollection?: Collection;
@@ -65,7 +66,12 @@ export default function UrlCard(props: Props) {
       onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
-        <UrlCardContent url={props.url} cardContent={props.cardContent} />
+        <UrlCardContent
+          url={props.url}
+          uri={props.uri}
+          cardContent={props.cardContent}
+          authorHandle={props.cardAuthor?.handle}
+        />
 
         {settings.tinkerMode && (
           <UrlCardDebugView

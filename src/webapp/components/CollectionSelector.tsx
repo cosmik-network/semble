@@ -13,6 +13,8 @@ import {
 import { ApiClient, Collection } from '@/api-client';
 import { useCollectionSearch } from '@/hooks/useCollectionSearch';
 import { CreateCollectionModal } from './CreateCollectionModal';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface LocalCollection extends Collection {
   authorId: string; // Extended for local component use
@@ -105,11 +107,22 @@ export function CollectionSelector({
               {existingCollections.length !== 1 && 's'}:
             </Text>
             <Group gap="xs">
-              {existingCollections.map((collection) => (
-                <Badge key={collection.id} variant="light" color="blue">
-                  {collection.name}
-                </Badge>
-              ))}
+              {existingCollections.map((collection) => {
+                const marginUrl = getMarginUrl(
+                  collection.uri,
+                  collection.author?.handle,
+                );
+                return (
+                  <Badge key={collection.id} variant="light" color="blue">
+                    <Group gap={4}>
+                      {collection.name}
+                      {isMarginUri(collection.uri) && (
+                        <MarginLogo size={10} marginUrl={marginUrl} />
+                      )}
+                    </Group>
+                  </Badge>
+                );
+              })}
             </Group>
           </Box>
         )}
@@ -163,52 +176,61 @@ export function CollectionSelector({
                   </Group>
                 </Box>
               )}
-              {availableCollections.map((collection, index) => (
-                <Box
-                  key={collection.id}
-                  p="sm"
-                  style={{
-                    cursor: 'pointer',
-                    backgroundColor: selectedCollectionIds.includes(
-                      collection.id,
-                    )
-                      ? 'var(--mantine-color-blue-0)'
-                      : index % 2 === 0
-                        ? 'var(--mantine-color-gray-0)'
-                        : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedCollectionIds.includes(collection.id)
-                      ? '1px solid var(--mantine-color-blue-4)'
-                      : '1px solid transparent',
-                  }}
-                  onClick={() => handleCollectionToggle(collection.id)}
-                >
-                  <Group justify="space-between" align="center" wrap="nowrap">
-                    <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                      <Group gap="xs" align="center">
-                        <Text fw={500} size="sm" truncate>
-                          {collection.name}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {collection.cardCount} cards
-                        </Text>
-                      </Group>
-                      {collection.description && (
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {collection.description}
-                        </Text>
-                      )}
-                    </Stack>
-                    <Checkbox
-                      checked={selectedCollectionIds.includes(collection.id)}
-                      onChange={() => handleCollectionToggle(collection.id)}
-                      disabled={disabled}
-                      onClick={(e) => e.stopPropagation()}
-                      size="sm"
-                    />
-                  </Group>
-                </Box>
-              ))}
+              {availableCollections.map((collection, index) => {
+                const marginUrl = getMarginUrl(
+                  collection.uri,
+                  collection.author?.handle,
+                );
+                return (
+                  <Box
+                    key={collection.id}
+                    p="sm"
+                    style={{
+                      cursor: 'pointer',
+                      backgroundColor: selectedCollectionIds.includes(
+                        collection.id,
+                      )
+                        ? 'var(--mantine-color-blue-0)'
+                        : index % 2 === 0
+                          ? 'var(--mantine-color-gray-0)'
+                          : 'transparent',
+                      borderRadius: '4px',
+                      border: selectedCollectionIds.includes(collection.id)
+                        ? '1px solid var(--mantine-color-blue-4)'
+                        : '1px solid transparent',
+                    }}
+                    onClick={() => handleCollectionToggle(collection.id)}
+                  >
+                    <Group justify="space-between" align="center" wrap="nowrap">
+                      <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                        <Group gap="xs" align="center">
+                          <Text fw={500} size="sm" truncate>
+                            {collection.name}
+                          </Text>
+                          {isMarginUri(collection.uri) && (
+                            <MarginLogo size={12} marginUrl={marginUrl} />
+                          )}
+                          <Text size="xs" c="dimmed">
+                            {collection.cardCount} cards
+                          </Text>
+                        </Group>
+                        {collection.description && (
+                          <Text size="xs" c="dimmed" lineClamp={1}>
+                            {collection.description}
+                          </Text>
+                        )}
+                      </Stack>
+                      <Checkbox
+                        checked={selectedCollectionIds.includes(collection.id)}
+                        onChange={() => handleCollectionToggle(collection.id)}
+                        disabled={disabled}
+                        onClick={(e) => e.stopPropagation()}
+                        size="sm"
+                      />
+                    </Group>
+                  </Box>
+                );
+              })}
             </Stack>
           ) : searchText.trim() ? (
             <Stack gap="sm" py="md">
