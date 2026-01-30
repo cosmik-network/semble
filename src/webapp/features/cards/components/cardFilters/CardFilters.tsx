@@ -134,7 +134,7 @@ export function TypeFilter() {
           leftSection={<SelectedIcon />}
           onClick={() => setOpened((o) => !o)}
         >
-          {optimisticType ? upperFirst(optimisticType) : 'All Types'}
+          {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
         </Button>
       </Popover.Target>
 
