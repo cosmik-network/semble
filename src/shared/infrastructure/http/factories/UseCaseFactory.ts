@@ -49,11 +49,13 @@ import { GetUnreadNotificationCountUseCase } from '../../../../modules/notificat
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
 import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkAllNotificationsAsReadUseCase';
 import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
+import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
   createNotificationUseCase: CreateNotificationUseCase;
+  syncAccountDataUseCase: SyncAccountDataUseCase;
   // Firehose-specific use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
@@ -341,6 +343,10 @@ export class UseCaseFactory {
       // Notification use cases (only ones needed by workers)
       createNotificationUseCase: new CreateNotificationUseCase(
         services.notificationService,
+      ),
+      // Sync use cases (only ones needed by workers)
+      syncAccountDataUseCase: new SyncAccountDataUseCase(
+        repositories.syncStatusRepository,
       ),
       // Firehose-specific use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(

@@ -325,3 +325,18 @@ export class YourEventHandler implements IEventHandler<YourEvent> {
 7. `src/shared/infrastructure/http/factories/UseCaseFactory.ts` — Pass eventPublisher
 8. `src/modules/<module>/application/eventHandlers/...Handler.ts` — Create handler
 9. `src/shared/infrastructure/processes/<Worker>Process.ts` — Register handler
+
+## Build steps:
+
+make sure to update `tsup.config.ts`:
+which has the `entry` field:
+
+```ts
+entry: {
+    index: 'src/index.ts',
+    'workers/feed-worker': 'src/workers/feed-worker.ts',
+    'workers/search-worker': 'src/workers/search-worker.ts',
+    'workers/firehose-worker': 'src/workers/firehose-worker.ts',
+    'workers/notification-worker': 'src/workers/notification-worker.ts',
+  },
+```
