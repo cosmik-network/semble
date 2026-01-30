@@ -14,7 +14,7 @@ export default function CollectionContainerSkeleton() {
             <Skeleton w={300} h={27} />
 
             {/* Description */}
-            <Skeleton w={'80%'} h={22} mt={'lg'} />
+            {/*<Skeleton w={'80%'} h={22} mt={'lg'} />*/}
           </Stack>
 
           <Stack>

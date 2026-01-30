@@ -318,11 +318,12 @@ describe('AddUrlToLibraryUseCase', () => {
   });
 
   describe('Collection handling', () => {
-    it('should add URL card to specified collections', async () => {
-      // Create a test collection
+    it('should add URL card to open collections', async () => {
+      // Create an open test collection
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName('Test Collection')
+        .withName('Open Test Collection')
+        .withAccessType('OPEN')
         .build();
 
       if (collection instanceof Error) {
@@ -363,6 +364,140 @@ describe('AddUrlToLibraryUseCase', () => {
         collection.collectionId.getStringValue(),
       );
       expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
+    });
+
+    it('should add URL card to closed collections when user is the author', async () => {
+      // Create a closed test collection owned by the curator
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Closed Test Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(1);
+    });
+
+    it('should add URL card to closed collections when user is a collaborator', async () => {
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create a closed test collection with curator as collaborator
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Closed Collaborative Collection')
+        .withAccessType('CLOSED')
+        .withCollaborators([curatorId.value])
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(1);
+    });
+
+    it('should fail to add URL card to closed collections when user lacks permission', async () => {
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create a closed test collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Private Closed Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('does not have permission');
+      }
+
+      // Verify no collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(0);
+    });
+
+    it('should add URL card to open collections owned by other users', async () => {
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create an open test collection owned by someone else
+      const collection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Public Open Collection')
+        .withAccessType('OPEN')
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify collection link was published
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue(),
+      );
+      expect(publishedLinks).toHaveLength(1);
     });
 
     it('should add URL card to collections with viaCardId', async () => {
@@ -520,6 +655,60 @@ describe('AddUrlToLibraryUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Collection not found');
       }
+    });
+
+    it('should handle mixed collection permissions correctly', async () => {
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Create an open collection and a closed collection without permission
+      const openCollection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Open Collection')
+        .withAccessType('OPEN')
+        .build();
+
+      const closedCollection = new CollectionBuilder()
+        .withAuthorId(otherCuratorId.value)
+        .withName('Closed Collection')
+        .withAccessType('CLOSED')
+        .build();
+
+      if (
+        openCollection instanceof Error ||
+        closedCollection instanceof Error
+      ) {
+        throw new Error('Failed to create collections');
+      }
+
+      await collectionRepository.save(openCollection);
+      await collectionRepository.save(closedCollection);
+
+      const request = {
+        url: 'https://example.com/article',
+        collectionIds: [
+          openCollection.collectionId.getStringValue(),
+          closedCollection.collectionId.getStringValue(),
+        ],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('does not have permission');
+      }
+
+      const openPublishedLinks =
+        collectionPublisher.getPublishedLinksForCollection(
+          openCollection.collectionId.getStringValue(),
+        );
+      const closedPublishedLinks =
+        collectionPublisher.getPublishedLinksForCollection(
+          closedCollection.collectionId.getStringValue(),
+        );
+      expect(openPublishedLinks).toHaveLength(1);
+      expect(closedPublishedLinks).toHaveLength(0);
     });
   });
 

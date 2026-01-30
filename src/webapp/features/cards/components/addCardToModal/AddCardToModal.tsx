@@ -4,6 +4,7 @@ import { Modal, Stack, Text } from '@mantine/core';
 import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
+import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 
 interface Props {
   isOpen: boolean;
@@ -48,16 +49,23 @@ export default function AddCardToModal(props: Props) {
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Suspense fallback={<CollectionSelectorSkeleton />}>
-        <AddCardToModalContent
-          onClose={props.onClose}
+      <Stack justify="space-between" gap={'xs'}>
+        <CardToBeAddedPreview
           url={props.url}
-          cardId={props.cardId}
-          cardContent={props.cardContent}
-          note={props.note}
-          viaCardId={props.viaCardId}
+          title={props.cardContent?.title}
+          imageUrl={props.cardContent?.imageUrl}
         />
-      </Suspense>
+        <Suspense fallback={<CollectionSelectorSkeleton />}>
+          <AddCardToModalContent
+            onClose={props.onClose}
+            url={props.url}
+            cardId={props.cardId}
+            cardContent={props.cardContent}
+            note={props.note}
+            viaCardId={props.viaCardId}
+          />
+        </Suspense>
+      </Stack>
     </Modal>
   );
 }

@@ -151,6 +151,7 @@ export class ServiceFactory {
           sharedServices.atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.collectionLinkRemoval,
         );
 
     const cardPublisher = useFakePublishers
@@ -389,6 +390,7 @@ export class ServiceFactory {
           atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.collectionLinkRemoval,
         );
 
     const cardPublisher = useFakePublishers

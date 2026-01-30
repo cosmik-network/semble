@@ -5,6 +5,7 @@ import {
   CollectionSorting,
   FeedPagination,
 } from './common';
+import { CollectionAccessType } from './requests';
 
 // Command response types
 export interface AddUrlToLibraryResponse {
@@ -95,6 +96,7 @@ export interface Collection {
   name: string;
   author: User;
   description?: string;
+  accessType?: CollectionAccessType;
   cardCount: number;
   createdAt: string;
   updatedAt: string;
@@ -136,6 +138,7 @@ export interface GetCollectionPageResponse {
   uri?: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   author: User;
   urlCards: UrlCard[];
   cardCount: number;
@@ -330,6 +333,7 @@ export enum NotificationType {
   USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',
   USER_ADDED_YOUR_BSKY_POST = 'USER_ADDED_YOUR_BSKY_POST',
   USER_ADDED_YOUR_COLLECTION = 'USER_ADDED_YOUR_COLLECTION',
+  USER_ADDED_TO_YOUR_COLLECTION = 'USER_ADDED_TO_YOUR_COLLECTION',
 }
 
 export interface NotificationItem {

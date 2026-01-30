@@ -30,6 +30,7 @@ export interface EnvironmentConfig {
       card: string;
       collection: string;
       collectionLink: string;
+      collectionLinkRemoval: string;
     };
     serviceAccount: {
       identifier: string;
@@ -118,6 +119,10 @@ export class EnvironmentConfigService {
             environment === Environment.PROD
               ? 'network.cosmik.collectionLink'
               : `network.cosmik.${environment}.collectionLink`,
+          collectionLinkRemoval:
+            environment === Environment.PROD
+              ? 'network.cosmik.collectionLinkRemoval'
+              : `network.cosmik.${environment}.collectionLinkRemoval`,
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',

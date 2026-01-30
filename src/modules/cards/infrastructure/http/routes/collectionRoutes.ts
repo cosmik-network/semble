@@ -8,6 +8,7 @@ import { GetUserCollectionsController } from '../controllers/GetUserCollectionsC
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 import { SearchCollectionsController } from '../controllers/SearchCollectionsController';
+import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCollectionRoutes(
@@ -21,6 +22,7 @@ export function createCollectionRoutes(
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
+  getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
 ): Router {
   const router = Router();
 
@@ -43,6 +45,13 @@ export function createCollectionRoutes(
   // GET /api/collections/user/:identifier - Get user's collections by identifier
   router.get('/user/:identifier', authMiddleware.optionalAuth(), (req, res) =>
     getUserCollectionsController.execute(req, res),
+  );
+
+  // GET /api/collections/contributed/:identifier - Get open collections where user contributed
+  router.get(
+    '/contributed/:identifier',
+    authMiddleware.optionalAuth(),
+    (req, res) => getOpenCollectionsWithContributorController.execute(req, res),
   );
 
   // GET /api/collections/at/:handle/:recordKey - Get collection by AT URI

@@ -2,6 +2,7 @@ import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
   CardSortField,
+  CollectionAccessType,
   CollectionSortField,
   SortOrder,
   UrlType,
@@ -103,7 +104,11 @@ export const getMyGemCollections = cache(
 );
 
 export const createCollection = cache(
-  async (newCollection: { name: string; description: string }) => {
+  async (newCollection: {
+    name: string;
+    description: string;
+    accessType: CollectionAccessType;
+  }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();

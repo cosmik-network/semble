@@ -1,9 +1,17 @@
 'use client';
 
-import type { Collection } from '@/api-client';
+import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import {
+  Avatar,
+  Card,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Tooltip,
+} from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
@@ -13,6 +21,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -26,6 +35,7 @@ export default function CollectionCard(props: Props) {
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
+  const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
 
@@ -67,18 +77,33 @@ export default function CollectionCard(props: Props) {
               <Text fw={500} lineClamp={1} c={'bright'}>
                 {collection.name}
               </Text>
-              {props.showAuthor && (
-                <Avatar
-                  component={Link}
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
-              )}
+
+              <Group gap={'xs'} wrap="nowrap">
+                {accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone; add cards to help it grow.">
+                    <ThemeIcon
+                      size={'sm'}
+                      variant="light"
+                      color={'green'}
+                      radius={'xl'}
+                    >
+                      <FaSeedling size={12} />
+                    </ThemeIcon>
+                  </Tooltip>
+                )}
+                {props.showAuthor && (
+                  <Avatar
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${collection.author.handle}'s avatar`}
+                    size={'sm'}
+                  />
+                )}
+              </Group>
             </Group>
             {collection.description && (
               <Text c={'gray'} lineClamp={2}>

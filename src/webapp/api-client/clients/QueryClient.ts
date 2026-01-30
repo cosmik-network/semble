@@ -32,6 +32,7 @@ import {
   SearchAtProtoAccountsResponse,
   SearchLeafletDocsForUrlParams,
   SearchLeafletDocsForUrlResponse,
+  GetOpenCollectionsWithContributorParams,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -322,5 +323,22 @@ export class QueryClient extends BaseClient {
       'GET',
       `/api/search/leaflet-docs?${searchParams}`,
     );
+  }
+
+  async getOpenCollectionsWithContributor(
+    params: GetOpenCollectionsWithContributorParams,
+  ): Promise<GetCollectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/contributed/${params.identifier}?${queryString}`
+      : `/api/collections/contributed/${params.identifier}`;
+
+    return this.request<GetCollectionsResponse>('GET', endpoint);
   }
 }

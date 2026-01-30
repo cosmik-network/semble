@@ -124,6 +124,7 @@ export class SearchCollectionsUseCase
             uri: item.uri,
             name: item.name,
             description: item.description,
+            accessType: item.accessType as CollectionAccessType,
             updatedAt: item.updatedAt.toISOString(),
             createdAt: item.createdAt.toISOString(),
             cardCount: item.cardCount,

@@ -22,7 +22,7 @@ export default function CollectionCardSkeleton() {
             {Array.from({ length: 4 }).map((_, i) => (
               <GridCol key={i} span={3}>
                 <AspectRatio ratio={16 / 9}>
-                  <Skeleton radius={'md'} h={45} w={'100%'} />
+                  <Skeleton radius={'md'} mih={45} w={'100%'} />
                 </AspectRatio>
               </GridCol>
             ))}

@@ -134,7 +134,7 @@ export function TypeFilter() {
           leftSection={<SelectedIcon />}
           onClick={() => setOpened((o) => !o)}
         >
-          {optimisticType ? upperFirst(optimisticType) : 'All Types'}
+          {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
         </Button>
       </Popover.Target>
 
@@ -146,7 +146,7 @@ export function TypeFilter() {
             variant={optimisticType === null ? 'filled' : 'light'}
             onClick={() => onChange()}
           >
-            All Types
+            All Cards
           </Button>
 
           {Object.values(UrlType).map((type) => {

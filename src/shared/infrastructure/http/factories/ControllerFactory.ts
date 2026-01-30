@@ -33,6 +33,7 @@ import { LogoutController } from 'src/modules/user/infrastructure/http/controlle
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
+import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
@@ -75,6 +76,7 @@ export interface Controllers {
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
   searchCollectionsController: SearchCollectionsController;
+  getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
@@ -192,6 +194,10 @@ export class ControllerFactory {
       searchCollectionsController: new SearchCollectionsController(
         useCases.searchCollectionsUseCase,
       ),
+      getOpenCollectionsWithContributorController:
+        new GetOpenCollectionsWithContributorController(
+          useCases.getOpenCollectionsWithContributorUseCase,
+        ),
       getUrlStatusForMyLibraryController:
         new GetUrlStatusForMyLibraryController(
           useCases.getUrlStatusForMyLibraryUseCase,

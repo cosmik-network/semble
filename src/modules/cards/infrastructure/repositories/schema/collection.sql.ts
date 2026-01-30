@@ -83,6 +83,11 @@ export const collectionCards = pgTable(
       cardCollectionIdx: index('idx_collection_cards_card_collection').on(
         table.cardId,
       ),
+      // Index for finding collections where user contributed - sorted by contribution time
+      addedByAddedAtIdx: index('idx_collection_cards_added_by_added_at').on(
+        table.addedBy,
+        table.addedAt.desc(),
+      ),
     };
   },
 );

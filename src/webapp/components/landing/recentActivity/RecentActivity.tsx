@@ -68,7 +68,7 @@ export default async function RecentActivity() {
         </Group>
 
         <ScrollAreaAutosize type="auto" mah={{ base: 250, xs: 400 }}>
-          <Stack gap="lg">
+          <Stack gap="xl">
             {cards.map((c, i) => (
               <Suspense key={i} fallback={<ActivityCardSkeleton />}>
                 <ActivityCard

@@ -9,6 +9,7 @@ import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryReposit
 import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { NotificationItem } from '@semble/types';
+import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -148,6 +149,7 @@ export class GetMyNotificationsUseCase
                   description: collectionAuthorProfile.bio,
                 },
                 description: collection.description,
+                accessType: collection.accessType as CollectionAccessType,
                 cardCount: collection.cardCount,
                 createdAt: collection.createdAt.toISOString(),
                 updatedAt: collection.updatedAt.toISOString(),
