@@ -76,7 +76,7 @@ export default function CollectionSelector(props: Props) {
     <Fragment>
       <FocusTrap.InitialFocus />
       <Stack gap="xl">
-        <Stack>
+        <Stack gap={'sm'}>
           <TextInput
             placeholder="Search for collections"
             value={search}
@@ -94,7 +94,7 @@ export default function CollectionSelector(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={215} type="auto">
+          <ScrollArea.Autosize mah={218} type="auto">
             <Stack gap="xs">
               {search ? (
                 <>
