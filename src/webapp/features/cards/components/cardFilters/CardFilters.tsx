@@ -131,6 +131,7 @@ export function TypeFilter() {
         <Button
           variant="light"
           color="gray"
+          size="xs"
           leftSection={<SelectedIcon />}
           onClick={() => setOpened((o) => !o)}
         >

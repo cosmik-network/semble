@@ -51,7 +51,7 @@ export default function InfiniteScroll(props: Props) {
       </Center>
 
       {!props.hasMore && !isLoading && props.dataLength !== 0 && (
-        <Center>
+        <Center mt={'xl'}>
           <Divider label="The end" w={200} />
         </Center>
       )}
