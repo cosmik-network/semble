@@ -4,7 +4,6 @@ import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
 import {
-  ActionIcon,
   Avatar,
   Card,
   Group,

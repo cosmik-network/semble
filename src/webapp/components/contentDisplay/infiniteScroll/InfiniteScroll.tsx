@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, startTransition, useRef } from 'react';
-import { Center, Button, Stack, Text, Loader } from '@mantine/core';
+import { Center, Button, Stack, Text, Loader, Divider } from '@mantine/core';
 import { useIntersection } from '@mantine/hooks';
 
 interface Props {
@@ -52,9 +52,7 @@ export default function InfiniteScroll(props: Props) {
 
       {!props.hasMore && !isLoading && props.dataLength !== 0 && (
         <Center>
-          <Text c={'gray'} fw={600}>
-            Nothing more to show
-          </Text>
+          <Divider label="The end" w={200} />
         </Center>
       )}
     </Stack>
