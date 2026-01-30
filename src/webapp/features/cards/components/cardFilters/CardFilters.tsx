@@ -146,7 +146,7 @@ export function TypeFilter() {
             variant={optimisticType === null ? 'filled' : 'light'}
             onClick={() => onChange()}
           >
-            All Types
+            All Cards
           </Button>
 
           {Object.values(UrlType).map((type) => {
