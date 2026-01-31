@@ -26,6 +26,14 @@ export class InMemorySyncStatusRepository implements ISyncStatusRepository {
     }
   }
 
+  async findAndLockByCuratorId(
+    curatorId: DID,
+  ): Promise<Result<SyncStatus | null>> {
+    // In-memory implementation doesn't need actual locking
+    // since tests run in a single thread
+    return this.findByCuratorId(curatorId);
+  }
+
   async save(syncStatus: SyncStatus): Promise<Result<void>> {
     try {
       this.syncStatuses.set(syncStatus.curatorId.value, syncStatus);

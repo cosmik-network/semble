@@ -14,6 +14,7 @@ import {
   Environment,
   EnvironmentConfigService,
 } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 
 export interface SyncAccountDataDTO {
   curatorId: string;
@@ -36,6 +37,7 @@ export class SyncAccountDataUseCase
   constructor(
     private syncStatusRepo: ISyncStatusRepository,
     private atProtoRepoService: IAtProtoRepoService,
+    private atUriResolutionService: IAtUriResolutionService,
     private processMarginBookmarkUseCase: ProcessMarginBookmarkFirehoseEventUseCase,
     private processMarginCollectionUseCase: ProcessMarginCollectionFirehoseEventUseCase,
     private processMarginCollectionItemUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
@@ -58,9 +60,10 @@ export class SyncAccountDataUseCase
       }
       const curatorId = didResult.value;
 
-      // Check if user has already been synced
+      // Check if user has already been synced or is currently syncing
+      // Use SELECT FOR UPDATE to prevent concurrent sync attempts
       const syncStatusResult =
-        await this.syncStatusRepo.findByCuratorId(curatorId);
+        await this.syncStatusRepo.findAndLockByCuratorId(curatorId);
       if (syncStatusResult.isErr()) {
         console.error(
           '[SYNC] Error fetching sync status:',
@@ -74,6 +77,14 @@ export class SyncAccountDataUseCase
       if (existingSyncStatus && existingSyncStatus.syncState.isCompleted()) {
         console.log(
           `[SYNC] User ${request.curatorId} has already been synced, skipping`,
+        );
+        return ok(undefined);
+      }
+
+      // Defense in depth: check if another process is already syncing
+      if (existingSyncStatus && existingSyncStatus.syncState.isInProgress()) {
+        console.log(
+          `[SYNC] User ${request.curatorId} sync is already in progress, skipping`,
         );
         return ok(undefined);
       }
@@ -261,6 +272,24 @@ export class SyncAccountDataUseCase
     collectionType: string,
   ): Promise<boolean> {
     try {
+      // First, check if this AT URI already exists in our system
+      const resolutionResult = await this.atUriResolutionService.resolveAtUri(
+        record.uri,
+      );
+
+      if (resolutionResult.isErr()) {
+        console.warn(
+          `[SYNC] Error resolving AT URI ${record.uri}: ${resolutionResult.error.message}`,
+        );
+        // Continue processing despite resolution error
+      } else if (resolutionResult.value !== null) {
+        // Resource already exists, skip processing
+        console.log(
+          `[SYNC] Skipping ${collectionType} record ${record.uri} - already exists (type: ${resolutionResult.value.type})`,
+        );
+        return true; // Count as successful (already processed)
+      }
+
       // Build DTO matching firehose event structure
       const dto = {
         atUri: record.uri,

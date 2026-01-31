@@ -60,6 +60,58 @@ export class DrizzleSyncStatusRepository implements ISyncStatusRepository {
     }
   }
 
+  async findAndLockByCuratorId(
+    curatorId: DID,
+  ): Promise<Result<SyncStatus | null>> {
+    try {
+      const result = await this.db
+        .select()
+        .from(syncStatuses)
+        .where(eq(syncStatuses.curatorId, curatorId.value))
+        .for('update')
+        .limit(1);
+
+      if (result.length === 0) {
+        return ok(null);
+      }
+
+      const data = result[0];
+
+      if (!data) {
+        return ok(null);
+      }
+
+      // Create sync state value object
+      const syncStateResult = SyncState.create(data.syncState);
+      if (syncStateResult.isErr()) {
+        return err(syncStateResult.error);
+      }
+
+      // Create sync status entity
+      const syncStatusResult = SyncStatus.create(
+        {
+          curatorId,
+          syncState: syncStateResult.value,
+          lastSyncedAt: data.lastSyncedAt ?? undefined,
+          lastSyncAttemptAt: data.lastSyncAttemptAt ?? undefined,
+          syncErrorMessage: data.syncErrorMessage ?? undefined,
+          recordsProcessed: data.recordsProcessed ?? undefined,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+        },
+        new UniqueEntityID(data.id),
+      );
+
+      if (syncStatusResult.isErr()) {
+        return err(syncStatusResult.error);
+      }
+
+      return ok(syncStatusResult.value);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async save(syncStatus: SyncStatus): Promise<Result<void>> {
     try {
       await this.db

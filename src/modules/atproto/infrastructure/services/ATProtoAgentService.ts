@@ -23,9 +23,7 @@ export class ATProtoAgentService implements IAgentService {
     );
   }
 
-  async getUnauthenticatedAgentForDid(
-    did: DID,
-  ): Promise<Result<Agent, Error>> {
+  async getUnauthenticatedAgentForDid(did: DID): Promise<Result<Agent, Error>> {
     try {
       // Create an IdResolver to resolve DID documents
       const idResolver = new IdResolver();
@@ -40,15 +38,11 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // Extract the PDS endpoint from the service array
-      const pdsService = didDoc.service?.find(
-        (s) => s.id === '#atproto_pds',
-      );
+      const pdsService = didDoc.service?.find((s) => s.id === '#atproto_pds');
 
       if (!pdsService || !pdsService.serviceEndpoint) {
         return err(
-          new Error(
-            `No PDS endpoint found in DID document for ${did.value}`,
-          ),
+          new Error(`No PDS endpoint found in DID document for ${did.value}`),
         );
       }
 

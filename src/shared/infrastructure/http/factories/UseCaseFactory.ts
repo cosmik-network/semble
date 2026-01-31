@@ -443,6 +443,7 @@ export class UseCaseFactory {
     const syncAccountDataUseCase = new SyncAccountDataUseCase(
       repositories.syncStatusRepository,
       services.atProtoRepoService,
+      repositories.atUriResolutionService,
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
