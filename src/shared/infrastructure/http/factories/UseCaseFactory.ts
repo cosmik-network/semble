@@ -330,185 +330,148 @@ export class UseCaseFactory {
     repositories: Repositories,
     services: SharedServices,
   ): WorkerUseCases {
-    return {
-      // Feed use cases (only ones needed by workers)
-      addActivityToFeedUseCase: new AddActivityToFeedUseCase(
-        services.feedService,
-        repositories.cardRepository,
-      ),
-      // Search use cases (only ones needed by workers)
-      indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
-        services.searchService,
-      ),
-      // Notification use cases (only ones needed by workers)
-      createNotificationUseCase: new CreateNotificationUseCase(
-        services.notificationService,
-      ),
-      // Sync use cases (only ones needed by workers)
-      syncAccountDataUseCase: new SyncAccountDataUseCase(
-        repositories.syncStatusRepository,
-        services.atProtoRepoService,
-        new ProcessMarginBookmarkFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new AddUrlToLibraryUseCase(
-            repositories.cardRepository,
-            services.metadataService,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-          new RemoveCardFromLibraryUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.eventPublisher,
-          ),
-        ),
-        new ProcessMarginCollectionFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new CreateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new UpdateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new DeleteCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-        ),
-        new ProcessMarginCollectionItemFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new UpdateUrlCardAssociationsUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-        ),
-      ),
-      // Firehose-specific use cases
-      addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
-        repositories.cardRepository,
-        services.metadataService,
-        services.cardLibraryService,
-        services.cardCollectionService,
-        services.eventPublisher,
-      ),
-      updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
+    // ========================================
+    // LEVEL 1: Leaf use cases (no use case dependencies)
+    // ========================================
+
+    // Feed use cases
+    const addActivityToFeedUseCase = new AddActivityToFeedUseCase(
+      services.feedService,
+      repositories.cardRepository,
+    );
+
+    // Search use cases
+    const indexUrlForSearchUseCase = new IndexUrlForSearchUseCase(
+      services.searchService,
+    );
+
+    // Notification use cases
+    const createNotificationUseCase = new CreateNotificationUseCase(
+      services.notificationService,
+    );
+
+    // Card library use cases
+    const addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(
+      repositories.cardRepository,
+      services.metadataService,
+      services.cardLibraryService,
+      services.cardCollectionService,
+      services.eventPublisher,
+    );
+
+    const updateUrlCardAssociationsUseCase =
+      new UpdateUrlCardAssociationsUseCase(
         repositories.cardRepository,
         services.cardLibraryService,
         services.cardCollectionService,
         services.eventPublisher,
-      ),
-      removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
-        repositories.cardRepository,
-        services.cardLibraryService,
-        services.eventPublisher,
-      ),
-      createCollectionUseCase: new CreateCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      updateCollectionUseCase: new UpdateCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      deleteCollectionUseCase: new DeleteCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      processCardFirehoseEventUseCase: new ProcessCardFirehoseEventUseCase(
+      );
+
+    const removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
+      repositories.cardRepository,
+      services.cardLibraryService,
+      services.eventPublisher,
+    );
+
+    // Collection use cases
+    const createCollectionUseCase = new CreateCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    const updateCollectionUseCase = new UpdateCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    const deleteCollectionUseCase = new DeleteCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    // ========================================
+    // LEVEL 2: Process use cases (depend on Level 1)
+    // ========================================
+
+    const processCardFirehoseEventUseCase = new ProcessCardFirehoseEventUseCase(
+      repositories.atUriResolutionService,
+      addUrlToLibraryUseCase,
+      updateUrlCardAssociationsUseCase,
+      removeCardFromLibraryUseCase,
+      repositories.cardRepository,
+    );
+
+    const processCollectionFirehoseEventUseCase =
+      new ProcessCollectionFirehoseEventUseCase(
         repositories.atUriResolutionService,
-        new AddUrlToLibraryUseCase(
-          repositories.cardRepository,
-          services.metadataService,
-          services.cardLibraryService,
-          services.cardCollectionService,
-          services.eventPublisher,
-        ),
-        new UpdateUrlCardAssociationsUseCase(
-          repositories.cardRepository,
-          services.cardLibraryService,
-          services.cardCollectionService,
-          services.eventPublisher,
-        ),
-        new RemoveCardFromLibraryUseCase(
-          repositories.cardRepository,
-          services.cardLibraryService,
-          services.eventPublisher,
-        ),
-        repositories.cardRepository,
-      ),
-      processCollectionFirehoseEventUseCase:
-        new ProcessCollectionFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new CreateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new UpdateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new DeleteCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-        ),
-      processCollectionLinkFirehoseEventUseCase:
-        new ProcessCollectionLinkFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new UpdateUrlCardAssociationsUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-        ),
-      processMarginBookmarkFirehoseEventUseCase:
-        new ProcessMarginBookmarkFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new AddUrlToLibraryUseCase(
-            repositories.cardRepository,
-            services.metadataService,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-          new RemoveCardFromLibraryUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.eventPublisher,
-          ),
-        ),
-      processMarginCollectionFirehoseEventUseCase:
-        new ProcessMarginCollectionFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new CreateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new UpdateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new DeleteCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-        ),
-      processMarginCollectionItemFirehoseEventUseCase:
-        new ProcessMarginCollectionItemFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new UpdateUrlCardAssociationsUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-        ),
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
+
+    const processCollectionLinkFirehoseEventUseCase =
+      new ProcessCollectionLinkFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
+    const processMarginBookmarkFirehoseEventUseCase =
+      new ProcessMarginBookmarkFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        addUrlToLibraryUseCase,
+        removeCardFromLibraryUseCase,
+      );
+
+    const processMarginCollectionFirehoseEventUseCase =
+      new ProcessMarginCollectionFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
+
+    const processMarginCollectionItemFirehoseEventUseCase =
+      new ProcessMarginCollectionItemFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
+    // ========================================
+    // LEVEL 3: Sync use cases (depend on Level 2)
+    // ========================================
+
+    const syncAccountDataUseCase = new SyncAccountDataUseCase(
+      repositories.syncStatusRepository,
+      services.atProtoRepoService,
+      processMarginBookmarkFirehoseEventUseCase,
+      processMarginCollectionFirehoseEventUseCase,
+      processMarginCollectionItemFirehoseEventUseCase,
+    );
+
+    // ========================================
+    // Return all use cases
+    // ========================================
+
+    return {
+      // Level 1
+      addActivityToFeedUseCase,
+      indexUrlForSearchUseCase,
+      createNotificationUseCase,
+      addUrlToLibraryUseCase,
+      updateUrlCardAssociationsUseCase,
+      removeCardFromLibraryUseCase,
+      createCollectionUseCase,
+      updateCollectionUseCase,
+      deleteCollectionUseCase,
+      // Level 2
+      processCardFirehoseEventUseCase,
+      processCollectionFirehoseEventUseCase,
+      processCollectionLinkFirehoseEventUseCase,
+      processMarginBookmarkFirehoseEventUseCase,
+      processMarginCollectionFirehoseEventUseCase,
+      processMarginCollectionItemFirehoseEventUseCase,
+      // Level 3
+      syncAccountDataUseCase,
     };
   }
 }
