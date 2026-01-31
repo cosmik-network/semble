@@ -3,12 +3,14 @@ import { Result } from '../../../shared/core/Result';
 import { FeedActivity } from './FeedActivity';
 import { ActivityId } from './value-objects/ActivityId';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
+import { ActivitySource } from '@semble/types';
 
 export interface FeedQueryOptions {
   page: number;
   limit: number;
   beforeActivityId?: ActivityId; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface PaginatedFeedResult {

@@ -81,6 +81,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       url_type TEXT,
+      source TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
 
@@ -92,6 +93,19 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       read BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
+    // Sync statuses table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS sync_statuses (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      curator_id TEXT NOT NULL UNIQUE,
+      sync_state TEXT NOT NULL,
+      last_synced_at TIMESTAMP WITH TIME ZONE,
+      last_sync_attempt_at TIMESTAMP WITH TIME ZONE,
+      sync_error_message TEXT,
+      records_processed INTEGER,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
@@ -181,6 +195,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_source_idx ON feed_activities(source);
   `);
 
   // Index for efficient AT URI look ups

@@ -128,6 +128,7 @@ export class GetLibrariesForUrlUseCase
           id: item.card.id,
           type: 'URL',
           url: item.card.url,
+          uri: item.card.uri,
           cardContent: {
             url: item.card.cardContent.url,
             title: item.card.cardContent.title,

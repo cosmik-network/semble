@@ -12,7 +12,7 @@ import {
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
-import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
+import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -20,6 +20,7 @@ export interface GetGlobalFeedQuery {
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: string; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 // Use the shared API type directly
@@ -82,6 +83,7 @@ export class GetGlobalFeedUseCase
         limit,
         beforeActivityId,
         urlType,
+        source: query.source,
       });
 
       if (feedResult.isErr()) {
@@ -326,6 +328,7 @@ export class GetGlobalFeedUseCase
           id: cardView.id,
           type: 'URL' as const,
           url: cardView.url,
+          uri: cardView.uri,
           cardContent: {
             url: cardView.cardContent.url,
             title: cardView.cardContent.title,

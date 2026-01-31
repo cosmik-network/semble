@@ -1,0 +1,40 @@
+{
+  "defs": {
+    "main": {
+      "description": "A named collection for organizing annotations",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "description": {
+            "description": "Collection description",
+            "maxGraphemes": 150,
+            "maxLength": 500,
+            "type": "string"
+          },
+          "icon": {
+            "description": "Emoji icon or icon identifier for the collection",
+            "maxGraphemes": 100,
+            "maxLength": 100,
+            "type": "string"
+          },
+          "name": {
+            "description": "Collection name",
+            "maxGraphemes": 50,
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": ["name", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    }
+  },
+  "description": "A collection of annotations (like a folder or notebook)",
+  "id": "at.margin.collection",
+  "lexicon": 1
+}

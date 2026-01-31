@@ -39,6 +39,9 @@ import { InMemoryAtUriResolutionService } from '../../../../modules/cards/tests/
 import { INotificationRepository } from '../../../../modules/notifications/domain/INotificationRepository';
 import { DrizzleNotificationRepository } from '../../../../modules/notifications/infrastructure/repositories/DrizzleNotificationRepository';
 import { InMemoryNotificationRepository } from '../../../../modules/notifications/tests/infrastructure/InMemoryNotificationRepository';
+import { ISyncStatusRepository } from '../../../../modules/sync/domain/repositories/ISyncStatusRepository';
+import { DrizzleSyncStatusRepository } from '../../../../modules/sync/infrastructure/repositories/DrizzleSyncStatusRepository';
+import { InMemorySyncStatusRepository } from '../../../../modules/sync/tests/infrastructure/InMemorySyncStatusRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -50,6 +53,7 @@ export interface Repositories {
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
   notificationRepository: INotificationRepository;
+  syncStatusRepository: ISyncStatusRepository;
   atUriResolutionService: IAtUriResolutionService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
@@ -84,6 +88,7 @@ export class RepositoryFactory {
         InMemoryNotificationRepository.getInstance();
       // Inject dependencies into notification repository
       notificationRepository.setDependencies(cardQueryRepository);
+      const syncStatusRepository = InMemorySyncStatusRepository.getInstance();
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
 
@@ -97,6 +102,7 @@ export class RepositoryFactory {
         appPasswordSessionRepository,
         feedRepository,
         notificationRepository,
+        syncStatusRepository,
         atUriResolutionService,
         oauthStateStore,
         oauthSessionStore,
@@ -120,6 +126,7 @@ export class RepositoryFactory {
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
       notificationRepository: new DrizzleNotificationRepository(db),
+      syncStatusRepository: new DrizzleSyncStatusRepository(db),
       atUriResolutionService: new DrizzleAtUriResolutionService(db),
       oauthStateStore,
       oauthSessionStore,

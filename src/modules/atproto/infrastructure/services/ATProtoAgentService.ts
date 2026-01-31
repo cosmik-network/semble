@@ -1,5 +1,6 @@
 import { AtpAgent, Agent } from '@atproto/api';
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { IdResolver } from '@atproto/identity';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
@@ -21,6 +22,51 @@ export class ATProtoAgentService implements IAgentService {
       }),
     );
   }
+
+  async getUnauthenticatedAgentForDid(did: DID): Promise<Result<Agent, Error>> {
+    try {
+      // Create an IdResolver to resolve DID documents
+      const idResolver = new IdResolver();
+
+      // Resolve the DID to a DID document
+      const didDoc = await idResolver.did.resolve(did.value);
+
+      if (!didDoc) {
+        return err(
+          new Error(`Failed to resolve DID document for ${did.value}`),
+        );
+      }
+
+      // Extract the PDS endpoint from the service array
+      const pdsService = didDoc.service?.find((s) => s.id === '#atproto_pds');
+
+      if (!pdsService || !pdsService.serviceEndpoint) {
+        return err(
+          new Error(`No PDS endpoint found in DID document for ${did.value}`),
+        );
+      }
+
+      // Ensure serviceEndpoint is a string
+      const pdsEndpoint =
+        typeof pdsService.serviceEndpoint === 'string'
+          ? pdsService.serviceEndpoint
+          : String(pdsService.serviceEndpoint);
+
+      // Create and return an unauthenticated Agent with the PDS endpoint
+      return ok(
+        new Agent({
+          service: pdsEndpoint,
+        }),
+      );
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to get unauthenticated agent for DID: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
+  }
+
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     const oauthAgentResult =
       await this.getAuthenticatedAgentByOAuthSession(did);

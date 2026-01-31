@@ -3,6 +3,7 @@ export const QueueNames = {
   SEARCH: 'search',
   ANALYTICS: 'analytics',
   NOTIFICATIONS: 'notifications',
+  SYNC: 'sync',
 } as const;
 
 export type QueueName = (typeof QueueNames)[keyof typeof QueueNames];
@@ -35,5 +36,12 @@ export const QueueOptions = {
     removeOnComplete: 50,
     removeOnFail: 25,
     concurrency: 10,
+  },
+  [QueueNames.SYNC]: {
+    attempts: 3,
+    backoff: { type: 'exponential' as const, delay: 3000 },
+    removeOnComplete: 50,
+    removeOnFail: 25,
+    concurrency: 5, // Lower concurrency for sync operations to avoid rate limits
   },
 } as const;

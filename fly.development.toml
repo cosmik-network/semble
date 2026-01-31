@@ -9,6 +9,7 @@ primary_region = 'yyz'
   search-worker = "npm run worker:search"
   firehose-worker = "npm run worker:firehose"
   notification-worker = "npm run worker:notifications"
+  sync-worker = "npm run worker:sync"
 
 [http_service]
   internal_port = 3000
@@ -46,6 +47,12 @@ primary_region = 'yyz'
 [[vm]]
   processes = ['notification-worker']
   memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['sync-worker']
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
 
