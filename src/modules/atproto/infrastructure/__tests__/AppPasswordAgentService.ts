@@ -15,6 +15,14 @@ export class AppPasswordAgentService implements IAgentService {
       }),
     );
   }
+
+  async getUnauthenticatedAgentForDid(
+    did: DID,
+  ): Promise<Result<Agent, Error>> {
+    // For test utility, just return the same unauthenticated agent
+    return Promise.resolve(this.getUnauthenticatedAgent());
+  }
+
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       const agent = new AtpAgent({

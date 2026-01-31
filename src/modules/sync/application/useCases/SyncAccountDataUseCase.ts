@@ -5,6 +5,15 @@ import { AppError } from '../../../../shared/core/AppError';
 import { ISyncStatusRepository } from '../../domain/repositories/ISyncStatusRepository';
 import { DID } from '../../../user/domain/value-objects/DID';
 import { SyncStatus } from '../../domain/SyncStatus';
+import { ATPROTO_NSID } from '../../../../shared/constants/atproto';
+import { IAtProtoRepoService } from '../../../atproto/application/IAtProtoRepoService';
+import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../atproto/application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
+import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
+import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import {
+  Environment,
+  EnvironmentConfigService,
+} from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 export interface SyncAccountDataDTO {
   curatorId: string;
@@ -24,11 +33,19 @@ export class SyncAccountDataUseCase
       Result<void, ValidationError | AppError.UnexpectedError>
     >
 {
-  constructor(private syncStatusRepo: ISyncStatusRepository) {}
+  constructor(
+    private syncStatusRepo: ISyncStatusRepository,
+    private atProtoRepoService: IAtProtoRepoService,
+    private processMarginBookmarkUseCase: ProcessMarginBookmarkFirehoseEventUseCase,
+    private processMarginCollectionUseCase: ProcessMarginCollectionFirehoseEventUseCase,
+    private processMarginCollectionItemUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
+  ) {}
 
   async execute(
     request: SyncAccountDataDTO,
   ): Promise<Result<void, ValidationError | AppError.UnexpectedError>> {
+    let syncStatus: SyncStatus | undefined;
+
     try {
       console.log(
         `[SYNC] SyncAccountDataUseCase triggered for curator: ${request.curatorId}, card: ${request.cardId}`,
@@ -61,9 +78,17 @@ export class SyncAccountDataUseCase
         return ok(undefined);
       }
 
-      // Create or update sync status to mark in progress
-      let syncStatus: SyncStatus;
+      const envConfig = new EnvironmentConfigService();
+      // only listen for test account in local env
+      if (
+        envConfig.get().environment === Environment.LOCAL &&
+        curatorId.toString() !== process.env.BSKY_DID
+      ) {
+        return ok(undefined);
+      }
+
       if (existingSyncStatus) {
+        // Create or update sync status to mark in progress
         syncStatus = existingSyncStatus;
         syncStatus.markSyncInProgress();
       } else {
@@ -88,31 +113,27 @@ export class SyncAccountDataUseCase
         `[SYNC] Starting sync process for user ${request.curatorId}...`,
       );
 
-      // TODO: Trigger the actual sync process
-      // This would involve:
-      // 1. Getting an authenticated agent for the user
-      // 2. Fetching records from their ATProto repository
-      // 3. Transforming records into cards/collections
-      // 4. Saving them to the database
+      // Perform the sync
       const recordsProcessed = await this.performSync(request.curatorId);
 
       // Mark sync as completed
       syncStatus.markSyncCompleted(recordsProcessed);
-      const finalSaveResult = await this.syncStatusRepo.save(syncStatus);
-      if (finalSaveResult.isErr()) {
-        console.error(
-          '[SYNC] Error saving final sync status:',
-          finalSaveResult.error,
-        );
-        // Don't fail the whole operation if we can't save the status
-      }
+      await this.syncStatusRepo.save(syncStatus);
 
       console.log(
-        `[SYNC] Sync process completed for user ${request.curatorId}`,
+        `[SYNC] Successfully completed sync for ${request.curatorId}: ${recordsProcessed} records processed`,
       );
 
       return ok(undefined);
     } catch (error) {
+      // Mark sync as failed if we have a syncStatus object
+      if (syncStatus) {
+        syncStatus.markSyncFailed(
+          error instanceof Error ? error.message : String(error),
+        );
+        await this.syncStatusRepo.save(syncStatus);
+      }
+
       console.error('[SYNC] Error in SyncAccountDataUseCase:', error);
       return err(AppError.UnexpectedError.create(error));
     }
@@ -120,22 +141,149 @@ export class SyncAccountDataUseCase
 
   /**
    * Perform the actual sync process for a user
-   * TODO: Implement actual sync logic
    */
   private async performSync(curatorId: string): Promise<number> {
-    // Stub implementation
-    console.log(`[SYNC] Performing sync for user ${curatorId} (stub)`);
+    console.log(`[SYNC] Starting sync for curator: ${curatorId}`);
 
-    // Future implementation would:
-    // 1. Get authenticated agent
-    // 2. Call agent.com.atproto.repo.listRecords for each collection type
-    // 3. Transform and save records
-    // 4. Return count of records processed
+    let totalProcessed = 0;
 
-    // Simulate async operation
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // 1. Sync bookmarks first (creates URL cards)
+    console.log(`[SYNC] Syncing bookmarks for ${curatorId}...`);
+    const bookmarksProcessed = await this.syncCollection(
+      curatorId,
+      ATPROTO_NSID.MARGIN.BOOKMARK,
+      this.processMarginBookmarkUseCase,
+    );
+    totalProcessed += bookmarksProcessed;
+    console.log(`[SYNC] Processed ${bookmarksProcessed} bookmarks`);
 
-    // Return stub count
-    return 0;
+    // 2. Sync collections (creates collection entities)
+    console.log(`[SYNC] Syncing collections for ${curatorId}...`);
+    const collectionsProcessed = await this.syncCollection(
+      curatorId,
+      ATPROTO_NSID.MARGIN.COLLECTION,
+      this.processMarginCollectionUseCase,
+    );
+    totalProcessed += collectionsProcessed;
+    console.log(`[SYNC] Processed ${collectionsProcessed} collections`);
+
+    // 3. Sync collection items (links cards to collections)
+    console.log(`[SYNC] Syncing collection items for ${curatorId}...`);
+    const itemsProcessed = await this.syncCollection(
+      curatorId,
+      ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
+      this.processMarginCollectionItemUseCase,
+    );
+    totalProcessed += itemsProcessed;
+    console.log(`[SYNC] Processed ${itemsProcessed} collection items`);
+
+    return totalProcessed;
+  }
+
+  /**
+   * Sync a specific collection type with batched concurrent processing
+   */
+  private async syncCollection(
+    curatorId: string,
+    collectionType: string,
+    useCase:
+      | ProcessMarginBookmarkFirehoseEventUseCase
+      | ProcessMarginCollectionFirehoseEventUseCase
+      | ProcessMarginCollectionItemFirehoseEventUseCase,
+  ): Promise<number> {
+    let totalProcessed = 0;
+    let pageCount = 0;
+    const CONCURRENT_BATCH_SIZE = 10; // Process 10 records at a time
+
+    // Use the async generator to fetch all records with automatic pagination
+    for await (const recordsResult of this.atProtoRepoService.listAllRecords(
+      curatorId,
+      collectionType,
+      100, // Fetch 100 records per page
+    )) {
+      // Handle error from service
+      if (recordsResult.isErr()) {
+        console.error(
+          `[SYNC] Error fetching ${collectionType} records: ${recordsResult.error.message}`,
+        );
+        break;
+      }
+
+      const records = recordsResult.value;
+      pageCount++;
+
+      console.log(
+        `[SYNC] Retrieved ${records.length} records from ${collectionType} (page ${pageCount})`,
+      );
+
+      // Process in batches of CONCURRENT_BATCH_SIZE
+      for (let i = 0; i < records.length; i += CONCURRENT_BATCH_SIZE) {
+        const batch = records.slice(i, i + CONCURRENT_BATCH_SIZE);
+        const batchNumber = Math.floor(i / CONCURRENT_BATCH_SIZE) + 1;
+
+        console.log(
+          `[SYNC] Processing batch ${batchNumber} (${batch.length} records) from page ${pageCount}...`,
+        );
+
+        // Process all records in this batch concurrently
+        const results = await Promise.allSettled(
+          batch.map((record) =>
+            this.processRecord(record, useCase, curatorId, collectionType),
+          ),
+        );
+
+        // Count successful processes
+        const successCount = results.filter(
+          (result) => result.status === 'fulfilled' && result.value === true,
+        ).length;
+
+        totalProcessed += successCount;
+
+        console.log(
+          `[SYNC] Batch ${batchNumber}: processed ${successCount}/${batch.length} records`,
+        );
+      }
+    }
+
+    return totalProcessed;
+  }
+
+  /**
+   * Process a single record from the AT Protocol repository
+   */
+  private async processRecord(
+    record: { uri: string; cid: string; value: any },
+    useCase:
+      | ProcessMarginBookmarkFirehoseEventUseCase
+      | ProcessMarginCollectionFirehoseEventUseCase
+      | ProcessMarginCollectionItemFirehoseEventUseCase,
+    curatorId: string,
+    collectionType: string,
+  ): Promise<boolean> {
+    try {
+      // Build DTO matching firehose event structure
+      const dto = {
+        atUri: record.uri,
+        cid: record.cid,
+        eventType: 'create' as const,
+        record: record.value,
+      };
+
+      console.log(`[SYNC] Processing ${collectionType} record: ${record.uri}`);
+
+      const result = await useCase.execute(dto);
+
+      if (result.isErr()) {
+        console.warn(
+          `[SYNC] Failed to process record ${record.uri}: ${result.error.message}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`[SYNC] Error processing record ${record.uri}:`, error);
+      return false;
+    }
   }
 }

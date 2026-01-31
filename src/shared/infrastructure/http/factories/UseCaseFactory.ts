@@ -347,6 +347,46 @@ export class UseCaseFactory {
       // Sync use cases (only ones needed by workers)
       syncAccountDataUseCase: new SyncAccountDataUseCase(
         repositories.syncStatusRepository,
+        services.atProtoRepoService,
+        new ProcessMarginBookmarkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new AddUrlToLibraryUseCase(
+            repositories.cardRepository,
+            services.metadataService,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+          new RemoveCardFromLibraryUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.eventPublisher,
+          ),
+        ),
+        new ProcessMarginCollectionFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new CreateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new UpdateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new DeleteCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+        ),
+        new ProcessMarginCollectionItemFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+        ),
       ),
       // Firehose-specific use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
