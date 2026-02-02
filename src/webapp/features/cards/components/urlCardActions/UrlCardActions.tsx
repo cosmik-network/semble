@@ -58,6 +58,8 @@ export default function UrlCardActions(props: Props) {
   const canRemoveFromOpenCollection =
     !!user && isOpenCollection && (isCardAdder || isCollectionOwner);
 
+  const canRemoveFromLibrary = isAuthor && props.urlIsInLibrary;
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -169,7 +171,7 @@ export default function UrlCardActions(props: Props) {
                   Remove from this collection
                 </Menu.Item>
               )}
-            {isAuthor && (
+            {canRemoveFromLibrary && (
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}
