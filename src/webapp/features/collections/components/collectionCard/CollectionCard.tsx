@@ -80,7 +80,7 @@ export default function CollectionCard(props: Props) {
 
               <Group gap={'xs'} wrap="nowrap">
                 {accessType === CollectionAccessType.OPEN && (
-                  <Tooltip label="This collection is open to everyone; add cards to help it grow.">
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
                     <ThemeIcon
                       size={'sm'}
                       variant="light"

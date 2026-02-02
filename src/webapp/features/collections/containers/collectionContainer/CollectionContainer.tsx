@@ -59,7 +59,7 @@ export default function CollectionContainer(props: Props) {
 
               {accessType === CollectionAccessType.OPEN &&
                 featureFlags?.openCollections && (
-                  <Tooltip label="This collection is open to everyone; add cards to help it grow.">
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
                     <Badge
                       color="green"
                       leftSection={<FaSeedling />}
