@@ -8,6 +8,7 @@ import { CollectionName } from './value-objects/CollectionName';
 import { CollectionDescription } from './value-objects/CollectionDescription';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { CardAddedToCollectionEvent } from './events/CardAddedToCollectionEvent';
+import { CardRemovedFromCollectionEvent } from './events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from './events/CollectionCreatedEvent';
 
 export interface CardLink {
@@ -199,6 +200,34 @@ export class Collection extends AggregateRoot<CollectionProps> {
     );
   }
 
+  public canRemoveCard(cardId: CardId, userId: CuratorId): boolean {
+    // Find the card link to check who added it
+    const cardLink = this.props.cardLinks.find((link) =>
+      link.cardId.equals(cardId),
+    );
+
+    // If card is not in collection, removal is allowed (no-op)
+    if (!cardLink) {
+      return true;
+    }
+
+    // Check removal permissions based on collection type and user role
+    const isAuthor = this.props.authorId.equals(userId);
+    const isUserRemovingOwnCard = cardLink.addedBy.equals(userId);
+
+    if (this.isOpen) {
+      // For OPEN collections:
+      // - Author can remove any card
+      // - Users can only remove cards they added themselves
+      return isAuthor || isUserRemovingOwnCard;
+    } else {
+      // For CLOSED collections:
+      // Use the standard canAddCard check (author + collaborators)
+      // Note: CLOSED collection removal scenarios with collaborators are deferred
+      return this.canAddCard(userId);
+    }
+  }
+
   public addCard(
     cardId: CardId,
     userId: CuratorId,
@@ -264,12 +293,42 @@ export class Collection extends AggregateRoot<CollectionProps> {
     cardId: CardId,
     userId: CuratorId,
   ): Result<void, CollectionAccessError> {
-    if (!this.canAddCard(userId)) {
-      return err(
-        new CollectionAccessError(
-          'User does not have permission to remove cards from this collection',
-        ),
-      );
+    // Find the card link to check who added it
+    const cardLink = this.props.cardLinks.find((link) =>
+      link.cardId.equals(cardId),
+    );
+
+    // If card is not in collection, removal is a no-op (succeeds idempotently)
+    if (!cardLink) {
+      return ok(undefined);
+    }
+
+    // Check removal permissions based on collection type and user role
+    const isAuthor = this.props.authorId.equals(userId);
+    const isUserRemovingOwnCard = cardLink.addedBy.equals(userId);
+
+    if (this.isOpen) {
+      // For OPEN collections:
+      // - Author can remove any card
+      // - Users can only remove cards they added themselves
+      if (!isAuthor && !isUserRemovingOwnCard) {
+        return err(
+          new CollectionAccessError(
+            'User does not have permission to remove cards from this collection',
+          ),
+        );
+      }
+    } else {
+      // For CLOSED collections:
+      // Use the standard canAddCard check (author + collaborators)
+      // Note: CLOSED collection removal scenarios with collaborators are deferred
+      if (!this.canAddCard(userId)) {
+        return err(
+          new CollectionAccessError(
+            'User does not have permission to remove cards from this collection',
+          ),
+        );
+      }
     }
 
     this.props.cardLinks = this.props.cardLinks.filter(
@@ -277,6 +336,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     );
     this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
+
+    // Raise domain event
+    this.addDomainEvent(
+      CardRemovedFromCollectionEvent.create(
+        cardId,
+        this.collectionId,
+        userId,
+      ).unwrap(),
+    );
 
     return ok(undefined);
   }

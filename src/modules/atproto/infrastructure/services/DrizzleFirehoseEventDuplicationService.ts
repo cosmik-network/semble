@@ -96,6 +96,11 @@ export class DrizzleFirehoseEventDuplicationService
           }
           return ok(linkInfoResult.value === null);
         }
+        case collections.collectionLinkRemoval: {
+          // For removal records, we track them in published_records table
+          // If a record exists, it hasn't been deleted
+          return ok(records.length === 0);
+        }
         default:
           return err(new Error(`Unknown collection type: ${collection}`));
       }

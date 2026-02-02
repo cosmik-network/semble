@@ -148,6 +148,7 @@ export class GetCollectionPageUseCase
         uri: collectionUri,
         name: collection.name.value,
         description: collection.description?.value,
+        accessType: collection.accessType,
         author: {
           id: authorProfile.id,
           name: authorProfile.name,
@@ -155,6 +156,9 @@ export class GetCollectionPageUseCase
           avatarUrl: authorProfile.avatarUrl,
         },
         urlCards: enrichedCards,
+        cardCount: collection.cardCount,
+        createdAt: collection.createdAt.toISOString(),
+        updatedAt: collection.updatedAt.toISOString(),
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(cardsResult.totalCount / limit),

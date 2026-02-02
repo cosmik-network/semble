@@ -261,6 +261,41 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findByCard(cardId: string): Promise<Result<Notification[]>> {
+    try {
+      const result = await this.db.select().from(notifications);
+
+      // Filter by cardId in metadata
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const metadata = notificationData.metadata as any;
+        if (metadata.cardId === cardId) {
+          const dto: NotificationDTO = {
+            id: notificationData.id,
+            recipientUserId: notificationData.recipientUserId,
+            actorUserId: notificationData.actorUserId,
+            type: notificationData.type,
+            metadata: notificationData.metadata as any,
+            read: notificationData.read,
+            createdAt: notificationData.createdAt,
+            updatedAt: notificationData.updatedAt,
+          };
+
+          const domainResult = NotificationMapper.toDomain(dto);
+          if (domainResult.isErr()) {
+            return err(domainResult.error);
+          }
+
+          matchingNotifications.push(domainResult.value);
+        }
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     try {
       const result = await this.db
@@ -482,6 +517,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           collectionUri: publishedRecords.uri,
           collectionName: collections.name,
           collectionDescription: collections.description,
+          collectionAccessType: collections.accessType,
           collectionAuthorId: collections.authorId,
           collectionCardCount: collections.cardCount,
           collectionCreatedAt: collections.createdAt,
@@ -523,6 +559,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             uri: c.collectionUri || undefined,
             name: c.collectionName,
             description: c.collectionDescription || undefined,
+            accessType: c.collectionAccessType as 'OPEN' | 'CLOSED',
             authorId: c.collectionAuthorId,
             cardCount: c.collectionCardCount,
             createdAt: c.collectionCreatedAt,

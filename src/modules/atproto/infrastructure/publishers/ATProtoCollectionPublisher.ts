@@ -11,6 +11,7 @@ import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { CollectionMapper } from '../mappers/CollectionMapper';
 import { MarginCollectionMapper } from '../mappers/MarginCollectionMapper';
 import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
+import { CollectionLinkRemovalMapper } from '../mappers/CollectionLinkRemovalMapper';
 import { StrongRef } from '../../domain';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
@@ -25,8 +26,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     private readonly agentService: IAgentService,
     private readonly collectionCollection: string,
     private readonly collectionLinkCollection: string,
-    private readonly marginCollectionCollection: string,
-    private readonly marginCollectionItemCollection: string,
+    private readonly collectionLinkRemovalCollection: string,
   ) {}
 
   /**
@@ -293,6 +293,81 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       });
 
       return ok(undefined);
+    } catch (error) {
+      return err(
+        new Error(error instanceof Error ? error.message : String(error)),
+      );
+    }
+  }
+
+  /**
+   * Publishes a collectionLinkRemoval record when a collection owner removes a card added by someone else
+   */
+  async publishCollectionLinkRemoval(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId,
+    removedLinkRef: PublishedRecordId,
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    try {
+      const curatorDidResult = DID.create(curatorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
+
+      // Get an authenticated agent for this curator (collection owner)
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
+      if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
+        return err(
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
+        );
+      }
+
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error('No authenticated session found for curator'));
+      }
+
+      // Ensure collection is published
+      if (!collection.publishedRecordId) {
+        return err(
+          new Error('Collection must be published before removing cards'),
+        );
+      }
+
+      // Create the collectionLinkRemoval record DTO
+      const removalRecordDTO = CollectionLinkRemovalMapper.toCreateRecordDTO(
+        collection.publishedRecordId.getValue(),
+        removedLinkRef.getValue(),
+      );
+      removalRecordDTO.$type = this.collectionLinkRemovalCollection as any;
+
+      const createResult = await agent.com.atproto.repo.createRecord({
+        repo: curatorDid.value,
+        collection: this.collectionLinkRemovalCollection,
+        record: removalRecordDTO,
+      });
+
+      return ok(
+        PublishedRecordId.create({
+          uri: createResult.data.uri,
+          cid: createResult.data.cid,
+        }),
+      );
     } catch (error) {
       return err(
         new Error(error instanceof Error ? error.message : String(error)),
