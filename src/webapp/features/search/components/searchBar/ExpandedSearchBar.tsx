@@ -17,6 +17,7 @@ import { BiCollection } from 'react-icons/bi';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import { SearchFilters } from '../searchFilters/SearchFilters';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
+import { track } from '@vercel/analytics';
 
 interface Props {
   query?: string;
@@ -137,6 +138,9 @@ export default function SearchBar(props: Props) {
               radius="xl"
               disabled={!search}
               loading={isPending}
+              onClick={() => {
+                track('Search: search button clicked');
+              }}
             >
               <IoSearch size={24} />
             </ActionIcon>
