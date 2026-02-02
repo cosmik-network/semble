@@ -1,0 +1,1 @@
+CREATE INDEX "idx_collection_cards_added_by_added_at" ON "collection_cards" USING btree ("added_by","added_at" DESC NULLS LAST);
