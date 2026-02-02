@@ -125,6 +125,7 @@ export class CardFactory {
         parentCardId,
         viaCardId,
         createdAt: props.createdAt,
+        updatedAt: props.createdAt,
       });
     } catch (error) {
       return err(
