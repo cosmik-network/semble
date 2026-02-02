@@ -11,6 +11,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLi
 import { ProcessMarginBookmarkFirehoseEventUseCase } from './ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from './ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from './ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from './ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import type { RepoRecord } from '@atproto/lexicon';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
@@ -18,6 +19,7 @@ import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/typ
 import { Record as MarginBookmarkRecord } from '../../infrastructure/lexicon/types/at/margin/bookmark';
 import { Record as MarginCollectionRecord } from '../../infrastructure/lexicon/types/at/margin/collection';
 import { Record as MarginCollectionItemRecord } from '../../infrastructure/lexicon/types/at/margin/collectionItem';
+import { Record as CollectionLinkRemovalRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLinkRemoval';
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
@@ -44,6 +46,7 @@ export class ProcessFirehoseEventUseCase
     private processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase,
     private processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase,
     private processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
+    private processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase,
   ) {}
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
@@ -129,6 +132,29 @@ export class ProcessFirehoseEventUseCase
           return this.processCollectionLinkFirehoseEventUseCase.execute({
             ...request,
             record: request.record as CollectionLinkRecord | undefined,
+          });
+        case collections.collectionLinkRemoval:
+          // Validate CollectionLinkRemovalRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const removalRecord = request.record as CollectionLinkRemovalRecord;
+            if (
+              !removalRecord.collection ||
+              !removalRecord.removedLink ||
+              !removalRecord.removedAt
+            ) {
+              return err(
+                new ValidationError(
+                  'Invalid collection link removal record structure',
+                ),
+              );
+            }
+          }
+          return this.processCollectionLinkRemovalFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionLinkRemovalRecord | undefined,
           });
         case collections.marginBookmark:
           // Validate MarginBookmarkRecord structure

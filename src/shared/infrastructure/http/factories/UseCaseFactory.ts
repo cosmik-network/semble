@@ -27,6 +27,7 @@ import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
+import { GetOpenCollectionsWithContributorUseCase } from 'src/modules/cards/application/useCases/queries/GetOpenCollectionsWithContributorUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
@@ -44,6 +45,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/a
 import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -69,6 +71,7 @@ export interface WorkerUseCases {
   processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
   processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
+  processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -99,6 +102,7 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   searchCollectionsUseCase: SearchCollectionsUseCase;
+  getOpenCollectionsWithContributorUseCase: GetOpenCollectionsWithContributorUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
@@ -200,6 +204,7 @@ export class UseCaseFactory {
       removeCardFromCollectionUseCase: new RemoveCardFromCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,
@@ -249,6 +254,12 @@ export class UseCaseFactory {
         services.profileService,
         services.identityResolutionService,
       ),
+      getOpenCollectionsWithContributorUseCase:
+        new GetOpenCollectionsWithContributorUseCase(
+          repositories.collectionQueryRepository,
+          services.profileService,
+          services.identityResolutionService,
+        ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
         repositories.cardQueryRepository,
@@ -415,6 +426,12 @@ export class UseCaseFactory {
         updateUrlCardAssociationsUseCase,
       );
 
+    const processCollectionLinkRemovalFirehoseEventUseCase =
+      new ProcessCollectionLinkRemovalFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
     const processMarginBookmarkFirehoseEventUseCase =
       new ProcessMarginBookmarkFirehoseEventUseCase(
         repositories.atUriResolutionService,
@@ -468,6 +485,7 @@ export class UseCaseFactory {
       processCardFirehoseEventUseCase,
       processCollectionFirehoseEventUseCase,
       processCollectionLinkFirehoseEventUseCase,
+      processCollectionLinkRemovalFirehoseEventUseCase,
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,

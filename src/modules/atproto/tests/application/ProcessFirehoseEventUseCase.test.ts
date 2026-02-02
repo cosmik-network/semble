@@ -6,6 +6,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from '../../application/use
 import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
@@ -36,6 +37,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
   let processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   let processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
+  let processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
 
   // Dependencies for real use cases
   let atUriResolutionService: InMemoryAtUriResolutionService;
@@ -164,6 +166,11 @@ describe('ProcessFirehoseEventUseCase', () => {
         atUriResolutionService,
         updateUrlCardAssociationsUseCase,
       );
+    processCollectionLinkRemovalFirehoseEventUseCase =
+      new ProcessCollectionLinkRemovalFirehoseEventUseCase(
+        atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
 
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
@@ -174,6 +181,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
+      processCollectionLinkRemovalFirehoseEventUseCase,
     );
   });
 

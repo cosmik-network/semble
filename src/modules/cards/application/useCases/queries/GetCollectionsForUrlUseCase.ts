@@ -141,6 +141,7 @@ export class GetCollectionsForUrlUseCase
             uri: item.uri,
             name: item.name,
             description: item.description,
+            accessType: collection.accessType,
             author,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),

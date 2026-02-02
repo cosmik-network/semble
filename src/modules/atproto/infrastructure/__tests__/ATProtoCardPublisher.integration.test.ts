@@ -34,11 +34,7 @@ describe.skip('ATProtoCardPublisher', () => {
     });
 
     const collections = envConfig.getAtProtoConfig().collections;
-    publisher = new ATProtoCardPublisher(
-      agentService,
-      collections.card,
-      collections.marginBookmark,
-    );
+    publisher = new ATProtoCardPublisher(agentService, collections.card);
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
@@ -495,7 +491,6 @@ describe.skip('ATProtoCardPublisher', () => {
       const invalidPublisher = new ATProtoCardPublisher(
         invalidAgentService,
         collections.card,
-        collections.marginBookmark,
       );
 
       const invalidCuratorId = CuratorId.create('did:plc:invalid').unwrap();

@@ -81,6 +81,7 @@ import type {
   MarkAllNotificationsAsReadResponse,
   GetGemActivityFeedParams,
   SearchCollectionsParams,
+  GetOpenCollectionsWithContributorParams,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -160,6 +161,12 @@ export class ApiClient {
     params: GetCollectionsParams,
   ): Promise<GetCollectionsResponse> {
     return this.queryClient.getUserCollections(params);
+  }
+
+  async getOpenCollectionsWithContributor(
+    params: GetOpenCollectionsWithContributorParams,
+  ): Promise<GetCollectionsResponse> {
+    return this.queryClient.getOpenCollectionsWithContributor(params);
   }
 
   async getUrlStatusForMyLibrary(

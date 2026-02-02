@@ -13,6 +13,7 @@ import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepos
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
+import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -219,6 +220,7 @@ export class GetGlobalFeedUseCase
           uri?: string;
           name: string;
           description?: string;
+          accessType: CollectionAccessType;
           author: {
             id: string;
             name: string;
@@ -271,6 +273,7 @@ export class GetGlobalFeedUseCase
             uri,
             name: collection.name.toString(),
             description: collection.description?.toString(),
+            accessType: collection.accessType,
             author: {
               id: authorProfile.id,
               name: authorProfile.name,
@@ -294,6 +297,7 @@ export class GetGlobalFeedUseCase
             uri: result.uri,
             name: result.name,
             description: result.description,
+            accessType: result.accessType,
             author: result.author,
             cardCount: result.cardCount,
             createdAt: result.createdAt,
@@ -362,6 +366,7 @@ export class GetGlobalFeedUseCase
             uri: collection.uri,
             name: collection.name,
             description: collection.description,
+            accessType: collection.accessType,
             author: collection.author,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,

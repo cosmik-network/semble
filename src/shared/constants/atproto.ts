@@ -14,5 +14,6 @@ export const ATPROTO_NSID = {
     CARD: 'network.cosmik.card',
     COLLECTION: 'network.cosmik.collection',
     COLLECTION_LINK: 'network.cosmik.collectionLink',
+    COLLECTION_LINK_REMOVAL: 'network.cosmik.collectionLinkRemoval',
   },
 } as const;

@@ -7,6 +7,8 @@ import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardRemovedFromLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardRemovedFromLibraryEventHandler';
+import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
+import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
@@ -56,6 +58,18 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     const cardRemovedFromLibraryHandler =
       new CardRemovedFromLibraryEventHandler(cardNotificationSaga);
 
+    // Collection contribution notification handlers (direct, no saga)
+    const collectionContributionHandler =
+      new CollectionContributionEventHandler(
+        useCases.createNotificationUseCase,
+        repositories.collectionRepository,
+      );
+    const collectionContributionCleanupHandler =
+      new CollectionContributionCleanupEventHandler(
+        repositories.notificationRepository,
+        repositories.collectionRepository,
+      );
+
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
@@ -66,9 +80,21 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       cardAddedToCollectionHandler,
     );
 
+    // Collection contribution handler also subscribes to CARD_ADDED_TO_COLLECTION
+    // Both handlers will process the event independently
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_COLLECTION,
+      collectionContributionHandler,
+    );
+
     await subscriber.subscribe(
       EventNames.CARD_REMOVED_FROM_LIBRARY,
       cardRemovedFromLibraryHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_COLLECTION,
+      collectionContributionCleanupHandler,
     );
   }
 }

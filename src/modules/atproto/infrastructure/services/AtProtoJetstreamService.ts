@@ -269,6 +269,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
         collections.card,
         collections.collection,
         collections.collectionLink,
+        collections.collectionLinkRemoval,
       ];
     }
     return [
@@ -278,6 +279,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
       collections.marginBookmark,
       collections.marginCollection,
       collections.marginCollectionItem,
+      collections.collectionLinkRemoval,
     ];
   }
 

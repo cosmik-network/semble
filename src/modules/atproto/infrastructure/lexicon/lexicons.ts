@@ -260,6 +260,43 @@ export const schemaDict = {
       },
     },
   },
+  NetworkCosmikCollectionLinkRemoval: {
+    lexicon: 1,
+    id: 'network.cosmik.collectionLinkRemoval',
+    description:
+      'A record indicating that a card was removed from a collection by the collection owner.',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          "A record representing the removal of a collection link by a collection owner when they cannot delete the original link (which exists in another user's repository). The creator of this record (determined from the AT-URI) is the user who performed the removal.",
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['collection', 'removedLink', 'removedAt'],
+          properties: {
+            collection: {
+              type: 'ref',
+              description: 'Strong reference to the collection record.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            removedLink: {
+              type: 'ref',
+              description:
+                'Strong reference to the collectionLink record that is being removed.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            removedAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when the link was removed from the collection.',
+            },
+          },
+        },
+      },
+    },
+  },
   NetworkCosmikDefs: {
     lexicon: 1,
     id: 'network.cosmik.defs',
@@ -924,6 +961,7 @@ export const ids = {
   NetworkCosmikCard: 'network.cosmik.card',
   NetworkCosmikCollection: 'network.cosmik.collection',
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
+  NetworkCosmikCollectionLinkRemoval: 'network.cosmik.collectionLinkRemoval',
   NetworkCosmikDefs: 'network.cosmik.defs',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
   AtMarginAnnotation: 'at.margin.annotation',
