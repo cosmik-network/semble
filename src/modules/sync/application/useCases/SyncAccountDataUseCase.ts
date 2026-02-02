@@ -49,6 +49,13 @@ export class SyncAccountDataUseCase
     let syncStatus: SyncStatus | undefined;
 
     try {
+      const envConfig = new EnvironmentConfigService();
+
+      // skip syncs in prod env for now
+      if (envConfig.get().environment === Environment.PROD) {
+        return ok(undefined);
+      }
+
       console.log(
         `[SYNC] SyncAccountDataUseCase triggered for curator: ${request.curatorId}, card: ${request.cardId}`,
       );
@@ -89,7 +96,6 @@ export class SyncAccountDataUseCase
         return ok(undefined);
       }
 
-      const envConfig = new EnvironmentConfigService();
       // only listen for test account in local env
       if (
         envConfig.get().environment === Environment.LOCAL &&
