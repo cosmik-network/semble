@@ -15,6 +15,7 @@ import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   isOpen: boolean;
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function createCollectionDrawer(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
   const createCollection = useCreateCollection();
   const form = useForm({
     initialValues: {
@@ -118,35 +120,38 @@ export default function createCollectionDrawer(props: Props) {
                 {...form.getInputProps('description')}
               />
 
-              <Select
-                variant="filled"
-                size="md"
-                label="Collaboration"
-                leftSection={
-                  form.getValues().accessType === CollectionAccessType.OPEN ? (
-                    <ThemeIcon
-                      size={'md'}
-                      variant="light"
-                      color={'green'}
-                      radius={'xl'}
-                    >
-                      <FaSeedling size={14} />
-                    </ThemeIcon>
-                  ) : null
-                }
-                defaultValue={CollectionAccessType.CLOSED}
-                data={[
-                  {
-                    value: CollectionAccessType.CLOSED,
-                    label: 'Closed — Only you can add',
-                  },
-                  {
-                    value: CollectionAccessType.OPEN,
-                    label: 'Open — Anyone can add',
-                  },
-                ]}
-                {...form.getInputProps('accessType')}
-              />
+              {featureFlags?.openCollections && (
+                <Select
+                  variant="filled"
+                  size="md"
+                  label="Collaboration"
+                  leftSection={
+                    form.getValues().accessType ===
+                    CollectionAccessType.OPEN ? (
+                      <ThemeIcon
+                        size={'md'}
+                        variant="light"
+                        color={'green'}
+                        radius={'xl'}
+                      >
+                        <FaSeedling size={14} />
+                      </ThemeIcon>
+                    ) : null
+                  }
+                  defaultValue={CollectionAccessType.CLOSED}
+                  data={[
+                    {
+                      value: CollectionAccessType.CLOSED,
+                      label: 'Closed — Only you can add',
+                    },
+                    {
+                      value: CollectionAccessType.OPEN,
+                      label: 'Open — Anyone can add',
+                    },
+                  ]}
+                  {...form.getInputProps('accessType')}
+                />
+              )}
 
               <Group justify="space-between" gap={'xs'} grow>
                 <Button
