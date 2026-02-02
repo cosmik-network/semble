@@ -171,6 +171,7 @@ export class GetMyNotificationsUseCase
               id: notification.cardId,
               type: 'URL' as const,
               url: notification.cardUrl,
+              uri: notification.cardUri,
               cardContent: {
                 url: notification.cardUrl,
                 title: notification.cardTitle,

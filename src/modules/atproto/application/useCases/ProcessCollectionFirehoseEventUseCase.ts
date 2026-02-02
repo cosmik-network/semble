@@ -76,6 +76,11 @@ export class ProcessCollectionFirehoseEventUseCase
       }
       const authorDid = atUriResult.value.did.value;
 
+      // Extract timestamp from AT Protocol record
+      const timestamp = request.record.createdAt
+        ? new Date(request.record.createdAt)
+        : undefined;
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -86,6 +91,7 @@ export class ProcessCollectionFirehoseEventUseCase
         description: request.record.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
+        createdAt: timestamp,
       });
 
       if (result.isErr()) {
@@ -159,6 +165,11 @@ export class ProcessCollectionFirehoseEventUseCase
         return ok(undefined);
       }
 
+      // Extract timestamp from AT Protocol record for the published record
+      const timestamp = request.record.createdAt
+        ? new Date(request.record.createdAt)
+        : undefined;
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -231,6 +242,7 @@ export class ProcessCollectionFirehoseEventUseCase
           );
         }
 
+        // For delete events, we don't have a record, so no timestamp available
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',

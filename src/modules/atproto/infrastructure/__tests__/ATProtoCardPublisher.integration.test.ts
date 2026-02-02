@@ -33,9 +33,11 @@ describe.skip('ATProtoCardPublisher', () => {
       password: process.env.BSKY_APP_PASSWORD,
     });
 
+    const collections = envConfig.getAtProtoConfig().collections;
     publisher = new ATProtoCardPublisher(
       agentService,
-      envConfig.getAtProtoConfig().collections.card,
+      collections.card,
+      collections.marginBookmark,
     );
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
@@ -489,9 +491,11 @@ describe.skip('ATProtoCardPublisher', () => {
         password: 'invalid-password',
       });
 
+      const collections = envConfig.getAtProtoConfig().collections;
       const invalidPublisher = new ATProtoCardPublisher(
         invalidAgentService,
-        envConfig.getAtProtoConfig().collections.card,
+        collections.card,
+        collections.marginBookmark,
       );
 
       const invalidCuratorId = CuratorId.create('did:plc:invalid').unwrap();

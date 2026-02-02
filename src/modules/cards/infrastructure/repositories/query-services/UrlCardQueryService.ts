@@ -14,6 +14,7 @@ import {
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
 import { libraryMemberships } from '../schema/libraryMembership.sql';
+import { publishedRecords } from '../schema/publishedRecord.sql';
 import { CardMapper, RawUrlCardData } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 
@@ -50,12 +51,17 @@ export class UrlCardQueryService {
             id: cards.id,
             authorId: cards.authorId,
             url: cards.url,
+            publishedRecordUri: publishedRecords.uri,
             contentData: cards.contentData,
             libraryCount: cards.libraryCount,
             createdAt: cards.createdAt,
             updatedAt: cards.updatedAt,
           })
           .from(cards)
+          .leftJoin(
+            publishedRecords,
+            eq(cards.publishedRecordId, publishedRecords.id),
+          )
           .where(and(...whereConditions));
 
         const allUrlCardsResult = await allUrlCardsQuery;
@@ -228,6 +234,7 @@ export class UrlCardQueryService {
             id: card.id,
             authorId: card.authorId,
             url: card.url || '',
+            uri: card.publishedRecordUri || undefined,
             contentData: card.contentData,
             libraryCount: card.libraryCount,
             urlLibraryCount,
@@ -262,12 +269,17 @@ export class UrlCardQueryService {
           id: cards.id,
           authorId: cards.authorId,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
         })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(and(...whereConditions))
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -404,6 +416,7 @@ export class UrlCardQueryService {
           id: card.id,
           authorId: card.authorId,
           url: card.url || '',
+          uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           urlLibraryCount,
@@ -448,12 +461,17 @@ export class UrlCardQueryService {
           type: cards.type,
           authorId: cards.authorId,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
         })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
 
       const cardResult = await cardQuery;
@@ -548,6 +566,7 @@ export class UrlCardQueryService {
         type: card.type,
         authorId: card.authorId,
         url: card.url || '',
+        uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
         libraryCount: card.libraryCount,
         urlLibraryCount,
@@ -734,6 +753,7 @@ export class UrlCardQueryService {
           userId: libraryMemberships.userId,
           cardId: cards.id,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
@@ -741,6 +761,10 @@ export class UrlCardQueryService {
         })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)))
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -806,6 +830,7 @@ export class UrlCardQueryService {
           card: {
             id: lib.cardId,
             url: lib.url || '',
+            uri: lib.publishedRecordUri || undefined,
             cardContent: {
               url: lib.contentData?.url,
               title: lib.contentData?.metadata?.title,
@@ -861,12 +886,17 @@ export class UrlCardQueryService {
           type: cards.type,
           authorId: cards.authorId,
           url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
         })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
 
       const cardResult = await cardQuery;
@@ -936,6 +966,7 @@ export class UrlCardQueryService {
         id: card.id,
         authorId: card.authorId,
         url: card.url || '',
+        uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
         libraryCount: card.libraryCount,
         urlLibraryCount,

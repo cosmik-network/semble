@@ -1,0 +1,52 @@
+{
+  "defs": {
+    "main": {
+      "description": "A bookmarked URL (motivation: bookmarking)",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "description": {
+            "description": "Optional description/note",
+            "maxGraphemes": 300,
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "source": {
+            "description": "The bookmarked URL",
+            "format": "uri",
+            "type": "string"
+          },
+          "sourceHash": {
+            "description": "SHA256 hash of normalized URL for indexing",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags for categorization",
+            "items": {
+              "maxGraphemes": 32,
+              "maxLength": 64,
+              "type": "string"
+            },
+            "maxLength": 10,
+            "type": "array"
+          },
+          "title": {
+            "description": "Page title",
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": ["source", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    }
+  },
+  "description": "A bookmark record - save URL for later",
+  "id": "at.margin.bookmark",
+  "lexicon": 1
+}

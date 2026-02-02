@@ -65,12 +65,16 @@ import { FakeLeafletSearchService } from 'src/modules/search/infrastructure/Fake
 import { ILeafletSearchService } from 'src/modules/search/domain/services/ILeafletSearchService';
 import { ConstellationLeafletSearchService } from 'src/modules/search/domain/services/ConstellationLeafletSearchService';
 import { CachedLeafletSearchService } from 'src/modules/search/infrastructure/CachedLeafletSearchService';
+import { IAtProtoRepoService } from '../../../../modules/atproto/application/IAtProtoRepoService';
+import { ATProtoRepoService } from '../../../../modules/atproto/infrastructure/services/ATProtoRepoService';
+import { FakeAtProtoRepoService } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoRepoService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
   tokenService: ITokenService;
   userAuthService: IUserAuthenticationService;
   atProtoAgentService: IAgentService;
+  atProtoRepoService: IAtProtoRepoService;
   metadataService: IMetadataService;
   profileService: IProfileService;
   feedService: FeedService;
@@ -151,6 +155,8 @@ export class ServiceFactory {
           sharedServices.atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.marginCollection,
+          collections.marginCollectionItem,
         );
 
     const cardPublisher = useFakePublishers
@@ -158,6 +164,7 @@ export class ServiceFactory {
       : new ATProtoCardPublisher(
           sharedServices.atProtoAgentService,
           collections.card,
+          collections.marginBookmark,
         );
 
     const authMiddleware = new AuthMiddleware(
@@ -267,6 +274,11 @@ export class ServiceFactory {
           appPasswordSessionService,
           configService,
         );
+
+    // ATProto Repo Service
+    const atProtoRepoService = useMockAuth
+      ? new FakeAtProtoRepoService()
+      : new ATProtoRepoService(atProtoAgentService);
 
     // Create individual metadata services
     const baseIframelyService = new IFramelyMetadataService(
@@ -389,11 +401,17 @@ export class ServiceFactory {
           atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.marginCollection,
+          collections.marginCollectionItem,
         );
 
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+      : new ATProtoCardPublisher(
+          atProtoAgentService,
+          collections.card,
+          collections.marginBookmark,
+        );
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(
@@ -425,6 +443,7 @@ export class ServiceFactory {
       tokenService,
       userAuthService,
       atProtoAgentService,
+      atProtoRepoService,
       metadataService,
       profileService,
       feedService,

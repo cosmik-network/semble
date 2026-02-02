@@ -1,0 +1,42 @@
+{
+  "defs": {
+    "main": {
+      "description": "A highlight on a web page (motivation: highlighting)",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "color": {
+            "description": "Highlight color (hex or named)",
+            "maxLength": 20,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags for categorization",
+            "items": {
+              "maxGraphemes": 32,
+              "maxLength": 64,
+              "type": "string"
+            },
+            "maxLength": 10,
+            "type": "array"
+          },
+          "target": {
+            "description": "The resource and segment being highlighted",
+            "ref": "at.margin.annotation#target",
+            "type": "ref"
+          }
+        },
+        "required": ["target", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    }
+  },
+  "description": "A lightweight highlight record - annotation without body text",
+  "id": "at.margin.highlight",
+  "lexicon": 1
+}
