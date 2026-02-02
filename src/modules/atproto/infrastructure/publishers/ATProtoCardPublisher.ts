@@ -14,7 +14,6 @@ export class ATProtoCardPublisher implements ICardPublisher {
   constructor(
     private readonly agentService: IAgentService,
     private readonly cardCollection: string,
-    private readonly marginBookmarkCollection: string,
   ) {}
 
   /**
