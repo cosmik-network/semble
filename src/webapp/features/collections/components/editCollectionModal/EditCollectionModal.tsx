@@ -104,7 +104,7 @@ export default function EditCollectionModal(props: Props) {
                 variant="filled"
                 size="md"
                 color="green"
-                label="Access Level"
+                label="Collaboration"
                 leftSection={
                   form.getValues().accessType === CollectionAccessType.OPEN ? (
                     <ThemeIcon

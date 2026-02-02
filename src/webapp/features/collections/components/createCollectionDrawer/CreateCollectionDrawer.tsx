@@ -121,7 +121,7 @@ export default function createCollectionDrawer(props: Props) {
               <Select
                 variant="filled"
                 size="md"
-                label="Access Level"
+                label="Collaboration"
                 leftSection={
                   form.getValues().accessType === CollectionAccessType.OPEN ? (
                     <ThemeIcon
