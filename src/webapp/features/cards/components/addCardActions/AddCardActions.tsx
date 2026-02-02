@@ -108,6 +108,7 @@ export default function AddCardActions(props: Props) {
         <Group gap={'xs'}>
           <Button
             variant="light"
+            size="xs"
             color="gray"
             onClick={(e) => {
               e.stopPropagation();

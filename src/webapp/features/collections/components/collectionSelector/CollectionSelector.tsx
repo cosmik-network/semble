@@ -97,12 +97,11 @@ export default function CollectionSelector(props: Props) {
           <ScrollArea.Autosize mah={218} type="auto">
             <Stack gap="xs">
               {search ? (
-                <>
+                <Fragment>
                   <Button
                     variant="light"
-                    size="md"
                     color="grape"
-                    radius="lg"
+                    radius="md"
                     leftSection={<FiPlus size={22} />}
                     onClick={() => setIsDrawerOpen(true)}
                   >
@@ -131,14 +130,13 @@ export default function CollectionSelector(props: Props) {
                         onChange={handleCollectionChange}
                       />
                     ))}
-                </>
+                </Fragment>
               ) : hasCollections ? (
-                <>
+                <Fragment>
                   <Button
                     variant="light"
-                    size="md"
                     color="grape"
-                    radius="lg"
+                    radius="md"
                     leftSection={<FiPlus size={22} />}
                     onClick={() => setIsDrawerOpen(true)}
                   >
@@ -173,7 +171,7 @@ export default function CollectionSelector(props: Props) {
                       <Alert color="gray" title="No collections available" />
                     )
                   )}
-                </>
+                </Fragment>
               ) : (
                 <Stack align="center" gap="xs">
                   <Text fz="lg" fw={600} c="gray">
