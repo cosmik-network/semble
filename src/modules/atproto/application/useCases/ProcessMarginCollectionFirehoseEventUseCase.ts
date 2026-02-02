@@ -78,6 +78,9 @@ export class ProcessMarginCollectionFirehoseEventUseCase
       }
       const authorDid = atUriResult.value.did.value;
 
+      // Extract timestamp from AT Protocol record (Margin collection has required createdAt)
+      const timestamp = new Date(request.record.createdAt);
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -89,6 +92,7 @@ export class ProcessMarginCollectionFirehoseEventUseCase
         description: request.record.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
+        createdAt: timestamp,
       });
 
       if (result.isErr()) {
@@ -162,6 +166,9 @@ export class ProcessMarginCollectionFirehoseEventUseCase
         return ok(undefined);
       }
 
+      // Extract timestamp from AT Protocol record for the published record
+      const timestamp = new Date(request.record.createdAt);
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -234,6 +241,7 @@ export class ProcessMarginCollectionFirehoseEventUseCase
           );
         }
 
+        // For delete events, we don't have a record, so no timestamp available
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',

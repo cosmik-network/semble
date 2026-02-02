@@ -28,6 +28,7 @@ export type CardCreationInput = IUrlCardInput | INoteCardInput;
 interface CreateCardProps {
   curatorId: string;
   cardInput: CardCreationInput;
+  createdAt?: Date;
 }
 
 export class CardFactory {
@@ -123,6 +124,7 @@ export class CardFactory {
         url,
         parentCardId,
         viaCardId,
+        createdAt: props.createdAt,
       });
     } catch (error) {
       return err(

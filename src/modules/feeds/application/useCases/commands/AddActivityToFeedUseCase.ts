@@ -16,6 +16,7 @@ export interface AddCardCollectedActivityDTO {
   actorId: string;
   cardId: string;
   collectionIds?: string[];
+  createdAt?: Date; // Timestamp from earliest event (for historical data)
 }
 
 export type AddActivityToFeedDTO = AddCardCollectedActivityDTO;
@@ -126,12 +127,26 @@ export class AddActivityToFeedUseCase
         }
       }
 
+      // Determine createdAt timestamp for the activity
+      // For collections: use the provided timestamp (earliest addedAt from saga)
+      // For library-only: use the card's createdAt timestamp
+      let createdAt = request.createdAt;
+      if (
+        !createdAt &&
+        cardResult.value &&
+        (!collectionIds || collectionIds.length === 0)
+      ) {
+        // Library-only scenario: use card's creation timestamp
+        createdAt = cardResult.value.createdAt;
+      }
+
       const activityResult = await this.feedService.addCardCollectedActivity(
         actorId,
         cardId,
         collectionIds,
         urlType,
         source,
+        createdAt,
       );
 
       if (activityResult.isErr()) {

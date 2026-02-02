@@ -14,6 +14,7 @@ export interface CreateCollectionDTO {
   description?: string;
   curatorId: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
+  createdAt?: Date; // For firehose events - use historical timestamp from AT Protocol record
 }
 
 export interface CreateCollectionResponseDTO {
@@ -62,14 +63,15 @@ export class CreateCollectionUseCase
       const curatorId = curatorIdResult.value;
 
       // Create collection
+      const timestamp = request.createdAt ?? new Date();
       const collectionResult = Collection.create({
         authorId: curatorId,
         name: request.name,
         description: request.description,
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: timestamp,
+        updatedAt: timestamp,
       });
 
       if (collectionResult.isErr()) {

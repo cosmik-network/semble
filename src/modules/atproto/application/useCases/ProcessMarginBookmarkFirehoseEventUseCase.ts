@@ -94,6 +94,9 @@ export class ProcessMarginBookmarkFirehoseEventUseCase
         return ok(undefined);
       }
 
+      // Extract timestamp from AT Protocol record (Margin bookmark has required createdAt)
+      const timestamp = new Date(request.record.createdAt);
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -104,6 +107,7 @@ export class ProcessMarginBookmarkFirehoseEventUseCase
         curatorId: curatorDid,
         publishedRecordId: publishedRecordId,
         viaCardId: undefined, // Margin bookmarks don't have 'via' references
+        timestamp: timestamp,
       });
 
       if (result.isErr()) {
@@ -167,6 +171,7 @@ export class ProcessMarginBookmarkFirehoseEventUseCase
           );
         }
 
+        // For delete events, we don't have a record, so no timestamp available
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',

@@ -134,6 +134,9 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
         return ok(undefined);
       }
 
+      // Extract timestamp from AT Protocol record (Margin collection item has required createdAt)
+      const timestamp = new Date(request.record.createdAt);
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -155,6 +158,7 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
           collectionLinks: collectionLinkMap,
         },
         viaCardId: undefined, // Margin doesn't have 'via' provenance
+        timestamp: timestamp,
       });
 
       if (result.isErr()) {
@@ -219,6 +223,7 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
           );
         }
 
+        // For delete events, we don't have a record, so no timestamp available
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',
