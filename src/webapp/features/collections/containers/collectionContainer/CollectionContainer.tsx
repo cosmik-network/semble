@@ -22,6 +22,7 @@ import CollectionContainerContentSkeleton from '../collectionContainerContent/Sk
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   rkey: string;
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function CollectionContainer(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -55,17 +57,18 @@ export default function CollectionContainer(props: Props) {
                 Collection
               </Text>
 
-              {accessType === CollectionAccessType.OPEN && (
-                <Tooltip label="This collection is open to everyone; add cards to help it grow.">
-                  <Badge
-                    color="green"
-                    leftSection={<FaSeedling />}
-                    variant="light"
-                  >
-                    Open
-                  </Badge>
-                </Tooltip>
-              )}
+              {accessType === CollectionAccessType.OPEN &&
+                featureFlags?.openCollections && (
+                  <Tooltip label="This collection is open to everyone; add cards to help it grow.">
+                    <Badge
+                      color="green"
+                      leftSection={<FaSeedling />}
+                      variant="light"
+                    >
+                      Open
+                    </Badge>
+                  </Tooltip>
+                )}
             </Group>
             <Title order={1}>{collection.name}</Title>
             {collection.description && (
