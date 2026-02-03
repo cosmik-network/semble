@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { Stack, Button, Group, FocusTrap, Tabs } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   isOpen: boolean;
@@ -18,14 +19,18 @@ interface Props {
 }
 
 export default function CollectionSelector(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
+
   return (
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'}>
-        <Tabs.List grow mb={'xs'}>
-          <Tabs.Tab value="myCollections">My Collections</Tabs.Tab>
-          <Tabs.Tab value="openCollections">Open Collections</Tabs.Tab>
-        </Tabs.List>
+        {featureFlags?.openCollections && (
+          <Tabs.List grow mb={'xs'}>
+            <Tabs.Tab value="myCollections">My Collections</Tabs.Tab>
+            <Tabs.Tab value="openCollections">Open Collections</Tabs.Tab>
+          </Tabs.List>
+        )}
 
         <Tabs.Panel value="myCollections">
           <Suspense>
@@ -38,10 +43,10 @@ export default function CollectionSelector(props: Props) {
 
         <Tabs.Panel value="openCollections">
           <Suspense>
-            {/*<CollectionSelectorOpenCollections
+            <CollectionSelectorOpenCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
-            />*/}
+            />
           </Suspense>
         </Tabs.Panel>
       </Tabs>
