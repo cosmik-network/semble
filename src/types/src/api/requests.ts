@@ -26,6 +26,18 @@ export enum UrlType {
   SOFTWARE = 'software',
 }
 
+// Activity Source enum for filtering
+export enum ActivitySource {
+  MARGIN = 'margin',
+  SEMBLE = 'semble',
+}
+
+// Collection Access Type enum
+export enum CollectionAccessType {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
+
 // Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -69,12 +81,14 @@ export interface RemoveCardFromCollectionRequest {
 export interface CreateCollectionRequest {
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
 }
 
 export interface UpdateCollectionRequest {
   collectionId: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
 }
 
 export interface DeleteCollectionRequest {
@@ -113,6 +127,7 @@ export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
 export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -204,12 +219,18 @@ export interface SearchLeafletDocsForUrlParams {
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
   identifier?: string; // Can be DID or handle
-  accessType?: 'OPEN' | 'CLOSED';
+  accessType?: CollectionAccessType;
+}
+
+export interface GetOpenCollectionsWithContributorParams
+  extends PaginatedSortedParams {
+  identifier: string; // Can be DID or handle
 }
 
 // Notification request types

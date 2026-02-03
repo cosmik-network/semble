@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { GetGemActivityFeedUseCase } from '../../../application/useCases/queries/GetGemActivityFeedUseCase';
 import { Controller } from 'src/shared/infrastructure/http/Controller';
 import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
-import { GetGlobalFeedResponse } from '@semble/types';
+import { GetGlobalFeedResponse, ActivitySource } from '@semble/types';
 
 // Zod schema for request validation
 const querySchema = z.object({
@@ -11,6 +11,7 @@ const querySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),
   beforeActivityId: z.string().optional(),
   urlType: z.string().optional(),
+  source: z.nativeEnum(ActivitySource).optional(),
 });
 
 export class GetGemActivityFeedController extends Controller {
@@ -35,6 +36,7 @@ export class GetGemActivityFeedController extends Controller {
         limit: params.limit || 20,
         beforeActivityId: params.beforeActivityId,
         urlType: params.urlType,
+        source: params.source,
       });
 
       if (result.isErr()) {

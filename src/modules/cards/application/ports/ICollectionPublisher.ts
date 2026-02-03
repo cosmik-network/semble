@@ -23,4 +23,11 @@ export interface ICollectionPublisher {
   unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>>;
+
+  publishCollectionLinkRemoval(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId,
+    removedLinkRef: PublishedRecordId,
+  ): Promise<Result<PublishedRecordId, UseCaseError>>;
 }

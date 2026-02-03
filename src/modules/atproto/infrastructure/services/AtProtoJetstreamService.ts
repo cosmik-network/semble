@@ -258,10 +258,15 @@ export class AtProtoJetstreamService implements IFirehoseService {
 
   private getFilteredCollections(): string[] {
     const collections = this.configService.getAtProtoCollections();
+
     return [
       collections.card,
       collections.collection,
       collections.collectionLink,
+      collections.marginBookmark,
+      collections.marginCollection,
+      collections.marginCollectionItem,
+      collections.collectionLinkRemoval,
     ];
   }
 

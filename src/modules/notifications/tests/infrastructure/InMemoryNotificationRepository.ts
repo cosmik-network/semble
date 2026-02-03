@@ -129,6 +129,14 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(matchingNotifications);
   }
 
+  async findByCard(cardId: string): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter((notification) => notification.metadata.cardId === cardId);
+
+    return ok(matchingNotifications);
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     let markedCount = 0;
 
@@ -238,6 +246,7 @@ export class InMemoryNotificationRepository implements INotificationRepository {
           uri: `at://${c.authorId}/network.cosmik.local.collection/${c.id}`,
           name: c.name,
           description: undefined, // Not in collection result
+          accessType: c.accessType,
           authorId: c.authorId,
           cardCount: 0, // Not in collection result
           createdAt: new Date(), // Not in collection result

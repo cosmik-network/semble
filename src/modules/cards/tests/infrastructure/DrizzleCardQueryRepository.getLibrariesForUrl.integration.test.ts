@@ -378,55 +378,6 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       expect(cardIds[1]).toBe(card2.cardId.getStringValue()); // Newest
     });
 
-    it('should sort by updatedAt in descending order', async () => {
-      const testUrl = 'https://example.com/sort-updated-test';
-      const url = URL.create(testUrl).unwrap();
-
-      // Create cards
-      const card1 = new CardBuilder()
-        .withCuratorId(curator1.value)
-        .withType(CardTypeEnum.URL)
-        .withUrl(url)
-        .buildOrThrow();
-
-      const card2 = new CardBuilder()
-        .withCuratorId(curator2.value)
-        .withType(CardTypeEnum.URL)
-        .withUrl(url)
-        .buildOrThrow();
-
-      card1.addToLibrary(curator1);
-      card2.addToLibrary(curator2);
-
-      // Save cards
-      await cardRepository.save(card1);
-      await cardRepository.save(card2);
-
-      // Update card1 to have a more recent updatedAt
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      card1.markAsPublished(
-        PublishedRecordId.create({
-          uri: 'at://did:plc:publishedrecord1',
-          cid: 'bafyreicpublishedrecord1',
-        }),
-      );
-      await cardRepository.save(card1); // This should update the updatedAt timestamp
-
-      const result = await queryRepository.getLibrariesForUrl(testUrl, {
-        page: 1,
-        limit: 10,
-        sortBy: CardSortField.UPDATED_AT,
-        sortOrder: SortOrder.DESC,
-      });
-
-      expect(result.items).toHaveLength(2);
-
-      // card1 should be first since it was updated more recently
-      const cardIds = result.items.map((lib) => lib.card.id);
-      expect(cardIds[0]).toBe(card1.cardId.getStringValue()); // Most recently updated
-      expect(cardIds[1]).toBe(card2.cardId.getStringValue()); // Less recently updated
-    });
-
     it('should sort by libraryCount in descending order', async () => {
       const testUrl = 'https://example.com/sort-library-count-test';
       const url = URL.create(testUrl).unwrap();

@@ -21,6 +21,7 @@ import {
   CollectionForUrlRawDTO,
   CollectionForUrlQueryOptions,
   SearchCollectionsOptions,
+  GetOpenCollectionsWithContributorOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
@@ -64,6 +65,7 @@ export class DrizzleCollectionQueryRepository
           id: collections.id,
           name: collections.name,
           description: collections.description,
+          accessType: collections.accessType,
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
@@ -106,6 +108,7 @@ export class DrizzleCollectionQueryRepository
           uri: raw.uri,
           name: raw.name,
           description: raw.description,
+          accessType: raw.accessType,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -203,6 +206,7 @@ export class DrizzleCollectionQueryRepository
           id: collections.id,
           name: collections.name,
           description: collections.description,
+          accessType: collections.accessType,
           authorId: collections.authorId,
           uri: publishedRecords.uri,
           createdAt: collections.createdAt,
@@ -246,6 +250,7 @@ export class DrizzleCollectionQueryRepository
         uri: result.uri || undefined,
         name: result.name,
         description: result.description || undefined,
+        accessType: result.accessType,
         authorId: result.authorId,
       }));
 
@@ -320,6 +325,7 @@ export class DrizzleCollectionQueryRepository
           id: collections.id,
           name: collections.name,
           description: collections.description,
+          accessType: collections.accessType,
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
@@ -354,6 +360,7 @@ export class DrizzleCollectionQueryRepository
           uri: raw.uri,
           name: raw.name,
           description: raw.description,
+          accessType: raw.accessType,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -368,6 +375,124 @@ export class DrizzleCollectionQueryRepository
       };
     } catch (error) {
       console.error('Error in searchCollections:', error);
+      throw error;
+    }
+  }
+
+  async getOpenCollectionsWithContributor(
+    options: GetOpenCollectionsWithContributorOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
+    try {
+      const { contributorId, page, limit, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+
+      // Get collections where:
+      // 1. User has added cards (via collection_cards.addedBy)
+      // 2. User is NOT the author (collections.authorId != contributorId)
+      // 3. Collection is OPEN (collections.accessType = 'OPEN')
+      // Sort by most recent contribution (addedAt DESC) as primary sort
+
+      const collectionsQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          accessType: collections.accessType,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          authorId: collections.authorId,
+          cardCount: collections.cardCount,
+          uri: publishedRecords.uri,
+          // Get the most recent contribution date for sorting
+          lastContributionDate: sql<Date>`MAX(${collectionCards.addedAt})`.as(
+            'last_contribution_date',
+          ),
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(
+          and(
+            eq(collectionCards.addedBy, contributorId),
+            sql`${collections.authorId} != ${contributorId}`, // Not the author
+            eq(collections.accessType, 'OPEN'),
+          ),
+        )
+        .groupBy(
+          collections.id,
+          collections.name,
+          collections.description,
+          collections.accessType,
+          collections.createdAt,
+          collections.updatedAt,
+          collections.authorId,
+          collections.cardCount,
+          publishedRecords.uri,
+        )
+        .orderBy(
+          // Primary sort: by most recent contribution (addedAt DESC)
+          desc(sql`MAX(${collectionCards.addedAt})`),
+          // Secondary sort: by the specified field
+          orderDirection(this.getSortColumn(sortBy)),
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const collectionsResult = await collectionsQuery;
+
+      // Get total count with same conditions
+      const totalCountQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+        })
+        .from(collections)
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(
+          and(
+            eq(collectionCards.addedBy, contributorId),
+            sql`${collections.authorId} != ${contributorId}`,
+            eq(collections.accessType, 'OPEN'),
+          ),
+        );
+
+      const totalCountResult = await totalCountQuery;
+      const totalCount = totalCountResult.length;
+      const hasMore = offset + collectionsResult.length < totalCount;
+
+      // Map to DTOs
+      const items = collectionsResult.map((raw) =>
+        CollectionMapper.toQueryResult({
+          id: raw.id,
+          uri: raw.uri,
+          name: raw.name,
+          description: raw.description,
+          accessType: raw.accessType,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+          authorId: raw.authorId,
+          cardCount: raw.cardCount,
+        }),
+      );
+
+      return {
+        items,
+        totalCount,
+        hasMore,
+      };
+    } catch (error) {
+      console.error('Error in getOpenCollectionsWithContributor:', error);
       throw error;
     }
   }

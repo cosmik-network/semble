@@ -35,6 +35,7 @@ export class GetCollectionPageByAtUriUseCase
     private atUriResolutionService: IAtUriResolutionService,
     private getCollectionPageUseCase: GetCollectionPageUseCase,
     private collectionString: string,
+    private marginCollectionString: string,
   ) {}
 
   async execute(
@@ -71,14 +72,40 @@ export class GetCollectionPageByAtUriUseCase
       );
     }
 
-    // Resolve the AT URI to a collection ID
-    const collectionIdResult =
+    // Resolve the AT URI to a collection ID (try Cosmik first)
+    let collectionIdResult =
       await this.atUriResolutionService.resolveCollectionId(
         atUriResult.value.value,
       );
 
     if (collectionIdResult.isErr()) {
       return err(collectionIdResult.error);
+    }
+
+    // If not found, try Margin collection NSID
+    if (!collectionIdResult.value) {
+      const marginAtUriResult = ATUri.fromParts(
+        didResult.value,
+        this.marginCollectionString,
+        query.recordKey,
+      );
+
+      if (marginAtUriResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to construct Margin AT URI: ${marginAtUriResult.error.message}`,
+          ),
+        );
+      }
+
+      collectionIdResult =
+        await this.atUriResolutionService.resolveCollectionId(
+          marginAtUriResult.value.value,
+        );
+
+      if (collectionIdResult.isErr()) {
+        return err(collectionIdResult.error);
+      }
     }
 
     if (!collectionIdResult.value) {

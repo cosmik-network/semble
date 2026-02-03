@@ -13,6 +13,7 @@ import {
   PaginationDTO,
   CollectionSortingDTO,
 } from '@semble/types';
+import { CollectionAccessType } from '../../../domain/Collection';
 
 export interface GetCollectionsQuery {
   curatorId: string;
@@ -103,6 +104,7 @@ export class GetCollectionsUseCase
           uri: item.uri,
           name: item.name,
           description: item.description,
+          accessType: item.accessType as CollectionAccessType,
           updatedAt: item.updatedAt.toISOString(),
           createdAt: item.createdAt.toISOString(),
           cardCount: item.cardCount,

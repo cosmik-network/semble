@@ -3,6 +3,7 @@ export const EventNames = {
   CARD_ADDED_TO_COLLECTION: 'CardAddedToCollectionEvent',
   COLLECTION_CREATED: 'CollectionCreatedEvent',
   CARD_REMOVED_FROM_LIBRARY: 'CardRemovedFromLibraryEvent',
+  CARD_REMOVED_FROM_COLLECTION: 'CardRemovedFromCollectionEvent',
 } as const;
 
 export type EventName = (typeof EventNames)[keyof typeof EventNames];

@@ -18,11 +18,13 @@ export class Server {
   xrpc: XrpcServer;
   network: NetworkNS;
   com: ComNS;
+  at: AtNS;
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options);
     this.network = new NetworkNS(this);
     this.com = new ComNS(this);
+    this.at = new AtNS(this);
   }
 }
 
@@ -65,6 +67,24 @@ export class ComAtprotoNS {
 }
 
 export class ComAtprotoRepoNS {
+  _server: Server;
+
+  constructor(server: Server) {
+    this._server = server;
+  }
+}
+
+export class AtNS {
+  _server: Server;
+  margin: AtMarginNS;
+
+  constructor(server: Server) {
+    this._server = server;
+    this.margin = new AtMarginNS(server);
+  }
+}
+
+export class AtMarginNS {
   _server: Server;
 
   constructor(server: Server) {

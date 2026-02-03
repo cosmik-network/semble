@@ -2,6 +2,7 @@ import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events/CardAddedToCollectionEvent';
 import { CardRemovedFromLibraryEvent } from '../../../modules/cards/domain/events/CardRemovedFromLibraryEvent';
+import { CardRemovedFromCollectionEvent } from '../../../modules/cards/domain/events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
@@ -18,6 +19,7 @@ export interface SerializedCardAddedToLibraryEvent extends SerializedEvent {
   eventType: typeof EventNames.CARD_ADDED_TO_LIBRARY;
   cardId: string;
   curatorId: string;
+  addedAt: string;
 }
 
 export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
@@ -25,12 +27,21 @@ export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
   cardId: string;
   collectionId: string;
   addedBy: string;
+  addedAt: string;
 }
 
 export interface SerializedCardRemovedFromLibraryEvent extends SerializedEvent {
   eventType: typeof EventNames.CARD_REMOVED_FROM_LIBRARY;
   cardId: string;
   curatorId: string;
+}
+
+export interface SerializedCardRemovedFromCollectionEvent
+  extends SerializedEvent {
+  eventType: typeof EventNames.CARD_REMOVED_FROM_COLLECTION;
+  cardId: string;
+  collectionId: string;
+  removedBy: string;
 }
 
 export interface SerializedCollectionCreatedEvent extends SerializedEvent {
@@ -44,6 +55,7 @@ export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
   | SerializedCardRemovedFromLibraryEvent
+  | SerializedCardRemovedFromCollectionEvent
   | SerializedCollectionCreatedEvent;
 
 export class EventMapper {
@@ -55,6 +67,7 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
+        addedAt: event.addedAt.toISOString(),
       };
     }
 
@@ -66,6 +79,7 @@ export class EventMapper {
         cardId: event.cardId.getValue().toString(),
         collectionId: event.collectionId.getValue().toString(),
         addedBy: event.addedBy.value,
+        addedAt: event.addedAt.toISOString(),
       };
     }
 
@@ -76,6 +90,17 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof CardRemovedFromCollectionEvent) {
+      return {
+        eventType: EventNames.CARD_REMOVED_FROM_COLLECTION,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        cardId: event.cardId.getValue().toString(),
+        collectionId: event.collectionId.getValue().toString(),
+        removedBy: event.removedBy.value,
       };
     }
 
@@ -100,11 +125,13 @@ export class EventMapper {
       case EventNames.CARD_ADDED_TO_LIBRARY: {
         const cardId = CardId.createFromString(eventData.cardId).unwrap();
         const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const addedAt = new Date(eventData.addedAt);
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
         return CardAddedToLibraryEvent.reconstruct(
           cardId,
           curatorId,
+          addedAt,
           dateTimeOccurred,
         ).unwrap();
       }
@@ -114,12 +141,14 @@ export class EventMapper {
           eventData.collectionId,
         ).unwrap();
         const addedBy = CuratorId.create(eventData.addedBy).unwrap();
+        const addedAt = new Date(eventData.addedAt);
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
         return CardAddedToCollectionEvent.reconstruct(
           cardId,
           collectionId,
           addedBy,
+          addedAt,
           dateTimeOccurred,
         ).unwrap();
       }
@@ -131,6 +160,21 @@ export class EventMapper {
         return CardRemovedFromLibraryEvent.reconstruct(
           cardId,
           curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CARD_REMOVED_FROM_COLLECTION: {
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
+        const collectionId = CollectionId.createFromString(
+          eventData.collectionId,
+        ).unwrap();
+        const removedBy = CuratorId.create(eventData.removedBy).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return CardRemovedFromCollectionEvent.reconstruct(
+          cardId,
+          collectionId,
+          removedBy,
           dateTimeOccurred,
         ).unwrap();
       }

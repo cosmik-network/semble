@@ -31,6 +31,7 @@ export interface UrlCardView {
   id: string;
   type: CardTypeEnum.URL;
   url: string;
+  uri?: string;
   cardContent: {
     url: string;
     title?: string;
@@ -59,7 +60,12 @@ export interface UrlCardView {
 export type CollectionCardQueryResultDTO = UrlCardView;
 // Raw data from repository - minimal, just what's stored
 export interface WithCollections {
-  collections: { id: string; name: string; authorId: string }[];
+  collections: {
+    id: string;
+    name: string;
+    authorId: string;
+    accessType: string;
+  }[];
 }
 
 export interface WithLibraries {
@@ -76,6 +82,7 @@ export interface LibraryForUrlDTO {
   card: {
     id: string;
     url: string;
+    uri?: string;
     cardContent: {
       url: string;
       title?: string;

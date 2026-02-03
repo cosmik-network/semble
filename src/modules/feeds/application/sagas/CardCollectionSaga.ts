@@ -12,7 +12,8 @@ interface PendingCardActivity {
   cardId: string;
   actorId: string;
   collectionIds: string[];
-  timestamp: Date;
+  timestamp: Date; // Timestamp for the aggregation window
+  eventTimestamps: Date[]; // Track all addedAt timestamps from events
   hasLibraryEvent: boolean;
   hasCollectionEvents: boolean;
 }
@@ -96,8 +97,11 @@ export class CardCollectionSaga {
     if (!data) return null;
 
     const parsed = JSON.parse(data);
-    // Convert timestamp string back to Date object
+    // Convert timestamp strings back to Date objects
     parsed.timestamp = new Date(parsed.timestamp);
+    parsed.eventTimestamps = parsed.eventTimestamps.map(
+      (ts: string) => new Date(ts),
+    );
     return parsed;
   }
 
@@ -162,6 +166,7 @@ export class CardCollectionSaga {
       actorId,
       collectionIds: [],
       timestamp: new Date(),
+      eventTimestamps: [],
       hasLibraryEvent: false,
       hasCollectionEvents: false,
     };
@@ -174,6 +179,9 @@ export class CardCollectionSaga {
     existing: PendingCardActivity,
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): void {
+    // Track the addedAt timestamp from the event
+    existing.eventTimestamps.push(event.addedAt);
+
     if ('curatorId' in event) {
       // CardAddedToLibraryEvent
       existing.hasLibraryEvent = true;
@@ -201,12 +209,22 @@ export class CardCollectionSaga {
       const pending = await this.getPendingActivity(aggregationKey);
       if (!pending) return;
 
+      // Calculate the earliest timestamp from all events
+      // If no timestamps (shouldn't happen), use current time as fallback
+      const earliestTimestamp =
+        pending.eventTimestamps.length > 0
+          ? pending.eventTimestamps.reduce((earliest, current) =>
+              current < earliest ? current : earliest,
+            )
+          : undefined;
+
       const request: AddCardCollectedActivityDTO = {
         type: ActivityTypeEnum.CARD_COLLECTED,
         actorId: pending.actorId,
         cardId: pending.cardId,
         collectionIds:
           pending.collectionIds.length > 0 ? pending.collectionIds : undefined,
+        createdAt: earliestTimestamp,
       };
 
       await this.addActivityToFeedUseCase.execute(request);

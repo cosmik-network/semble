@@ -34,6 +34,7 @@ export class CollectionMapper {
     uri: string | null;
     name: string;
     description?: string | null;
+    accessType: string;
     createdAt: Date;
     updatedAt: Date;
     authorId: string;
@@ -44,6 +45,7 @@ export class CollectionMapper {
       uri: raw.uri || undefined,
       name: raw.name,
       description: raw.description || undefined,
+      accessType: raw.accessType,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,

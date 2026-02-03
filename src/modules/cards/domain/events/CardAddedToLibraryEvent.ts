@@ -12,6 +12,7 @@ export class CardAddedToLibraryEvent implements IDomainEvent {
   private constructor(
     public readonly cardId: CardId,
     public readonly curatorId: CuratorId,
+    public readonly addedAt: Date,
     dateTimeOccurred?: Date,
   ) {
     this.dateTimeOccurred = dateTimeOccurred || new Date();
@@ -20,16 +21,20 @@ export class CardAddedToLibraryEvent implements IDomainEvent {
   public static create(
     cardId: CardId,
     curatorId: CuratorId,
+    addedAt: Date,
   ): Result<CardAddedToLibraryEvent> {
-    return ok(new CardAddedToLibraryEvent(cardId, curatorId));
+    return ok(new CardAddedToLibraryEvent(cardId, curatorId, addedAt));
   }
 
   public static reconstruct(
     cardId: CardId,
     curatorId: CuratorId,
+    addedAt: Date,
     dateTimeOccurred: Date,
   ): Result<CardAddedToLibraryEvent> {
-    return ok(new CardAddedToLibraryEvent(cardId, curatorId, dateTimeOccurred));
+    return ok(
+      new CardAddedToLibraryEvent(cardId, curatorId, addedAt, dateTimeOccurred),
+    );
   }
 
   getAggregateId(): UniqueEntityID {
