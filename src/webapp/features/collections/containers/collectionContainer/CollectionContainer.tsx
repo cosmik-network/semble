@@ -116,6 +116,7 @@ export default function CollectionContainer(props: Props) {
             description={collection.description}
             accessType={collection.accessType}
             authorHandle={collection.author.handle}
+            cardCount={collection.cardCount}
           />
         </Group>
 
