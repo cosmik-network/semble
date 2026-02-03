@@ -1,4 +1,7 @@
-import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useSuspenseInfiniteQuery,
+} from '@tanstack/react-query';
 import { searchCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import {
@@ -17,7 +20,7 @@ interface Props {
 export default function useSearchCollections(props: Props) {
   const limit = props?.limit ?? 15;
 
-  return useSuspenseInfiniteQuery<GetCollectionsResponse>({
+  return useInfiniteQuery<GetCollectionsResponse>({
     queryKey: collectionKeys.search(
       props.searchText,
       props.limit,

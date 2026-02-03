@@ -14,10 +14,10 @@ import CollectionSelectorItemList from '../collectionSelectorItemList/Collection
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
-import useCollectionSearch from '../../lib/queries/useCollectionSearch';
-import useMyCollections from '../../lib/queries/useMyCollections';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
+import useSearchCollections from '../../lib/queries/useSearchCollections';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   selectedCollections: SelectableCollectionItem[];
@@ -27,14 +27,20 @@ interface Props {
 }
 
 export default function CollectionSelectorOpenCollections(props: Props) {
-  const { data, error } = useMyCollections();
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
-  const searchedCollections = useCollectionSearch({ query: debouncedSearch });
+
+  // note: this returns all open collections by default
+  const searchedCollections = useSearchCollections({
+    searchText: debouncedSearch,
+    accessType: CollectionAccessType.OPEN,
+  });
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const allCollections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
+    searchedCollections.data?.pages.flatMap((page) => page.collections ?? []) ??
+    [];
 
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = props.selectedCollections.length > 0;
@@ -59,7 +65,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
     }
   };
 
-  if (error) {
+  if (searchedCollections.error) {
     return <CollectionSelectorError />;
   }
 
@@ -68,7 +74,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
       <Stack gap="xl">
         <Stack gap={'sm'}>
           <TextInput
-            placeholder="Search for collections"
+            placeholder="Search for open collections"
             value={search}
             onChange={(e) => setSearch(e.currentTarget.value)}
             size="md"
@@ -84,7 +90,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={218} type="auto">
+          <ScrollArea.Autosize mah={195} type="auto">
             <Stack gap="xs">
               {search ? (
                 <Stack gap={'xs'}>
@@ -101,25 +107,36 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                   {searchedCollections.isPending && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
-                        Searching collections...
+                        Searching open collections...
                       </Text>
                       <Loader color="gray" />
                     </Stack>
                   )}
 
-                  {searchedCollections.data &&
-                    (searchedCollections.data.collections.length === 0 ? (
-                      <Alert
-                        color="gray"
-                        title={`No results found for "${search}"`}
-                      />
-                    ) : (
-                      <CollectionSelectorItemList
-                        collections={searchedCollections.data.collections}
-                        selectedCollections={props.selectedCollections}
-                        onChange={handleCollectionChange}
-                      />
-                    ))}
+                  {!hasCollections ? (
+                    <Alert
+                      color="gray"
+                      title={`No results found for "${search}"`}
+                    />
+                  ) : (
+                    <CollectionSelectorItemList
+                      collections={allCollections.filter(
+                        (c) =>
+                          !props.selectedCollections.some(
+                            (sel) => sel.id === c.id,
+                          ),
+                      )}
+                      selectedCollections={props.selectedCollections}
+                      onChange={handleCollectionChange}
+                    />
+                  )}
+                </Stack>
+              ) : searchedCollections.isPending ? (
+                <Stack align="center" gap="xs">
+                  <Text fw={500} c="gray">
+                    Loading open collections...
+                  </Text>
+                  <Loader color="gray" />
                 </Stack>
               ) : hasCollections ? (
                 <Stack gap={'xs'}>
@@ -160,23 +177,18 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                     />
                   ) : (
                     !hasSelectedCollections && (
-                      <Alert color="gray" title="No collections available" />
+                      <Alert
+                        color="gray"
+                        title="No open collections available"
+                      />
                     )
                   )}
                 </Stack>
               ) : (
                 <Stack align="center" gap="xs">
                   <Text fz="lg" fw={600} c="gray">
-                    No collections
+                    No open collections
                   </Text>
-                  <Button
-                    onClick={() => setIsDrawerOpen(true)}
-                    variant="light"
-                    color="gray"
-                    rightSection={<FiPlus size={22} />}
-                  >
-                    Create a collection
-                  </Button>
                 </Stack>
               )}
             </Stack>

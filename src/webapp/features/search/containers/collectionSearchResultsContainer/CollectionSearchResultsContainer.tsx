@@ -24,7 +24,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
     isPending,
   } = useSearchCollections({
     searchText: props.query,
-    handleOrDid: props.handle,
+    identifier: props.handle,
   });
 
   const allCollections =

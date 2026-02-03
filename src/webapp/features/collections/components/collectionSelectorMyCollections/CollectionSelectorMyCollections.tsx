@@ -84,7 +84,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={218} type="auto">
+          <ScrollArea.Autosize mah={195} type="auto">
             <Stack gap="xs">
               {search ? (
                 <Stack gap={'xs'}>
@@ -169,14 +169,6 @@ export default function CollectionSelectorMyCollections(props: Props) {
                   <Text fz="lg" fw={600} c="gray">
                     No collections
                   </Text>
-                  <Button
-                    onClick={() => setIsDrawerOpen(true)}
-                    variant="light"
-                    color="gray"
-                    rightSection={<FiPlus size={22} />}
-                  >
-                    Create a collection
-                  </Button>
                 </Stack>
               )}
             </Stack>
