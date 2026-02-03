@@ -1,10 +1,7 @@
 import WebSocket from 'ws';
 import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
-import {
-  Environment,
-  EnvironmentConfigService,
-} from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { FirehoseEvent } from '../../domain/FirehoseEvent';
 
 const DEBUG_LOGGING = true; // Set to false to disable debug logs
@@ -261,17 +258,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
 
   private getFilteredCollections(): string[] {
     const collections = this.configService.getAtProtoCollections();
-    const envConfig = new EnvironmentConfigService();
 
-    // skip margin records in prod env for now
-    if (envConfig.get().environment === Environment.PROD) {
-      return [
-        collections.card,
-        collections.collection,
-        collections.collectionLink,
-        collections.collectionLinkRemoval,
-      ];
-    }
     return [
       collections.card,
       collections.collection,
