@@ -6,10 +6,16 @@ export default function CollectionContainerSkeleton() {
     <Container p="xs" size="xl">
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
-          <Stack gap={0}>
-            <Text fw={700} c="grape">
-              Collection
-            </Text>
+          <Stack gap={'xs'}>
+            <Group gap={'xs'}>
+              <Text fw={700} c="grape">
+                Collection
+              </Text>
+
+              {/* Open collection badge */}
+              <Skeleton w={67} h={20} />
+            </Group>
+
             {/* Title */}
             <Skeleton w={300} h={27} />
 
