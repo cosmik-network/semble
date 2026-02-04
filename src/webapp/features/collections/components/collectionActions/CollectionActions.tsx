@@ -8,6 +8,7 @@ import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import { notifications } from '@mantine/notifications';
 
 interface Props {
   id: string;
@@ -50,14 +51,22 @@ export default function CollectionActions(props: Props) {
 
         <CopyButton value={shareLink}>
           {({ copied, copy }) => (
-            <Button
+            <ActionIcon
               variant="light"
               color="gray"
-              leftSection={<MdIosShare size={22} />}
-              onClick={copy}
+              size={'lg'}
+              radius={'xl'}
+              onClick={(e) => {
+                e.stopPropagation();
+                copy();
+                notifications.show({
+                  message: 'Link copied!',
+                  position: 'bottom-center',
+                });
+              }}
             >
-              {copied ? 'Link copied!' : 'Share'}
-            </Button>
+              <MdIosShare size={18} />
+            </ActionIcon>
           )}
         </CopyButton>
         {isAuthor && (

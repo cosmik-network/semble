@@ -1,6 +1,13 @@
 'use client';
 
-import { Group, Button, Popover, Select } from '@mantine/core';
+import {
+  Group,
+  Button,
+  Popover,
+  Select,
+  ActionIcon,
+  Stack,
+} from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
@@ -46,7 +53,16 @@ export function Root(props: { children: ReactNode }) {
         searchParams,
       }}
     >
-      <Group gap="xs">{props.children}</Group>
+      <Popover shadow="sm">
+        <Popover.Target>
+          <Button variant="light" color="gray" leftSection={<MdFilterList />}>
+            Filters
+          </Button>
+        </Popover.Target>
+        <Popover.Dropdown>
+          <Stack gap="xs">{props.children}</Stack>
+        </Popover.Dropdown>
+      </Popover>
     </FilterContext.Provider>
   );
 }
