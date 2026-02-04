@@ -19,8 +19,8 @@ export default function CardsContainer(props: Props) {
         <Group gap={'xs'} justify="space-between">
           <CardFilters.Root>
             <CardFilters.SortSelect />
-            <CardFilters.TypeFilter />
             <CardFilters.ViewToggle />
+            <CardFilters.TypeFilter />
           </CardFilters.Root>
           <Button
             component={Link}

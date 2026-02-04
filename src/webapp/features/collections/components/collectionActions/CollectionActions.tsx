@@ -39,15 +39,16 @@ export default function CollectionActions(props: Props) {
   return (
     <Fragment>
       <Group gap={'xs'}>
-        {props.accessType === CollectionAccessType.OPEN || isAuthor && (
-          <Button
-            size="sm"
-            leftSection={<FiPlus size={22} />}
-            onClick={() => setShowAddDrawer(true)}
-          >
-            Add Card
-          </Button>
-        )}
+        {props.accessType === CollectionAccessType.OPEN ||
+          (isAuthor && (
+            <Button
+              size="sm"
+              leftSection={<FiPlus size={22} />}
+              onClick={() => setShowAddDrawer(true)}
+            >
+              Add Card
+            </Button>
+          ))}
 
         <CopyButton value={shareLink}>
           {({ copied, copy }) => (
