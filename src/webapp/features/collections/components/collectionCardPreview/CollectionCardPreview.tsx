@@ -37,8 +37,8 @@ export default function CollectionCardPreview(props: Props) {
             </AspectRatio>
           ) : (
             <AspectRatio ratio={16 / 9}>
-              <Card p={'xs'} radius={'md'} h={45} w={'100%'} withBorder>
-                <Center>
+              <Card p={'xs'} radius={'md'} mih={45} w={'100%'} withBorder>
+                <Center my={'auto'}>
                   <Text fz={'xs'} fw={500} lineClamp={1}>
                     {c.cardContent.title ??
                       c.cardContent.description ??
