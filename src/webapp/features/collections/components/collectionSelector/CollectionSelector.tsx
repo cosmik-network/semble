@@ -5,6 +5,7 @@ import { Stack, Button, Group, FocusTrap, Tabs } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import classes from './TabItem.module.css';
 
 interface Props {
   isOpen: boolean;
@@ -27,8 +28,12 @@ export default function CollectionSelector(props: Props) {
       <Tabs defaultValue={'myCollections'}>
         {featureFlags?.openCollections && (
           <Tabs.List grow mb={'xs'}>
-            <Tabs.Tab value="myCollections">My Collections</Tabs.Tab>
-            <Tabs.Tab value="openCollections">Open Collections</Tabs.Tab>
+            <Tabs.Tab classNames={classes} value="myCollections">
+              My Collections
+            </Tabs.Tab>
+            <Tabs.Tab classNames={classes} value="openCollections">
+              Open Collections
+            </Tabs.Tab>
           </Tabs.List>
         )}
 
