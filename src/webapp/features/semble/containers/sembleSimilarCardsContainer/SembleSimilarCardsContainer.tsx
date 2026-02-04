@@ -37,7 +37,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
   return (
     <Stack gap={'xs'} align="center">
       <Group justify="space-between" w={'100%'} maw={600}>
-        <CardFilters.Root>          
+        <CardFilters.Root>
           <CardFilters.ViewToggle />
           <CardFilters.TypeFilter />
         </CardFilters.Root>
