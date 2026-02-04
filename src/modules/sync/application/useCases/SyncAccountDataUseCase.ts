@@ -180,11 +180,14 @@ export class SyncAccountDataUseCase
     console.log(`[SYNC] Processed ${collectionsProcessed} collections`);
 
     // 3. Sync collection items (links cards to collections)
+    // NOTE: Process sequentially to prevent race conditions when multiple items
+    // are added to the same collection concurrently
     console.log(`[SYNC] Syncing collection items for ${curatorId}...`);
     const itemsProcessed = await this.syncCollection(
       curatorId,
       ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
       this.processMarginCollectionItemUseCase,
+      true, // sequential = true
     );
     totalProcessed += itemsProcessed;
     console.log(`[SYNC] Processed ${itemsProcessed} collection items`);
@@ -194,6 +197,7 @@ export class SyncAccountDataUseCase
 
   /**
    * Sync a specific collection type with batched concurrent processing
+   * @param sequential - If true, process records sequentially instead of concurrently (prevents race conditions)
    */
   private async syncCollection(
     curatorId: string,
@@ -202,6 +206,7 @@ export class SyncAccountDataUseCase
       | ProcessMarginBookmarkFirehoseEventUseCase
       | ProcessMarginCollectionFirehoseEventUseCase
       | ProcessMarginCollectionItemFirehoseEventUseCase,
+    sequential: boolean = false,
   ): Promise<number> {
     let totalProcessed = 0;
     let pageCount = 0;
@@ -234,15 +239,35 @@ export class SyncAccountDataUseCase
         const batchNumber = Math.floor(i / CONCURRENT_BATCH_SIZE) + 1;
 
         console.log(
-          `[SYNC] Processing batch ${batchNumber} (${batch.length} records) from page ${pageCount}...`,
+          `[SYNC] Processing batch ${batchNumber} (${batch.length} records) from page ${pageCount}${sequential ? ' [SEQUENTIAL]' : ''}...`,
         );
 
-        // Process all records in this batch concurrently
-        const results = await Promise.allSettled(
-          batch.map((record) =>
-            this.processRecord(record, useCase, curatorId, collectionType),
-          ),
-        );
+        let results: PromiseSettledResult<boolean>[];
+
+        if (sequential) {
+          // Process records one at a time to prevent race conditions
+          results = [];
+          for (const record of batch) {
+            try {
+              const result = await this.processRecord(
+                record,
+                useCase,
+                curatorId,
+                collectionType,
+              );
+              results.push({ status: 'fulfilled', value: result });
+            } catch (error) {
+              results.push({ status: 'rejected', reason: error });
+            }
+          }
+        } else {
+          // Process all records in this batch concurrently
+          results = await Promise.allSettled(
+            batch.map((record) =>
+              this.processRecord(record, useCase, curatorId, collectionType),
+            ),
+          );
+        }
 
         // Count successful processes
         const successCount = results.filter(
