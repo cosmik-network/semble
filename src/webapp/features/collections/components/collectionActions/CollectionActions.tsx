@@ -32,15 +32,11 @@ export default function CollectionActions(props: Props) {
       ? `${window.location.origin}/profile/${props.authorHandle}/collections/${props.rkey}`
       : '';
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <Fragment>
       <Group gap={'xs'}>
-        {props.accessType === CollectionAccessType.OPEN ||
-          (isAuthor && (
+        {isAuthenticated &&
+          (props.accessType === CollectionAccessType.OPEN || isAuthor) && (
             <Button
               size="sm"
               leftSection={<FiPlus size={22} />}
@@ -48,10 +44,10 @@ export default function CollectionActions(props: Props) {
             >
               Add Card
             </Button>
-          ))}
+          )}
 
         <CopyButton value={shareLink}>
-          {({ copied, copy }) => (
+          {({ copy }) => (
             <ActionIcon
               variant="light"
               color="gray"
@@ -70,6 +66,7 @@ export default function CollectionActions(props: Props) {
             </ActionIcon>
           )}
         </CopyButton>
+
         {isAuthor && (
           <Menu shadow="sm">
             <Menu.Target>
