@@ -39,7 +39,7 @@ export default function CollectionActions(props: Props) {
   return (
     <Fragment>
       <Group gap={'xs'}>
-        {props.accessType === CollectionAccessType.OPEN && (
+        {props.accessType === CollectionAccessType.OPEN || isAuthor && (
           <Button
             size="sm"
             leftSection={<FiPlus size={22} />}
