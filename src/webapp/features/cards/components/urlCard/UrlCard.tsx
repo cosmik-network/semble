@@ -15,6 +15,7 @@ import Link from 'next/link';
 interface Props {
   id: string;
   url: string;
+  uri?: string;
   cardContent: UrlCard['cardContent'];
   note?: UrlCard['note'];
   currentCollection?: Collection;

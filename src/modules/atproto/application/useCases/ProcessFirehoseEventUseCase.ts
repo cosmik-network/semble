@@ -8,11 +8,17 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 import { ProcessCardFirehoseEventUseCase } from './ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from './ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessMarginBookmarkFirehoseEventUseCase } from './ProcessMarginBookmarkFirehoseEventUseCase';
+import { ProcessMarginCollectionFirehoseEventUseCase } from './ProcessMarginCollectionFirehoseEventUseCase';
+import { ProcessMarginCollectionItemFirehoseEventUseCase } from './ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from './ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import type { RepoRecord } from '@atproto/lexicon';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+import { Record as MarginBookmarkRecord } from '../../infrastructure/lexicon/types/at/margin/bookmark';
+import { Record as MarginCollectionRecord } from '../../infrastructure/lexicon/types/at/margin/collection';
+import { Record as MarginCollectionItemRecord } from '../../infrastructure/lexicon/types/at/margin/collectionItem';
 import { Record as CollectionLinkRemovalRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLinkRemoval';
 
 export interface ProcessFirehoseEventDTO {
@@ -37,6 +43,9 @@ export class ProcessFirehoseEventUseCase
     private processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase,
     private processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase,
     private processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase,
+    private processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase,
+    private processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase,
+    private processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
     private processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase,
   ) {}
 
@@ -146,6 +155,62 @@ export class ProcessFirehoseEventUseCase
           return this.processCollectionLinkRemovalFirehoseEventUseCase.execute({
             ...request,
             record: request.record as CollectionLinkRemovalRecord | undefined,
+          });
+        case collections.marginBookmark:
+          // Validate MarginBookmarkRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const bookmarkRecord = request.record as MarginBookmarkRecord;
+            if (!bookmarkRecord.source) {
+              return err(
+                new ValidationError('Invalid Margin bookmark record structure'),
+              );
+            }
+          }
+          return this.processMarginBookmarkFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as MarginBookmarkRecord | undefined,
+          });
+        case collections.marginCollection:
+          // Validate MarginCollectionRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const marginCollectionRecord =
+              request.record as MarginCollectionRecord;
+            if (!marginCollectionRecord.name) {
+              return err(
+                new ValidationError(
+                  'Invalid Margin collection record structure',
+                ),
+              );
+            }
+          }
+          return this.processMarginCollectionFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as MarginCollectionRecord | undefined,
+          });
+        case collections.marginCollectionItem:
+          // Validate MarginCollectionItemRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const itemRecord = request.record as MarginCollectionItemRecord;
+            if (!itemRecord.collection || !itemRecord.annotation) {
+              return err(
+                new ValidationError(
+                  'Invalid Margin collection item record structure',
+                ),
+              );
+            }
+          }
+          return this.processMarginCollectionItemFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as MarginCollectionItemRecord | undefined,
           });
         default:
           return err(

@@ -232,6 +232,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
     cardId: CardId,
     userId: CuratorId,
     viaCardId?: CardId,
+    addedAt?: Date,
   ): Result<CardLink, CollectionAccessError> {
     if (!this.canAddCard(userId)) {
       return err(
@@ -249,10 +250,11 @@ export class Collection extends AggregateRoot<CollectionProps> {
       return ok(existingLink); // Return existing link
     }
 
+    const linkAddedAt = addedAt ?? new Date();
     const newLink: CardLink = {
       cardId,
       addedBy: userId,
-      addedAt: new Date(),
+      addedAt: linkAddedAt,
       viaCardId,
       publishedRecordId: undefined, // Will be set when published
     };
@@ -267,6 +269,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
         cardId,
         this.collectionId,
         userId,
+        linkAddedAt,
       ).unwrap(),
     );
 

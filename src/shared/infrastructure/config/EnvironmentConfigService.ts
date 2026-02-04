@@ -1,3 +1,5 @@
+import { ATPROTO_NSID } from 'src/shared/constants/atproto';
+
 export enum Environment {
   LOCAL = 'local',
   DEV = 'dev',
@@ -30,6 +32,9 @@ export interface EnvironmentConfig {
       card: string;
       collection: string;
       collectionLink: string;
+      marginBookmark: string;
+      marginCollection: string;
+      marginCollectionItem: string;
       collectionLinkRemoval: string;
     };
     serviceAccount: {
@@ -104,25 +109,29 @@ export class EnvironmentConfigService {
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
         baseCollection:
           environment === Environment.PROD
-            ? 'network.cosmik'
-            : `network.cosmik.${environment}`,
+            ? ATPROTO_NSID.COSMIK.NAMESPACE
+            : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}`,
         collections: {
           card:
             environment === Environment.PROD
-              ? 'network.cosmik.card'
-              : `network.cosmik.${environment}.card`,
+              ? ATPROTO_NSID.COSMIK.CARD
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.card`,
           collection:
             environment === Environment.PROD
-              ? 'network.cosmik.collection'
-              : `network.cosmik.${environment}.collection`,
+              ? ATPROTO_NSID.COSMIK.COLLECTION
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.collection`,
           collectionLink:
             environment === Environment.PROD
-              ? 'network.cosmik.collectionLink'
-              : `network.cosmik.${environment}.collectionLink`,
+              ? ATPROTO_NSID.COSMIK.COLLECTION_LINK
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.collectionLink`,
           collectionLinkRemoval:
             environment === Environment.PROD
-              ? 'network.cosmik.collectionLinkRemoval'
-              : `network.cosmik.${environment}.collectionLinkRemoval`,
+              ? ATPROTO_NSID.COSMIK.COLLECTION_LINK_REMOVAL
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.collectionLinkRemoval`,
+          // Margin collections - no environment suffix
+          marginBookmark: ATPROTO_NSID.MARGIN.BOOKMARK,
+          marginCollection: ATPROTO_NSID.MARGIN.COLLECTION,
+          marginCollectionItem: ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',

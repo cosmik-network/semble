@@ -18,6 +18,7 @@ import { AuthenticationError } from '../../../../shared/core/AuthenticationError
 export interface CardCollectionServiceOptions {
   skipPublishing?: boolean;
   publishedRecordIds?: Map<string, PublishedRecordId>; // collectionId -> publishedRecordId
+  timestamp?: Date;
 }
 
 export class CardCollectionValidationError extends Error {
@@ -70,6 +71,7 @@ export class CardCollectionService implements DomainService {
         card.cardId,
         curatorId,
         viaCardId,
+        options?.timestamp,
       );
       if (addCardResult.isErr()) {
         return err(

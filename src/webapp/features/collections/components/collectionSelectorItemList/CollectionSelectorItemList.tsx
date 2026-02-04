@@ -6,6 +6,10 @@ interface Collection {
   id: string;
   name: string;
   cardCount: number;
+  uri?: string;
+  author?: {
+    handle: string;
+  };
 }
 
 interface Props {
@@ -25,6 +29,8 @@ export default function CollectionSelectorItemList(props: Props) {
           value={c.id}
           checked={!!props.selectedCollections.find((col) => col.id === c.id)}
           onChange={(checked) => props.onChange(checked, c)}
+          uri={c.uri}
+          authorHandle={c.author?.handle}
         />
       ))}
     </Stack>

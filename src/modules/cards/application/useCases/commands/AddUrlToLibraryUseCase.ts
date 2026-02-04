@@ -29,6 +29,7 @@ export interface AddUrlToLibraryDTO {
   curatorId: string;
   viaCardId?: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
+  timestamp?: Date; // For firehose events - use historical timestamp from AT Protocol record
 }
 
 export interface AddUrlToLibraryResponseDTO {
@@ -121,6 +122,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         const urlCardResult = CardFactory.create({
           curatorId: request.curatorId,
           cardInput: urlCardInput,
+          createdAt: request.timestamp,
         });
 
         if (urlCardResult.isErr()) {
@@ -135,8 +137,11 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         ? {
             skipPublishing: true,
             publishedRecordId: request.publishedRecordId,
+            timestamp: request.timestamp,
           }
-        : undefined;
+        : request.timestamp
+          ? { timestamp: request.timestamp }
+          : undefined;
 
       const addUrlCardToLibraryResult =
         await this.cardLibraryService.addCardToLibrary(
@@ -222,6 +227,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           const noteCardResult = CardFactory.create({
             curatorId: request.curatorId,
             cardInput: noteCardInput,
+            createdAt: request.timestamp,
           });
 
           if (noteCardResult.isErr()) {
@@ -233,8 +239,15 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           // Add note card to library using domain service
           // Note: For note cards, we don't pass publishedRecordId here since it's handled
           // separately in UpdateUrlCardAssociationsUseCase for firehose events
+          const noteLibraryOptions = request.timestamp
+            ? { timestamp: request.timestamp }
+            : undefined;
           const addNoteCardToLibraryResult =
-            await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
+            await this.cardLibraryService.addCardToLibrary(
+              noteCard,
+              curatorId,
+              noteLibraryOptions,
+            );
           if (addNoteCardToLibraryResult.isErr()) {
             // Propagate authentication errors
             if (
@@ -293,12 +306,16 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         }
 
         // Add card to collections using domain service
+        const collectionOptions = request.timestamp
+          ? { timestamp: request.timestamp }
+          : undefined;
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
             cardToAdd,
             collectionIds,
             curatorId,
             viaCardId,
+            collectionOptions,
           );
         if (addToCollectionsResult.isErr()) {
           // Propagate authentication errors

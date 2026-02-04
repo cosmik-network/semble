@@ -22,6 +22,8 @@ import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDe
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -38,6 +40,7 @@ export default function CollectionCard(props: Props) {
   const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
+  const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 
   const handleNavigateToCollection = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -74,9 +77,14 @@ export default function CollectionCard(props: Props) {
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
+              <Group gap={4}>
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {isMarginUri(collection.uri) && (
+                  <MarginLogo size={14} marginUrl={marginUrl} />
+                )}
+              </Group>
 
               <Group gap={'xs'} wrap="nowrap">
                 {accessType === CollectionAccessType.OPEN && (

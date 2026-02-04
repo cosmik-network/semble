@@ -21,6 +21,8 @@ import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   isOpen: boolean;
@@ -152,34 +154,45 @@ export default function AddCardDrawer(props: Props) {
                         : 'Manage/View all'}
                     </Button>
 
-                    {myCollections.map((col) => (
-                      <Button
-                        key={col.id}
-                        variant="light"
-                        color={
-                          selectedCollections.some((c) => c.id === col.id)
-                            ? 'grape'
-                            : 'gray'
-                        }
-                        leftSection={
-                          selectedCollections.some((c) => c.id === col.id) ? (
-                            <IoMdCheckmark />
-                          ) : null
-                        }
-                        onClick={() => {
-                          setSelectedCollections((prev) => {
-                            // already selected, remove
-                            if (prev.some((c) => c.id === col.id)) {
-                              return prev.filter((c) => c.id !== col.id);
-                            }
-                            // not selected, add it
-                            return [...prev, col];
-                          });
-                        }}
-                      >
-                        {col.name}
-                      </Button>
-                    ))}
+                    {myCollections.map((col) => {
+                      const marginUrl = getMarginUrl(
+                        col.uri,
+                        col.author?.handle,
+                      );
+                      return (
+                        <Button
+                          key={col.id}
+                          variant="light"
+                          color={
+                            selectedCollections.some((c) => c.id === col.id)
+                              ? 'grape'
+                              : 'gray'
+                          }
+                          leftSection={
+                            selectedCollections.some((c) => c.id === col.id) ? (
+                              <IoMdCheckmark />
+                            ) : null
+                          }
+                          rightSection={
+                            isMarginUri(col.uri) ? (
+                              <MarginLogo size={12} marginUrl={marginUrl} />
+                            ) : undefined
+                          }
+                          onClick={() => {
+                            setSelectedCollections((prev) => {
+                              // already selected, remove
+                              if (prev.some((c) => c.id === col.id)) {
+                                return prev.filter((c) => c.id !== col.id);
+                              }
+                              // not selected, add it
+                              return [...prev, col];
+                            });
+                          }}
+                        >
+                          {col.name}
+                        </Button>
+                      );
+                    })}
                   </Group>
                 </ScrollArea.Autosize>
               </Stack>

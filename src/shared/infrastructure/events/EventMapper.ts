@@ -19,6 +19,7 @@ export interface SerializedCardAddedToLibraryEvent extends SerializedEvent {
   eventType: typeof EventNames.CARD_ADDED_TO_LIBRARY;
   cardId: string;
   curatorId: string;
+  addedAt: string;
 }
 
 export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
@@ -26,6 +27,7 @@ export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
   cardId: string;
   collectionId: string;
   addedBy: string;
+  addedAt: string;
 }
 
 export interface SerializedCardRemovedFromLibraryEvent extends SerializedEvent {
@@ -65,6 +67,7 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
+        addedAt: event.addedAt.toISOString(),
       };
     }
 
@@ -76,6 +79,7 @@ export class EventMapper {
         cardId: event.cardId.getValue().toString(),
         collectionId: event.collectionId.getValue().toString(),
         addedBy: event.addedBy.value,
+        addedAt: event.addedAt.toISOString(),
       };
     }
 
@@ -121,11 +125,13 @@ export class EventMapper {
       case EventNames.CARD_ADDED_TO_LIBRARY: {
         const cardId = CardId.createFromString(eventData.cardId).unwrap();
         const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const addedAt = new Date(eventData.addedAt);
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
         return CardAddedToLibraryEvent.reconstruct(
           cardId,
           curatorId,
+          addedAt,
           dateTimeOccurred,
         ).unwrap();
       }
@@ -135,12 +141,14 @@ export class EventMapper {
           eventData.collectionId,
         ).unwrap();
         const addedBy = CuratorId.create(eventData.addedBy).unwrap();
+        const addedAt = new Date(eventData.addedAt);
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
         return CardAddedToCollectionEvent.reconstruct(
           cardId,
           collectionId,
           addedBy,
+          addedAt,
           dateTimeOccurred,
         ).unwrap();
       }

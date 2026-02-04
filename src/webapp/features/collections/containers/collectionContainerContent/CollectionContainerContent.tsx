@@ -74,6 +74,7 @@ export default function CollectionContainerContent(props: Props) {
                 <UrlCard
                   id={card.id}
                   url={card.url}
+                  uri={card.uri}
                   cardContent={card.cardContent}
                   authorHandle={card.author.handle}
                   cardAuthor={card.author}

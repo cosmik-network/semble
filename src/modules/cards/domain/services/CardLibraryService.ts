@@ -15,6 +15,7 @@ export interface CardLibraryServiceOptions {
   publishedRecordId?: PublishedRecordId;
   skipUnpublishing?: boolean;
   skipCollectionUnpublishing?: boolean;
+  timestamp?: Date;
 }
 
 export class CardLibraryValidationError extends Error {
@@ -268,7 +269,7 @@ export class CardLibraryService implements DomainService {
         // Card is already in library but not published, nothing to do
         return ok(card);
       }
-      const addToLibResult = card.addToLibrary(curatorId);
+      const addToLibResult = card.addToLibrary(curatorId, options?.timestamp);
       if (addToLibResult.isErr()) {
         return err(
           new CardLibraryValidationError(

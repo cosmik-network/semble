@@ -14,33 +14,43 @@ import {
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { useState } from 'react';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
+  uri?: string;
+  authorHandle?: string;
 }
 
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
   const [imageError, setImageError] = useState(false);
   const { settings } = useUserSettings();
+  const marginUrl = getMarginUrl(props.uri, props.authorHandle);
 
   return (
     <Group justify="space-between" align="start" gap={'lg'}>
       <Stack gap={0} flex={1}>
-        <Tooltip label={props.cardContent.url}>
-          <Anchor
-            onClick={(e) => e.stopPropagation()}
-            component={Link}
-            href={props.cardContent.url}
-            target="_blank"
-            c={'gray'}
-            lineClamp={1}
-            w={'fit-content'}
-            fz={'sm'}
-          >
-            {domain}
-          </Anchor>
-        </Tooltip>
+        <Group gap={4}>
+          <Tooltip label={props.cardContent.url}>
+            <Anchor
+              onClick={(e) => e.stopPropagation()}
+              component={Link}
+              href={props.cardContent.url}
+              target="_blank"
+              c={'gray'}
+              lineClamp={1}
+              w={'fit-content'}
+              fz={'sm'}
+            >
+              {domain}
+            </Anchor>
+          </Tooltip>
+          {isMarginUri(props.uri) && (
+            <MarginLogo size={12} marginUrl={marginUrl} />
+          )}
+        </Group>
         {props.cardContent.title && (
           <Text c={'bright'} lineClamp={2} fw={500}>
             {props.cardContent.title}

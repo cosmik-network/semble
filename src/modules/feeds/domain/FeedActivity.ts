@@ -27,6 +27,7 @@ interface ActivityProps {
   type: ActivityType; // The type of activity
   metadata: ActivityMetadata; // Additional metadata specific to the activity type
   urlType?: UrlType; // Optional URL type from the card
+  source?: string; // Optional source - 'margin' for Margin content, undefined for Cosmik
   createdAt: Date;
 }
 
@@ -55,6 +56,10 @@ export class FeedActivity extends Entity<ActivityProps> {
     return this.props.urlType;
   }
 
+  get source(): string | undefined {
+    return this.props.source;
+  }
+
   // Type guards for metadata
   get cardCollected(): boolean {
     return this.props.type.value === ActivityTypeEnum.CARD_COLLECTED;
@@ -81,6 +86,7 @@ export class FeedActivity extends Entity<ActivityProps> {
     cardId: CardId,
     collectionIds?: CollectionId[],
     urlType?: UrlType,
+    source?: string,
     createdAt?: Date,
     id?: UniqueEntityID,
   ): Result<FeedActivity, ActivityValidationError> {
@@ -103,6 +109,7 @@ export class FeedActivity extends Entity<ActivityProps> {
       type: typeResult.value,
       metadata,
       urlType,
+      source,
       createdAt: createdAt || new Date(),
     };
 

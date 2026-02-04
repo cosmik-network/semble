@@ -23,6 +23,8 @@ import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   rkey: string;
@@ -38,6 +40,7 @@ export default function CollectionContainer(props: Props) {
 
   const collection = data.pages[0];
   const accessType = collection.accessType;
+  const marginUrl = getMarginUrl(collection?.uri, collection?.author.handle);
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -70,7 +73,12 @@ export default function CollectionContainer(props: Props) {
                   </Tooltip>
                 )}
             </Group>
-            <Title order={1}>{collection.name}</Title>
+            <Group gap={8}>
+              <Title order={1}>{collection.name}</Title>
+              {isMarginUri(collection.uri) && (
+                <MarginLogo size={20} marginUrl={marginUrl} />
+              )}
+            </Group>
             {collection.description && (
               <Text c="gray" mt="lg">
                 {collection.description}

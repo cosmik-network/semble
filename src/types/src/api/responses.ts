@@ -76,6 +76,7 @@ export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
+  uri?: string;
   cardContent: UrlMetadata;
   libraryCount: number;
   urlLibraryCount: number;

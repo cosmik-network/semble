@@ -118,6 +118,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
             id: cardView.id,
             type: 'URL',
             url: cardView.url,
+            uri: cardView.uri,
             cardContent: {
               url: cardView.cardContent.url,
               title: cardView.cardContent.title,

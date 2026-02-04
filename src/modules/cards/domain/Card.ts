@@ -241,7 +241,10 @@ export class Card extends AggregateRoot<CardProps> {
     return ok(undefined);
   }
 
-  public addToLibrary(userId: CuratorId): Result<void, CardValidationError> {
+  public addToLibrary(
+    userId: CuratorId,
+    addedAt?: Date,
+  ): Result<void, CardValidationError> {
     if (
       this.props.libraryMemberships.find((link) =>
         link.curatorId.equals(userId),
@@ -261,15 +264,20 @@ export class Card extends AggregateRoot<CardProps> {
       );
     }
 
+    const membershipAddedAt = addedAt ?? new Date();
     this.props.libraryMemberships.push({
       curatorId: userId,
-      addedAt: new Date(),
+      addedAt: membershipAddedAt,
     });
     this.props.libraryCount = this.props.libraryMemberships.length;
-    this.props.updatedAt = new Date();
+    this.props.updatedAt = addedAt ?? new Date();
 
     // Raise domain event
-    const domainEvent = CardAddedToLibraryEvent.create(this.cardId, userId);
+    const domainEvent = CardAddedToLibraryEvent.create(
+      this.cardId,
+      userId,
+      membershipAddedAt,
+    );
     if (domainEvent.isErr()) {
       return err(new CardValidationError(domainEvent.error.message));
     }
@@ -315,7 +323,6 @@ export class Card extends AggregateRoot<CardProps> {
 
   public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
-    this.props.updatedAt = new Date();
     this.markCardInLibraryAsPublished(this.props.curatorId, publishedRecordId);
   }
 
@@ -335,8 +342,6 @@ export class Card extends AggregateRoot<CardProps> {
     if (!this.props.publishedRecordId) {
       this.props.publishedRecordId = publishedRecordId;
     }
-
-    this.props.updatedAt = new Date();
 
     return ok(undefined);
   }

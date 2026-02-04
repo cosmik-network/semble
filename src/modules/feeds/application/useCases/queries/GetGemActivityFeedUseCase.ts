@@ -17,7 +17,7 @@ import {
 } from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
-import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
+import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
 export interface GetGemActivityFeedQuery {
@@ -26,6 +26,7 @@ export interface GetGemActivityFeedQuery {
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: string; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 // Use the shared API type directly
@@ -142,6 +143,7 @@ export class GetGemActivityFeedUseCase
         limit,
         beforeActivityId,
         urlType,
+        source: query.source,
       });
 
       if (feedResult.isErr()) {
@@ -389,6 +391,7 @@ export class GetGemActivityFeedUseCase
           id: cardView.id,
           type: 'URL' as const,
           url: cardView.url,
+          uri: cardView.uri,
           cardContent: {
             url: cardView.cardContent.url,
             title: cardView.cardContent.title,

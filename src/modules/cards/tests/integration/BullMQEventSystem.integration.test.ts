@@ -79,7 +79,11 @@ describe('BullMQ Event System Integration', () => {
       // Create test event
       const cardId = CardId.createFromString('test-card-123').unwrap();
       const curatorId = CuratorId.create('did:plc:testuser123').unwrap();
-      const event = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
+      const event = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+        new Date(),
+      ).unwrap();
 
       // Act - Publish event
       const publishResult = await publisher.publishEvents([event]);
@@ -123,14 +127,17 @@ describe('BullMQ Event System Integration', () => {
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-1').unwrap(),
           CuratorId.create('did:plc:user1').unwrap(),
+          new Date(),
         ).unwrap(),
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-2').unwrap(),
           CuratorId.create('did:plc:user2').unwrap(),
+          new Date(),
         ).unwrap(),
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-3').unwrap(),
           CuratorId.create('did:plc:user3').unwrap(),
+          new Date(),
         ).unwrap(),
       ];
 
@@ -175,6 +182,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('failing-card').unwrap(),
         CuratorId.create('did:plc:failuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       // Act - Publish event that will initially fail
@@ -197,6 +205,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('unhandled-card').unwrap(),
         CuratorId.create('did:plc:unhandleduser').unwrap(),
+        new Date(),
       ).unwrap();
 
       // Act - Publish event
@@ -236,6 +245,7 @@ describe('BullMQ Event System Integration', () => {
       const originalEvent = CardAddedToLibraryEvent.create(
         originalCardId,
         originalCuratorId,
+        new Date(),
       ).unwrap();
       const originalTimestamp = originalEvent.dateTimeOccurred;
 
@@ -264,6 +274,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('queue-test-card').unwrap(),
         CuratorId.create('did:plc:queueuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       await publisher.publishEvents([event]);
@@ -307,11 +318,13 @@ describe('BullMQ Event System Integration', () => {
       const libraryEvent = CardAddedToLibraryEvent.create(
         cardId,
         curatorId,
+        new Date(),
       ).unwrap();
       const collectionEvent = CardAddedToCollectionEvent.create(
         cardId,
         CollectionId.createFromString('test-collection').unwrap(),
         curatorId,
+        new Date(),
       ).unwrap();
 
       // Act - Process events with different saga instances
@@ -356,16 +369,18 @@ describe('BullMQ Event System Integration', () => {
         CollectionId.createFromString('collection-2').unwrap();
 
       const events = [
-        CardAddedToLibraryEvent.create(cardId, curatorId).unwrap(),
+        CardAddedToLibraryEvent.create(cardId, curatorId, new Date()).unwrap(),
         CardAddedToCollectionEvent.create(
           cardId,
           collectionId1,
           curatorId,
+          new Date(),
         ).unwrap(),
         CardAddedToCollectionEvent.create(
           cardId,
           collectionId2,
           curatorId,
+          new Date(),
         ).unwrap(),
       ];
 
@@ -414,6 +429,7 @@ describe('BullMQ Event System Integration', () => {
           cardId,
           collectionId,
           curatorId,
+          new Date(),
         ).unwrap();
         return { saga, event };
       });
@@ -423,6 +439,7 @@ describe('BullMQ Event System Integration', () => {
       const libraryEvent = CardAddedToLibraryEvent.create(
         cardId,
         curatorId,
+        new Date(),
       ).unwrap();
 
       // Act - Process all events concurrently
@@ -470,7 +487,11 @@ describe('BullMQ Event System Integration', () => {
 
       // Create saga and event
       const saga = new CardCollectionSaga(mockUseCase, stateStore);
-      const event = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
+      const event = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+        new Date(),
+      ).unwrap();
 
       // Act - Try to process event (should initially be blocked by lock)
       // But should succeed after lock expires and retry mechanism kicks in
@@ -502,11 +523,16 @@ describe('BullMQ Event System Integration', () => {
       const lockHoldingSaga = new CardCollectionSaga(mockUseCase, stateStore);
       const retryingSaga = new CardCollectionSaga(mockUseCase, stateStore);
 
-      const event1 = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
+      const event1 = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+        new Date(),
+      ).unwrap();
       const event2 = CardAddedToCollectionEvent.create(
         cardId,
         CollectionId.createFromString('retry-collection').unwrap(),
         curatorId,
+        new Date(),
       ).unwrap();
 
       // Act - Start first saga (will acquire lock)
@@ -573,6 +599,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('multi-queue-card').unwrap(),
         CuratorId.create('did:plc:multiuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       await publisher.publishEvents([event]);
