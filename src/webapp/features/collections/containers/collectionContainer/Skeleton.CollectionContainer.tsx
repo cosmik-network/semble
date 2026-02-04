@@ -1,4 +1,4 @@
-import { Container, Group, Select, Skeleton, Stack, Text } from '@mantine/core';
+import { Container, Group, Skeleton, Stack, Text } from '@mantine/core';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 
 export default function CollectionContainerSkeleton() {
