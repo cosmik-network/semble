@@ -41,18 +41,18 @@ export default async function ProfileHeader(props: Props) {
                 <Avatar
                   src={profile.avatarUrl}
                   alt={`${profile.name}'s avatar`}
-                  size={'clamp(90px, 22vw, 140px)'}
+                  size={'clamp(90px, 22vw, 100px)'}
                   radius={'lg'}
                 />
               </GridCol>
 
-              <GridCol span={{ base: 12, xs: 9 }}>
+              <GridCol span={{ base: 12, xs: 10 }}>
                 <Stack gap={'sm'}>
                   <Stack gap={0}>
-                    <Title order={1} fz={{ base: 'h2', md: 'h1' }} c={'bright'}>
+                    <Title order={1} fz={'h2'} c={'bright'}>
                       {profile.name}
                     </Title>
-                    <Text c="gray" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                    <Text c="gray" fw={600} fz={'lg'}>
                       @{profile.handle}
                     </Text>
                   </Stack>
@@ -61,6 +61,7 @@ export default async function ProfileHeader(props: Props) {
                       showLabel={'Read more'}
                       hideLabel={'See less'}
                       maxHeight={75}
+                      maw={700}
                     >
                       <RichTextRenderer text={profile.description} />
                     </Spoiler>

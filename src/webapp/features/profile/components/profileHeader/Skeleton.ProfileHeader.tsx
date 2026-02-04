@@ -17,8 +17,7 @@ export default function ProfileHeaderSkeleton() {
             <GridCol span={'auto'}>
               <Avatar size={'clamp(100px, 22vw, 180px)'} radius={'lg'} />
             </GridCol>
-
-            <GridCol span={{ base: 12, xs: 9 }}>
+            <GridCol span={{ base: 12, xs: 10 }}>
               <Stack gap={0}>
                 <Stack gap={0}>
                   {/* Name */}

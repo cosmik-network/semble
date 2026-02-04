@@ -104,7 +104,7 @@ export default function CollectionContainer(props: Props) {
 
         <Group justify="space-between" gap={'xs'}>
           <CardFilters.Root>
-            <CardFilters.SortSelect />            
+            <CardFilters.SortSelect />
             <CardFilters.ViewToggle />
             <CardFilters.TypeFilter />
           </CardFilters.Root>
