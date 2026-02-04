@@ -82,6 +82,7 @@ export default function CollectionContainerContent(props: Props) {
                   urlIsInLibrary={card.urlInLibrary}
                   currentCollection={firstPage}
                   viaCardId={card.id}
+                  showAuthor={props.handle !== card.author.handle}
                 />
               </Grid.Col>
             ))}
