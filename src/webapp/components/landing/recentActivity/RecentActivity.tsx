@@ -74,6 +74,7 @@ export default async function RecentActivity() {
                 <ActivityCard
                   id={c.id}
                   url={c.url}
+                  uri={c.uri}
                   note={c.note}
                   cardAuthor={c.author}
                   cardContent={c.cardContent}

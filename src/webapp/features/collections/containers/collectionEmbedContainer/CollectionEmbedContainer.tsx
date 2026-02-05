@@ -137,6 +137,7 @@ export default function CollectionEmbedContainer(props: Props) {
                       <Stack justify="space-between" gap={'sm'} flex={1}>
                         <UrlCardContent
                           url={card.url}
+                          uri={card.uri}
                           cardContent={card.cardContent}
                         />
                       </Stack>
