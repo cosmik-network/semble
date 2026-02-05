@@ -2,7 +2,16 @@
 
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, Avatar, Box, Image } from '@mantine/core';
+import {
+  Group,
+  Stack,
+  Text,
+  Avatar,
+  Box,
+  Image,
+  Anchor,
+  Tooltip,
+} from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
@@ -74,7 +83,17 @@ export default function BlueskyPost(props: Props) {
             {post.author.displayName || post.author.handle}
           </Text>
         </Group>
-        {platformIcon}
+        <Tooltip
+          label={`View on ${platform.type === SupportedPlatform.BLUESKY_POST ? 'Bluesky' : 'Blacksky'}`}
+        >
+          <Anchor
+            href={props.url}
+            target="_blank"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {platformIcon}
+          </Anchor>
+        </Tooltip>
       </Group>
       <Stack gap={'xs'} w={'100%'}>
         <Box>

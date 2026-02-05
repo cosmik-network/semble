@@ -1,7 +1,16 @@
 'use client';
 
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import { Avatar, Box, Card, Group, Stack, Text } from '@mantine/core';
+import {
+  Anchor,
+  Avatar,
+  Box,
+  Card,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { PostView } from '@semble/types';
 import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
@@ -56,7 +65,15 @@ export default function BlueskyMentionPost(props: Props) {
                 {props.post.author.displayName || props.post.author.handle}
               </Text>
             </Group>
-            <FaBluesky fill="#0085ff" size={18} />
+            <Tooltip label="View on Bluesky">
+              <Anchor
+                href={`https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`}
+                target="_blank"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FaBluesky fill="#0085ff" size={18} />
+              </Anchor>
+            </Tooltip>
           </Group>
           <Stack gap={'xs'} w={'100%'}>
             {<Box>{<RichTextRenderer text={record.text} />}</Box>}
