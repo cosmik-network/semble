@@ -121,7 +121,13 @@ export default async function BlueskySemblePost(props: Props) {
                 </Text>
               </Stack>
             </Group>
-            {platformIcon}
+            <Tooltip
+              label={`View on ${platform.type === SupportedPlatform.BLUESKY_POST ? 'Bluesky' : 'Blacksky'}`}
+            >
+              <Anchor href={props.url} target="_blank">
+                {platformIcon}
+              </Anchor>
+            </Tooltip>
           </Group>
           <Stack gap={'xs'} w={'100%'}>
             <Box>
