@@ -197,11 +197,13 @@ export class CollectionCardQueryService {
       const cardIds = cardsResult.map((card) => card.id);
       const urls = cardsResult.map((card) => card.url || '');
 
-      // Get note cards for these URL cards, but only by the collection author
+      // Get note cards for these URL cards
+      // We'll filter by author in the mapping step to match each note's author to its parent card's author
       const notesQuery = this.db
         .select({
           id: cards.id,
           parentCardId: cards.parentCardId,
+          authorId: cards.authorId,
           contentData: cards.contentData,
         })
         .from(cards)
@@ -209,7 +211,6 @@ export class CollectionCardQueryService {
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
-            eq(cards.authorId, collectionAuthorId),
           ),
         );
 
@@ -292,8 +293,10 @@ export class CollectionCardQueryService {
 
       // Combine the data
       const rawCardData = cardsResult.map((card) => {
-        // Find note for this card
-        const note = notesResult.find((n) => n.parentCardId === card.id);
+        // Find note for this card (only notes by the same author as the card)
+        const note = notesResult.find(
+          (n) => n.parentCardId === card.id && n.authorId === card.authorId,
+        );
 
         // Get urlLibraryCount from the map
         const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;

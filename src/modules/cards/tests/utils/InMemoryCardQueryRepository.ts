@@ -132,10 +132,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       }
     }
 
-    // Find note cards with matching URL
+    // Find note card by the same author with matching parent card ID
     const allCards = this.cardRepository.getAllCards();
     const noteCard = allCards.find(
-      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId?.equals(card.cardId) &&
+        c.curatorId.value === card.curatorId.value, // Only notes by the same author
     );
 
     const note = noteCard
@@ -353,9 +356,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       userId: membership.curatorId.value,
     }));
 
-    // Find note cards with matching URL
+    // Find note card by the same author with matching parent card ID
     const noteCard = allCards.find(
-      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId?.equals(card.cardId) &&
+        c.curatorId.value === card.curatorId.value, // Only notes by the same author
     );
 
     const note = noteCard
