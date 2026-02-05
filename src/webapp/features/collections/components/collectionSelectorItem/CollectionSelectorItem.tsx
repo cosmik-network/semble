@@ -35,7 +35,7 @@ export default function CollectionSelectorItem(props: Props) {
       onChange={(checked) => props.onChange(checked, props.collection)}
     >
       <Group justify="space-between" wrap="nowrap">
-        <Group gap={4} flex={1} wrap="nowrap">
+        <Group gap={'xs'} flex={1} wrap="nowrap">
           {props.collection.accessType === CollectionAccessType.OPEN && (
             <ThemeIcon variant="light" radius={'xl'} size={'xs'} color="green">
               <FaSeedling size={8} />

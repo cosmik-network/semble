@@ -171,12 +171,12 @@ export default function AddCardDrawer(props: Props) {
                               ? 'grape'
                               : 'gray'
                           }
-                          leftSection={
+                          rightSection={
                             selectedCollections.some((c) => c.id === col.id) ? (
                               <IoMdCheckmark />
                             ) : null
                           }
-                          rightSection={
+                          leftSection={
                             isMarginUri(col.uri) ? (
                               <MarginLogo size={12} marginUrl={marginUrl} />
                             ) : col.accessType === CollectionAccessType.OPEN ? (
