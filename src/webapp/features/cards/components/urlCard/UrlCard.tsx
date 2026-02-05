@@ -1,7 +1,7 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import { Card, Stack } from '@mantine/core';
+import { Anchor, Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { MouseEvent } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
@@ -10,6 +10,7 @@ import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
+import Link from 'next/link';
 
 interface Props {
   id: string;
@@ -23,6 +24,7 @@ interface Props {
   authorHandle?: string;
   cardAuthor?: User;
   viaCardId?: string;
+  showAuthor?: boolean;
 }
 
 export default function UrlCard(props: Props) {
@@ -65,13 +67,8 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
       onAuxClick={handleAuxClick}
     >
-      <Stack justify="space-between" gap={'sm'} flex={1}>
-        <UrlCardContent
-          url={props.url}
-          uri={props.uri}
-          cardContent={props.cardContent}
-          authorHandle={props.cardAuthor?.handle}
-        />
+      <Stack justify="space-between" flex={1}>
+        <UrlCardContent url={props.url} cardContent={props.cardContent} />
 
         {settings.tinkerMode && (
           <UrlCardDebugView
@@ -80,18 +77,52 @@ export default function UrlCard(props: Props) {
           />
         )}
 
-        <UrlCardActions
-          cardAuthor={props.cardAuthor}
-          cardContent={props.cardContent}
-          cardCount={props.urlLibraryCount}
-          id={props.id}
-          authorHandle={props.authorHandle}
-          note={props.note}
-          currentCollection={props.currentCollection}
-          urlLibraryCount={props.urlLibraryCount}
-          urlIsInLibrary={props.urlIsInLibrary ?? false}
-          viaCardId={props.viaCardId}
-        />
+        <Stack>
+          {props.showAuthor && props.cardAuthor && (
+            <Group gap={'7'}>
+              <Text fz={'xs'} c={'dimmed'} fw={500}>
+                Added by{' '}
+              </Text>
+              <Group gap={'5'}>
+                <Avatar
+                  component={Link}
+                  href={`/profile/${props.cardAuthor?.handle}`}
+                  src={props.cardAuthor?.avatarUrl?.replace(
+                    'avatar',
+                    'avatar_thumbnail',
+                  )}
+                  alt={`${props.cardAuthor?.handle}'s avatar`}
+                  size={'xs'}
+                  radius={'sm'}
+                />
+                <Anchor
+                  component={Link}
+                  href={`/profile/${props.cardAuthor.handle}`}
+                  fz={'xs'}
+                  fw={600}
+                  c={'bright'}
+                  underline="never"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {props.cardAuthor.name || `@${props.cardAuthor.handle}`}
+                </Anchor>
+              </Group>
+            </Group>
+          )}
+
+          <UrlCardActions
+            cardAuthor={props.cardAuthor}
+            cardContent={props.cardContent}
+            cardCount={props.urlLibraryCount}
+            id={props.id}
+            authorHandle={props.authorHandle}
+            note={props.note}
+            currentCollection={props.currentCollection}
+            urlLibraryCount={props.urlLibraryCount}
+            urlIsInLibrary={props.urlIsInLibrary ?? false}
+            viaCardId={props.viaCardId}
+          />
+        </Stack>
       </Stack>
     </Card>
   );

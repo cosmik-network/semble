@@ -51,6 +51,7 @@ export default function CollectionsNavList() {
             name={collection.name}
             url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
             cardCount={collection.cardCount}
+            uri={collection.uri}
           />
         ))}
       </Stack>

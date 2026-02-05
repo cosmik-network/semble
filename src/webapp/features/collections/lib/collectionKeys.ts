@@ -1,5 +1,6 @@
 import {
   CardSortField,
+  CollectionAccessType,
   CollectionSortField,
   SortOrder,
   UrlType,
@@ -11,10 +12,11 @@ export const collectionKeys = {
   mine: (limit?: number, query?: string) =>
     [...collectionKeys.all(), 'mine', query, limit] as const,
   search: (
-    searchText: string,
+    searchText?: string,
     limit?: number,
     sortBy?: string,
-    handle?: string,
+    accessType?: CollectionAccessType,
+    identifier?: string,
   ) =>
     [
       ...collectionKeys.all(),
@@ -22,7 +24,8 @@ export const collectionKeys = {
       searchText,
       limit,
       sortBy,
-      handle,
+      accessType,
+      identifier,
     ] as const,
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
   infinite: (

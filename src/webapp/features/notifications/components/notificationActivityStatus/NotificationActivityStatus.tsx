@@ -106,6 +106,24 @@ export default function NotificationActivityStatus(props: Props) {
             )}
           </Fragment>
         );
+      case NotificationType.USER_ADDED_TO_YOUR_COLLECTION:
+        return (
+          <Fragment>
+            {userName}{' '}
+            {collections.length === 0 ? (
+              <Text span>added a card to your collection</Text>
+            ) : (
+              <Fragment>
+                <Text span>added a card to </Text>
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
+              </Fragment>
+            )}
+          </Fragment>
+        );
       default:
         return (
           <Fragment>

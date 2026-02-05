@@ -17,7 +17,7 @@ import { Suspense, useEffect, useState } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
-import { IoMdLink } from 'react-icons/io';
+import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
@@ -141,7 +141,7 @@ export default function AddCardDrawer(props: Props) {
                   {selectedCollections.length > 0 &&
                     `(${selectedCollections.length})`}
                 </Text>
-                <ScrollArea.Autosize type="hover">
+                <ScrollArea.Autosize type="hover" scrollbars="x">
                   <Group gap={'xs'} wrap="nowrap">
                     <Button
                       onClick={toggleCollectionSelector}
@@ -168,6 +168,16 @@ export default function AddCardDrawer(props: Props) {
                               ? 'grape'
                               : 'gray'
                           }
+                          leftSection={
+                            selectedCollections.some((c) => c.id === col.id) ? (
+                              <IoMdCheckmark />
+                            ) : null
+                          }
+                          rightSection={
+                            isMarginUri(col.uri) ? (
+                              <MarginLogo size={12} marginUrl={marginUrl} />
+                            ) : undefined
+                          }
                           onClick={() => {
                             setSelectedCollections((prev) => {
                               // already selected, remove
@@ -178,11 +188,6 @@ export default function AddCardDrawer(props: Props) {
                               return [...prev, col];
                             });
                           }}
-                          rightSection={
-                            isMarginUri(col.uri) ? (
-                              <MarginLogo size={12} marginUrl={marginUrl} />
-                            ) : undefined
-                          }
                         >
                           {col.name}
                         </Button>

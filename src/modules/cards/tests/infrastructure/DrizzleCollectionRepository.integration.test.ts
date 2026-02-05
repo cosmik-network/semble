@@ -570,4 +570,99 @@ describe('DrizzleCollectionRepository', () => {
       expect(collection.authorId.value).toBe(curatorId.value);
     });
   });
+
+  it('should find collections containing a card added by a specific user', async () => {
+    // Create a card
+    const cardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: 'Card added by different users',
+      },
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Collection 1: Owned by collaboratorId, card added by curatorId
+    const collection1Id = new UniqueEntityID();
+    const collection1 = Collection.create(
+      {
+        authorId: collaboratorId,
+        name: 'Collection Owned By Collaborator',
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection1Id,
+    ).unwrap();
+
+    // curatorId adds card to collaborator's collection
+    collection1.addCard(card.cardId, curatorId);
+
+    // Collection 2: Owned by collaboratorId, card added by collaboratorId
+    const collection2Id = new UniqueEntityID();
+    const collection2 = Collection.create(
+      {
+        authorId: collaboratorId,
+        name: 'Collection With Card Added By Collaborator',
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection2Id,
+    ).unwrap();
+
+    // collaboratorId adds card to their own collection
+    collection2.addCard(card.cardId, collaboratorId);
+
+    // Collection 3: Owned by curatorId, card added by curatorId
+    const collection3Id = new UniqueEntityID();
+    const collection3 = Collection.create(
+      {
+        authorId: curatorId,
+        name: 'Collection Owned And Added By Curator',
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection3Id,
+    ).unwrap();
+
+    // curatorId adds card to their own collection
+    collection3.addCard(card.cardId, curatorId);
+
+    await collectionRepository.save(collection1);
+    await collectionRepository.save(collection2);
+    await collectionRepository.save(collection3);
+
+    // Find collections where curatorId added the card
+    const foundCollectionsResult =
+      await collectionRepository.findContainingCardAddedBy(
+        card.cardId,
+        curatorId,
+      );
+    expect(foundCollectionsResult.isOk()).toBe(true);
+
+    const foundCollections = foundCollectionsResult.unwrap();
+    expect(foundCollections).toHaveLength(2);
+
+    const names = foundCollections.map((c) => c.name.value);
+    expect(names).toContain('Collection Owned By Collaborator');
+    expect(names).toContain('Collection Owned And Added By Curator');
+    expect(names).not.toContain('Collection With Card Added By Collaborator');
+
+    // Verify that collections where curatorId added the card are returned
+    // regardless of who owns the collection
+    foundCollections.forEach((collection) => {
+      const cardLink = collection.cardLinks.find((link) =>
+        link.cardId.equals(card.cardId),
+      );
+      expect(cardLink).toBeDefined();
+      expect(cardLink?.addedBy.value).toBe(curatorId.value);
+    });
+  });
 });

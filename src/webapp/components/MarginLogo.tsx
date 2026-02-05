@@ -4,9 +4,14 @@ import { MouseEvent } from 'react';
 interface Props {
   size?: number;
   marginUrl?: string | null;
+  tooltipText?: string;
 }
 
-export default function MarginLogo({ size = 16, marginUrl }: Props) {
+export default function MarginLogo({
+  size = 16,
+  marginUrl,
+  tooltipText = 'View on Margin',
+}: Props) {
   const handleClick = (e: MouseEvent) => {
     e.stopPropagation();
   };
@@ -31,7 +36,7 @@ export default function MarginLogo({ size = 16, marginUrl }: Props) {
   }
 
   return (
-    <Tooltip label="View on Margin">
+    <Tooltip label={tooltipText}>
       <Anchor
         href={marginUrl}
         target="_blank"

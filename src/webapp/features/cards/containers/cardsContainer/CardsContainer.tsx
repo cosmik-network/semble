@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Container, Stack } from '@mantine/core';
+import { Button, Container, Group, Stack } from '@mantine/core';
 import { Suspense } from 'react';
 import CardsContainerContent from '../cardsContainerContent/CardsContainerContent';
 import CardsContainerContentSkeleton from '../cardsContainerContent/Skeleton.CardsContainerContent';
@@ -16,10 +16,12 @@ export default function CardsContainer(props: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <CardFilters.Root>
-          <CardFilters.SortSelect />
-          <CardFilters.TypeFilter />
-          <CardFilters.ViewToggle />
+        <Group gap={'xs'} justify="space-between">
+          <CardFilters.Root>
+            <CardFilters.SortSelect />
+            <CardFilters.ViewToggle />
+            <CardFilters.TypeFilter />
+          </CardFilters.Root>
           <Button
             component={Link}
             href={`/search/cards?handle=${props.handle}`}
@@ -29,7 +31,7 @@ export default function CardsContainer(props: Props) {
           >
             Search
           </Button>
-        </CardFilters.Root>
+        </Group>
 
         <Suspense fallback={<CardsContainerContentSkeleton />}>
           <CardsContainerContent handle={props.handle} />

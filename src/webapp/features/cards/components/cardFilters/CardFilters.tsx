@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Button, Popover, Select } from '@mantine/core';
+import { Group, Button, Popover, Menu } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
@@ -9,13 +9,15 @@ import {
   ReactNode,
   useOptimistic,
   useTransition,
+  Fragment,
 } from 'react';
 import { upperFirst } from '@mantine/hooks';
 import { CardSortField, UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
-import { BsFillGridFill, BsListTask } from 'react-icons/bs';
+import { BsGrid, BsListTask } from 'react-icons/bs';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { IoMdCheckmark } from 'react-icons/io';
 
 // context
 interface FilterContextValue {
@@ -46,12 +48,20 @@ export function Root(props: { children: ReactNode }) {
         searchParams,
       }}
     >
-      <Group gap="xs">{props.children}</Group>
+      <Menu shadow="sm">
+        <Menu.Target>
+          <Button variant="light" color="gray" leftSection={<MdFilterList />}>
+            Filters
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown w={200}>{props.children}</Menu.Dropdown>
+      </Menu>
     </FilterContext.Provider>
   );
 }
 
 // sort select
+// sort select (menu-style)
 export function SortSelect() {
   const ctx = useFilterContext();
   const [, startTransition] = useTransition();
@@ -74,19 +84,36 @@ export function SortSelect() {
   };
 
   return (
-    <Select
-      w={140}
-      allowDeselect={false}
-      variant="filled"
-      size="sm"
-      value={optimisticSort}
-      onChange={(v) => onChange(v as CardSortField)}
-      data={[
-        { value: CardSortField.UPDATED_AT, label: 'Newest' },
-        { value: CardSortField.CREATED_AT, label: 'Oldest' },
-        { value: CardSortField.LIBRARY_COUNT, label: 'Most Popular' },
-      ]}
-    />
+    <Fragment>
+      <Menu.Label>Sort</Menu.Label>
+
+      <Menu.Item
+        onClick={() => onChange(CardSortField.UPDATED_AT)}
+        rightSection={
+          optimisticSort === CardSortField.UPDATED_AT && <IoMdCheckmark />
+        }
+      >
+        Newest
+      </Menu.Item>
+
+      <Menu.Item
+        onClick={() => onChange(CardSortField.CREATED_AT)}
+        rightSection={
+          optimisticSort === CardSortField.CREATED_AT && <IoMdCheckmark />
+        }
+      >
+        Oldest
+      </Menu.Item>
+
+      <Menu.Item
+        onClick={() => onChange(CardSortField.LIBRARY_COUNT)}
+        rightSection={
+          optimisticSort === CardSortField.LIBRARY_COUNT && <IoMdCheckmark />
+        }
+      >
+        Most Popular
+      </Menu.Item>
+    </Fragment>
   );
 }
 
@@ -126,48 +153,52 @@ export function TypeFilter() {
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
   return (
-    <Popover opened={opened} onChange={setOpened} shadow="sm">
-      <Popover.Target>
-        <Button
-          variant="light"
-          color="gray"
-          leftSection={<SelectedIcon />}
-          onClick={() => setOpened((o) => !o)}
-        >
-          {optimisticType ? upperFirst(optimisticType) : 'All Types'}
-        </Button>
-      </Popover.Target>
-
-      <Popover.Dropdown maw={300}>
-        <Group gap={6}>
+    <Fragment>
+      <Menu.Label>Type</Menu.Label>
+      <Popover opened={opened} onChange={setOpened} shadow="sm">
+        <Popover.Target>
           <Button
-            size="xs"
-            color="lime"
-            variant={optimisticType === null ? 'filled' : 'light'}
-            onClick={() => onChange()}
+            variant="light"
+            color="gray"
+            leftSection={<SelectedIcon />}
+            onClick={() => setOpened((o) => !o)}
+            fullWidth
           >
-            All Types
+            {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
           </Button>
+        </Popover.Target>
 
-          {Object.values(UrlType).map((type) => {
-            const Icon = getUrlTypeIcon(type);
+        <Popover.Dropdown maw={300}>
+          <Group gap={6}>
+            <Button
+              size="xs"
+              color="lime"
+              variant={optimisticType === null ? 'filled' : 'light'}
+              onClick={() => onChange()}
+            >
+              All Cards
+            </Button>
 
-            return (
-              <Button
-                key={type}
-                size="xs"
-                color="lime"
-                variant={optimisticType === type ? 'filled' : 'light'}
-                leftSection={<Icon />}
-                onClick={() => onChange(type)}
-              >
-                {upperFirst(type)}
-              </Button>
-            );
-          })}
-        </Group>
-      </Popover.Dropdown>
-    </Popover>
+            {Object.values(UrlType).map((type) => {
+              const Icon = getUrlTypeIcon(type);
+
+              return (
+                <Button
+                  key={type}
+                  size="xs"
+                  color="lime"
+                  variant={optimisticType === type ? 'filled' : 'light'}
+                  leftSection={<Icon />}
+                  onClick={() => onChange(type)}
+                >
+                  {upperFirst(type)}
+                </Button>
+              );
+            })}
+          </Group>
+        </Popover.Dropdown>
+      </Popover>
+    </Fragment>
   );
 }
 
@@ -175,17 +206,24 @@ export function TypeFilter() {
 export function ViewToggle() {
   const { settings, updateSetting } = useUserSettings();
 
-  const isGrid = settings.cardView === 'grid';
-
   return (
-    <Button
-      variant="light"
-      color="gray"
-      leftSection={isGrid ? <BsFillGridFill /> : <BsListTask />}
-      onClick={() => updateSetting('cardView', isGrid ? 'list' : 'grid')}
-    >
-      {upperFirst(settings.cardView)}
-    </Button>
+    <Fragment>
+      <Menu.Label>Card View</Menu.Label>
+      <Menu.Item
+        leftSection={<BsGrid />}
+        rightSection={settings.cardView === 'grid' && <IoMdCheckmark />}
+        onClick={() => updateSetting('cardView', 'grid')}
+      >
+        Grid
+      </Menu.Item>
+      <Menu.Item
+        leftSection={<BsListTask />}
+        rightSection={settings.cardView === 'list' && <IoMdCheckmark />}
+        onClick={() => updateSetting('cardView', 'list')}
+      >
+        List{' '}
+      </Menu.Item>
+    </Fragment>
   );
 }
 
