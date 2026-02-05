@@ -68,7 +68,11 @@ export default function UrlCard(props: Props) {
       onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between" flex={1}>
-        <UrlCardContent url={props.url} cardContent={props.cardContent} />
+        <UrlCardContent
+          url={props.url}
+          uri={props.uri}
+          cardContent={props.cardContent}
+        />
 
         {settings.tinkerMode && (
           <UrlCardDebugView

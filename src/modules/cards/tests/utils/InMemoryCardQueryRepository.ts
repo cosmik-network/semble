@@ -156,6 +156,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
+      uri: card.publishedRecordId?.uri,
       url: card.content.urlContent.url.value,
       cardContent: {
         url: card.content.urlContent.url.value,
