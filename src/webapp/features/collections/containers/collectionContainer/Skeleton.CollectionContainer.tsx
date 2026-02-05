@@ -1,4 +1,4 @@
-import { Container, Group, Skeleton, Stack, Text } from '@mantine/core';
+import { Container, Group, Skeleton, Stack } from '@mantine/core';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 
 export default function CollectionContainerSkeleton() {
@@ -8,9 +8,7 @@ export default function CollectionContainerSkeleton() {
         <Group justify="space-between" align="start">
           <Stack gap={'xs'}>
             <Group gap={'xs'}>
-              <Text fw={700} c="grape">
-                Collection
-              </Text>
+              <Skeleton w={74} h={20} />
 
               {/* Open collection badge */}
               <Skeleton w={67} h={20} />
