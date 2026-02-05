@@ -9,6 +9,7 @@ const APPROVED_HANDLES = new Set([
   'erlend.sh',
   'tgoerke.bsky.social',
   'psingletary.com',
+  'hilarybaumann.com',
 ]);
 
 export async function getServerFeatureFlags() {
