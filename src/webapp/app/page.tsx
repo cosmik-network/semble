@@ -28,6 +28,7 @@ import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcu
 import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
 import Footer from '@/components/landing/footer/Footer';
 import { Fragment } from 'react';
+import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 
 export default async function Page() {
   const fadeStyle = {
@@ -110,21 +111,7 @@ function Content() {
                     connections. Built on ATProto so you own your data.
                   </Title>
 
-                  <Group gap="md" mt="lg">
-                    <Button component={Link} href="/signup" size="lg">
-                      Sign up
-                    </Button>
-
-                    <Button
-                      component={Link}
-                      href="/login"
-                      size="lg"
-                      color="var(--mantine-color-dark-filled)"
-                      rightSection={<BiRightArrowAlt size={22} />}
-                    >
-                      Log in
-                    </Button>
-                  </Group>
+                  <AuthButtons />
                 </Stack>
               </GridCol>
               <GridCol span={{ sm: 7, md: 6 }}>
