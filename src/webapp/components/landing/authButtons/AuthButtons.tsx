@@ -1,35 +1,35 @@
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
+'use client';
+
+import { useAuth } from '@/hooks/useAuth';
 import { Avatar, Box, Button, Group } from '@mantine/core';
 import Link from 'next/link';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
-export default async function AuthButtons() {
-  const session = await verifySessionOnServer();
+export default function AuthButtons() {
+  const { user, isLoading } = useAuth();
 
   return (
     <Box mt={'lg'}>
-      <ErrorBoundary fallback={<UnauthenticatedButtons />}>
-        <Suspense fallback={<UnauthenticatedButtons />}>
-          <Button
-            component={Link}
-            href="/home"
-            size="lg"
-            color="var(--mantine-color-dark-filled)"
-            leftSection={
-              <Avatar
-                src={session?.avatarUrl}
-                alt={`${session?.handle}'s avatar`}
-                size={'sm'}
-              />
-            }
-            rightSection={<BiRightArrowAlt size={22} />}
-          >
-            @{session?.handle}
-          </Button>
-        </Suspense>
-      </ErrorBoundary>
+      {!isLoading && user ? (
+        <Button
+          component={Link}
+          href="/home"
+          size="lg"
+          color="var(--mantine-color-dark-filled)"
+          leftSection={
+            <Avatar
+              src={user?.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+              alt={`${user?.handle}'s avatar`}
+              size={'sm'}
+            />
+          }
+          rightSection={<BiRightArrowAlt size={22} />}
+        >
+          @{user?.handle}
+        </Button>
+      ) : (
+        <UnauthenticatedButtons />
+      )}
     </Box>
   );
 }
