@@ -29,7 +29,7 @@ export default function SearchTabs() {
       : 'cards';
 
   const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
-  const [isPending, startTransition] = useTransition();
+  const [_, startTransition] = useTransition();
 
   const buildTabHref = (tabValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
