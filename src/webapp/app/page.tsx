@@ -14,7 +14,6 @@ import {
   Grid,
   GridCol,
 } from '@mantine/core';
-import { BiRightArrowAlt } from 'react-icons/bi';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
@@ -22,7 +21,6 @@ import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
 import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
 import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcutButton';
 import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
