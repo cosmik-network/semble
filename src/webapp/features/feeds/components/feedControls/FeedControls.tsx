@@ -14,14 +14,7 @@ import FeedFilters from '../feedFilters/FeedFilters';
 import { ActivitySource } from '@semble/types';
 import { useOptimistic, useTransition } from 'react';
 
-const options = [
-  { value: 'explore', label: 'Latest', href: '/explore' },
-  {
-    value: 'gems-of-2025',
-    label: '💎 Gems of 2025 💎',
-    href: '/explore/gems-of-2025',
-  },
-];
+const options = [{ value: 'explore', label: 'Latest', href: '/explore' }];
 
 const sourceOptions = [
   { value: null, label: 'All Sources' },
