@@ -160,6 +160,7 @@ export function TypeFilter() {
           <Button
             variant="light"
             color="gray"
+            radius={'md'}
             leftSection={<SelectedIcon />}
             onClick={() => setOpened((o) => !o)}
             fullWidth
