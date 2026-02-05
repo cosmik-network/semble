@@ -125,6 +125,7 @@ export default function CollectionContainer(props: Props) {
             accessType={collection.accessType}
             authorHandle={collection.author.handle}
             cardCount={collection.cardCount}
+            uri={collection.uri}
           />
         </Group>
 

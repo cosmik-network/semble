@@ -18,6 +18,7 @@ interface Props {
   accessType?: CollectionAccessType;
   authorHandle: string;
   cardCount: number;
+  uri?: string;
 }
 
 export default function CollectionActions(props: Props) {
@@ -107,6 +108,8 @@ export default function CollectionActions(props: Props) {
           name: props.name,
           description: props.description,
           accessType: props.accessType,
+          uri: props.uri,
+          authorHandle: props.authorHandle,
         }}
       />
       <DeleteCollectionModal
