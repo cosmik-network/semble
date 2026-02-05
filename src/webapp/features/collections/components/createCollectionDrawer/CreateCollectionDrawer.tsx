@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
   initialName?: string;
   onCreate?: (
-    newCollection: Pick<Collection, 'id' | 'name' | 'cardCount'>,
+    newCollection: Pick<Collection, 'id' | 'name' | 'cardCount' | 'accessType'>,
   ) => void;
 }
 
@@ -55,6 +55,7 @@ export default function createCollectionDrawer(props: Props) {
               id: newCollection.collectionId,
               name: form.getValues().name,
               cardCount: 0,
+              accessType: form.getValues().accessType,
             });
           }
         },
