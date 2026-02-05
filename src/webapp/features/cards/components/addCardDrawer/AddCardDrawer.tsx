@@ -8,6 +8,7 @@ import {
   Text,
   Textarea,
   TextInput,
+  ThemeIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -23,11 +24,13 @@ import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { Collection, CollectionAccessType } from '@semble/types';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  selectedCollection?: SelectableCollectionItem;
+  selectedCollection?: Collection;
   initialUrl?: string;
 }
 
@@ -176,6 +179,15 @@ export default function AddCardDrawer(props: Props) {
                           rightSection={
                             isMarginUri(col.uri) ? (
                               <MarginLogo size={12} marginUrl={marginUrl} />
+                            ) : col.accessType === CollectionAccessType.OPEN ? (
+                              <ThemeIcon
+                                variant="light"
+                                radius={'xl'}
+                                size={'xs'}
+                                color="green"
+                              >
+                                <FaSeedling size={8} />
+                              </ThemeIcon>
                             ) : undefined
                           }
                           onClick={() => {

@@ -6,6 +6,7 @@ import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import classes from './TabItem.module.css';
+import { Collection } from '@semble/types';
 
 interface Props {
   isOpen: boolean;
@@ -13,10 +14,8 @@ interface Props {
   onCancel: () => void;
   onSave: (e: React.FormEvent) => void;
   isSaving?: boolean;
-  selectedCollections: SelectableCollectionItem[];
-  onSelectedCollectionsChange: (
-    collectionIds: SelectableCollectionItem[],
-  ) => void;
+  selectedCollections: Collection[];
+  onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
 }
 
 export default function CollectionSelector(props: Props) {

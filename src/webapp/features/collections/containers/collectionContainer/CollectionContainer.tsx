@@ -126,14 +126,10 @@ export default function CollectionContainer(props: Props) {
           </CardFilters.Root>
 
           <CollectionActions
-            id={collection.id}
-            rkey={props.rkey}
-            name={collection.name}
-            description={collection.description}
-            accessType={collection.accessType}
-            authorHandle={collection.author.handle}
-            cardCount={collection.cardCount}
-            uri={collection.uri}
+            collection={{
+              ...collection,
+              rkey: props.rkey,
+            }}
           />
         </Group>
 

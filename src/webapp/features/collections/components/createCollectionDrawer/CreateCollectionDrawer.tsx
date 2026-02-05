@@ -1,4 +1,4 @@
-import { CollectionAccessType } from '@semble/types';
+import { Collection, CollectionAccessType } from '@semble/types';
 import {
   Button,
   Container,
@@ -21,11 +21,9 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialName?: string;
-  onCreate?: (newCollection: {
-    id: string;
-    name: string;
-    cardCount: number;
-  }) => void;
+  onCreate?: (
+    newCollection: Pick<Collection, 'id' | 'name' | 'cardCount'>,
+  ) => void;
 }
 
 export default function createCollectionDrawer(props: Props) {
@@ -52,13 +50,12 @@ export default function createCollectionDrawer(props: Props) {
       {
         onSuccess: (newCollection) => {
           props.onClose();
-          if (newCollection) {
-            props.onCreate &&
-              props.onCreate({
-                id: newCollection.collectionId,
-                name: form.getValues().name,
-                cardCount: 0,
-              });
+          if (newCollection && props.onCreate) {
+            props.onCreate({
+              id: newCollection.collectionId,
+              name: form.getValues().name,
+              cardCount: 0,
+            });
           }
         },
         onError: () => {

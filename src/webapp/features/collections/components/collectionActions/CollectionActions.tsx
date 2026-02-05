@@ -1,4 +1,4 @@
-import { CollectionAccessType } from '@semble/types';
+import { Collection, CollectionAccessType } from '@semble/types';
 import { Group, Menu, ActionIcon, CopyButton, Button } from '@mantine/core';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
@@ -12,14 +12,9 @@ import { notifications } from '@mantine/notifications';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
-  id: string;
-  rkey: string;
-  name: string;
-  description?: string;
-  accessType?: CollectionAccessType;
-  authorHandle: string;
-  cardCount: number;
-  uri?: string;
+  collection: Collection & {
+    rkey: string;
+  };
 }
 
 export default function CollectionActions(props: Props) {
@@ -29,17 +24,18 @@ export default function CollectionActions(props: Props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
-  const isAuthor = user?.handle === props.authorHandle;
+  const isAuthor = user?.handle === props.collection.author?.handle;
   const shareLink =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/profile/${props.authorHandle}/collections/${props.rkey}`
+      ? `${window.location.origin}/profile/${props.collection.author?.handle}/collections/${props.collection.rkey}`
       : '';
 
   return (
     <Fragment>
       <Group gap={'xs'}>
         {isAuthenticated &&
-          (props.accessType === CollectionAccessType.OPEN || isAuthor) &&
+          (props.collection.accessType === CollectionAccessType.OPEN ||
+            isAuthor) &&
           (featureFlags?.openCollections || isAuthor) && (
             <Button
               size="sm"
@@ -106,30 +102,26 @@ export default function CollectionActions(props: Props) {
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         collection={{
-          id: props.id,
-          rkey: props.rkey,
-          name: props.name,
-          description: props.description,
-          accessType: props.accessType,
-          uri: props.uri,
-          authorHandle: props.authorHandle,
+          id: props.collection.id,
+          rkey: props.collection.rkey,
+          name: props.collection.name,
+          description: props.collection.description,
+          accessType: props.collection.accessType,
+          uri: props.collection.uri,
+          authorHandle: props.collection.author?.handle,
         }}
       />
       <DeleteCollectionModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        collectionId={props.id}
+        collectionId={props.collection.id}
       />
 
       {user && (
         <AddCardDrawer
           isOpen={showAddDrawer}
           onClose={() => setShowAddDrawer(false)}
-          selectedCollection={{
-            id: props.id,
-            name: props.name,
-            cardCount: props.cardCount,
-          }}
+          selectedCollection={props.collection}
         />
       )}
     </Fragment>

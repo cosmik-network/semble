@@ -121,11 +121,7 @@ export default function CollectionContainerContent(props: Props) {
           <AddCardDrawer
             isOpen={showAddDrawer}
             onClose={() => setShowAddDrawer(false)}
-            selectedCollection={{
-              id: firstPage.id,
-              name: firstPage.name,
-              cardCount: allCards.length,
-            }}
+            selectedCollection={data.pages[0]}
           />
         )}
       </Box>

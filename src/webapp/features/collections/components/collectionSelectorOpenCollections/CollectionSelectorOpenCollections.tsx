@@ -17,13 +17,11 @@ import { useDebouncedValue } from '@mantine/hooks';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
-import { CollectionAccessType } from '@semble/types';
+import { Collection, CollectionAccessType } from '@semble/types';
 
 interface Props {
-  selectedCollections: SelectableCollectionItem[];
-  onSelectedCollectionsChange: (
-    collectionIds: SelectableCollectionItem[],
-  ) => void;
+  selectedCollections: Collection[];
+  onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
 }
 
 export default function CollectionSelectorOpenCollections(props: Props) {
@@ -50,10 +48,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
 
-  const handleCollectionChange = (
-    checked: boolean,
-    item: SelectableCollectionItem,
-  ) => {
+  const handleCollectionChange = (checked: boolean, item: Collection) => {
     if (checked) {
       if (!props.selectedCollections.some((col) => col.id === item.id)) {
         props.onSelectedCollectionsChange([...props.selectedCollections, item]);
@@ -204,7 +199,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         onCreate={(newCollection) => {
           props.onSelectedCollectionsChange([
             ...props.selectedCollections,
-            newCollection,
+            newCollection as Collection,
           ]);
           setSearch('');
         }}

@@ -18,12 +18,11 @@ import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import useMyCollections from '../../lib/queries/useMyCollections';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
+import { Collection } from '@semble/types';
 
 interface Props {
-  selectedCollections: SelectableCollectionItem[];
-  onSelectedCollectionsChange: (
-    collectionIds: SelectableCollectionItem[],
-  ) => void;
+  selectedCollections: Collection[];
+  onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
 }
 
 export default function CollectionSelectorMyCollections(props: Props) {
@@ -44,10 +43,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
 
-  const handleCollectionChange = (
-    checked: boolean,
-    item: SelectableCollectionItem,
-  ) => {
+  const handleCollectionChange = (checked: boolean, item: Collection) => {
     if (checked) {
       if (!props.selectedCollections.some((col) => col.id === item.id)) {
         props.onSelectedCollectionsChange([...props.selectedCollections, item]);
@@ -184,7 +180,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
         onCreate={(newCollection) => {
           props.onSelectedCollectionsChange([
             ...props.selectedCollections,
-            newCollection,
+            newCollection as Collection,
           ]);
           setSearch('');
         }}

@@ -1,16 +1,7 @@
 import React, { Fragment } from 'react';
 import CollectionSelectorItem from '../collectionSelectorItem/CollectionSelectorItem';
 import { Stack } from '@mantine/core';
-
-interface Collection {
-  id: string;
-  name: string;
-  cardCount: number;
-  uri?: string;
-  author?: {
-    handle: string;
-  };
-}
+import { Collection } from '@semble/types';
 
 interface Props {
   collections: Collection[];
@@ -24,13 +15,9 @@ export default function CollectionSelectorItemList(props: Props) {
       {props.collections.map((c) => (
         <CollectionSelectorItem
           key={c.id}
-          name={c.name}
-          cardCount={c.cardCount}
-          value={c.id}
+          collection={c}
           checked={!!props.selectedCollections.find((col) => col.id === c.id)}
           onChange={(checked) => props.onChange(checked, c)}
-          uri={c.uri}
-          authorHandle={c.author?.handle}
         />
       ))}
     </Stack>

@@ -1,6 +1,6 @@
 'use client';
 
-import type { UrlCard } from '@semble/types';
+import type { Collection, UrlCard } from '@semble/types';
 import { Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
@@ -12,12 +12,6 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { track } from '@vercel/analytics';
 import AddCardActions from '../addCardActions/AddCardActions';
-
-interface SelectableCollectionItem {
-  id: string;
-  name: string;
-  cardCount: number;
-}
 
 interface Props {
   onClose: () => void;
@@ -49,7 +43,7 @@ export default function AddCardToModalContent(props: Props) {
   );
 
   const [selectedCollections, setSelectedCollections] =
-    useState<SelectableCollectionItem[]>(collectionsWithCard);
+    useState<Collection[]>(collectionsWithCard);
 
   const isSaving = addCard.isPending || updateCardAssociations.isPending;
 
