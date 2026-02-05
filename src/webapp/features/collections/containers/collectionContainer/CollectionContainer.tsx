@@ -56,7 +56,15 @@ export default function CollectionContainer(props: Props) {
         <Group justify="space-between" align="start">
           <Stack gap={0}>
             <Group gap={'xs'}>
-              <Text fw={700} c="grape">
+              <Text
+                fw={700}
+                c={
+                  collection.accessType === CollectionAccessType.OPEN &&
+                  featureFlags?.openCollections
+                    ? 'green'
+                    : 'grape'
+                }
+              >
                 Collection
               </Text>
 
