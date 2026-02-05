@@ -18,6 +18,7 @@ import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   isOpen: boolean;
@@ -35,8 +36,12 @@ interface Props {
 
 export default function EditCollectionModal(props: Props) {
   const updateCollection = useUpdateCollection();
+  const { data: featureFlags } = useFeatureFlags();
   const isMargin = isMarginUri(props.collection.uri);
-  const marginUrl = getMarginUrl(props.collection.uri, props.collection.authorHandle);
+  const marginUrl = getMarginUrl(
+    props.collection.uri,
+    props.collection.authorHandle,
+  );
 
   const form = useForm({
     initialValues: {
@@ -118,45 +123,47 @@ export default function EditCollectionModal(props: Props) {
                 {...form.getInputProps('description')}
               />
 
-              <Stack gap={'xs'}>
-                <Select
-                  variant="filled"
-                  size="md"
-                  color="green"
-                  label="Collaboration"
-                  disabled={isMargin}
-                  leftSection={
-                    form.getValues().accessType ===
-                    CollectionAccessType.OPEN ? (
-                      <ThemeIcon
-                        size={'md'}
-                        variant="light"
-                        color={'green'}
-                        radius={'xl'}
-                      >
-                        <FaSeedling size={14} />
-                      </ThemeIcon>
-                    ) : null
-                  }
-                  defaultValue={CollectionAccessType.CLOSED}
-                  data={[
-                    {
-                      value: CollectionAccessType.CLOSED,
-                      label: 'Closed — Only you can add',
-                    },
-                    {
-                      value: CollectionAccessType.OPEN,
-                      label: 'Open — Anyone can add',
-                    },
-                  ]}
-                  {...form.getInputProps('accessType')}
-                />
-                {isMargin && (
-                  <Text size="sm" c="dimmed">
-                    Collections made in Margin can't be changed to open.
-                  </Text>
-                )}
-              </Stack>
+              {featureFlags?.openCollections && (
+                <Stack gap={'xs'}>
+                  <Select
+                    variant="filled"
+                    size="md"
+                    color="green"
+                    label="Collaboration"
+                    disabled={isMargin}
+                    leftSection={
+                      form.getValues().accessType ===
+                      CollectionAccessType.OPEN ? (
+                        <ThemeIcon
+                          size={'md'}
+                          variant="light"
+                          color={'green'}
+                          radius={'xl'}
+                        >
+                          <FaSeedling size={14} />
+                        </ThemeIcon>
+                      ) : null
+                    }
+                    defaultValue={CollectionAccessType.CLOSED}
+                    data={[
+                      {
+                        value: CollectionAccessType.CLOSED,
+                        label: 'Closed — Only you can add',
+                      },
+                      {
+                        value: CollectionAccessType.OPEN,
+                        label: 'Open — Anyone can add',
+                      },
+                    ]}
+                    {...form.getInputProps('accessType')}
+                  />
+                  {isMargin && (
+                    <Text size="sm" c="dimmed">
+                      Collections made in Margin can't be changed to open.
+                    </Text>
+                  )}
+                </Stack>
+              )}
             </Stack>
 
             <Group justify="space-between" gap={'xs'} grow>
