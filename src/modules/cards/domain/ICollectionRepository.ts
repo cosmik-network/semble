@@ -12,6 +12,10 @@ export interface ICollectionRepository {
     authorId: CuratorId,
     cardId: CardId,
   ): Promise<Result<Collection[]>>;
+  findContainingCardAddedBy(
+    cardId: CardId,
+    addedBy: CuratorId,
+  ): Promise<Result<Collection[]>>;
   save(collection: Collection): Promise<Result<void>>;
   delete(collectionId: CollectionId): Promise<Result<void>>;
 }

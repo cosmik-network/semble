@@ -359,11 +359,11 @@ export class CardLibraryService implements DomainService {
         return ok(card);
       }
 
-      // Get all collections owned by the curator that contain this card
+      // Get all collections where this curator added this card (regardless of collection ownership)
       const collectionsResult =
-        await this.collectionRepository.findByCuratorIdContainingCard(
-          curatorId,
+        await this.collectionRepository.findContainingCardAddedBy(
           card.cardId,
+          curatorId,
         );
       if (collectionsResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionsResult.error));
