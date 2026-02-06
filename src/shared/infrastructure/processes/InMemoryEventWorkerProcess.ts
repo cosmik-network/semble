@@ -11,7 +11,6 @@ import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/applic
 import { CardAddedToCollectionEventHandler as NotificationCardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
 import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
-import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
@@ -47,16 +46,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Feed handlers
-    const cardCollectionSaga = new CardCollectionSaga(
-      useCases.addActivityToFeedUseCase,
-      services.sagaStateStore,
-    );
-
+    // Feed handlers - call use case directly (no saga intermediary)
     const feedCardAddedToLibraryHandler =
-      new FeedCardAddedToLibraryEventHandler(cardCollectionSaga);
+      new FeedCardAddedToLibraryEventHandler(useCases.addActivityToFeedUseCase);
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
-      cardCollectionSaga,
+      useCases.addActivityToFeedUseCase,
     );
 
     // Search handlers

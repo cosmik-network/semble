@@ -68,6 +68,7 @@ import { CachedLeafletSearchService } from 'src/modules/search/infrastructure/Ca
 import { IAtProtoRepoService } from '../../../../modules/atproto/application/IAtProtoRepoService';
 import { ATProtoRepoService } from '../../../../modules/atproto/infrastructure/services/ATProtoRepoService';
 import { FakeAtProtoRepoService } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoRepoService';
+import { DistributedLockServiceFactory } from '../../locking/DistributedLockServiceFactory';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -338,8 +339,12 @@ export class ServiceFactory {
       );
     }
 
-    // Feed Service
-    const feedService = new FeedService(repositories.feedRepository);
+    // Feed Service with distributed locking
+    const distributedLockService = DistributedLockServiceFactory.create();
+    const feedService = new FeedService(
+      repositories.feedRepository,
+      distributedLockService,
+    );
 
     // Notification Service
     const notificationService = new NotificationService(
