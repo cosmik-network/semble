@@ -3,12 +3,12 @@
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { SimpleGrid } from '@mantine/core';
+import { Container, SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
-import OpenCollectionContainerSkeleton from '../openCollectionsContainer/Skeleton.OpenCollectionsContainer';
+import OpenCollectionsContainerSkeleton from '../openCollectionsContainer/Skeleton.OpenCollectionsContainer';
 
 interface Props {
   sortBy?: CollectionSortField;
@@ -37,7 +37,11 @@ export default function OpenCollectionsContainerContent(props: Props) {
   }
 
   if (isLoading) {
-    return <OpenCollectionContainerSkeleton />;
+    return (
+      <Container p="xs" size="xl">
+        <OpenCollectionsContainerSkeleton />
+      </Container>
+    );
   }
 
   if (allCollections.length === 0) {
