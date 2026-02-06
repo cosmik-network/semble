@@ -16,17 +16,12 @@ interface Props {
 export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header title="Open Collections">
+      <Header>
         <BackButton href="/explore">Explore</BackButton>
       </Header>
 
       <Container p={'xs'} size={'xl'}>
-        <Stack gap={0}>
-          <Text fw={700} c="green">
-            Open Collections
-          </Text>
-          <Title order={2}>From our community</Title>
-        </Stack>
+        <Title order={2}>Open Collections</Title>
       </Container>
 
       {props.children}
