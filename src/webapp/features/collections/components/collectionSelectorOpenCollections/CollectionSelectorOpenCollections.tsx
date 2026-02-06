@@ -142,7 +142,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                     leftSection={<FiPlus size={22} />}
                     onClick={() => setIsDrawerOpen(true)}
                   >
-                    Create new collection
+                    Create new open collection
                   </Button>
 
                   {/* selected collections */}
@@ -196,6 +196,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         initialName={search}
+        initialAccessType={CollectionAccessType.OPEN}
         onCreate={(newCollection) => {
           props.onSelectedCollectionsChange([
             ...props.selectedCollections,
