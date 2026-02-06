@@ -13,6 +13,7 @@ import FeedFilters from '../feedFilters/FeedFilters';
 import { ActivitySource } from '@semble/types';
 import { useOptimistic, useTransition } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const sourceOptions = [
   { value: null, label: 'All' },
@@ -21,6 +22,7 @@ const sourceOptions = [
 ];
 
 export default function FeedControls() {
+  const { data: featureFlags } = useFeatureFlags();
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
@@ -100,15 +102,17 @@ export default function FeedControls() {
             </Combobox.Dropdown>
           </Combobox>
 
-          <Button
-            component={Link}
-            href={'/explore/open-collections'}
-            color="green"
-            variant="light"
-            leftSection={<FaSeedling />}
-          >
-            Open Collections
-          </Button>
+          {featureFlags?.openCollections && (
+            <Button
+              component={Link}
+              href={'/explore/open-collections'}
+              color="green"
+              variant="light"
+              leftSection={<FaSeedling />}
+            >
+              Open Collections
+            </Button>
+          )}
         </Group>
         <FeedFilters />
       </Group>
