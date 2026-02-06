@@ -9,6 +9,8 @@ import {
   Spoiler,
   Grid,
   GridCol,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
 import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
@@ -52,9 +54,23 @@ export default async function ProfileHeader(props: Props) {
                     <Title order={1} fz={'h2'} c={'bright'}>
                       {profile.name}
                     </Title>
-                    <Text c="gray" fw={600} fz={'lg'}>
-                      @{profile.handle}
-                    </Text>
+                    <Group gap={'xs'}>
+                      <Text c="gray" fw={600} fz={'lg'}>
+                        @{profile.handle}
+                      </Text>
+                      <Tooltip label="View Bluesky Profile">
+                        <ActionIcon
+                          component="a"
+                          href={`https://bsky.app/profile/${profile.handle}`}
+                          target="_blank"
+                          variant="light"
+                          color="blue"
+                          radius={'xl'}
+                        >
+                          <FaBluesky fill="#0085ff" />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
                   </Stack>
                   {profile.description && (
                     <Spoiler
@@ -70,20 +86,6 @@ export default async function ProfileHeader(props: Props) {
               </GridCol>
             </Grid>
           </Stack>
-          <Group>
-            <Button
-              component="a"
-              href={`https://bsky.app/profile/${profile.handle}`}
-              target="_blank"
-              variant="light"
-              size="xs"
-              radius={'xl'}
-              color={'gray'}
-              leftSection={<FaBluesky />}
-            >
-              {truncateText(profile.handle, 14)}
-            </Button>
-          </Group>
         </Stack>
       </Container>
     </Fragment>
