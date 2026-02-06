@@ -5,14 +5,12 @@ import {
   Avatar,
   Text,
   Title,
-  Button,
   Spoiler,
   Grid,
   GridCol,
   ActionIcon,
   Tooltip,
 } from '@mantine/core';
-import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal';
