@@ -8,6 +8,7 @@ import {
   Text,
   Textarea,
   TextInput,
+  ThemeIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -17,17 +18,19 @@ import { Suspense, useEffect, useState } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
-import { IoMdLink } from 'react-icons/io';
+import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { Collection, CollectionAccessType } from '@semble/types';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  selectedCollection?: SelectableCollectionItem;
+  selectedCollection?: Collection;
   initialUrl?: string;
 }
 
@@ -141,7 +144,7 @@ export default function AddCardDrawer(props: Props) {
                   {selectedCollections.length > 0 &&
                     `(${selectedCollections.length})`}
                 </Text>
-                <ScrollArea.Autosize type="hover">
+                <ScrollArea.Autosize type="hover" scrollbars="x">
                   <Group gap={'xs'} wrap="nowrap">
                     <Button
                       onClick={toggleCollectionSelector}
@@ -151,7 +154,7 @@ export default function AddCardDrawer(props: Props) {
                     >
                       {myCollections.length === 0
                         ? 'Create a collection'
-                        : 'Manage/View all'}
+                        : 'Manage'}
                     </Button>
 
                     {myCollections.map((col) => {
@@ -168,6 +171,25 @@ export default function AddCardDrawer(props: Props) {
                               ? 'grape'
                               : 'gray'
                           }
+                          rightSection={
+                            selectedCollections.some((c) => c.id === col.id) ? (
+                              <IoMdCheckmark />
+                            ) : null
+                          }
+                          leftSection={
+                            isMarginUri(col.uri) ? (
+                              <MarginLogo size={12} marginUrl={marginUrl} />
+                            ) : col.accessType === CollectionAccessType.OPEN ? (
+                              <ThemeIcon
+                                variant="light"
+                                radius={'xl'}
+                                size={'xs'}
+                                color="green"
+                              >
+                                <FaSeedling size={8} />
+                              </ThemeIcon>
+                            ) : undefined
+                          }
                           onClick={() => {
                             setSelectedCollections((prev) => {
                               // already selected, remove
@@ -178,11 +200,6 @@ export default function AddCardDrawer(props: Props) {
                               return [...prev, col];
                             });
                           }}
-                          rightSection={
-                            isMarginUri(col.uri) ? (
-                              <MarginLogo size={12} marginUrl={marginUrl} />
-                            ) : undefined
-                          }
                         >
                           {col.name}
                         </Button>

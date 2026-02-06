@@ -7,7 +7,6 @@ import {
   Stack,
 } from '@mantine/core';
 import CollectionCardSkeleton from '../../components/collectionCard/Skeleton.CollectionCard';
-import { IoSearch } from 'react-icons/io5';
 
 export default function CollectionsContainerSkeleton() {
   return (

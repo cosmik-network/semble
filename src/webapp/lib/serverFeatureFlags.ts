@@ -9,6 +9,7 @@ const APPROVED_HANDLES = new Set([
   'erlend.sh',
   'tgoerke.bsky.social',
   'psingletary.com',
+  'hilarybaumann.com',
 ]);
 
 export async function getServerFeatureFlags() {
@@ -23,5 +24,6 @@ export async function getServerFeatureFlags() {
     urlTypeFilter: show,
     leafletMentions: show,
     animatedLandingTitle: show,
+    openCollections: show,
   };
 }

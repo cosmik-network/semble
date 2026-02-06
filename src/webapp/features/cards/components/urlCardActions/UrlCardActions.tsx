@@ -1,6 +1,11 @@
 'use client';
 
-import type { UrlCard, Collection, User } from '@/api-client';
+import {
+  type UrlCard,
+  type Collection,
+  type User,
+  CollectionAccessType,
+} from '@/api-client';
 import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
@@ -15,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   id: string;
@@ -31,11 +37,29 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const isAuthorByHandle =
-    props.authorHandle && user?.handle === props.authorHandle;
-  const isAuthorById =
-    !props.authorHandle && props.cardAuthor && user?.id === props.cardAuthor.id;
-  const isAuthor = Boolean(user && (isAuthorByHandle || isAuthorById));
+  const { data: featureFlags } = useFeatureFlags();
+
+  const userId = user?.id;
+  const userHandle = user?.handle;
+
+  const isAuthor =
+    !!user &&
+    (props.authorHandle
+      ? userHandle === props.authorHandle
+      : userId === props.cardAuthor?.id);
+
+  const isOpenCollection =
+    featureFlags?.openCollections &&
+    props.currentCollection?.accessType === CollectionAccessType.OPEN;
+
+  const isCardAdder = userId === props.cardAuthor?.id;
+  const isCollectionOwner = userId === props.currentCollection?.author.id;
+
+  const canRemoveFromOpenCollection =
+    !!user && isOpenCollection && (isCardAdder || isCollectionOwner);
+
+  const canRemoveFromLibrary = isAuthor && props.urlIsInLibrary;
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -135,18 +159,19 @@ export default function UrlCardActions(props: Props) {
               )}
             </CopyButton>
 
-            {props.currentCollection && isAuthor && (
-              <Menu.Item
-                leftSection={<LuUnplug />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowRemoveFromCollectionModal(true);
-                }}
-              >
-                Remove from this collection
-              </Menu.Item>
-            )}
-            {isAuthor && (
+            {props.currentCollection &&
+              (isAuthor || canRemoveFromOpenCollection) && (
+                <Menu.Item
+                  leftSection={<LuUnplug />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRemoveFromCollectionModal(true);
+                  }}
+                >
+                  Remove from this collection
+                </Menu.Item>
+              )}
+            {canRemoveFromLibrary && (
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}

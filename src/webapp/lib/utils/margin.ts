@@ -11,14 +11,17 @@ export function isMarginUri(uri?: string): boolean {
 /**
  * Extract Margin URL from an AT Protocol URI
  * @param uri - The AT Protocol URI (e.g., "at://did:plc:xyz/at.margin.bookmark/3mdjtvntgej2v")
- * @param handle - The user's handle (e.g., "alice.bsky.social")
+ * @param handle - The user's handle (e.g., "alice.bsky.social") - optional, will use DID if not provided
  * @returns The Margin URL or null if not a valid Margin URI
  * @example
  * getMarginUrl("at://did:plc:xyz/at.margin.bookmark/3mdjtvntgej2v", "alice.bsky.social")
  * // returns "https://margin.at/alice.bsky.social/bookmark/3mdjtvntgej2v"
+ *
+ * getMarginUrl("at://did:plc:xyz/at.margin.bookmark/3mdjtvntgej2v")
+ * // returns "https://margin.at/did:plc:xyz/bookmark/3mdjtvntgej2v"
  */
 export function getMarginUrl(uri?: string, handle?: string): string | null {
-  if (!uri || !handle || !isMarginUri(uri)) return null;
+  if (!uri || !isMarginUri(uri)) return null;
 
   // URI format: at://did:plc:xyz/at.margin.{collection|bookmark}/{rkey}
   const parts = uri.split('/');
@@ -30,5 +33,8 @@ export function getMarginUrl(uri?: string, handle?: string): string | null {
   // Extract the type from collection name
   const type = collection.replace('at.margin.', ''); // "bookmark" or "collection"
 
-  return `https://margin.at/${handle}/${type}/${rkey}`;
+  // Use handle if provided, otherwise extract DID from URI
+  const identifier = handle || parts[2]; // parts[2] is the DID from "at://did:plc:xyz/..."
+
+  return `https://margin.at/${identifier}/${type}/${rkey}`;
 }

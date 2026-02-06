@@ -33,7 +33,7 @@ export default async function Image(props: Props) {
           {/* label */}
           <p
             style={{
-              fontSize: 40,
+              fontSize: 35,
               lineHeight: 1.2,
               color: '#e803ff',
               margin: 0,
@@ -77,6 +77,24 @@ export default async function Image(props: Props) {
               }}
             >
               {collection.description}
+            </p>
+          )}
+
+          {collection.cardCount > 0 && (
+            <p
+              style={{
+                fontSize: 30,
+                lineHeight: 1,
+                color: '#495057',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                maxWidth: '900',
+                wordBreak: 'break-word',
+              }}
+            >
+              {collection.cardCount} cards
             </p>
           )}
 
