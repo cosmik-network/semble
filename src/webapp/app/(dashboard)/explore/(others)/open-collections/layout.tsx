@@ -1,6 +1,6 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
-import { Container, Stack, Title, Text } from '@mantine/core';
+import { Container, Stack, Text, Title } from '@mantine/core';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
@@ -19,18 +19,17 @@ export default function Layout(props: Props) {
       <Header title="Open Collections">
         <BackButton href="/explore">Explore</BackButton>
       </Header>
-      <Container p={'xs'} size={'xl'}>
-        <Stack justify="flex-start">
-          <Stack gap={0}>
-            <Text fw={700} c="green">
-              Open Collections
-            </Text>
-            <Title order={2}>From our community</Title>
-          </Stack>
 
-          {props.children}
+      <Container p={'xs'} size={'xl'}>
+        <Stack gap={0}>
+          <Text fw={700} c="green">
+            Open Collections
+          </Text>
+          <Title order={2}>From our community</Title>
         </Stack>
       </Container>
+
+      {props.children}
     </Fragment>
   );
 }
