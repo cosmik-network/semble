@@ -412,7 +412,7 @@ export function AccessTypeFilter() {
       data={[
         {
           value: CollectionAccessType.CLOSED,
-          label: 'Closed',
+          label: 'Personal',
         },
         {
           value: CollectionAccessType.OPEN,

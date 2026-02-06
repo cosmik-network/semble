@@ -141,7 +141,7 @@ export default function createCollectionDrawer(props: Props) {
                   data={[
                     {
                       value: CollectionAccessType.CLOSED,
-                      label: 'Closed — Only you can add',
+                      label: 'Personal — Only you can add',
                     },
                     {
                       value: CollectionAccessType.OPEN,
