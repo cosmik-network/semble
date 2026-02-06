@@ -45,7 +45,7 @@ export default function BlueskyMentionsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="sm" mx={'auto'} maw={600}>
+      <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
         {allPosts.map((post) => (
           <Grid.Col key={post.uri} span={12}>
             <BlueskyMentionPost post={post} />
