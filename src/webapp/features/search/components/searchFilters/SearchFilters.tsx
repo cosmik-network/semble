@@ -380,7 +380,7 @@ export function AccessTypeFilter() {
   const ctx = useFilterContext();
   const { data: featureFlags } = useFeatureFlags();
 
-  if (featureFlags?.openCollections) return null;
+  if (!featureFlags?.openCollections) return null;
 
   return (
     <Select
