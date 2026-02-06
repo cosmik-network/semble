@@ -16,6 +16,7 @@ interface Props {
 export default function OpenCollectionsContainerContent(props: Props) {
   const {
     data,
+    isLoading,
     error,
     fetchNextPage,
     hasNextPage,
@@ -34,7 +35,7 @@ export default function OpenCollectionsContainerContent(props: Props) {
     return <OpenCollectionsContainerError />;
   }
 
-  if (allCollections.length === 0) {
+  if (!isLoading && allCollections.length === 0) {
     return (
       <ProfileEmptyTab
         message="No open collections found"
