@@ -23,8 +23,12 @@ export default function ProfileHeaderSkeleton() {
                   {/* Name */}
                   <Skeleton w={'30%'} h={27} />
 
-                  {/* Handle */}
-                  <Skeleton w={'40%'} h={22} mt={'xs'} />
+                  <Group gap={'xs'}>
+                    {/* Handle */}
+                    <Skeleton w={'40%'} h={22} mt={'xs'} />
+                    {/* Bluesky badge */}
+                    <Skeleton w={26} h={26} radius={'xl'} />
+                  </Group>
                 </Stack>
 
                 {/* Description */}
@@ -33,9 +37,6 @@ export default function ProfileHeaderSkeleton() {
             </GridCol>
           </Grid>
         </Stack>
-        <Group>
-          <Skeleton w={150} h={36} radius={'xl'} />
-        </Group>
       </Stack>
     </Container>
   );

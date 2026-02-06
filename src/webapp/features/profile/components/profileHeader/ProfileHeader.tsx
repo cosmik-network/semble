@@ -67,7 +67,7 @@ export default async function ProfileHeader(props: Props) {
                           color="blue"
                           radius={'xl'}
                         >
-                          <FaBluesky fill="#0085ff" />
+                          <FaBluesky size={14} fill="#0085ff" />
                         </ActionIcon>
                       </Tooltip>
                     </Group>
