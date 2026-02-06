@@ -1,14 +1,20 @@
-import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
-import { Grid, GridCol } from '@mantine/core';
+import { Container, Group, Select, SimpleGrid, Stack } from '@mantine/core';
+import CollectionCardSkeleton from '../../components/collectionCard/Skeleton.CollectionCard';
 
 export default function OpenCollectionContainerSkeleton() {
   return (
-    <Grid gutter="xs">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
-          <UrlCardSkeleton />
-        </GridCol>
-      ))}
-    </Grid>
+    <Container p="xs" size="xl">
+      <Stack>
+        <Group justify="space-between" gap={'xs'}>
+          <Select disabled w={140} mr={'auto'} variant="filled" size="sm" />
+        </Group>
+
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CollectionCardSkeleton key={i} />
+          ))}
+        </SimpleGrid>
+      </Stack>
+    </Container>
   );
 }
