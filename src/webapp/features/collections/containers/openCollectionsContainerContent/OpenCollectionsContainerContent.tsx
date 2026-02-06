@@ -8,6 +8,7 @@ import { BiCollection } from 'react-icons/bi';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
+import OpenCollectionContainerSkeleton from '../openCollectionsContainer/Skeleton.OpenCollectionsContainer';
 
 interface Props {
   sortBy?: CollectionSortField;
@@ -35,7 +36,11 @@ export default function OpenCollectionsContainerContent(props: Props) {
     return <OpenCollectionsContainerError />;
   }
 
-  if (!isLoading && allCollections.length === 0) {
+  if (isLoading) {
+    return <OpenCollectionContainerSkeleton />;
+  }
+
+  if (allCollections.length === 0) {
     return (
       <ProfileEmptyTab
         message="No open collections found"
