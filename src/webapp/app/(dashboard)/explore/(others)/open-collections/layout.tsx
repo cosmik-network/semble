@@ -1,6 +1,14 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
-import { Container, Group, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import {
+  Container,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
+  Tooltip,
+} from '@mantine/core';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
@@ -23,9 +31,17 @@ export default function Layout(props: Props) {
 
       <Container p={'xs'} size={'xl'}>
         <Group gap={'xs'}>
-          <ThemeIcon size={'md'} variant="light" color={'green'} radius={'xl'}>
-            <FaSeedling size={14} />
-          </ThemeIcon>
+          <Tooltip label="These collections are open to everyone. You can add cards to help them grow.">
+            <ThemeIcon
+              size={'md'}
+              variant="light"
+              color={'green'}
+              radius={'xl'}
+            >
+              <FaSeedling size={14} />
+            </ThemeIcon>
+          </Tooltip>
+
           <Title order={2}>Open Collections</Title>
         </Group>
       </Container>
