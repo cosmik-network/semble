@@ -109,6 +109,15 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
+
+    // Follows table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS follows (
+      follower_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (follower_id, target_id, target_type)
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -238,5 +247,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
+  `);
+
+  // Follows table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
   `);
 }
