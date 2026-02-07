@@ -65,4 +65,54 @@ export class NotificationService implements DomainService {
       );
     }
   }
+
+  async createUserAddedToYourCollectionNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionId: CollectionId,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is adding to their own collection
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserAddedToYourCollection(
+        recipientUserId,
+        actorUserId,
+        cardId,
+        collectionId,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
 }

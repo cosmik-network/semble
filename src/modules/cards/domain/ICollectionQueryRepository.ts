@@ -29,6 +29,7 @@ export interface CollectionQueryResultDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
@@ -48,6 +49,7 @@ export interface CollectionForUrlRawDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   authorId: string;
 }
 
@@ -57,6 +59,7 @@ export interface CollectionForUrlDTO {
   uri?: string;
   name: string;
   description?: string;
+  accessType: string;
   author: {
     id: string;
     name: string;
@@ -78,6 +81,16 @@ export interface SearchCollectionsOptions {
   sortBy: CollectionSortField;
   sortOrder: SortOrder;
   searchText?: string;
+  authorId?: string; // Filter by author DID
+  accessType?: string; // Filter by access type (OPEN or CLOSED)
+}
+
+export interface GetOpenCollectionsWithContributorOptions {
+  contributorId: string; // User DID who contributed cards
+  page: number;
+  limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
 }
 
 export interface ICollectionQueryRepository {
@@ -98,5 +111,9 @@ export interface ICollectionQueryRepository {
 
   searchCollections(
     options: SearchCollectionsOptions,
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
+
+  getOpenCollectionsWithContributor(
+    options: GetOpenCollectionsWithContributorOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 }

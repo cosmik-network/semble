@@ -15,6 +15,7 @@ export interface CardLibraryServiceOptions {
   publishedRecordId?: PublishedRecordId;
   skipUnpublishing?: boolean;
   skipCollectionUnpublishing?: boolean;
+  timestamp?: Date;
 }
 
 export class CardLibraryValidationError extends Error {
@@ -268,7 +269,7 @@ export class CardLibraryService implements DomainService {
         // Card is already in library but not published, nothing to do
         return ok(card);
       }
-      const addToLibResult = card.addToLibrary(curatorId);
+      const addToLibResult = card.addToLibrary(curatorId, options?.timestamp);
       if (addToLibResult.isErr()) {
         return err(
           new CardLibraryValidationError(
@@ -358,11 +359,11 @@ export class CardLibraryService implements DomainService {
         return ok(card);
       }
 
-      // Get all collections owned by the curator that contain this card
+      // Get all collections where this curator added this card (regardless of collection ownership)
       const collectionsResult =
-        await this.collectionRepository.findByCuratorIdContainingCard(
-          curatorId,
+        await this.collectionRepository.findContainingCardAddedBy(
           card.cardId,
+          curatorId,
         );
       if (collectionsResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionsResult.error));

@@ -140,14 +140,67 @@ export class GetCollectionPageUseCase
         query.callingUserId,
       );
 
-      // Transform raw card data to enriched DTOs
-      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items;
+      // Extract unique author IDs from all cards
+      const uniqueAuthorIds = Array.from(
+        new Set(cardsResult.items.map((card) => card.authorId)),
+      );
+
+      // Fetch all author profiles in parallel
+      const authorProfileResults = await Promise.all(
+        uniqueAuthorIds.map((authorId) =>
+          this.profileService.getProfile(authorId, query.callingUserId),
+        ),
+      );
+
+      // Create a map of authorId -> profile for efficient lookup
+      const authorProfileMap = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+        }
+      >();
+
+      for (let i = 0; i < uniqueAuthorIds.length; i++) {
+        const authorId = uniqueAuthorIds[i];
+        const profileResult = authorProfileResults[i];
+
+        if (profileResult?.isOk()) {
+          const profile = profileResult.value;
+          authorProfileMap.set(authorId!, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+          });
+        }
+      }
+
+      // Transform raw card data to enriched DTOs with author information
+      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items.map(
+        (card) => {
+          const author = authorProfileMap.get(card.authorId);
+          if (!author) {
+            throw new Error(
+              `Failed to fetch profile for card author: ${card.authorId}`,
+            );
+          }
+
+          return {
+            ...card,
+            author,
+          };
+        },
+      );
 
       return ok({
         id: collection.collectionId.getStringValue(),
         uri: collectionUri,
         name: collection.name.value,
         description: collection.description?.value,
+        accessType: collection.accessType,
         author: {
           id: authorProfile.id,
           name: authorProfile.name,
@@ -155,6 +208,9 @@ export class GetCollectionPageUseCase
           avatarUrl: authorProfile.avatarUrl,
         },
         urlCards: enrichedCards,
+        cardCount: collection.cardCount,
+        createdAt: collection.createdAt.toISOString(),
+        updatedAt: collection.updatedAt.toISOString(),
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(cardsResult.totalCount / limit),

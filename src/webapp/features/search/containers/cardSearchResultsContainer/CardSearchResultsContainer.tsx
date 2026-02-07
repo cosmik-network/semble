@@ -46,7 +46,7 @@ export default function CardSearchResultsContainer(props: Props) {
 
       {error ? (
         <SearchResultsContainerError />
-      ) : !isPending && allUrls.length === 0 ? (
+      ) : !isPending && props.query && allUrls.length === 0 ? (
         <SearchEmptyResults query={props.query} type="cards" />
       ) : (
         <InfiniteScroll

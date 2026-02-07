@@ -1,7 +1,8 @@
-import { verifySessionOnClient } from '@/lib/auth/dal';
+import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
   CardSortField,
+  CollectionAccessType,
   CollectionSortField,
   SortOrder,
   UrlType,
@@ -20,6 +21,9 @@ interface SearchParams {
   sortOrder?: SortOrder;
   searchText?: string;
   urlType?: UrlType;
+  handleOrDid?: string;
+  accessType?: CollectionAccessType;
+  identifier?: string;
 }
 
 export const getCollectionsForUrl = cache(
@@ -37,10 +41,10 @@ export const getCollectionsForUrl = cache(
 );
 
 export const getCollections = cache(
-  async (didOrHandle: string, params?: PageParams & SearchParams) => {
+  async (handleOrDid: string, params?: PageParams & SearchParams) => {
     const client = createSembleClient();
     const response = await client.getCollections({
-      identifier: didOrHandle,
+      identifier: handleOrDid,
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
@@ -102,13 +106,22 @@ export const getMyGemCollections = cache(
 );
 
 export const createCollection = cache(
-  async (newCollection: { name: string; description: string }) => {
+  async (newCollection: {
+    name: string;
+    description: string;
+    accessType: CollectionAccessType;
+  }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.createCollection(newCollection);
 
-    return response;
+    try {
+      const response = await client.createCollection(newCollection);
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
@@ -116,9 +129,14 @@ export const deleteCollection = cache(async (id: string) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
-  const response = await client.deleteCollection({ collectionId: id });
 
-  return response;
+  try {
+    const response = await client.deleteCollection({ collectionId: id });
+
+    return response;
+  } catch (error) {
+    await logoutUser();
+  }
 });
 
 export const updateCollection = cache(
@@ -127,13 +145,19 @@ export const updateCollection = cache(
     rkey: string;
     name: string;
     description?: string;
+    accessType?: CollectionAccessType;
   }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-    const response = await client.updateCollection(collection);
 
-    return response;
+    try {
+      const response = await client.updateCollection(collection);
+
+      return response;
+    } catch (error) {
+      await logoutUser();
+    }
   },
 );
 
@@ -171,6 +195,8 @@ export const searchCollections = cache(
       sortBy: params?.collectionSortBy,
       sortOrder: params?.sortOrder,
       searchText: params?.searchText,
+      accessType: params?.accessType,
+      identifier: params?.identifier,
     });
 
     // Temp fix: filter out collections without uri
@@ -179,6 +205,24 @@ export const searchCollections = cache(
       collections: response.collections.filter(
         (collection) => collection.uri !== undefined,
       ),
+    };
+  },
+);
+
+export const getOpenCollectionsWithContributor = cache(
+  async (params?: PageParams & { identifier: string }) => {
+    const client = createSembleClient();
+    const response = await client.getOpenCollectionsWithContributor({
+      identifier: params?.identifier || '',
+      page: params?.page,
+      limit: params?.limit,
+      sortBy: params?.collectionSortBy,
+    });
+
+    // temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter((c) => !!c.uri),
     };
   },
 );

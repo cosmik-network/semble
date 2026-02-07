@@ -34,6 +34,7 @@ export interface UpdateUrlCardAssociationsDTO {
     noteCard?: PublishedRecordId;
     collectionLinks?: Map<string, PublishedRecordId>;
   };
+  timestamp?: Date; // For firehose events - use historical timestamp from AT Protocol record
 }
 
 export interface UpdateUrlCardAssociationsResponseDTO {
@@ -172,8 +173,11 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
               ? {
                   skipPublishing: true,
                   publishedRecordId: request.publishedRecordIds.noteCard,
+                  timestamp: request.timestamp,
                 }
-              : undefined;
+              : request.timestamp
+                ? { timestamp: request.timestamp }
+                : undefined;
 
           // Update note card in library (handles save and republish)
           const updateNoteResult =
@@ -207,6 +211,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           const noteCardResult = CardFactory.create({
             curatorId: request.curatorId,
             cardInput: noteCardInput,
+            createdAt: request.timestamp,
           });
 
           if (noteCardResult.isErr()) {
@@ -223,8 +228,11 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
               ? {
                   skipPublishing: true,
                   publishedRecordId: request.publishedRecordIds.noteCard,
+                  timestamp: request.timestamp,
                 }
-              : undefined;
+              : request.timestamp
+                ? { timestamp: request.timestamp }
+                : undefined;
 
           // Add note card to library using domain service
           const addNoteCardToLibraryResult =
@@ -283,8 +291,11 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             ? {
                 skipPublishing: true,
                 publishedRecordIds: request.publishedRecordIds.collectionLinks,
+                timestamp: request.timestamp,
               }
-            : undefined;
+            : request.timestamp
+              ? { timestamp: request.timestamp }
+              : undefined;
 
         // Validate and create viaCardId if provided
         let viaCardId: CardId | undefined;

@@ -70,7 +70,8 @@ export class DrizzleFirehoseEventDuplicationService
 
       // 3. Check if entity still exists based on collection type
       switch (collection) {
-        case collections.collection: {
+        case collections.collection:
+        case collections.marginCollection: {
           const collectionIdResult =
             await this.atUriResolver.resolveCollectionId(atUri);
           if (collectionIdResult.isErr()) {
@@ -78,20 +79,27 @@ export class DrizzleFirehoseEventDuplicationService
           }
           return ok(collectionIdResult.value === null);
         }
-        case collections.card: {
+        case collections.card:
+        case collections.marginBookmark: {
           const cardIdResult = await this.atUriResolver.resolveCardId(atUri);
           if (cardIdResult.isErr()) {
             return err(cardIdResult.error);
           }
           return ok(cardIdResult.value === null);
         }
-        case collections.collectionLink: {
+        case collections.collectionLink:
+        case collections.marginCollectionItem: {
           const linkInfoResult =
             await this.atUriResolver.resolveCollectionLinkId(atUri);
           if (linkInfoResult.isErr()) {
             return err(linkInfoResult.error);
           }
           return ok(linkInfoResult.value === null);
+        }
+        case collections.collectionLinkRemoval: {
+          // For removal records, we track them in published_records table
+          // If a record exists, it hasn't been deleted
+          return ok(records.length === 0);
         }
         default:
           return err(new Error(`Unknown collection type: ${collection}`));

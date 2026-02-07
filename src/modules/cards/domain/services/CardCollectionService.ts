@@ -18,6 +18,7 @@ import { AuthenticationError } from '../../../../shared/core/AuthenticationError
 export interface CardCollectionServiceOptions {
   skipPublishing?: boolean;
   publishedRecordIds?: Map<string, PublishedRecordId>; // collectionId -> publishedRecordId
+  timestamp?: Date;
 }
 
 export class CardCollectionValidationError extends Error {
@@ -70,6 +71,7 @@ export class CardCollectionService implements DomainService {
         card.cardId,
         curatorId,
         viaCardId,
+        options?.timestamp,
       );
       if (addCardResult.isErr()) {
         return err(
@@ -210,20 +212,65 @@ export class CardCollectionService implements DomainService {
         return ok(null);
       }
 
-      // Handle unpublishing based on options
+      // Check permissions FIRST before attempting any publishing operations
+      if (!collection.canRemoveCard(card.cardId, curatorId)) {
+        return err(
+          new CardCollectionValidationError(
+            'User does not have permission to remove cards from this collection',
+          ),
+        );
+      }
+
+      // Handle unpublishing/removal based on options
       if (!options?.skipPublishing && cardLink.publishedRecordId) {
-        const unpublishLinkResult =
-          await this.collectionPublisher.unpublishCardAddedToCollection(
-            cardLink.publishedRecordId,
-          );
-        if (unpublishLinkResult.isErr()) {
-          // Propagate authentication errors
-          if (unpublishLinkResult.error instanceof AuthenticationError) {
-            return err(unpublishLinkResult.error);
+        // Determine if this is a user removing their own card or collection author removing someone else's card
+        const isUserRemovingOwnCard = cardLink.addedBy.equals(curatorId);
+        const isCollectionAuthor = collection.authorId.equals(curatorId);
+
+        if (isUserRemovingOwnCard) {
+          // User is removing their own card - unpublish the CollectionLink (delete from their repo)
+          const unpublishLinkResult =
+            await this.collectionPublisher.unpublishCardAddedToCollection(
+              cardLink.publishedRecordId,
+            );
+          if (unpublishLinkResult.isErr()) {
+            // Propagate authentication errors
+            if (unpublishLinkResult.error instanceof AuthenticationError) {
+              return err(unpublishLinkResult.error);
+            }
+            return err(
+              new CardCollectionValidationError(
+                `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
+              ),
+            );
           }
+        } else if (isCollectionAuthor) {
+          // Collection author is removing someone else's card - publish a CollectionLinkRemoval record
+          // This is the ONLY case where removal records are published
+          const publishRemovalResult =
+            await this.collectionPublisher.publishCollectionLinkRemoval(
+              card,
+              collection,
+              curatorId,
+              cardLink.publishedRecordId,
+            );
+          if (publishRemovalResult.isErr()) {
+            // Propagate authentication errors
+            if (publishRemovalResult.error instanceof AuthenticationError) {
+              return err(publishRemovalResult.error);
+            }
+            return err(
+              new CardCollectionValidationError(
+                `Failed to publish collection link removal: ${publishRemovalResult.error.message}`,
+              ),
+            );
+          }
+        } else {
+          // This should never happen because permissions are checked above
+          // If someone is neither the card adder nor the collection author, they shouldn't have permission
           return err(
             new CardCollectionValidationError(
-              `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
+              'User does not have permission to remove this card from the collection',
             ),
           );
         }

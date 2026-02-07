@@ -30,15 +30,15 @@ export default function CollectionCardPreview(props: Props) {
                 src={c.cardContent.imageUrl}
                 alt={`${c.cardContent.url} social preview image`}
                 radius={'md'}
-                h={45}
+                mih={45}
                 w={'100%'}
                 onError={() => setImageError(true)}
               />
             </AspectRatio>
           ) : (
             <AspectRatio ratio={16 / 9}>
-              <Card p={'xs'} radius={'md'} h={45} w={'100%'} withBorder>
-                <Center>
+              <Card p={'xs'} radius={'md'} mih={45} w={'100%'} withBorder>
+                <Center my={'auto'}>
                   <Text fz={'xs'} fw={500} lineClamp={1}>
                     {c.cardContent.title ??
                       c.cardContent.description ??

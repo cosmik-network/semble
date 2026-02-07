@@ -11,12 +11,13 @@ import {
 } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { BiCollection } from 'react-icons/bi';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import { SearchFilters } from '../searchFilters/SearchFilters';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
+import { track } from '@vercel/analytics';
 
 interface Props {
   query?: string;
@@ -37,10 +38,21 @@ const renderSelectOption: SelectProps['renderOption'] = ({ option }) => (
 
 export default function SearchBar(props: Props) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(props.query ?? '');
   const [searchType, setSearchType] = useState<string | null>('cards');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const getPlaceholderText = () => {
+    if (!searchType) return 'Find cards, collections, and more';
+
+    const handle = searchParams.get('handle');
+
+    return handle && ['cards', 'collections'].includes(searchType)
+      ? `Search for @${handle}'s ${searchType}`
+      : `Search for ${searchType.toLowerCase()}`;
+  };
 
   const onSearch = () => {
     const params = new URLSearchParams();
@@ -49,10 +61,11 @@ export default function SearchBar(props: Props) {
       params.set('query', search);
     }
 
-    // preserve handle and urlType if they exist for cards
-    if (searchType === 'cards') {
+    // preserve handle (and urlType) for cards + collections
+    if (searchType === 'cards' || searchType === 'collections') {
       const handle = searchParams.get('handle');
       const urlType = searchParams.get('urlType');
+
       if (handle) params.set('handle', handle);
       if (urlType) params.set('urlType', urlType);
     }
@@ -62,7 +75,7 @@ export default function SearchBar(props: Props) {
     const queryString = params.toString();
     const url = queryString ? `${route}?${queryString}` : route;
 
-    router.push(url);
+    startTransition(() => router.push(url));
   };
 
   return (
@@ -77,7 +90,7 @@ export default function SearchBar(props: Props) {
           <TextInput
             ref={inputRef}
             variant="unstyled"
-            placeholder="Find cards, collections, and more"
+            placeholder={getPlaceholderText()}
             flex={1}
             size="md"
             value={search}
@@ -96,9 +109,10 @@ export default function SearchBar(props: Props) {
                   { value: 'profiles', label: 'Profiles' },
                 ]}
                 renderOption={renderSelectOption}
-                w={125}
+                leftSection={searchType ? icons[searchType] : null}
+                w={140}
               />
-              {searchType === 'cards' && (
+              {searchType !== 'profiles' && (
                 <SearchFilters.Root
                   trigger={
                     <ActionIcon
@@ -112,13 +126,25 @@ export default function SearchBar(props: Props) {
                   }
                 >
                   <SearchFilters.ProfileFilter />
-                  <SearchFilters.UrlTypeFilter />
+                  {searchType === 'cards' && <SearchFilters.UrlTypeFilter />}
+                  {searchType === 'collections' && (
+                    <SearchFilters.AccessTypeFilter />
+                  )}
                   <SearchFilters.Actions />
                 </SearchFilters.Root>
               )}
             </Group>
 
-            <ActionIcon type="submit" size="xl" radius="xl" disabled={!search}>
+            <ActionIcon
+              type="submit"
+              size="xl"
+              radius="xl"
+              disabled={!search}
+              loading={isPending}
+              onClick={() => {
+                track('Search: search button clicked');
+              }}
+            >
               <IoSearch size={24} />
             </ActionIcon>
           </Group>

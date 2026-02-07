@@ -100,6 +100,25 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async findContainingCardAddedBy(
+    cardId: CardId,
+    addedBy: CuratorId,
+  ): Promise<Result<Collection[]>> {
+    try {
+      const collections = Array.from(this.collections.values()).filter(
+        (collection) =>
+          collection.cardLinks.some(
+            (link) =>
+              link.cardId.getStringValue() === cardId.getStringValue() &&
+              link.addedBy.value === addedBy.value,
+          ),
+      );
+      return ok(collections.map((collection) => this.clone(collection)));
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async save(collection: Collection): Promise<Result<void>> {
     try {
       this.collections.set(

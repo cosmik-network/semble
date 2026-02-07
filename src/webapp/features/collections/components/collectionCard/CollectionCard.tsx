@@ -1,9 +1,17 @@
 'use client';
 
-import type { Collection } from '@/api-client';
+import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import {
+  Avatar,
+  Card,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Tooltip,
+} from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
@@ -12,6 +20,10 @@ import Link from 'next/link';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
+import { MouseEvent } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -25,8 +37,31 @@ export default function CollectionCard(props: Props) {
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
+  const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
+  const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
+
+  const handleNavigateToCollection = (e: MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+
+    const targetUrl = `/profile/${collection.author.handle}/collections/${rkey}`;
+
+    // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
+    if (e.metaKey || e.ctrlKey || e.button === 1) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    router.push(targetUrl);
+  };
+
+  const handleAuxClick = (e: MouseEvent<HTMLElement>) => {
+    // Handle middle mouse button (button 1)
+    if (e.button === 1) {
+      handleNavigateToCollection(e);
+    }
+  };
 
   return (
     <Card
@@ -35,29 +70,48 @@ export default function CollectionCard(props: Props) {
       p={'sm'}
       className={styles.root}
       h={'100%'}
-      onClick={() =>
-        router.push(`/profile/${collection.author.handle}/collections/${rkey}`)
-      }
+      onClick={handleNavigateToCollection}
+      onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between">
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {collection.name}
-              </Text>
-              {props.showAuthor && (
-                <Avatar
-                  component={Link}
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
-              )}
+              <Group gap={4}>
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {collection.name}
+                </Text>
+                {isMarginUri(collection.uri) && (
+                  <MarginLogo size={14} marginUrl={marginUrl} />
+                )}
+              </Group>
+
+              <Group gap={'xs'} wrap="nowrap">
+                {accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <ThemeIcon
+                      size={'sm'}
+                      variant="light"
+                      color={'green'}
+                      radius={'xl'}
+                    >
+                      <FaSeedling size={12} />
+                    </ThemeIcon>
+                  </Tooltip>
+                )}
+                {props.showAuthor && (
+                  <Avatar
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${collection.author.handle}'s avatar`}
+                    size={'sm'}
+                  />
+                )}
+              </Group>
             </Group>
             {collection.description && (
               <Text c={'gray'} lineClamp={2}>

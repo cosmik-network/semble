@@ -9,6 +9,8 @@ import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler 
 import { CardAddedToLibraryEventHandler as NotificationCardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardAddedToCollectionEventHandler as NotificationCardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
+import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
 import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { EventNames } from '../events/EventConfig';
@@ -77,6 +79,18 @@ export class InMemoryEventWorkerProcess implements IProcess {
     const notificationCardAddedToCollectionHandler =
       new NotificationCardAddedToCollectionEventHandler(cardNotificationSaga);
 
+    // Collection contribution notification handlers (direct, no saga)
+    const collectionContributionHandler =
+      new CollectionContributionEventHandler(
+        useCases.createNotificationUseCase,
+        repositories.collectionRepository,
+      );
+    const collectionContributionCleanupHandler =
+      new CollectionContributionCleanupEventHandler(
+        repositories.notificationRepository,
+        repositories.collectionRepository,
+      );
+
     // Register feed handlers
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -103,6 +117,18 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       notificationCardAddedToCollectionHandler,
+    );
+
+    // Collection contribution handler also subscribes to CARD_ADDED_TO_COLLECTION
+    // Both handlers will process the event independently
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_COLLECTION,
+      collectionContributionHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_COLLECTION,
+      collectionContributionCleanupHandler,
     );
   }
 }

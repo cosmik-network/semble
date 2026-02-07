@@ -591,6 +591,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
           .mockRejectedValue(new Error('Collection query error')),
         getCollectionsWithUrl: jest.fn(),
         searchCollections: jest.fn(),
+        getOpenCollectionsWithContributor: jest.fn(),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

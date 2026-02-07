@@ -9,6 +9,7 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
+import { NamespaceDetector } from '../../domain/NamespaceDetector';
 export class ATProtoCardPublisher implements ICardPublisher {
   constructor(
     private readonly agentService: IAgentService,
@@ -117,6 +118,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
   /**
    * Unpublishes (deletes) a Card from the curator's library in the AT Protocol
+   * Supports both Cosmik and Margin namespaces by detecting the collection from the URI
    */
   async unpublishCardFromLibrary(
     recordId: PublishedRecordId,
@@ -137,6 +139,11 @@ export class ATProtoCardPublisher implements ICardPublisher {
       const curatorDid = curatorDidResult.value;
       const repo = curatorDid.value;
       const rkey = atUri.rkey;
+
+      // Extract the actual collection from the URI to support both Margin and Cosmik
+      const collection =
+        NamespaceDetector.extractCollectionFromPublishedRecordId(recordId) ||
+        this.cardCollection;
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -162,7 +169,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.cardCollection,
+        collection, // Now uses the actual collection from the URI
         rkey,
       });
 

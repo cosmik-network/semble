@@ -30,6 +30,7 @@ export interface EnrichedNotificationResult {
   // Card data - fully enriched from JOIN
   cardId: string;
   cardUrl: string;
+  cardUri?: string;
   cardTitle?: string;
   cardDescription?: string;
   cardAuthor?: string;
@@ -56,6 +57,7 @@ export interface EnrichedNotificationResult {
     uri?: string;
     name: string;
     description?: string;
+    accessType: string;
     authorId: string; // Still need profile enrichment
     cardCount: number;
     createdAt: Date;
@@ -85,6 +87,7 @@ export interface INotificationRepository {
     cardId: string,
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
+  findByCard(cardId: string): Promise<Result<Notification[]>>;
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
   markAsRead(notificationIds: NotificationId[]): Promise<Result<void>>;
   markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>>;

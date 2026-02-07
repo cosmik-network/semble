@@ -12,7 +12,8 @@ import {
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
-import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
+import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
+import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -20,6 +21,7 @@ export interface GetGlobalFeedQuery {
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: string; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 // Use the shared API type directly
@@ -82,6 +84,7 @@ export class GetGlobalFeedUseCase
         limit,
         beforeActivityId,
         urlType,
+        source: query.source,
       });
 
       if (feedResult.isErr()) {
@@ -217,6 +220,7 @@ export class GetGlobalFeedUseCase
           uri?: string;
           name: string;
           description?: string;
+          accessType: CollectionAccessType;
           author: {
             id: string;
             name: string;
@@ -269,6 +273,7 @@ export class GetGlobalFeedUseCase
             uri,
             name: collection.name.toString(),
             description: collection.description?.toString(),
+            accessType: collection.accessType,
             author: {
               id: authorProfile.id,
               name: authorProfile.name,
@@ -292,6 +297,7 @@ export class GetGlobalFeedUseCase
             uri: result.uri,
             name: result.name,
             description: result.description,
+            accessType: result.accessType,
             author: result.author,
             cardCount: result.cardCount,
             createdAt: result.createdAt,
@@ -326,6 +332,7 @@ export class GetGlobalFeedUseCase
           id: cardView.id,
           type: 'URL' as const,
           url: cardView.url,
+          uri: cardView.uri,
           cardContent: {
             url: cardView.cardContent.url,
             title: cardView.cardContent.title,
@@ -359,6 +366,7 @@ export class GetGlobalFeedUseCase
             uri: collection.uri,
             name: collection.name,
             description: collection.description,
+            accessType: collection.accessType,
             author: collection.author,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,

@@ -50,6 +50,8 @@ export class CollectionClient extends BaseClient {
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params?.searchText) searchParams.set('searchText', params.searchText);
+    if (params?.identifier) searchParams.set('identifier', params.identifier);
+    if (params?.accessType) searchParams.set('accessType', params.accessType);
 
     const queryString = searchParams.toString();
     const endpoint = queryString

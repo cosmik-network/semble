@@ -12,15 +12,15 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import SearchBar from '../searchBar/SearchBar';
 import SearchTabItem from '../searchTabItem/SearchTabItem';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useOptimistic, useTransition } from 'react';
 
 export default function SearchTabs() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   const query = searchParams.get('query') || '';
-  const handle = searchParams.get('handle') || undefined;
-  const urlType = searchParams.get('urlType') || undefined;
 
   const activeTab = pathname.includes('/collections')
     ? 'collections'
@@ -28,22 +28,29 @@ export default function SearchTabs() {
       ? 'profiles'
       : 'cards';
 
-  // build search params for each tab
-  const buildTabHref = (tabValue: string) => {
-    const params = new URLSearchParams();
-    if (query) params.set('query', query);
-    if (handle) params.set('handle', handle);
-    if (urlType) params.set('urlType', urlType);
+  const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
+  const [_, startTransition] = useTransition();
 
-    const route = `/search/${tabValue}`;
-    const queryString = params.toString();
-    return queryString ? `${route}?${queryString}` : route;
+  const buildTabHref = (tabValue: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    return `/search/${tabValue}${params.toString() ? `?${params}` : ''}`;
   };
 
   return (
-    <Tabs value={activeTab} keepMounted={false}>
-      <Stack gap={'xs'}>
-        <SearchBar variant="compact" query={query} />
+    <Tabs
+      value={optimisticTab}
+      keepMounted={false}
+      onChange={(value) => {
+        if (!value || value === activeTab) return;
+
+        startTransition(() => {
+          setOptimisticTab(value);
+          router.replace(buildTabHref(value));
+        });
+      }}
+    >
+      <Stack gap="xs">
+        <SearchBar query={query} />
 
         <ScrollAreaAutosize type="scroll">
           <TabsList>
@@ -52,21 +59,16 @@ export default function SearchTabs() {
                 value="cards"
                 label="Cards"
                 icon={<FaRegNoteSticky />}
-                href={buildTabHref('cards')}
               />
-
               <SearchTabItem
                 value="collections"
                 label="Collections"
                 icon={<BiCollection />}
-                href={buildTabHref('collections')}
               />
-
               <SearchTabItem
                 value="profiles"
                 label="Profiles"
                 icon={<MdOutlinePeopleAlt />}
-                href={buildTabHref('profiles')}
               />
             </Group>
           </TabsList>

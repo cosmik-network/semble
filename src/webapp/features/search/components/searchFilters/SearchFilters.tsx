@@ -18,6 +18,8 @@ import {
   Combobox,
   useCombobox,
   Popover,
+  Select,
+  ThemeIcon,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
@@ -27,9 +29,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
-import { UrlType } from '@semble/types';
+import { UrlType, CollectionAccessType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
+import { FaSeedling } from 'react-icons/fa6';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 // context
 interface FilterContextValue {
@@ -42,9 +46,14 @@ interface FilterContextValue {
   setSelectedHandle: (val: string) => void;
   localType: UrlType | null;
   setLocalType: (val: UrlType | null) => void;
+  localAccessType: CollectionAccessType | null;
+  setLocalAccessType: (val: CollectionAccessType | null) => void;
   appliedHandle: string;
   appliedType: UrlType | null;
+  appliedAccessType: CollectionAccessType | null;
   hasFilters: boolean;
+  router: ReturnType<typeof useRouter>;
+  searchParams: ReturnType<typeof useSearchParams>;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -62,22 +71,29 @@ const useFilterContext = () => {
 export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   const [opened, setOpened] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const appliedHandle = searchParams.get('handle') ?? '';
   const appliedType = searchParams.get('urlType') as UrlType | null;
+  const appliedAccessType = searchParams.get(
+    'accessType',
+  ) as CollectionAccessType | null;
 
   const [searchQuery, setSearchQuery] = useState(appliedHandle);
   const [selectedHandle, setSelectedHandle] = useState(appliedHandle);
   const [localType, setLocalType] = useState<UrlType | null>(appliedType);
+  const [localAccessType, setLocalAccessType] =
+    useState<CollectionAccessType | null>(appliedAccessType);
 
   const handleOpen = () => {
     setSearchQuery(appliedHandle);
     setSelectedHandle(appliedHandle);
     setLocalType(appliedType);
+    setLocalAccessType(appliedAccessType);
     setOpened(true);
   };
 
-  const hasFilters = !!appliedHandle || !!appliedType;
+  const hasFilters = !!appliedHandle || !!appliedType || !!appliedAccessType;
 
   const defaultTrigger = (
     <Indicator offset={4} disabled={!hasFilters} zIndex={0}>
@@ -116,9 +132,14 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         setSelectedHandle,
         localType,
         setLocalType,
+        localAccessType,
+        setLocalAccessType,
         appliedHandle,
         appliedType,
+        appliedAccessType,
         hasFilters,
+        router,
+        searchParams,
       }}
     >
       {customTrigger ?? defaultTrigger}
@@ -127,7 +148,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         opened={opened}
         onClose={() => setOpened(false)}
         position="bottom"
-        size="xs"
+        size="sm"
         withCloseButton={false}
         overlayProps={UPDATE_OVERLAY_PROPS}
         trapFocus={false}
@@ -204,6 +225,11 @@ export function ProfileFilter() {
         ctx.setSelectedHandle(val);
         ctx.setSearchQuery(val);
         combobox.closeDropdown();
+
+        // apply filter immediately
+        const params = new URLSearchParams(ctx.searchParams.toString());
+        params.set('handle', val);
+        ctx.router.replace(`?${params.toString()}`, { scroll: false });
       }}
       position="bottom"
       middlewares={{ flip: false, shift: true }}
@@ -235,6 +261,15 @@ export function ProfileFilter() {
                   onClick={() => {
                     ctx.setSearchQuery('');
                     ctx.setSelectedHandle('');
+
+                    // remove filter immediately
+                    const params = new URLSearchParams(
+                      ctx.searchParams.toString(),
+                    );
+                    params.delete('handle');
+                    ctx.router.replace(`?${params.toString()}`, {
+                      scroll: false,
+                    });
                   }}
                 />
               )
@@ -296,6 +331,11 @@ export function UrlTypeFilter() {
             onClick={() => {
               ctx.setLocalType(null);
               setOpened(false);
+
+              // remove filter immediately
+              const params = new URLSearchParams(ctx.searchParams.toString());
+              params.delete('urlType');
+              ctx.router.replace(`?${params.toString()}`, { scroll: false });
             }}
           >
             All Cards
@@ -314,6 +354,15 @@ export function UrlTypeFilter() {
                 onClick={() => {
                   ctx.setLocalType(type);
                   setOpened(false);
+
+                  // apply filter immediately
+                  const params = new URLSearchParams(
+                    ctx.searchParams.toString(),
+                  );
+                  params.set('urlType', type);
+                  ctx.router.replace(`?${params.toString()}`, {
+                    scroll: false,
+                  });
                 }}
               >
                 {upperFirst(type)}
@@ -326,45 +375,78 @@ export function UrlTypeFilter() {
   );
 }
 
+// access type filter
+export function AccessTypeFilter() {
+  const ctx = useFilterContext();
+  const { data: featureFlags } = useFeatureFlags();
+
+  if (!featureFlags?.openCollections) return null;
+
+  return (
+    <Select
+      variant="filled"
+      size="md"
+      label="Collection Type"
+      placeholder="All"
+      clearable
+      leftSection={
+        ctx.localAccessType === CollectionAccessType.OPEN ? (
+          <ThemeIcon size={'md'} variant="light" color={'green'} radius={'xl'}>
+            <FaSeedling size={14} />
+          </ThemeIcon>
+        ) : null
+      }
+      value={ctx.localAccessType}
+      onChange={(value) => {
+        const newValue = value as CollectionAccessType | null;
+        ctx.setLocalAccessType(newValue);
+
+        const params = new URLSearchParams(ctx.searchParams.toString());
+        if (newValue) {
+          params.set('accessType', newValue);
+        } else {
+          params.delete('accessType');
+        }
+        ctx.router.replace(`?${params.toString()}`, { scroll: false });
+      }}
+      data={[
+        {
+          value: CollectionAccessType.CLOSED,
+          label: 'Personal',
+        },
+        {
+          value: CollectionAccessType.OPEN,
+          label: 'Open',
+        },
+      ]}
+    />
+  );
+}
+
 // actions
 export function Actions() {
   const ctx = useFilterContext();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const hasAnyActiveFilters =
     !!ctx.appliedHandle ||
     !!ctx.appliedType ||
     !!ctx.selectedHandle ||
-    ctx.localType !== null;
-
-  const handleApply = () => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (ctx.selectedHandle) params.set('handle', ctx.selectedHandle);
-    else params.delete('handle');
-
-    if (ctx.localType) params.set('urlType', ctx.localType);
-    else params.delete('urlType');
-
-    router.replace(`?${params.toString()}`, { scroll: false });
-    ctx.setOpened(false);
-  };
+    ctx.localType !== null ||
+    ctx.localAccessType !== null;
 
   const handleClear = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(ctx.searchParams.toString());
     params.delete('handle');
     params.delete('urlType');
+    params.delete('accessType');
 
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
     ctx.setLocalType(null);
-    ctx.setOpened(false);
+    ctx.setLocalAccessType(null);
 
-    router.replace(`?${params.toString()}`, { scroll: false });
+    ctx.router.replace(`?${params.toString()}`, { scroll: false });
   };
-
-  const isInvalid = ctx.searchQuery !== ctx.selectedHandle;
 
   return (
     <Stack gap="sm" mt="md">
@@ -377,20 +459,14 @@ export function Actions() {
         >
           Cancel
         </Button>
-
         {hasAnyActiveFilters && (
           <Button variant="light" size="md" color="red" onClick={handleClear}>
             Clear all
           </Button>
         )}
 
-        <Button
-          variant="filled"
-          size="md"
-          onClick={handleApply}
-          disabled={isInvalid}
-        >
-          Apply
+        <Button variant="filled" size="md" onClick={() => ctx.setOpened(false)}>
+          Done
         </Button>
       </Group>
     </Stack>
@@ -402,5 +478,6 @@ export const SearchFilters = {
   Trigger,
   ProfileFilter,
   UrlTypeFilter,
+  AccessTypeFilter,
   Actions,
 };

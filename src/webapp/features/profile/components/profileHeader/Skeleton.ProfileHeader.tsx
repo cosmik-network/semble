@@ -15,17 +15,20 @@ export default function ProfileHeaderSkeleton() {
         <Stack gap={'xl'}>
           <Grid gutter={'md'} align={'center'} grow>
             <GridCol span={'auto'}>
-              <Avatar size={'clamp(100px, 22vw, 180px)'} radius={'lg'} />
+              <Avatar size={'clamp(90px, 22vw, 100px)'} radius={'lg'} />
             </GridCol>
-
-            <GridCol span={{ base: 12, xs: 9 }}>
+            <GridCol span={{ base: 12, xs: 10 }}>
               <Stack gap={0}>
                 <Stack gap={0}>
                   {/* Name */}
                   <Skeleton w={'30%'} h={27} />
 
-                  {/* Handle */}
-                  <Skeleton w={'40%'} h={22} mt={'xs'} />
+                  <Group gap={'xs'}>
+                    {/* Handle */}
+                    <Skeleton w={'40%'} h={22} mt={'xs'} />
+                    {/* Bluesky badge */}
+                    <Skeleton w={26} h={26} radius={'xl'} />
+                  </Group>
                 </Stack>
 
                 {/* Description */}
@@ -34,9 +37,6 @@ export default function ProfileHeaderSkeleton() {
             </GridCol>
           </Grid>
         </Stack>
-        <Group>
-          <Skeleton w={150} h={36} radius={'xl'} />
-        </Group>
       </Stack>
     </Container>
   );

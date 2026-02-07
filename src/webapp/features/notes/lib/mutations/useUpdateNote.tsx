@@ -14,6 +14,7 @@ export default function useUpdateNote() {
     },
 
     onSuccess: (data) => {
+      if (!data) return;
       queryClient.invalidateQueries({ queryKey: cardKeys.card(data.cardId) });
       queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
       queryClient.invalidateQueries({

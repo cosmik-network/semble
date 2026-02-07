@@ -8,66 +8,92 @@ import {
   Group,
 } from '@mantine/core';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { BiCollection } from 'react-icons/bi';
+import { useRouter, useSearchParams } from 'next/navigation';
 import FeedFilters from '../feedFilters/FeedFilters';
+import { ActivitySource } from '@semble/types';
+import { useOptimistic, useTransition } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
-const options = [
-  { value: 'explore', label: 'Latest', href: '/explore' },
-  {
-    value: 'gems-of-2025',
-    label: '💎 Gems of 2025 💎',
-    href: '/explore/gems-of-2025',
-  },
+const sourceOptions = [
+  { value: null, label: 'All' },
+  { value: ActivitySource.SEMBLE, label: 'Semble' },
+  { value: ActivitySource.MARGIN, label: 'Margin' },
 ];
 
 export default function FeedControls() {
-  const pathname = usePathname();
+  const { data: featureFlags } = useFeatureFlags();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
 
-  const segment = pathname.split('/')[2];
-  const currentValue = segment || 'explore';
-  const isGemsFeed = currentValue === 'gems-of-2025';
+  const [optimisticSource, setOptimisticSource] =
+    useOptimistic<ActivitySource | null>(sourceFromUrl);
+
+  const [, startTransition] = useTransition();
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  const selected = options.find((o) => o.value === currentValue);
+  const sourceCombobox = useCombobox({
+    onDropdownClose: () => sourceCombobox.resetSelectedOption(),
+  });
+
+  const selectedSource =
+    sourceOptions.find((o) => o.value === optimisticSource) || sourceOptions[0];
+
+  const handleSourceClick = (source: ActivitySource | null) => {
+    startTransition(() => {
+      setOptimisticSource(source);
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (source) {
+        params.set('source', source);
+      } else {
+        params.delete('source');
+      }
+
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
+
+    sourceCombobox.closeDropdown();
+  };
 
   return (
     <ScrollAreaAutosize type="scroll">
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
         <Group gap={'xs'} wrap="nowrap">
           <Combobox
-            store={combobox}
+            store={sourceCombobox}
             onOptionSubmit={(value) => {
-              const option = options.find((o) => o.value === value);
+              const option = sourceOptions.find(
+                (o) => String(o.value) === value,
+              );
               if (option) {
-                router.push(option.href);
+                handleSourceClick(option.value);
               }
-              combobox.closeDropdown();
             }}
-            width={200}
+            width={150}
           >
             <Combobox.Target>
               <Button
                 variant="light"
-                color="gray"
+                color="cyan"
                 leftSection={<Combobox.Chevron />}
-                onClick={() => combobox.toggleDropdown()}
+                onClick={() => sourceCombobox.toggleDropdown()}
               >
-                {selected?.label || 'Select feed'}
+                {selectedSource?.label}
               </Button>
             </Combobox.Target>
 
             <Combobox.Dropdown>
               <Combobox.Options>
-                {options.map((option) => (
+                {sourceOptions.map((option) => (
                   <Combobox.Option
-                    key={option.value}
-                    value={option.value}
-                    active={option.value === currentValue}
+                    key={String(option.value)}
+                    value={String(option.value)}
+                    active={option.value === optimisticSource}
                   >
                     {option.label}
                   </Combobox.Option>
@@ -75,15 +101,16 @@ export default function FeedControls() {
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>
-          {isGemsFeed && (
+
+          {featureFlags?.openCollections && (
             <Button
-              variant="light"
-              color="grape"
               component={Link}
-              href={'/explore/gems-of-2025/collections'}
-              leftSection={<BiCollection size={18} />}
+              href={'/explore/open-collections'}
+              color="green"
+              variant="light"
+              leftSection={<FaSeedling />}
             >
-              Gem Collections
+              Open Collections
             </Button>
           )}
         </Group>
