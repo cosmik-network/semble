@@ -118,6 +118,14 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       PRIMARY KEY (follower_id, target_id, target_type)
     )`,
+
+    // Following feed items table (references feed_activities)
+    sql`CREATE TABLE IF NOT EXISTS following_feed_items (
+      user_id TEXT NOT NULL,
+      activity_id UUID NOT NULL REFERENCES feed_activities(id) ON DELETE CASCADE,
+      created_at TIMESTAMP NOT NULL,
+      PRIMARY KEY (user_id, activity_id)
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -255,5 +263,10 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+  `);
+
+  // Following feed items indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
   `);
 }

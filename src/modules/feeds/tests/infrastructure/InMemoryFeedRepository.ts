@@ -11,6 +11,8 @@ import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 export class InMemoryFeedRepository implements IFeedRepository {
   private static instance: InMemoryFeedRepository | null = null;
   private activities: FeedActivity[] = [];
+  // Store following feed items as Map<userId, Set<activityId>>
+  private followingFeedItems: Map<string, Set<string>> = new Map();
 
   private constructor() {}
 
@@ -212,9 +214,94 @@ export class InMemoryFeedRepository implements IFeedRepository {
     }
   }
 
+  async fanOutActivityToFollowers(
+    activityId: ActivityId,
+    followerIds: string[],
+    createdAt: Date,
+  ): Promise<Result<void>> {
+    try {
+      if (followerIds.length === 0) {
+        return ok(undefined);
+      }
+
+      const activityIdString = activityId.getStringValue();
+
+      for (const userId of followerIds) {
+        if (!this.followingFeedItems.has(userId)) {
+          this.followingFeedItems.set(userId, new Set());
+        }
+        this.followingFeedItems.get(userId)!.add(activityIdString);
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async getFollowingFeed(
+    userId: string,
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>> {
+    try {
+      const { page, limit, beforeActivityId, urlType } = options;
+
+      // Get activity IDs for this user's following feed
+      const userActivityIds = this.followingFeedItems.get(userId) || new Set();
+
+      // Filter activities that are in this user's following feed
+      let filteredActivities = this.activities.filter((activity) =>
+        userActivityIds.has(activity.activityId.getStringValue()),
+      );
+
+      // Filter by URL type if provided
+      if (urlType) {
+        filteredActivities = filteredActivities.filter(
+          (activity) => activity.urlType === urlType,
+        );
+      }
+
+      // Filter by cursor if provided
+      if (beforeActivityId) {
+        const beforeIndex = filteredActivities.findIndex((activity) =>
+          activity.activityId.equals(beforeActivityId),
+        );
+        if (beforeIndex >= 0) {
+          filteredActivities = filteredActivities.slice(beforeIndex + 1);
+        }
+      }
+
+      // Paginate
+      const offset = (page - 1) * limit;
+      const paginatedActivities = filteredActivities.slice(
+        offset,
+        offset + limit,
+      );
+
+      const totalCount = filteredActivities.length;
+      const hasMore = offset + paginatedActivities.length < totalCount;
+
+      let nextCursor: ActivityId | undefined;
+      if (hasMore && paginatedActivities.length > 0) {
+        nextCursor =
+          paginatedActivities[paginatedActivities.length - 1]!.activityId;
+      }
+
+      return ok({
+        activities: paginatedActivities,
+        totalCount,
+        hasMore,
+        nextCursor,
+      });
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   // Test helper methods
   clear(): void {
     this.activities = [];
+    this.followingFeedItems.clear();
   }
 
   getAll(): FeedActivity[] {

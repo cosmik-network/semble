@@ -36,4 +36,45 @@ export interface IFeedRepository {
     withinMinutes: number,
   ): Promise<Result<FeedActivity | null>>;
   updateActivity(activity: FeedActivity): Promise<Result<void>>;
+
+  /**
+   * Fan-out an activity to multiple followers' following feeds.
+   *
+   * @param activityId - Activity to distribute
+   * @param followerIds - User DIDs to receive this activity (deduplicated by caller)
+   * @param createdAt - Activity timestamp (denormalized for sorting)
+   * @returns Success or error
+   *
+   * Idempotency guarantee:
+   * - Uses ON CONFLICT DO NOTHING on primary key (user_id, activity_id)
+   * - Safe to call multiple times with same inputs
+   * - Retries are silent (no error on duplicate)
+   *
+   * Performance:
+   * - Bulk insert operation (single query)
+   * - Returns immediately if followerIds is empty (no-op)
+   */
+  fanOutActivityToFollowers(
+    activityId: ActivityId,
+    followerIds: string[],
+    createdAt: Date,
+  ): Promise<Result<void>>;
+
+  /**
+   * Get a user's following feed (paginated).
+   *
+   * @param userId - User DID whose feed to fetch
+   * @param options - Pagination, filters (urlType, source, beforeActivityId)
+   * @returns Paginated feed activities
+   *
+   * Query pattern:
+   * - Filters by user_id on following_feed_items
+   * - JOINs to feed_activities for full activity data
+   * - Supports same filters as global feed (urlType, source)
+   * - Cursor-based pagination via beforeActivityId
+   */
+  getFollowingFeed(
+    userId: string,
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>>;
 }

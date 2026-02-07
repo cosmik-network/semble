@@ -10,6 +10,12 @@ import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 import { SourceTypeEnum } from '../../../domain/value-objects/SourceType';
 import { ATPROTO_NSID } from '../../../../../shared/constants/atproto';
+import { IFollowsRepository } from '../../../../user/domain/repositories/IFollowsRepository';
+import { IFeedRepository } from '../../../domain/IFeedRepository';
+import {
+  FollowTargetType,
+  FollowTargetTypeEnum,
+} from '../../../../user/domain/value-objects/FollowTargetType';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;
@@ -44,6 +50,8 @@ export class AddActivityToFeedUseCase
   constructor(
     private feedService: FeedService,
     private cardRepository: ICardRepository,
+    private followsRepository: IFollowsRepository,
+    private feedRepository: IFeedRepository,
   ) {}
 
   async execute(
@@ -153,8 +161,83 @@ export class AddActivityToFeedUseCase
         return err(new ValidationError(activityResult.error.message));
       }
 
+      const activity = activityResult.value;
+
+      // ========================================
+      // PHASE 4: GET FOLLOWERS
+      // ========================================
+
+      // 4a. Get followers of the actor (user who created activity)
+      const targetTypeResult = FollowTargetType.create(
+        FollowTargetTypeEnum.USER,
+      );
+      if (targetTypeResult.isErr()) {
+        console.error(
+          'Failed to create FollowTargetType:',
+          targetTypeResult.error,
+        );
+        return ok({
+          activityId: activity.activityId.getStringValue(),
+        });
+      }
+
+      const userFollowersResult = await this.followsRepository.getFollowers(
+        actorId.value,
+        targetTypeResult.value,
+      );
+
+      const userFollowers = userFollowersResult.isOk()
+        ? userFollowersResult.value.map((f) => f.followerId.value)
+        : [];
+
+      // 4b. Get followers of collections (if any)
+      let collectionFollowers: string[] = [];
+      if (collectionIds && collectionIds.length > 0) {
+        const collectionIdStrings = collectionIds.map((id) =>
+          id.getStringValue(),
+        );
+        const collectionFollowersResult =
+          await this.followsRepository.getFollowersOfCollections(
+            collectionIdStrings,
+          );
+
+        collectionFollowers = collectionFollowersResult.isOk()
+          ? collectionFollowersResult.value.map((f) => f.followerId.value)
+          : [];
+      }
+
+      // 4c. Combine and deduplicate follower IDs
+      const allFollowerIds = new Set([
+        ...userFollowers,
+        ...collectionFollowers,
+      ]);
+
+      // ========================================
+      // PHASE 5: FAN-OUT
+      // ========================================
+
+      if (allFollowerIds.size > 0) {
+        const fanOutResult =
+          await this.feedRepository.fanOutActivityToFollowers(
+            activity.activityId,
+            Array.from(allFollowerIds),
+            activity.createdAt,
+          );
+
+        // Error handling: Log but don't fail the use case
+        // Activity already exists in global feed
+        // Event retries will eventually distribute it
+        if (fanOutResult.isErr()) {
+          console.error(
+            'Fan-out failed (will retry on event retry):',
+            fanOutResult.error,
+          );
+          // Note: We do NOT return err here - activity was created successfully
+        }
+      }
+
       return ok({
-        activityId: activityResult.value.activityId.getStringValue(),
+        activityId: activity.activityId.getStringValue(),
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

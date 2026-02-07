@@ -299,6 +299,8 @@ export class UseCaseFactory {
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
         repositories.cardRepository,
+        repositories.followsRepository,
+        repositories.feedRepository,
       ),
       // Search use cases
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
@@ -349,6 +351,8 @@ export class UseCaseFactory {
     const addActivityToFeedUseCase = new AddActivityToFeedUseCase(
       services.feedService,
       repositories.cardRepository,
+      repositories.followsRepository,
+      repositories.feedRepository,
     );
 
     // Search use cases
