@@ -10,6 +10,9 @@ const APPROVED_HANDLES = new Set([
   'tgoerke.bsky.social',
   'psingletary.com',
   'hilarybaumann.com',
+  'cosmik.network',
+  'semble.so',
+  'atproto.science',
 ]);
 
 export async function getServerFeatureFlags() {
