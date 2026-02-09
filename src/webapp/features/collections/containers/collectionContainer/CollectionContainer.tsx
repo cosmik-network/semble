@@ -88,7 +88,7 @@ export default function CollectionContainer(props: Props) {
               )}
             </Group>
             {collection.description && (
-              <Text c="gray" mt="lg">
+              <Text c="gray" mt="lg" maw={700}>
                 {collection.description}
               </Text>
             )}

@@ -21,6 +21,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialName?: string;
+  initialAccessType?: CollectionAccessType;
   onCreate?: (
     newCollection: Pick<Collection, 'id' | 'name' | 'cardCount' | 'accessType'>,
   ) => void;
@@ -33,7 +34,7 @@ export default function createCollectionDrawer(props: Props) {
     initialValues: {
       name: props.initialName ?? '',
       description: '',
-      accessType: CollectionAccessType.CLOSED,
+      accessType: props.initialAccessType ?? CollectionAccessType.CLOSED,
     },
   });
 
@@ -140,7 +141,7 @@ export default function createCollectionDrawer(props: Props) {
                   data={[
                     {
                       value: CollectionAccessType.CLOSED,
-                      label: 'Closed — Only you can add',
+                      label: 'Personal — Only you can add',
                     },
                     {
                       value: CollectionAccessType.OPEN,

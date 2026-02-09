@@ -8,10 +8,12 @@ import useSearchCollections from '@/features/collections/lib/queries/useSearchCo
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 import { SearchFilters } from '../../components/searchFilters/SearchFilters';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   query: string;
   handle?: string;
+  accessType?: CollectionAccessType;
 }
 
 export default function CollectionSearchResultsContainer(props: Props) {
@@ -25,6 +27,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
   } = useSearchCollections({
     searchText: props.query,
     identifier: props.handle,
+    accessType: props.accessType,
   });
 
   const allCollections =
@@ -36,6 +39,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
         <SearchQueryAlert query={props.query} handle={props.handle} />
         <SearchFilters.Root>
           <SearchFilters.ProfileFilter />
+          <SearchFilters.AccessTypeFilter />
           <SearchFilters.Actions />
         </SearchFilters.Root>
       </Group>

@@ -127,6 +127,9 @@ export default function SearchBar(props: Props) {
                 >
                   <SearchFilters.ProfileFilter />
                   {searchType === 'cards' && <SearchFilters.UrlTypeFilter />}
+                  {searchType === 'collections' && (
+                    <SearchFilters.AccessTypeFilter />
+                  )}
                   <SearchFilters.Actions />
                 </SearchFilters.Root>
               )}
