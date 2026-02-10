@@ -75,7 +75,7 @@ export default function AddCardDrawer(props: Props) {
       },
       {
         onSuccess: () => {
-          setSelectedCollections([]);
+          setSelectedCollections(initialCollections);
           props.onClose();
           window.history.replaceState({}, '', window.location.pathname);
         },
@@ -227,7 +227,7 @@ export default function AddCardDrawer(props: Props) {
                     <CollectionSelector
                       isOpen={collectionSelectorOpened}
                       onCancel={() => {
-                        setSelectedCollections([]);
+                        setSelectedCollections(initialCollections);
                         toggleCollectionSelector();
                       }}
                       onClose={toggleCollectionSelector}
@@ -246,7 +246,7 @@ export default function AddCardDrawer(props: Props) {
                 color={'gray'}
                 onClick={() => {
                   props.onClose();
-                  setSelectedCollections([]);
+                  setSelectedCollections(initialCollections);
                 }}
               >
                 Cancel
