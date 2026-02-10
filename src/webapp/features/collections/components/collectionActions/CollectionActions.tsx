@@ -35,8 +35,7 @@ export default function CollectionActions(props: Props) {
       <Group gap={'xs'}>
         {isAuthenticated &&
           (props.collection.accessType === CollectionAccessType.OPEN ||
-            isAuthor) &&
-          (featureFlags?.openCollections || isAuthor) && (
+            isAuthor) && (
             <Button
               size="sm"
               leftSection={<FiPlus size={22} />}

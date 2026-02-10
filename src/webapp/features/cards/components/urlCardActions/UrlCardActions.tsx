@@ -49,7 +49,6 @@ export default function UrlCardActions(props: Props) {
       : userId === props.cardAuthor?.id);
 
   const isOpenCollection =
-    featureFlags?.openCollections &&
     props.currentCollection?.accessType === CollectionAccessType.OPEN;
 
   const isCardAdder = userId === props.cardAuthor?.id;

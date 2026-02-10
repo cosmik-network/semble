@@ -102,17 +102,15 @@ export default function FeedControls() {
             </Combobox.Dropdown>
           </Combobox>
 
-          {featureFlags?.openCollections && (
-            <Button
-              component={Link}
-              href={'/explore/open-collections'}
-              color="green"
-              variant="light"
-              leftSection={<FaSeedling />}
-            >
-              Open Collections
-            </Button>
-          )}
+          <Button
+            component={Link}
+            href={'/explore/open-collections'}
+            color="green"
+            variant="light"
+            leftSection={<FaSeedling />}
+          >
+            Open Collections
+          </Button>
         </Group>
         <FeedFilters />
       </Group>

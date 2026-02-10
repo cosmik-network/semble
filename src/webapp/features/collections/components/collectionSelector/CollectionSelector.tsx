@@ -25,17 +25,14 @@ export default function CollectionSelector(props: Props) {
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'}>
-        {featureFlags?.openCollections && (
-          <Tabs.List grow mb={'xs'}>
-            <Tabs.Tab classNames={classes} value="myCollections">
-              My Collections
-            </Tabs.Tab>
-            <Tabs.Tab classNames={classes} value="openCollections">
-              Open Collections
-            </Tabs.Tab>
-          </Tabs.List>
-        )}
-
+        <Tabs.List grow mb={'xs'}>
+          <Tabs.Tab classNames={classes} value="myCollections">
+            My Collections
+          </Tabs.Tab>
+          <Tabs.Tab classNames={classes} value="openCollections">
+            Open Collections
+          </Tabs.Tab>
+        </Tabs.List>
         <Tabs.Panel value="myCollections">
           <Suspense>
             <CollectionSelectorMyCollections
