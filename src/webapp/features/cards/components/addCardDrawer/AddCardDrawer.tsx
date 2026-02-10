@@ -154,7 +154,7 @@ export default function AddCardDrawer(props: Props) {
                     >
                       {myCollections.length === 0
                         ? 'Create a collection'
-                        : 'Manage'}
+                        : 'Manage & Create'}
                     </Button>
 
                     {myCollections.map((col) => {
