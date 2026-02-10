@@ -119,38 +119,35 @@ export default function createCollectionDrawer(props: Props) {
                 {...form.getInputProps('description')}
               />
 
-              {featureFlags?.openCollections && (
-                <Select
-                  variant="filled"
-                  size="md"
-                  label="Collaboration"
-                  leftSection={
-                    form.getValues().accessType ===
-                    CollectionAccessType.OPEN ? (
-                      <ThemeIcon
-                        size={'md'}
-                        variant="light"
-                        color={'green'}
-                        radius={'xl'}
-                      >
-                        <FaSeedling size={14} />
-                      </ThemeIcon>
-                    ) : null
-                  }
-                  defaultValue={CollectionAccessType.CLOSED}
-                  data={[
-                    {
-                      value: CollectionAccessType.CLOSED,
-                      label: 'Personal — Only you can add',
-                    },
-                    {
-                      value: CollectionAccessType.OPEN,
-                      label: 'Open — Anyone can add',
-                    },
-                  ]}
-                  {...form.getInputProps('accessType')}
-                />
-              )}
+              <Select
+                variant="filled"
+                size="md"
+                label="Collaboration"
+                leftSection={
+                  form.getValues().accessType === CollectionAccessType.OPEN ? (
+                    <ThemeIcon
+                      size={'md'}
+                      variant="light"
+                      color={'green'}
+                      radius={'xl'}
+                    >
+                      <FaSeedling size={14} />
+                    </ThemeIcon>
+                  ) : null
+                }
+                defaultValue={CollectionAccessType.CLOSED}
+                data={[
+                  {
+                    value: CollectionAccessType.CLOSED,
+                    label: 'Personal — Only you can add',
+                  },
+                  {
+                    value: CollectionAccessType.OPEN,
+                    label: 'Open — Anyone can add',
+                  },
+                ]}
+                {...form.getInputProps('accessType')}
+              />
 
               <Group justify="space-between" gap={'xs'} grow>
                 <Button

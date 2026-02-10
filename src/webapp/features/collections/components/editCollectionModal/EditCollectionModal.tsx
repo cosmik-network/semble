@@ -123,47 +123,45 @@ export default function EditCollectionModal(props: Props) {
                 {...form.getInputProps('description')}
               />
 
-              {featureFlags?.openCollections && (
-                <Stack gap={'xs'}>
-                  <Select
-                    variant="filled"
-                    size="md"
-                    color="green"
-                    label="Collaboration"
-                    disabled={isMargin}
-                    leftSection={
-                      form.getValues().accessType ===
-                      CollectionAccessType.OPEN ? (
-                        <ThemeIcon
-                          size={'md'}
-                          variant="light"
-                          color={'green'}
-                          radius={'xl'}
-                        >
-                          <FaSeedling size={14} />
-                        </ThemeIcon>
-                      ) : null
-                    }
-                    defaultValue={CollectionAccessType.CLOSED}
-                    data={[
-                      {
-                        value: CollectionAccessType.CLOSED,
-                        label: 'Personal — Only you can add',
-                      },
-                      {
-                        value: CollectionAccessType.OPEN,
-                        label: 'Open — Anyone can add',
-                      },
-                    ]}
-                    {...form.getInputProps('accessType')}
-                  />
-                  {isMargin && (
-                    <Text size="sm" c="dimmed">
-                      Collections made in Margin can't be changed to open.
-                    </Text>
-                  )}
-                </Stack>
-              )}
+              <Stack gap={'xs'}>
+                <Select
+                  variant="filled"
+                  size="md"
+                  color="green"
+                  label="Collaboration"
+                  disabled={isMargin}
+                  leftSection={
+                    form.getValues().accessType ===
+                    CollectionAccessType.OPEN ? (
+                      <ThemeIcon
+                        size={'md'}
+                        variant="light"
+                        color={'green'}
+                        radius={'xl'}
+                      >
+                        <FaSeedling size={14} />
+                      </ThemeIcon>
+                    ) : null
+                  }
+                  defaultValue={CollectionAccessType.CLOSED}
+                  data={[
+                    {
+                      value: CollectionAccessType.CLOSED,
+                      label: 'Personal — Only you can add',
+                    },
+                    {
+                      value: CollectionAccessType.OPEN,
+                      label: 'Open — Anyone can add',
+                    },
+                  ]}
+                  {...form.getInputProps('accessType')}
+                />
+                {isMargin && (
+                  <Text size="sm" c="dimmed">
+                    Collections made in Margin can't be changed to open.
+                  </Text>
+                )}
+              </Stack>
             </Stack>
 
             <Group justify="space-between" gap={'xs'} grow>

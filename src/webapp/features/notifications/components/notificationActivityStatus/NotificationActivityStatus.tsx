@@ -11,7 +11,12 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { NotificationItem, Collection, NotificationType } from '@/api-client';
+import {
+  NotificationItem,
+  Collection,
+  NotificationType,
+  CollectionAccessType,
+} from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import styles from '../../../feeds/components/feedActivityStatus/FeedActivityStatus.module.css';
@@ -144,7 +149,11 @@ export default function NotificationActivityStatus(props: Props) {
           <Anchor
             component={Link}
             href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
-            c="grape"
+            c={
+              collection.accessType === CollectionAccessType.OPEN
+                ? 'green'
+                : 'grape'
+            }
             fw={500}
           >
             {collection.name}

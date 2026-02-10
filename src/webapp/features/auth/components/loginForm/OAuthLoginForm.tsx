@@ -12,7 +12,6 @@ import {
   Group,
   Avatar,
   ScrollArea,
-  Skeleton,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { BiRightArrowAlt } from 'react-icons/bi';

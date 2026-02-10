@@ -59,8 +59,7 @@ export default function CollectionContainer(props: Props) {
               <Text
                 fw={700}
                 c={
-                  collection.accessType === CollectionAccessType.OPEN &&
-                  featureFlags?.openCollections
+                  collection.accessType === CollectionAccessType.OPEN
                     ? 'green'
                     : 'grape'
                 }
@@ -68,18 +67,17 @@ export default function CollectionContainer(props: Props) {
                 Collection
               </Text>
 
-              {accessType === CollectionAccessType.OPEN &&
-                featureFlags?.openCollections && (
-                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                    <Badge
-                      color="green"
-                      leftSection={<FaSeedling />}
-                      variant="light"
-                    >
-                      Open
-                    </Badge>
-                  </Tooltip>
-                )}
+              {accessType === CollectionAccessType.OPEN && (
+                <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                  <Badge
+                    color="green"
+                    leftSection={<FaSeedling />}
+                    variant="light"
+                  >
+                    Open
+                  </Badge>
+                </Tooltip>
+              )}
             </Group>
             <Group gap={8}>
               <Title order={1}>{collection.name}</Title>

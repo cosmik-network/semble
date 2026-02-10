@@ -27,6 +27,6 @@ export async function getServerFeatureFlags() {
     urlTypeFilter: show,
     leafletMentions: show,
     animatedLandingTitle: show,
-    openCollections: show,
+    openCollections: true,
   };
 }
