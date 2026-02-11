@@ -33,7 +33,6 @@ import { UrlType, CollectionAccessType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
 import { FaSeedling } from 'react-icons/fa6';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 // context
 interface FilterContextValue {

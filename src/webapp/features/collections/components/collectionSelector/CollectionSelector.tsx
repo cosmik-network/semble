@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { Stack, Button, Group, FocusTrap, Tabs } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
 
@@ -19,8 +18,6 @@ interface Props {
 }
 
 export default function CollectionSelector(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
-
   return (
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />

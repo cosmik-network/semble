@@ -22,7 +22,6 @@ import CollectionContainerContentSkeleton from '../collectionContainerContent/Sk
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
@@ -32,7 +31,6 @@ interface Props {
 }
 
 export default function CollectionContainer(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
