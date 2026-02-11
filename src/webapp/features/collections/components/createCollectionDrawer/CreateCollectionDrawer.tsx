@@ -126,6 +126,7 @@ export default function createCollectionDrawer(props: Props) {
                     </ThemeIcon>
                   ) : null
                 }
+                allowDeselect={false}
                 defaultValue={CollectionAccessType.CLOSED}
                 data={[
                   {

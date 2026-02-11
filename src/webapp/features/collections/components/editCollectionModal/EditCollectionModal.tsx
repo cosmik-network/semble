@@ -143,6 +143,7 @@ export default function EditCollectionModal(props: Props) {
                       </ThemeIcon>
                     ) : null
                   }
+                  allowDeselect={false}
                   defaultValue={CollectionAccessType.CLOSED}
                   data={[
                     {
