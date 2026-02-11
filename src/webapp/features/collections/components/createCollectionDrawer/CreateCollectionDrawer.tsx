@@ -1,4 +1,4 @@
-import { Collection, CollectionAccessType } from '@semble/types';
+import { CollectionAccessType } from '@semble/types';
 import {
   Button,
   Container,
@@ -15,20 +15,16 @@ import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialName?: string;
   initialAccessType?: CollectionAccessType;
-  onCreate?: (
-    newCollection: Pick<Collection, 'id' | 'name' | 'cardCount' | 'accessType'>,
-  ) => void;
+  onCreate?: () => void;
 }
 
 export default function createCollectionDrawer(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
   const createCollection = useCreateCollection();
   const form = useForm({
     initialValues: {
@@ -49,15 +45,10 @@ export default function createCollectionDrawer(props: Props) {
         accessType: form.getValues().accessType,
       },
       {
-        onSuccess: (newCollection) => {
+        onSuccess: () => {
           props.onClose();
-          if (newCollection && props.onCreate) {
-            props.onCreate({
-              id: newCollection.collectionId,
-              name: form.getValues().name,
-              cardCount: 0,
-              accessType: form.getValues().accessType,
-            });
+          if (props.onCreate) {
+            props.onCreate();
           }
         },
         onError: () => {

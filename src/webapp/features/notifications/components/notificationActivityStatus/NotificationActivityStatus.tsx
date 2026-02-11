@@ -204,7 +204,7 @@ export default function NotificationActivityStatus(props: Props) {
             component={Link}
             href={`/profile/${props.user.handle}`}
             src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-            alt={`${props.user.name}'s' avatar`}
+            alt={`${props.user.name}'s avatar`}
           />
           <Text fw={500}>
             {getActivityText()}

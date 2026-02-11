@@ -102,7 +102,7 @@ export default function CollectionContainer(props: Props) {
                   'avatar',
                   'avatar_thumbnail',
                 )}
-                alt={`${collection.author.name}'s' avatar`}
+                alt={`${collection.author.name}'s avatar`}
               />
               <Anchor
                 component={Link}

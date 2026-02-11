@@ -134,7 +134,7 @@ export default function NoteCardModalContent(props: Props) {
               'avatar',
               'avatar_thumbnail',
             )}
-            alt={`${props.cardAuthor.name}'s' avatar`}
+            alt={`${props.cardAuthor.name}'s avatar`}
           />
           <Anchor
             component={Link}

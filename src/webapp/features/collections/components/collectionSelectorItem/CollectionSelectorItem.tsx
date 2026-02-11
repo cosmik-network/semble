@@ -49,11 +49,11 @@ export default function CollectionSelectorItem(props: Props) {
           </Text>
         </Group>
         <Avatar
-          src={props.collection.author.avatarUrl?.replace(
+          src={props.collection.author?.avatarUrl?.replace(
             'avatar',
             'avatar_thumbnail',
           )}
-          alt={`${props.collection.author.handle}'s avatar`}
+          alt={`${props.collection.author?.handle}'s avatar`}
           size={'sm'}
         />
         <CheckboxIndicator checked={props.checked} />

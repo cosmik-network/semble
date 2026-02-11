@@ -197,11 +197,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         onClose={() => setIsDrawerOpen(false)}
         initialName={search}
         initialAccessType={CollectionAccessType.OPEN}
-        onCreate={(newCollection) => {
-          props.onSelectedCollectionsChange([
-            ...props.selectedCollections,
-            newCollection as Collection,
-          ]);
+        onCreate={() => {
           setSearch('');
         }}
       />
