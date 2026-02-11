@@ -1,6 +1,7 @@
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { truncateText } from '@/lib/utils/text';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -35,7 +36,10 @@ export default async function Image(props: Props) {
             style={{
               fontSize: 35,
               lineHeight: 1.2,
-              color: '#e803ff',
+              color:
+                collection.accessType === CollectionAccessType.OPEN
+                  ? '#40c057'
+                  : '#e803ff',
               margin: 0,
             }}
           >
@@ -68,8 +72,9 @@ export default async function Image(props: Props) {
                 lineHeight: 1.2,
                 color: '#868e96',
                 marginTop: 20,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
+                display: 'block',
+                WebkitLineClamp: 1,
+                lineClamp: 1,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 maxWidth: '900',
@@ -94,7 +99,8 @@ export default async function Image(props: Props) {
                 wordBreak: 'break-word',
               }}
             >
-              {collection.cardCount} cards
+              {collection.cardCount}{' '}
+              {collection.cardCount > 1 ? 'cards' : 'card'}
             </p>
           )}
 
