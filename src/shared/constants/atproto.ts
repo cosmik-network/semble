@@ -15,5 +15,6 @@ export const ATPROTO_NSID = {
     COLLECTION: 'network.cosmik.collection',
     COLLECTION_LINK: 'network.cosmik.collectionLink',
     COLLECTION_LINK_REMOVAL: 'network.cosmik.collectionLinkRemoval',
+    FOLLOW: 'network.cosmik.follow',
   },
 } as const;

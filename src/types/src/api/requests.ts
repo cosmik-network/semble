@@ -241,3 +241,14 @@ export interface GetMyNotificationsParams extends PaginatedSortedParams {
 export interface MarkNotificationsAsReadRequest {
   notificationIds: string[];
 }
+
+// Follow request types
+export interface FollowTargetRequest {
+  targetId: string; // DID or Collection UUID
+  targetType: 'USER' | 'COLLECTION';
+}
+
+export interface UnfollowTargetRequest {
+  targetId: string;
+  targetType: 'USER' | 'COLLECTION';
+}

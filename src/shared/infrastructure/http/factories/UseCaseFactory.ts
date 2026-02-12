@@ -52,6 +52,8 @@ import { MarkNotificationsAsReadUseCase } from '../../../../modules/notification
 import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkAllNotificationsAsReadUseCase';
 import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
 import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
+import { FollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/FollowTargetUseCase';
+import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -83,6 +85,8 @@ export interface UseCases {
   getProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
+  followTargetUseCase: FollowTargetUseCase;
+  unfollowTargetUseCase: UnfollowTargetUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
@@ -166,6 +170,18 @@ export class UseCaseFactory {
       ),
       generateExtensionTokensUseCase: new GenerateExtensionTokensUseCase(
         services.tokenService,
+      ),
+      followTargetUseCase: new FollowTargetUseCase(
+        repositories.followsRepository,
+        repositories.userRepository,
+        repositories.collectionRepository,
+        services.followPublisher,
+        services.eventPublisher,
+      ),
+      unfollowTargetUseCase: new UnfollowTargetUseCase(
+        repositories.followsRepository,
+        services.followPublisher,
+        services.eventPublisher,
       ),
 
       // Card use cases

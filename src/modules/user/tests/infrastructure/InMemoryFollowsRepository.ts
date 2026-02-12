@@ -77,6 +77,34 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async delete(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<void>> {
+    try {
+      const key = `${followerId}:${targetId}:${targetType.value}`;
+      this.follows.delete(key);
+      return ok(undefined);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async findByFollowerAndTarget(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow | null>> {
+    try {
+      const key = `${followerId}:${targetId}:${targetType.value}`;
+      const follow = this.follows.get(key);
+      return ok(follow || null);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.follows.clear();

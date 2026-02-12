@@ -4,7 +4,9 @@ import {
   timestamp,
   primaryKey,
   index,
+  uuid,
 } from 'drizzle-orm/pg-core';
+import { publishedRecords } from '../../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 
 export const follows = pgTable(
   'follows',
@@ -12,6 +14,9 @@ export const follows = pgTable(
     followerId: text('follower_id').notNull(),
     targetId: text('target_id').notNull(),
     targetType: text('target_type').notNull(),
+    publishedRecordId: uuid('published_record_id').references(
+      () => publishedRecords.id,
+    ),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (table) => ({

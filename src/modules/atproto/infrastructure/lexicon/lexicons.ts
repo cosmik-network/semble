@@ -316,6 +316,34 @@ export const schemaDict = {
       },
     },
   },
+  NetworkCosmikFollow: {
+    lexicon: 1,
+    id: 'network.cosmik.follow',
+    description: 'A record representing a follow relationship.',
+    defs: {
+      main: {
+        type: 'record',
+        description: 'A record representing a follow of a user or collection.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['subject', 'createdAt'],
+          properties: {
+            subject: {
+              type: 'string',
+              description:
+                'DID of the user being followed, or AT URI of the collection being followed',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this follow was created.',
+            },
+          },
+        },
+      },
+    },
+  },
   ComAtprotoRepoStrongRef: {
     lexicon: 1,
     id: 'com.atproto.repo.strongRef',
@@ -963,6 +991,7 @@ export const ids = {
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
   NetworkCosmikCollectionLinkRemoval: 'network.cosmik.collectionLinkRemoval',
   NetworkCosmikDefs: 'network.cosmik.defs',
+  NetworkCosmikFollow: 'network.cosmik.follow',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
   AtMarginAnnotation: 'at.margin.annotation',
   AtMarginBookmark: 'at.margin.bookmark',

@@ -1,0 +1,2 @@
+ALTER TABLE "follows" ADD COLUMN "published_record_id" uuid;--> statement-breakpoint
+ALTER TABLE "follows" ADD CONSTRAINT "follows_published_record_id_published_records_id_fk" FOREIGN KEY ("published_record_id") REFERENCES "public"."published_records"("id") ON DELETE no action ON UPDATE no action;

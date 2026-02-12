@@ -15,8 +15,10 @@ import { BlueskyProfileService } from '../../../../modules/atproto/infrastructur
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
+import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
+import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/FakeFollowPublisher';
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
@@ -26,6 +28,7 @@ import { AppPasswordSessionService } from 'src/modules/atproto/infrastructure/se
 import { AtpAppPasswordProcessor } from 'src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor';
 import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
 import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublisher';
+import { IFollowPublisher } from 'src/modules/user/application/ports/IFollowPublisher';
 import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 import { BullMQEventSubscriber } from '../../events/BullMQEventSubscriber';
 import { BullMQEventPublisher } from '../../events/BullMQEventPublisher';
@@ -98,6 +101,7 @@ export interface WebAppServices extends SharedServices {
   appPasswordProcessor: IAppPasswordProcessor;
   collectionPublisher: ICollectionPublisher;
   cardPublisher: ICardPublisher;
+  followPublisher: IFollowPublisher;
   authMiddleware: AuthMiddleware;
 }
 
@@ -166,6 +170,14 @@ export class ServiceFactory {
           collections.card,
         );
 
+    const followPublisher = useFakePublishers
+      ? new FakeFollowPublisher()
+      : new ATProtoFollowPublisher(
+          sharedServices.atProtoAgentService,
+          collections.follow,
+          repositories.collectionRepository,
+        );
+
     const authMiddleware = new AuthMiddleware(
       sharedServices.tokenService,
       sharedServices.cookieService,
@@ -177,6 +189,7 @@ export class ServiceFactory {
       appPasswordProcessor,
       collectionPublisher,
       cardPublisher,
+      followPublisher,
       authMiddleware,
     };
   }

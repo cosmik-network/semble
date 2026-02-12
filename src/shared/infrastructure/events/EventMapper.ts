@@ -4,9 +4,14 @@ import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events
 import { CardRemovedFromLibraryEvent } from '../../../modules/cards/domain/events/CardRemovedFromLibraryEvent';
 import { CardRemovedFromCollectionEvent } from '../../../modules/cards/domain/events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
+import { UserFollowedTargetEvent } from '../../../modules/user/domain/events/UserFollowedTargetEvent';
+import { UserUnfollowedTargetEvent } from '../../../modules/user/domain/events/UserUnfollowedTargetEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
+import { DID } from '../../../modules/user/domain/value-objects/DID';
+import { FollowTargetType } from '../../../modules/user/domain/value-objects/FollowTargetType';
+import { UniqueEntityID } from '../../domain/UniqueEntityID';
 import { EventNames } from './EventConfig';
 
 export interface SerializedEvent {
@@ -51,12 +56,31 @@ export interface SerializedCollectionCreatedEvent extends SerializedEvent {
   collectionName: string;
 }
 
+export interface SerializedUserFollowedTargetEvent extends SerializedEvent {
+  eventType: typeof EventNames.USER_FOLLOWED_TARGET;
+  followId: string;
+  followerId: string;
+  targetId: string;
+  targetType: 'USER' | 'COLLECTION';
+  createdAt: string;
+}
+
+export interface SerializedUserUnfollowedTargetEvent extends SerializedEvent {
+  eventType: typeof EventNames.USER_UNFOLLOWED_TARGET;
+  followId: string;
+  followerId: string;
+  targetId: string;
+  targetType: 'USER' | 'COLLECTION';
+}
+
 export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
   | SerializedCardRemovedFromLibraryEvent
   | SerializedCardRemovedFromCollectionEvent
-  | SerializedCollectionCreatedEvent;
+  | SerializedCollectionCreatedEvent
+  | SerializedUserFollowedTargetEvent
+  | SerializedUserUnfollowedTargetEvent;
 
 export class EventMapper {
   static toSerialized(event: IDomainEvent): SerializedEventUnion {
@@ -112,6 +136,31 @@ export class EventMapper {
         collectionId: event.collectionId.getValue().toString(),
         authorId: event.authorId.value,
         collectionName: event.collectionName,
+      };
+    }
+
+    if (event instanceof UserFollowedTargetEvent) {
+      return {
+        eventType: EventNames.USER_FOLLOWED_TARGET,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        followId: event.followId.toString(),
+        followerId: event.followerId.value,
+        targetId: event.targetId,
+        targetType: event.targetType.value,
+        createdAt: event.createdAt.toISOString(),
+      };
+    }
+
+    if (event instanceof UserUnfollowedTargetEvent) {
+      return {
+        eventType: EventNames.USER_UNFOLLOWED_TARGET,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        followId: event.followId.toString(),
+        followerId: event.followerId.value,
+        targetId: event.targetId,
+        targetType: event.targetType.value,
       };
     }
 
@@ -189,6 +238,38 @@ export class EventMapper {
           collectionId,
           authorId,
           eventData.collectionName,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.USER_FOLLOWED_TARGET: {
+        const followId = new UniqueEntityID(eventData.followId);
+        const followerId = DID.create(eventData.followerId).unwrap();
+        const targetType = FollowTargetType.create(
+          eventData.targetType as any,
+        ).unwrap();
+        const createdAt = new Date(eventData.createdAt);
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return UserFollowedTargetEvent.reconstruct(
+          followId,
+          followerId,
+          eventData.targetId,
+          targetType,
+          createdAt,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.USER_UNFOLLOWED_TARGET: {
+        const followId = new UniqueEntityID(eventData.followId);
+        const followerId = DID.create(eventData.followerId).unwrap();
+        const targetType = FollowTargetType.create(
+          eventData.targetType as any,
+        ).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return UserUnfollowedTargetEvent.reconstruct(
+          followId,
+          followerId,
+          eventData.targetId,
+          targetType,
           dateTimeOccurred,
         ).unwrap();
       }

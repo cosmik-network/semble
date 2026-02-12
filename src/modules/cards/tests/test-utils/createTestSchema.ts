@@ -110,11 +110,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
 
-    // Follows table (no dependencies)
+    // Follows table (references published_records)
     sql`CREATE TABLE IF NOT EXISTS follows (
       follower_id TEXT NOT NULL,
       target_id TEXT NOT NULL,
       target_type TEXT NOT NULL,
+      published_record_id UUID REFERENCES published_records(id),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       PRIMARY KEY (follower_id, target_id, target_type)
     )`,

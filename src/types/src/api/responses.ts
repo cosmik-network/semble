@@ -335,6 +335,8 @@ export enum NotificationType {
   USER_ADDED_YOUR_BSKY_POST = 'USER_ADDED_YOUR_BSKY_POST',
   USER_ADDED_YOUR_COLLECTION = 'USER_ADDED_YOUR_COLLECTION',
   USER_ADDED_TO_YOUR_COLLECTION = 'USER_ADDED_TO_YOUR_COLLECTION',
+  USER_FOLLOWED_YOU = 'USER_FOLLOWED_YOU',
+  USER_FOLLOWED_YOUR_COLLECTION = 'USER_FOLLOWED_YOUR_COLLECTION',
 }
 
 export interface NotificationItem {
@@ -363,4 +365,9 @@ export interface MarkNotificationsAsReadResponse {
 
 export interface MarkAllNotificationsAsReadResponse {
   markedCount: number;
+}
+
+// Follow response types
+export interface FollowTargetResponse {
+  followId: string;
 }

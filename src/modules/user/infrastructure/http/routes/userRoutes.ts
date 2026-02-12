@@ -8,6 +8,8 @@ import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/co
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
 import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
+import { FollowTargetController } from '../controllers/FollowTargetController';
+import { UnfollowTargetController } from '../controllers/UnfollowTargetController';
 
 export const createUserRoutes = (
   router: Router,
@@ -20,6 +22,8 @@ export const createUserRoutes = (
   getUserProfileController: GetUserProfileController,
   refreshAccessTokenController: RefreshAccessTokenController,
   generateExtensionTokensController: GenerateExtensionTokensController,
+  followTargetController: FollowTargetController,
+  unfollowTargetController: UnfollowTargetController,
 ) => {
   // Public routes
   router.get('/login', (req, res) =>
@@ -50,6 +54,17 @@ export const createUserRoutes = (
     '/extension/tokens',
     authMiddleware.ensureAuthenticated(),
     (req, res) => generateExtensionTokensController.execute(req, res),
+  );
+
+  // Follow/Unfollow routes
+  router.post('/follows', authMiddleware.ensureAuthenticated(), (req, res) =>
+    followTargetController.execute(req, res),
+  );
+
+  router.delete(
+    '/follows/:targetId/:targetType',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => unfollowTargetController.execute(req, res),
   );
 
   return router;

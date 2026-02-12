@@ -43,6 +43,8 @@ import { GetMyNotificationsController } from '../../../../modules/notifications/
 import { GetUnreadNotificationCountController } from '../../../../modules/notifications/infrastructure/http/controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
+import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
+import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -55,6 +57,8 @@ export interface Controllers {
   getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
+  followTargetController: FollowTargetController;
+  unfollowTargetController: UnfollowTargetController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
   addCardToLibraryController: AddCardToLibraryController;
@@ -128,6 +132,12 @@ export class ControllerFactory {
       ),
       generateExtensionTokensController: new GenerateExtensionTokensController(
         useCases.generateExtensionTokensUseCase,
+      ),
+      followTargetController: new FollowTargetController(
+        useCases.followTargetUseCase,
+      ),
+      unfollowTargetController: new UnfollowTargetController(
+        useCases.unfollowTargetUseCase,
       ),
 
       // Card controllers

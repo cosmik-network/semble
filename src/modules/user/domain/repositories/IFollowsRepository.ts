@@ -38,4 +38,44 @@ export interface IFollowsRepository {
    *   (deduplication happens at use case level)
    */
   getFollowersOfCollections(collectionIds: string[]): Promise<Result<Follow[]>>;
+
+  /**
+   * Save a follow relationship.
+   *
+   * @param follow - The follow entity to persist
+   * @returns Success or error
+   *
+   * Idempotency: Uses INSERT ON CONFLICT DO NOTHING on composite key
+   */
+  save(follow: Follow): Promise<Result<void>>;
+
+  /**
+   * Delete a follow relationship.
+   *
+   * @param followerId - DID of the follower
+   * @param targetId - ID of the target (user DID or collection UUID)
+   * @param targetType - Type of target
+   * @returns Success or error
+   *
+   * Idempotency: Returns success even if follow doesn't exist
+   */
+  delete(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<void>>;
+
+  /**
+   * Find a specific follow relationship.
+   *
+   * @param followerId - DID of the follower
+   * @param targetId - ID of the target
+   * @param targetType - Type of target
+   * @returns Follow entity or null if not found
+   */
+  findByFollowerAndTarget(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow | null>>;
 }

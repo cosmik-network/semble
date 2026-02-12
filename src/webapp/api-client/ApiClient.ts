@@ -82,6 +82,8 @@ import type {
   GetGemActivityFeedParams,
   SearchCollectionsParams,
   GetOpenCollectionsWithContributorParams,
+  FollowTargetRequest,
+  FollowTargetResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -324,6 +326,19 @@ export class ApiClient {
 
   async logout(): Promise<{ success: boolean; message: string }> {
     return this.userClient.logout();
+  }
+
+  async followTarget(
+    request: FollowTargetRequest,
+  ): Promise<FollowTargetResponse> {
+    return this.userClient.followTarget(request);
+  }
+
+  async unfollowTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    return this.userClient.unfollowTarget(targetId, targetType);
   }
 
   // Feed operations - delegate to FeedClient
