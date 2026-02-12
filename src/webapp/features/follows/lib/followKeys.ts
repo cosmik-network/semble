@@ -13,11 +13,7 @@ export const followKeys = {
   followersCount: (identifier: string) =>
     [...followKeys.all(), 'followers-count', identifier] as const,
   followingCollectionsCount: (identifier: string) =>
-    [
-      ...followKeys.all(),
-      'following-collections-count',
-      identifier,
-    ] as const,
+    [...followKeys.all(), 'following-collections-count', identifier] as const,
   collectionFollowersCount: (collectionId: string) =>
     [...followKeys.all(), 'collection-followers-count', collectionId] as const,
 };

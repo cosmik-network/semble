@@ -12,7 +12,8 @@ interface Props {
 
 export default function NotificationItem(props: Props) {
   const router = useRouter();
-  const isFollowNotification = props.item.type === NotificationType.USER_FOLLOWED_YOU;
+  const isFollowNotification =
+    props.item.type === NotificationType.USER_FOLLOWED_YOU;
 
   const handleClick = () => {
     if (isFollowNotification) {
@@ -62,6 +63,7 @@ export default function NotificationItem(props: Props) {
                 targetType="USER"
                 variant="light"
                 size="sm"
+                initialIsFollowing={props.item.user.isFollowing}
               />
             </Box>
           )}

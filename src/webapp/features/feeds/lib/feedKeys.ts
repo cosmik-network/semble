@@ -20,11 +20,5 @@ export const feedKeys = {
     limit?: number,
     urlType?: UrlType,
     source?: ActivitySource,
-  ) => [
-    ...feedKeys.following(),
-    'infinite',
-    limit,
-    urlType,
-    source,
-  ] as const,
+  ) => [...feedKeys.following(), 'infinite', limit, urlType, source] as const,
 };

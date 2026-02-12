@@ -51,6 +51,7 @@ export default function CollectionActions(props: Props) {
             targetId={props.collection.id}
             targetType="COLLECTION"
             size="sm"
+            initialIsFollowing={props.collection.isFollowing}
           />
         )}
 

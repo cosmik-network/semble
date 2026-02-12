@@ -12,7 +12,9 @@ interface Props {
 }
 
 function CollectionStatsContent({ collectionId, handle, rkey }: Props) {
-  const { data: followersCount } = useCollectionFollowersCount({ collectionId });
+  const { data: followersCount } = useCollectionFollowersCount({
+    collectionId,
+  });
 
   return (
     <Badge

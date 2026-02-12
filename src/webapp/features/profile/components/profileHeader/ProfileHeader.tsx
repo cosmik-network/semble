@@ -81,7 +81,11 @@ export default async function ProfileHeader(props: Props) {
                       <RichTextRenderer text={profile.description} />
                     </Spoiler>
                   )}
-                  <ProfileStats identifier={profile.id} handle={profile.handle} />
+                  <ProfileStats
+                    identifier={profile.id}
+                    handle={profile.handle}
+                    isFollowing={profile.isFollowing}
+                  />
                 </Stack>
               </GridCol>
             </Grid>

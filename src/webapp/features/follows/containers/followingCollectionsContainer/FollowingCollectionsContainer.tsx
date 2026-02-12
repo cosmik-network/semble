@@ -10,13 +10,8 @@ interface Props {
 }
 
 export default function FollowingCollectionsContainer({ identifier }: Props) {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-  } = useFollowingCollections({ identifier });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    useFollowingCollections({ identifier });
 
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];

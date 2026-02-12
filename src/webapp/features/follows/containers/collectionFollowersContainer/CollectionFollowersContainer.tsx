@@ -1,6 +1,14 @@
 'use client';
 
-import { Container, Stack, Text, Center, Avatar, Group, Paper } from '@mantine/core';
+import {
+  Container,
+  Stack,
+  Text,
+  Center,
+  Avatar,
+  Group,
+  Paper,
+} from '@mantine/core';
 import useCollectionFollowers from '../../lib/queries/useCollectionFollowers';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import Link from 'next/link';
@@ -10,13 +18,8 @@ interface Props {
 }
 
 export default function CollectionFollowersContainer({ collectionId }: Props) {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-  } = useCollectionFollowers({ collectionId });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    useCollectionFollowers({ collectionId });
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
 
@@ -59,7 +62,10 @@ export default function CollectionFollowersContainer({ collectionId }: Props) {
                 >
                   <Group>
                     <Avatar
-                      src={user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+                      src={user.avatarUrl?.replace(
+                        'avatar',
+                        'avatar_thumbnail',
+                      )}
                       size="md"
                     />
                     <Stack gap={0}>

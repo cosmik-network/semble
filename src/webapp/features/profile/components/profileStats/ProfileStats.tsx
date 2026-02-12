@@ -12,9 +12,10 @@ import Link from 'next/link';
 interface Props {
   identifier: string; // DID or handle
   handle: string; // For building links
+  isFollowing?: boolean; // Whether the current user follows this profile
 }
 
-function ProfileStatsContent({ identifier, handle }: Props) {
+function ProfileStatsContent({ identifier, handle, isFollowing }: Props) {
   const { data: followersCount } = useFollowersCount({ identifier });
   const { data: followingCount } = useFollowingCount({ identifier });
   const { data: followingCollectionsCount } = useFollowingCollectionsCount({
@@ -58,13 +59,21 @@ function ProfileStatsContent({ identifier, handle }: Props) {
         {followingCollectionsCount.count !== 1 ? 's' : ''}
       </Badge>
       {!isOwnProfile && (
-        <FollowButton targetId={identifier} targetType="USER" />
+        <FollowButton
+          targetId={identifier}
+          targetType="USER"
+          initialIsFollowing={isFollowing}
+        />
       )}
     </Group>
   );
 }
 
-export default function ProfileStats({ identifier, handle }: Props) {
+export default function ProfileStats({
+  identifier,
+  handle,
+  isFollowing,
+}: Props) {
   return (
     <Suspense
       fallback={
@@ -75,7 +84,11 @@ export default function ProfileStats({ identifier, handle }: Props) {
         </Group>
       }
     >
-      <ProfileStatsContent identifier={identifier} handle={handle} />
+      <ProfileStatsContent
+        identifier={identifier}
+        handle={handle}
+        isFollowing={isFollowing}
+      />
     </Suspense>
   );
 }
