@@ -342,11 +342,14 @@ export enum NotificationType {
 export interface NotificationItem {
   id: string;
   user: User;
-  card: UrlCard;
+  card?: UrlCard; // Optional for follow notifications
   createdAt: string;
-  collections: Collection[];
+  collections?: Collection[]; // Optional for follow notifications
   type: NotificationType;
   read: boolean;
+  // Follow notification specific fields
+  followTargetType?: 'USER' | 'COLLECTION';
+  followTargetId?: string; // Collection ID if following a collection
 }
 
 export interface GetMyNotificationsResponse {

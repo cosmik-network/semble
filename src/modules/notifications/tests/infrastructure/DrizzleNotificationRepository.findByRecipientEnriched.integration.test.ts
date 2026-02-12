@@ -321,15 +321,16 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(data.notifications).toHaveLength(1);
 
       const enrichedNotification = data.notifications[0]!;
+      expect(enrichedNotification.collections).toBeDefined();
       expect(enrichedNotification.collections).toHaveLength(2);
 
       // Check collection data
-      const collectionNames = enrichedNotification.collections
-        .map((c) => c.name)
+      const collectionNames = enrichedNotification
+        .collections!.map((c) => c.name)
         .sort();
       expect(collectionNames).toEqual(['My Favorites', 'Reading List']);
 
-      const readingList = enrichedNotification.collections.find(
+      const readingList = enrichedNotification.collections!.find(
         (c) => c.name === 'Reading List',
       );
       expect(readingList?.id).toBe(collection1.collectionId.getStringValue());
@@ -338,7 +339,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(readingList?.cardCount).toBe(1);
       expect(readingList?.createdAt).toEqual(new Date('2024-01-10'));
 
-      const myFavorites = enrichedNotification.collections.find(
+      const myFavorites = enrichedNotification.collections!.find(
         (c) => c.name === 'My Favorites',
       );
       expect(myFavorites?.id).toBe(collection2.collectionId.getStringValue());
@@ -432,10 +433,11 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       expect(data.notifications).toHaveLength(1);
 
       const enrichedNotification = data.notifications[0]!;
+      expect(enrichedNotification.collections).toBeDefined();
       expect(enrichedNotification.collections).toHaveLength(2);
 
       // Check that published collection has AT URI
-      const publishedCollectionData = enrichedNotification.collections.find(
+      const publishedCollectionData = enrichedNotification.collections!.find(
         (c) => c.name === 'Published Reading List',
       );
       expect(publishedCollectionData).toBeDefined();
@@ -445,7 +447,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       );
 
       // Check that unpublished collection has no URI (or undefined)
-      const unpublishedCollectionData = enrichedNotification.collections.find(
+      const unpublishedCollectionData = enrichedNotification.collections!.find(
         (c) => c.name === 'Unpublished Collection',
       );
       expect(unpublishedCollectionData).toBeDefined();

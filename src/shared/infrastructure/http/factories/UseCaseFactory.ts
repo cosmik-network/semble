@@ -403,8 +403,6 @@ export class UseCaseFactory {
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(
         repositories.notificationRepository,
         services.profileService,
-        repositories.cardQueryRepository,
-        repositories.collectionRepository,
       ),
       getUnreadNotificationCountUseCase: new GetUnreadNotificationCountUseCase(
         repositories.notificationRepository,
