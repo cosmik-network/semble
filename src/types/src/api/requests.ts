@@ -130,6 +130,12 @@ export interface GetGlobalFeedParams extends PaginationParams {
   source?: ActivitySource; // Filter by activity source
 }
 
+export interface GetFollowingFeedParams extends PaginationParams {
+  beforeActivityId?: string; // For cursor-based pagination
+  urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
+}
+
 export interface LoginWithAppPasswordRequest {
   identifier: string;
   appPassword: string;

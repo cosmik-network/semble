@@ -24,6 +24,7 @@ import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseC
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
+import { GetFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetFollowingFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
@@ -114,6 +115,7 @@ export interface UseCases {
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
+  getFollowingFeedUseCase: GetFollowingFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
@@ -311,6 +313,12 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         repositories.collectionRepository,
         repositories.collectionQueryRepository,
+      ),
+      getFollowingFeedUseCase: new GetFollowingFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

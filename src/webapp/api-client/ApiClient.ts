@@ -28,6 +28,7 @@ import type {
   GetCollectionPageByAtUriParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
+  GetFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -352,6 +353,12 @@ export class ApiClient {
     params?: GetGemActivityFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getGemsActivityFeed(params);
+  }
+
+  async getFollowingFeed(
+    params?: GetFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getFollowingFeed(params);
   }
 
   // Notification operations - delegate to NotificationClient

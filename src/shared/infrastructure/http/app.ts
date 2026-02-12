@@ -124,6 +124,7 @@ export const createExpressApp = (
     services.authMiddleware,
     controllers.getGlobalFeedController,
     controllers.getGemActivityFeedController,
+    controllers.getFollowingFeedController,
   );
 
   const searchRouter = createSearchRoutes(
