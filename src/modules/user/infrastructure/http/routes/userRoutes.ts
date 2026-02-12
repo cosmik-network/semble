@@ -10,6 +10,12 @@ import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
 import { FollowTargetController } from '../controllers/FollowTargetController';
 import { UnfollowTargetController } from '../controllers/UnfollowTargetController';
+import { GetFollowingUsersController } from '../controllers/GetFollowingUsersController';
+import { GetFollowersController } from '../controllers/GetFollowersController';
+import { GetFollowingCollectionsController } from '../controllers/GetFollowingCollectionsController';
+import { GetFollowingCountController } from '../controllers/GetFollowingCountController';
+import { GetFollowersCountController } from '../controllers/GetFollowersCountController';
+import { GetFollowingCollectionsCountController } from '../controllers/GetFollowingCollectionsCountController';
 
 export const createUserRoutes = (
   router: Router,
@@ -24,6 +30,12 @@ export const createUserRoutes = (
   generateExtensionTokensController: GenerateExtensionTokensController,
   followTargetController: FollowTargetController,
   unfollowTargetController: UnfollowTargetController,
+  getFollowingUsersController: GetFollowingUsersController,
+  getFollowersController: GetFollowersController,
+  getFollowingCollectionsController: GetFollowingCollectionsController,
+  getFollowingCountController: GetFollowingCountController,
+  getFollowersCountController: GetFollowersCountController,
+  getFollowingCollectionsCountController: GetFollowingCollectionsCountController,
 ) => {
   // Public routes
   router.get('/login', (req, res) =>
@@ -65,6 +77,44 @@ export const createUserRoutes = (
     '/follows/:targetId/:targetType',
     authMiddleware.ensureAuthenticated(),
     (req, res) => unfollowTargetController.execute(req, res),
+  );
+
+  // Following/Followers query routes (public with optional auth)
+  router.get(
+    '/:identifier/following',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowingUsersController.execute(req, res),
+  );
+
+  router.get(
+    '/:identifier/followers',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowersController.execute(req, res),
+  );
+
+  router.get(
+    '/:identifier/following-collections',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowingCollectionsController.execute(req, res),
+  );
+
+  // Following/Followers count routes (public)
+  router.get(
+    '/:identifier/following/count',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowingCountController.execute(req, res),
+  );
+
+  router.get(
+    '/:identifier/followers/count',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowersCountController.execute(req, res),
+  );
+
+  router.get(
+    '/:identifier/following-collections/count',
+    authMiddleware.optionalAuth(),
+    (req, res) => getFollowingCollectionsCountController.execute(req, res),
   );
 
   return router;

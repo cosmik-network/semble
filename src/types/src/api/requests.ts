@@ -258,3 +258,37 @@ export interface UnfollowTargetRequest {
   targetId: string;
   targetType: 'USER' | 'COLLECTION';
 }
+
+// Follow query request types
+export interface GetFollowingUsersParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowersParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowingCollectionsParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetCollectionFollowersParams extends PaginationParams {
+  collectionId: string; // Collection UUID
+}
+
+// Follow count request types
+export interface GetFollowingCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowersCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowingCollectionsCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetCollectionFollowersCountParams {
+  collectionId: string; // Collection UUID
+}

@@ -55,6 +55,14 @@ import { CreateNotificationUseCase } from '../../../../modules/notifications/app
 import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
 import { FollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/FollowTargetUseCase';
 import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
+import { GetFollowingUsersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingUsersUseCase';
+import { GetFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersUseCase';
+import { GetFollowingCollectionsUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsUseCase';
+import { GetCollectionFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersUseCase';
+import { GetFollowingCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCountUseCase';
+import { GetFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersCountUseCase';
+import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsCountUseCase';
+import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -88,6 +96,14 @@ export interface UseCases {
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   followTargetUseCase: FollowTargetUseCase;
   unfollowTargetUseCase: UnfollowTargetUseCase;
+  getFollowingUsersUseCase: GetFollowingUsersUseCase;
+  getFollowersUseCase: GetFollowersUseCase;
+  getFollowingCollectionsUseCase: GetFollowingCollectionsUseCase;
+  getCollectionFollowersUseCase: GetCollectionFollowersUseCase;
+  getFollowingCountUseCase: GetFollowingCountUseCase;
+  getFollowersCountUseCase: GetFollowersCountUseCase;
+  getFollowingCollectionsCountUseCase: GetFollowingCollectionsCountUseCase;
+  getCollectionFollowersCountUseCase: GetCollectionFollowersCountUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
@@ -185,6 +201,45 @@ export class UseCaseFactory {
         services.followPublisher,
         services.eventPublisher,
       ),
+      getFollowingUsersUseCase: new GetFollowingUsersUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+      ),
+      getFollowersUseCase: new GetFollowersUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+      ),
+      getFollowingCollectionsUseCase: new GetFollowingCollectionsUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+        repositories.collectionRepository,
+      ),
+      getCollectionFollowersUseCase: new GetCollectionFollowersUseCase(
+        repositories.followsRepository,
+        services.profileService,
+        repositories.collectionRepository,
+      ),
+      getFollowingCountUseCase: new GetFollowingCountUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+      ),
+      getFollowersCountUseCase: new GetFollowersCountUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+      ),
+      getFollowingCollectionsCountUseCase:
+        new GetFollowingCollectionsCountUseCase(
+          repositories.followsRepository,
+          services.identityResolutionService,
+        ),
+      getCollectionFollowersCountUseCase:
+        new GetCollectionFollowersCountUseCase(
+          repositories.followsRepository,
+          repositories.collectionRepository,
+        ),
 
       // Card use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(

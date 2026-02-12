@@ -371,3 +371,29 @@ export interface MarkAllNotificationsAsReadResponse {
 export interface FollowTargetResponse {
   followId: string;
 }
+
+// Follow query response types
+export interface GetFollowingUsersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+export interface GetFollowersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+export interface GetFollowingCollectionsResponse {
+  collections: Collection[];
+  pagination: Pagination;
+}
+
+export interface GetCollectionFollowersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+// Follow count response types
+export interface GetFollowCountResponse {
+  count: number;
+}

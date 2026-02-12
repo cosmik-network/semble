@@ -105,6 +105,79 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getFollowing(
+    followerId: string,
+    targetType: FollowTargetType,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>> {
+    try {
+      const allFollows: Follow[] = [];
+
+      for (const follow of this.follows.values()) {
+        if (
+          follow.followerId.value === followerId &&
+          follow.targetType.equals(targetType)
+        ) {
+          allFollows.push(follow);
+        }
+      }
+
+      // Sort by creation date descending (most recent first)
+      allFollows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+      const totalCount = allFollows.length;
+      const offset = (options.page - 1) * options.limit;
+      const follows = allFollows.slice(offset, offset + options.limit);
+
+      return ok({ follows, totalCount });
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getFollowingCount(
+    followerId: string,
+    targetType?: FollowTargetType,
+  ): Promise<Result<number>> {
+    try {
+      let count = 0;
+
+      for (const follow of this.follows.values()) {
+        if (follow.followerId.value === followerId) {
+          if (!targetType || follow.targetType.equals(targetType)) {
+            count++;
+          }
+        }
+      }
+
+      return ok(count);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getFollowersCount(
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<number>> {
+    try {
+      let count = 0;
+
+      for (const follow of this.follows.values()) {
+        if (
+          follow.targetId === targetId &&
+          follow.targetType.equals(targetType)
+        ) {
+          count++;
+        }
+      }
+
+      return ok(count);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.follows.clear();

@@ -85,6 +85,19 @@ import type {
   GetOpenCollectionsWithContributorParams,
   FollowTargetRequest,
   FollowTargetResponse,
+  GetFollowingUsersParams,
+  GetFollowingUsersResponse,
+  GetFollowersParams,
+  GetFollowersResponse,
+  GetFollowingCollectionsParams,
+  GetFollowingCollectionsResponse,
+  GetCollectionFollowersParams,
+  GetCollectionFollowersResponse,
+  GetFollowingCountParams,
+  GetFollowersCountParams,
+  GetFollowingCollectionsCountParams,
+  GetCollectionFollowersCountParams,
+  GetFollowCountResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -224,6 +237,55 @@ export class ApiClient {
     params: SearchLeafletDocsForUrlParams,
   ): Promise<SearchLeafletDocsForUrlResponse> {
     return this.queryClient.searchLeafletDocs(params);
+  }
+
+  // Follow query operations - delegate to QueryClient
+  async getFollowingUsers(
+    params: GetFollowingUsersParams,
+  ): Promise<GetFollowingUsersResponse> {
+    return this.queryClient.getFollowingUsers(params);
+  }
+
+  async getFollowers(
+    params: GetFollowersParams,
+  ): Promise<GetFollowersResponse> {
+    return this.queryClient.getFollowers(params);
+  }
+
+  async getFollowingCollections(
+    params: GetFollowingCollectionsParams,
+  ): Promise<GetFollowingCollectionsResponse> {
+    return this.queryClient.getFollowingCollections(params);
+  }
+
+  async getCollectionFollowers(
+    params: GetCollectionFollowersParams,
+  ): Promise<GetCollectionFollowersResponse> {
+    return this.queryClient.getCollectionFollowers(params);
+  }
+
+  async getFollowingCount(
+    params: GetFollowingCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowingCount(params);
+  }
+
+  async getFollowersCount(
+    params: GetFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowersCount(params);
+  }
+
+  async getFollowingCollectionsCount(
+    params: GetFollowingCollectionsCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowingCollectionsCount(params);
+  }
+
+  async getCollectionFollowersCount(
+    params: GetCollectionFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getCollectionFollowersCount(params);
   }
 
   // Card operations - delegate to CardClient

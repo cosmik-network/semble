@@ -78,4 +78,54 @@ export interface IFollowsRepository {
     targetId: string,
     targetType: FollowTargetType,
   ): Promise<Result<Follow | null>>;
+
+  /**
+   * Get paginated list of entities that a user follows.
+   *
+   * @param followerId - DID of the follower
+   * @param targetType - Type of entities to get (USER or COLLECTION)
+   * @param options - Pagination options
+   * @returns Paginated list of Follow records and total count
+   *
+   * Example:
+   *   getFollowing('did:plc:alice123', FollowTargetType.USER, { page: 1, limit: 20 })
+   *   → { follows: [...], totalCount: 45 }
+   */
+  getFollowing(
+    followerId: string,
+    targetType: FollowTargetType,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>>;
+
+  /**
+   * Get count of entities that a user follows.
+   *
+   * @param followerId - DID of the follower
+   * @param targetType - Optional type filter (USER or COLLECTION)
+   * @returns Count of followed entities
+   *
+   * Example:
+   *   getFollowingCount('did:plc:alice123', FollowTargetType.USER) → 45
+   *   getFollowingCount('did:plc:alice123') → 60 (all types)
+   */
+  getFollowingCount(
+    followerId: string,
+    targetType?: FollowTargetType,
+  ): Promise<Result<number>>;
+
+  /**
+   * Get count of followers for a specific entity.
+   *
+   * @param targetId - ID of the entity (user DID or collection UUID)
+   * @param targetType - Type of entity
+   * @returns Count of followers
+   *
+   * Example:
+   *   getFollowersCount('did:plc:alice123', FollowTargetType.USER) → 150
+   *   getFollowersCount('uuid-collection-1', FollowTargetType.COLLECTION) → 25
+   */
+  getFollowersCount(
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<number>>;
 }
