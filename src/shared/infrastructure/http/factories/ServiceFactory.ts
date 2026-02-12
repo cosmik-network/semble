@@ -349,6 +349,7 @@ export class ServiceFactory {
       profileService = new CachedBlueskyProfileService(
         baseProfileService,
         redis,
+        repositories.followsRepository,
       );
     }
 

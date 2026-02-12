@@ -159,6 +159,7 @@ export class UseCaseFactory {
       repositories.collectionRepository,
       repositories.cardQueryRepository,
       services.profileService,
+      repositories.followsRepository,
     );
 
     return {
@@ -321,17 +322,20 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         services.profileService,
         services.identityResolutionService,
+        repositories.followsRepository,
       ),
       searchCollectionsUseCase: new SearchCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
         services.identityResolutionService,
+        repositories.followsRepository,
       ),
       getOpenCollectionsWithContributorUseCase:
         new GetOpenCollectionsWithContributorUseCase(
           repositories.collectionQueryRepository,
           services.profileService,
           services.identityResolutionService,
+          repositories.followsRepository,
         ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
@@ -339,6 +343,7 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         repositories.collectionRepository,
         services.profileService,
+        repositories.followsRepository,
         services.eventPublisher,
       ),
       getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
@@ -349,6 +354,7 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         services.profileService,
         repositories.collectionRepository,
+        repositories.followsRepository,
       ),
       getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
         repositories.cardQueryRepository,
@@ -361,6 +367,7 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+        repositories.followsRepository,
       ),
       getGemActivityFeedUseCase: new GetGemActivityFeedUseCase(
         repositories.feedRepository,

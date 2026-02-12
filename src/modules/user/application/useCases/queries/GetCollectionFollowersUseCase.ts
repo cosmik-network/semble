@@ -133,6 +133,7 @@ export class GetCollectionFollowersUseCase
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
           description: profile.bio,
+          isFollowing: profile.isFollowing,
         });
       }
 

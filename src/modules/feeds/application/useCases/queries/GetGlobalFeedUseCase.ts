@@ -14,6 +14,8 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -45,6 +47,7 @@ export class GetGlobalFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -307,6 +310,30 @@ export class GetGlobalFeedUseCase
         }
       });
 
+      // Add follow status for collections if callingUserId is provided
+      const collectionFollowStatusMap = new Map<string, boolean>();
+      if (query.callingUserId && collectionIds.length > 0) {
+        const followChecks = await Promise.all(
+          collectionIds.map((collectionId) =>
+            this.followsRepository.findByFollowerAndTarget(
+              query.callingUserId!,
+              collectionId,
+              FollowTargetType.COLLECTION,
+            ),
+          ),
+        );
+
+        followChecks.forEach((followResult, i) => {
+          const collectionId = collectionIds[i];
+          if (collectionId) {
+            collectionFollowStatusMap.set(
+              collectionId,
+              followResult?.isOk() && followResult.value !== null,
+            );
+          }
+        });
+      }
+
       // Transform activities to FeedItem
       const feedItems: FeedItem[] = [];
       for (const activity of feed.activities) {
@@ -356,21 +383,30 @@ export class GetGlobalFeedUseCase
         };
 
         const collections = (activity.metadata.collectionIds || [])
-          .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter((collection) => !!collection)
-          .filter((collection) =>
-            collection.cardIds.has(activity.metadata.cardId),
+          .map((collectionId) => {
+            const collection = collectionDataMap.get(collectionId);
+            if (!collection) return null;
+
+            return {
+              collection,
+              collectionId,
+            };
+          })
+          .filter((item) => !!item)
+          .filter((item) =>
+            item.collection.cardIds.has(activity.metadata.cardId),
           )
-          .map((collection) => ({
-            id: collection.id,
-            uri: collection.uri,
-            name: collection.name,
-            description: collection.description,
-            accessType: collection.accessType,
-            author: collection.author,
-            cardCount: collection.cardCount,
-            createdAt: collection.createdAt,
-            updatedAt: collection.updatedAt,
+          .map((item) => ({
+            id: item.collection.id,
+            uri: item.collection.uri,
+            name: item.collection.name,
+            description: item.collection.description,
+            accessType: item.collection.accessType,
+            author: item.collection.author,
+            cardCount: item.collection.cardCount,
+            createdAt: item.collection.createdAt,
+            updatedAt: item.collection.updatedAt,
+            isFollowing: collectionFollowStatusMap.get(item.collectionId),
           }));
 
         feedItems.push({

@@ -119,6 +119,7 @@ export class GetFollowingUsersUseCase
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
           description: profile.bio,
+          isFollowing: profile.isFollowing,
         });
       }
 

@@ -176,6 +176,7 @@ export class GetFollowingCollectionsUseCase
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
             updatedAt: collection.updatedAt.toISOString(),
+            isFollowing: true, // The calling user is following all these collections by definition
           } as Collection;
         })
         .filter((collection): collection is Collection => collection !== null);

@@ -101,6 +101,7 @@ export interface Collection {
   cardCount: number;
   createdAt: string;
   updatedAt: string;
+  isFollowing?: boolean; // Whether the calling user follows this collection
 }
 
 // Context-specific variations

@@ -4,6 +4,8 @@ import {
   UserProfile,
 } from 'src/modules/cards/domain/services/IProfileService';
 import { Result, ok } from 'src/shared/core/Result';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export class CachedBlueskyProfileService implements IProfileService {
   private readonly CACHE_TTL_SECONDS = 3600 * 12; // 12 hours
@@ -12,6 +14,7 @@ export class CachedBlueskyProfileService implements IProfileService {
   constructor(
     private readonly profileService: IProfileService,
     private readonly redis: Redis,
+    private readonly followsRepository: IFollowsRepository,
   ) {}
 
   async getProfile(
@@ -21,31 +24,44 @@ export class CachedBlueskyProfileService implements IProfileService {
     const cacheKey = this.getCacheKey(userId);
 
     try {
-      // Try cache first
+      let profile: UserProfile;
+
+      // Try cache first (without follow status)
       const cached = await this.redis.get(cacheKey);
       if (cached) {
         try {
-          const profile = JSON.parse(cached) as UserProfile;
-          return ok(profile);
+          profile = JSON.parse(cached) as UserProfile;
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
           console.warn(
             `Failed to parse cached profile for ${userId}:`,
             parseError,
           );
+          // Fall through to fetch from service
+          const result = await this.profileService.getProfile(userId, callerId);
+          if (result.isErr()) {
+            return result;
+          }
+          profile = result.value;
         }
-      }
+      } else {
+        // Cache miss - fetch from underlying service
+        const result = await this.profileService.getProfile(userId, callerId);
 
-      // Cache miss or parse error - fetch from underlying service
-      const result = await this.profileService.getProfile(userId, callerId);
+        if (result.isErr()) {
+          return result;
+        }
 
-      if (result.isOk()) {
-        // Cache the successful result
+        profile = result.value;
+
+        // Cache the profile (without follow status)
         try {
+          const profileToCache = { ...profile };
+          delete profileToCache.isFollowing; // Don't cache follow status
           await this.redis.setex(
             cacheKey,
             this.CACHE_TTL_SECONDS,
-            JSON.stringify(result.value),
+            JSON.stringify(profileToCache),
           );
         } catch (cacheError) {
           // Log cache error but don't fail the request
@@ -53,7 +69,25 @@ export class CachedBlueskyProfileService implements IProfileService {
         }
       }
 
-      return result;
+      // Add follow status if callerId is provided
+      let isFollowing: boolean | undefined = undefined;
+      if (callerId && callerId !== userId) {
+        const followResult =
+          await this.followsRepository.findByFollowerAndTarget(
+            callerId,
+            userId,
+            FollowTargetType.USER,
+          );
+
+        if (followResult.isOk()) {
+          isFollowing = followResult.value !== null;
+        }
+      }
+
+      return ok({
+        ...profile,
+        isFollowing,
+      });
     } catch (redisError) {
       // If Redis is down, fall back to direct service call
       console.warn(
