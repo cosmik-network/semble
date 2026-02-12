@@ -16,6 +16,7 @@ import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal';
 import { Fragment } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
+import ProfileStats from '../profileStats/ProfileStats';
 
 interface Props {
   handle: string;
@@ -80,6 +81,7 @@ export default async function ProfileHeader(props: Props) {
                       <RichTextRenderer text={profile.description} />
                     </Spoiler>
                   )}
+                  <ProfileStats identifier={profile.id} handle={profile.handle} />
                 </Stack>
               </GridCol>
             </Grid>

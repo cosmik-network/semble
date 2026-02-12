@@ -15,4 +15,16 @@ export const feedKeys = {
     urlType?: UrlType,
     source?: ActivitySource,
   ) => [...feedKeys.gems(), [...feedKeys.infinite()], urlType, limit, source],
+  following: () => [...feedKeys.all(), 'following'] as const,
+  followingInfinite: (
+    limit?: number,
+    urlType?: UrlType,
+    source?: ActivitySource,
+  ) => [
+    ...feedKeys.following(),
+    'infinite',
+    limit,
+    urlType,
+    source,
+  ] as const,
 };

@@ -10,6 +10,7 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import { notifications } from '@mantine/notifications';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import FollowButton from '@/features/follows/components/followButton/FollowButton';
 
 interface Props {
   collection: Collection & {
@@ -44,6 +45,14 @@ export default function CollectionActions(props: Props) {
               Add Card
             </Button>
           )}
+
+        {isAuthenticated && !isAuthor && (
+          <FollowButton
+            targetId={props.collection.id}
+            targetType="COLLECTION"
+            size="sm"
+          />
+        )}
 
         <CopyButton value={shareLink}>
           {({ copy }) => (

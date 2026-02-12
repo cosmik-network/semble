@@ -25,6 +25,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import CollectionStats from '../../components/collectionStats/CollectionStats';
 
 interface Props {
   rkey: string;
@@ -90,6 +91,11 @@ export default function CollectionContainer(props: Props) {
                 {collection.description}
               </Text>
             )}
+            <CollectionStats
+              collectionId={collection.id}
+              handle={props.handle}
+              rkey={props.rkey}
+            />
           </Stack>
 
           <Group gap={'xs'}>

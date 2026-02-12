@@ -129,6 +129,30 @@ export default function NotificationActivityStatus(props: Props) {
             )}
           </Fragment>
         );
+      case NotificationType.USER_FOLLOWED_YOU:
+        return (
+          <Fragment>
+            {userName} <Text span>started following you</Text>
+          </Fragment>
+        );
+      case NotificationType.USER_FOLLOWED_YOUR_COLLECTION:
+        return (
+          <Fragment>
+            {userName}{' '}
+            {collections.length === 0 ? (
+              <Text span>started following your collection</Text>
+            ) : (
+              <Fragment>
+                <Text span>started following </Text>
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
+              </Fragment>
+            )}
+          </Fragment>
+        );
       default:
         return (
           <Fragment>
