@@ -13,6 +13,8 @@ import {
 } from '../repositories/schema/collection.sql';
 import { cards } from '../repositories/schema/card.sql';
 import { publishedRecords } from '../repositories/schema/publishedRecord.sql';
+import { follows } from '../../../user/infrastructure/repositories/schema/follows.sql';
+import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 import { Result, ok, err } from 'src/shared/core/Result';
 
 export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
@@ -195,6 +197,52 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
       return ok({
         collectionId: collectionIdResult.value,
         cardId: cardIdResult.value,
+      });
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async resolveFollowId(atUri: string): Promise<
+    Result<{
+      followerDid: string;
+      targetId: string;
+      targetType: FollowTargetType;
+    } | null>
+  > {
+    try {
+      const followResult = await this.db
+        .select({
+          followerId: follows.followerId,
+          targetId: follows.targetId,
+          targetType: follows.targetType,
+        })
+        .from(follows)
+        .innerJoin(
+          publishedRecords,
+          eq(follows.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (followResult.length === 0) {
+        return ok(null);
+      }
+
+      const followData = followResult[0]!;
+
+      // Create FollowTargetType value object
+      const targetTypeResult = FollowTargetType.create(
+        followData.targetType as any,
+      );
+      if (targetTypeResult.isErr()) {
+        return err(targetTypeResult.error);
+      }
+
+      return ok({
+        followerDid: followData.followerId,
+        targetId: followData.targetId,
+        targetType: targetTypeResult.value,
       });
     } catch (error) {
       return err(error as Error);

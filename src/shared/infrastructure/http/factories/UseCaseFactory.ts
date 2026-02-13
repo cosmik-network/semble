@@ -47,6 +47,7 @@ import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../../modules/a
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
+import { ProcessFollowFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessFollowFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -83,6 +84,7 @@ export interface WorkerUseCases {
   processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
   processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
+  processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -488,6 +490,21 @@ export class UseCaseFactory {
       services.collectionPublisher,
     );
 
+    // Follow use cases
+    const followTargetUseCase = new FollowTargetUseCase(
+      repositories.followsRepository,
+      repositories.userRepository,
+      repositories.collectionRepository,
+      services.followPublisher,
+      services.eventPublisher,
+    );
+
+    const unfollowTargetUseCase = new UnfollowTargetUseCase(
+      repositories.followsRepository,
+      services.followPublisher,
+      services.eventPublisher,
+    );
+
     // ========================================
     // LEVEL 2: Process use cases (depend on Level 1)
     // ========================================
@@ -541,6 +558,16 @@ export class UseCaseFactory {
         updateUrlCardAssociationsUseCase,
       );
 
+    const processFollowFirehoseEventUseCase =
+      new ProcessFollowFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        followTargetUseCase,
+        unfollowTargetUseCase,
+        repositories.followsRepository,
+        repositories.userRepository,
+        repositories.collectionRepository,
+      );
+
     // ========================================
     // LEVEL 3: Sync use cases (depend on Level 2)
     // ========================================
@@ -577,6 +604,7 @@ export class UseCaseFactory {
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
+      processFollowFirehoseEventUseCase,
       // Level 3
       syncAccountDataUseCase,
     };

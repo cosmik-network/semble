@@ -39,6 +39,7 @@ async function main() {
     useCases.processMarginCollectionFirehoseEventUseCase,
     useCases.processMarginCollectionItemFirehoseEventUseCase,
     useCases.processCollectionLinkRemovalFirehoseEventUseCase,
+    useCases.processFollowFirehoseEventUseCase,
   );
 
   const firehoseEventHandler = new FirehoseEventHandler(

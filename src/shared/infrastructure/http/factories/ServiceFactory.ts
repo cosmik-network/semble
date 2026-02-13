@@ -93,15 +93,14 @@ export interface SharedServices {
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
   collectionPublisher: ICollectionPublisher;
+  followPublisher: IFollowPublisher;
 }
 
 // Web app specific services (includes publishers, auth middleware)
 export interface WebAppServices extends SharedServices {
   oauthProcessor: IOAuthProcessor;
   appPasswordProcessor: IAppPasswordProcessor;
-  collectionPublisher: ICollectionPublisher;
   cardPublisher: ICardPublisher;
-  followPublisher: IFollowPublisher;
   authMiddleware: AuthMiddleware;
 }
 
@@ -154,28 +153,11 @@ export class ServiceFactory {
     const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
 
-    const collectionPublisher = useFakePublishers
-      ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(
-          sharedServices.atProtoAgentService,
-          collections.collection,
-          collections.collectionLink,
-          collections.collectionLinkRemoval,
-        );
-
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
       : new ATProtoCardPublisher(
           sharedServices.atProtoAgentService,
           collections.card,
-        );
-
-    const followPublisher = useFakePublishers
-      ? new FakeFollowPublisher()
-      : new ATProtoFollowPublisher(
-          sharedServices.atProtoAgentService,
-          collections.follow,
-          repositories.collectionRepository,
         );
 
     const authMiddleware = new AuthMiddleware(
@@ -187,9 +169,7 @@ export class ServiceFactory {
       ...sharedServices,
       oauthProcessor,
       appPasswordProcessor,
-      collectionPublisher,
       cardPublisher,
-      followPublisher,
       authMiddleware,
     };
   }
@@ -421,6 +401,14 @@ export class ServiceFactory {
           collections.collectionLinkRemoval,
         );
 
+    const followPublisher = useFakePublishers
+      ? new FakeFollowPublisher()
+      : new ATProtoFollowPublisher(
+          atProtoAgentService,
+          collections.follow,
+          repositories.collectionRepository,
+        );
+
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
       : new ATProtoCardPublisher(atProtoAgentService, collections.card);
@@ -470,6 +458,7 @@ export class ServiceFactory {
       cardCollectionService,
       eventPublisher,
       collectionPublisher,
+      followPublisher,
     };
   }
 }

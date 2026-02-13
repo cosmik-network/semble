@@ -11,12 +11,14 @@ import { DID } from '../../../domain/value-objects/DID';
 import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType';
 import { Follow } from '../../../domain/Follow';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { PublishedRecordId } from '../../../../cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface FollowTargetDTO {
   followerId: string; // DID
   targetId: string; // DID or Collection UUID
   targetType: 'USER' | 'COLLECTION';
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
 }
 
 export interface FollowTargetResponseDTO {
@@ -158,22 +160,31 @@ export class FollowTargetUseCase extends BaseUseCase<
 
       let follow = followResult.value;
 
-      // 7. Publish to AT Protocol BEFORE saving
-      const publishResult = await this.followPublisher.publishFollow(follow);
+      // 7. Publish to AT Protocol BEFORE saving (skip if publishedRecordId provided from firehose)
+      let publishedRecordId: PublishedRecordId;
 
-      if (publishResult.isErr()) {
-        // Propagate authentication errors
-        if (publishResult.error instanceof AuthenticationError) {
-          return err(publishResult.error);
+      if (request.publishedRecordId) {
+        // Firehose event - already published, just use the provided ID
+        publishedRecordId = request.publishedRecordId;
+      } else {
+        // Normal flow - publish to AT Protocol
+        const publishResult = await this.followPublisher.publishFollow(follow);
+
+        if (publishResult.isErr()) {
+          // Propagate authentication errors
+          if (publishResult.error instanceof AuthenticationError) {
+            return err(publishResult.error);
+          }
+          if (publishResult.error instanceof AppError.UnexpectedError) {
+            return err(publishResult.error);
+          }
+          return err(new ValidationError(publishResult.error.message));
         }
-        if (publishResult.error instanceof AppError.UnexpectedError) {
-          return err(publishResult.error);
-        }
-        return err(new ValidationError(publishResult.error.message));
+
+        publishedRecordId = publishResult.value;
       }
 
-      // 8. Mark follow as published with the returned publishedRecordId
-      const publishedRecordId = publishResult.value;
+      // 8. Mark follow as published with the publishedRecordId
       follow.markAsPublished(publishedRecordId);
 
       // 9. Save to repository with publishedRecordId

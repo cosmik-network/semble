@@ -12,6 +12,7 @@ export interface UnfollowTargetDTO {
   followerId: string; // DID
   targetId: string; // DID or Collection UUID
   targetType: 'USER' | 'COLLECTION';
+  skipUnpublish?: boolean; // For firehose events - skip unpublishing if true
 }
 
 export class ValidationError extends UseCaseError {
@@ -79,8 +80,8 @@ export class UnfollowTargetUseCase extends BaseUseCase<
 
       const follow = existingFollowResult.value;
 
-      // 5. Unpublish from AT Protocol (if has publishedRecordId)
-      if (follow.publishedRecordId) {
+      // 5. Unpublish from AT Protocol (skip for firehose events)
+      if (!request.skipUnpublish && follow.publishedRecordId) {
         const unpublishResult =
           await this.followPublisher.unpublishFollow(follow);
         if (unpublishResult.isErr()) {

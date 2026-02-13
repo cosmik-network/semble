@@ -7,6 +7,7 @@ import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../application/use
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
+import { ProcessFollowFirehoseEventUseCase } from '../../application/useCases/ProcessFollowFirehoseEventUseCase';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
@@ -23,6 +24,11 @@ import { FakeMetadataService } from '../../../cards/tests/utils/FakeMetadataServ
 import { FakeEventPublisher } from '../../../cards/tests/utils/FakeEventPublisher';
 import { CardLibraryService } from '../../../cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../cards/domain/services/CardCollectionService';
+import { FollowTargetUseCase } from '../../../user/application/useCases/commands/FollowTargetUseCase';
+import { UnfollowTargetUseCase } from '../../../user/application/useCases/commands/UnfollowTargetUseCase';
+import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
+import { InMemoryUserRepository } from '../../../user/tests/infrastructure/InMemoryUserRepository';
+import { FakeFollowPublisher } from '../../infrastructure/publishers/FakeFollowPublisher';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
@@ -38,6 +44,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   let processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
   let processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
+  let processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
 
   // Dependencies for real use cases
   let atUriResolutionService: InMemoryAtUriResolutionService;
@@ -55,6 +62,11 @@ describe('ProcessFirehoseEventUseCase', () => {
   let createCollectionUseCase: CreateCollectionUseCase;
   let updateCollectionUseCase: UpdateCollectionUseCase;
   let deleteCollectionUseCase: DeleteCollectionUseCase;
+  let followTargetUseCase: FollowTargetUseCase;
+  let unfollowTargetUseCase: UnfollowTargetUseCase;
+  let followsRepository: InMemoryFollowsRepository;
+  let userRepository: InMemoryUserRepository;
+  let followPublisher: FakeFollowPublisher;
 
   beforeEach(() => {
     duplicationService = new InMemoryFirehoseEventDuplicationService();
@@ -172,6 +184,34 @@ describe('ProcessFirehoseEventUseCase', () => {
         updateUrlCardAssociationsUseCase,
       );
 
+    // Set up follow-related dependencies
+    followsRepository = InMemoryFollowsRepository.getInstance();
+    userRepository = InMemoryUserRepository.getInstance();
+    followPublisher = new FakeFollowPublisher();
+
+    followTargetUseCase = new FollowTargetUseCase(
+      followsRepository,
+      userRepository,
+      collectionRepository,
+      followPublisher,
+      eventPublisher,
+    );
+
+    unfollowTargetUseCase = new UnfollowTargetUseCase(
+      followsRepository,
+      followPublisher,
+      eventPublisher,
+    );
+
+    processFollowFirehoseEventUseCase = new ProcessFollowFirehoseEventUseCase(
+      atUriResolutionService,
+      followTargetUseCase,
+      unfollowTargetUseCase,
+      followsRepository,
+      userRepository,
+      collectionRepository,
+    );
+
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
       configService,
@@ -182,6 +222,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
       processCollectionLinkRemovalFirehoseEventUseCase,
+      processFollowFirehoseEventUseCase,
     );
   });
 
