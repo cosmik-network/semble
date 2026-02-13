@@ -3,15 +3,7 @@
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import useFollowingFeed from '@/features/feeds/lib/queries/useFollowingFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import {
-  Stack,
-  Text,
-  Center,
-  Container,
-  Box,
-  Loader,
-  Tabs,
-} from '@mantine/core';
+import { Stack, Text, Center, Container, Box, Loader } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -53,13 +45,6 @@ export default function MyFeedContainer() {
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
 
-  const handleFeedChange = (value: string | null) => {
-    if (!value) return;
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('feed', value);
-    router.push(`?${params.toString()}`);
-  };
-
   if (isPending) {
     return <MyFeedContainerSkeleton />;
   }
@@ -71,16 +56,6 @@ export default function MyFeedContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack align="center">
-        <Tabs value={selectedFeed} onChange={handleFeedChange} w="100%">
-          <Tabs.List>
-            <Tabs.Tab value="global" fw={600}>
-              Global
-            </Tabs.Tab>
-            <Tabs.Tab value="following" fw={600}>
-              Following
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs>
         {isRefetching && (
           <Stack align="center" gap={'xs'}>
             <Loader color={'gray'} />
