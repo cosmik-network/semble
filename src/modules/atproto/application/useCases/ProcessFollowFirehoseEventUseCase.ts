@@ -156,7 +156,7 @@ export class ProcessFollowFirehoseEventUseCase
           return ok(undefined);
         }
 
-        targetId = collectionIdResult.value.toString();
+        targetId = collectionIdResult.value.getStringValue();
       } else {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
