@@ -169,9 +169,9 @@ export class GetFollowingCollectionsUseCase
           return {
             id: collection.id.value,
             uri: collection.publishedRecordId?.getValue().uri,
-            name: collection.name,
+            name: collection.name.value,
             author,
-            description: collection.description,
+            description: collection.description?.value,
             accessType: collection.accessType.value,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
