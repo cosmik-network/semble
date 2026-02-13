@@ -8,6 +8,7 @@ import {
   Avatar,
   Group,
   Paper,
+  Title,
 } from '@mantine/core';
 import useCollectionFollowers from '../../lib/queries/useCollectionFollowers';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -15,13 +16,22 @@ import Link from 'next/link';
 
 interface Props {
   collectionId: string;
+  collectionName: string;
+  handle: string;
+  rkey: string;
 }
 
-export default function CollectionFollowersContainer({ collectionId }: Props) {
+export default function CollectionFollowersContainer({
+  collectionId,
+  collectionName,
+  handle,
+  rkey,
+}: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useCollectionFollowers({ collectionId });
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
+  const followerCount = allUsers.length;
 
   if (isPending) {
     return (
@@ -36,6 +46,13 @@ export default function CollectionFollowersContainer({ collectionId }: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
+        <Stack gap={0}>
+          <Title order={2}>{collectionName}</Title>
+          <Text c="gray" size="lg">
+            {followerCount} Follower{followerCount !== 1 ? 's' : ''}
+          </Text>
+        </Stack>
+
         {allUsers.length === 0 ? (
           <Center>
             <Text fz="h3" fw={600} c="gray">

@@ -8,6 +8,7 @@ import {
   Avatar,
   Group,
   Paper,
+  Title,
 } from '@mantine/core';
 import useFollowers from '../../lib/queries/useFollowers';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -15,13 +16,20 @@ import Link from 'next/link';
 
 interface Props {
   identifier: string;
+  profileName: string;
+  handle: string;
 }
 
-export default function FollowersContainer({ identifier }: Props) {
+export default function FollowersContainer({
+  identifier,
+  profileName,
+  handle,
+}: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useFollowers({ identifier });
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
+  const followerCount = allUsers.length;
 
   if (isPending) {
     return (
@@ -36,6 +44,13 @@ export default function FollowersContainer({ identifier }: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
+        <Stack gap={0}>
+          <Title order={2}>{profileName}</Title>
+          <Text c="gray" size="lg">
+            {followerCount} Follower{followerCount !== 1 ? 's' : ''}
+          </Text>
+        </Stack>
+
         {allUsers.length === 0 ? (
           <Center>
             <Text fz="h3" fw={600} c="gray">

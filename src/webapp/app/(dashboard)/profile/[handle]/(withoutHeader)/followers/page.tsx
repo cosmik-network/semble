@@ -9,5 +9,11 @@ export default async function Page(props: Props) {
   const { handle } = await props.params;
   const profile = await getProfile(handle);
 
-  return <FollowersContainer identifier={profile.id} />;
+  return (
+    <FollowersContainer
+      identifier={profile.id}
+      profileName={profile.name}
+      handle={handle}
+    />
+  );
 }

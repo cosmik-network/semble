@@ -9,5 +9,11 @@ export default async function Page(props: Props) {
   const { handle } = await props.params;
   const profile = await getProfile(handle);
 
-  return <FollowingCollectionsContainer identifier={profile.id} />;
+  return (
+    <FollowingCollectionsContainer
+      identifier={profile.id}
+      profileName={profile.name}
+      handle={handle}
+    />
+  );
 }
