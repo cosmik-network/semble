@@ -6,9 +6,14 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export class BlueskyProfileService implements IProfileService {
-  constructor(private readonly agentService: IAgentService) {}
+  constructor(
+    private readonly agentService: IAgentService,
+    private readonly followsRepository: IFollowsRepository,
+  ) {}
 
   async getProfile(
     userId: string,
@@ -76,7 +81,25 @@ export class BlueskyProfileService implements IProfileService {
         bio: profile.description,
       };
 
-      return ok(userProfile);
+      // Add follow status if callerId is provided
+      let isFollowing: boolean | undefined = undefined;
+      if (callerDid && callerDid !== userId) {
+        const followResult =
+          await this.followsRepository.findByFollowerAndTarget(
+            callerDid,
+            userId,
+            FollowTargetType.USER,
+          );
+
+        if (followResult.isOk()) {
+          isFollowing = followResult.value !== null;
+        }
+      }
+
+      return ok({
+        ...userProfile,
+        isFollowing,
+      });
     } catch (error) {
       return err(
         new Error(
