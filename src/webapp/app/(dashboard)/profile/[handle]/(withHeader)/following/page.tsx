@@ -1,5 +1,5 @@
 import FollowingContainer from '@/features/follows/containers/followingContainer/FollowingContainer';
-import { getProfile } from '@/features/profile/lib/dal';
+import { getProfile } from '@/features/profile/lib/dal.server';
 
 interface Props {
   params: Promise<{ handle: string }>;

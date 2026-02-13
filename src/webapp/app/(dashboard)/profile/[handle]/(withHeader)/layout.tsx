@@ -6,7 +6,7 @@ import { Box, Container } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
 import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
 import BackButton from '@/components/navigation/backButton/BackButton';
-import { getProfile } from '@/features/profile/lib/dal';
+import { getProfile } from '@/features/profile/lib/dal.server';
 
 interface Props {
   params: Promise<{ handle: string }>;
