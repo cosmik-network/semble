@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { IFollowsRepository } from '../../domain/repositories/IFollowsRepository';
 import { Follow } from '../../domain/Follow';
@@ -93,7 +93,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
         .from(follows)
         .where(
           and(
-            sql`${follows.targetId} = ANY(${collectionIds}::text[])`,
+            inArray(follows.targetId, collectionIds),
             eq(follows.targetType, FollowTargetTypeEnum.COLLECTION),
           ),
         );
