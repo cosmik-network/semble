@@ -468,19 +468,12 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         });
       }
 
-      // Separate notifications by type: card-based vs follow-based
-      const cardBasedNotifications = notificationsResult.filter((n) => {
-        const metadata = n.metadata as any;
-        return metadata?.cardId !== undefined;
-      });
-
-      const followNotifications = notificationsResult.filter((n) => {
-        const metadata = n.metadata as any;
-        return metadata?.targetType !== undefined;
-      });
-
-      // Extract card IDs from card-based notifications
-      const cardIds = cardBasedNotifications
+      // Extract card IDs from all notifications
+      const cardIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return metadata?.cardId !== undefined;
+        })
         .map((n) => (n.metadata as any)?.cardId)
         .filter(Boolean);
 
@@ -609,86 +602,12 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         collectionsResult = await collectionsQuery;
       }
 
-      // Build card lookup map
-      const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
-
-      // Build enriched notifications
-      const enrichedNotifications: EnrichedNotificationResult[] = [];
-
-      // Process card-based notifications
-      for (const notification of cardBasedNotifications) {
-        const metadata = notification.metadata as any;
-        const cardId = metadata?.cardId;
-
-        if (!cardId) continue;
-
-        const card = cardMap.get(cardId);
-        if (!card) continue;
-
-        const note = notesResult.find((n) => n.parentCardId === cardId);
-        const cardCollections = collectionsResult
-          .filter((c) => c.cardId === cardId)
-          .map((c) => ({
-            id: c.collectionId,
-            uri: c.collectionUri || undefined,
-            name: c.collectionName,
-            description: c.collectionDescription || undefined,
-            accessType: c.collectionAccessType as 'OPEN' | 'CLOSED',
-            authorId: c.collectionAuthorId,
-            cardCount: c.collectionCardCount,
-            createdAt: c.collectionCreatedAt,
-            updatedAt: c.collectionUpdatedAt,
-          }));
-
-        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
-        const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
-
-        enrichedNotifications.push({
-          id: notification.id,
-          type: notification.type,
-          read: notification.read,
-          createdAt: notification.createdAt,
-          actorUserId: notification.actorUserId,
-          cardAuthorId: card.authorId,
-          cardId: card.id,
-          cardUrl: card.url || '',
-          cardUri: card.publishedRecordUri || undefined,
-          cardTitle: card.contentData?.metadata?.title,
-          cardDescription: card.contentData?.metadata?.description,
-          cardAuthor: card.contentData?.metadata?.author,
-          cardPublishedDate: card.contentData?.metadata?.publishedDate
-            ? new Date(card.contentData.metadata.publishedDate)
-            : undefined,
-          cardSiteName: card.contentData?.metadata?.siteName,
-          cardImageUrl: card.contentData?.metadata?.imageUrl,
-          cardType: card.contentData?.metadata?.type,
-          cardRetrievedAt: card.contentData?.metadata?.retrievedAt
-            ? new Date(card.contentData.metadata.retrievedAt)
-            : undefined,
-          cardDoi: card.contentData?.metadata?.doi,
-          cardIsbn: card.contentData?.metadata?.isbn,
-          cardLibraryCount: card.libraryCount,
-          cardUrlLibraryCount: urlLibraryCount,
-          cardUrlInLibrary: urlInLibrary,
-          cardCreatedAt: card.createdAt,
-          cardUpdatedAt: card.updatedAt,
-          cardNote: note
-            ? {
-                id: note.id,
-                text: note.contentData?.text || '',
-              }
-            : undefined,
-          collections: cardCollections,
-        });
-      }
-
-      // Process follow notifications
-      // First, collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
-      const followCollectionIds = followNotifications
+      // Collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
+      const followCollectionIds = notificationsResult
         .filter((n) => {
           const metadata = n.metadata as any;
           return (
-            metadata.targetType === 'COLLECTION' && metadata.targetId != null
+            metadata?.targetType === 'COLLECTION' && metadata?.targetId != null
           );
         })
         .map((n) => (n.metadata as any).targetId)
@@ -719,17 +638,92 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         followCollectionsResult = await followCollectionsQuery;
       }
 
-      // Build a map of collection ID to collection data
+      // Build lookup maps
+      const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
       const followCollectionMap = new Map(
         followCollectionsResult.map((c) => [c.collectionId, c]),
       );
 
-      for (const notification of followNotifications) {
+      // Build enriched notifications - process in original chronological order
+      const enrichedNotifications: EnrichedNotificationResult[] = [];
+
+      // Process all notifications in original order
+      for (const notification of notificationsResult) {
         const metadata = notification.metadata as any;
 
-        // For USER_FOLLOWED_YOUR_COLLECTION, include collection data
-        if (metadata.targetType === 'COLLECTION' && metadata.targetId != null) {
-          const collectionData = followCollectionMap.get(metadata.targetId);
+        // Check if this is a follow notification
+        if (metadata?.targetType !== undefined) {
+          // Handle follow notifications
+          if (
+            metadata.targetType === 'COLLECTION' &&
+            metadata.targetId != null
+          ) {
+            // USER_FOLLOWED_YOUR_COLLECTION - include collection data
+            const collectionData = followCollectionMap.get(metadata.targetId);
+
+            enrichedNotifications.push({
+              id: notification.id,
+              type: notification.type,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId,
+              followTargetType: metadata.targetType,
+              followTargetId: metadata.targetId,
+              followCollections: collectionData
+                ? [
+                    {
+                      id: collectionData.collectionId,
+                      uri: collectionData.collectionUri || undefined,
+                      name: collectionData.collectionName,
+                      description:
+                        collectionData.collectionDescription || undefined,
+                      accessType: collectionData.collectionAccessType as
+                        | 'OPEN'
+                        | 'CLOSED',
+                      authorId: collectionData.collectionAuthorId,
+                      cardCount: collectionData.collectionCardCount,
+                      createdAt: collectionData.collectionCreatedAt,
+                      updatedAt: collectionData.collectionUpdatedAt,
+                    },
+                  ]
+                : [],
+            });
+          } else {
+            // USER_FOLLOWED_YOU - no collection data
+            enrichedNotifications.push({
+              id: notification.id,
+              type: notification.type,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId,
+              followTargetType: metadata.targetType,
+              followTargetId: metadata.targetId,
+            });
+          }
+        } else if (metadata?.cardId !== undefined) {
+          // Handle card-based notifications
+          const cardId = metadata.cardId;
+          const card = cardMap.get(cardId);
+
+          if (!card) continue;
+
+          const note = notesResult.find((n) => n.parentCardId === cardId);
+          const cardCollections = collectionsResult
+            .filter((c) => c.cardId === cardId)
+            .map((c) => ({
+              id: c.collectionId,
+              uri: c.collectionUri || undefined,
+              name: c.collectionName,
+              description: c.collectionDescription || undefined,
+              accessType: c.collectionAccessType as 'OPEN' | 'CLOSED',
+              authorId: c.collectionAuthorId,
+              cardCount: c.collectionCardCount,
+              createdAt: c.collectionCreatedAt,
+              updatedAt: c.collectionUpdatedAt,
+            }));
+
+          const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+          const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
 
           enrichedNotifications.push({
             id: notification.id,
@@ -737,37 +731,36 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             read: notification.read,
             createdAt: notification.createdAt,
             actorUserId: notification.actorUserId,
-            followTargetType: metadata.targetType,
-            followTargetId: metadata.targetId,
-            followCollections: collectionData
-              ? [
-                  {
-                    id: collectionData.collectionId,
-                    uri: collectionData.collectionUri || undefined,
-                    name: collectionData.collectionName,
-                    description:
-                      collectionData.collectionDescription || undefined,
-                    accessType: collectionData.collectionAccessType as
-                      | 'OPEN'
-                      | 'CLOSED',
-                    authorId: collectionData.collectionAuthorId,
-                    cardCount: collectionData.collectionCardCount,
-                    createdAt: collectionData.collectionCreatedAt,
-                    updatedAt: collectionData.collectionUpdatedAt,
-                  },
-                ]
-              : [],
-          });
-        } else {
-          // USER_FOLLOWED_YOU - no collection data
-          enrichedNotifications.push({
-            id: notification.id,
-            type: notification.type,
-            read: notification.read,
-            createdAt: notification.createdAt,
-            actorUserId: notification.actorUserId,
-            followTargetType: metadata.targetType,
-            followTargetId: metadata.targetId,
+            cardAuthorId: card.authorId,
+            cardId: card.id,
+            cardUrl: card.url || '',
+            cardUri: card.publishedRecordUri || undefined,
+            cardTitle: card.contentData?.metadata?.title,
+            cardDescription: card.contentData?.metadata?.description,
+            cardAuthor: card.contentData?.metadata?.author,
+            cardPublishedDate: card.contentData?.metadata?.publishedDate
+              ? new Date(card.contentData.metadata.publishedDate)
+              : undefined,
+            cardSiteName: card.contentData?.metadata?.siteName,
+            cardImageUrl: card.contentData?.metadata?.imageUrl,
+            cardType: card.contentData?.metadata?.type,
+            cardRetrievedAt: card.contentData?.metadata?.retrievedAt
+              ? new Date(card.contentData.metadata.retrievedAt)
+              : undefined,
+            cardDoi: card.contentData?.metadata?.doi,
+            cardIsbn: card.contentData?.metadata?.isbn,
+            cardLibraryCount: card.libraryCount,
+            cardUrlLibraryCount: urlLibraryCount,
+            cardUrlInLibrary: urlInLibrary,
+            cardCreatedAt: card.createdAt,
+            cardUpdatedAt: card.updatedAt,
+            cardNote: note
+              ? {
+                  id: note.id,
+                  text: note.contentData?.text || '',
+                }
+              : undefined,
+            collections: cardCollections,
           });
         }
       }
