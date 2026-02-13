@@ -83,6 +83,14 @@ export const createExpressApp = (
     controllers.getUserProfileController,
     controllers.refreshAccessTokenController,
     controllers.generateExtensionTokensController,
+    controllers.followTargetController,
+    controllers.unfollowTargetController,
+    controllers.getFollowingUsersController,
+    controllers.getFollowersController,
+    controllers.getFollowingCollectionsController,
+    controllers.getFollowingCountController,
+    controllers.getFollowersCountController,
+    controllers.getFollowingCollectionsCountController,
   );
 
   createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);
@@ -116,12 +124,15 @@ export const createExpressApp = (
     controllers.getCollectionsForUrlController,
     controllers.searchCollectionsController,
     controllers.getOpenCollectionsWithContributorController,
+    controllers.getCollectionFollowersController,
+    controllers.getCollectionFollowersCountController,
   );
 
   const feedRouter = createFeedRoutes(
     services.authMiddleware,
     controllers.getGlobalFeedController,
     controllers.getGemActivityFeedController,
+    controllers.getFollowingFeedController,
   );
 
   const searchRouter = createSearchRoutes(

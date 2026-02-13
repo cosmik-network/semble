@@ -15,6 +15,7 @@ import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId'
 import { URL } from '../../domain/value-objects/URL';
 import { err } from 'src/shared/core/Result';
 import { ICardRepository } from '../../domain/ICardRepository';
+import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
@@ -26,6 +27,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   let collectionPublisher: FakeCollectionPublisher;
   let eventPublisher: FakeEventPublisher;
   let profileService: FakeProfileService;
+  let followsRepository: InMemoryFollowsRepository;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
 
@@ -43,6 +45,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
     collectionPublisher = new FakeCollectionPublisher();
     eventPublisher = new FakeEventPublisher();
     profileService = new FakeProfileService();
+    followsRepository = InMemoryFollowsRepository.getInstance();
 
     useCase = new GetUrlStatusForMyLibraryUseCase(
       cardRepository,
@@ -50,6 +53,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       collectionQueryRepository,
       collectionRepository,
       profileService,
+      followsRepository,
       eventPublisher,
     );
 
@@ -543,6 +547,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         collectionQueryRepository,
         collectionRepository,
         profileService,
+        followsRepository,
         eventPublisher,
       );
 
@@ -600,6 +605,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         errorCollectionQueryRepository,
         collectionRepository,
         profileService,
+        followsRepository,
         eventPublisher,
       );
 

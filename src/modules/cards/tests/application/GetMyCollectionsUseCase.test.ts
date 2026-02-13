@@ -11,6 +11,7 @@ import {
 } from '../../domain/ICollectionQueryRepository';
 import { UserProfile } from '../../domain/services/IProfileService';
 import { GetCollectionsUseCase } from '../../application/useCases/queries/GetCollectionsUseCase';
+import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
 describe('GetMyCollectionsUseCase', () => {
   let useCase: GetCollectionsUseCase;
@@ -18,6 +19,7 @@ describe('GetMyCollectionsUseCase', () => {
   let collectionRepo: InMemoryCollectionRepository;
   let profileService: FakeProfileService;
   let identityResolutionService: FakeIdentityResolutionService;
+  let followsRepository: InMemoryFollowsRepository;
   let curatorId: CuratorId;
   let userProfile: UserProfile;
 
@@ -26,10 +28,12 @@ describe('GetMyCollectionsUseCase', () => {
     collectionQueryRepo = new InMemoryCollectionQueryRepository(collectionRepo);
     profileService = new FakeProfileService();
     identityResolutionService = new FakeIdentityResolutionService();
+    followsRepository = InMemoryFollowsRepository.getInstance();
     useCase = new GetCollectionsUseCase(
       collectionQueryRepo,
       profileService,
       identityResolutionService,
+      followsRepository,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();

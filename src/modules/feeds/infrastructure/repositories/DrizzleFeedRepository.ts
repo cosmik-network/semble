@@ -8,6 +8,7 @@ import {
 import { FeedActivity } from '../../domain/FeedActivity';
 import { ActivityId } from '../../domain/value-objects/ActivityId';
 import { feedActivities } from './schema/feedActivity.sql';
+import { followingFeedItems } from './schema/followingFeedItem.sql';
 import {
   FeedActivityMapper,
   FeedActivityDTO,
@@ -420,6 +421,155 @@ export class DrizzleFeedRepository implements IFeedRepository {
         .where(eq(feedActivities.id, dto.id));
 
       return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async fanOutActivityToFollowers(
+    activityId: ActivityId,
+    followerIds: string[],
+    createdAt: Date,
+  ): Promise<Result<void>> {
+    try {
+      if (followerIds.length === 0) {
+        return ok(undefined);
+      }
+
+      const values = followerIds.map((userId) => ({
+        userId: userId,
+        activityId: activityId.getStringValue(),
+        createdAt: createdAt,
+      }));
+
+      await this.db
+        .insert(followingFeedItems)
+        .values(values)
+        .onConflictDoNothing();
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async getFollowingFeed(
+    userId: string,
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>> {
+    try {
+      const { page, limit, beforeActivityId } = options;
+      const offset = (page - 1) * limit;
+
+      // Build where conditions
+      const whereConditions = [eq(followingFeedItems.userId, userId)];
+
+      if (options.urlType) {
+        whereConditions.push(eq(feedActivities.urlType, options.urlType));
+      }
+
+      if (options.source) {
+        if (options.source === ActivitySource.SEMBLE) {
+          whereConditions.push(sql`${feedActivities.source} IS NULL`);
+        } else {
+          whereConditions.push(eq(feedActivities.source, options.source));
+        }
+      }
+
+      // Cursor-based pagination
+      if (beforeActivityId) {
+        const beforeActivity = await this.db
+          .select({ createdAt: followingFeedItems.createdAt })
+          .from(followingFeedItems)
+          .where(
+            and(
+              eq(followingFeedItems.userId, userId),
+              eq(
+                followingFeedItems.activityId,
+                beforeActivityId.getStringValue(),
+              ),
+            ),
+          )
+          .limit(1);
+
+        if (beforeActivity.length > 0) {
+          whereConditions.push(
+            lt(followingFeedItems.createdAt, beforeActivity[0]!.createdAt),
+          );
+        }
+      }
+
+      // Main query with JOIN
+      const activitiesResult = await this.db
+        .select({
+          id: feedActivities.id,
+          actorId: feedActivities.actorId,
+          cardId: feedActivities.cardId,
+          type: feedActivities.type,
+          metadata: feedActivities.metadata,
+          urlType: feedActivities.urlType,
+          source: feedActivities.source,
+          createdAt: followingFeedItems.createdAt, // Use denormalized timestamp
+        })
+        .from(followingFeedItems)
+        .innerJoin(
+          feedActivities,
+          eq(feedActivities.id, followingFeedItems.activityId),
+        )
+        .where(and(...whereConditions))
+        .orderBy(
+          desc(followingFeedItems.createdAt),
+          desc(followingFeedItems.activityId),
+        )
+        .limit(limit)
+        .offset(offset);
+
+      // Count total (with same filters)
+      const totalCountResult = await this.db
+        .select({ count: count() })
+        .from(followingFeedItems)
+        .innerJoin(
+          feedActivities,
+          eq(feedActivities.id, followingFeedItems.activityId),
+        )
+        .where(and(...whereConditions));
+
+      const totalCount = totalCountResult[0]?.count || 0;
+
+      // Map to domain objects
+      const activities: FeedActivity[] = [];
+      for (const activityData of activitiesResult) {
+        const dto: FeedActivityDTO = {
+          id: activityData.id,
+          actorId: activityData.actorId,
+          cardId: activityData.cardId || undefined,
+          type: activityData.type,
+          metadata: activityData.metadata as any,
+          urlType: activityData.urlType || undefined,
+          source: activityData.source || undefined,
+          createdAt: activityData.createdAt,
+        };
+
+        const domainResult = FeedActivityMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
+        }
+
+        activities.push(domainResult.value);
+      }
+
+      const hasMore = offset + activities.length < totalCount;
+      const nextCursor =
+        hasMore && activities.length > 0
+          ? activities[activities.length - 1]!.activityId
+          : undefined;
+
+      return ok({
+        activities,
+        totalCount,
+        hasMore,
+        nextCursor,
+      });
     } catch (error) {
       return err(error as Error);
     }

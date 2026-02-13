@@ -296,6 +296,63 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findFollowNotificationsByActorAndTarget(
+    actorUserId: CuratorId,
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>> {
+    try {
+      // Get all notifications for this actor
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.actorUserId, actorUserId.value));
+
+      // Filter by target based on targetType
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const metadata = notificationData.metadata as any;
+
+        let isMatch = false;
+        if (targetType === 'USER') {
+          // For USER follows: recipientUserId should match the targetId
+          isMatch =
+            metadata.targetType === 'USER' &&
+            notificationData.recipientUserId === targetId;
+        } else if (targetType === 'COLLECTION') {
+          // For COLLECTION follows: metadata.targetId should match
+          isMatch =
+            metadata.targetType === 'COLLECTION' &&
+            metadata.targetId === targetId;
+        }
+
+        if (isMatch) {
+          const dto: NotificationDTO = {
+            id: notificationData.id,
+            recipientUserId: notificationData.recipientUserId,
+            actorUserId: notificationData.actorUserId,
+            type: notificationData.type,
+            metadata: notificationData.metadata as any,
+            read: notificationData.read,
+            createdAt: notificationData.createdAt,
+            updatedAt: notificationData.updatedAt,
+          };
+
+          const domainResult = NotificationMapper.toDomain(dto);
+          if (domainResult.isErr()) {
+            return err(domainResult.error);
+          }
+
+          matchingNotifications.push(domainResult.value);
+        }
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     try {
       const result = await this.db
@@ -411,201 +468,301 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         });
       }
 
-      // Extract card IDs from metadata
+      // Extract card IDs from all notifications
       const cardIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return metadata?.cardId !== undefined;
+        })
         .map((n) => (n.metadata as any)?.cardId)
         .filter(Boolean);
 
-      if (cardIds.length === 0) {
-        return ok({
-          notifications: [],
-          totalCount: 0,
-          hasMore: false,
-          unreadCount: 0,
-        });
+      // Process card-based notifications only if there are any
+      let cardsResult: any[] = [];
+      let urlLibraryCountMap = new Map<string, number>();
+      let urlInLibrarySet = new Set<string>();
+      let notesResult: any[] = [];
+      let collectionsResult: any[] = [];
+
+      if (cardIds.length > 0) {
+        // Get card data with URL library counts
+        const cardsQuery = this.db
+          .select({
+            id: cards.id,
+            authorId: cards.authorId,
+            url: cards.url,
+            publishedRecordUri: publishedRecords.uri,
+            contentData: cards.contentData,
+            libraryCount: cards.libraryCount,
+            createdAt: cards.createdAt,
+            updatedAt: cards.updatedAt,
+          })
+          .from(cards)
+          .leftJoin(
+            publishedRecords,
+            eq(cards.publishedRecordId, publishedRecords.id),
+          )
+          .where(
+            and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
+          );
+
+        cardsResult = await cardsQuery;
+
+        // Get URL library counts for these cards
+        const urls = cardsResult.map((card) => card.url).filter(Boolean);
+        if (urls.length > 0) {
+          const urlLibraryCountsQuery = this.db
+            .select({
+              url: cards.url,
+              count: countDistinct(libraryMemberships.userId),
+            })
+            .from(cards)
+            .innerJoin(
+              libraryMemberships,
+              eq(cards.id, libraryMemberships.cardId),
+            )
+            .where(
+              and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+            )
+            .groupBy(cards.url);
+
+          const urlLibraryCountsResult = await urlLibraryCountsQuery;
+          urlLibraryCountsResult.forEach((row) => {
+            if (row.url) {
+              urlLibraryCountMap.set(row.url, row.count);
+            }
+          });
+
+          // Check which URLs are in the calling user's library
+          // More efficient: check if user has a card with matching url and authorId
+          const urlInLibraryQuery = this.db
+            .select({
+              url: cards.url,
+            })
+            .from(cards)
+            .where(
+              and(
+                eq(cards.type, CardTypeEnum.URL),
+                inArray(cards.url, urls),
+                eq(cards.authorId, callingUserId),
+              ),
+            )
+            .groupBy(cards.url);
+
+          const urlInLibraryResult = await urlInLibraryQuery;
+          urlInLibraryResult.forEach((row) => {
+            if (row.url) {
+              urlInLibrarySet.add(row.url);
+            }
+          });
+        }
+
+        // Get notes for these cards
+        const notesQuery = this.db
+          .select({
+            id: cards.id,
+            parentCardId: cards.parentCardId,
+            contentData: cards.contentData,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.type, CardTypeEnum.NOTE),
+              inArray(cards.parentCardId, cardIds),
+            ),
+          );
+
+        notesResult = await notesQuery;
+
+        // Get collections for these cards
+        const collectionsQuery = this.db
+          .select({
+            cardId: collectionCards.cardId,
+            collectionId: collections.id,
+            collectionUri: publishedRecords.uri,
+            collectionName: collections.name,
+            collectionDescription: collections.description,
+            collectionAccessType: collections.accessType,
+            collectionAuthorId: collections.authorId,
+            collectionCardCount: collections.cardCount,
+            collectionCreatedAt: collections.createdAt,
+            collectionUpdatedAt: collections.updatedAt,
+          })
+          .from(collectionCards)
+          .innerJoin(
+            collections,
+            eq(collectionCards.collectionId, collections.id),
+          )
+          .leftJoin(
+            publishedRecords,
+            eq(collections.publishedRecordId, publishedRecords.id),
+          )
+          .where(inArray(collectionCards.cardId, cardIds));
+
+        collectionsResult = await collectionsQuery;
       }
 
-      // Get card data with URL library counts
-      const cardsQuery = this.db
-        .select({
-          id: cards.id,
-          authorId: cards.authorId,
-          url: cards.url,
-          publishedRecordUri: publishedRecords.uri,
-          contentData: cards.contentData,
-          libraryCount: cards.libraryCount,
-          createdAt: cards.createdAt,
-          updatedAt: cards.updatedAt,
+      // Collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
+      const followCollectionIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return (
+            metadata?.targetType === 'COLLECTION' && metadata?.targetId != null
+          );
         })
-        .from(cards)
-        .leftJoin(
-          publishedRecords,
-          eq(cards.publishedRecordId, publishedRecords.id),
-        )
-        .where(
-          and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
-        );
+        .map((n) => (n.metadata as any).targetId)
+        .filter(Boolean);
 
-      const cardsResult = await cardsQuery;
+      // Fetch collection data for follow notifications if needed
+      let followCollectionsResult: any[] = [];
+      if (followCollectionIds.length > 0) {
+        const followCollectionsQuery = this.db
+          .select({
+            collectionId: collections.id,
+            collectionUri: publishedRecords.uri,
+            collectionName: collections.name,
+            collectionDescription: collections.description,
+            collectionAccessType: collections.accessType,
+            collectionAuthorId: collections.authorId,
+            collectionCardCount: collections.cardCount,
+            collectionCreatedAt: collections.createdAt,
+            collectionUpdatedAt: collections.updatedAt,
+          })
+          .from(collections)
+          .leftJoin(
+            publishedRecords,
+            eq(collections.publishedRecordId, publishedRecords.id),
+          )
+          .where(inArray(collections.id, followCollectionIds));
 
-      // Get URL library counts for these cards
-      const urls = cardsResult.map((card) => card.url).filter(Boolean);
-      const urlLibraryCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
+        followCollectionsResult = await followCollectionsQuery;
+      }
 
-      const urlLibraryCountsResult = await urlLibraryCountsQuery;
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, row.count);
-        }
-      });
-
-      // Check which URLs are in the calling user's library
-      // More efficient: check if user has a card with matching url and authorId
-      const urlInLibraryQuery = this.db
-        .select({
-          url: cards.url,
-        })
-        .from(cards)
-        .where(
-          and(
-            eq(cards.type, CardTypeEnum.URL),
-            inArray(cards.url, urls),
-            eq(cards.authorId, callingUserId),
-          ),
-        )
-        .groupBy(cards.url);
-
-      const urlInLibraryResult = await urlInLibraryQuery;
-      const urlInLibrarySet = new Set<string>();
-      urlInLibraryResult.forEach((row) => {
-        if (row.url) {
-          urlInLibrarySet.add(row.url);
-        }
-      });
-
-      // Get notes for these cards
-      const notesQuery = this.db
-        .select({
-          id: cards.id,
-          parentCardId: cards.parentCardId,
-          contentData: cards.contentData,
-        })
-        .from(cards)
-        .where(
-          and(
-            eq(cards.type, CardTypeEnum.NOTE),
-            inArray(cards.parentCardId, cardIds),
-          ),
-        );
-
-      const notesResult = await notesQuery;
-
-      // Get collections for these cards
-      const collectionsQuery = this.db
-        .select({
-          cardId: collectionCards.cardId,
-          collectionId: collections.id,
-          collectionUri: publishedRecords.uri,
-          collectionName: collections.name,
-          collectionDescription: collections.description,
-          collectionAccessType: collections.accessType,
-          collectionAuthorId: collections.authorId,
-          collectionCardCount: collections.cardCount,
-          collectionCreatedAt: collections.createdAt,
-          collectionUpdatedAt: collections.updatedAt,
-        })
-        .from(collectionCards)
-        .innerJoin(
-          collections,
-          eq(collectionCards.collectionId, collections.id),
-        )
-        .leftJoin(
-          publishedRecords,
-          eq(collections.publishedRecordId, publishedRecords.id),
-        )
-        .where(inArray(collectionCards.cardId, cardIds));
-
-      const collectionsResult = await collectionsQuery;
-
-      // Build card lookup map
+      // Build lookup maps
       const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
+      const followCollectionMap = new Map(
+        followCollectionsResult.map((c) => [c.collectionId, c]),
+      );
 
-      // Build enriched notifications
+      // Build enriched notifications - process in original chronological order
       const enrichedNotifications: EnrichedNotificationResult[] = [];
 
+      // Process all notifications in original order
       for (const notification of notificationsResult) {
         const metadata = notification.metadata as any;
-        const cardId = metadata?.cardId;
 
-        if (!cardId) continue;
+        // Check if this is a follow notification
+        if (metadata?.targetType !== undefined) {
+          // Handle follow notifications
+          if (
+            metadata.targetType === 'COLLECTION' &&
+            metadata.targetId != null
+          ) {
+            // USER_FOLLOWED_YOUR_COLLECTION - include collection data
+            const collectionData = followCollectionMap.get(metadata.targetId);
 
-        const card = cardMap.get(cardId);
-        if (!card) continue;
+            enrichedNotifications.push({
+              id: notification.id,
+              type: notification.type,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId,
+              followTargetType: metadata.targetType,
+              followTargetId: metadata.targetId,
+              followCollections: collectionData
+                ? [
+                    {
+                      id: collectionData.collectionId,
+                      uri: collectionData.collectionUri || undefined,
+                      name: collectionData.collectionName,
+                      description:
+                        collectionData.collectionDescription || undefined,
+                      accessType: collectionData.collectionAccessType as
+                        | 'OPEN'
+                        | 'CLOSED',
+                      authorId: collectionData.collectionAuthorId,
+                      cardCount: collectionData.collectionCardCount,
+                      createdAt: collectionData.collectionCreatedAt,
+                      updatedAt: collectionData.collectionUpdatedAt,
+                    },
+                  ]
+                : [],
+            });
+          } else {
+            // USER_FOLLOWED_YOU - no collection data
+            enrichedNotifications.push({
+              id: notification.id,
+              type: notification.type,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId,
+              followTargetType: metadata.targetType,
+              followTargetId: metadata.targetId,
+            });
+          }
+        } else if (metadata?.cardId !== undefined) {
+          // Handle card-based notifications
+          const cardId = metadata.cardId;
+          const card = cardMap.get(cardId);
 
-        const note = notesResult.find((n) => n.parentCardId === cardId);
-        const cardCollections = collectionsResult
-          .filter((c) => c.cardId === cardId)
-          .map((c) => ({
-            id: c.collectionId,
-            uri: c.collectionUri || undefined,
-            name: c.collectionName,
-            description: c.collectionDescription || undefined,
-            accessType: c.collectionAccessType as 'OPEN' | 'CLOSED',
-            authorId: c.collectionAuthorId,
-            cardCount: c.collectionCardCount,
-            createdAt: c.collectionCreatedAt,
-            updatedAt: c.collectionUpdatedAt,
-          }));
+          if (!card) continue;
 
-        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
-        const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
+          const note = notesResult.find((n) => n.parentCardId === cardId);
+          const cardCollections = collectionsResult
+            .filter((c) => c.cardId === cardId)
+            .map((c) => ({
+              id: c.collectionId,
+              uri: c.collectionUri || undefined,
+              name: c.collectionName,
+              description: c.collectionDescription || undefined,
+              accessType: c.collectionAccessType as 'OPEN' | 'CLOSED',
+              authorId: c.collectionAuthorId,
+              cardCount: c.collectionCardCount,
+              createdAt: c.collectionCreatedAt,
+              updatedAt: c.collectionUpdatedAt,
+            }));
 
-        enrichedNotifications.push({
-          id: notification.id,
-          type: notification.type,
-          read: notification.read,
-          createdAt: notification.createdAt,
-          actorUserId: notification.actorUserId,
-          cardAuthorId: card.authorId,
-          cardId: card.id,
-          cardUrl: card.url || '',
-          cardUri: card.publishedRecordUri || undefined,
-          cardTitle: card.contentData?.metadata?.title,
-          cardDescription: card.contentData?.metadata?.description,
-          cardAuthor: card.contentData?.metadata?.author,
-          cardPublishedDate: card.contentData?.metadata?.publishedDate
-            ? new Date(card.contentData.metadata.publishedDate)
-            : undefined,
-          cardSiteName: card.contentData?.metadata?.siteName,
-          cardImageUrl: card.contentData?.metadata?.imageUrl,
-          cardType: card.contentData?.metadata?.type,
-          cardRetrievedAt: card.contentData?.metadata?.retrievedAt
-            ? new Date(card.contentData.metadata.retrievedAt)
-            : undefined,
-          cardDoi: card.contentData?.metadata?.doi,
-          cardIsbn: card.contentData?.metadata?.isbn,
-          cardLibraryCount: card.libraryCount,
-          cardUrlLibraryCount: urlLibraryCount,
-          cardUrlInLibrary: urlInLibrary,
-          cardCreatedAt: card.createdAt,
-          cardUpdatedAt: card.updatedAt,
-          cardNote: note
-            ? {
-                id: note.id,
-                text: note.contentData?.text || '',
-              }
-            : undefined,
-          collections: cardCollections,
-        });
+          const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+          const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
+
+          enrichedNotifications.push({
+            id: notification.id,
+            type: notification.type,
+            read: notification.read,
+            createdAt: notification.createdAt,
+            actorUserId: notification.actorUserId,
+            cardAuthorId: card.authorId,
+            cardId: card.id,
+            cardUrl: card.url || '',
+            cardUri: card.publishedRecordUri || undefined,
+            cardTitle: card.contentData?.metadata?.title,
+            cardDescription: card.contentData?.metadata?.description,
+            cardAuthor: card.contentData?.metadata?.author,
+            cardPublishedDate: card.contentData?.metadata?.publishedDate
+              ? new Date(card.contentData.metadata.publishedDate)
+              : undefined,
+            cardSiteName: card.contentData?.metadata?.siteName,
+            cardImageUrl: card.contentData?.metadata?.imageUrl,
+            cardType: card.contentData?.metadata?.type,
+            cardRetrievedAt: card.contentData?.metadata?.retrievedAt
+              ? new Date(card.contentData.metadata.retrievedAt)
+              : undefined,
+            cardDoi: card.contentData?.metadata?.doi,
+            cardIsbn: card.contentData?.metadata?.isbn,
+            cardLibraryCount: card.libraryCount,
+            cardUrlLibraryCount: urlLibraryCount,
+            cardUrlInLibrary: urlInLibrary,
+            cardCreatedAt: card.createdAt,
+            cardUpdatedAt: card.updatedAt,
+            cardNote: note
+              ? {
+                  id: note.id,
+                  text: note.contentData?.text || '',
+                }
+              : undefined,
+            collections: cardCollections,
+          });
+        }
       }
 
       // Get total count and unread count

@@ -101,6 +101,14 @@ export class DrizzleFirehoseEventDuplicationService
           // If a record exists, it hasn't been deleted
           return ok(records.length === 0);
         }
+        case collections.follow: {
+          const followInfoResult =
+            await this.atUriResolver.resolveFollowId(atUri);
+          if (followInfoResult.isErr()) {
+            return err(followInfoResult.error);
+          }
+          return ok(followInfoResult.value === null);
+        }
         default:
           return err(new Error(`Unknown collection type: ${collection}`));
       }

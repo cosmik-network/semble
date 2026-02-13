@@ -20,6 +20,7 @@ import { GetCollectionPageController } from '../../../../modules/cards/infrastru
 import { GetMyCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController';
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGemActivityFeedController';
+import { GetFollowingFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetFollowingFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
@@ -43,6 +44,16 @@ import { GetMyNotificationsController } from '../../../../modules/notifications/
 import { GetUnreadNotificationCountController } from '../../../../modules/notifications/infrastructure/http/controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
+import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
+import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
+import { GetFollowingUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingUsersController';
+import { GetFollowersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowersController';
+import { GetFollowingCollectionsController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCollectionsController';
+import { GetFollowingCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCountController';
+import { GetFollowersCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowersCountController';
+import { GetFollowingCollectionsCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCollectionsCountController';
+import { GetCollectionFollowersController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersController';
+import { GetCollectionFollowersCountController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersCountController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -55,6 +66,14 @@ export interface Controllers {
   getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
+  followTargetController: FollowTargetController;
+  unfollowTargetController: UnfollowTargetController;
+  getFollowingUsersController: GetFollowingUsersController;
+  getFollowersController: GetFollowersController;
+  getFollowingCollectionsController: GetFollowingCollectionsController;
+  getFollowingCountController: GetFollowingCountController;
+  getFollowersCountController: GetFollowersCountController;
+  getFollowingCollectionsCountController: GetFollowingCollectionsCountController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
   addCardToLibraryController: AddCardToLibraryController;
@@ -81,9 +100,12 @@ export interface Controllers {
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
+  getCollectionFollowersController: GetCollectionFollowersController;
+  getCollectionFollowersCountController: GetCollectionFollowersCountController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
   getGemActivityFeedController: GetGemActivityFeedController;
+  getFollowingFeedController: GetFollowingFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   semanticSearchUrlsController: SemanticSearchUrlsController;
@@ -129,6 +151,31 @@ export class ControllerFactory {
       generateExtensionTokensController: new GenerateExtensionTokensController(
         useCases.generateExtensionTokensUseCase,
       ),
+      followTargetController: new FollowTargetController(
+        useCases.followTargetUseCase,
+      ),
+      unfollowTargetController: new UnfollowTargetController(
+        useCases.unfollowTargetUseCase,
+      ),
+      getFollowingUsersController: new GetFollowingUsersController(
+        useCases.getFollowingUsersUseCase,
+      ),
+      getFollowersController: new GetFollowersController(
+        useCases.getFollowersUseCase,
+      ),
+      getFollowingCollectionsController: new GetFollowingCollectionsController(
+        useCases.getFollowingCollectionsUseCase,
+      ),
+      getFollowingCountController: new GetFollowingCountController(
+        useCases.getFollowingCountUseCase,
+      ),
+      getFollowersCountController: new GetFollowersCountController(
+        useCases.getFollowersCountUseCase,
+      ),
+      getFollowingCollectionsCountController:
+        new GetFollowingCollectionsCountController(
+          useCases.getFollowingCollectionsCountUseCase,
+        ),
 
       // Card controllers
       addUrlToLibraryController: new AddUrlToLibraryController(
@@ -211,6 +258,13 @@ export class ControllerFactory {
       getNoteCardsForUrlController: new GetNoteCardsForUrlController(
         useCases.getNoteCardsForUrlUseCase,
       ),
+      getCollectionFollowersController: new GetCollectionFollowersController(
+        useCases.getCollectionFollowersUseCase,
+      ),
+      getCollectionFollowersCountController:
+        new GetCollectionFollowersCountController(
+          useCases.getCollectionFollowersCountUseCase,
+        ),
 
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(
@@ -218,6 +272,9 @@ export class ControllerFactory {
       ),
       getGemActivityFeedController: new GetGemActivityFeedController(
         useCases.getGemActivityFeedUseCase,
+      ),
+      getFollowingFeedController: new GetFollowingFeedController(
+        useCases.getFollowingFeedUseCase,
       ),
       // Search controllers
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(

@@ -14,9 +14,12 @@ import {
   CollectionSortingDTO,
 } from '@semble/types';
 import { CollectionAccessType } from '../../../domain/Collection';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface GetCollectionsQuery {
   curatorId: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CollectionSortField;
@@ -44,6 +47,7 @@ export class GetCollectionsUseCase
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
     private identityResolver: IIdentityResolutionService,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -117,6 +121,24 @@ export class GetCollectionsUseCase
           },
         };
       });
+
+      // Add follow status if callingUserId is provided
+      if (query.callingUserId) {
+        const followChecks = await Promise.all(
+          enrichedCollections.map((c) =>
+            this.followsRepository.findByFollowerAndTarget(
+              query.callingUserId!,
+              c.id,
+              FollowTargetType.COLLECTION,
+            ),
+          ),
+        );
+
+        enrichedCollections.forEach((collection, i) => {
+          collection.isFollowing =
+            followChecks[i]?.isOk() && followChecks[i].value !== null;
+        });
+      }
 
       return ok({
         collections: enrichedCollections,

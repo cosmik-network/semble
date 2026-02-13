@@ -42,6 +42,9 @@ import { InMemoryNotificationRepository } from '../../../../modules/notification
 import { ISyncStatusRepository } from '../../../../modules/sync/domain/repositories/ISyncStatusRepository';
 import { DrizzleSyncStatusRepository } from '../../../../modules/sync/infrastructure/repositories/DrizzleSyncStatusRepository';
 import { InMemorySyncStatusRepository } from '../../../../modules/sync/tests/infrastructure/InMemorySyncStatusRepository';
+import { IFollowsRepository } from '../../../../modules/user/domain/repositories/IFollowsRepository';
+import { DrizzleFollowsRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleFollowsRepository';
+import { InMemoryFollowsRepository } from '../../../../modules/user/tests/infrastructure/InMemoryFollowsRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -52,6 +55,7 @@ export interface Repositories {
   collectionQueryRepository: ICollectionQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
+  followsRepository: IFollowsRepository;
   notificationRepository: INotificationRepository;
   syncStatusRepository: ISyncStatusRepository;
   atUriResolutionService: IAtUriResolutionService;
@@ -80,6 +84,7 @@ export class RepositoryFactory {
       const appPasswordSessionRepository =
         InMemoryAppPasswordSessionRepository.getInstance();
       const feedRepository = InMemoryFeedRepository.getInstance();
+      const followsRepository = InMemoryFollowsRepository.getInstance();
       const atUriResolutionService = new InMemoryAtUriResolutionService(
         collectionRepository,
         cardRepository,
@@ -101,6 +106,7 @@ export class RepositoryFactory {
         collectionQueryRepository,
         appPasswordSessionRepository,
         feedRepository,
+        followsRepository,
         notificationRepository,
         syncStatusRepository,
         atUriResolutionService,
@@ -125,6 +131,7 @@ export class RepositoryFactory {
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
+      followsRepository: new DrizzleFollowsRepository(db),
       notificationRepository: new DrizzleNotificationRepository(db),
       syncStatusRepository: new DrizzleSyncStatusRepository(db),
       atUriResolutionService: new DrizzleAtUriResolutionService(db),

@@ -5,9 +5,6 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { INotificationRepository } from '../../../domain/INotificationRepository';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
-import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
-import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { NotificationItem } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
@@ -51,8 +48,6 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
-    private cardQueryRepository: ICardQueryRepository,
-    private collectionRepository: ICollectionRepository,
   ) {}
 
   async execute(
@@ -94,15 +89,20 @@ export class GetMyNotificationsUseCase
       const userIds = new Set<string>();
       notifications.forEach((notification) => {
         userIds.add(notification.actorUserId);
-        userIds.add(notification.cardAuthorId);
-        notification.collections.forEach((collection) => {
+        if (notification.cardAuthorId) {
+          userIds.add(notification.cardAuthorId);
+        }
+        notification.collections?.forEach((collection) => {
+          userIds.add(collection.authorId);
+        });
+        notification.followCollections?.forEach((collection) => {
           userIds.add(collection.authorId);
         });
       });
 
       // Bulk fetch all profiles
       const profilePromises = Array.from(userIds).map((id) =>
-        this.profileService.getProfile(id),
+        this.profileService.getProfile(id, request.userId),
       );
       const profileResults = await Promise.all(profilePromises);
 
@@ -120,15 +120,82 @@ export class GetMyNotificationsUseCase
       for (const notification of notifications) {
         try {
           const actorProfile = profileMap.get(notification.actorUserId);
-          const cardAuthorProfile = profileMap.get(notification.cardAuthorId);
 
-          if (!actorProfile || !cardAuthorProfile) {
-            // Skip notifications with missing profiles
+          if (!actorProfile) {
+            // Skip notifications with missing actor profile
+            continue;
+          }
+
+          // Handle follow notifications (no card data)
+          if (notification.followTargetType) {
+            // Transform follow collections with author profiles
+            const followCollections = (notification.followCollections || [])
+              .map((collection) => {
+                const collectionAuthorProfile = profileMap.get(
+                  collection.authorId,
+                );
+                if (!collectionAuthorProfile) {
+                  return null;
+                }
+
+                return {
+                  id: collection.id,
+                  uri: collection.uri,
+                  name: collection.name,
+                  author: {
+                    id: collectionAuthorProfile.id,
+                    name: collectionAuthorProfile.name,
+                    handle: collectionAuthorProfile.handle,
+                    avatarUrl: collectionAuthorProfile.avatarUrl,
+                    description: collectionAuthorProfile.bio,
+                  },
+                  description: collection.description,
+                  accessType: collection.accessType as CollectionAccessType,
+                  cardCount: collection.cardCount,
+                  createdAt: collection.createdAt.toISOString(),
+                  updatedAt: collection.updatedAt.toISOString(),
+                };
+              })
+              .filter(
+                (collection): collection is NonNullable<typeof collection> =>
+                  collection !== null,
+              );
+
+            const notificationItem: NotificationItemDTO = {
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                description: actorProfile.bio,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              followTargetType: notification.followTargetType,
+              followTargetId: notification.followTargetId,
+              collections:
+                followCollections.length > 0 ? followCollections : undefined,
+            };
+
+            notificationItems.push(notificationItem);
+            continue;
+          }
+
+          // Handle card-based notifications
+          const cardAuthorProfile = notification.cardAuthorId
+            ? profileMap.get(notification.cardAuthorId)
+            : undefined;
+
+          if (!cardAuthorProfile || !notification.cardId) {
+            // Skip notifications with missing card author profile or card data
             continue;
           }
 
           // Transform collections with author profiles
-          const collections = notification.collections
+          const collections = (notification.collections || [])
             .map((collection) => {
               const collectionAuthorProfile = profileMap.get(
                 collection.authorId,
@@ -168,14 +235,15 @@ export class GetMyNotificationsUseCase
               handle: actorProfile.handle,
               avatarUrl: actorProfile.avatarUrl,
               description: actorProfile.bio,
+              isFollowing: actorProfile.isFollowing,
             },
             card: {
               id: notification.cardId,
               type: 'URL' as const,
-              url: notification.cardUrl,
+              url: notification.cardUrl || '',
               uri: notification.cardUri,
               cardContent: {
-                url: notification.cardUrl,
+                url: notification.cardUrl || '',
                 title: notification.cardTitle,
                 description: notification.cardDescription,
                 author: notification.cardAuthor,
@@ -187,11 +255,11 @@ export class GetMyNotificationsUseCase
                 doi: notification.cardDoi,
                 isbn: notification.cardIsbn,
               },
-              libraryCount: notification.cardLibraryCount,
-              urlLibraryCount: notification.cardUrlLibraryCount,
+              libraryCount: notification.cardLibraryCount || 0,
+              urlLibraryCount: notification.cardUrlLibraryCount || 0,
               urlInLibrary: notification.cardUrlInLibrary,
-              createdAt: notification.cardCreatedAt.toISOString(),
-              updatedAt: notification.cardUpdatedAt.toISOString(),
+              createdAt: notification.cardCreatedAt?.toISOString() || '',
+              updatedAt: notification.cardUpdatedAt?.toISOString() || '',
               author: {
                 id: cardAuthorProfile.id,
                 name: cardAuthorProfile.name,

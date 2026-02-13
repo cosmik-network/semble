@@ -14,6 +14,7 @@ import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import { ICollectionRepository } from '../../domain/ICollectionRepository';
+import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
 describe('GetCollectionPageUseCase', () => {
   let useCase: GetCollectionPageUseCase;
@@ -21,6 +22,7 @@ describe('GetCollectionPageUseCase', () => {
   let cardRepo: InMemoryCardRepository;
   let cardQueryRepo: InMemoryCardQueryRepository;
   let profileService: FakeProfileService;
+  let followsRepository: InMemoryFollowsRepository;
   let curatorId: CuratorId;
   let collectionId: CollectionId;
 
@@ -29,10 +31,12 @@ describe('GetCollectionPageUseCase', () => {
     cardRepo = InMemoryCardRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
+    followsRepository = InMemoryFollowsRepository.getInstance();
     useCase = new GetCollectionPageUseCase(
       collectionRepo,
       cardQueryRepo,
       profileService,
+      followsRepository,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
@@ -716,6 +720,7 @@ describe('GetCollectionPageUseCase', () => {
         errorCollectionRepo,
         cardQueryRepo,
         profileService,
+        followsRepository,
       );
 
       const query = {
@@ -766,6 +771,7 @@ describe('GetCollectionPageUseCase', () => {
         collectionRepo,
         errorCardQueryRepo,
         profileService,
+        followsRepository,
       );
 
       const query = {

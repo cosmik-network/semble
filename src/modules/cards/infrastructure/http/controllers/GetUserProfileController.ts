@@ -1,5 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { GetProfileUseCase } from '../../../application/useCases/queries/GetProfileUseCase';
 
 export class GetUserProfileController extends Controller {
@@ -7,7 +8,7 @@ export class GetUserProfileController extends Controller {
     super();
   }
 
-  async executeImpl(req: Request, res: Response): Promise<any> {
+  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { identifier } = req.params;
 
@@ -17,6 +18,7 @@ export class GetUserProfileController extends Controller {
 
       const result = await this.getProfileUseCase.execute({
         userId: identifier,
+        callerDid: req.did,
       });
 
       if (result.isErr()) {

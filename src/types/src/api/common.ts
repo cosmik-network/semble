@@ -5,6 +5,7 @@ export interface User {
   handle: string;
   avatarUrl?: string;
   description?: string;
+  isFollowing?: boolean; // Whether the calling user follows this user
 }
 
 // Base pagination interface

@@ -13,6 +13,8 @@ import { URL } from '../../../domain/value-objects/URL';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CollectionDTO, UrlCard } from '@semble/types';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface GetUrlStatusForMyLibraryQuery {
   url: string;
@@ -43,6 +45,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
     private collectionQueryRepository: ICollectionQueryRepository,
     private collectionRepo: ICollectionRepository,
     private profileService: IProfileService,
+    private followsRepository: IFollowsRepository,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -156,7 +159,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
               );
 
             // Enrich collections with full data
-            result.collections = await Promise.all(
+            const enrichedCollections = await Promise.all(
               collections.map(async (collection): Promise<CollectionDTO> => {
                 // Fetch full collection to get dates and cardCount
                 const collectionIdResult = CollectionId.createFromString(
@@ -210,6 +213,24 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                 };
               }),
             );
+
+            // Add follow status for collections
+            const followChecks = await Promise.all(
+              enrichedCollections.map((c) =>
+                this.followsRepository.findByFollowerAndTarget(
+                  curatorId.value,
+                  c.id,
+                  FollowTargetType.COLLECTION,
+                ),
+              ),
+            );
+
+            enrichedCollections.forEach((collection, i) => {
+              collection.isFollowing =
+                followChecks[i]?.isOk() && followChecks[i].value !== null;
+            });
+
+            result.collections = enrichedCollections;
           } catch (error) {
             // Propagate authentication errors
             if (error instanceof AuthenticationError) {

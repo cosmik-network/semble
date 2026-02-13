@@ -6,6 +6,7 @@ import {
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
+import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 
@@ -109,5 +110,17 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
     return ok(
       result.value.id as { collectionId: CollectionId; cardId: CardId },
     );
+  }
+
+  async resolveFollowId(atUri: string): Promise<
+    Result<{
+      followerDid: string;
+      targetId: string;
+      targetType: FollowTargetType;
+    } | null>
+  > {
+    // For testing purposes, return null (follow not found)
+    // In a real implementation, this would search through follow records
+    return ok(null);
   }
 }

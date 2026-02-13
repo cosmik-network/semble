@@ -28,6 +28,7 @@ import type {
   GetCollectionPageByAtUriParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
+  GetFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -82,6 +83,21 @@ import type {
   GetGemActivityFeedParams,
   SearchCollectionsParams,
   GetOpenCollectionsWithContributorParams,
+  FollowTargetRequest,
+  FollowTargetResponse,
+  GetFollowingUsersParams,
+  GetFollowingUsersResponse,
+  GetFollowersParams,
+  GetFollowersResponse,
+  GetFollowingCollectionsParams,
+  GetFollowingCollectionsResponse,
+  GetCollectionFollowersParams,
+  GetCollectionFollowersResponse,
+  GetFollowingCountParams,
+  GetFollowersCountParams,
+  GetFollowingCollectionsCountParams,
+  GetCollectionFollowersCountParams,
+  GetFollowCountResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -223,6 +239,55 @@ export class ApiClient {
     return this.queryClient.searchLeafletDocs(params);
   }
 
+  // Follow query operations - delegate to QueryClient
+  async getFollowingUsers(
+    params: GetFollowingUsersParams,
+  ): Promise<GetFollowingUsersResponse> {
+    return this.queryClient.getFollowingUsers(params);
+  }
+
+  async getFollowers(
+    params: GetFollowersParams,
+  ): Promise<GetFollowersResponse> {
+    return this.queryClient.getFollowers(params);
+  }
+
+  async getFollowingCollections(
+    params: GetFollowingCollectionsParams,
+  ): Promise<GetFollowingCollectionsResponse> {
+    return this.queryClient.getFollowingCollections(params);
+  }
+
+  async getCollectionFollowers(
+    params: GetCollectionFollowersParams,
+  ): Promise<GetCollectionFollowersResponse> {
+    return this.queryClient.getCollectionFollowers(params);
+  }
+
+  async getFollowingCount(
+    params: GetFollowingCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowingCount(params);
+  }
+
+  async getFollowersCount(
+    params: GetFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowersCount(params);
+  }
+
+  async getFollowingCollectionsCount(
+    params: GetFollowingCollectionsCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getFollowingCollectionsCount(params);
+  }
+
+  async getCollectionFollowersCount(
+    params: GetCollectionFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.queryClient.getCollectionFollowersCount(params);
+  }
+
   // Card operations - delegate to CardClient
   async addUrlToLibrary(
     request: AddUrlToLibraryRequest,
@@ -326,6 +391,19 @@ export class ApiClient {
     return this.userClient.logout();
   }
 
+  async followTarget(
+    request: FollowTargetRequest,
+  ): Promise<FollowTargetResponse> {
+    return this.userClient.followTarget(request);
+  }
+
+  async unfollowTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    return this.userClient.unfollowTarget(targetId, targetType);
+  }
+
   // Feed operations - delegate to FeedClient
   async getGlobalFeed(
     params?: GetGlobalFeedParams,
@@ -337,6 +415,12 @@ export class ApiClient {
     params?: GetGemActivityFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getGemsActivityFeed(params);
+  }
+
+  async getFollowingFeed(
+    params?: GetFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getFollowingFeed(params);
   }
 
   // Notification operations - delegate to NotificationClient

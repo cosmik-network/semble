@@ -10,4 +10,5 @@ export interface UserProfile {
   handle: string;
   avatarUrl?: string;
   bio?: string;
+  isFollowing?: boolean;
 }

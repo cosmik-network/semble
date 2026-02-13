@@ -10,6 +10,8 @@ import {
 import { UrlType } from '../../../domain/value-objects/UrlType';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
@@ -68,6 +70,7 @@ export class GetCollectionPageUseCase
     private collectionRepo: ICollectionRepository,
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -195,6 +198,21 @@ export class GetCollectionPageUseCase
         },
       );
 
+      // Check if the calling user follows this collection
+      let isFollowing: boolean | undefined = undefined;
+      if (query.callingUserId) {
+        const followResult =
+          await this.followsRepository.findByFollowerAndTarget(
+            query.callingUserId,
+            collection.collectionId.getStringValue(),
+            FollowTargetType.COLLECTION,
+          );
+
+        if (followResult.isOk()) {
+          isFollowing = followResult.value !== null;
+        }
+      }
+
       return ok({
         id: collection.collectionId.getStringValue(),
         uri: collectionUri,
@@ -211,6 +229,7 @@ export class GetCollectionPageUseCase
         cardCount: collection.cardCount,
         createdAt: collection.createdAt.toISOString(),
         updatedAt: collection.updatedAt.toISOString(),
+        isFollowing,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(cardsResult.totalCount / limit),

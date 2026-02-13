@@ -10,6 +10,8 @@ import {
   CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
+  FollowTargetRequest,
+  FollowTargetResponse,
 } from '@semble/types';
 
 export class UserClient extends BaseClient {
@@ -75,6 +77,26 @@ export class UserClient extends BaseClient {
     return this.request<{ success: boolean; message: string }>(
       'POST',
       '/api/users/logout',
+    );
+  }
+
+  async followTarget(
+    request: FollowTargetRequest,
+  ): Promise<FollowTargetResponse> {
+    return this.request<FollowTargetResponse>(
+      'POST',
+      '/api/users/follows',
+      request,
+    );
+  }
+
+  async unfollowTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    return this.request<void>(
+      'DELETE',
+      `/api/users/follows/${targetId}/${targetType}`,
     );
   }
 }

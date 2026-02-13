@@ -33,6 +33,19 @@ import {
   SearchLeafletDocsForUrlParams,
   SearchLeafletDocsForUrlResponse,
   GetOpenCollectionsWithContributorParams,
+  GetFollowingUsersParams,
+  GetFollowingUsersResponse,
+  GetFollowersParams,
+  GetFollowersResponse,
+  GetFollowingCollectionsParams,
+  GetFollowingCollectionsResponse,
+  GetCollectionFollowersParams,
+  GetCollectionFollowersResponse,
+  GetFollowingCountParams,
+  GetFollowersCountParams,
+  GetFollowingCollectionsCountParams,
+  GetCollectionFollowersCountParams,
+  GetFollowCountResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -340,5 +353,102 @@ export class QueryClient extends BaseClient {
       : `/api/collections/contributed/${params.identifier}`;
 
     return this.request<GetCollectionsResponse>('GET', endpoint);
+  }
+
+  // Follow query methods
+  async getFollowingUsers(
+    params: GetFollowingUsersParams,
+  ): Promise<GetFollowingUsersResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/users/${params.identifier}/following?${queryString}`
+      : `/api/users/${params.identifier}/following`;
+
+    return this.request<GetFollowingUsersResponse>('GET', endpoint);
+  }
+
+  async getFollowers(
+    params: GetFollowersParams,
+  ): Promise<GetFollowersResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/users/${params.identifier}/followers?${queryString}`
+      : `/api/users/${params.identifier}/followers`;
+
+    return this.request<GetFollowersResponse>('GET', endpoint);
+  }
+
+  async getFollowingCollections(
+    params: GetFollowingCollectionsParams,
+  ): Promise<GetFollowingCollectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/users/${params.identifier}/following-collections?${queryString}`
+      : `/api/users/${params.identifier}/following-collections`;
+
+    return this.request<GetFollowingCollectionsResponse>('GET', endpoint);
+  }
+
+  async getCollectionFollowers(
+    params: GetCollectionFollowersParams,
+  ): Promise<GetCollectionFollowersResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/${params.collectionId}/followers?${queryString}`
+      : `/api/collections/${params.collectionId}/followers`;
+
+    return this.request<GetCollectionFollowersResponse>('GET', endpoint);
+  }
+
+  async getFollowingCount(
+    params: GetFollowingCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.request<GetFollowCountResponse>(
+      'GET',
+      `/api/users/${params.identifier}/following/count`,
+    );
+  }
+
+  async getFollowersCount(
+    params: GetFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.request<GetFollowCountResponse>(
+      'GET',
+      `/api/users/${params.identifier}/followers/count`,
+    );
+  }
+
+  async getFollowingCollectionsCount(
+    params: GetFollowingCollectionsCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.request<GetFollowCountResponse>(
+      'GET',
+      `/api/users/${params.identifier}/following-collections/count`,
+    );
+  }
+
+  async getCollectionFollowersCount(
+    params: GetCollectionFollowersCountParams,
+  ): Promise<GetFollowCountResponse> {
+    return this.request<GetFollowCountResponse>(
+      'GET',
+      `/api/collections/${params.collectionId}/followers/count`,
+    );
   }
 }

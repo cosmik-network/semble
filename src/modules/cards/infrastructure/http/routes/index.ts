@@ -27,6 +27,8 @@ import { SearchCollectionsController } from '../controllers/SearchCollectionsCon
 import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
+import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
+import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -57,6 +59,8 @@ export function createCardsModuleRoutes(
   getCollectionsForUrlController: GetCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
+  getCollectionFollowersController: GetCollectionFollowersController,
+  getCollectionFollowersCountController: GetCollectionFollowersCountController,
 ): Router {
   const router = Router();
 
@@ -98,6 +102,8 @@ export function createCardsModuleRoutes(
       getCollectionsForUrlController,
       searchCollectionsController,
       getOpenCollectionsWithContributorController,
+      getCollectionFollowersController,
+      getCollectionFollowersCountController,
     ),
   );
 

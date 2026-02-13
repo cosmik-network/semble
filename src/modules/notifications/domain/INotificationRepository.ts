@@ -25,11 +25,11 @@ export interface EnrichedNotificationResult {
 
   // User IDs (still need profile enrichment)
   actorUserId: string;
-  cardAuthorId: string;
+  cardAuthorId?: string; // Optional for follow notifications
 
-  // Card data - fully enriched from JOIN
-  cardId: string;
-  cardUrl: string;
+  // Card data - fully enriched from JOIN (optional for follow notifications)
+  cardId?: string;
+  cardUrl?: string;
   cardUri?: string;
   cardTitle?: string;
   cardDescription?: string;
@@ -41,24 +41,39 @@ export interface EnrichedNotificationResult {
   cardRetrievedAt?: Date;
   cardDoi?: string;
   cardIsbn?: string;
-  cardLibraryCount: number;
-  cardUrlLibraryCount: number;
+  cardLibraryCount?: number;
+  cardUrlLibraryCount?: number;
   cardUrlInLibrary?: boolean;
-  cardCreatedAt: Date;
-  cardUpdatedAt: Date;
+  cardCreatedAt?: Date;
+  cardUpdatedAt?: Date;
   cardNote?: {
     id: string;
     text: string;
   };
 
-  // Collections - fully enriched from JOIN
-  collections: Array<{
+  // Collections - fully enriched from JOIN (optional for follow notifications)
+  collections?: Array<{
     id: string;
     uri?: string;
     name: string;
     description?: string;
     accessType: string;
     authorId: string; // Still need profile enrichment
+    cardCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+
+  // Follow notification specific data (optional, only present for follow notifications)
+  followTargetType?: 'USER' | 'COLLECTION';
+  followTargetId?: string; // Collection ID if following a collection
+  followCollections?: Array<{
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+    accessType: string;
+    authorId: string;
     cardCount: number;
     createdAt: Date;
     updatedAt: Date;
@@ -88,6 +103,11 @@ export interface INotificationRepository {
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
   findByCard(cardId: string): Promise<Result<Notification[]>>;
+  findFollowNotificationsByActorAndTarget(
+    actorUserId: CuratorId,
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>>;
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
   markAsRead(notificationIds: NotificationId[]): Promise<Result<void>>;
   markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>>;

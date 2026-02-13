@@ -13,6 +13,7 @@ const APPROVED_HANDLES = new Set([
   'cosmik.network',
   'semble.so',
   'atproto.science',
+  'chrisshank.com',
 ]);
 
 export async function getServerFeatureFlags() {

@@ -1,18 +1,19 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { SearchCollectionsUseCase } from '../../../application/useCases/queries/SearchCollectionsUseCase';
 import {
   CollectionSortField,
   SortOrder,
 } from '../../../domain/ICollectionQueryRepository';
 import { CollectionAccessType } from '../../../domain/Collection';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class SearchCollectionsController extends Controller {
   constructor(private searchCollectionsUseCase: SearchCollectionsUseCase) {
     super();
   }
 
-  async executeImpl(req: Request, res: Response): Promise<any> {
+  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const {
         page,
@@ -23,8 +24,10 @@ export class SearchCollectionsController extends Controller {
         identifier,
         accessType,
       } = req.query;
+      const callerDid = req.did;
 
       const result = await this.searchCollectionsUseCase.execute({
+        callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CollectionSortField,

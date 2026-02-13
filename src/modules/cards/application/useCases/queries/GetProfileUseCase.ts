@@ -15,6 +15,7 @@ export interface GetMyProfileResult {
   handle: string;
   description?: string;
   avatarUrl?: string;
+  isFollowing?: boolean;
 }
 
 export class ValidationError extends Error {
@@ -91,6 +92,7 @@ export class GetProfileUseCase
         handle: profile.handle,
         description: profile.bio,
         avatarUrl: profile.avatarUrl,
+        isFollowing: profile.isFollowing,
       });
     } catch (error) {
       return err(

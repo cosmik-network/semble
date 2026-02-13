@@ -109,6 +109,24 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
+
+    // Follows table (references published_records)
+    sql`CREATE TABLE IF NOT EXISTS follows (
+      follower_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      published_record_id UUID REFERENCES published_records(id),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (follower_id, target_id, target_type)
+    )`,
+
+    // Following feed items table (references feed_activities)
+    sql`CREATE TABLE IF NOT EXISTS following_feed_items (
+      user_id TEXT NOT NULL,
+      activity_id UUID NOT NULL REFERENCES feed_activities(id) ON DELETE CASCADE,
+      created_at TIMESTAMP NOT NULL,
+      PRIMARY KEY (user_id, activity_id)
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -238,5 +256,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
+  `);
+
+  // Follows table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+  `);
+
+  // Following feed items indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
   `);
 }

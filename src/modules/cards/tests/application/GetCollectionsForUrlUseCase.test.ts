@@ -13,6 +13,7 @@ import {
   SortOrder,
 } from '../../domain/ICollectionQueryRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
+import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
 describe('GetCollectionsForUrlUseCase', () => {
   let useCase: GetCollectionsForUrlUseCase;
@@ -20,6 +21,7 @@ describe('GetCollectionsForUrlUseCase', () => {
   let collectionRepository: InMemoryCollectionRepository;
   let collectionQueryRepository: InMemoryCollectionQueryRepository;
   let profileService: FakeProfileService;
+  let followsRepository: InMemoryFollowsRepository;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -32,11 +34,13 @@ describe('GetCollectionsForUrlUseCase', () => {
       cardRepository,
     );
     profileService = new FakeProfileService();
+    followsRepository = InMemoryFollowsRepository.getInstance();
 
     useCase = new GetCollectionsForUrlUseCase(
       collectionQueryRepository,
       profileService,
       collectionRepository,
+      followsRepository,
     );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
@@ -787,6 +791,7 @@ describe('GetCollectionsForUrlUseCase', () => {
         errorCollectionQueryRepository,
         profileService,
         collectionRepository,
+        followsRepository,
       );
 
       const query = {
