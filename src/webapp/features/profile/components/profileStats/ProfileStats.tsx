@@ -55,8 +55,7 @@ function ProfileStatsContent({ identifier, handle, isFollowing }: Props) {
         size="lg"
         style={{ cursor: 'pointer' }}
       >
-        {followingCollectionsCount.count} Collection
-        {followingCollectionsCount.count !== 1 ? 's' : ''}
+        {followingCollectionsCount.count} Collection Following
       </Badge>
       {!isOwnProfile && (
         <FollowButton
