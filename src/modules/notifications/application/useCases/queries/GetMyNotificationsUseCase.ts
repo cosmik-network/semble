@@ -102,7 +102,7 @@ export class GetMyNotificationsUseCase
 
       // Bulk fetch all profiles
       const profilePromises = Array.from(userIds).map((id) =>
-        this.profileService.getProfile(id),
+        this.profileService.getProfile(id, request.userId),
       );
       const profileResults = await Promise.all(profilePromises);
 
@@ -169,6 +169,7 @@ export class GetMyNotificationsUseCase
                 handle: actorProfile.handle,
                 avatarUrl: actorProfile.avatarUrl,
                 description: actorProfile.bio,
+                isFollowing: actorProfile.isFollowing,
               },
               createdAt: notification.createdAt.toISOString(),
               type: notification.type as any,
@@ -234,6 +235,7 @@ export class GetMyNotificationsUseCase
               handle: actorProfile.handle,
               avatarUrl: actorProfile.avatarUrl,
               description: actorProfile.bio,
+              isFollowing: actorProfile.isFollowing,
             },
             card: {
               id: notification.cardId,
