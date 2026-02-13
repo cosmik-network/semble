@@ -35,7 +35,7 @@ export class UnfollowTargetController extends Controller {
         return this.fail(res, result.error);
       }
 
-      return this.ok(res);
+      return this.ok(res, { success: true });
     } catch (error: any) {
       return this.handleError(res, error);
     }
