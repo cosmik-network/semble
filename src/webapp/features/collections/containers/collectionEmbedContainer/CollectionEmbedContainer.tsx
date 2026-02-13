@@ -77,7 +77,7 @@ export default function CollectionEmbedContainer(props: Props) {
                   'avatar',
                   'avatar_thumbnail',
                 )}
-                alt={`${firstPage.author.name}'s' avatar`}
+                alt={`${firstPage.author.name}'s avatar`}
               />
               <Anchor
                 component={Link}

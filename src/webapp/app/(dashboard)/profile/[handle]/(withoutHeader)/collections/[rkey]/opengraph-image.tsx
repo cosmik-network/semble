@@ -1,6 +1,7 @@
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { truncateText } from '@/lib/utils/text';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -31,16 +32,40 @@ export default async function Image(props: Props) {
           }}
         >
           {/* label */}
-          <p
+          <div
             style={{
-              fontSize: 35,
-              lineHeight: 1.2,
-              color: '#e803ff',
-              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
             }}
           >
-            Collection
-          </p>
+            {collection.accessType === CollectionAccessType.OPEN && (
+              <svg
+                stroke="#40c057"
+                fill="#40c057"
+                stroke-width="0"
+                viewBox="0 0 512 512"
+                height="30px"
+                width="30px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M512 32c0 113.6-84.6 207.5-194.2 222c-7.1-53.4-30.6-101.6-65.3-139.3C290.8 46.3 364 0 448 0l32 0c17.7 0 32 14.3 32 32zM0 96C0 78.3 14.3 64 32 64l32 0c123.7 0 224 100.3 224 224l0 32 0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-160C100.3 320 0 219.7 0 96z"></path>
+              </svg>
+            )}
+            <p
+              style={{
+                fontSize: 35,
+                lineHeight: 1.2,
+                color:
+                  collection.accessType === CollectionAccessType.OPEN
+                    ? '#40c057'
+                    : '#e803ff',
+                margin: 0,
+              }}
+            >
+              Collection
+            </p>
+          </div>
 
           {/* collection name */}
           <p
@@ -68,8 +93,9 @@ export default async function Image(props: Props) {
                 lineHeight: 1.2,
                 color: '#868e96',
                 marginTop: 20,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
+                display: 'block',
+                WebkitLineClamp: 1,
+                lineClamp: 1,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 maxWidth: '900',
@@ -94,7 +120,8 @@ export default async function Image(props: Props) {
                 wordBreak: 'break-word',
               }}
             >
-              {collection.cardCount} cards
+              {collection.cardCount}{' '}
+              {collection.cardCount > 1 ? 'cards' : 'card'}
             </p>
           )}
 

@@ -87,18 +87,20 @@ export default function CollectionSelectorOpenCollections(props: Props) {
 
           <ScrollArea.Autosize mah={195} type="auto">
             <Stack gap="xs">
+              <Button
+                variant="light"
+                color="grape"
+                radius="md"
+                leftSection={<FiPlus size={22} />}
+                onClick={() => setIsDrawerOpen(true)}
+              >
+                {search
+                  ? `Create new collection "${search}"`
+                  : 'Create new open collection'}
+              </Button>
+
               {search ? (
                 <Stack gap={'xs'}>
-                  <Button
-                    variant="light"
-                    color="grape"
-                    radius="md"
-                    leftSection={<FiPlus size={22} />}
-                    onClick={() => setIsDrawerOpen(true)}
-                  >
-                    Create new collection "{search}"
-                  </Button>
-
                   {searchedCollections.isPending && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
@@ -135,16 +137,6 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                 </Stack>
               ) : hasCollections ? (
                 <Stack gap={'xs'}>
-                  <Button
-                    variant="light"
-                    color="grape"
-                    radius="md"
-                    leftSection={<FiPlus size={22} />}
-                    onClick={() => setIsDrawerOpen(true)}
-                  >
-                    Create new open collection
-                  </Button>
-
                   {/* selected collections */}
                   {hasSelectedCollections && (
                     <Fragment>
@@ -197,11 +189,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         onClose={() => setIsDrawerOpen(false)}
         initialName={search}
         initialAccessType={CollectionAccessType.OPEN}
-        onCreate={(newCollection) => {
-          props.onSelectedCollectionsChange([
-            ...props.selectedCollections,
-            newCollection as Collection,
-          ]);
+        onCreate={() => {
           setSearch('');
         }}
       />

@@ -128,7 +128,7 @@ export default function FeedActivityStatus(props: Props) {
             component={Link}
             href={`/profile/${props.user.handle}`}
             src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-            alt={`${props.user.name}'s' avatar`}
+            alt={`${props.user.name}'s avatar`}
           />
           {renderActivityText()}
         </Group>

@@ -18,7 +18,6 @@ import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   isOpen: boolean;
@@ -36,7 +35,6 @@ interface Props {
 
 export default function EditCollectionModal(props: Props) {
   const updateCollection = useUpdateCollection();
-  const { data: featureFlags } = useFeatureFlags();
   const isMargin = isMarginUri(props.collection.uri);
   const marginUrl = getMarginUrl(
     props.collection.uri,
@@ -143,6 +141,7 @@ export default function EditCollectionModal(props: Props) {
                       </ThemeIcon>
                     ) : null
                   }
+                  allowDeselect={false}
                   defaultValue={CollectionAccessType.CLOSED}
                   data={[
                     {

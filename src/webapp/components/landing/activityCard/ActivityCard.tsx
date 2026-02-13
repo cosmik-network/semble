@@ -58,7 +58,7 @@ export default function ActivityCard(props: Props) {
                   'avatar',
                   'avatar_thumbnail',
                 )}
-                alt={`${props.cardAuthor.name}'s' avatar`}
+                alt={`${props.cardAuthor.name}'s avatar`}
                 size={'sm'}
               />
               <Text

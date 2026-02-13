@@ -20,7 +20,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   id: string;
@@ -37,7 +36,6 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const { data: featureFlags } = useFeatureFlags();
 
   const userId = user?.id;
   const userHandle = user?.handle;
