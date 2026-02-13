@@ -324,7 +324,8 @@ export class YourEventHandler implements IEventHandler<YourEvent> {
 6. `src/modules/<module>/application/useCases/...UseCase.ts` — Extend BaseUseCase, publish events
 7. `src/shared/infrastructure/http/factories/UseCaseFactory.ts` — Pass eventPublisher
 8. `src/modules/<module>/application/eventHandlers/...Handler.ts` — Create handler
-9. `src/shared/infrastructure/processes/<Worker>Process.ts` — Register handler
+9. `src/shared/infrastructure/processes/<Worker>Process.ts` — Register handler (production)
+10. `src/shared/infrastructure/processes/InMemoryEventWorkerProcess.ts` — Register handler (mock mode)
 
 ## Build steps:
 
@@ -340,3 +341,21 @@ entry: {
     'workers/notification-worker': 'src/workers/notification-worker.ts',
   },
 ```
+
+## Mock Mode (In-Memory Events)
+
+When running in mock/development mode with `USE_MOCK_PERSISTENCE=true`, the system uses `InMemoryEventPublisher` and `InMemoryEventSubscriber` instead of BullMQ/Redis.
+
+**IMPORTANT:** Event handlers must be registered in BOTH places:
+
+1. **Production:** `src/shared/infrastructure/processes/NotificationWorkerProcess.ts` (or FeedWorkerProcess, SearchWorkerProcess)
+2. **Mock Mode:** `src/shared/infrastructure/processes/InMemoryEventWorkerProcess.ts`
+
+If you add a new event handler to a worker process, you MUST also add it to `InMemoryEventWorkerProcess.ts` or it will only work in production and fail silently in development/test mode.
+
+**Example:** When adding follow notification handlers:
+
+- Added to `NotificationWorkerProcess.ts` (production)
+- **MUST ALSO** add to `InMemoryEventWorkerProcess.ts` (mock mode)
+
+The in-memory worker consolidates ALL event handlers (feeds, search, notifications) into a single process since there's no queue distribution in mock mode.
