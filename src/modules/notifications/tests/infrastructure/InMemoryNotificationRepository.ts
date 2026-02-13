@@ -137,6 +137,40 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(matchingNotifications);
   }
 
+  async findFollowNotificationsByActorAndTarget(
+    actorUserId: CuratorId,
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter((notification) => {
+      // Must match the actor (follower)
+      if (!notification.actorUserId.equals(actorUserId)) {
+        return false;
+      }
+
+      const metadata = notification.metadata as any;
+
+      if (targetType === 'USER') {
+        // For USER follows: recipientUserId should match the targetId
+        return (
+          metadata.targetType === 'USER' &&
+          notification.recipientUserId.value === targetId
+        );
+      } else if (targetType === 'COLLECTION') {
+        // For COLLECTION follows: metadata.targetId should match
+        return (
+          metadata.targetType === 'COLLECTION' && metadata.targetId === targetId
+        );
+      }
+
+      return false;
+    });
+
+    return ok(matchingNotifications);
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     let markedCount = 0;
 

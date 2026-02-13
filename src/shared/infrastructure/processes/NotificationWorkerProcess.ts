@@ -10,6 +10,7 @@ import { CardRemovedFromLibraryEventHandler } from '../../../modules/notificatio
 import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
 import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
 import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
+import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
@@ -71,11 +72,14 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
         repositories.collectionRepository,
       );
 
-    // Follow notification handler
+    // Follow notification handlers
     const userFollowedTargetHandler = new UserFollowedTargetEventHandler(
       services.notificationService,
       repositories.userRepository,
       repositories.collectionRepository,
+    );
+    const userUnfollowedTargetHandler = new UserUnfollowedTargetEventHandler(
+      repositories.notificationRepository,
     );
 
     await subscriber.subscribe(
@@ -108,6 +112,11 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.USER_FOLLOWED_TARGET,
       userFollowedTargetHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.USER_UNFOLLOWED_TARGET,
+      userUnfollowedTargetHandler,
     );
   }
 }

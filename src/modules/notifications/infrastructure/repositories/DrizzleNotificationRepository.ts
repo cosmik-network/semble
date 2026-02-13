@@ -296,6 +296,63 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findFollowNotificationsByActorAndTarget(
+    actorUserId: CuratorId,
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>> {
+    try {
+      // Get all notifications for this actor
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.actorUserId, actorUserId.value));
+
+      // Filter by target based on targetType
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const metadata = notificationData.metadata as any;
+
+        let isMatch = false;
+        if (targetType === 'USER') {
+          // For USER follows: recipientUserId should match the targetId
+          isMatch =
+            metadata.targetType === 'USER' &&
+            notificationData.recipientUserId === targetId;
+        } else if (targetType === 'COLLECTION') {
+          // For COLLECTION follows: metadata.targetId should match
+          isMatch =
+            metadata.targetType === 'COLLECTION' &&
+            metadata.targetId === targetId;
+        }
+
+        if (isMatch) {
+          const dto: NotificationDTO = {
+            id: notificationData.id,
+            recipientUserId: notificationData.recipientUserId,
+            actorUserId: notificationData.actorUserId,
+            type: notificationData.type,
+            metadata: notificationData.metadata as any,
+            read: notificationData.read,
+            createdAt: notificationData.createdAt,
+            updatedAt: notificationData.updatedAt,
+          };
+
+          const domainResult = NotificationMapper.toDomain(dto);
+          if (domainResult.isErr()) {
+            return err(domainResult.error);
+          }
+
+          matchingNotifications.push(domainResult.value);
+        }
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>> {
     try {
       const result = await this.db

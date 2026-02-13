@@ -103,6 +103,11 @@ export interface INotificationRepository {
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
   findByCard(cardId: string): Promise<Result<Notification[]>>;
+  findFollowNotificationsByActorAndTarget(
+    actorUserId: CuratorId,
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>>;
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
   markAsRead(notificationIds: NotificationId[]): Promise<Result<void>>;
   markAllAsReadForUser(recipientId: CuratorId): Promise<Result<number>>;
