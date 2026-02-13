@@ -19,7 +19,7 @@ function CollectionStatsContent({ collectionId, handle, rkey }: Props) {
   return (
     <Badge
       component={Link}
-      href={`/collection/${handle}/${rkey}/followers`}
+      href={`/profile/${handle}/collections/${rkey}/followers`}
       variant="light"
       color="gray"
       size="lg"
