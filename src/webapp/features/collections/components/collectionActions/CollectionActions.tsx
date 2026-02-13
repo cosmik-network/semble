@@ -46,7 +46,7 @@ export default function CollectionActions(props: Props) {
             </Button>
           )}
 
-        {isAuthenticated && !isAuthor && (
+        {featureFlags?.following && isAuthenticated && !isAuthor && (
           <FollowButton
             targetId={props.collection.id}
             targetType="COLLECTION"

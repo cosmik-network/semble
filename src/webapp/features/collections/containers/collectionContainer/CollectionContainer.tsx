@@ -91,11 +91,13 @@ export default function CollectionContainer(props: Props) {
                 {collection.description}
               </Text>
             )}
-            <CollectionStats
-              collectionId={collection.id}
-              handle={props.handle}
-              rkey={props.rkey}
-            />
+            {featureFlags?.following && (
+              <CollectionStats
+                collectionId={collection.id}
+                handle={props.handle}
+                rkey={props.rkey}
+              />
+            )}
           </Stack>
 
           <Group gap={'xs'}>

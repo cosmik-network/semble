@@ -131,40 +131,42 @@ export default function FeedControls() {
             </Combobox.Dropdown>
           </Combobox>
 
-          <Combobox
-            store={feedCombobox}
-            onOptionSubmit={(value) => {
-              if (value === 'global' || value === 'following') {
-                handleFeedClick(value);
-              }
-            }}
-            width={150}
-          >
-            <Combobox.Target>
-              <Button
-                variant="light"
-                color="blue"
-                leftSection={<Combobox.Chevron />}
-                onClick={() => feedCombobox.toggleDropdown()}
-              >
-                {selectedFeed?.label}
-              </Button>
-            </Combobox.Target>
+          {featureFlags?.following && (
+            <Combobox
+              store={feedCombobox}
+              onOptionSubmit={(value) => {
+                if (value === 'global' || value === 'following') {
+                  handleFeedClick(value);
+                }
+              }}
+              width={150}
+            >
+              <Combobox.Target>
+                <Button
+                  variant="light"
+                  color="blue"
+                  leftSection={<Combobox.Chevron />}
+                  onClick={() => feedCombobox.toggleDropdown()}
+                >
+                  {selectedFeed?.label}
+                </Button>
+              </Combobox.Target>
 
-            <Combobox.Dropdown>
-              <Combobox.Options>
-                {feedOptions.map((option) => (
-                  <Combobox.Option
-                    key={option.value}
-                    value={option.value}
-                    active={option.value === optimisticFeed}
-                  >
-                    {option.label}
-                  </Combobox.Option>
-                ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+              <Combobox.Dropdown>
+                <Combobox.Options>
+                  {feedOptions.map((option) => (
+                    <Combobox.Option
+                      key={option.value}
+                      value={option.value}
+                      active={option.value === optimisticFeed}
+                    >
+                      {option.label}
+                    </Combobox.Option>
+                  ))}
+                </Combobox.Options>
+              </Combobox.Dropdown>
+            </Combobox>
+          )}
 
           <Button
             component={Link}
