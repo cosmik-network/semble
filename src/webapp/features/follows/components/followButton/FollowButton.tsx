@@ -11,6 +11,7 @@ interface Props {
   initialIsFollowing?: boolean;
   variant?: 'filled' | 'light' | 'outline' | 'subtle';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  followText?: string;
 }
 
 export default function FollowButton({
@@ -19,6 +20,7 @@ export default function FollowButton({
   initialIsFollowing = false,
   variant = 'filled',
   size = 'sm',
+  followText = 'Follow',
 }: Props) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const followMutation = useFollowTarget();
@@ -59,11 +61,11 @@ export default function FollowButton({
     <Button
       onClick={handleClick}
       loading={isLoading}
-      variant={isFollowing ? 'outline' : variant}
-      color={isFollowing ? 'gray' : 'blue'}
+      variant={isFollowing ? 'outline' : 'light'}
+      color={isFollowing ? 'gray' : 'cyan'}
       size={size}
     >
-      {isFollowing ? 'Following' : 'Follow'}
+      {isFollowing ? 'Following' : followText}
     </Button>
   );
 }
