@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useFollowTarget from '../../lib/mutations/useFollowTarget';
 import useUnfollowTarget from '../../lib/mutations/useUnfollowTarget';
 
@@ -23,6 +23,11 @@ export default function FollowButton({
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const followMutation = useFollowTarget();
   const unfollowMutation = useUnfollowTarget();
+
+  // Sync local state when the prop changes (e.g., after query refetch)
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+  }, [initialIsFollowing]);
 
   const isLoading = followMutation.isPending || unfollowMutation.isPending;
 
