@@ -41,6 +41,20 @@ export default function NotificationItem(props: Props) {
             collections={props.item.collections}
             createdAt={props.item.createdAt}
             type={props.item.type}
+            followButton={
+              isFollowNotification ? (
+                <Box onClick={(e) => e.stopPropagation()}>
+                  <FollowButton
+                    targetId={props.item.user.id}
+                    targetType="USER"
+                    variant="light"
+                    size="sm"
+                    initialIsFollowing={props.item.user.isFollowing}
+                    followText="Follow back"
+                  />
+                </Box>
+              ) : undefined
+            }
           />
           {props.item.card && (
             <UrlCard
@@ -55,17 +69,6 @@ export default function NotificationItem(props: Props) {
               authorHandle={props.item.user.handle}
               viaCardId={props.item.card.id}
             />
-          )}
-          {isFollowNotification && (
-            <Box onClick={(e) => e.stopPropagation()}>
-              <FollowButton
-                targetId={props.item.user.id}
-                targetType="USER"
-                variant="light"
-                size="sm"
-                initialIsFollowing={props.item.user.isFollowing}
-              />
-            </Box>
           )}
         </Stack>
       </Box>

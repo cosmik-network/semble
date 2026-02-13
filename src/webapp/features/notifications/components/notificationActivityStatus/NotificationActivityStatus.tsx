@@ -29,6 +29,7 @@ interface Props {
   collections?: NotificationItem['collections'];
   createdAt: string;
   type: NotificationType;
+  followButton?: React.ReactNode;
 }
 
 export default function NotificationActivityStatus(props: Props) {
@@ -223,19 +224,22 @@ export default function NotificationActivityStatus(props: Props) {
   return (
     <Card p={0} className={styles.root} radius={'lg'}>
       <Stack gap={'xs'} p={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="center">
-          <Avatar
-            component={Link}
-            href={`/profile/${props.user.handle}`}
-            src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-            alt={`${props.user.name}'s' avatar`}
-          />
-          <Text fw={500}>
-            {getActivityText()}
-            <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-              {relativeCreatedDate}
+        <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
+          <Group gap={'xs'} wrap="nowrap" align="center">
+            <Avatar
+              component={Link}
+              href={`/profile/${props.user.handle}`}
+              src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+              alt={`${props.user.name}'s' avatar`}
+            />
+            <Text fw={500}>
+              {getActivityText()}
+              <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
+                {relativeCreatedDate}
+              </Text>
             </Text>
-          </Text>
+          </Group>
+          {props.followButton}
         </Group>
       </Stack>
     </Card>
