@@ -234,59 +234,77 @@ export class InMemoryNotificationRepository implements INotificationRepository {
         notification.recipientUserId.equals(recipientId) && !notification.read,
     ).length;
 
-    // Enrich notifications with card data using cardQueryRepository
+    // Enrich notifications with card data or handle follow notifications
     const enrichedNotifications: EnrichedNotificationResult[] = [];
 
     for (const notification of paginatedNotifications) {
-      const cardId = notification.metadata.cardId;
-      if (!cardId) continue;
+      const metadata = notification.metadata as any;
 
-      // Get enriched card data using the card query repository
-      const cardView = await this.cardQueryRepository.getUrlCardView(
-        cardId,
-        recipientId.value,
-      );
+      // Check if this is a follow notification (has targetType)
+      if (metadata?.targetType !== undefined) {
+        // Handle follow notifications
+        enrichedNotifications.push({
+          id: notification.notificationId.getStringValue(),
+          type: notification.type.value,
+          read: notification.read,
+          createdAt: notification.createdAt,
+          actorUserId: notification.actorUserId.value,
+          followTargetType: metadata.targetType,
+          followTargetId: metadata.targetId,
+          // Note: Collection enrichment not implemented in InMemoryRepo
+          // Add followCollections if needed for testing
+        });
+      } else if (metadata?.cardId !== undefined) {
+        // Handle card-based notifications
+        const cardId = metadata.cardId;
 
-      if (!cardView) continue;
+        // Get enriched card data using the card query repository
+        const cardView = await this.cardQueryRepository.getUrlCardView(
+          cardId,
+          recipientId.value,
+        );
 
-      // Build enriched notification result
-      enrichedNotifications.push({
-        id: notification.notificationId.getStringValue(),
-        type: notification.type.value, // Extract the NotificationTypeEnum value as string
-        read: notification.read,
-        createdAt: notification.createdAt,
-        actorUserId: notification.actorUserId.value,
-        cardAuthorId: cardView.authorId,
-        cardId: cardView.id,
-        cardUrl: cardView.url,
-        cardTitle: cardView.cardContent.title,
-        cardDescription: cardView.cardContent.description,
-        cardAuthor: cardView.cardContent.author,
-        cardPublishedDate: undefined, // Not in cardView
-        cardSiteName: undefined, // Not in cardView
-        cardImageUrl: cardView.cardContent.imageUrl,
-        cardType: undefined, // Not in cardView
-        cardRetrievedAt: undefined, // Not in cardView
-        cardDoi: undefined, // Not in cardView
-        cardIsbn: undefined, // Not in cardView
-        cardLibraryCount: cardView.libraryCount,
-        cardUrlLibraryCount: cardView.urlLibraryCount,
-        cardUrlInLibrary: cardView.urlInLibrary,
-        cardCreatedAt: cardView.createdAt,
-        cardUpdatedAt: cardView.updatedAt,
-        cardNote: cardView.note,
-        collections: cardView.collections.map((c) => ({
-          id: c.id,
-          uri: `at://${c.authorId}/network.cosmik.local.collection/${c.id}`,
-          name: c.name,
-          description: undefined, // Not in collection result
-          accessType: c.accessType,
-          authorId: c.authorId,
-          cardCount: 0, // Not in collection result
-          createdAt: new Date(), // Not in collection result
-          updatedAt: new Date(), // Not in collection result
-        })),
-      });
+        if (!cardView) continue;
+
+        // Build enriched notification result
+        enrichedNotifications.push({
+          id: notification.notificationId.getStringValue(),
+          type: notification.type.value, // Extract the NotificationTypeEnum value as string
+          read: notification.read,
+          createdAt: notification.createdAt,
+          actorUserId: notification.actorUserId.value,
+          cardAuthorId: cardView.authorId,
+          cardId: cardView.id,
+          cardUrl: cardView.url,
+          cardTitle: cardView.cardContent.title,
+          cardDescription: cardView.cardContent.description,
+          cardAuthor: cardView.cardContent.author,
+          cardPublishedDate: undefined, // Not in cardView
+          cardSiteName: undefined, // Not in cardView
+          cardImageUrl: cardView.cardContent.imageUrl,
+          cardType: undefined, // Not in cardView
+          cardRetrievedAt: undefined, // Not in cardView
+          cardDoi: undefined, // Not in cardView
+          cardIsbn: undefined, // Not in cardView
+          cardLibraryCount: cardView.libraryCount,
+          cardUrlLibraryCount: cardView.urlLibraryCount,
+          cardUrlInLibrary: cardView.urlInLibrary,
+          cardCreatedAt: cardView.createdAt,
+          cardUpdatedAt: cardView.updatedAt,
+          cardNote: cardView.note,
+          collections: cardView.collections.map((c) => ({
+            id: c.id,
+            uri: `at://${c.authorId}/network.cosmik.local.collection/${c.id}`,
+            name: c.name,
+            description: undefined, // Not in collection result
+            accessType: c.accessType,
+            authorId: c.authorId,
+            cardCount: 0, // Not in collection result
+            createdAt: new Date(), // Not in collection result
+            updatedAt: new Date(), // Not in collection result
+          })),
+        });
+      }
     }
 
     return ok({

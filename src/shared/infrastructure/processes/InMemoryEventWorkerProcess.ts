@@ -11,6 +11,8 @@ import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/applic
 import { CardAddedToCollectionEventHandler as NotificationCardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
 import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
+import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
+import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
@@ -85,6 +87,16 @@ export class InMemoryEventWorkerProcess implements IProcess {
         repositories.collectionRepository,
       );
 
+    // Follow notification handlers (direct, no saga)
+    const userFollowedTargetHandler = new UserFollowedTargetEventHandler(
+      services.notificationService,
+      repositories.userRepository,
+      repositories.collectionRepository,
+    );
+    const userUnfollowedTargetHandler = new UserUnfollowedTargetEventHandler(
+      repositories.notificationRepository,
+    );
+
     // Register feed handlers
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -123,6 +135,17 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_REMOVED_FROM_COLLECTION,
       collectionContributionCleanupHandler,
+    );
+
+    // Register follow notification handlers
+    await subscriber.subscribe(
+      EventNames.USER_FOLLOWED_TARGET,
+      userFollowedTargetHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.USER_UNFOLLOWED_TARGET,
+      userUnfollowedTargetHandler,
     );
   }
 }
