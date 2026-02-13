@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
-import { getProfile } from '../../lib/dal';
+import { getProfile } from '../../lib/dal.server';
 import { Fragment } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import ProfileStats from '../profileStats/ProfileStats';
