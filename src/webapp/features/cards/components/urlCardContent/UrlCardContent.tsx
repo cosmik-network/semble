@@ -11,6 +11,7 @@ import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/bluesky
 import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
 import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import PlyrfmTrack from '@/features/platforms/plyrfm/components/plyrfmTrack/PlyrFmTrack';
 
 interface Props {
   url: string;
@@ -69,6 +70,13 @@ export default function UrlCardContent(props: Props) {
     settings.cardView !== 'list'
   ) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
+  }
+
+  if (
+    platform.type === SupportedPlatform.PLYRFM_TRACK &&
+    settings.cardView !== 'list'
+  ) {
+    return <PlyrfmTrack url={platform.url} cardContent={props.cardContent} />;
   }
 
   return (

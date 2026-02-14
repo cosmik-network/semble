@@ -45,8 +45,8 @@ export enum SupportedPlatform {
   BLACKSKY_POST = 'blacksky post',
   SEMBLE_COLLECTION = 'semble collection',
   SPOTIFY = 'spotify',
+  PLYRFM_TRACK = 'plyr.fm',
   YOUTUBE_VIDEO = 'youtube video',
-
   DEFAULT = 'default',
 }
 
@@ -92,6 +92,7 @@ export const detectUrlPlatform = (url: string): PlatformData => {
       }
     }
 
+    // youtube
     if (
       parsedUrl.hostname === 'www.youtube.com' ||
       parsedUrl.hostname === 'youtube.com' ||
@@ -141,6 +142,21 @@ export const detectUrlPlatform = (url: string): PlatformData => {
         return {
           type: SupportedPlatform.SPOTIFY,
           url: `https://open.spotify.com/embed/show/${id ?? idOrType}`,
+        };
+      }
+    }
+
+    // plyr.fm
+    if (
+      parsedUrl.hostname === 'plyr.fm' ||
+      parsedUrl.hostname === 'www.plyr.fm'
+    ) {
+      const [__, type, id] = parsedUrl.pathname.split('/');
+
+      if (type === 'track' && id) {
+        return {
+          type: SupportedPlatform.PLYRFM_TRACK,
+          url: `https://plyr.fm/embed/track/${id}?autoplay=1`,
         };
       }
     }
