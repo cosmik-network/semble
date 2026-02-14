@@ -156,7 +156,7 @@ export const detectUrlPlatform = (url: string): PlatformData => {
       if (type === 'track' && id) {
         return {
           type: SupportedPlatform.PLYRFM_TRACK,
-          url: `https://plyr.fm/embed/track/${id}?autoplay=1`,
+          url: `https://plyr.fm/embed/track/${id}`,
         };
       }
     }
