@@ -32,3 +32,15 @@ export const getGemsActivityFeed = cache(async (params?: PageParams) => {
 
   return response;
 });
+
+export const getFollowingFeed = cache(async (params?: PageParams) => {
+  const client = createSembleClient();
+  const response = await client.getFollowingFeed({
+    page: params?.page,
+    limit: params?.limit,
+    urlType: params?.urlType,
+    source: params?.source,
+  });
+
+  return response;
+});

@@ -1,6 +1,7 @@
 'use client';
 
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
+import useFollowingFeed from '@/features/feeds/lib/queries/useFollowingFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import { Stack, Text, Center, Container, Box, Loader } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
@@ -8,12 +9,27 @@ import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { UrlType, ActivitySource } from '@semble/types';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function MyFeedContainer() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
   const selectedSource = searchParams.get('source') as ActivitySource;
+  const selectedFeed =
+    (searchParams.get('feed') as 'global' | 'following') || 'global';
+
+  const globalFeed = useGlobalFeed({
+    urlType: selectedUrlType,
+    source: selectedSource,
+  });
+  const followingFeed = useFollowingFeed({
+    urlType: selectedUrlType,
+    source: selectedSource,
+  });
+
+  // Use the appropriate feed based on selection
+  const activeFeed = selectedFeed === 'following' ? followingFeed : globalFeed;
 
   const {
     data,
@@ -24,7 +40,7 @@ export default function MyFeedContainer() {
     isFetchingNextPage,
     isRefetching,
     refetch,
-  } = useGlobalFeed({ urlType: selectedUrlType, source: selectedSource });
+  } = activeFeed;
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
