@@ -1,5 +1,5 @@
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
-import { getProfile } from '@/features/profile/lib/dal';
+import { getProfile } from '@/features/profile/lib/dal.server';
 import { truncateText } from '@/lib/utils/text';
 
 interface Props {

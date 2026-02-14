@@ -13,9 +13,11 @@ import {
 } from '@mantine/core';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
-import { getProfile } from '../../lib/dal';
+import { getProfile } from '../../lib/dal.server';
 import { Fragment } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
+import ProfileStats from '../profileStats/ProfileStats';
+import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 
 interface Props {
   handle: string;
@@ -23,6 +25,7 @@ interface Props {
 
 export default async function ProfileHeader(props: Props) {
   const profile = await getProfile(props.handle);
+  const featureFlags = await getServerFeatureFlags();
 
   return (
     <Fragment>
@@ -79,6 +82,13 @@ export default async function ProfileHeader(props: Props) {
                     >
                       <RichTextRenderer text={profile.description} />
                     </Spoiler>
+                  )}
+                  {featureFlags.following && (
+                    <ProfileStats
+                      identifier={profile.id}
+                      handle={profile.handle}
+                      isFollowing={profile.isFollowing}
+                    />
                   )}
                 </Stack>
               </GridCol>

@@ -8,6 +8,7 @@ interface FeatureFlags {
   leafletMentions: boolean;
   animatedLandingTitle: boolean;
   openCollections: boolean;
+  following: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {
