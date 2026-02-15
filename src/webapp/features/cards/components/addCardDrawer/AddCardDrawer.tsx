@@ -2,13 +2,16 @@ import {
   Button,
   Container,
   Drawer,
+  Flex,
   Group,
+  Input,
   ScrollArea,
   Stack,
   Text,
   Textarea,
   TextInput,
   ThemeIcon,
+  VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -56,6 +59,9 @@ export default function AddCardDrawer(props: Props) {
       collections: selectedCollections,
     },
   });
+
+  const maxNoteLength = 500;
+  const { note } = form.getValues();
 
   useEffect(() => {
     if (props.initialUrl) {
@@ -125,17 +131,31 @@ export default function AddCardDrawer(props: Props) {
                   {...form.getInputProps('url')}
                 />
 
-                <Textarea
-                  id="note"
-                  label="Note"
-                  placeholder="Add a note about this card"
-                  variant="filled"
-                  size="md"
-                  rows={3}
-                  maxLength={500}
-                  key={form.key('note')}
-                  {...form.getInputProps('note')}
-                />
+                <Stack gap={0}>
+                  <Flex justify="space-between">
+                    <Input.Label size="md" htmlFor="note">
+                      Note
+                    </Input.Label>
+                    <Text aria-hidden>
+                      {note?.length ?? 0} / {maxNoteLength}
+                    </Text>
+                  </Flex>
+
+                  <Textarea
+                    id="note"
+                    placeholder="Add a note about this card"
+                    variant="filled"
+                    size="md"
+                    rows={3}
+                    maxLength={maxNoteLength}
+                    aria-describedby="note-char-remaining"
+                    key={form.key('note')}
+                    {...form.getInputProps('note')}
+                  />
+                  <VisuallyHidden id="note-char-remaining" aria-live="polite">
+                    {`${maxNoteLength - (note?.length ?? 0)} characters remaining`}
+                  </VisuallyHidden>
+                </Stack>
               </Stack>
 
               <Stack gap={5}>

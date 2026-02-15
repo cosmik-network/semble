@@ -11,6 +11,9 @@ import {
   Image,
   Textarea,
   Button,
+  Flex,
+  Input,
+  VisuallyHidden,
 } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
 import Link from 'next/link';
@@ -33,6 +36,7 @@ export default function NoteCardModalContent(props: Props) {
   const [note, setNote] = useState(isMyCard ? props.note?.text : '');
   const [editMode, setEditMode] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+  const maxNoteLength = 500;
 
   const removeNote = useRemoveCardFromLibrary();
   const updateNote = useUpdateNote();
@@ -86,19 +90,33 @@ export default function NoteCardModalContent(props: Props) {
   if (editMode) {
     return (
       <Stack gap={'xs'}>
-        <Textarea
-          id="note"
-          label="Your note"
-          placeholder="Add a note about this card"
-          variant="filled"
-          size="md"
-          autosize
-          minRows={3}
-          maxRows={8}
-          maxLength={500}
-          value={note}
-          onChange={(e) => setNote(e.currentTarget.value)}
-        />
+        <Stack gap={0}>
+          <Flex justify="space-between">
+            <Input.Label size="md" htmlFor="note">
+              Your note
+            </Input.Label>
+            <Text aria-hidden>
+              {note?.length ?? 0} / {maxNoteLength}
+            </Text>
+          </Flex>
+
+          <Textarea
+            id="note"
+            placeholder="Add a note about this card"
+            variant="filled"
+            size="md"
+            autosize
+            minRows={3}
+            maxRows={8}
+            maxLength={maxNoteLength}
+            value={note}
+            onChange={(e) => setNote(e.currentTarget.value)}
+          />
+          <VisuallyHidden id="note-char-remaining" aria-live="polite">
+            {`${maxNoteLength - (note?.length ?? 0)} characters remaining`}
+          </VisuallyHidden>
+        </Stack>
+
         <Group gap={'xs'} grow>
           <Button
             variant="light"
