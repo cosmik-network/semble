@@ -141,14 +141,20 @@ export class CardManager {
 
     const rkey = this.extractRkey(noteRef.uri);
 
+    const existing = await this.agent.com.atproto.repo.getRecord({
+      repo: this.agent.session.did,
+      collection: this.cardCollection,
+      rkey,
+    });
+
+    console.log('hello - this is local');
+
     const record = {
-      $type: this.cardCollection,
-      type: 'NOTE',
+      ...existing.data.value,
       content: {
         $type: `${this.baseNsid}.card#noteContent`,
         text: updatedText,
       },
-      createdAt: new Date().toISOString(),
     };
 
     await this.agent.com.atproto.repo.putRecord({
