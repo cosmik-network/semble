@@ -147,8 +147,6 @@ export class CardManager {
       rkey,
     });
 
-    console.log('hello - this is local');
-
     const record = {
       ...existing.data.value,
       content: {
