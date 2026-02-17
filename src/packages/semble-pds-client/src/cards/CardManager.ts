@@ -7,6 +7,7 @@ import {
   ListQueryParams,
   GetCardsResult,
 } from '../types';
+import { createAgentForDID } from '../utils/didResolver';
 import { MetadataFetcher } from '../metadata/MetadataFetcher';
 
 export class CardManager {
@@ -220,22 +221,28 @@ export class CardManager {
     did: string,
     params?: ListQueryParams,
   ): Promise<GetCardsResult> {
-    const response = await this.agent.com.atproto.repo.listRecords({
-      repo: did,
-      collection: this.cardCollection,
-      limit: params?.limit,
-      cursor: params?.cursor,
-      reverse: params?.reverse,
-    });
+    try {
+      const userAgent = await createAgentForDID(did);
+      const response = await userAgent.com.atproto.repo.listRecords({
+        repo: did,
+        collection: this.cardCollection,
+        limit: params?.limit,
+        cursor: params?.cursor,
+        reverse: params?.reverse,
+      });
 
-    return {
-      cursor: response.data.cursor,
-      records: response.data.records.map((record) => ({
-        uri: record.uri,
-        cid: record.cid,
-        value: record.value as CardRecord['value'],
-      })),
-    };
+      return {
+        cursor: response.data.cursor,
+        records: response.data.records.map((record) => ({
+          uri: record.uri,
+          cid: record.cid,
+          value: record.value as CardRecord['value'],
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching cards for user:', error);
+      throw error;
+    }
   }
 
   private extractRkey(uri: string): string {
