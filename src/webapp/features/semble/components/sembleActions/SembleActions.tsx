@@ -10,6 +10,7 @@ import { IoMdCheckmark } from 'react-icons/io';
 import { MdIosShare } from 'react-icons/md';
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
+import posthog from 'posthog-js';
 
 interface Props {
   url: string;
@@ -73,6 +74,9 @@ export default function SembleActions(props: Props) {
           onClick={() => {
             setShowAddToModal(true);
             track(
+              `Semble: ${isInYourLibrary ? 'update card' : 'add to library'}`,
+            );
+            posthog.capture(
               `Semble: ${isInYourLibrary ? 'update card' : 'add to library'}`,
             );
           }}

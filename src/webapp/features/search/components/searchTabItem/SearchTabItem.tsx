@@ -4,6 +4,7 @@ import { TabsTab } from '@mantine/core';
 import { ReactNode } from 'react';
 import styles from './SearchTabItem.module.css';
 import { track } from '@vercel/analytics';
+import posthog from 'posthog-js';
 
 interface Props {
   icon: ReactNode;
@@ -19,6 +20,7 @@ export default function SearchTabItem(props: Props) {
       leftSection={props.icon}
       onClick={() => {
         track(`Search: ${props.value} tab clicked`);
+        posthog.capture(`Search: ${props.value} tab clicked`);
       }}
     >
       {props.label}

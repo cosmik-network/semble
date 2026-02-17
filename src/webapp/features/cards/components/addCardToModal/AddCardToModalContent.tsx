@@ -12,6 +12,7 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { track } from '@vercel/analytics';
 import AddCardActions from '../addCardActions/AddCardActions';
+import posthog from 'posthog-js';
 
 interface Props {
   onClose: () => void;
@@ -50,6 +51,7 @@ export default function AddCardToModalContent(props: Props) {
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
     track('add or update existing card');
+    posthog.capture('add or update existing card');
 
     const trimmedNote = note?.trimEnd() === '' ? undefined : note;
 

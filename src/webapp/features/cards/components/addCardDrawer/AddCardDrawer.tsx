@@ -26,6 +26,7 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { Collection, CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
+import posthog from 'posthog-js';
 
 interface Props {
   isOpen: boolean;
@@ -66,6 +67,7 @@ export default function AddCardDrawer(props: Props) {
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
     track('add new card');
+    posthog.capture('add_new_card');
 
     addCard.mutate(
       {
