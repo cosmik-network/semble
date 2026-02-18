@@ -36,7 +36,7 @@ export default function NoteCardModalContent(props: Props) {
   const [note, setNote] = useState(isMyCard ? props.note?.text : '');
   const [editMode, setEditMode] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
-  const maxNoteLength = 500;
+  const MAX_NOTE_LENGTH = 500;
 
   const removeNote = useRemoveCardFromLibrary();
   const updateNote = useUpdateNote();
@@ -96,7 +96,7 @@ export default function NoteCardModalContent(props: Props) {
               Your note
             </Input.Label>
             <Text aria-hidden>
-              {note?.length ?? 0} / {maxNoteLength}
+              {note?.length ?? 0} / {MAX_NOTE_LENGTH}
             </Text>
           </Flex>
 
@@ -108,12 +108,12 @@ export default function NoteCardModalContent(props: Props) {
             autosize
             minRows={3}
             maxRows={8}
-            maxLength={maxNoteLength}
+            maxLength={MAX_NOTE_LENGTH}
             value={note}
             onChange={(e) => setNote(e.currentTarget.value)}
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
-            {`${maxNoteLength - (note?.length ?? 0)} characters remaining`}
+            {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
           </VisuallyHidden>
         </Stack>
 

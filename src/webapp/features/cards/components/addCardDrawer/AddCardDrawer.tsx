@@ -60,7 +60,7 @@ export default function AddCardDrawer(props: Props) {
     },
   });
 
-  const maxNoteLength = 500;
+  const MAX_NOTE_LENGTH = 500;
   const { note } = form.getValues();
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function AddCardDrawer(props: Props) {
                       Note
                     </Input.Label>
                     <Text aria-hidden>
-                      {note?.length ?? 0} / {maxNoteLength}
+                      {form.getValues().note.length} / {MAX_NOTE_LENGTH}
                     </Text>
                   </Flex>
 
@@ -147,13 +147,13 @@ export default function AddCardDrawer(props: Props) {
                     variant="filled"
                     size="md"
                     rows={3}
-                    maxLength={maxNoteLength}
+                    maxLength={MAX_NOTE_LENGTH}
                     aria-describedby="note-char-remaining"
                     key={form.key('note')}
                     {...form.getInputProps('note')}
                   />
                   <VisuallyHidden id="note-char-remaining" aria-live="polite">
-                    {`${maxNoteLength - (note?.length ?? 0)} characters remaining`}
+                    {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
                   </VisuallyHidden>
                 </Stack>
               </Stack>

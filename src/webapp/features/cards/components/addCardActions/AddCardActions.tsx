@@ -26,7 +26,7 @@ export default function AddCardActions(props: Props) {
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [noteMode, setNoteMode] = useState(false);
   const [note, setNote] = useState(props.note);
-  const maxNoteLength = 500;
+  const MAX_NOTE_LENGTH = 500;
 
   const removeNote = useRemoveCardFromLibrary();
 
@@ -62,7 +62,7 @@ export default function AddCardActions(props: Props) {
                 Your note
               </Input.Label>
               <Text aria-hidden>
-                {note?.length ?? 0} / {maxNoteLength}
+                {note?.length ?? 0} / {MAX_NOTE_LENGTH}
               </Text>
             </Flex>
 
@@ -77,7 +77,7 @@ export default function AddCardActions(props: Props) {
               onChange={(e) => setNote(e.currentTarget.value)}
             />
             <VisuallyHidden id="note-char-remaining" aria-live="polite">
-              {`${maxNoteLength - (note?.length ?? 0)} characters remaining`}
+              {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
             </VisuallyHidden>
           </Stack>
           <Group gap={'xs'} grow>
