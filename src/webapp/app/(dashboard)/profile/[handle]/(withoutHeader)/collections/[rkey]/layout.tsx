@@ -1,5 +1,9 @@
+import BackButton from '@/components/navigation/backButton/BackButton';
+import Header from '@/components/navigation/header/Header';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
+import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
+import { Fragment } from 'react';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -37,5 +41,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Layout(props: Props) {
-  return <>{props.children}</>;
+  const { handle } = await props.params;
+
+  return (
+    <Fragment>
+      <Header>
+        <BackButton href={`/profile/${handle}/collections`}>
+          {`@${truncateText(handle, 20)}`}
+        </BackButton>
+      </Header>
+      {props.children}
+    </Fragment>
+  );
 }
