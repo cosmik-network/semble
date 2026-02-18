@@ -1,4 +1,5 @@
 import { AtpAgent } from '@atproto/api';
+import { createAgentForDID } from '../utils/didResolver';
 import {
   StrongRef,
   CreateCollectionOptions,
@@ -130,22 +131,27 @@ export class CollectionManager {
     did: string,
     params?: ListQueryParams,
   ): Promise<GetCollectionsResult> {
-    const response = await this.agent.com.atproto.repo.listRecords({
-      repo: did,
-      collection: this.collectionCollection,
-      limit: params?.limit,
-      cursor: params?.cursor,
-      reverse: params?.reverse,
-    });
-
-    return {
-      cursor: response.data.cursor,
-      records: response.data.records.map((record) => ({
-        uri: record.uri,
-        cid: record.cid,
-        value: record.value as CollectionRecord['value'],
-      })),
-    };
+    try {
+      const userAgent = await createAgentForDID(did);
+      const response = await userAgent.com.atproto.repo.listRecords({
+        repo: did,
+        collection: this.collectionCollection,
+        limit: params?.limit,
+        cursor: params?.cursor,
+        reverse: params?.reverse,
+      });
+      return {
+        cursor: response.data.cursor,
+        records: response.data.records.map((record) => ({
+          uri: record.uri,
+          cid: record.cid,
+          value: record.value as CollectionRecord['value'],
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching collections for user:', error);
+      throw error;
+    }
   }
 
   private extractRkey(uri: string): string {
