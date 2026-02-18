@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Badge, Skeleton } from '@mantine/core';
+import { Group, Badge, Skeleton, Anchor, Text } from '@mantine/core';
 import { Suspense } from 'react';
 import useFollowersCount from '@/features/follows/lib/queries/useFollowersCount';
 import useFollowingCount from '@/features/follows/lib/queries/useFollowingCount';
@@ -27,36 +27,46 @@ function ProfileStatsContent({ identifier, handle, isFollowing }: Props) {
 
   return (
     <Group gap="sm">
-      <Badge
+      <Anchor
         component={Link}
         href={`/profile/${handle}/followers`}
-        variant="light"
-        color="gray"
-        size="lg"
-        style={{ cursor: 'pointer' }}
+        underline="never"
       >
-        {followersCount.count} Follower{followersCount.count !== 1 ? 's' : ''}
-      </Badge>
-      <Badge
+        <Text fw={500} c={'bright'} span>
+          {followersCount.count}
+        </Text>
+        <Text fw={500} c={'gray'} span>
+          {' Follower'}
+          {followersCount.count !== 1 ? 's' : ''}
+        </Text>
+      </Anchor>
+
+      <Anchor
         component={Link}
         href={`/profile/${handle}/following`}
-        variant="light"
-        color="gray"
-        size="lg"
-        style={{ cursor: 'pointer' }}
+        underline="never"
       >
-        {followingCount.count} Following
-      </Badge>
-      <Badge
+        <Text fw={500} c={'bright'} span>
+          {followingCount.count}
+        </Text>
+        <Text fw={500} c={'gray'} span>
+          {' Following'}
+        </Text>
+      </Anchor>
+
+      <Anchor
         component={Link}
         href={`/profile/${handle}/following-collections`}
-        variant="light"
-        color="gray"
-        size="lg"
-        style={{ cursor: 'pointer' }}
+        underline="never"
       >
-        {followingCollectionsCount.count} Collection Following
-      </Badge>
+        <Text fw={500} c={'bright'} span>
+          {followingCollectionsCount.count}
+        </Text>
+        <Text fw={500} c={'gray'} span>
+          {' Followed Collections'}
+        </Text>
+      </Anchor>
+
       {!isOwnProfile && (
         <FollowButton
           targetId={identifier}
