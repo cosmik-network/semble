@@ -47,24 +47,28 @@ describe('CardManager', () => {
       'New text',
     );
 
-    expect(mockAgent.com.atproto.repo.putRecord).toHaveBeenCalledWith({
-      repo: 'did:plc:test123',
-      collection: 'app.semble.card',
-      rkey: '456',
-      record: {
-        $type: 'app.semble.card',
-        type: 'NOTE',
-        url: 'https://example.com',
-        content: {
-          $type: 'app.semble.card#noteContent',
-          text: 'New text',
-        },
-        parentCard: {
-          uri: 'at://did:plc:parent/app.semble.card/123',
-          cid: 'bafycid123',
-        },
-        createdAt: '2024-01-01T00:00:00.000Z',
-      },
+    const putRecordCall = mockAgent.com.atproto.repo.putRecord.mock.calls[0][0];
+
+    // Check all fields are preserved
+    expect(putRecordCall.repo).toBe('did:plc:test123');
+    expect(putRecordCall.collection).toBe('app.semble.card');
+    expect(putRecordCall.rkey).toBe('456');
+
+    // Check record structure
+    expect(putRecordCall.record.$type).toBe('app.semble.card');
+    expect(putRecordCall.record.type).toBe('NOTE');
+    expect(putRecordCall.record.url).toBe('https://example.com'); // ✅ Preserved
+    expect(putRecordCall.record.content.text).toBe('New text'); // ✅ Updated
+    expect(putRecordCall.record.content.$type).toBe(
+      'app.semble.card#noteContent',
+    );
+    expect(putRecordCall.record.parentCard).toEqual({
+      // ✅ Preserved
+      uri: 'at://did:plc:parent/app.semble.card/123',
+      cid: 'bafycid123',
     });
+    expect(putRecordCall.record.createdAt).toBe('2024-01-01T00:00:00.000Z'); // ✅ Preserved
+    expect(putRecordCall.record.updatedAt).toBeDefined(); // ✅ Added
+    expect(typeof putRecordCall.record.updatedAt).toBe('string');
   });
 });

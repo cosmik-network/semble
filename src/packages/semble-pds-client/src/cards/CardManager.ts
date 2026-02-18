@@ -153,6 +153,7 @@ export class CardManager {
         $type: `${this.baseNsid}.card#noteContent`,
         text: updatedText,
       },
+      updatedAt: new Date().toISOString(),
     };
 
     await this.agent.com.atproto.repo.putRecord({
