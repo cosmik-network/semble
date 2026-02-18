@@ -1,5 +1,5 @@
 import { getDomain } from '@/lib/utils/link';
-import { Anchor, AspectRatio, Card, Stack, Tooltip } from '@mantine/core';
+import { Anchor, AspectRatio, Card, Stack, Tooltip, Text } from '@mantine/core';
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { Fragment } from 'react';
@@ -30,18 +30,9 @@ export default function YoutubeVideo(props: Props) {
           </Anchor>
         </Tooltip>
         {props.cardContent.title && (
-          <Anchor
-            onClick={(e) => e.stopPropagation()}
-            component={Link}
-            href={props.cardContent.url}
-            target="_blank"
-            c={'bright'}
-            lineClamp={2}
-            fw={500}
-            w={'fit-content'}
-          >
+          <Text c={'bright'} lineClamp={2} fw={500}>
             {props.cardContent.title}
-          </Anchor>
+          </Text>
         )}
       </Stack>
       <AspectRatio ratio={16 / 8}>

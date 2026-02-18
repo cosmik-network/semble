@@ -1,32 +1,20 @@
 import {
-  CloseButton,
   Container,
   Group,
   Select,
   SimpleGrid,
+  Skeleton,
   Stack,
-  TextInput,
 } from '@mantine/core';
 import CollectionCardSkeleton from '../../components/collectionCard/Skeleton.CollectionCard';
-import { IoSearch } from 'react-icons/io5';
 
 export default function CollectionsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Group align="end" gap={'xs'}>
-          <Select disabled mr={'auto'} variant="filled" size="sm" />
-          <TextInput
-            placeholder={'Search for collections'}
-            leftSection={<IoSearch />}
-            rightSection={
-              <CloseButton
-                aria-label="Clear input"
-                style={{ display: 'none' }}
-              />
-            }
-            size="sm"
-          />
+        <Group justify="space-between" gap={'xs'}>
+          <Select disabled w={140} mr={'auto'} variant="filled" size="sm" />
+          <Skeleton w={90} h={36} radius={'xl'} />
         </Group>
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">

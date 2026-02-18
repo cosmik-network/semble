@@ -11,13 +11,21 @@ import {
   PaginationDTO,
   CollectionSortingDTO,
 } from '@semble/types';
+import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
+import { CollectionAccessType } from '../../../domain/Collection';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface SearchCollectionsQuery {
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CollectionSortField;
   sortOrder?: SortOrder;
   searchText?: string;
+  identifier?: string; // Can be DID or handle
+  accessType?: CollectionAccessType;
 }
 
 export interface SearchCollectionsResult {
@@ -32,6 +40,8 @@ export class SearchCollectionsUseCase
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
+    private identityResolutionService: IIdentityResolutionService,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -44,6 +54,38 @@ export class SearchCollectionsUseCase
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
     try {
+      // Resolve identifier to DID if provided
+      let authorId: string | undefined;
+      if (query.identifier) {
+        const identifierResult = DIDOrHandle.create(query.identifier);
+        if (identifierResult.isErr()) {
+          return err(
+            new Error(`Invalid identifier: ${identifierResult.error.message}`),
+          );
+        }
+
+        const didResult = await this.identityResolutionService.resolveToDID(
+          identifierResult.value,
+        );
+        if (didResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to resolve identifier to DID: ${didResult.error.message}`,
+            ),
+          );
+        }
+
+        authorId = didResult.value.value;
+      }
+
+      // Validate accessType if provided
+      if (
+        query.accessType &&
+        !Object.values(CollectionAccessType).includes(query.accessType)
+      ) {
+        return err(new Error(`Invalid access type: ${query.accessType}`));
+      }
+
       // Execute query to get raw collection data
       const result = await this.collectionQueryRepo.searchCollections({
         page,
@@ -51,6 +93,8 @@ export class SearchCollectionsUseCase
         sortBy,
         sortOrder,
         searchText: query.searchText,
+        authorId,
+        accessType: query.accessType,
       });
 
       // Get unique author IDs from the results
@@ -84,6 +128,7 @@ export class SearchCollectionsUseCase
             uri: item.uri,
             name: item.name,
             description: item.description,
+            accessType: item.accessType as CollectionAccessType,
             updatedAt: item.updatedAt.toISOString(),
             createdAt: item.createdAt.toISOString(),
             cardCount: item.cardCount,
@@ -97,6 +142,24 @@ export class SearchCollectionsUseCase
           };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
+
+      // Add follow status if callingUserId is provided
+      if (query.callingUserId) {
+        const followChecks = await Promise.all(
+          enrichedCollections.map((c) =>
+            this.followsRepository.findByFollowerAndTarget(
+              query.callingUserId!,
+              c.id,
+              FollowTargetType.COLLECTION,
+            ),
+          ),
+        );
+
+        enrichedCollections.forEach((collection, i) => {
+          collection.isFollowing =
+            followChecks[i]?.isOk() && followChecks[i].value !== null;
+        });
+      }
 
       return ok({
         collections: enrichedCollections,

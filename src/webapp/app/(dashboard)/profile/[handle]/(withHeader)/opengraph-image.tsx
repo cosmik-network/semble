@@ -1,5 +1,5 @@
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
-import { getProfile } from '@/features/profile/lib/dal';
+import { getProfile } from '@/features/profile/lib/dal.server';
 import { truncateText } from '@/lib/utils/text';
 
 interface Props {
@@ -22,8 +22,8 @@ export default async function Image(props: Props) {
         {profile.avatarUrl && (
           <img
             src={profile.avatarUrl}
-            width={164}
-            height={164}
+            width={140}
+            height={140}
             alt={`${handle}'s avatar`}
             style={{ borderRadius: '20px', marginTop: 'auto' }}
           />
@@ -38,17 +38,26 @@ export default async function Image(props: Props) {
         >
           <p
             style={{
-              fontSize: '64px',
-              lineHeight: '20px',
+              fontSize: 50,
+              lineHeight: 1.1,
+              display: 'block',
+              lineClamp: 2,
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              maxWidth: '900',
+              wordBreak: 'break-word',
+              margin: 0,
             }}
           >
             {truncateText(profile.name, 20)}
           </p>
           <p
             style={{
-              fontSize: '40px',
-              lineHeight: '20px',
+              fontSize: 40,
+              lineHeight: 1.2,
               color: '#23AFED',
+              margin: 0,
             }}
           >
             @{truncateText(truncateText(profile.handle), 35)}

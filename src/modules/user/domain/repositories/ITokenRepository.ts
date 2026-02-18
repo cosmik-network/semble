@@ -13,4 +13,8 @@ export interface ITokenRepository {
   saveRefreshToken(token: RefreshToken): Promise<Result<void>>;
   findRefreshToken(refreshToken: string): Promise<Result<RefreshToken | null>>;
   revokeRefreshToken(refreshToken: string): Promise<Result<void>>;
+  atomicRefreshTokenOperation(
+    oldRefreshToken: string,
+    newToken: RefreshToken,
+  ): Promise<Result<RefreshToken | null>>;
 }

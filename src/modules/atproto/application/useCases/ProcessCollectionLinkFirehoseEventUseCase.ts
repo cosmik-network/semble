@@ -109,6 +109,14 @@ export class ProcessCollectionLinkFirehoseEventUseCase
         return ok(undefined);
       }
 
+      // Extract timestamps from AT Protocol record
+      // Use createdAt for the published record timestamp
+      const recordedAt = request.record.createdAt
+        ? new Date(request.record.createdAt)
+        : undefined;
+      // Use addedAt for the collection link timestamp (when card was added to collection)
+      const timestamp = new Date(request.record.addedAt);
+
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
@@ -138,6 +146,7 @@ export class ProcessCollectionLinkFirehoseEventUseCase
           collectionLinks: collectionLinkMap,
         },
         viaCardId: viaCardId?.getStringValue(),
+        timestamp: timestamp,
       });
 
       if (result.isErr()) {
@@ -202,6 +211,7 @@ export class ProcessCollectionLinkFirehoseEventUseCase
           );
         }
 
+        // For delete events, we don't have a record, so no timestamp available
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',

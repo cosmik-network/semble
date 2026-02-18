@@ -1,0 +1,59 @@
+{
+  "defs": {
+    "main": {
+      "description": "A reply to an annotation (motivation: replying)",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "format": {
+            "default": "text/plain",
+            "description": "MIME type of the text content",
+            "type": "string"
+          },
+          "parent": {
+            "description": "Reference to the parent annotation or reply",
+            "ref": "#replyRef",
+            "type": "ref"
+          },
+          "root": {
+            "description": "Reference to the root annotation of the thread",
+            "ref": "#replyRef",
+            "type": "ref"
+          },
+          "text": {
+            "description": "Reply text content",
+            "maxGraphemes": 3000,
+            "maxLength": 10000,
+            "type": "string"
+          }
+        },
+        "required": ["parent", "root", "text", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    },
+    "replyRef": {
+      "description": "Strong reference to an annotation or reply",
+      "properties": {
+        "cid": {
+          "format": "cid",
+          "type": "string"
+        },
+        "uri": {
+          "format": "at-uri",
+          "type": "string"
+        }
+      },
+      "required": ["uri", "cid"],
+      "type": "object"
+    }
+  },
+  "description": "A reply to an annotation or another reply",
+  "id": "at.margin.reply",
+  "lexicon": 1,
+  "revision": 2
+}

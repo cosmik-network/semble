@@ -1,6 +1,11 @@
 'use client';
 
-import type { UrlCard, Collection, User } from '@/api-client';
+import {
+  type UrlCard,
+  type Collection,
+  type User,
+  CollectionAccessType,
+} from '@/api-client';
 import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
@@ -14,6 +19,7 @@ import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardMod
 import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
+import { BiCopy } from 'react-icons/bi';
 
 interface Props {
   id: string;
@@ -30,11 +36,27 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const isAuthorByHandle =
-    props.authorHandle && user?.handle === props.authorHandle;
-  const isAuthorById =
-    !props.authorHandle && props.cardAuthor && user?.id === props.cardAuthor.id;
-  const isAuthor = Boolean(user && (isAuthorByHandle || isAuthorById));
+
+  const userId = user?.id;
+  const userHandle = user?.handle;
+
+  const isAuthor =
+    !!user &&
+    (props.authorHandle
+      ? userHandle === props.authorHandle
+      : userId === props.cardAuthor?.id);
+
+  const isOpenCollection =
+    props.currentCollection?.accessType === CollectionAccessType.OPEN;
+
+  const isCardAdder = userId === props.cardAuthor?.id;
+  const isCollectionOwner = userId === props.currentCollection?.author.id;
+
+  const canRemoveFromOpenCollection =
+    !!user && isOpenCollection && (isCardAdder || isCollectionOwner);
+
+  const canRemoveFromLibrary = isAuthor && props.urlIsInLibrary;
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -99,7 +121,7 @@ export default function UrlCardActions(props: Props) {
             <CopyButton value={props.cardContent.url}>
               {({ copy }) => (
                 <Menu.Item
-                  leftSection={<MdIosShare />}
+                  leftSection={<BiCopy />}
                   onClick={(e) => {
                     e.stopPropagation();
                     copy();
@@ -109,23 +131,44 @@ export default function UrlCardActions(props: Props) {
                     });
                   }}
                 >
-                  Copy share link
+                  Copy link
                 </Menu.Item>
               )}
             </CopyButton>
 
-            {props.currentCollection && isAuthor && (
-              <Menu.Item
-                leftSection={<LuUnplug />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowRemoveFromCollectionModal(true);
-                }}
-              >
-                Remove from this collection
-              </Menu.Item>
-            )}
-            {isAuthor && (
+            <CopyButton
+              value={`${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.cardContent.url}`}
+            >
+              {({ copy }) => (
+                <Menu.Item
+                  leftSection={<MdIosShare />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copy();
+                    notifications.show({
+                      message: 'Semble link copied!',
+                      position: 'bottom-center',
+                    });
+                  }}
+                >
+                  Share Semble page
+                </Menu.Item>
+              )}
+            </CopyButton>
+
+            {props.currentCollection &&
+              (isAuthor || canRemoveFromOpenCollection) && (
+                <Menu.Item
+                  leftSection={<LuUnplug />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRemoveFromCollectionModal(true);
+                  }}
+                >
+                  Remove from this collection
+                </Menu.Item>
+              )}
+            {canRemoveFromLibrary && (
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}

@@ -1,11 +1,10 @@
 'use client';
 
-import type { UrlCard } from '@semble/types';
+import type { Collection, UrlCard } from '@semble/types';
 import { Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import CollectionSelectorError from '@/features/collections/components/collectionSelector/Error.CollectionSelector';
-import CardToBeAddedPreview from '@/features/cards/components/cardToBeAddedPreview/CardToBeAddedPreview';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
@@ -13,13 +12,6 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { track } from '@vercel/analytics';
 import AddCardActions from '../addCardActions/AddCardActions';
-import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
-
-interface SelectableCollectionItem {
-  id: string;
-  name: string;
-  cardCount: number;
-}
 
 interface Props {
   onClose: () => void;
@@ -51,7 +43,7 @@ export default function AddCardToModalContent(props: Props) {
   );
 
   const [selectedCollections, setSelectedCollections] =
-    useState<SelectableCollectionItem[]>(collectionsWithCard);
+    useState<Collection[]>(collectionsWithCard);
 
   const isSaving = addCard.isPending || updateCardAssociations.isPending;
 
@@ -133,35 +125,26 @@ export default function AddCardToModalContent(props: Props) {
   };
 
   return (
-    <Stack justify="space-between">
-      <Stack gap={'xs'}>
-        <CardToBeAddedPreview
-          url={props.url}
-          title={props.cardContent?.title}
-          imageUrl={props.cardContent?.imageUrl}
-        />
-        <AddCardActions
-          note={isMyCard ? note : cardStatus.data.card?.note?.text}
-          noteId={cardStatus.data.card?.note?.id}
-          onUpdateNote={setNote}
-          onClose={props.onClose}
-        />
-      </Stack>
+    <Stack>
+      <AddCardActions
+        note={isMyCard ? note : cardStatus.data.card?.note?.text}
+        noteId={cardStatus.data.card?.note?.id}
+        onUpdateNote={setNote}
+        onClose={props.onClose}
+      />
 
-      <Suspense fallback={<CollectionSelectorSkeleton />}>
-        <CollectionSelector
-          isOpen={true}
-          onClose={props.onClose}
-          onCancel={() => {
-            props.onClose();
-            setSelectedCollections(collectionsWithCard);
-          }}
-          onSave={handleUpdateCard}
-          isSaving={isSaving}
-          selectedCollections={selectedCollections}
-          onSelectedCollectionsChange={setSelectedCollections}
-        />
-      </Suspense>
+      <CollectionSelector
+        isOpen={true}
+        onClose={props.onClose}
+        onCancel={() => {
+          props.onClose();
+          setSelectedCollections(collectionsWithCard);
+        }}
+        onSave={handleUpdateCard}
+        isSaving={isSaving}
+        selectedCollections={selectedCollections}
+        onSelectedCollectionsChange={setSelectedCollections}
+      />
     </Stack>
   );
 }

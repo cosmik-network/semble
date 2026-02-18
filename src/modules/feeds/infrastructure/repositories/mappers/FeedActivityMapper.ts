@@ -22,6 +22,7 @@ export interface FeedActivityDTO {
   type: string;
   metadata: ActivityMetadata;
   urlType?: string;
+  source?: string;
   createdAt: Date;
 }
 
@@ -66,6 +67,7 @@ export class FeedActivityMapper {
           cardIdResult.value,
           collectionIds,
           urlType,
+          dto.source,
           dto.createdAt,
           new UniqueEntityID(dto.id),
         );
@@ -97,6 +99,7 @@ export class FeedActivityMapper {
       type: activity.type.value,
       metadata: activity.metadata,
       urlType: activity.urlType,
+      source: activity.source,
       createdAt: activity.createdAt,
     };
   }

@@ -17,10 +17,8 @@ import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 import { BiRightArrowAlt, BiSearch } from 'react-icons/bi';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function GuestNavbar() {
-  const { data: featureFlags } = useFeatureFlags();
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
@@ -39,7 +37,7 @@ export default function GuestNavbar() {
         <Stack mt={'xl'}>
           <Stack>
             <Text fw={600} fz={'xl'}>
-              A social knowledge network for researchers
+              A social knowledge network for research
             </Text>
             <Group grow>
               <Button component={Link} href="/signup">
@@ -61,13 +59,12 @@ export default function GuestNavbar() {
                 label="Explore"
                 icon={<MdOutlineEmojiNature size={25} />}
               />
-              {featureFlags?.cardSearch && (
-                <NavItem
-                  href="/search"
-                  label="Search"
-                  icon={<BiSearch size={25} />}
-                />
-              )}
+
+              <NavItem
+                href="/search"
+                label="Search"
+                icon={<BiSearch size={25} />}
+              />
             </Stack>
           </Stack>
         </Stack>

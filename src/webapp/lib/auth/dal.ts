@@ -1,5 +1,6 @@
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
+import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
@@ -48,3 +49,14 @@ export const verifySessionOnClient = cache(
     return refreshPromise;
   },
 );
+
+/**
+ * Logs out the current user by clearing tokens and redirecting to login
+ * Can be called from both client and server contexts
+ */
+export const logoutUser = async (): Promise<void> => {
+  await ClientCookieAuthService.clearTokens();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+};

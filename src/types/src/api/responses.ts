@@ -5,6 +5,7 @@ import {
   CollectionSorting,
   FeedPagination,
 } from './common';
+import { CollectionAccessType } from './requests';
 
 // Command response types
 export interface AddUrlToLibraryResponse {
@@ -75,6 +76,7 @@ export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
+  uri?: string;
   cardContent: UrlMetadata;
   libraryCount: number;
   urlLibraryCount: number;
@@ -95,9 +97,11 @@ export interface Collection {
   name: string;
   author: User;
   description?: string;
+  accessType?: CollectionAccessType;
   cardCount: number;
   createdAt: string;
   updatedAt: string;
+  isFollowing?: boolean; // Whether the calling user follows this collection
 }
 
 // Context-specific variations
@@ -136,6 +140,7 @@ export interface GetCollectionPageResponse {
   uri?: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
   author: User;
   urlCards: UrlCard[];
   cardCount: number;
@@ -330,16 +335,22 @@ export enum NotificationType {
   USER_ADDED_YOUR_CARD = 'USER_ADDED_YOUR_CARD',
   USER_ADDED_YOUR_BSKY_POST = 'USER_ADDED_YOUR_BSKY_POST',
   USER_ADDED_YOUR_COLLECTION = 'USER_ADDED_YOUR_COLLECTION',
+  USER_ADDED_TO_YOUR_COLLECTION = 'USER_ADDED_TO_YOUR_COLLECTION',
+  USER_FOLLOWED_YOU = 'USER_FOLLOWED_YOU',
+  USER_FOLLOWED_YOUR_COLLECTION = 'USER_FOLLOWED_YOUR_COLLECTION',
 }
 
 export interface NotificationItem {
   id: string;
   user: User;
-  card: UrlCard;
+  card?: UrlCard; // Optional for follow notifications
   createdAt: string;
-  collections: Collection[];
+  collections?: Collection[]; // Optional for follow notifications
   type: NotificationType;
   read: boolean;
+  // Follow notification specific fields
+  followTargetType?: 'USER' | 'COLLECTION';
+  followTargetId?: string; // Collection ID if following a collection
 }
 
 export interface GetMyNotificationsResponse {
@@ -358,4 +369,35 @@ export interface MarkNotificationsAsReadResponse {
 
 export interface MarkAllNotificationsAsReadResponse {
   markedCount: number;
+}
+
+// Follow response types
+export interface FollowTargetResponse {
+  followId: string;
+}
+
+// Follow query response types
+export interface GetFollowingUsersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+export interface GetFollowersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+export interface GetFollowingCollectionsResponse {
+  collections: Collection[];
+  pagination: Pagination;
+}
+
+export interface GetCollectionFollowersResponse {
+  users: User[];
+  pagination: Pagination;
+}
+
+// Follow count response types
+export interface GetFollowCountResponse {
+  count: number;
 }

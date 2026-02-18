@@ -12,7 +12,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { FeedItem, Collection } from '@/api-client';
+import { FeedItem, Collection, CollectionAccessType } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import styles from './FeedActivityStatus.module.css';
@@ -62,7 +62,11 @@ export default function FeedActivityStatus(props: Props) {
                   <Anchor
                     component={Link}
                     href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
-                    c="grape"
+                    c={
+                      collection.accessType === CollectionAccessType.OPEN
+                        ? 'green'
+                        : 'grape'
+                    }
                     fw={500}
                   >
                     {collection.name}
@@ -93,7 +97,11 @@ export default function FeedActivityStatus(props: Props) {
                         component={Link}
                         href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                         target="_blank"
-                        c="grape"
+                        c={
+                          c.accessType === CollectionAccessType.OPEN
+                            ? 'green'
+                            : 'grape'
+                        }
                         fw={600}
                       >
                         {c.name}
@@ -120,7 +128,7 @@ export default function FeedActivityStatus(props: Props) {
             component={Link}
             href={`/profile/${props.user.handle}`}
             src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-            alt={`${props.user.name}'s' avatar`}
+            alt={`${props.user.name}'s avatar`}
           />
           {renderActivityText()}
         </Group>

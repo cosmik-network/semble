@@ -12,8 +12,6 @@ import { ok, err } from '../../../../shared/core/Result';
 import { EventNames } from '../../../../shared/infrastructure/events/EventConfig';
 import { Queue } from 'bullmq';
 import { QueueNames } from 'src/shared/infrastructure/events/QueueConfig';
-import { CardCollectionSaga } from '../../../feeds/application/sagas/CardCollectionSaga';
-import { RedisSagaStateStore } from '../../../feeds/infrastructure/RedisSagaStateStore';
 
 describe('BullMQ Event System Integration', () => {
   let redisContainer: StartedRedisContainer;
@@ -79,7 +77,11 @@ describe('BullMQ Event System Integration', () => {
       // Create test event
       const cardId = CardId.createFromString('test-card-123').unwrap();
       const curatorId = CuratorId.create('did:plc:testuser123').unwrap();
-      const event = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
+      const event = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+        new Date(),
+      ).unwrap();
 
       // Act - Publish event
       const publishResult = await publisher.publishEvents([event]);
@@ -123,14 +125,17 @@ describe('BullMQ Event System Integration', () => {
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-1').unwrap(),
           CuratorId.create('did:plc:user1').unwrap(),
+          new Date(),
         ).unwrap(),
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-2').unwrap(),
           CuratorId.create('did:plc:user2').unwrap(),
+          new Date(),
         ).unwrap(),
         CardAddedToLibraryEvent.create(
           CardId.createFromString('card-3').unwrap(),
           CuratorId.create('did:plc:user3').unwrap(),
+          new Date(),
         ).unwrap(),
       ];
 
@@ -175,6 +180,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('failing-card').unwrap(),
         CuratorId.create('did:plc:failuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       // Act - Publish event that will initially fail
@@ -197,6 +203,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('unhandled-card').unwrap(),
         CuratorId.create('did:plc:unhandleduser').unwrap(),
+        new Date(),
       ).unwrap();
 
       // Act - Publish event
@@ -236,6 +243,7 @@ describe('BullMQ Event System Integration', () => {
       const originalEvent = CardAddedToLibraryEvent.create(
         originalCardId,
         originalCuratorId,
+        new Date(),
       ).unwrap();
       const originalTimestamp = originalEvent.dateTimeOccurred;
 
@@ -264,6 +272,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('queue-test-card').unwrap(),
         CuratorId.create('did:plc:queueuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       await publisher.publishEvents([event]);
@@ -287,249 +296,12 @@ describe('BullMQ Event System Integration', () => {
     }, 10000);
   });
 
-  describe('Redis-Based Saga Integration', () => {
-    it('should handle distributed saga state across multiple workers', async () => {
-      // Arrange - Create two saga instances (simulating multiple workers)
-      const mockUseCase = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(ok({ activityId: 'test-activity' })),
-      } as any;
-
-      const stateStore = new RedisSagaStateStore(redis);
-      const saga1 = new CardCollectionSaga(mockUseCase, stateStore);
-      const saga2 = new CardCollectionSaga(mockUseCase, stateStore);
-
-      // Create test events for same card/user (should be aggregated)
-      const cardId = CardId.createFromString('saga-test-card').unwrap();
-      const curatorId = CuratorId.create('did:plc:sagatest').unwrap();
-
-      const libraryEvent = CardAddedToLibraryEvent.create(
-        cardId,
-        curatorId,
-      ).unwrap();
-      const collectionEvent = CardAddedToCollectionEvent.create(
-        cardId,
-        CollectionId.createFromString('test-collection').unwrap(),
-        curatorId,
-      ).unwrap();
-
-      // Act - Process events with different saga instances
-      const result1 = await saga1.handleCardEvent(libraryEvent);
-      const result2 = await saga2.handleCardEvent(collectionEvent);
-
-      // Assert - Both operations succeeded
-      expect(result1.isOk()).toBe(true);
-      expect(result2.isOk()).toBe(true);
-
-      // Wait for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 3500));
-
-      // Assert - Only one aggregated activity was created
-      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-
-      const call = mockUseCase.execute.mock.calls[0][0];
-      expect(call.cardId).toBe(cardId.getStringValue());
-      expect(call.actorId).toBe(curatorId.value);
-      expect(call.collectionIds).toContain('test-collection');
-    }, 15000);
-
-    it('should handle concurrent lock contention with retry mechanism', async () => {
-      // Arrange - Create multiple saga instances
-      const mockUseCase = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(ok({ activityId: 'test-activity' })),
-      } as any;
-
-      const stateStore = new RedisSagaStateStore(redis);
-      const saga1 = new CardCollectionSaga(mockUseCase, stateStore);
-      const saga2 = new CardCollectionSaga(mockUseCase, stateStore);
-      const saga3 = new CardCollectionSaga(mockUseCase, stateStore);
-
-      // Create events for same card/user (will compete for same lock)
-      const cardId = CardId.createFromString('concurrent-test-card').unwrap();
-      const curatorId = CuratorId.create('did:plc:concurrentuser').unwrap();
-      const collectionId1 =
-        CollectionId.createFromString('collection-1').unwrap();
-      const collectionId2 =
-        CollectionId.createFromString('collection-2').unwrap();
-
-      const events = [
-        CardAddedToLibraryEvent.create(cardId, curatorId).unwrap(),
-        CardAddedToCollectionEvent.create(
-          cardId,
-          collectionId1,
-          curatorId,
-        ).unwrap(),
-        CardAddedToCollectionEvent.create(
-          cardId,
-          collectionId2,
-          curatorId,
-        ).unwrap(),
-      ];
-
-      // Act - Process all events concurrently (not sequentially)
-      const results = await Promise.all([
-        saga1.handleCardEvent(events[0]!),
-        saga2.handleCardEvent(events[1]!),
-        saga3.handleCardEvent(events[2]!),
-      ]);
-
-      // Assert - All should succeed (no events dropped due to lock contention)
-      results.forEach((result) => expect(result.isOk()).toBe(true));
-
-      // Wait for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 3500));
-
-      // Assert - Should create single activity with all collections
-      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-      const call = mockUseCase.execute.mock.calls[0][0];
-      expect(call.cardId).toBe(cardId.getStringValue());
-      expect(call.actorId).toBe(curatorId.value);
-      expect(call.collectionIds).toHaveLength(2);
-      expect(call.collectionIds).toContain('collection-1');
-      expect(call.collectionIds).toContain('collection-2');
-    }, 20000);
-
-    it('should handle high concurrency with many simultaneous events', async () => {
-      // Arrange - Create many saga instances
-      const mockUseCase = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(ok({ activityId: 'test-activity' })),
-      } as any;
-
-      const stateStore = new RedisSagaStateStore(redis);
-      const cardId = CardId.createFromString('high-concurrency-card').unwrap();
-      const curatorId = CuratorId.create('did:plc:highconcurrency').unwrap();
-
-      // Create 10 collection events that will all compete for the same lock
-      const events = Array.from({ length: 10 }, (_, i) => {
-        const saga = new CardCollectionSaga(mockUseCase, stateStore);
-        const collectionId = CollectionId.createFromString(
-          `collection-${i}`,
-        ).unwrap();
-        const event = CardAddedToCollectionEvent.create(
-          cardId,
-          collectionId,
-          curatorId,
-        ).unwrap();
-        return { saga, event };
-      });
-
-      // Add one library event
-      const librarySaga = new CardCollectionSaga(mockUseCase, stateStore);
-      const libraryEvent = CardAddedToLibraryEvent.create(
-        cardId,
-        curatorId,
-      ).unwrap();
-
-      // Act - Process all events concurrently
-      const allPromises = [
-        librarySaga.handleCardEvent(libraryEvent),
-        ...events.map(({ saga, event }) => saga.handleCardEvent(event)),
-      ];
-
-      const results = await Promise.all(allPromises);
-
-      // Assert - All should succeed
-      results.forEach((result) => expect(result.isOk()).toBe(true));
-
-      // Wait longer for aggregation window and retry processing
-      await new Promise((resolve) => setTimeout(resolve, 8000)); // Increased from 3500ms
-
-      // Assert - Should create single activity with all 10 collections
-      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-      const call = mockUseCase.execute.mock.calls[0][0];
-      expect(call.cardId).toBe(cardId.getStringValue());
-      expect(call.actorId).toBe(curatorId.value);
-      expect(call.collectionIds).toHaveLength(10);
-
-      // Verify all collection IDs are present
-      for (let i = 0; i < 10; i++) {
-        expect(call.collectionIds).toContain(`collection-${i}`);
-      }
-    }, 35000); // Increased timeout from 25000ms
-
-    it('should recover when lock expires due to timeout', async () => {
-      // Arrange
-      const mockUseCase = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(ok({ activityId: 'test-activity' })),
-      } as any;
-
-      const stateStore = new RedisSagaStateStore(redis);
-      const cardId = CardId.createFromString('timeout-test-card').unwrap();
-      const curatorId = CuratorId.create('did:plc:timeoutuser').unwrap();
-
-      // Manually acquire lock with short TTL to simulate crashed worker
-      const lockKey = 'saga:feed:lock:timeout-test-card-did:plc:timeoutuser';
-      await stateStore.set(lockKey, '1', 'EX', 2, 'NX'); // 2 second TTL (increased from 1)
-
-      // Create saga and event
-      const saga = new CardCollectionSaga(mockUseCase, stateStore);
-      const event = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
-
-      // Act - Try to process event (should initially be blocked by lock)
-      // But should succeed after lock expires and retry mechanism kicks in
-      const result = await saga.handleCardEvent(event);
-
-      // Assert - Should succeed after lock expires
-      expect(result.isOk()).toBe(true);
-
-      // Wait longer for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Increased from 3500ms
-
-      // Assert - Activity should be created
-      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-    }, 20000); // Increased timeout from 15000ms
-
-    it('should handle retry mechanism under lock contention', async () => {
-      // Arrange
-      const mockUseCase = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(ok({ activityId: 'test-activity' })),
-      } as any;
-
-      const stateStore = new RedisSagaStateStore(redis);
-      const cardId = CardId.createFromString('retry-test-card').unwrap();
-      const curatorId = CuratorId.create('did:plc:retryuser').unwrap();
-
-      // Create a saga that will hold the lock for a while
-      const lockHoldingSaga = new CardCollectionSaga(mockUseCase, stateStore);
-      const retryingSaga = new CardCollectionSaga(mockUseCase, stateStore);
-
-      const event1 = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
-      const event2 = CardAddedToCollectionEvent.create(
-        cardId,
-        CollectionId.createFromString('retry-collection').unwrap(),
-        curatorId,
-      ).unwrap();
-
-      // Act - Start first saga (will acquire lock)
-      const promise1 = lockHoldingSaga.handleCardEvent(event1);
-
-      // Immediately start second saga (will need to retry)
-      const promise2 = retryingSaga.handleCardEvent(event2);
-
-      const results = await Promise.all([promise1, promise2]);
-
-      // Assert - Both should succeed
-      expect(results[0].isOk()).toBe(true);
-      expect(results[1].isOk()).toBe(true);
-
-      // Wait for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 3500));
-
-      // Assert - Should create single aggregated activity
-      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-      const call = mockUseCase.execute.mock.calls[0][0];
-      expect(call.collectionIds).toContain('retry-collection');
-    }, 20000);
-  });
+  // NOTE: Redis-Based Saga Integration tests have been removed as CardCollectionSaga
+  // has been replaced with direct event handling using distributed locks at the service layer.
+  // The saga pattern was removed to simplify the architecture while maintaining correctness
+  // through FeedService's 2-minute deduplication window combined with distributed locking.
+  //
+  // See: .agent/logs/20260305_removing_feed_saga.md for details on the architectural change.
 
   describe('Multi-Queue Event Routing', () => {
     it('should route events to multiple queues', async () => {
@@ -573,6 +345,7 @@ describe('BullMQ Event System Integration', () => {
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('multi-queue-card').unwrap(),
         CuratorId.create('did:plc:multiuser').unwrap(),
+        new Date(),
       ).unwrap();
 
       await publisher.publishEvents([event]);

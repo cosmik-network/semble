@@ -12,7 +12,6 @@ import {
   Box,
   Button,
   Badge,
-  Indicator,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -30,12 +29,10 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
-  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
@@ -64,13 +61,13 @@ export default function Navbar() {
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
             />
-            {featureFlags?.cardSearch && (
-              <NavItem
-                href="/search"
-                label="Search"
-                icon={<BiSearch size={25} />}
-              />
-            )}
+
+            <NavItem
+              href="/search"
+              label="Search"
+              icon={<BiSearch size={25} />}
+            />
+
             <NotificationNavItem />
 
             <NavItem

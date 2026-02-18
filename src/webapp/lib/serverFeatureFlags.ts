@@ -1,6 +1,6 @@
 import { getServerAuthStatus } from './serverAuth';
 
-const APPROVED_HANDLES = [
+const APPROVED_HANDLES = new Set([
   'wesleyfinck.org',
   'ronentk.me',
   'pouriade.com',
@@ -9,16 +9,28 @@ const APPROVED_HANDLES = [
   'erlend.sh',
   'tgoerke.bsky.social',
   'psingletary.com',
-];
+  'hilarybaumann.com',
+  'cosmik.network',
+  'semble.so',
+  'atproto.science',
+  'chrisshank.com',
+]);
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
 
-  const isApprovedUser = user?.handle && APPROVED_HANDLES.includes(user.handle);
+  const show =
+    process.env.VERCEL_ENV !== 'production' ||
+    (user?.handle && APPROVED_HANDLES.has(user.handle));
+
+  const showFollowing = process.env.VERCEL_ENV !== 'production';
 
   return {
-    cardSearch: isApprovedUser || process.env.VERCEL_ENV !== 'production',
-    urlTypeFilter: isApprovedUser || process.env.VERCEL_ENV !== 'production',
-    leafletMentions: isApprovedUser || process.env.VERCEL_ENV !== 'production',
+    cardSearch: show,
+    urlTypeFilter: show,
+    leafletMentions: show,
+    animatedLandingTitle: show,
+    openCollections: true,
+    following: showFollowing,
   };
 }

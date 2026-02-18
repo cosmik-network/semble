@@ -79,7 +79,7 @@ export class JwtTokenService implements ITokenService {
         );
       }
 
-      // Find the refresh token
+      // First, find the token to get the userDid
       const findResult =
         await this.tokenRepository.findRefreshToken(refreshToken);
 
@@ -95,69 +95,67 @@ export class JwtTokenService implements ITokenService {
       const tokenData = findResult.unwrap();
       if (!tokenData) {
         if (ENABLE_AUTH_LOGGING) {
-          const tokenPreview = '...' + refreshToken.slice(-8);
-          console.log(
-            `[JwtTokenService] Token not found in database: ${tokenPreview}`,
-          );
+          console.log(`[JwtTokenService] Token not found in database`);
         }
         return ok(null);
       }
 
-      if (ENABLE_AUTH_LOGGING) {
-        console.log(
-          `[JwtTokenService] Token found - userDid: ${tokenData.userDid}, issuedAt: ${tokenData.issuedAt.toISOString()}, expiresAt: ${tokenData.expiresAt.toISOString()}, revoked: ${tokenData.revoked}`,
-        );
-      }
+      // Generate new tokens with the correct DID
+      const accessToken = jwt.sign(
+        { did: tokenData.userDid, type: 'access' },
+        this.jwtSecret,
+        { expiresIn: this.accessTokenExpiresIn },
+      );
 
-      // Check if token is expired
+      const newRefreshToken = jwt.sign({ type: 'refresh' }, this.jwtSecret, {
+        expiresIn: this.refreshTokenExpiresIn,
+      });
+
+      const tokenId = uuidv4();
       const now = new Date();
-      if (now > tokenData.expiresAt) {
+      const expiresAt = new Date(
+        now.getTime() + this.refreshTokenExpiresIn * 1000,
+      );
+
+      // Perform atomic refresh operation
+      const atomicResult =
+        await this.tokenRepository.atomicRefreshTokenOperation(refreshToken, {
+          tokenId,
+          userDid: tokenData.userDid,
+          refreshToken: newRefreshToken,
+          issuedAt: now,
+          expiresAt,
+          revoked: false,
+        });
+
+      if (atomicResult.isErr()) {
         if (ENABLE_AUTH_LOGGING) {
           console.log(
-            `[JwtTokenService] Token expired - now: ${now.toISOString()}, expiresAt: ${tokenData.expiresAt.toISOString()}`,
+            `[JwtTokenService] Atomic refresh failed: ${atomicResult.error.message}`,
           );
         }
-        await this.revokeToken(refreshToken);
+        return err(atomicResult.error);
+      }
+
+      const result = atomicResult.unwrap();
+      if (!result) {
+        if (ENABLE_AUTH_LOGGING) {
+          console.log(
+            `[JwtTokenService] Token expired or already used in concurrent refresh`,
+          );
+        }
         return ok(null);
       }
 
       if (ENABLE_AUTH_LOGGING) {
-        console.log(
-          `[JwtTokenService] Token is valid, generating new tokens for user: ${tokenData.userDid}`,
-        );
+        console.log(`[JwtTokenService] Token refresh completed successfully`);
       }
 
-      // Generate new tokens
-      const newTokens = await this.generateToken(tokenData.userDid);
-
-      if (newTokens.isErr()) {
-        if (ENABLE_AUTH_LOGGING) {
-          console.log(
-            `[JwtTokenService] Failed to generate new tokens: ${newTokens.error.message}`,
-          );
-        }
-        return newTokens;
-      }
-
-      if (ENABLE_AUTH_LOGGING) {
-        console.log(`[JwtTokenService] New tokens generated successfully`);
-      }
-
-      // Revoke old token
-      const revokeResult = await this.revokeToken(refreshToken);
-      if (revokeResult.isErr()) {
-        if (ENABLE_AUTH_LOGGING) {
-          console.log(
-            `[JwtTokenService] Warning: Failed to revoke old token: ${revokeResult.error.message}`,
-          );
-        }
-      } else {
-        if (ENABLE_AUTH_LOGGING) {
-          console.log(`[JwtTokenService] Old token revoked successfully`);
-        }
-      }
-
-      return newTokens;
+      return ok({
+        accessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: this.accessTokenExpiresIn,
+      });
     } catch (error: any) {
       if (ENABLE_AUTH_LOGGING) {
         console.log(

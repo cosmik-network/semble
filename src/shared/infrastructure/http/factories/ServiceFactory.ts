@@ -15,8 +15,10 @@ import { BlueskyProfileService } from '../../../../modules/atproto/infrastructur
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
+import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
+import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/FakeFollowPublisher';
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
@@ -26,6 +28,7 @@ import { AppPasswordSessionService } from 'src/modules/atproto/infrastructure/se
 import { AtpAppPasswordProcessor } from 'src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor';
 import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
 import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublisher';
+import { IFollowPublisher } from 'src/modules/user/application/ports/IFollowPublisher';
 import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 import { BullMQEventSubscriber } from '../../events/BullMQEventSubscriber';
 import { BullMQEventPublisher } from '../../events/BullMQEventPublisher';
@@ -65,12 +68,17 @@ import { FakeLeafletSearchService } from 'src/modules/search/infrastructure/Fake
 import { ILeafletSearchService } from 'src/modules/search/domain/services/ILeafletSearchService';
 import { ConstellationLeafletSearchService } from 'src/modules/search/domain/services/ConstellationLeafletSearchService';
 import { CachedLeafletSearchService } from 'src/modules/search/infrastructure/CachedLeafletSearchService';
+import { IAtProtoRepoService } from '../../../../modules/atproto/application/IAtProtoRepoService';
+import { ATProtoRepoService } from '../../../../modules/atproto/infrastructure/services/ATProtoRepoService';
+import { FakeAtProtoRepoService } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoRepoService';
+import { DistributedLockServiceFactory } from '../../locking/DistributedLockServiceFactory';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
   tokenService: ITokenService;
   userAuthService: IUserAuthenticationService;
   atProtoAgentService: IAgentService;
+  atProtoRepoService: IAtProtoRepoService;
   metadataService: IMetadataService;
   profileService: IProfileService;
   feedService: FeedService;
@@ -85,13 +93,13 @@ export interface SharedServices {
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
   collectionPublisher: ICollectionPublisher;
+  followPublisher: IFollowPublisher;
 }
 
 // Web app specific services (includes publishers, auth middleware)
 export interface WebAppServices extends SharedServices {
   oauthProcessor: IOAuthProcessor;
   appPasswordProcessor: IAppPasswordProcessor;
-  collectionPublisher: ICollectionPublisher;
   cardPublisher: ICardPublisher;
   authMiddleware: AuthMiddleware;
 }
@@ -145,14 +153,6 @@ export class ServiceFactory {
     const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
 
-    const collectionPublisher = useFakePublishers
-      ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(
-          sharedServices.atProtoAgentService,
-          collections.collection,
-          collections.collectionLink,
-        );
-
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
       : new ATProtoCardPublisher(
@@ -169,7 +169,6 @@ export class ServiceFactory {
       ...sharedServices,
       oauthProcessor,
       appPasswordProcessor,
-      collectionPublisher,
       cardPublisher,
       authMiddleware,
     };
@@ -268,6 +267,11 @@ export class ServiceFactory {
           configService,
         );
 
+    // ATProto Repo Service
+    const atProtoRepoService = useMockAuth
+      ? new FakeAtProtoRepoService()
+      : new ATProtoRepoService(atProtoAgentService);
+
     // Create individual metadata services
     const baseIframelyService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
@@ -311,7 +315,10 @@ export class ServiceFactory {
     );
 
     // Profile Service with Redis caching
-    const baseProfileService = new BlueskyProfileService(atProtoAgentService);
+    const baseProfileService = new BlueskyProfileService(
+      atProtoAgentService,
+      repositories.followsRepository,
+    );
 
     let profileService: IProfileService;
 
@@ -325,11 +332,16 @@ export class ServiceFactory {
       profileService = new CachedBlueskyProfileService(
         baseProfileService,
         redis,
+        repositories.followsRepository,
       );
     }
 
-    // Feed Service
-    const feedService = new FeedService(repositories.feedRepository);
+    // Feed Service with distributed locking
+    const distributedLockService = DistributedLockServiceFactory.create();
+    const feedService = new FeedService(
+      repositories.feedRepository,
+      distributedLockService,
+    );
 
     // Notification Service
     const notificationService = new NotificationService(
@@ -389,6 +401,15 @@ export class ServiceFactory {
           atProtoAgentService,
           collections.collection,
           collections.collectionLink,
+          collections.collectionLinkRemoval,
+        );
+
+    const followPublisher = useFakePublishers
+      ? new FakeFollowPublisher()
+      : new ATProtoFollowPublisher(
+          atProtoAgentService,
+          collections.follow,
+          repositories.collectionRepository,
         );
 
     const cardPublisher = useFakePublishers
@@ -425,6 +446,7 @@ export class ServiceFactory {
       tokenService,
       userAuthService,
       atProtoAgentService,
+      atProtoRepoService,
       metadataService,
       profileService,
       feedService,
@@ -439,6 +461,7 @@ export class ServiceFactory {
       cardCollectionService,
       eventPublisher,
       collectionPublisher,
+      followPublisher,
     };
   }
 }

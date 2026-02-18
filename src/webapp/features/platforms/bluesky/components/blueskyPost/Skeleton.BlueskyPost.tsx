@@ -1,5 +1,4 @@
 import { Stack, Group, Avatar, Skeleton } from '@mantine/core';
-import { FaBluesky } from 'react-icons/fa6';
 
 export default function BlueskyPostSkeleton() {
   return (

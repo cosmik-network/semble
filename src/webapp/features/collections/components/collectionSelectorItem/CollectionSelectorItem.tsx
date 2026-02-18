@@ -1,55 +1,63 @@
 import {
+  Avatar,
   CheckboxCard,
   CheckboxIndicator,
   Group,
+  Stack,
   Text,
-  Tooltip,
+  ThemeIcon,
 } from '@mantine/core';
 import classes from './CollectionSelectorItem.module.css';
+import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
+import MarginLogo from '@/components/MarginLogo';
+import { Collection, CollectionAccessType } from '@semble/types';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
-  value: string;
-  name: string;
+  collection: Collection;
   checked: boolean;
-  cardCount: number;
-  onChange: (checked: boolean, item: SelectableCollectionItem) => void;
-  disabled?: boolean;
+  onChange: (checked: boolean, item: Collection) => void;
 }
 
 export default function CollectionSelectorItem(props: Props) {
+  const marginUrl = getMarginUrl(
+    props.collection.uri,
+    props.collection.author?.handle,
+  );
+
   return (
-    <Tooltip
-      label="Card is already in this collection"
-      disabled={!props.disabled}
+    <CheckboxCard
+      radius={'lg'}
+      p={'xs'}
+      className={classes.root}
+      value={props.collection.id}
+      checked={props.checked}
+      onChange={(checked) => props.onChange(checked, props.collection)}
     >
-      <CheckboxCard
-        bg={props.disabled ? 'gray.3' : undefined}
-        c={props.disabled ? 'gray' : undefined}
-        disabled={props.disabled}
-        radius={'lg'}
-        p={'sm'}
-        className={classes.root}
-        value={props.value}
-        checked={props.checked}
-        onChange={(checked) =>
-          props.onChange(checked, {
-            id: props.value,
-            name: props.name,
-            cardCount: props.cardCount,
-          })
-        }
-      >
-        <Group justify="space-between" wrap="nowrap">
-          <Text fw={500} lineClamp={1} flex={1}>
-            {props.name} {'·'} {props.cardCount}{' '}
-            {props.cardCount === 1 ? 'card' : 'cards'}
+      <Group justify="space-between" wrap="nowrap">
+        <Group gap={'xs'} flex={1} wrap="nowrap">
+          {props.collection.accessType === CollectionAccessType.OPEN && (
+            <ThemeIcon variant="light" radius={'xl'} size={'xs'} color="green">
+              <FaSeedling size={8} />
+            </ThemeIcon>
+          )}
+          {isMarginUri(props.collection.uri) && (
+            <MarginLogo size={12} marginUrl={marginUrl} />
+          )}
+          <Text fw={500} lineClamp={1}>
+            {props.collection.name}
           </Text>
-          <CheckboxIndicator
-            disabled={props.disabled}
-            checked={props.disabled || props.checked}
-          />
         </Group>
-      </CheckboxCard>
-    </Tooltip>
+        <Avatar
+          src={props.collection.author?.avatarUrl?.replace(
+            'avatar',
+            'avatar_thumbnail',
+          )}
+          alt={`${props.collection.author?.handle}'s avatar`}
+          size={'sm'}
+        />
+        <CheckboxIndicator checked={props.checked} />
+      </Group>
+    </CheckboxCard>
   );
 }

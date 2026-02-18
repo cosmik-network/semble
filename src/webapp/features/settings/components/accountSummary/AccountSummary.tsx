@@ -15,7 +15,7 @@ export default async function AccountSummary() {
         component={Link}
         href={`/profile/${profile.handle}`}
         src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-        alt={`${profile.name}'s' avatar`}
+        alt={`${profile.name}'s avatar`}
         size={'xl'}
         radius={'lg'}
       />

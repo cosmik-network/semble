@@ -9,7 +9,10 @@ import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler 
 import { CardAddedToLibraryEventHandler as NotificationCardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardAddedToCollectionEventHandler as NotificationCardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
-import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
+import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
+import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
+import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
+import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
 import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
@@ -45,16 +48,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Feed handlers
-    const cardCollectionSaga = new CardCollectionSaga(
-      useCases.addActivityToFeedUseCase,
-      services.sagaStateStore,
-    );
-
+    // Feed handlers - call use case directly (no saga intermediary)
     const feedCardAddedToLibraryHandler =
-      new FeedCardAddedToLibraryEventHandler(cardCollectionSaga);
+      new FeedCardAddedToLibraryEventHandler(useCases.addActivityToFeedUseCase);
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
-      cardCollectionSaga,
+      useCases.addActivityToFeedUseCase,
     );
 
     // Search handlers
@@ -69,12 +67,35 @@ export class InMemoryEventWorkerProcess implements IProcess {
       useCases.createNotificationUseCase,
       services.sagaStateStore,
       repositories.cardRepository,
+      repositories.notificationRepository,
     );
 
     const notificationCardAddedToLibraryHandler =
       new NotificationCardAddedToLibraryEventHandler(cardNotificationSaga);
     const notificationCardAddedToCollectionHandler =
       new NotificationCardAddedToCollectionEventHandler(cardNotificationSaga);
+
+    // Collection contribution notification handlers (direct, no saga)
+    const collectionContributionHandler =
+      new CollectionContributionEventHandler(
+        useCases.createNotificationUseCase,
+        repositories.collectionRepository,
+      );
+    const collectionContributionCleanupHandler =
+      new CollectionContributionCleanupEventHandler(
+        repositories.notificationRepository,
+        repositories.collectionRepository,
+      );
+
+    // Follow notification handlers (direct, no saga)
+    const userFollowedTargetHandler = new UserFollowedTargetEventHandler(
+      services.notificationService,
+      repositories.userRepository,
+      repositories.collectionRepository,
+    );
+    const userUnfollowedTargetHandler = new UserUnfollowedTargetEventHandler(
+      repositories.notificationRepository,
+    );
 
     // Register feed handlers
     await subscriber.subscribe(
@@ -102,6 +123,29 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       notificationCardAddedToCollectionHandler,
+    );
+
+    // Collection contribution handler also subscribes to CARD_ADDED_TO_COLLECTION
+    // Both handlers will process the event independently
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_COLLECTION,
+      collectionContributionHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_COLLECTION,
+      collectionContributionCleanupHandler,
+    );
+
+    // Register follow notification handlers
+    await subscriber.subscribe(
+      EventNames.USER_FOLLOWED_TARGET,
+      userFollowedTargetHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.USER_UNFOLLOWED_TARGET,
+      userUnfollowedTargetHandler,
     );
   }
 }

@@ -88,7 +88,7 @@ export function CreateCollectionModal({
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title="Create Collection"
+      title="New Collection"
       centered
     >
       <form onSubmit={handleSubmit}>

@@ -9,21 +9,29 @@ import {
 } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { CollectionMapper } from '../mappers/CollectionMapper';
+import { MarginCollectionMapper } from '../mappers/MarginCollectionMapper';
 import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
+import { CollectionLinkRemovalMapper } from '../mappers/CollectionLinkRemovalMapper';
 import { StrongRef } from '../../domain';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
+import {
+  NamespaceDetector,
+  RecordNamespace,
+} from '../../domain/NamespaceDetector';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   constructor(
     private readonly agentService: IAgentService,
     private readonly collectionCollection: string,
     private readonly collectionLinkCollection: string,
+    private readonly collectionLinkRemovalCollection: string,
   ) {}
 
   /**
    * Publishes a Collection record only (not the card links)
+   * Supports both Cosmik and Margin namespaces by detecting the collection from the existing URI when updating
    */
   async publish(
     collection: Collection,
@@ -63,9 +71,23 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (collection.publishedRecordId) {
         // Update existing collection record
+        // Detect the collection namespace from the existing published record
+        const existingCollection =
+          NamespaceDetector.extractCollectionFromPublishedRecordId(
+            collection.publishedRecordId,
+          ) || this.collectionCollection;
+
+        const namespace = NamespaceDetector.detectFromPublishedRecordId(
+          collection.publishedRecordId,
+        );
+
+        // Use the appropriate mapper based on the namespace
         const collectionRecordDTO =
-          CollectionMapper.toCreateRecordDTO(collection);
-        collectionRecordDTO.$type = this.collectionCollection as any;
+          namespace === RecordNamespace.MARGIN
+            ? MarginCollectionMapper.toCreateRecordDTO(collection)
+            : CollectionMapper.toCreateRecordDTO(collection);
+
+        collectionRecordDTO.$type = existingCollection as any;
 
         const publishedRecordId = collection.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
@@ -74,7 +96,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
         const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
-          collection: this.collectionCollection,
+          collection: existingCollection, // Use the original namespace
           rkey: rkey,
           record: collectionRecordDTO,
         });
@@ -86,7 +108,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
           }),
         );
       } else {
-        // Create new collection record
+        // Create new collection record (always use Cosmik for new records)
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
         collectionRecordDTO.$type = this.collectionCollection as any;
@@ -224,6 +246,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
   /**
    * Unpublishes (deletes) a card-in-collection link
+   * Supports both Cosmik and Margin namespaces by detecting the collection from the URI
    */
   async unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
@@ -236,6 +259,11 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 
+      // Extract the actual collection from the URI to support both Margin and Cosmik
+      const collection =
+        NamespaceDetector.extractCollectionFromPublishedRecordId(recordId) ||
+        this.collectionLinkCollection;
+
       // Get an authenticated agent for this curator
       const agentResult =
         await this.agentService.getAuthenticatedAgent(curatorDid);
@@ -260,7 +288,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.collectionLinkCollection,
+        collection, // Now uses the actual collection from the URI
         rkey,
       });
 
@@ -273,7 +301,83 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   }
 
   /**
+   * Publishes a collectionLinkRemoval record when a collection owner removes a card added by someone else
+   */
+  async publishCollectionLinkRemoval(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId,
+    removedLinkRef: PublishedRecordId,
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    try {
+      const curatorDidResult = DID.create(curatorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
+
+      // Get an authenticated agent for this curator (collection owner)
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
+      if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
+        return err(
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
+        );
+      }
+
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error('No authenticated session found for curator'));
+      }
+
+      // Ensure collection is published
+      if (!collection.publishedRecordId) {
+        return err(
+          new Error('Collection must be published before removing cards'),
+        );
+      }
+
+      // Create the collectionLinkRemoval record DTO
+      const removalRecordDTO = CollectionLinkRemovalMapper.toCreateRecordDTO(
+        collection.publishedRecordId.getValue(),
+        removedLinkRef.getValue(),
+      );
+      removalRecordDTO.$type = this.collectionLinkRemovalCollection as any;
+
+      const createResult = await agent.com.atproto.repo.createRecord({
+        repo: curatorDid.value,
+        collection: this.collectionLinkRemovalCollection,
+        record: removalRecordDTO,
+      });
+
+      return ok(
+        PublishedRecordId.create({
+          uri: createResult.data.uri,
+          cid: createResult.data.cid,
+        }),
+      );
+    } catch (error) {
+      return err(
+        new Error(error instanceof Error ? error.message : String(error)),
+      );
+    }
+  }
+
+  /**
    * Unpublishes (deletes) a Collection record and all its links
+   * Supports both Cosmik and Margin namespaces by detecting the collection from the URI
    */
   async unpublish(
     recordId: PublishedRecordId,
@@ -285,6 +389,11 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       const curatorDid = atUri.did;
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
+
+      // Extract the actual collection from the URI to support both Margin and Cosmik
+      const collection =
+        NamespaceDetector.extractCollectionFromPublishedRecordId(recordId) ||
+        this.collectionCollection;
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -308,10 +417,10 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         return err(new Error('No authenticated session found for curator'));
       }
 
-      // Delete the collection record
+      // Delete the collection record using the detected namespace
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.collectionCollection,
+        collection, // Now uses the actual collection from the URI
         rkey,
       });
 

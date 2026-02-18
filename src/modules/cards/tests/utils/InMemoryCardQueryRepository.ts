@@ -110,7 +110,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     // Find collections this card belongs to by querying the collection repository
     const allCollections = this.collectionRepository.getAllCollections();
-    const collections: { id: string; name: string; authorId: string }[] = [];
+    const collections: {
+      id: string;
+      name: string;
+      authorId: string;
+      accessType: string;
+    }[] = [];
 
     for (const collection of allCollections) {
       if (
@@ -122,14 +127,18 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
           id: collection.collectionId.getStringValue(),
           name: collection.name.value,
           authorId: collection.authorId.value,
+          accessType: collection.accessType,
         });
       }
     }
 
-    // Find note cards with matching URL
+    // Find note card by the same author with matching parent card ID
     const allCards = this.cardRepository.getAllCards();
     const noteCard = allCards.find(
-      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId?.equals(card.cardId) &&
+        c.curatorId.value === card.curatorId.value, // Only notes by the same author
     );
 
     const note = noteCard
@@ -150,6 +159,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
+      uri: card.publishedRecordId?.uri,
       url: card.content.urlContent.url.value,
       cardContent: {
         url: card.content.urlContent.url.value,
@@ -346,9 +356,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       userId: membership.curatorId.value,
     }));
 
-    // Find note cards with matching URL
+    // Find note card by the same author with matching parent card ID
     const noteCard = allCards.find(
-      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId?.equals(card.cardId) &&
+        c.curatorId.value === card.curatorId.value, // Only notes by the same author
     );
 
     const note = noteCard

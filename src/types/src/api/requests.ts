@@ -26,6 +26,18 @@ export enum UrlType {
   SOFTWARE = 'software',
 }
 
+// Activity Source enum for filtering
+export enum ActivitySource {
+  MARGIN = 'margin',
+  SEMBLE = 'semble',
+}
+
+// Collection Access Type enum
+export enum CollectionAccessType {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
+
 // Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -69,12 +81,14 @@ export interface RemoveCardFromCollectionRequest {
 export interface CreateCollectionRequest {
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
 }
 
 export interface UpdateCollectionRequest {
   collectionId: string;
   name: string;
   description?: string;
+  accessType?: CollectionAccessType;
 }
 
 export interface DeleteCollectionRequest {
@@ -113,6 +127,13 @@ export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
 export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
+}
+
+export interface GetFollowingFeedParams extends PaginationParams {
+  beforeActivityId?: string; // For cursor-based pagination
+  urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -204,10 +225,18 @@ export interface SearchLeafletDocsForUrlParams {
 export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
+  source?: ActivitySource; // Filter by activity source
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
+  identifier?: string; // Can be DID or handle
+  accessType?: CollectionAccessType;
+}
+
+export interface GetOpenCollectionsWithContributorParams
+  extends PaginatedSortedParams {
+  identifier: string; // Can be DID or handle
 }
 
 // Notification request types
@@ -217,4 +246,49 @@ export interface GetMyNotificationsParams extends PaginatedSortedParams {
 
 export interface MarkNotificationsAsReadRequest {
   notificationIds: string[];
+}
+
+// Follow request types
+export interface FollowTargetRequest {
+  targetId: string; // DID or Collection UUID
+  targetType: 'USER' | 'COLLECTION';
+}
+
+export interface UnfollowTargetRequest {
+  targetId: string;
+  targetType: 'USER' | 'COLLECTION';
+}
+
+// Follow query request types
+export interface GetFollowingUsersParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowersParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowingCollectionsParams extends PaginationParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetCollectionFollowersParams extends PaginationParams {
+  collectionId: string; // Collection UUID
+}
+
+// Follow count request types
+export interface GetFollowingCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowersCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetFollowingCollectionsCountParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetCollectionFollowersCountParams {
+  collectionId: string; // Collection UUID
 }

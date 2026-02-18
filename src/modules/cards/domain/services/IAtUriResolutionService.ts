@@ -2,6 +2,7 @@ import { Result } from 'src/shared/core/Result';
 import { CollectionId } from '../value-objects/CollectionId';
 
 import { CardId } from '../value-objects/CardId';
+import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 
 export enum AtUriResourceType {
   CARD = 'card',
@@ -23,4 +24,11 @@ export interface IAtUriResolutionService {
   resolveCollectionLinkId(
     atUri: string,
   ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>>;
+  resolveFollowId(atUri: string): Promise<
+    Result<{
+      followerDid: string;
+      targetId: string;
+      targetType: FollowTargetType;
+    } | null>
+  >;
 }

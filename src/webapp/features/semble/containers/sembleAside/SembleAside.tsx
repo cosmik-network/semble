@@ -7,8 +7,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import { useSearchParams } from 'next/navigation';
 import { UrlType } from '@semble/types';
-import CardFilters from '@/features/cards/components/cardFilters/CardFilters';
-import CardTypeFilter from '@/features/cards/components/cardFilters/CardTypeFilter';
+import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 
 interface Props {
   url: string;
@@ -50,9 +49,9 @@ export default function SembleAside(props: Props) {
             <Text fz={'xl'} fw={600}>
               Similar cards
             </Text>
-            <CardFilters>
-              <CardTypeFilter />
-            </CardFilters>
+            <CardFilters.Root>
+              <CardFilters.TypeFilter />
+            </CardFilters.Root>
           </Group>
           <Text c={'gray'} fw={600}>
             No similar {selectedUrlType} cards found
@@ -69,9 +68,9 @@ export default function SembleAside(props: Props) {
           <Text fz={'xl'} fw={600}>
             Similar cards
           </Text>
-          <CardFilters>
-            <CardTypeFilter />
-          </CardFilters>
+          <CardFilters.Root>
+            <CardFilters.TypeFilter />
+          </CardFilters.Root>
         </Group>
         <InfiniteScroll
           dataLength={allSimilarUrls.length}

@@ -8,6 +8,9 @@ import { GetUserCollectionsController } from '../controllers/GetUserCollectionsC
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 import { SearchCollectionsController } from '../controllers/SearchCollectionsController';
+import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
+import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
+import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCollectionRoutes(
@@ -21,6 +24,9 @@ export function createCollectionRoutes(
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
+  getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
+  getCollectionFollowersController: GetCollectionFollowersController,
+  getCollectionFollowersCountController: GetCollectionFollowersCountController,
 ): Router {
   const router = Router();
 
@@ -45,11 +51,32 @@ export function createCollectionRoutes(
     getUserCollectionsController.execute(req, res),
   );
 
+  // GET /api/collections/contributed/:identifier - Get open collections where user contributed
+  router.get(
+    '/contributed/:identifier',
+    authMiddleware.optionalAuth(),
+    (req, res) => getOpenCollectionsWithContributorController.execute(req, res),
+  );
+
   // GET /api/collections/at/:handle/:recordKey - Get collection by AT URI
   router.get(
     '/at/:handle/:recordKey',
     authMiddleware.optionalAuth(),
     (req, res) => getCollectionPageByAtUriController.execute(req, res),
+  );
+
+  // GET /api/collections/:collectionId/followers - Get collection followers
+  router.get(
+    '/:collectionId/followers',
+    authMiddleware.optionalAuth(),
+    (req, res) => getCollectionFollowersController.execute(req, res),
+  );
+
+  // GET /api/collections/:collectionId/followers/count - Get collection followers count
+  router.get(
+    '/:collectionId/followers/count',
+    authMiddleware.optionalAuth(),
+    (req, res) => getCollectionFollowersCountController.execute(req, res),
   );
 
   // GET /api/collections/:collectionId - Get collection page

@@ -77,7 +77,7 @@ export default function CollectionEmbedContainer(props: Props) {
                   'avatar',
                   'avatar_thumbnail',
                 )}
-                alt={`${firstPage.author.name}'s' avatar`}
+                alt={`${firstPage.author.name}'s avatar`}
               />
               <Anchor
                 component={Link}
@@ -137,6 +137,7 @@ export default function CollectionEmbedContainer(props: Props) {
                       <Stack justify="space-between" gap={'sm'} flex={1}>
                         <UrlCardContent
                           url={card.url}
+                          uri={card.uri}
                           cardContent={card.cardContent}
                         />
                       </Stack>
@@ -164,7 +165,7 @@ export default function CollectionEmbedContainer(props: Props) {
             rightSection={<RiArrowRightUpLine />}
             size="md"
           >
-            View more on Semble
+            View on Semble
           </Button>
         </Stack>
       </Stack>

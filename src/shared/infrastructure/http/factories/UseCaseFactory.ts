@@ -24,9 +24,11 @@ import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseC
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
+import { GetFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetFollowingFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
+import { GetOpenCollectionsWithContributorUseCase } from 'src/modules/cards/application/useCases/queries/GetOpenCollectionsWithContributorUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
@@ -41,16 +43,33 @@ import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/appli
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
+import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
+import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
+import { ProcessFollowFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessFollowFirehoseEventUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
 import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkAllNotificationsAsReadUseCase';
 import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
+import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
+import { FollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/FollowTargetUseCase';
+import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
+import { GetFollowingUsersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingUsersUseCase';
+import { GetFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersUseCase';
+import { GetFollowingCollectionsUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsUseCase';
+import { GetCollectionFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersUseCase';
+import { GetFollowingCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCountUseCase';
+import { GetFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersCountUseCase';
+import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsCountUseCase';
+import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
   createNotificationUseCase: CreateNotificationUseCase;
+  syncAccountDataUseCase: SyncAccountDataUseCase;
   // Firehose-specific use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
@@ -61,6 +80,11 @@ export interface WorkerUseCases {
   processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
+  processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
+  processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
+  processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
+  processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -72,6 +96,16 @@ export interface UseCases {
   getProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
+  followTargetUseCase: FollowTargetUseCase;
+  unfollowTargetUseCase: UnfollowTargetUseCase;
+  getFollowingUsersUseCase: GetFollowingUsersUseCase;
+  getFollowersUseCase: GetFollowersUseCase;
+  getFollowingCollectionsUseCase: GetFollowingCollectionsUseCase;
+  getCollectionFollowersUseCase: GetCollectionFollowersUseCase;
+  getFollowingCountUseCase: GetFollowingCountUseCase;
+  getFollowersCountUseCase: GetFollowersCountUseCase;
+  getFollowingCollectionsCountUseCase: GetFollowingCollectionsCountUseCase;
+  getCollectionFollowersCountUseCase: GetCollectionFollowersCountUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
@@ -91,6 +125,7 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   searchCollectionsUseCase: SearchCollectionsUseCase;
+  getOpenCollectionsWithContributorUseCase: GetOpenCollectionsWithContributorUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
@@ -98,6 +133,7 @@ export interface UseCases {
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
+  getFollowingFeedUseCase: GetFollowingFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
@@ -125,6 +161,7 @@ export class UseCaseFactory {
       repositories.collectionRepository,
       repositories.cardQueryRepository,
       services.profileService,
+      repositories.followsRepository,
     );
 
     return {
@@ -155,6 +192,57 @@ export class UseCaseFactory {
       generateExtensionTokensUseCase: new GenerateExtensionTokensUseCase(
         services.tokenService,
       ),
+      followTargetUseCase: new FollowTargetUseCase(
+        repositories.followsRepository,
+        repositories.userRepository,
+        repositories.collectionRepository,
+        services.followPublisher,
+        services.eventPublisher,
+      ),
+      unfollowTargetUseCase: new UnfollowTargetUseCase(
+        repositories.followsRepository,
+        services.followPublisher,
+        services.eventPublisher,
+      ),
+      getFollowingUsersUseCase: new GetFollowingUsersUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+      ),
+      getFollowersUseCase: new GetFollowersUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+      ),
+      getFollowingCollectionsUseCase: new GetFollowingCollectionsUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+        services.profileService,
+        repositories.collectionRepository,
+      ),
+      getCollectionFollowersUseCase: new GetCollectionFollowersUseCase(
+        repositories.followsRepository,
+        services.profileService,
+        repositories.collectionRepository,
+      ),
+      getFollowingCountUseCase: new GetFollowingCountUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+      ),
+      getFollowersCountUseCase: new GetFollowersCountUseCase(
+        repositories.followsRepository,
+        services.identityResolutionService,
+      ),
+      getFollowingCollectionsCountUseCase:
+        new GetFollowingCollectionsCountUseCase(
+          repositories.followsRepository,
+          services.identityResolutionService,
+        ),
+      getCollectionFollowersCountUseCase:
+        new GetCollectionFollowersCountUseCase(
+          repositories.followsRepository,
+          repositories.collectionRepository,
+        ),
 
       // Card use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
@@ -187,10 +275,12 @@ export class UseCaseFactory {
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,
         services.cardLibraryService,
+        services.eventPublisher,
       ),
       removeCardFromCollectionUseCase: new RemoveCardFromCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,
@@ -228,22 +318,34 @@ export class UseCaseFactory {
         repositories.atUriResolutionService,
         getCollectionPageUseCase,
         services.configService.getAtProtoCollections().collection,
+        services.configService.getAtProtoCollections().marginCollection,
       ),
       getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
         services.identityResolutionService,
+        repositories.followsRepository,
       ),
       searchCollectionsUseCase: new SearchCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+        services.identityResolutionService,
+        repositories.followsRepository,
       ),
+      getOpenCollectionsWithContributorUseCase:
+        new GetOpenCollectionsWithContributorUseCase(
+          repositories.collectionQueryRepository,
+          services.profileService,
+          services.identityResolutionService,
+          repositories.followsRepository,
+        ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
         repositories.cardQueryRepository,
         repositories.collectionQueryRepository,
         repositories.collectionRepository,
         services.profileService,
+        repositories.followsRepository,
         services.eventPublisher,
       ),
       getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
@@ -254,6 +356,7 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         services.profileService,
         repositories.collectionRepository,
+        repositories.followsRepository,
       ),
       getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
         repositories.cardQueryRepository,
@@ -266,6 +369,7 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+        repositories.followsRepository,
       ),
       getGemActivityFeedUseCase: new GetGemActivityFeedUseCase(
         repositories.feedRepository,
@@ -274,9 +378,17 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         repositories.collectionQueryRepository,
       ),
+      getFollowingFeedUseCase: new GetFollowingFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+      ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
         repositories.cardRepository,
+        repositories.followsRepository,
+        repositories.feedRepository,
       ),
       // Search use cases
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
@@ -300,8 +412,6 @@ export class UseCaseFactory {
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(
         repositories.notificationRepository,
         services.profileService,
-        repositories.cardQueryRepository,
-        repositories.collectionRepository,
       ),
       getUnreadNotificationCountUseCase: new GetUnreadNotificationCountUseCase(
         repositories.notificationRepository,
@@ -319,97 +429,184 @@ export class UseCaseFactory {
     repositories: Repositories,
     services: SharedServices,
   ): WorkerUseCases {
-    return {
-      // Feed use cases (only ones needed by workers)
-      addActivityToFeedUseCase: new AddActivityToFeedUseCase(
-        services.feedService,
+    // ========================================
+    // LEVEL 1: Leaf use cases (no use case dependencies)
+    // ========================================
+
+    // Feed use cases
+    const addActivityToFeedUseCase = new AddActivityToFeedUseCase(
+      services.feedService,
+      repositories.cardRepository,
+      repositories.followsRepository,
+      repositories.feedRepository,
+    );
+
+    // Search use cases
+    const indexUrlForSearchUseCase = new IndexUrlForSearchUseCase(
+      services.searchService,
+    );
+
+    // Notification use cases
+    const createNotificationUseCase = new CreateNotificationUseCase(
+      services.notificationService,
+    );
+
+    // Card library use cases
+    const addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(
+      repositories.cardRepository,
+      services.metadataService,
+      services.cardLibraryService,
+      services.cardCollectionService,
+      services.eventPublisher,
+    );
+
+    const updateUrlCardAssociationsUseCase =
+      new UpdateUrlCardAssociationsUseCase(
         repositories.cardRepository,
-      ),
-      // Search use cases (only ones needed by workers)
-      indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
-        services.searchService,
-      ),
-      // Notification use cases (only ones needed by workers)
-      createNotificationUseCase: new CreateNotificationUseCase(
-        services.notificationService,
-      ),
-      // Firehose-specific use cases
-      addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
-        repositories.cardRepository,
-        services.metadataService,
         services.cardLibraryService,
         services.cardCollectionService,
         services.eventPublisher,
-      ),
-      updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
-        repositories.cardRepository,
-        services.cardLibraryService,
-        services.cardCollectionService,
-        services.eventPublisher,
-      ),
-      removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
-        repositories.cardRepository,
-        services.cardLibraryService,
-      ),
-      createCollectionUseCase: new CreateCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      updateCollectionUseCase: new UpdateCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      deleteCollectionUseCase: new DeleteCollectionUseCase(
-        repositories.collectionRepository,
-        services.collectionPublisher,
-      ),
-      processCardFirehoseEventUseCase: new ProcessCardFirehoseEventUseCase(
+      );
+
+    const removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
+      repositories.cardRepository,
+      services.cardLibraryService,
+      services.eventPublisher,
+    );
+
+    // Collection use cases
+    const createCollectionUseCase = new CreateCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    const updateCollectionUseCase = new UpdateCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    const deleteCollectionUseCase = new DeleteCollectionUseCase(
+      repositories.collectionRepository,
+      services.collectionPublisher,
+    );
+
+    // Follow use cases
+    const followTargetUseCase = new FollowTargetUseCase(
+      repositories.followsRepository,
+      repositories.userRepository,
+      repositories.collectionRepository,
+      services.followPublisher,
+      services.eventPublisher,
+    );
+
+    const unfollowTargetUseCase = new UnfollowTargetUseCase(
+      repositories.followsRepository,
+      services.followPublisher,
+      services.eventPublisher,
+    );
+
+    // ========================================
+    // LEVEL 2: Process use cases (depend on Level 1)
+    // ========================================
+
+    const processCardFirehoseEventUseCase = new ProcessCardFirehoseEventUseCase(
+      repositories.atUriResolutionService,
+      addUrlToLibraryUseCase,
+      updateUrlCardAssociationsUseCase,
+      removeCardFromLibraryUseCase,
+      repositories.cardRepository,
+    );
+
+    const processCollectionFirehoseEventUseCase =
+      new ProcessCollectionFirehoseEventUseCase(
         repositories.atUriResolutionService,
-        new AddUrlToLibraryUseCase(
-          repositories.cardRepository,
-          services.metadataService,
-          services.cardLibraryService,
-          services.cardCollectionService,
-          services.eventPublisher,
-        ),
-        new UpdateUrlCardAssociationsUseCase(
-          repositories.cardRepository,
-          services.cardLibraryService,
-          services.cardCollectionService,
-          services.eventPublisher,
-        ),
-        new RemoveCardFromLibraryUseCase(
-          repositories.cardRepository,
-          services.cardLibraryService,
-        ),
-        repositories.cardRepository,
-      ),
-      processCollectionFirehoseEventUseCase:
-        new ProcessCollectionFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new CreateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new UpdateCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-          new DeleteCollectionUseCase(
-            repositories.collectionRepository,
-            services.collectionPublisher,
-          ),
-        ),
-      processCollectionLinkFirehoseEventUseCase:
-        new ProcessCollectionLinkFirehoseEventUseCase(
-          repositories.atUriResolutionService,
-          new UpdateUrlCardAssociationsUseCase(
-            repositories.cardRepository,
-            services.cardLibraryService,
-            services.cardCollectionService,
-            services.eventPublisher,
-          ),
-        ),
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
+
+    const processCollectionLinkFirehoseEventUseCase =
+      new ProcessCollectionLinkFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
+    const processCollectionLinkRemovalFirehoseEventUseCase =
+      new ProcessCollectionLinkRemovalFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
+    const processMarginBookmarkFirehoseEventUseCase =
+      new ProcessMarginBookmarkFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        addUrlToLibraryUseCase,
+        removeCardFromLibraryUseCase,
+      );
+
+    const processMarginCollectionFirehoseEventUseCase =
+      new ProcessMarginCollectionFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
+
+    const processMarginCollectionItemFirehoseEventUseCase =
+      new ProcessMarginCollectionItemFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
+
+    const processFollowFirehoseEventUseCase =
+      new ProcessFollowFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        followTargetUseCase,
+        unfollowTargetUseCase,
+        repositories.followsRepository,
+        repositories.userRepository,
+        repositories.collectionRepository,
+      );
+
+    // ========================================
+    // LEVEL 3: Sync use cases (depend on Level 2)
+    // ========================================
+
+    const syncAccountDataUseCase = new SyncAccountDataUseCase(
+      repositories.syncStatusRepository,
+      services.atProtoRepoService,
+      repositories.atUriResolutionService,
+      processMarginBookmarkFirehoseEventUseCase,
+      processMarginCollectionFirehoseEventUseCase,
+      processMarginCollectionItemFirehoseEventUseCase,
+    );
+
+    // ========================================
+    // Return all use cases
+    // ========================================
+
+    return {
+      // Level 1
+      addActivityToFeedUseCase,
+      indexUrlForSearchUseCase,
+      createNotificationUseCase,
+      addUrlToLibraryUseCase,
+      updateUrlCardAssociationsUseCase,
+      removeCardFromLibraryUseCase,
+      createCollectionUseCase,
+      updateCollectionUseCase,
+      deleteCollectionUseCase,
+      // Level 2
+      processCardFirehoseEventUseCase,
+      processCollectionFirehoseEventUseCase,
+      processCollectionLinkFirehoseEventUseCase,
+      processCollectionLinkRemovalFirehoseEventUseCase,
+      processMarginBookmarkFirehoseEventUseCase,
+      processMarginCollectionFirehoseEventUseCase,
+      processMarginCollectionItemFirehoseEventUseCase,
+      processFollowFirehoseEventUseCase,
+      // Level 3
+      syncAccountDataUseCase,
     };
   }
 }

@@ -61,7 +61,6 @@ export class AtProtoFirehoseService implements IFirehoseService {
       });
 
       this.isRunningFlag = true;
-      this.startEventCountLogging();
       console.log('[FIREHOSE] AT Protocol firehose service started');
     } catch (error) {
       console.error('[FIREHOSE] Failed to start firehose:', error);
@@ -86,7 +85,6 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.runner = undefined;
     }
 
-    this.stopEventCountLogging();
     this.isRunningFlag = false;
     console.log('[FIREHOSE] AT Protocol firehose service stopped');
   }
@@ -170,6 +168,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       collections.card,
       collections.collection,
       collections.collectionLink,
+      collections.follow,
       FIREHOSE_COLLECTIONS.APP_BSKY_POST,
     ];
   }
@@ -194,34 +193,5 @@ export class AtProtoFirehoseService implements IFirehoseService {
     process.on('SIGTERM', cleanup);
     process.on('SIGINT', cleanup);
     process.on('SIGUSR2', cleanup); // For nodemon
-  }
-
-  private startEventCountLogging(): void {
-    this.logInterval = setInterval(
-      () => {
-        const now = new Date();
-        let timingInfo = '';
-
-        if (this.mostRecentEventTime) {
-          const gapSeconds = Math.floor(
-            (now.getTime() - this.mostRecentEventTime.getTime()) / 1000,
-          );
-          timingInfo = ` | Most recent event: ${this.mostRecentEventTime.toISOString()} | Gap: ${gapSeconds}s`;
-        }
-
-        console.log(
-          `[FIREHOSE] Events processed in last 1 minutes: ${this.eventCount}${timingInfo}`,
-        );
-        this.eventCount = 0; // Reset counter
-      },
-      1 * 60 * 1000,
-    ); // 1 minute intervals
-  }
-
-  private stopEventCountLogging(): void {
-    if (this.logInterval) {
-      clearInterval(this.logInterval);
-      this.logInterval = undefined;
-    }
   }
 }

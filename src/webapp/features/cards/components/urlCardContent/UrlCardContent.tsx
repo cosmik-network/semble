@@ -11,10 +11,13 @@ import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/bluesky
 import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
 import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import PlyrfmTrack from '@/features/platforms/plyrfm/components/plyrfmTrack/PlyrFmTrack';
 
 interface Props {
   url: string;
+  uri?: string;
   cardContent: UrlCard['cardContent'];
+  authorHandle?: string;
 }
 
 export default function UrlCardContent(props: Props) {
@@ -31,13 +34,23 @@ export default function UrlCardContent(props: Props) {
   ) {
     return (
       <ErrorBoundary
-        fallback={<LinkCardContent cardContent={props.cardContent} />}
+        fallback={
+          <LinkCardContent
+            cardContent={props.cardContent}
+            uri={props.uri}
+            authorHandle={props.authorHandle}
+          />
+        }
       >
         <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
             url={props.url}
             fallbackCardContent={
-              <LinkCardContent cardContent={props.cardContent} />
+              <LinkCardContent
+                cardContent={props.cardContent}
+                uri={props.uri}
+                authorHandle={props.authorHandle}
+              />
             }
           />
         </Suspense>
@@ -59,5 +72,18 @@ export default function UrlCardContent(props: Props) {
     return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
   }
 
-  return <LinkCardContent cardContent={props.cardContent} />;
+  if (
+    platform.type === SupportedPlatform.PLYRFM_TRACK &&
+    settings.cardView !== 'list'
+  ) {
+    return <PlyrfmTrack url={platform.url} cardContent={props.cardContent} />;
+  }
+
+  return (
+    <LinkCardContent
+      cardContent={props.cardContent}
+      uri={props.uri}
+      authorHandle={props.authorHandle}
+    />
+  );
 }

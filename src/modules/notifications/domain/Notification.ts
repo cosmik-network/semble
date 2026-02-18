@@ -12,6 +12,11 @@ export interface NotificationMetadata {
   collectionIds?: string[];
 }
 
+export interface FollowNotificationMetadata {
+  targetType: 'USER' | 'COLLECTION';
+  targetId?: string; // Collection ID if applicable
+}
+
 interface NotificationProps {
   recipientUserId: CuratorId;
   actorUserId: CuratorId;
@@ -100,6 +105,74 @@ export class Notification extends AggregateRoot<NotificationProps> {
       actorUserId,
       type: typeResult.value,
       metadata,
+    });
+  }
+
+  public static createUserAddedToYourCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionId: CollectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userAddedToYourCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: NotificationMetadata = {
+      cardId: cardId.getStringValue(),
+      collectionIds: [collectionId.getStringValue()],
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata,
+    });
+  }
+
+  public static createUserFollowedYou(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userFollowedYou();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: FollowNotificationMetadata = {
+      targetType: 'USER',
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
+  public static createUserFollowedYourCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    collectionId: CollectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userFollowedYourCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: FollowNotificationMetadata = {
+      targetType: 'COLLECTION',
+      targetId: collectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
     });
   }
 

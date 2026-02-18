@@ -6,6 +6,9 @@ interface FeatureFlags {
   cardSearch: boolean;
   urlTypeFilter: boolean;
   leafletMentions: boolean;
+  animatedLandingTitle: boolean;
+  openCollections: boolean;
+  following: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {

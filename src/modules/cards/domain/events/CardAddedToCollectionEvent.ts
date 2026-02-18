@@ -14,6 +14,7 @@ export class CardAddedToCollectionEvent implements IDomainEvent {
     public readonly cardId: CardId,
     public readonly collectionId: CollectionId,
     public readonly addedBy: CuratorId,
+    public readonly addedAt: Date,
     dateTimeOccurred?: Date,
   ) {
     this.dateTimeOccurred = dateTimeOccurred || new Date();
@@ -23,14 +24,18 @@ export class CardAddedToCollectionEvent implements IDomainEvent {
     cardId: CardId,
     collectionId: CollectionId,
     addedBy: CuratorId,
+    addedAt: Date,
   ): Result<CardAddedToCollectionEvent> {
-    return ok(new CardAddedToCollectionEvent(cardId, collectionId, addedBy));
+    return ok(
+      new CardAddedToCollectionEvent(cardId, collectionId, addedBy, addedAt),
+    );
   }
 
   public static reconstruct(
     cardId: CardId,
     collectionId: CollectionId,
     addedBy: CuratorId,
+    addedAt: Date,
     dateTimeOccurred: Date,
   ): Result<CardAddedToCollectionEvent> {
     return ok(
@@ -38,6 +43,7 @@ export class CardAddedToCollectionEvent implements IDomainEvent {
         cardId,
         collectionId,
         addedBy,
+        addedAt,
         dateTimeOccurred,
       ),
     );

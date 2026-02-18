@@ -3,12 +3,34 @@ import {
   UserProfile,
 } from 'src/modules/cards/domain/services/IProfileService';
 import { Result, ok, err } from 'src/shared/core/Result';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export class FakeBlueskyProfileService implements IProfileService {
-  async getProfile(userId: string): Promise<Result<UserProfile>> {
+  constructor(private readonly followsRepository: IFollowsRepository) {}
+
+  async getProfile(
+    userId: string,
+    callerId?: string,
+  ): Promise<Result<UserProfile>> {
     try {
       // Determine which mock account to use based on userId (DID)
       const mockData = this.getMockDataForUserId(userId);
+
+      // Add follow status if callerId is provided
+      let isFollowing: boolean | undefined = undefined;
+      if (callerId && callerId !== userId) {
+        const followResult =
+          await this.followsRepository.findByFollowerAndTarget(
+            callerId,
+            userId,
+            FollowTargetType.USER,
+          );
+
+        if (followResult.isOk()) {
+          isFollowing = followResult.value !== null;
+        }
+      }
 
       const userProfile: UserProfile = {
         id: userId,
@@ -16,6 +38,7 @@ export class FakeBlueskyProfileService implements IProfileService {
         handle: mockData.handle,
         avatarUrl: mockData.avatarUrl,
         bio: mockData.bio,
+        isFollowing,
       };
 
       return ok(userProfile);

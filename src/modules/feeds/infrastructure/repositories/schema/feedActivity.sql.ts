@@ -16,6 +16,7 @@ export const feedActivities = pgTable(
     type: text('type').notNull(), // The type of activity (e.g., 'CARD_COLLECTED')
     metadata: jsonb('metadata').notNull(), // Activity-specific metadata
     urlType: text('url_type'), // Optional URL type from the card
+    source: text('source'), // Optional source - 'margin' for Margin content, null for Cosmik
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (table) => ({
@@ -49,5 +50,7 @@ export const feedActivities = pgTable(
     ),
     // Index for card-based queries
     cardIdIdx: index('feed_activities_card_id_idx').on(table.cardId),
+    // Index for filtering by source (Margin content)
+    sourceIdx: index('feed_activities_source_idx').on(table.source),
   }),
 );

@@ -5,17 +5,19 @@ import {
   Avatar,
   Text,
   Title,
-  Button,
   Spoiler,
   Grid,
   GridCol,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
-import { getProfile } from '../../lib/dal';
+import { getProfile } from '../../lib/dal.server';
 import { Fragment } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
+import ProfileStats from '../profileStats/ProfileStats';
+import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 
 interface Props {
   handle: string;
@@ -23,6 +25,7 @@ interface Props {
 
 export default async function ProfileHeader(props: Props) {
   const profile = await getProfile(props.handle);
+  const featureFlags = await getServerFeatureFlags();
 
   return (
     <Fragment>
@@ -41,48 +44,56 @@ export default async function ProfileHeader(props: Props) {
                 <Avatar
                   src={profile.avatarUrl}
                   alt={`${profile.name}'s avatar`}
-                  size={'clamp(90px, 22vw, 140px)'}
+                  size={'clamp(90px, 22vw, 100px)'}
                   radius={'lg'}
                 />
               </GridCol>
 
-              <GridCol span={{ base: 12, xs: 9 }}>
+              <GridCol span={{ base: 12, xs: 10 }}>
                 <Stack gap={'sm'}>
                   <Stack gap={0}>
-                    <Title order={1} fz={{ base: 'h2', md: 'h1' }} c={'bright'}>
+                    <Title order={1} fz={'h2'} c={'bright'}>
                       {profile.name}
                     </Title>
-                    <Text c="gray" fw={600} fz={{ base: 'lg', md: 'xl' }}>
-                      @{profile.handle}
-                    </Text>
+                    <Group gap={'xs'}>
+                      <Text c="gray" fw={600} fz={'lg'}>
+                        @{profile.handle}
+                      </Text>
+                      <Tooltip label="View Bluesky Profile">
+                        <ActionIcon
+                          component="a"
+                          href={`https://bsky.app/profile/${profile.handle}`}
+                          target="_blank"
+                          variant="light"
+                          color="blue"
+                          radius={'xl'}
+                        >
+                          <FaBluesky size={14} fill="#0085ff" />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
                   </Stack>
                   {profile.description && (
                     <Spoiler
                       showLabel={'Read more'}
                       hideLabel={'See less'}
                       maxHeight={75}
+                      maw={700}
                     >
                       <RichTextRenderer text={profile.description} />
                     </Spoiler>
+                  )}
+                  {featureFlags.following && (
+                    <ProfileStats
+                      identifier={profile.id}
+                      handle={profile.handle}
+                      isFollowing={profile.isFollowing}
+                    />
                   )}
                 </Stack>
               </GridCol>
             </Grid>
           </Stack>
-          <Group>
-            <Button
-              component="a"
-              href={`https://bsky.app/profile/${profile.handle}`}
-              target="_blank"
-              variant="light"
-              size="xs"
-              radius={'xl'}
-              color={'gray'}
-              leftSection={<FaBluesky />}
-            >
-              {truncateText(profile.handle, 14)}
-            </Button>
-          </Group>
         </Stack>
       </Container>
     </Fragment>

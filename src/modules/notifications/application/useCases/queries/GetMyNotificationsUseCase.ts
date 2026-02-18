@@ -5,10 +5,8 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { INotificationRepository } from '../../../domain/INotificationRepository';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
-import { ICollectionRepository } from '../../../../cards/domain/ICollectionRepository';
-import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { NotificationItem } from '@semble/types';
+import { CollectionAccessType } from '../../../../cards/domain/Collection';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -50,8 +48,6 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
-    private cardQueryRepository: ICardQueryRepository,
-    private collectionRepository: ICollectionRepository,
   ) {}
 
   async execute(
@@ -73,7 +69,8 @@ export class GetMyNotificationsUseCase
       const page = request.page || 1;
       const limit = request.limit || 20;
 
-      const result = await this.notificationRepository.findByRecipient(
+      // Use enriched query to get notifications with card and collection data
+      const result = await this.notificationRepository.findByRecipientEnriched(
         userIdResult.value,
         {
           page,
@@ -88,123 +85,193 @@ export class GetMyNotificationsUseCase
 
       const { notifications, totalCount, hasMore, unreadCount } = result.value;
 
-      // Build notification items with full data
+      // Collect all unique user IDs for bulk profile fetching
+      const userIds = new Set<string>();
+      notifications.forEach((notification) => {
+        userIds.add(notification.actorUserId);
+        if (notification.cardAuthorId) {
+          userIds.add(notification.cardAuthorId);
+        }
+        notification.collections?.forEach((collection) => {
+          userIds.add(collection.authorId);
+        });
+        notification.followCollections?.forEach((collection) => {
+          userIds.add(collection.authorId);
+        });
+      });
+
+      // Bulk fetch all profiles
+      const profilePromises = Array.from(userIds).map((id) =>
+        this.profileService.getProfile(id, request.userId),
+      );
+      const profileResults = await Promise.all(profilePromises);
+
+      // Build profile lookup map
+      const profileMap = new Map<string, any>();
+      profileResults.forEach((result) => {
+        if (result.isOk()) {
+          profileMap.set(result.value.id, result.value);
+        }
+      });
+
+      // Transform enriched notifications to DTOs
       const notificationItems: NotificationItemDTO[] = [];
 
       for (const notification of notifications) {
         try {
-          // Get actor profile
-          const actorProfileResult = await this.profileService.getProfile(
-            notification.actorUserId.value,
-          );
-          if (actorProfileResult.isErr()) {
-            continue; // Skip this notification if we can't get the actor profile
-          }
+          const actorProfile = profileMap.get(notification.actorUserId);
 
-          // Get card data
-          const cardView = await this.cardQueryRepository.getUrlCardBasic(
-            notification.metadata.cardId,
-            request.userId,
-          );
-          if (!cardView) {
+          if (!actorProfile) {
+            // Skip notifications with missing actor profile
             continue;
           }
 
-          // Get card author profile
-          const cardAuthorProfileResult = await this.profileService.getProfile(
-            cardView.authorId,
-          );
-          if (cardAuthorProfileResult.isErr()) {
-            continue;
-          }
+          // Handle follow notifications (no card data)
+          if (notification.followTargetType) {
+            // Transform follow collections with author profiles
+            const followCollections = (notification.followCollections || [])
+              .map((collection) => {
+                const collectionAuthorProfile = profileMap.get(
+                  collection.authorId,
+                );
+                if (!collectionAuthorProfile) {
+                  return null;
+                }
 
-          // Get collections if any
-          const collections = [];
-          if (notification.metadata.collectionIds) {
-            for (const collectionIdStr of notification.metadata.collectionIds) {
-              const collectionIdResult =
-                CollectionId.createFromString(collectionIdStr);
-              if (collectionIdResult.isErr()) {
-                continue;
-              }
-
-              const collectionResult = await this.collectionRepository.findById(
-                collectionIdResult.value,
+                return {
+                  id: collection.id,
+                  uri: collection.uri,
+                  name: collection.name,
+                  author: {
+                    id: collectionAuthorProfile.id,
+                    name: collectionAuthorProfile.name,
+                    handle: collectionAuthorProfile.handle,
+                    avatarUrl: collectionAuthorProfile.avatarUrl,
+                    description: collectionAuthorProfile.bio,
+                  },
+                  description: collection.description,
+                  accessType: collection.accessType as CollectionAccessType,
+                  cardCount: collection.cardCount,
+                  createdAt: collection.createdAt.toISOString(),
+                  updatedAt: collection.updatedAt.toISOString(),
+                };
+              })
+              .filter(
+                (collection): collection is NonNullable<typeof collection> =>
+                  collection !== null,
               );
-              if (collectionResult.isErr() || !collectionResult.value) {
-                continue;
+
+            const notificationItem: NotificationItemDTO = {
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                description: actorProfile.bio,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              followTargetType: notification.followTargetType,
+              followTargetId: notification.followTargetId,
+              collections:
+                followCollections.length > 0 ? followCollections : undefined,
+            };
+
+            notificationItems.push(notificationItem);
+            continue;
+          }
+
+          // Handle card-based notifications
+          const cardAuthorProfile = notification.cardAuthorId
+            ? profileMap.get(notification.cardAuthorId)
+            : undefined;
+
+          if (!cardAuthorProfile || !notification.cardId) {
+            // Skip notifications with missing card author profile or card data
+            continue;
+          }
+
+          // Transform collections with author profiles
+          const collections = (notification.collections || [])
+            .map((collection) => {
+              const collectionAuthorProfile = profileMap.get(
+                collection.authorId,
+              );
+              if (!collectionAuthorProfile) {
+                return null;
               }
 
-              const collection = collectionResult.value;
-              const collectionAuthorProfileResult =
-                await this.profileService.getProfile(collection.authorId.value);
-              if (collectionAuthorProfileResult.isErr()) {
-                continue;
-              }
-
-              collections.push({
-                id: collection.collectionId.getStringValue(),
-                uri: collection.publishedRecordId?.uri,
-                name: collection.name.value,
+              return {
+                id: collection.id,
+                uri: collection.uri,
+                name: collection.name,
                 author: {
-                  id: collectionAuthorProfileResult.value.id,
-                  name: collectionAuthorProfileResult.value.name,
-                  handle: collectionAuthorProfileResult.value.handle,
-                  avatarUrl: collectionAuthorProfileResult.value.avatarUrl,
-                  description: collectionAuthorProfileResult.value.bio,
+                  id: collectionAuthorProfile.id,
+                  name: collectionAuthorProfile.name,
+                  handle: collectionAuthorProfile.handle,
+                  avatarUrl: collectionAuthorProfile.avatarUrl,
+                  description: collectionAuthorProfile.bio,
                 },
-                description: collection.description?.value,
+                description: collection.description,
+                accessType: collection.accessType as CollectionAccessType,
                 cardCount: collection.cardCount,
                 createdAt: collection.createdAt.toISOString(),
                 updatedAt: collection.updatedAt.toISOString(),
-              });
-            }
-          }
+              };
+            })
+            .filter(
+              (collection): collection is NonNullable<typeof collection> =>
+                collection !== null,
+            );
 
           const notificationItem: NotificationItemDTO = {
-            id: notification.notificationId.getStringValue(),
+            id: notification.id,
             user: {
-              id: actorProfileResult.value.id,
-              name: actorProfileResult.value.name,
-              handle: actorProfileResult.value.handle,
-              avatarUrl: actorProfileResult.value.avatarUrl,
-              description: actorProfileResult.value.bio,
+              id: actorProfile.id,
+              name: actorProfile.name,
+              handle: actorProfile.handle,
+              avatarUrl: actorProfile.avatarUrl,
+              description: actorProfile.bio,
+              isFollowing: actorProfile.isFollowing,
             },
             card: {
-              id: cardView.id,
+              id: notification.cardId,
               type: 'URL' as const,
-              url: cardView.url,
+              url: notification.cardUrl || '',
+              uri: notification.cardUri,
               cardContent: {
-                url: cardView.cardContent.url,
-                title: cardView.cardContent.title,
-                description: cardView.cardContent.description,
-                author: cardView.cardContent.author,
-                publishedDate:
-                  cardView.cardContent.publishedDate?.toISOString(),
-                siteName: cardView.cardContent.siteName,
-                imageUrl: cardView.cardContent.imageUrl,
-                type: cardView.cardContent.type,
-                retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
-                doi: cardView.cardContent.doi,
-                isbn: cardView.cardContent.isbn,
+                url: notification.cardUrl || '',
+                title: notification.cardTitle,
+                description: notification.cardDescription,
+                author: notification.cardAuthor,
+                publishedDate: notification.cardPublishedDate?.toISOString(),
+                siteName: notification.cardSiteName,
+                imageUrl: notification.cardImageUrl,
+                type: notification.cardType,
+                retrievedAt: notification.cardRetrievedAt?.toISOString(),
+                doi: notification.cardDoi,
+                isbn: notification.cardIsbn,
               },
-              libraryCount: cardView.libraryCount,
-              urlLibraryCount: cardView.urlLibraryCount,
-              urlInLibrary: cardView.urlInLibrary,
-              createdAt: cardView.createdAt.toISOString(),
-              updatedAt: cardView.updatedAt.toISOString(),
+              libraryCount: notification.cardLibraryCount || 0,
+              urlLibraryCount: notification.cardUrlLibraryCount || 0,
+              urlInLibrary: notification.cardUrlInLibrary,
+              createdAt: notification.cardCreatedAt?.toISOString() || '',
+              updatedAt: notification.cardUpdatedAt?.toISOString() || '',
               author: {
-                id: cardAuthorProfileResult.value.id,
-                name: cardAuthorProfileResult.value.name,
-                handle: cardAuthorProfileResult.value.handle,
-                avatarUrl: cardAuthorProfileResult.value.avatarUrl,
-                description: cardAuthorProfileResult.value.bio,
+                id: cardAuthorProfile.id,
+                name: cardAuthorProfile.name,
+                handle: cardAuthorProfile.handle,
+                avatarUrl: cardAuthorProfile.avatarUrl,
+                description: cardAuthorProfile.bio,
               },
-              note: cardView.note,
+              note: notification.cardNote,
             },
             createdAt: notification.createdAt.toISOString(),
             collections,
-            type: notification.type.value,
+            type: notification.type as any, // Cast to NotificationType enum
             read: notification.read,
           };
 

@@ -23,6 +23,7 @@ export class GetMyCollectionsController extends Controller {
 
       const result = await this.getCollectionsUseCase.execute({
         curatorId,
+        callingUserId: curatorId,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CollectionSortField,

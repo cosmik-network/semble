@@ -81,6 +81,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       type TEXT NOT NULL,
       metadata JSONB NOT NULL,
       url_type TEXT,
+      source TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )`,
 
@@ -94,6 +95,37 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       read BOOLEAN NOT NULL DEFAULT false,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
+    // Sync statuses table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS sync_statuses (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      curator_id TEXT NOT NULL UNIQUE,
+      sync_state TEXT NOT NULL,
+      last_synced_at TIMESTAMP WITH TIME ZONE,
+      last_sync_attempt_at TIMESTAMP WITH TIME ZONE,
+      sync_error_message TEXT,
+      records_processed INTEGER,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
+    // Follows table (references published_records)
+    sql`CREATE TABLE IF NOT EXISTS follows (
+      follower_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      published_record_id UUID REFERENCES published_records(id),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (follower_id, target_id, target_type)
+    )`,
+
+    // Following feed items table (references feed_activities)
+    sql`CREATE TABLE IF NOT EXISTS following_feed_items (
+      user_id TEXT NOT NULL,
+      activity_id UUID NOT NULL REFERENCES feed_activities(id) ON DELETE CASCADE,
+      created_at TIMESTAMP NOT NULL,
+      PRIMARY KEY (user_id, activity_id)
     )`,
   ];
 
@@ -182,6 +214,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS feed_activities_source_idx ON feed_activities(source);
+  `);
 
   // Index for efficient AT URI look ups
   await db.execute(sql`
@@ -221,5 +256,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
+  `);
+
+  // Follows table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+  `);
+
+  // Following feed items indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
   `);
 }

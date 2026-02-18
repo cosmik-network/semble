@@ -20,7 +20,7 @@ export default function RemoveCardFromCollectionModal(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not remove card from collection.',
+            message: 'Could not remove card from this collection.',
             position: 'top-center',
           });
         },
@@ -36,7 +36,7 @@ export default function RemoveCardFromCollectionModal(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       withCloseButton={false}
-      title="Remove card from collection"
+      title="Remove card from this collection"
       size={'xs'}
       overlayProps={DANGER_OVERLAY_PROPS}
       centered

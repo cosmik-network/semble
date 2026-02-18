@@ -6,9 +6,6 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
-import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
-import { RedisSagaStateStore } from '../../../modules/feeds/infrastructure/RedisSagaStateStore';
-import { InMemorySagaStateStore } from '../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -40,17 +37,12 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Create saga with proper use case dependency and state store from services
-    const cardCollectionSaga = new CardCollectionSaga(
-      useCases.addActivityToFeedUseCase,
-      services.sagaStateStore,
-    );
-
+    // Event handlers call use case directly (no saga intermediary)
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
-      cardCollectionSaga,
+      useCases.addActivityToFeedUseCase,
     );
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
-      cardCollectionSaga,
+      useCases.addActivityToFeedUseCase,
     );
 
     await subscriber.subscribe(

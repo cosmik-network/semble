@@ -10,6 +10,8 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { GetCollectionsForUrlResponse, Collection } from '@semble/types';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -38,6 +40,7 @@ export class GetCollectionsForUrlUseCase
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
     private collectionRepo: ICollectionRepository,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -141,6 +144,7 @@ export class GetCollectionsForUrlUseCase
             uri: item.uri,
             name: item.name,
             description: item.description,
+            accessType: collection.accessType,
             author,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
@@ -148,6 +152,24 @@ export class GetCollectionsForUrlUseCase
           };
         }),
       );
+
+      // Add follow status if callingUserId is provided
+      if (query.callingUserId) {
+        const followChecks = await Promise.all(
+          enrichedCollections.map((c) =>
+            this.followsRepository.findByFollowerAndTarget(
+              query.callingUserId!,
+              c.id,
+              FollowTargetType.COLLECTION,
+            ),
+          ),
+        );
+
+        enrichedCollections.forEach((collection, i) => {
+          collection.isFollowing =
+            followChecks[i]?.isOk() && followChecks[i].value !== null;
+        });
+      }
 
       return ok({
         collections: enrichedCollections,
