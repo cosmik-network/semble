@@ -1,4 +1,5 @@
 import { AtpAgent } from '@atproto/api';
+import { DidResolver } from '@atproto/identity';
 
 export interface DIDDocument {
   id: string;
@@ -11,25 +12,36 @@ export interface DIDDocument {
   }>;
 }
 
+const didResolver = new DidResolver({});
+
 /**
  * Resolve a DID to find the user's PDS URL
  */
 export async function resolveDIDToPDS(did: string): Promise<string> {
   try {
-    const plcResponse = await fetch(`https://plc.directory/${did}`);
+    // Use the official @atproto/identity resolver
+    const didDoc = await didResolver.resolve(did);
 
-    if (!plcResponse.ok) {
-      throw new Error(`Failed to resolve DID: ${plcResponse.statusText}`);
+    if (!didDoc) {
+      throw new Error(`Could not resolve DID: ${did}`);
     }
 
-    const didDoc: DIDDocument = await plcResponse.json();
+    // Extract PDS service endpoint
+    const pdsService = didDoc.service?.find((s) => s.id === '#atproto_pds');
 
-    const pdsUrl = didDoc.service?.find(
-      (s) => s.id === '#atproto_pds',
-    )?.serviceEndpoint;
+    if (!pdsService?.serviceEndpoint) {
+      throw new Error(`No PDS found for DID: ${did}`);
+    }
+
+    // Handle both string and object formats
+    const pdsUrl =
+      typeof pdsService.serviceEndpoint === 'string'
+        ? pdsService.serviceEndpoint
+        : pdsService.serviceEndpoint.uri ||
+          (pdsService.serviceEndpoint as any).url;
 
     if (!pdsUrl) {
-      throw new Error(`No PDS found for DID: ${did}`);
+      throw new Error(`Invalid PDS endpoint format for DID: ${did}`);
     }
 
     return pdsUrl;
