@@ -102,7 +102,7 @@ export default function CollectionContainer(props: Props) {
           </Stack>
 
           <Group gap={'xs'}>
-            <Stack>
+            <Stack gap={'xs'}>
               <Group gap={5}>
                 <Avatar
                   size={'sm'}
@@ -123,20 +123,22 @@ export default function CollectionContainer(props: Props) {
                   {collection.author.name}
                 </Anchor>
               </Group>
-              <Text c={'gray'} fw={500}>
-                <Text c={'bright'} span>
+              <Text fw={500} c={'dimmed'}>
+                <Text fw={500} c={'bright'} span>
                   {collection.cardCount ?? 0}
                 </Text>{' '}
                 card
                 {collection.cardCount !== 1 && 's'}
                 {' · '}
-                <Text c={'bright'} span>
-                  {getRelativeTime(collection.createdAt)}
-                </Text>
+                <Text fw={500} c={'bright'} span>
+                  Started
+                </Text>{' '}
+                {getRelativeTime(collection.createdAt)}
                 {' · '}
-                <Text c={'bright'} span>
-                  {collection.updatedAt}
-                </Text>
+                <Text fw={500} c={'bright'} span>
+                  Updated
+                </Text>{' '}
+                {getRelativeTime(collection.updatedAt)}
               </Text>
             </Stack>
           </Group>
