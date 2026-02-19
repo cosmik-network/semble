@@ -13,6 +13,7 @@ export interface UserProfile {
   bannerUrl?: string;
   bio?: string;
   isFollowing?: boolean;
+  followsYou?: boolean;
   followerCount?: number;
   followingCount?: number;
   followedCollectionsCount?: number;
