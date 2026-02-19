@@ -9,6 +9,7 @@ export interface UserProfile {
   name: string;
   handle: string;
   avatarUrl?: string;
+  bannerUrl?: string;
   bio?: string;
   isFollowing?: boolean;
 }

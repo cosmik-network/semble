@@ -163,6 +163,7 @@ export class GetCollectionPageUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
         }
       >();
 
@@ -177,6 +178,7 @@ export class GetCollectionPageUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
           });
         }
       }
@@ -224,6 +226,7 @@ export class GetCollectionPageUseCase
           name: authorProfile.name,
           handle: authorProfile.handle,
           avatarUrl: authorProfile.avatarUrl,
+          bannerUrl: authorProfile.bannerUrl,
         },
         urlCards: enrichedCards,
         cardCount: collection.cardCount,

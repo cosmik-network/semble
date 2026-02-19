@@ -116,6 +116,7 @@ export class GetUrlCardViewUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          bannerUrl: profile.bannerUrl,
           description: profile.bio,
         };
       });
@@ -160,6 +161,7 @@ export class GetUrlCardViewUseCase
               name: collectionAuthor.name,
               handle: collectionAuthor.handle,
               avatarUrl: collectionAuthor.avatarUrl,
+              bannerUrl: collectionAuthor.bannerUrl,
               description: collectionAuthor.bio,
             },
             cardCount: fullCollection.cardCount,
@@ -176,6 +178,7 @@ export class GetUrlCardViewUseCase
           name: cardAuthor.name,
           handle: cardAuthor.handle,
           avatarUrl: cardAuthor.avatarUrl,
+          bannerUrl: cardAuthor.bannerUrl,
           description: cardAuthor.bio,
         },
         collections: enrichedCollections,
