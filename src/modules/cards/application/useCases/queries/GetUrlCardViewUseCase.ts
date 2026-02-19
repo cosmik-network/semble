@@ -10,6 +10,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { UserProfileDTO, CollectionDTO } from '@semble/types';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
@@ -82,94 +83,136 @@ export class GetUrlCardViewUseCase
 
       const cardAuthor = cardAuthorResult.value;
 
-      // Get profiles for all users in libraries
+      // Get profiles for all users in libraries using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
       const userIds = cardView.libraries.map((lib) => lib.userId);
-      const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId, query.callingUserId),
+      const userProfilesResult = await profileEnricher.buildProfileMap(
+        userIds,
+        query.callingUserId,
+        {
+          skipFailures: true, // Skip users with failed profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Check if any profile fetches failed
-      const failedProfiles = profileResults.filter((result) => result.isErr());
-      if (failedProfiles.length > 0) {
-        const firstError = failedProfiles[0]!.error;
+      if (userProfilesResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch user profiles: ${firstError instanceof Error ? firstError.message : 'Unknown error'}`,
+            `Failed to fetch user profiles: ${userProfilesResult.error.message}`,
           ),
         );
       }
 
+      const userProfileMap = userProfilesResult.value;
+
       // Transform to result format with enriched profile data
-      const enrichedLibraries = cardView.libraries.map((lib, index) => {
-        const profileResult = profileResults[index]!;
-        if (profileResult.isErr()) {
-          throw new Error(
-            `Failed to fetch profile for user ${lib.userId}: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-          );
-        }
-        const profile = profileResult.value;
+      const enrichedLibraries = cardView.libraries
+        .map((lib) => {
+          const profile = userProfileMap.get(lib.userId);
+          if (!profile) {
+            return null; // Skip if profile not found
+          }
 
-        return {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          bannerUrl: profile.bannerUrl,
-          description: profile.bio,
-        };
-      });
+          return {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
+            description: profile.description,
+          };
+        })
+        .filter((lib): lib is NonNullable<typeof lib> => lib !== null);
 
-      // Enrich collections with full Collection data
-      const enrichedCollections: CollectionDTO[] = await Promise.all(
+      // Fetch all collections first (without author profiles) - FIX: Parallel fetch
+      const collectionsWithData = await Promise.all(
         cardView.collections.map(async (collection) => {
           const collectionIdResult = CollectionId.createFromString(
             collection.id,
           );
           if (collectionIdResult.isErr()) {
-            throw new Error(`Invalid collection ID: ${collection.id}`);
+            return null;
           }
           const collectionResult = await this.collectionRepo.findById(
             collectionIdResult.value,
           );
           if (collectionResult.isErr() || !collectionResult.value) {
-            throw new Error(`Collection not found: ${collection.id}`);
+            return null;
           }
           const fullCollection = collectionResult.value;
 
-          // Fetch collection author profile
-          const collectionAuthorResult = await this.profileService.getProfile(
-            fullCollection.authorId.value,
-            query.callingUserId,
-          );
-          if (collectionAuthorResult.isErr()) {
-            throw new Error(
-              `Failed to fetch collection author: ${collectionAuthorResult.error.message}`,
-            );
-          }
-          const collectionAuthor = collectionAuthorResult.value;
-
           return {
             id: collection.id,
-            uri: fullCollection.publishedRecordId?.uri,
             name: collection.name,
+            uri: fullCollection.publishedRecordId?.uri,
             description: fullCollection.description?.value,
             accessType: fullCollection.accessType,
-            author: {
-              id: collectionAuthor.id,
-              name: collectionAuthor.name,
-              handle: collectionAuthor.handle,
-              avatarUrl: collectionAuthor.avatarUrl,
-              bannerUrl: collectionAuthor.bannerUrl,
-              description: collectionAuthor.bio,
-            },
+            authorId: fullCollection.authorId.value,
             cardCount: fullCollection.cardCount,
             createdAt: fullCollection.createdAt.toISOString(),
             updatedAt: fullCollection.updatedAt.toISOString(),
           };
         }),
       );
+
+      const validCollections = collectionsWithData.filter(
+        (c): c is NonNullable<typeof c> => c !== null,
+      );
+
+      // Extract unique collection author IDs
+      const collectionAuthorIds = [
+        ...new Set(validCollections.map((c) => c.authorId)),
+      ];
+
+      // Batch fetch all collection author profiles - FIX: Batch instead of sequential
+      const collectionAuthorProfilesResult =
+        await profileEnricher.buildProfileMap(
+          collectionAuthorIds,
+          query.callingUserId,
+          {
+            skipFailures: true,
+            mapToUser: false,
+          },
+        );
+
+      if (collectionAuthorProfilesResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch collection author profiles: ${collectionAuthorProfilesResult.error.message}`,
+          ),
+        );
+      }
+
+      const collectionAuthorProfiles = collectionAuthorProfilesResult.value;
+
+      // Build enriched collections with author profiles
+      const enrichedCollections: CollectionDTO[] = validCollections
+        .map((collection) => {
+          const author = collectionAuthorProfiles.get(collection.authorId);
+          if (!author) {
+            return null; // Skip collections with missing author
+          }
+
+          return {
+            id: collection.id,
+            uri: collection.uri,
+            name: collection.name,
+            description: collection.description,
+            accessType: collection.accessType,
+            author: {
+              id: author.id,
+              name: author.name,
+              handle: author.handle,
+              avatarUrl: author.avatarUrl,
+              bannerUrl: author.bannerUrl,
+              description: author.description,
+            },
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          };
+        })
+        .filter((c): c is NonNullable<typeof c> => c !== null);
 
       const result: UrlCardViewResult = {
         ...cardView,

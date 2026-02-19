@@ -8,6 +8,7 @@ import {
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { NoteCardDTO, PaginationDTO, CardSortingDTO } from '@semble/types';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;
@@ -68,53 +69,30 @@ export class GetNoteCardsForUrlUseCase
         },
       );
 
-      // Enrich with author profiles
+      // Enrich with author profiles using ProfileEnricher
       const uniqueAuthorIds = Array.from(
         new Set(result.items.map((item) => item.authorId)),
       );
 
-      const profilePromises = uniqueAuthorIds.map((authorId) =>
-        this.profileService.getProfile(authorId, query.callingUserId),
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        uniqueAuthorIds,
+        query.callingUserId,
+        {
+          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Create a map of profiles
-      const profileMap = new Map<
-        string,
-        {
-          id: string;
-          name: string;
-          handle: string;
-          avatarUrl?: string;
-          bannerUrl?: string;
-          description?: string;
-        }
-      >();
-
-      for (let i = 0; i < uniqueAuthorIds.length; i++) {
-        const profileResult = profileResults[i];
-        const authorId = uniqueAuthorIds[i];
-        if (!profileResult || !authorId) {
-          return err(new Error('Missing profile result or author ID'));
-        }
-        if (profileResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-            ),
-          );
-        }
-        const profile = profileResult.value;
-        profileMap.set(authorId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          bannerUrl: profile.bannerUrl,
-          description: profile.bio,
-        });
+      if (profileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch author profiles: ${profileMapResult.error.message}`,
+          ),
+        );
       }
+
+      const profileMap = profileMapResult.value;
 
       // Map items with enriched author data
       const enrichedNotes: NoteCardDTO[] = result.items.map((item) => {

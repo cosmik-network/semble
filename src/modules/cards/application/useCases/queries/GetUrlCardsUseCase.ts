@@ -12,6 +12,7 @@ import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { User } from '@semble/types';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetUrlCardsQuery {
   userId: string;
@@ -98,57 +99,20 @@ export class GetUrlCardsUseCase
         query.callingUserId,
       );
 
-      // Get unique author IDs
-      const uniqueAuthorIds = Array.from(
-        new Set(result.items.map((item) => item.authorId)),
+      // Enrich cards with author profiles using ProfileEnricher utility
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const enrichResult = await profileEnricher.enrichWithAuthors(
+        result.items,
+        (item) => item.authorId,
+        query.callingUserId,
+        { mapToUser: false }, // Use inline profile (without isFollowing)
       );
 
-      // Fetch author profiles
-      const profilePromises = uniqueAuthorIds.map((authorId) =>
-        this.profileService.getProfile(authorId, query.callingUserId),
-      );
-
-      const profileResults = await Promise.all(profilePromises);
-
-      // Create a map of profiles
-      const profileMap = new Map<string, User>();
-
-      for (let i = 0; i < uniqueAuthorIds.length; i++) {
-        const profileResult = profileResults[i];
-        const authorId = uniqueAuthorIds[i];
-        if (!profileResult || !authorId) {
-          return err(new Error('Missing profile result or author ID'));
-        }
-        if (profileResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-            ),
-          );
-        }
-        const profile = profileResult.value;
-        profileMap.set(authorId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          bannerUrl: profile.bannerUrl,
-          description: profile.bio,
-        });
+      if (enrichResult.isErr()) {
+        return err(enrichResult.error);
       }
 
-      // Transform raw data to enriched DTOs
-      const enrichedCards: UrlCardListItemDTO[] = result.items.map((item) => {
-        const author = profileMap.get(item.authorId);
-        if (!author) {
-          throw new Error(`Profile not found for author ${item.authorId}`);
-        }
-
-        return {
-          ...item,
-          author,
-        };
-      });
+      const enrichedCards = enrichResult.value;
 
       return ok({
         cards: enrichedCards,

@@ -7,7 +7,18 @@ export interface User {
   bannerUrl?: string;
   description?: string;
   isFollowing?: boolean; // Whether the calling user follows this user
+  followerCount?: number; // Number of users following this user
+  followingCount?: number; // Number of users this user follows
+  followedCollectionsCount?: number; // Number of collections this user follows
 }
+
+// Type alias for inline profile objects (without isFollowing)
+// Used for nested author objects in collections, cards, etc.
+export type UserProfileDTO = Omit<User, 'isFollowing'>;
+
+// Type alias for minimal profile objects (without description)
+// Used for card authors in collection pages and other compact displays
+export type MinimalUserProfile = Omit<UserProfileDTO, 'description'>;
 
 // Base pagination interface
 export interface Pagination {
