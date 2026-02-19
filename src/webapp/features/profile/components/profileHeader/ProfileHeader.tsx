@@ -12,6 +12,7 @@ import {
   Tooltip,
   Image,
   Anchor,
+  Badge,
 } from '@mantine/core';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
@@ -73,6 +74,11 @@ export default async function ProfileHeader(props: Props) {
                   {profile.name}
                 </Title>
                 <Group gap={'xs'}>
+                  {profile.followsYou && (
+                    <Badge variant="light" color="gray">
+                      Follows you
+                    </Badge>
+                  )}
                   <Text c="gray" fw={600} fz={'lg'}>
                     @{profile.handle}
                   </Text>
@@ -103,49 +109,47 @@ export default async function ProfileHeader(props: Props) {
 
               {/* follow stats */}
               {featureFlags.following && (
-                <Stack>
-                  <Group gap="sm">
-                    <Anchor
-                      component={Link}
-                      href={`/profile/${props.handle}/followers`}
-                      underline="never"
-                    >
-                      <Text fw={500} c={'bright'} span>
-                        {profile.followerCount}
-                      </Text>
-                      <Text fw={500} c={'gray'} span>
-                        {' Follower'}
-                        {profile.followerCount !== 1 ? 's' : ''}
-                      </Text>
-                    </Anchor>
+                <Group gap="sm">
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${props.handle}/followers`}
+                    underline="never"
+                  >
+                    <Text fw={500} c={'bright'} span>
+                      {profile.followerCount}
+                    </Text>
+                    <Text fw={500} c={'gray'} span>
+                      {' Follower'}
+                      {profile.followerCount !== 1 ? 's' : ''}
+                    </Text>
+                  </Anchor>
 
-                    <Anchor
-                      component={Link}
-                      href={`/profile/${props.handle}/following`}
-                      underline="never"
-                    >
-                      <Text fw={500} c={'bright'} span>
-                        {profile.followingCount}
-                      </Text>
-                      <Text fw={500} c={'gray'} span>
-                        {' Following'}
-                      </Text>
-                    </Anchor>
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${props.handle}/following`}
+                    underline="never"
+                  >
+                    <Text fw={500} c={'bright'} span>
+                      {profile.followingCount}
+                    </Text>
+                    <Text fw={500} c={'gray'} span>
+                      {' Following'}
+                    </Text>
+                  </Anchor>
 
-                    <Anchor
-                      component={Link}
-                      href={`/profile/${props.handle}/following-collections`}
-                      underline="never"
-                    >
-                      <Text fw={500} c={'bright'} span>
-                        {profile.followedCollectionsCount}
-                      </Text>
-                      <Text fw={500} c={'gray'} span>
-                        {' Followed Collections'}
-                      </Text>
-                    </Anchor>
-                  </Group>
-                </Stack>
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${props.handle}/following-collections`}
+                    underline="never"
+                  >
+                    <Text fw={500} c={'bright'} span>
+                      {profile.followedCollectionsCount}
+                    </Text>
+                    <Text fw={500} c={'gray'} span>
+                      {' Followed Collections'}
+                    </Text>
+                  </Anchor>
+                </Group>
               )}
             </Stack>
           </Stack>
