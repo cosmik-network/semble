@@ -16,6 +16,7 @@ import {
 import { CollectionAccessType } from '../../../domain/Collection';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { ProfileMapper } from '../../mappers/ProfileMapper';
 
 export interface GetCollectionsQuery {
   curatorId: string;
@@ -101,6 +102,9 @@ export class GetCollectionsUseCase
       }
       const profile = profileResult.value;
 
+      // Map profile using ProfileMapper
+      const authorProfile = ProfileMapper.toInlineProfile(profile);
+
       // Transform raw data to enriched DTOs
       const enrichedCollections: CollectionDTO[] = result.items.map((item) => {
         return {
@@ -112,14 +116,7 @@ export class GetCollectionsUseCase
           updatedAt: item.updatedAt.toISOString(),
           createdAt: item.createdAt.toISOString(),
           cardCount: item.cardCount,
-          author: {
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-            bannerUrl: profile.bannerUrl,
-            description: profile.bio,
-          },
+          author: authorProfile,
         };
       });
 

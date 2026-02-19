@@ -3,6 +3,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import { ProfileMapper } from '../../mappers/ProfileMapper';
 
 export interface GetMyProfileQuery {
   userId: string;
@@ -86,15 +87,8 @@ export class GetProfileUseCase
 
       const profile = profileResult.value;
 
-      return ok({
-        id: profile.id,
-        name: profile.name,
-        handle: profile.handle,
-        description: profile.bio,
-        avatarUrl: profile.avatarUrl,
-        bannerUrl: profile.bannerUrl,
-        isFollowing: profile.isFollowing,
-      });
+      // Map profile using ProfileMapper
+      return ok(ProfileMapper.toUser(profile));
     } catch (error) {
       return err(
         new Error(
