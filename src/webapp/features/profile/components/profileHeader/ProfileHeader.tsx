@@ -13,6 +13,7 @@ import {
   Image,
   Anchor,
   Badge,
+  Card,
 } from '@mantine/core';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
@@ -34,12 +35,11 @@ export default async function ProfileHeader(props: Props) {
 
   return (
     <Fragment>
-      <Image
-        src={
-          'https://cdn.bsky.app/img/banner/plain/did:plc:qkhcnr2b2quwyezdkv346262/bafkreih3ihcra2vry7mvwnweispuifyuxs76hklhangr4ucjym2qo66equ@jpeg'
-        }
-        h={150}
-      />
+      {profile.bannerUrl ? (
+        <Image src={profile.bannerUrl} h={150} />
+      ) : (
+        <Card h={150} bg={'var(--mantine-color-disabled)'} radius={0} />
+      )}
       <Container p={0} m={0} fluid>
         <MinimalProfileHeaderContainer
           avatarUrl={profile.avatarUrl}
