@@ -26,7 +26,6 @@ export interface OAuthCallbackDTO {
 export type { LoginWithAppPasswordRequest as LoginWithAppPasswordDTO } from './requests';
 
 // Type aliases for backend DTO naming conventions
-export type { User as UserProfileDTO } from './common';
 export type { Collection as CollectionDTO } from './responses';
 export type { UrlCard as UrlCardDTO } from './responses';
 export type { Pagination as PaginationDTO } from './common';

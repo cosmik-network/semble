@@ -16,6 +16,7 @@ import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { CollectionAccessType } from '../../../domain/Collection';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetOpenCollectionsWithContributorQuery {
   contributorId: string; // DID or handle
@@ -96,19 +97,26 @@ export class GetOpenCollectionsWithContributorUseCase
       // Get unique author IDs from the results
       const authorIds = [...new Set(result.items.map((item) => item.authorId))];
 
-      // Fetch profiles for all authors
-      const profilePromises = authorIds.map((authorId) =>
-        this.profileService.getProfile(authorId),
+      // Fetch profiles for all authors using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        authorIds,
+        undefined, // No calling user (no isFollowing needed)
+        {
+          skipFailures: true, // Skip collections with failed author profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
-      const profileResults = await Promise.all(profilePromises);
 
-      // Create a map of authorId to profile for quick lookup
-      const profileMap = new Map();
-      profileResults.forEach((profileResult, index) => {
-        if (profileResult.isOk()) {
-          profileMap.set(authorIds[index], profileResult.value);
-        }
-      });
+      if (profileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch author profiles: ${profileMapResult.error.message}`,
+          ),
+        );
+      }
+
+      const profileMap = profileMapResult.value;
 
       // Transform raw data to enriched DTOs
       const enrichedCollections: CollectionDTO[] = result.items
@@ -128,13 +136,7 @@ export class GetOpenCollectionsWithContributorUseCase
             updatedAt: item.updatedAt.toISOString(),
             createdAt: item.createdAt.toISOString(),
             cardCount: item.cardCount,
-            author: {
-              id: profile.id,
-              name: profile.name,
-              handle: profile.handle,
-              avatarUrl: profile.avatarUrl,
-              description: profile.bio,
-            },
+            author: profile,
           };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);

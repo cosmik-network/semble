@@ -3,7 +3,17 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import useRemoveCardFromLibrary from '../../lib/mutations/useRemoveCardFromLibrary';
 import { notifications } from '@mantine/notifications';
-import { Button, Card, Group, Stack, Text, Textarea } from '@mantine/core';
+import {
+  Button,
+  Card,
+  Flex,
+  Group,
+  Input,
+  Stack,
+  Text,
+  Textarea,
+  VisuallyHidden,
+} from '@mantine/core';
 
 interface Props {
   note?: string;
@@ -16,6 +26,7 @@ export default function AddCardActions(props: Props) {
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [noteMode, setNoteMode] = useState(false);
   const [note, setNote] = useState(props.note);
+  const MAX_NOTE_LENGTH = 500;
 
   const removeNote = useRemoveCardFromLibrary();
 
@@ -45,17 +56,30 @@ export default function AddCardActions(props: Props) {
         style={{ cursor: 'pointer' }}
       >
         <Stack gap={'xs'}>
-          <Textarea
-            id="note"
-            label="Your note"
-            placeholder="Add a note about this card"
-            variant="filled"
-            size="md"
-            rows={3}
-            maxLength={500}
-            value={note}
-            onChange={(e) => setNote(e.currentTarget.value)}
-          />
+          <Stack gap={0}>
+            <Flex justify="space-between">
+              <Input.Label size="md" htmlFor="note">
+                Your note
+              </Input.Label>
+              <Text c={'gray'} aria-hidden>
+                {note?.length ?? 0} / {MAX_NOTE_LENGTH}
+              </Text>
+            </Flex>
+
+            <Textarea
+              id="note"
+              placeholder="Add a note about this card"
+              variant="filled"
+              size="md"
+              rows={3}
+              maxLength={500}
+              value={note}
+              onChange={(e) => setNote(e.currentTarget.value)}
+            />
+            <VisuallyHidden id="note-char-remaining" aria-live="polite">
+              {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
+            </VisuallyHidden>
+          </Stack>
           <Group gap={'xs'} grow>
             <Button
               variant="light"

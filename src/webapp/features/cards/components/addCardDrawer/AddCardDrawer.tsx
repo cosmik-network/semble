@@ -2,13 +2,16 @@ import {
   Button,
   Container,
   Drawer,
+  Flex,
   Group,
+  Input,
   ScrollArea,
   Stack,
   Text,
   Textarea,
   TextInput,
   ThemeIcon,
+  VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -57,6 +60,9 @@ export default function AddCardDrawer(props: Props) {
       collections: selectedCollections,
     },
   });
+
+  const MAX_NOTE_LENGTH = 500;
+  const { note } = form.getValues();
 
   useEffect(() => {
     if (props.initialUrl) {
@@ -127,17 +133,31 @@ export default function AddCardDrawer(props: Props) {
                   {...form.getInputProps('url')}
                 />
 
-                <Textarea
-                  id="note"
-                  label="Note"
-                  placeholder="Add a note about this card"
-                  variant="filled"
-                  size="md"
-                  rows={3}
-                  maxLength={500}
-                  key={form.key('note')}
-                  {...form.getInputProps('note')}
-                />
+                <Stack gap={0}>
+                  <Flex justify="space-between">
+                    <Input.Label size="md" htmlFor="note">
+                      Note
+                    </Input.Label>
+                    <Text c={'gray'} aria-hidden>
+                      {form.getValues().note.length} / {MAX_NOTE_LENGTH}
+                    </Text>
+                  </Flex>
+
+                  <Textarea
+                    id="note"
+                    placeholder="Add a note about this card"
+                    variant="filled"
+                    size="md"
+                    rows={3}
+                    maxLength={MAX_NOTE_LENGTH}
+                    aria-describedby="note-char-remaining"
+                    key={form.key('note')}
+                    {...form.getInputProps('note')}
+                  />
+                  <VisuallyHidden id="note-char-remaining" aria-live="polite">
+                    {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
+                  </VisuallyHidden>
+                </Stack>
               </Stack>
 
               <Stack gap={5}>

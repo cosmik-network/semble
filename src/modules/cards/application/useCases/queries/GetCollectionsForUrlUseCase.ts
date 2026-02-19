@@ -9,9 +9,10 @@ import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
-import { GetCollectionsForUrlResponse, Collection } from '@semble/types';
+import { GetCollectionsForUrlResponse, Collection, User } from '@semble/types';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -72,51 +73,23 @@ export class GetCollectionsForUrlUseCase
         },
       );
 
-      // Enrich with author profiles
+      // Build profile map using ProfileEnricher utility
+      const profileEnricher = new ProfileEnricher(this.profileService);
       const uniqueAuthorIds = Array.from(
         new Set(result.items.map((item) => item.authorId)),
       );
 
-      const profilePromises = uniqueAuthorIds.map((authorId) =>
-        this.profileService.getProfile(authorId, query.callingUserId),
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        uniqueAuthorIds,
+        query.callingUserId,
+        { mapToUser: false }, // Use inline profile (without isFollowing)
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Create a map of profiles
-      const profileMap = new Map<
-        string,
-        {
-          id: string;
-          name: string;
-          handle: string;
-          avatarUrl?: string;
-          description?: string;
-        }
-      >();
-
-      for (let i = 0; i < uniqueAuthorIds.length; i++) {
-        const profileResult = profileResults[i];
-        const authorId = uniqueAuthorIds[i];
-        if (!profileResult || !authorId) {
-          return err(new Error('Missing profile result or author ID'));
-        }
-        if (profileResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-            ),
-          );
-        }
-        const profile = profileResult.value;
-        profileMap.set(authorId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          description: profile.bio,
-        });
+      if (profileMapResult.isErr()) {
+        return err(profileMapResult.error);
       }
+
+      const profileMap = profileMapResult.value;
 
       // Map items with enriched author data and full collection data
       const enrichedCollections: Collection[] = await Promise.all(

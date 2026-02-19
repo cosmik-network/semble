@@ -3,6 +3,7 @@ import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UserProfileDTO } from '@semble/types';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetLibrariesForCardQuery {
   cardId: string;
@@ -44,43 +45,29 @@ export class GetLibrariesForCardUseCase
         query.cardId,
       );
 
-      // Fetch profiles for all users
-      const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId),
+      // Fetch profiles for all users using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        userIds,
+        undefined, // No calling user
+        {
+          skipFailures: true, // Skip failed profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Filter out failed profile fetches and transform to DTOs
-      const users: UserProfileDTO[] = [];
-      const errors: string[] = [];
-
-      for (let i = 0; i < profileResults.length; i++) {
-        const result = profileResults[i];
-        if (!result) {
-          errors.push(`No profile found for user ${userIds[i]}`);
-          continue;
-        }
-        if (result.isOk()) {
-          const profile = result.value;
-          users.push({
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-            description: profile.bio,
-          });
-        } else {
-          errors.push(
-            `Failed to fetch profile for user ${userIds[i]}: ${result.error.message}`,
-          );
-        }
+      if (profileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch user profiles: ${profileMapResult.error.message}`,
+          ),
+        );
       }
 
-      // Log errors but don't fail the entire operation
-      if (errors.length > 0) {
-        console.warn('Some profile fetches failed:', errors);
-      }
+      const profileMap = profileMapResult.value;
+
+      // Convert map to array
+      const users: UserProfileDTO[] = Array.from(profileMap.values());
 
       return ok({
         cardId: query.cardId,

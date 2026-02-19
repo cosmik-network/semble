@@ -34,10 +34,18 @@ export default function UrlCard(props: Props) {
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
 
-    const targetUrl =
-      isCollectionPage(props.url) || isProfilePage(props.url)
-        ? props.url
-        : `/url?id=${props.cardContent.url}`;
+    let targetUrl: string;
+
+    if (isCollectionPage(props.url) || isProfilePage(props.url)) {
+      targetUrl = props.url;
+    } else {
+      // Build URL with viaCardId first, then id last (since id contains a URL that might have query params)
+      if (props.viaCardId) {
+        targetUrl = `/url?viaCardId=${props.id}&id=${props.cardContent.url}`;
+      } else {
+        targetUrl = `/url?id=${props.cardContent.url}`;
+      }
+    }
 
     // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
     if (e.metaKey || e.ctrlKey || e.button === 1) {

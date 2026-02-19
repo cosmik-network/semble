@@ -13,6 +13,7 @@ import { Follow } from '../../../domain/Follow';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { PublishedRecordId } from '../../../../cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 
 export interface FollowTargetDTO {
   followerId: string; // DID
@@ -40,6 +41,7 @@ export class FollowTargetUseCase extends BaseUseCase<
     private userRepository: IUserRepository,
     private collectionRepository: ICollectionRepository,
     private followPublisher: IFollowPublisher,
+    private profileService: IProfileService,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -209,7 +211,17 @@ export class FollowTargetUseCase extends BaseUseCase<
         // Don't fail the operation
       }
 
-      // 12. Return success
+      // 12. Invalidate profile counts cache
+      // Invalidate follower's counts (followingCount increased)
+      if (this.profileService.invalidateCounts) {
+        await this.profileService.invalidateCounts(request.followerId);
+      }
+      // Invalidate target's counts (followerCount increased, only for USER targets)
+      if (targetType.value === 'USER' && this.profileService.invalidateCounts) {
+        await this.profileService.invalidateCounts(request.targetId);
+      }
+
+      // 13. Return success
       return ok({
         followId: follow.followId.toString(),
       });
