@@ -9,6 +9,7 @@ import { verifySessionOnClient } from '@/lib/auth/dal';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 const ENABLE_AUTH_LOGGING = true;
 
@@ -37,10 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Reset PostHog user identity
-    if (
-      process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' &&
-      posthog.__loaded
-    ) {
+    if (shouldCaptureAnalytics()) {
       posthog.reset();
       if (ENABLE_AUTH_LOGGING) {
         console.log('[useAuth] PostHog user identity reset');
@@ -72,22 +70,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const user = query.data;
 
-    // Only identify in production and when user is available
-    if (
-      process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' &&
-      user &&
-      posthog.__loaded
-    ) {
+    // Only identify when analytics is enabled and user is available
+    if (shouldCaptureAnalytics() && user) {
       posthog.identify(user.id, {
         name: user.name,
         handle: user.handle,
         is_internal: isInternalUser(user.handle),
         is_early_tester: isEarlyTester(user.handle),
       });
-
-      if (ENABLE_AUTH_LOGGING) {
-        console.log('[useAuth] User identified in PostHog:', user.id);
-      }
     }
   }, [query.data]);
 

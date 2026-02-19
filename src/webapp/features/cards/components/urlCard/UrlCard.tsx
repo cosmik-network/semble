@@ -11,6 +11,7 @@ import styles from './UrlCard.module.css';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import Link from 'next/link';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   id: string;
@@ -25,6 +26,7 @@ interface Props {
   cardAuthor?: User;
   viaCardId?: string;
   showAuthor?: boolean;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function UrlCard(props: Props) {
@@ -133,6 +135,7 @@ export default function UrlCard(props: Props) {
             urlLibraryCount={props.urlLibraryCount}
             urlIsInLibrary={props.urlIsInLibrary ?? false}
             viaCardId={props.viaCardId}
+            analyticsContext={props.analyticsContext}
           />
         </Stack>
       </Stack>

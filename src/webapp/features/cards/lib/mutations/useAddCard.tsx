@@ -5,8 +5,16 @@ import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
+import posthog from 'posthog-js';
+import {
+  CardSaveAnalyticsContext,
+  CardSaveEventProperties,
+} from '@/features/analytics/types';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
-export default function useAddCard() {
+export default function useAddCard(
+  analyticsContext?: CardSaveAnalyticsContext,
+) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -47,6 +55,28 @@ export default function useAddCard() {
           queryKey: collectionKeys.infinite(id),
         });
       });
+
+      // Track card save event in PostHog
+      if (shouldCaptureAnalytics() && analyticsContext) {
+        const eventProperties: CardSaveEventProperties = {
+          save_source: analyticsContext.saveSource,
+          is_new_card: true,
+          has_note: !!variables.note,
+          collection_count: variables.collectionIds?.length || 0,
+          active_filters: analyticsContext.activeFilters
+            ? {
+                url_type: analyticsContext.activeFilters.urlType,
+                sort: analyticsContext.activeFilters.sort,
+                search_query: analyticsContext.activeFilters.searchQuery,
+                profile_filter: analyticsContext.activeFilters.profileFilter,
+              }
+            : undefined,
+          via_card_id: variables.viaCardId,
+          page_path: analyticsContext.pagePath,
+        };
+
+        posthog.capture('card_saved', eventProperties);
+      }
     },
   });
 

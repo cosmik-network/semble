@@ -29,7 +29,8 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { Collection, CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
-import posthog from 'posthog-js';
+import { CardSaveSource } from '@/features/analytics/types';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   isOpen: boolean;
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export default function AddCardDrawer(props: Props) {
+  const pathname = usePathname();
   const [collectionSelectorOpened, { toggle: toggleCollectionSelector }] =
     useDisclosure(false);
   const initialCollections = props.selectedCollection
@@ -51,7 +53,10 @@ export default function AddCardDrawer(props: Props) {
   const myCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
-  const addCard = useAddCard();
+  const addCard = useAddCard({
+    saveSource: CardSaveSource.ADD_CARD_DRAWER,
+    pagePath: pathname,
+  });
 
   const form = useForm({
     initialValues: {
@@ -73,7 +78,6 @@ export default function AddCardDrawer(props: Props) {
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
     track('add new card');
-    posthog.capture('add_new_card');
 
     addCard.mutate(
       {

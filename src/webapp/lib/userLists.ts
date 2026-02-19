@@ -9,6 +9,10 @@ export const INTERNAL_HANDLES = [
   'cosmik.network',
   'semble.so',
   'jasmine-pyz.bsky.social',
+  'cosmiktesting.bsky.social',
+  'sembot.bsky.social',
+  'alice.bsky.social',
+  'bob.bsky.social',
 ];
 
 export const EARLY_TESTER_HANDLES = [

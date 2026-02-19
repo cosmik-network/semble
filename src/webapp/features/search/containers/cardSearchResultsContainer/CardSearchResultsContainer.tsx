@@ -10,6 +10,8 @@ import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarU
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 import { SearchFilters } from '../../components/searchFilters/SearchFilters';
+import { CardSaveSource } from '@/features/analytics/types';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   query: string;
@@ -18,6 +20,7 @@ interface Props {
 }
 
 export default function CardSearchResultsContainer(props: Props) {
+  const pathname = usePathname();
   const {
     data,
     error,
@@ -59,7 +62,18 @@ export default function CardSearchResultsContainer(props: Props) {
           <Grid gutter="xs">
             {allUrls.map((urlView) => (
               <Grid.Col key={urlView.url} span={12}>
-                <SimilarUrlCard urlView={urlView} />
+                <SimilarUrlCard
+                  urlView={urlView}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.SEARCH_RESULTS,
+                    activeFilters: {
+                      searchQuery: props.query,
+                      profileFilter: props.handle,
+                      urlType: props.urlType,
+                    },
+                    pagePath: pathname,
+                  }}
+                />
               </Grid.Col>
             ))}
           </Grid>

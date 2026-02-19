@@ -5,9 +5,11 @@ import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import { useRouter } from 'next/navigation';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   item: NotificationItemType;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function NotificationItem(props: Props) {
@@ -69,6 +71,7 @@ export default function NotificationItem(props: Props) {
               urlIsInLibrary={props.item.card.urlInLibrary}
               authorHandle={props.item.user.handle}
               viaCardId={props.item.card.id}
+              analyticsContext={props.analyticsContext}
             />
           )}
         </Stack>

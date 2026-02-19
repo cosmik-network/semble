@@ -5,8 +5,16 @@ import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
+import posthog from 'posthog-js';
+import {
+  CardSaveAnalyticsContext,
+  CardSaveEventProperties,
+} from '@/features/analytics/types';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
-export default function useUpdateCardAssociations() {
+export default function useUpdateCardAssociations(
+  analyticsContext?: CardSaveAnalyticsContext,
+) {
   const client = createSembleClient();
 
   const queryClient = useQueryClient();
@@ -18,6 +26,7 @@ export default function useUpdateCardAssociations() {
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
       viaCardId?: string;
+      addToLibrary?: boolean;
     }) => {
       return client.updateUrlCardAssociations({
         cardId: updatedCard.cardId,
@@ -47,6 +56,32 @@ export default function useUpdateCardAssociations() {
           queryKey: collectionKeys.collection(id),
         });
       });
+
+      // Track card save event in PostHog (only when adding to library)
+      if (
+        shouldCaptureAnalytics() &&
+        analyticsContext &&
+        variables.addToLibrary
+      ) {
+        const eventProperties: CardSaveEventProperties = {
+          save_source: analyticsContext.saveSource,
+          is_new_card: false,
+          has_note: !!variables.note,
+          collection_count: variables.addToCollectionIds?.length || 0,
+          active_filters: analyticsContext.activeFilters
+            ? {
+                url_type: analyticsContext.activeFilters.urlType,
+                sort: analyticsContext.activeFilters.sort,
+                search_query: analyticsContext.activeFilters.searchQuery,
+                profile_filter: analyticsContext.activeFilters.profileFilter,
+              }
+            : undefined,
+          via_card_id: variables.viaCardId,
+          page_path: analyticsContext.pagePath,
+        };
+
+        posthog.capture('card_saved', eventProperties);
+      }
     },
   });
 

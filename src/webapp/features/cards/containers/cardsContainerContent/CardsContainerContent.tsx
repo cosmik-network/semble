@@ -9,7 +9,8 @@ import useCards from '../../lib/queries/useCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
+import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   handle: string;
@@ -22,6 +23,7 @@ const sortOrderMap: Record<CardSortField, SortOrder> = {
 };
 
 export default function CardsContainerContent(props: Props) {
+  const pathname = usePathname();
   const { desktopOpened } = useNavbarContext();
   const { settings } = useUserSettings();
 
@@ -97,6 +99,14 @@ export default function CardsContainerContent(props: Props) {
               urlLibraryCount={card.urlLibraryCount}
               urlIsInLibrary={card.urlInLibrary}
               viaCardId={card.id}
+              analyticsContext={{
+                saveSource: CardSaveSource.PROFILE,
+                activeFilters: {
+                  urlType: selectedUrlType,
+                  sort: sortBy,
+                },
+                pagePath: pathname,
+              }}
             />
           </Grid.Col>
         ))}

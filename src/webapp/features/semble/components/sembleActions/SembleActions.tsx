@@ -10,7 +10,8 @@ import { IoMdCheckmark } from 'react-icons/io';
 import { MdIosShare } from 'react-icons/md';
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
-import posthog from 'posthog-js';
+import { CardSaveSource } from '@/features/analytics/types';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   url: string;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function SembleActions(props: Props) {
+  const pathname = usePathname();
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
@@ -76,9 +78,6 @@ export default function SembleActions(props: Props) {
             track(
               `Semble: ${isInYourLibrary ? 'update card' : 'add to library'}`,
             );
-            posthog.capture(
-              `Semble: ${isInYourLibrary ? 'update card' : 'add to library'}`,
-            );
           }}
         >
           {isInYourLibrary ? 'Update card' : 'Add to library'}
@@ -95,6 +94,10 @@ export default function SembleActions(props: Props) {
         isInYourLibrary={cardStatus.data.card?.urlInLibrary}
         urlLibraryCount={urlLibraryCount}
         viaCardId={props.viaCardId}
+        analyticsContext={{
+          saveSource: CardSaveSource.SEMBLE_PAGE,
+          pagePath: pathname,
+        }}
       />
     </Fragment>
   );

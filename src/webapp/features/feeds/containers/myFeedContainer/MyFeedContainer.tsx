@@ -9,10 +9,12 @@ import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { UrlType, ActivitySource } from '@semble/types';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { CardSaveSource } from '@/features/analytics/types';
 
 export default function MyFeedContainer() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
   const selectedSource = searchParams.get('source') as ActivitySource;
@@ -81,7 +83,17 @@ export default function MyFeedContainer() {
             <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
               <Stack gap={60}>
                 {allActivities.map((item) => (
-                  <FeedItem key={item.id} item={item} />
+                  <FeedItem
+                    key={item.id}
+                    item={item}
+                    analyticsContext={{
+                      saveSource: CardSaveSource.FEED,
+                      activeFilters: {
+                        urlType: selectedUrlType,
+                      },
+                      pagePath: pathname,
+                    }}
+                  />
                 ))}
               </Stack>
             </Stack>
