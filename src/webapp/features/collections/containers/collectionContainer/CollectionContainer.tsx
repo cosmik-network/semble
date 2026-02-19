@@ -22,10 +22,8 @@ import CollectionContainerContentSkeleton from '../collectionContainerContent/Sk
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
-import CollectionStats from '../../components/collectionStats/CollectionStats';
 import { getRelativeTime } from '@/lib/utils/time';
 
 interface Props {
@@ -34,7 +32,6 @@ interface Props {
 }
 
 export default function CollectionContainer(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
   const { data, isPending, error } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -54,114 +51,132 @@ export default function CollectionContainer(props: Props) {
 
   return (
     <Container p="xs" size="xl">
-      <Stack justify="flex-start">
-        <Group justify="space-between" align="start">
-          <Stack gap={0}>
-            <Group gap={'xs'}>
-              <Text
-                fw={700}
-                c={
-                  collection.accessType === CollectionAccessType.OPEN
-                    ? 'green'
-                    : 'grape'
-                }
-              >
-                Collection
-              </Text>
-
-              {accessType === CollectionAccessType.OPEN && (
-                <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                  <Badge
-                    color="green"
-                    leftSection={<FaSeedling />}
-                    variant="light"
-                  >
-                    Open
-                  </Badge>
-                </Tooltip>
-              )}
-            </Group>
-            <Group gap={8}>
-              <Title order={1}>{collection.name}</Title>
-              {isMarginUri(collection.uri) && (
-                <MarginLogo size={20} marginUrl={marginUrl} />
-              )}
-            </Group>
-            {collection.description && (
-              <Text c="gray" mt="lg" maw={700}>
-                {collection.description}
-              </Text>
-            )}
-            {featureFlags?.following && (
-              <CollectionStats
-                collectionId={collection.id}
-                handle={props.handle}
-                rkey={props.rkey}
-              />
-            )}
-          </Stack>
-
-          <Group gap={'xs'}>
-            <Stack gap={'xs'}>
-              <Group gap={5}>
-                <Avatar
-                  size={'sm'}
-                  component={Link}
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.name}'s avatar`}
-                />
-                <Anchor
-                  component={Link}
-                  href={`/profile/${collection.author.handle}`}
-                  fw={600}
-                  c="bright"
+      <Stack gap={'lg'}>
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="start">
+            <Stack gap={0}>
+              <Group gap={'xs'}>
+                <Text
+                  fw={700}
+                  c={
+                    collection.accessType === CollectionAccessType.OPEN
+                      ? 'green'
+                      : 'grape'
+                  }
                 >
-                  {collection.author.name}
-                </Anchor>
+                  Collection
+                </Text>
+
+                {accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <Badge
+                      color="green"
+                      leftSection={<FaSeedling />}
+                      variant="light"
+                    >
+                      Open
+                    </Badge>
+                  </Tooltip>
+                )}
               </Group>
-              <Text fw={500} c={'dimmed'}>
-                <Text fw={500} c={'bright'} span>
-                  {collection.cardCount ?? 0}
-                </Text>{' '}
-                card
-                {collection.cardCount !== 1 && 's'}
-                {' · '}
-                <Text fw={500} c={'bright'} span>
-                  Started
-                </Text>{' '}
-                {getRelativeTime(collection.createdAt)}
-                {' · '}
-                <Text fw={500} c={'bright'} span>
-                  Updated
-                </Text>{' '}
-                {getRelativeTime(collection.updatedAt)}
-              </Text>
+              <Group gap={8}>
+                <Title order={1}>{collection.name}</Title>
+                {isMarginUri(collection.uri) && (
+                  <MarginLogo size={20} marginUrl={marginUrl} />
+                )}
+              </Group>
+              {collection.description && (
+                <Text c="gray" mt="lg" maw={700}>
+                  {collection.description}
+                </Text>
+              )}
             </Stack>
           </Group>
-        </Group>
 
-        <Group justify="space-between" gap={'xs'}>
-          <CardFilters.Root>
-            <CardFilters.SortSelect />
-            <CardFilters.ViewToggle />
-            <CardFilters.TypeFilter />
-          </CardFilters.Root>
+          <Group gap={'xs'} justify="space-between">
+            <Group gap={5}>
+              <Avatar
+                size={'sm'}
+                component={Link}
+                href={`/profile/${collection.author.handle}`}
+                src={collection.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${collection.author.name}'s avatar`}
+              />
+              <Anchor
+                component={Link}
+                href={`/profile/${collection.author.handle}`}
+                fw={600}
+                c="bright"
+              >
+                {collection.author.name}
+              </Anchor>
+            </Group>
+            <Group gap={'lg'}>
+              <Stack gap={0} align="center">
+                <Text fw={500} fz={'sm'} c={'bright'}>
+                  Cards
+                </Text>
+                <Text fw={500} fz={'sm'} c={'dimmed'}>
+                  {collection.cardCount ?? 0}
+                </Text>
+              </Stack>
 
-          <CollectionActions
-            collection={{
-              ...collection,
-              rkey: props.rkey,
-            }}
-          />
-        </Group>
+              {/*<Stack gap={0} align="center">
+                <Text fw={500} fz={'sm'} c={'bright'}>
+                  Followers
+                </Text>
+                <Text fw={500} fz={'sm'} c={'dimmed'}>
+                  TBD
+                </Text>
+              </Stack>*/}
 
-        <Suspense fallback={<CollectionContainerContentSkeleton />}>
-          <CollectionContainerContent rkey={props.rkey} handle={props.handle} />
-        </Suspense>
+              <Stack gap={0} align="center">
+                <Text fw={500} fz={'sm'} c={'bright'}>
+                  Created
+                </Text>
+                <Text fw={500} fz={'sm'} c={'dimmed'}>
+                  {getRelativeTime(collection.createdAt)}
+                </Text>
+              </Stack>
+
+              <Stack gap={0} align="center">
+                <Text fw={500} fz={'sm'} c={'bright'}>
+                  Updated
+                </Text>
+                <Text fw={500} fz={'sm'} c={'dimmed'}>
+                  {getRelativeTime(collection.updatedAt)}
+                </Text>
+              </Stack>
+            </Group>
+          </Group>
+        </Stack>
+
+        <Stack justify="flex-start">
+          <Group justify="space-between" gap={'xs'}>
+            <CardFilters.Root>
+              <CardFilters.SortSelect />
+              <CardFilters.ViewToggle />
+              <CardFilters.TypeFilter />
+            </CardFilters.Root>
+
+            <CollectionActions
+              collection={{
+                ...collection,
+                rkey: props.rkey,
+              }}
+            />
+          </Group>
+
+          <Suspense fallback={<CollectionContainerContentSkeleton />}>
+            <CollectionContainerContent
+              rkey={props.rkey}
+              handle={props.handle}
+            />
+          </Suspense>
+        </Stack>
       </Stack>
     </Container>
   );
