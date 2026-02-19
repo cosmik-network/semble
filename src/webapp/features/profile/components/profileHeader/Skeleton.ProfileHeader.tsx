@@ -15,7 +15,14 @@ export default function ProfileHeaderSkeleton() {
         <Stack gap={'xl'}>
           <Grid gutter={'md'} align={'center'} grow>
             <GridCol span={'auto'}>
-              <Avatar size={'clamp(90px, 22vw, 100px)'} radius={'lg'} />
+              <Avatar
+                size={'95px'}
+                mt={'-57.5'}
+                radius={'lg'}
+                style={{
+                  border: '2.5px solid var(--mantine-color-body)',
+                }}
+              />
             </GridCol>
             <GridCol span={{ base: 12, xs: 10 }}>
               <Stack gap={0}>

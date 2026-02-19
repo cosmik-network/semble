@@ -13,6 +13,8 @@ const APPROVED_HANDLES = new Set([
   'atproto.science',
   'chrisshank.com',
   'jasmine-pyz.bsky.social',
+  'alice.bsky.social',
+  'bob.bsky.social',
 ]);
 
 export function isApprovedHandle(handle: string | undefined | null): boolean {
