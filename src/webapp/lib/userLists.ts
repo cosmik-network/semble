@@ -8,6 +8,7 @@ export const INTERNAL_HANDLES = [
   'pouriade.com',
   'cosmik.network',
   'semble.so',
+  'jasmine-pyz.bsky.social',
 ];
 
 export const EARLY_TESTER_HANDLES = [
