@@ -68,6 +68,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
       services.sagaStateStore,
       repositories.cardRepository,
       repositories.notificationRepository,
+      repositories.userRepository,
+      services.identityResolutionService,
+      repositories.collectionRepository,
+      repositories.atUriResolutionService,
+      this.configService,
     );
 
     const notificationCardAddedToLibraryHandler =

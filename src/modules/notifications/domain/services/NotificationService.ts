@@ -209,4 +209,104 @@ export class NotificationService implements DomainService {
       );
     }
   }
+
+  async createUserAddedYourBskyPostNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is adding their own post
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserAddedYourBskyPost(
+        recipientUserId,
+        actorUserId,
+        cardId,
+        collectionIds,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async createUserAddedYourCollectionNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is adding their own collection
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserAddedYourCollection(
+        recipientUserId,
+        actorUserId,
+        cardId,
+        collectionIds,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
 }
