@@ -49,6 +49,11 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       services.sagaStateStore,
       repositories.cardRepository,
       repositories.notificationRepository,
+      repositories.userRepository,
+      services.identityResolutionService,
+      repositories.collectionRepository,
+      repositories.atUriResolutionService,
+      this.configService,
     );
 
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
