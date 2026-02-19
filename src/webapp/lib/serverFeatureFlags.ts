@@ -14,6 +14,7 @@ const APPROVED_HANDLES = new Set([
   'semble.so',
   'atproto.science',
   'chrisshank.com',
+  'jasmine-pyz.bsky.social',
 ]);
 
 export async function getServerFeatureFlags() {
@@ -23,14 +24,12 @@ export async function getServerFeatureFlags() {
     process.env.VERCEL_ENV !== 'production' ||
     (user?.handle && APPROVED_HANDLES.has(user.handle));
 
-  const showFollowing = process.env.VERCEL_ENV !== 'production';
-
   return {
     cardSearch: show,
     urlTypeFilter: show,
     leafletMentions: show,
     animatedLandingTitle: show,
     openCollections: true,
-    following: showFollowing,
+    following: show,
   };
 }

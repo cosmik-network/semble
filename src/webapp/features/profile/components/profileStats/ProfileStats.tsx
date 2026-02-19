@@ -61,6 +61,7 @@ function ProfileStatsContent({ identifier, handle, isFollowing }: Props) {
         <FollowButton
           targetId={identifier}
           targetType="USER"
+          targetHandle={handle}
           initialIsFollowing={isFollowing}
         />
       )}
