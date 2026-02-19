@@ -109,6 +109,7 @@ export class BlueskyProfileService implements IProfileService {
 
       // Add follow status if callerId is provided
       let isFollowing: boolean | undefined = undefined;
+      let followsYou: boolean | undefined = undefined;
       if (callerDid && callerDid !== userId) {
         const followResult =
           await this.followsRepository.findByFollowerAndTarget(
@@ -120,11 +121,24 @@ export class BlueskyProfileService implements IProfileService {
         if (followResult.isOk()) {
           isFollowing = followResult.value !== null;
         }
+
+        // Check if the profile user follows the caller
+        const followsYouResult =
+          await this.followsRepository.findByFollowerAndTarget(
+            userId,
+            callerDid,
+            FollowTargetType.USER,
+          );
+
+        if (followsYouResult.isOk()) {
+          followsYou = followsYouResult.value !== null;
+        }
       }
 
       return ok({
         ...userProfile,
         isFollowing,
+        followsYou,
         followerCount,
         followingCount,
         followedCollectionsCount,
