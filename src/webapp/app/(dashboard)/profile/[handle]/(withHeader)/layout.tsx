@@ -47,7 +47,7 @@ export default async function Layout(props: Props) {
   return (
     <Fragment>
       <Header>
-        <BackButton href={`/profile/${handle}`}>{`@${handle}`}</BackButton>
+        <BackButton href={'/home'}>Home</BackButton>
       </Header>
       <Suspense fallback={<ProfileHeaderSkeleton />} key={handle}>
         <ProfileHeader handle={handle} />
