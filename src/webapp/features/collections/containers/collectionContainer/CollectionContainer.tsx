@@ -26,6 +26,7 @@ import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import CollectionStats from '../../components/collectionStats/CollectionStats';
+import { getRelativeTime } from '@/lib/utils/time';
 
 interface Props {
   rkey: string;
@@ -101,26 +102,43 @@ export default function CollectionContainer(props: Props) {
           </Stack>
 
           <Group gap={'xs'}>
-            <Group gap={5}>
-              <Avatar
-                size={'sm'}
-                component={Link}
-                href={`/profile/${collection.author.handle}`}
-                src={collection.author.avatarUrl?.replace(
-                  'avatar',
-                  'avatar_thumbnail',
-                )}
-                alt={`${collection.author.name}'s avatar`}
-              />
-              <Anchor
-                component={Link}
-                href={`/profile/${collection.author.handle}`}
-                fw={600}
-                c="bright"
-              >
-                {collection.author.name}
-              </Anchor>
-            </Group>
+            <Stack>
+              <Group gap={5}>
+                <Avatar
+                  size={'sm'}
+                  component={Link}
+                  href={`/profile/${collection.author.handle}`}
+                  src={collection.author.avatarUrl?.replace(
+                    'avatar',
+                    'avatar_thumbnail',
+                  )}
+                  alt={`${collection.author.name}'s avatar`}
+                />
+                <Anchor
+                  component={Link}
+                  href={`/profile/${collection.author.handle}`}
+                  fw={600}
+                  c="bright"
+                >
+                  {collection.author.name}
+                </Anchor>
+              </Group>
+              <Text c={'gray'} fw={500}>
+                <Text c={'bright'} span>
+                  {collection.cardCount ?? 0}
+                </Text>{' '}
+                card
+                {collection.cardCount !== 1 && 's'}
+                {' · '}
+                <Text c={'bright'} span>
+                  {getRelativeTime(collection.createdAt)}
+                </Text>
+                {' · '}
+                <Text c={'bright'} span>
+                  {collection.updatedAt}
+                </Text>
+              </Text>
+            </Stack>
           </Group>
         </Group>
 

@@ -35,7 +35,6 @@ interface Props {
 export default function NotificationActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt);
-  const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
 
   const getActivityText = () => {
     const collections = props.collections ?? [];
@@ -235,7 +234,7 @@ export default function NotificationActivityStatus(props: Props) {
             <Text fw={500}>
               {getActivityText()}
               <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-                {relativeCreatedDate}
+                {time}
               </Text>
             </Text>
           </Group>
