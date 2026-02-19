@@ -23,9 +23,9 @@ export class NotificationUrlParserError extends Error {
 
 export class NotificationUrlParser {
   private static readonly BLUESKY_POST_PATTERN =
-    /^https:\/\/bsky\.app\/profile\/([^\/]+)\/post\/([^\/]+)$/;
+    /^https:\/\/bsky\.app\/profile\/([^/]+)\/post\/([^/]+)$/;
   private static readonly BLACKSKY_POST_PATTERN =
-    /^https:\/\/blacksky\.community\/profile\/([^\/]+)\/post\/([^\/]+)$/;
+    /^https:\/\/blacksky\.community\/profile\/([^/]+)\/post\/([^/]+)$/;
   private static readonly SEMBLE_COLLECTION_PATTERN_TEMPLATE = (
     appUrl: string,
   ) =>
