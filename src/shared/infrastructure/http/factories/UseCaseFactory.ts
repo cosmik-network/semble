@@ -197,11 +197,13 @@ export class UseCaseFactory {
         repositories.userRepository,
         repositories.collectionRepository,
         services.followPublisher,
+        services.profileService,
         services.eventPublisher,
       ),
       unfollowTargetUseCase: new UnfollowTargetUseCase(
         repositories.followsRepository,
         services.followPublisher,
+        services.profileService,
         services.eventPublisher,
       ),
       getFollowingUsersUseCase: new GetFollowingUsersUseCase(
@@ -496,12 +498,14 @@ export class UseCaseFactory {
       repositories.userRepository,
       repositories.collectionRepository,
       services.followPublisher,
+      services.profileService,
       services.eventPublisher,
     );
 
     const unfollowTargetUseCase = new UnfollowTargetUseCase(
       repositories.followsRepository,
       services.followPublisher,
+      services.profileService,
       services.eventPublisher,
     );
 

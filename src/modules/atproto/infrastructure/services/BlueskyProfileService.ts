@@ -78,8 +78,34 @@ export class BlueskyProfileService implements IProfileService {
         name: profile.displayName || profile.handle,
         handle: profile.handle,
         avatarUrl: profile.avatar,
+        bannerUrl: profile.banner,
         bio: profile.description,
       };
+
+      // Fetch follower/following counts in parallel
+      const [
+        followerCountResult,
+        followingCountResult,
+        collectionsCountResult,
+      ] = await Promise.all([
+        this.followsRepository.getFollowersCount(userId, FollowTargetType.USER),
+        this.followsRepository.getFollowingCount(userId, FollowTargetType.USER),
+        this.followsRepository.getFollowingCount(
+          userId,
+          FollowTargetType.COLLECTION,
+        ),
+      ]);
+
+      // Add counts to profile (default to 0 on error)
+      const followerCount = followerCountResult.isOk()
+        ? followerCountResult.value
+        : 0;
+      const followingCount = followingCountResult.isOk()
+        ? followingCountResult.value
+        : 0;
+      const followedCollectionsCount = collectionsCountResult.isOk()
+        ? collectionsCountResult.value
+        : 0;
 
       // Add follow status if callerId is provided
       let isFollowing: boolean | undefined = undefined;
@@ -99,6 +125,9 @@ export class BlueskyProfileService implements IProfileService {
       return ok({
         ...userProfile,
         isFollowing,
+        followerCount,
+        followingCount,
+        followedCollectionsCount,
       });
     } catch (error) {
       return err(

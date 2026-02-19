@@ -136,7 +136,7 @@ export default function AddCardDrawer(props: Props) {
                     <Input.Label size="md" htmlFor="note">
                       Note
                     </Input.Label>
-                    <Text aria-hidden>
+                    <Text c={'gray'} aria-hidden>
                       {form.getValues().note.length} / {MAX_NOTE_LENGTH}
                     </Text>
                   </Flex>

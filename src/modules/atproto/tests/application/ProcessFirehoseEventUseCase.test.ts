@@ -29,6 +29,7 @@ import { UnfollowTargetUseCase } from '../../../user/application/useCases/comman
 import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 import { InMemoryUserRepository } from '../../../user/tests/infrastructure/InMemoryUserRepository';
 import { FakeFollowPublisher } from '../../infrastructure/publishers/FakeFollowPublisher';
+import { FakeProfileService } from '../../../cards/tests/utils/FakeProfileService';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
@@ -67,6 +68,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let followsRepository: InMemoryFollowsRepository;
   let userRepository: InMemoryUserRepository;
   let followPublisher: FakeFollowPublisher;
+  let profileService: FakeProfileService;
 
   beforeEach(() => {
     duplicationService = new InMemoryFirehoseEventDuplicationService();
@@ -188,18 +190,21 @@ describe('ProcessFirehoseEventUseCase', () => {
     followsRepository = InMemoryFollowsRepository.getInstance();
     userRepository = InMemoryUserRepository.getInstance();
     followPublisher = new FakeFollowPublisher();
+    profileService = new FakeProfileService();
 
     followTargetUseCase = new FollowTargetUseCase(
       followsRepository,
       userRepository,
       collectionRepository,
       followPublisher,
+      profileService,
       eventPublisher,
     );
 
     unfollowTargetUseCase = new UnfollowTargetUseCase(
       followsRepository,
       followPublisher,
+      profileService,
       eventPublisher,
     );
 
