@@ -6,6 +6,7 @@ import { IProfileService } from 'src/modules/cards/domain/services/IProfileServi
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType';
 import { User } from '@semble/types';
+import { ProfileEnricher } from 'src/modules/cards/application/services/ProfileEnricher';
 
 export interface GetFollowingUsersQuery {
   userId: string; // DID or handle
@@ -89,39 +90,26 @@ export class GetFollowingUsersUseCase
         new Set(follows.map((follow) => follow.targetId)),
       );
 
-      // Fetch profiles for all followed users
-      const profilePromises = uniqueTargetIds.map((targetId) =>
-        this.profileService.getProfile(targetId, query.callingUserId),
+      // Fetch profiles for all followed users using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        uniqueTargetIds,
+        query.callingUserId,
+        {
+          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          mapToUser: true, // Use full User DTO with isFollowing
+        },
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Create a map of profiles
-      const profileMap = new Map<string, User>();
-
-      for (let i = 0; i < uniqueTargetIds.length; i++) {
-        const profileResult = profileResults[i];
-        const targetId = uniqueTargetIds[i];
-        if (!profileResult || !targetId) {
-          return err(new Error('Missing profile result or target ID'));
-        }
-        if (profileResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-            ),
-          );
-        }
-        const profile = profileResult.value;
-        profileMap.set(targetId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          description: profile.bio,
-          isFollowing: profile.isFollowing,
-        });
+      if (profileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch user profiles: ${profileMapResult.error.message}`,
+          ),
+        );
       }
+
+      const profileMap = profileMapResult.value;
 
       // Build users array in the order of follows (chronological)
       const users: User[] = follows

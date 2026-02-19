@@ -13,6 +13,7 @@ import {
   PaginationDTO,
   CardSortingDTO,
 } from '@semble/types';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetLibrariesForUrlQuery {
   url: string;
@@ -78,42 +79,30 @@ export class GetLibrariesForUrlUseCase
         },
       );
 
-      // Enrich with user profiles
+      // Enrich with user profiles using ProfileEnricher
       const uniqueUserIds = Array.from(
         new Set(result.items.map((item) => item.userId)),
       );
 
-      const profilePromises = uniqueUserIds.map((userId) =>
-        this.profileService.getProfile(userId, query.callingUserId),
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        uniqueUserIds,
+        query.callingUserId,
+        {
+          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      const profileResults = await Promise.all(profilePromises);
-
-      // Create a map of profiles
-      const profileMap = new Map<string, UserProfileDTO>();
-
-      for (let i = 0; i < uniqueUserIds.length; i++) {
-        const profileResult = profileResults[i];
-        const userId = uniqueUserIds[i];
-        if (!profileResult || !userId) {
-          return err(new Error('Missing profile result or user ID'));
-        }
-        if (profileResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
-            ),
-          );
-        }
-        const profile = profileResult.value;
-        profileMap.set(userId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          description: profile.bio,
-        });
+      if (profileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch user profiles: ${profileMapResult.error.message}`,
+          ),
+        );
       }
+
+      const profileMap = profileMapResult.value;
 
       // Map items with enriched user data and card data
       const enrichedLibraries: LibraryForUrlDTO[] = result.items.map((item) => {

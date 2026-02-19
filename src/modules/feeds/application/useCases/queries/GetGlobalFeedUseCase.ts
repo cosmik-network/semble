@@ -16,6 +16,7 @@ import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -101,44 +102,23 @@ export class GetGlobalFeedUseCase
         ...new Set(feed.activities.map((activity) => activity.actorId.value)),
       ];
 
-      // Fetch profiles for all actors
-      const actorProfiles = new Map<
-        string,
+      // Fetch profiles for all actors using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const actorProfilesResult = await profileEnricher.buildProfileMap(
+        actorIds,
+        undefined, // No calling user for actor profiles
         {
-          id: string;
-          name: string;
-          handle: string;
-          avatarUrl?: string;
-          description?: string;
-        }
-      >();
-      const profileResults = await Promise.all(
-        actorIds.map((actorId) => this.profileService.getProfile(actorId)),
+          skipFailures: true,
+          includeFallback: true,
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      profileResults.forEach((profileResult, idx) => {
-        const actorId = actorIds[idx];
-        if (!actorId) {
-          return;
-        }
-        if (profileResult.isOk()) {
-          const profile = profileResult.value;
-          actorProfiles.set(actorId, {
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-            description: profile.bio,
-          });
-        } else {
-          // If profile fetch fails, create a fallback
-          actorProfiles.set(actorId, {
-            id: actorId,
-            name: 'Unknown User',
-            handle: actorId,
-          });
-        }
-      });
+      if (actorProfilesResult.isErr()) {
+        return err(AppError.UnexpectedError.create(actorProfilesResult.error));
+      }
+
+      const actorProfiles = actorProfilesResult.value;
 
       // Get unique card IDs for hydration
       const cardIds = [
@@ -170,39 +150,23 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      // Fetch card author profiles
-      const cardAuthorProfiles = new Map<
-        string,
+      // Fetch card author profiles using ProfileEnricher
+      const cardAuthorProfilesResult = await profileEnricher.buildProfileMap(
+        cardAuthorIds,
+        query.callingUserId,
         {
-          id: string;
-          name: string;
-          handle: string;
-          avatarUrl?: string;
-          description?: string;
-        }
-      >();
-      const cardAuthorResults = await Promise.all(
-        cardAuthorIds.map((authorId) =>
-          this.profileService.getProfile(authorId, query.callingUserId),
-        ),
+          skipFailures: true, // Skip cards with failed author profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      cardAuthorResults.forEach((profileResult, idx) => {
-        const authorId = cardAuthorIds[idx];
-        if (!authorId) {
-          return;
-        }
-        if (profileResult.isOk()) {
-          const profile = profileResult.value;
-          cardAuthorProfiles.set(authorId, {
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-            description: profile.bio,
-          });
-        }
-      });
+      if (cardAuthorProfilesResult.isErr()) {
+        return err(
+          AppError.UnexpectedError.create(cardAuthorProfilesResult.error),
+        );
+      }
+
+      const cardAuthorProfiles = cardAuthorProfilesResult.value;
 
       // Get collection data for activities that have collections
       const collectionIds = [
@@ -216,28 +180,7 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      const collectionDataMap = new Map<
-        string,
-        {
-          id: string;
-          uri?: string;
-          name: string;
-          description?: string;
-          accessType: CollectionAccessType;
-          author: {
-            id: string;
-            name: string;
-            handle: string;
-            avatarUrl?: string;
-            description?: string;
-          };
-          cardCount: number;
-          createdAt: string;
-          updatedAt: string;
-          cardIds: Set<string>; // Track which cards are in this collection
-        }
-      >();
-      // Fetch all collections in parallel using Promise.all
+      // Fetch all collections first (without author data)
       const collectionResults = await Promise.all(
         collectionIds.map(async (collectionId) => {
           const collectionIdResult =
@@ -253,17 +196,6 @@ export class GetGlobalFeedUseCase
           }
 
           const collection = collectionResult.value;
-
-          // Get author profile
-          const authorProfileResult = await this.profileService.getProfile(
-            collection.authorId.value,
-            query.callingUserId,
-          );
-          if (authorProfileResult.isErr()) {
-            return null;
-          }
-
-          const authorProfile = authorProfileResult.value;
           const uri = collection.publishedRecordId?.uri;
 
           // Get the card IDs in this collection
@@ -277,13 +209,7 @@ export class GetGlobalFeedUseCase
             name: collection.name.toString(),
             description: collection.description?.toString(),
             accessType: collection.accessType,
-            author: {
-              id: authorProfile.id,
-              name: authorProfile.name,
-              handle: authorProfile.handle,
-              avatarUrl: authorProfile.avatarUrl,
-              description: authorProfile.bio,
-            },
+            authorId: collection.authorId.value,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
             updatedAt: collection.updatedAt.toISOString(),
@@ -293,21 +219,83 @@ export class GetGlobalFeedUseCase
         }),
       );
 
-      collectionResults.forEach((result) => {
-        if (result) {
-          collectionDataMap.set(result.collectionId, {
-            id: result.id,
-            uri: result.uri,
-            name: result.name,
-            description: result.description,
-            accessType: result.accessType,
-            author: result.author,
-            cardCount: result.cardCount,
-            createdAt: result.createdAt,
-            updatedAt: result.updatedAt,
-            cardIds: result.cardIds,
-          });
+      const validCollections = collectionResults.filter(
+        (result) => result !== null,
+      );
+
+      // Get unique collection author IDs
+      const collectionAuthorIds = [
+        ...new Set(validCollections.map((c) => c.authorId)),
+      ];
+
+      // Batch fetch collection author profiles using ProfileEnricher
+      const collectionAuthorProfilesResult =
+        await profileEnricher.buildProfileMap(
+          collectionAuthorIds,
+          query.callingUserId,
+          {
+            skipFailures: true, // Skip collections with failed author profiles
+            mapToUser: false, // Use inline profile (without isFollowing)
+          },
+        );
+
+      if (collectionAuthorProfilesResult.isErr()) {
+        return err(
+          AppError.UnexpectedError.create(collectionAuthorProfilesResult.error),
+        );
+      }
+
+      const collectionAuthorProfiles = collectionAuthorProfilesResult.value;
+
+      // Build collection data map with enriched author data
+      const collectionDataMap = new Map<
+        string,
+        {
+          id: string;
+          uri?: string;
+          name: string;
+          description?: string;
+          accessType: CollectionAccessType;
+          author: {
+            id: string;
+            name: string;
+            handle: string;
+            avatarUrl?: string;
+            bannerUrl?: string;
+            description?: string;
+          };
+          cardCount: number;
+          createdAt: string;
+          updatedAt: string;
+          cardIds: Set<string>; // Track which cards are in this collection
         }
+      >();
+
+      validCollections.forEach((result) => {
+        const author = collectionAuthorProfiles.get(result.authorId);
+        if (!author) {
+          return; // Skip collections with missing author profiles
+        }
+
+        collectionDataMap.set(result.collectionId, {
+          id: result.id,
+          uri: result.uri,
+          name: result.name,
+          description: result.description,
+          accessType: result.accessType,
+          author: {
+            id: author.id,
+            name: author.name,
+            handle: author.handle,
+            avatarUrl: author.avatarUrl,
+            bannerUrl: author.bannerUrl,
+            description: author.description,
+          },
+          cardCount: result.cardCount,
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+          cardIds: result.cardIds,
+        });
       });
 
       // Add follow status for collections if callingUserId is provided

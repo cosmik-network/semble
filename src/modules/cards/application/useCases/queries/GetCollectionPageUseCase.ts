@@ -12,6 +12,7 @@ import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
@@ -148,38 +149,26 @@ export class GetCollectionPageUseCase
         new Set(cardsResult.items.map((card) => card.authorId)),
       );
 
-      // Fetch all author profiles in parallel
-      const authorProfileResults = await Promise.all(
-        uniqueAuthorIds.map((authorId) =>
-          this.profileService.getProfile(authorId, query.callingUserId),
-        ),
+      // Fetch all author profiles using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const authorProfileMapResult = await profileEnricher.buildProfileMap(
+        uniqueAuthorIds,
+        query.callingUserId,
+        {
+          skipFailures: true, // Skip cards with failed author profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
-      // Create a map of authorId -> profile for efficient lookup
-      const authorProfileMap = new Map<
-        string,
-        {
-          id: string;
-          name: string;
-          handle: string;
-          avatarUrl?: string;
-        }
-      >();
-
-      for (let i = 0; i < uniqueAuthorIds.length; i++) {
-        const authorId = uniqueAuthorIds[i];
-        const profileResult = authorProfileResults[i];
-
-        if (profileResult?.isOk()) {
-          const profile = profileResult.value;
-          authorProfileMap.set(authorId!, {
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-          });
-        }
+      if (authorProfileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch card author profiles: ${authorProfileMapResult.error.message}`,
+          ),
+        );
       }
+
+      const authorProfileMap = authorProfileMapResult.value;
 
       // Transform raw card data to enriched DTOs with author information
       const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items.map(
@@ -224,6 +213,7 @@ export class GetCollectionPageUseCase
           name: authorProfile.name,
           handle: authorProfile.handle,
           avatarUrl: authorProfile.avatarUrl,
+          bannerUrl: authorProfile.bannerUrl,
         },
         urlCards: enrichedCards,
         cardCount: collection.cardCount,

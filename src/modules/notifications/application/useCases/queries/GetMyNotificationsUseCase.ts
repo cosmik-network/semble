@@ -7,6 +7,7 @@ import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import { NotificationItem } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
+import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -100,19 +101,22 @@ export class GetMyNotificationsUseCase
         });
       });
 
-      // Bulk fetch all profiles
-      const profilePromises = Array.from(userIds).map((id) =>
-        this.profileService.getProfile(id, request.userId),
+      // Bulk fetch all profiles using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        Array.from(userIds),
+        request.userId,
+        {
+          skipFailures: true, // Skip profiles that fail to load
+          mapToUser: true, // Use full User DTO with isFollowing
+        },
       );
-      const profileResults = await Promise.all(profilePromises);
 
-      // Build profile lookup map
-      const profileMap = new Map<string, any>();
-      profileResults.forEach((result) => {
-        if (result.isOk()) {
-          profileMap.set(result.value.id, result.value);
-        }
-      });
+      if (profileMapResult.isErr()) {
+        return err(AppError.UnexpectedError.create(profileMapResult.error));
+      }
+
+      const profileMap = profileMapResult.value;
 
       // Transform enriched notifications to DTOs
       const notificationItems: NotificationItemDTO[] = [];
@@ -147,7 +151,8 @@ export class GetMyNotificationsUseCase
                     name: collectionAuthorProfile.name,
                     handle: collectionAuthorProfile.handle,
                     avatarUrl: collectionAuthorProfile.avatarUrl,
-                    description: collectionAuthorProfile.bio,
+                    bannerUrl: collectionAuthorProfile.bannerUrl,
+                    description: collectionAuthorProfile.description,
                   },
                   description: collection.description,
                   accessType: collection.accessType as CollectionAccessType,
@@ -168,7 +173,8 @@ export class GetMyNotificationsUseCase
                 name: actorProfile.name,
                 handle: actorProfile.handle,
                 avatarUrl: actorProfile.avatarUrl,
-                description: actorProfile.bio,
+                bannerUrl: actorProfile.bannerUrl,
+                description: actorProfile.description,
                 isFollowing: actorProfile.isFollowing,
               },
               createdAt: notification.createdAt.toISOString(),
@@ -213,7 +219,8 @@ export class GetMyNotificationsUseCase
                   name: collectionAuthorProfile.name,
                   handle: collectionAuthorProfile.handle,
                   avatarUrl: collectionAuthorProfile.avatarUrl,
-                  description: collectionAuthorProfile.bio,
+                  bannerUrl: collectionAuthorProfile.bannerUrl,
+                  description: collectionAuthorProfile.description,
                 },
                 description: collection.description,
                 accessType: collection.accessType as CollectionAccessType,
@@ -234,7 +241,8 @@ export class GetMyNotificationsUseCase
               name: actorProfile.name,
               handle: actorProfile.handle,
               avatarUrl: actorProfile.avatarUrl,
-              description: actorProfile.bio,
+              bannerUrl: actorProfile.bannerUrl,
+              description: actorProfile.description,
               isFollowing: actorProfile.isFollowing,
             },
             card: {
@@ -265,7 +273,8 @@ export class GetMyNotificationsUseCase
                 name: cardAuthorProfile.name,
                 handle: cardAuthorProfile.handle,
                 avatarUrl: cardAuthorProfile.avatarUrl,
-                description: cardAuthorProfile.bio,
+                bannerUrl: cardAuthorProfile.bannerUrl,
+                description: cardAuthorProfile.description,
               },
               note: notification.cardNote,
             },

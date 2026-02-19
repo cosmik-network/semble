@@ -101,6 +101,7 @@ export class FakeAgentService implements IAgentService {
     avatarUrl: string;
     bio: string;
     did: string;
+    bannerUrl: string;
   } {
     const did2 = process.env.BSKY_DID_2 || 'did:plc:mock456';
 
@@ -112,6 +113,8 @@ export class FakeAgentService implements IAgentService {
           'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg',
         bio: 'This is Bob - a second mock profile for testing purposes (https://semble.so/), made by @cosmik.network.',
         did: did2,
+        bannerUrl:
+          'https://cdn.bsky.app/img/banner/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreicgrrurfx5uicisd4nuqhbgn5pihlth5ssjzyl2egg32rxvjvtory@jpeg',
       };
     }
 
@@ -124,6 +127,8 @@ export class FakeAgentService implements IAgentService {
         'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg',
       bio: 'This is Alice - a mock profile for testing purposes (https://semble.so/), made by @cosmik.network.',
       did: did1,
+      bannerUrl:
+        'https://cdn.bsky.app/img/banner/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreicgrrurfx5uicisd4nuqhbgn5pihlth5ssjzyl2egg32rxvjvtory@jpeg',
     };
   }
 

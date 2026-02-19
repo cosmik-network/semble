@@ -10,6 +10,8 @@ import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTa
 export class CachedBlueskyProfileService implements IProfileService {
   private readonly CACHE_TTL_SECONDS = 3600 * 12; // 12 hours
   private readonly CACHE_KEY_PREFIX = 'profile:';
+  private readonly COUNTS_CACHE_TTL_SECONDS = 900; // 15 minutes
+  private readonly COUNTS_CACHE_KEY_PREFIX = 'profile:counts:';
 
   constructor(
     private readonly profileService: IProfileService,
@@ -21,16 +23,27 @@ export class CachedBlueskyProfileService implements IProfileService {
     userId: string,
     callerId?: string,
   ): Promise<Result<UserProfile>> {
-    const cacheKey = this.getCacheKey(userId);
+    const profileCacheKey = this.getCacheKey(userId);
+    const countsCacheKey = this.getCountsCacheKey(userId);
 
     try {
-      let profile: UserProfile;
+      // Fetch both profile and counts from cache in parallel
+      const [cachedProfile, cachedCounts] = await Promise.all([
+        this.redis.get(profileCacheKey),
+        this.redis.get(countsCacheKey),
+      ]);
 
-      // Try cache first (without follow status)
-      const cached = await this.redis.get(cacheKey);
-      if (cached) {
+      let profile: UserProfile;
+      let counts: {
+        followerCount: number;
+        followingCount: number;
+        followedCollectionsCount: number;
+      };
+
+      // Handle profile cache
+      if (cachedProfile) {
         try {
-          profile = JSON.parse(cached) as UserProfile;
+          profile = JSON.parse(cachedProfile) as UserProfile;
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
           console.warn(
@@ -54,18 +67,84 @@ export class CachedBlueskyProfileService implements IProfileService {
 
         profile = result.value;
 
-        // Cache the profile (without follow status)
+        // Cache the profile (without follow status and counts)
         try {
           const profileToCache = { ...profile };
-          delete profileToCache.isFollowing; // Don't cache follow status
+          delete profileToCache.isFollowing;
+          delete profileToCache.followerCount;
+          delete profileToCache.followingCount;
+          delete profileToCache.followedCollectionsCount;
           await this.redis.setex(
-            cacheKey,
+            profileCacheKey,
             this.CACHE_TTL_SECONDS,
             JSON.stringify(profileToCache),
           );
         } catch (cacheError) {
           // Log cache error but don't fail the request
           console.warn(`Failed to cache profile for ${userId}:`, cacheError);
+        }
+      }
+
+      // Handle counts cache
+      if (cachedCounts) {
+        try {
+          counts = JSON.parse(cachedCounts) as {
+            followerCount: number;
+            followingCount: number;
+            followedCollectionsCount: number;
+          };
+        } catch (parseError) {
+          console.warn(
+            `Failed to parse cached counts for ${userId}:`,
+            parseError,
+          );
+          // Use counts from profile or defaults
+          counts = {
+            followerCount: profile.followerCount ?? 0,
+            followingCount: profile.followingCount ?? 0,
+            followedCollectionsCount: profile.followedCollectionsCount ?? 0,
+          };
+        }
+      } else {
+        // Counts cache miss - use from profile or fetch fresh
+        if (
+          profile.followerCount !== undefined &&
+          profile.followingCount !== undefined &&
+          profile.followedCollectionsCount !== undefined
+        ) {
+          counts = {
+            followerCount: profile.followerCount,
+            followingCount: profile.followingCount,
+            followedCollectionsCount: profile.followedCollectionsCount,
+          };
+        } else {
+          // If profile doesn't have counts, fetch fresh
+          const result = await this.profileService.getProfile(userId, callerId);
+          if (result.isOk()) {
+            counts = {
+              followerCount: result.value.followerCount ?? 0,
+              followingCount: result.value.followingCount ?? 0,
+              followedCollectionsCount:
+                result.value.followedCollectionsCount ?? 0,
+            };
+          } else {
+            counts = {
+              followerCount: 0,
+              followingCount: 0,
+              followedCollectionsCount: 0,
+            };
+          }
+        }
+
+        // Cache the counts
+        try {
+          await this.redis.setex(
+            countsCacheKey,
+            this.COUNTS_CACHE_TTL_SECONDS,
+            JSON.stringify(counts),
+          );
+        } catch (cacheError) {
+          console.warn(`Failed to cache counts for ${userId}:`, cacheError);
         }
       }
 
@@ -87,6 +166,7 @@ export class CachedBlueskyProfileService implements IProfileService {
       return ok({
         ...profile,
         isFollowing,
+        ...counts,
       });
     } catch (redisError) {
       // If Redis is down, fall back to direct service call
@@ -102,6 +182,10 @@ export class CachedBlueskyProfileService implements IProfileService {
     return `${this.CACHE_KEY_PREFIX}${userId}`;
   }
 
+  private getCountsCacheKey(userId: string): string {
+    return `${this.COUNTS_CACHE_KEY_PREFIX}${userId}`;
+  }
+
   /**
    * Invalidate cached profile for a specific user
    */
@@ -110,6 +194,17 @@ export class CachedBlueskyProfileService implements IProfileService {
       await this.redis.del(this.getCacheKey(userId));
     } catch (error) {
       console.warn(`Failed to invalidate profile cache for ${userId}:`, error);
+    }
+  }
+
+  /**
+   * Invalidate cached counts for a specific user
+   */
+  async invalidateCounts(userId: string): Promise<void> {
+    try {
+      await this.redis.del(this.getCountsCacheKey(userId));
+    } catch (error) {
+      console.warn(`Failed to invalidate counts cache for ${userId}:`, error);
     }
   }
 

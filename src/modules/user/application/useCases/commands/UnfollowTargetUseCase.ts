@@ -7,6 +7,7 @@ import { IFollowsRepository } from '../../../domain/repositories/IFollowsReposit
 import { IFollowPublisher } from '../../ports/IFollowPublisher';
 import { DID } from '../../../domain/value-objects/DID';
 import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType';
+import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 
 export interface UnfollowTargetDTO {
   followerId: string; // DID
@@ -28,6 +29,7 @@ export class UnfollowTargetUseCase extends BaseUseCase<
   constructor(
     private followsRepository: IFollowsRepository,
     private followPublisher: IFollowPublisher,
+    private profileService: IProfileService,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -120,7 +122,17 @@ export class UnfollowTargetUseCase extends BaseUseCase<
         // Don't fail the operation
       }
 
-      // 9. Return success
+      // 9. Invalidate profile counts cache
+      // Invalidate follower's counts (followingCount decreased)
+      if (this.profileService.invalidateCounts) {
+        await this.profileService.invalidateCounts(request.followerId);
+      }
+      // Invalidate target's counts (followerCount decreased, only for USER targets)
+      if (targetType.value === 'USER' && this.profileService.invalidateCounts) {
+        await this.profileService.invalidateCounts(request.targetId);
+      }
+
+      // 10. Return success
       return ok(undefined);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
