@@ -7,6 +7,8 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { usePathname } from 'next/navigation';
+import posthog from 'posthog-js';
+import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 
 const ENABLE_AUTH_LOGGING = true;
 
@@ -33,6 +35,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (ENABLE_AUTH_LOGGING) {
       console.log('[useAuth] Initiating logout process');
     }
+
+    // Reset PostHog user identity
+    if (
+      process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' &&
+      posthog.__loaded
+    ) {
+      posthog.reset();
+      if (ENABLE_AUTH_LOGGING) {
+        console.log('[useAuth] PostHog user identity reset');
+      }
+    }
+
     await ClientCookieAuthService.clearTokens();
     queryClient.clear();
     router.push('/login');
@@ -53,6 +67,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Handle other auth errors
     if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.data, query.isError, query.isLoading, pathname, router, logout]);
+
+  // Identify user in PostHog when authenticated
+  useEffect(() => {
+    const user = query.data;
+
+    // Only identify in production and when user is available
+    if (
+      process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' &&
+      user &&
+      posthog.__loaded
+    ) {
+      posthog.identify(user.id, {
+        name: user.name,
+        handle: user.handle,
+        is_internal: isInternalUser(user.handle),
+        is_early_tester: isEarlyTester(user.handle),
+      });
+
+      if (ENABLE_AUTH_LOGGING) {
+        console.log('[useAuth] User identified in PostHog:', user.id);
+      }
+    }
+  }, [query.data]);
 
   const contextValue: AuthContextType = {
     user: query.data ?? null,

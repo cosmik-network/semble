@@ -15,16 +15,20 @@ interface Props {
 
 export default function Providers(props: Props) {
   useEffect(() => {
-    const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_API_KEY;
 
     if (!posthogKey) {
       console.warn('PostHog key not found in environment variables');
       return;
     }
+    if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+      return;
+    }
 
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_API_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_API_HOST,
       defaults: '2026-01-30',
+      disable_session_recording: true,
     });
   }, []);
 
