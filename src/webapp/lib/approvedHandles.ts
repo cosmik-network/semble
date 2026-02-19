@@ -16,7 +16,6 @@ const APPROVED_HANDLES = new Set([
 ]);
 
 export function isApprovedHandle(handle: string | undefined | null): boolean {
-  if (process.env.VERCEL_ENV !== 'production') return true;
   if (!handle) return false;
   return APPROVED_HANDLES.has(handle);
 }
