@@ -95,7 +95,7 @@ export default function NoteCardModalContent(props: Props) {
             <Input.Label size="md" htmlFor="note">
               Your note
             </Input.Label>
-            <Text aria-hidden>
+            <Text c={'gray'} aria-hidden>
               {note?.length ?? 0} / {MAX_NOTE_LENGTH}
             </Text>
           </Flex>
