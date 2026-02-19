@@ -111,6 +111,7 @@ export class GetLibrariesForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          bannerUrl: profile.bannerUrl,
           description: profile.bio,
         });
       }

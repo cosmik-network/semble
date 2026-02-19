@@ -78,6 +78,7 @@ export class BlueskyProfileService implements IProfileService {
         name: profile.displayName || profile.handle,
         handle: profile.handle,
         avatarUrl: profile.avatar,
+        bannerUrl: profile.banner,
         bio: profile.description,
       };
 

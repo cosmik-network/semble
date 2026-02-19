@@ -87,6 +87,7 @@ export class GetNoteCardsForUrlUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -110,6 +111,7 @@ export class GetNoteCardsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          bannerUrl: profile.bannerUrl,
           description: profile.bio,
         });
       }

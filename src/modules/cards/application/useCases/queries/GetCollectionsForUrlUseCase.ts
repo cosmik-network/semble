@@ -91,6 +91,7 @@ export class GetCollectionsForUrlUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -114,6 +115,7 @@ export class GetCollectionsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          bannerUrl: profile.bannerUrl,
           description: profile.bio,
         });
       }

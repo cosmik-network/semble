@@ -165,6 +165,7 @@ export class GetGemActivityFeedUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -184,6 +185,7 @@ export class GetGemActivityFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
             description: profile.bio,
           });
         } else {
@@ -234,6 +236,7 @@ export class GetGemActivityFeedUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -255,6 +258,7 @@ export class GetGemActivityFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
             description: profile.bio,
           });
         }
@@ -338,6 +342,7 @@ export class GetGemActivityFeedUseCase
               name: authorProfile.name,
               handle: authorProfile.handle,
               avatarUrl: authorProfile.avatarUrl,
+              bannerUrl: authorProfile.bannerUrl,
               description: authorProfile.bio,
             },
             cardCount: collection.cardCount,

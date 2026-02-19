@@ -4,6 +4,7 @@ export interface User {
   name: string;
   handle: string;
   avatarUrl?: string;
+  bannerUrl?: string;
   description?: string;
   isFollowing?: boolean; // Whether the calling user follows this user
 }

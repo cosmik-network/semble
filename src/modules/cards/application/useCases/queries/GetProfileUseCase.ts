@@ -92,6 +92,7 @@ export class GetProfileUseCase
         handle: profile.handle,
         description: profile.bio,
         avatarUrl: profile.avatarUrl,
+        bannerUrl: profile.bannerUrl,
         isFollowing: profile.isFollowing,
       });
     } catch (error) {

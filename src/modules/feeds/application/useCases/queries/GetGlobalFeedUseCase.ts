@@ -109,6 +109,7 @@ export class GetGlobalFeedUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -128,6 +129,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
             description: profile.bio,
           });
         } else {
@@ -178,6 +180,7 @@ export class GetGlobalFeedUseCase
           name: string;
           handle: string;
           avatarUrl?: string;
+          bannerUrl?: string;
           description?: string;
         }
       >();
@@ -199,6 +202,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            bannerUrl: profile.bannerUrl,
             description: profile.bio,
           });
         }
@@ -282,6 +286,7 @@ export class GetGlobalFeedUseCase
               name: authorProfile.name,
               handle: authorProfile.handle,
               avatarUrl: authorProfile.avatarUrl,
+              bannerUrl: authorProfile.bannerUrl,
               description: authorProfile.bio,
             },
             cardCount: collection.cardCount,
