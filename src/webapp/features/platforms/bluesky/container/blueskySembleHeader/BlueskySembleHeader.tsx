@@ -9,6 +9,7 @@ import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySu
 
 interface Props {
   url: string;
+  viaCardId?: string;
 }
 
 export default async function BlueskySembleHeader(props: Props) {
@@ -20,7 +21,7 @@ export default async function BlueskySembleHeader(props: Props) {
 
       <Stack align="center">
         <Suspense fallback={<SembleActionsContainerSkeleton />}>
-          <SembleActionsContainer url={props.url} />
+          <SembleActionsContainer url={props.url} viaCardId={props.viaCardId} />
         </Suspense>
       </Stack>
 

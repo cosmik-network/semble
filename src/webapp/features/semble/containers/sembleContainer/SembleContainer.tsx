@@ -10,6 +10,7 @@ import BlueskySembleHeaderSkeleton from '@/features/platforms/bluesky/container/
 
 interface Props {
   url: string;
+  viaCardId?: string;
 }
 
 export default function SembleContainer(props: Props) {
@@ -27,7 +28,10 @@ export default function SembleContainer(props: Props) {
                 fallback={<BlueskySembleHeaderSkeleton />}
                 key={props.url + 'bluesky header'}
               >
-                <BlueskySembleHeader url={props.url} />
+                <BlueskySembleHeader
+                  url={props.url}
+                  viaCardId={props.viaCardId}
+                />
               </Suspense>
             </Box>
           ) : (
@@ -35,7 +39,7 @@ export default function SembleContainer(props: Props) {
               fallback={<SembleHeaderSkeleton />}
               key={props.url + 'semble header'}
             >
-              <SembleHeader url={props.url} />
+              <SembleHeader url={props.url} viaCardId={props.viaCardId} />
             </Suspense>
           )}
           <SembleTabs url={props.url} />
