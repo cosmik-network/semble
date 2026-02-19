@@ -2,6 +2,7 @@ import { Result } from 'src/shared/core/Result';
 
 export interface IProfileService {
   getProfile(userId: string, callerId?: string): Promise<Result<UserProfile>>;
+  invalidateCounts?(userId: string): Promise<void>;
 }
 
 export interface UserProfile {
@@ -12,4 +13,7 @@ export interface UserProfile {
   bannerUrl?: string;
   bio?: string;
   isFollowing?: boolean;
+  followerCount?: number;
+  followingCount?: number;
+  followedCollectionsCount?: number;
 }
