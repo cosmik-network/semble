@@ -51,7 +51,6 @@ export default function CollectionActions(props: Props) {
             targetId={props.collection.id}
             targetType="COLLECTION"
             targetHandle={props.collection.author?.handle}
-            size="sm"
             initialIsFollowing={props.collection.isFollowing}
           />
         )}

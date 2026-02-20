@@ -48,8 +48,6 @@ export default function NotificationItem(props: Props) {
                     targetId={props.item.user.id}
                     targetType="USER"
                     targetHandle={props.item.user.handle}
-                    variant="light"
-                    size="sm"
                     initialIsFollowing={props.item.user.isFollowing}
                     followText="Follow back"
                   />
