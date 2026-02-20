@@ -23,6 +23,7 @@ import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichT
 import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Link from 'next/link';
+import FollowButton from '@/features/follows/components/followButton/FollowButton';
 
 interface Props {
   handle: string;
@@ -50,22 +51,26 @@ export default async function ProfileHeader(props: Props) {
       <Container p={0} size={'xl'}>
         <Stack gap={'sm'} p={'xs'}>
           <Stack gap={'xs'}>
-            <Grid gutter={'sm'} align="start" grow>
-              <GridCol span={'content'}>
-                <Avatar
-                  src={profile.avatarUrl}
-                  alt={`${profile.name}'s avatar`}
-                  radius={'lg'}
-                  size={'95px'}
-                  mt={'-57.5'}
-                  style={{
-                    border: '2.5px solid var(--mantine-color-body)',
-                  }}
+            <Group justify="space-between" align="start">
+              <Avatar
+                src={profile.avatarUrl}
+                alt={`${profile.name}'s avatar`}
+                radius={'lg'}
+                size={'95px'}
+                mt={'-57.5'}
+                style={{
+                  border: '2.5px solid var(--mantine-color-body)',
+                }}
+              />
+              {props.handle !== session?.handle && (
+                <FollowButton
+                  targetId={profile.id}
+                  targetType="USER"
+                  targetHandle={props.handle}
+                  initialIsFollowing={profile.isFollowing}
                 />
-              </GridCol>
-
-              <GridCol span={'content'}>follow buttons</GridCol>
-            </Grid>
+              )}
+            </Group>
 
             {/* profile info */}
             <Stack gap={'sm'}>
