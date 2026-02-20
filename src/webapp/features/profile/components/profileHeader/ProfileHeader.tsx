@@ -151,7 +151,7 @@ export default async function ProfileHeader(props: Props) {
                       {profile.followedCollectionsCount}
                     </Text>
                     <Text fw={500} c={'gray'} span>
-                      {' Followed Collections'}
+                      {' Collection Following'}
                     </Text>
                   </Anchor>
                 </Group>
