@@ -117,7 +117,7 @@ export default async function ProfileHeader(props: Props) {
                 <Group gap="sm">
                   <Anchor
                     component={Link}
-                    href={`/profile/${props.handle}/followers`}
+                    href={`/profile/${props.handle}/community`}
                     underline="never"
                   >
                     <Text fw={500} c={'bright'} span>
@@ -131,7 +131,7 @@ export default async function ProfileHeader(props: Props) {
 
                   <Anchor
                     component={Link}
-                    href={`/profile/${props.handle}/following`}
+                    href={`/profile/${props.handle}/community/following`}
                     underline="never"
                   >
                     <Text fw={500} c={'bright'} span>
@@ -144,7 +144,7 @@ export default async function ProfileHeader(props: Props) {
 
                   <Anchor
                     component={Link}
-                    href={`/profile/${props.handle}/following-collections`}
+                    href={`/profile/${props.handle}/community/collection-following`}
                     underline="never"
                   >
                     <Text fw={500} c={'bright'} span>

@@ -1,9 +1,10 @@
-import { ProfileView } from '@/api-client';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { User } from '@semble/types';
 import Link from 'next/link';
+import { sanitizeText } from '@/lib/utils/text';
 
 interface Props {
-  profile: ProfileView;
+  profile: User;
 }
 
 export default function ProfileCard(props: Props) {
@@ -19,13 +20,13 @@ export default function ProfileCard(props: Props) {
       <Stack gap={'xs'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar
-            src={props.profile.avatar?.replace('avatar', 'avatar_thumbnail')}
+            src={props.profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${props.profile.handle}'s avatar`}
           />
 
           <Stack gap={0}>
             <Text fw={600} c={'bright'} lineClamp={1}>
-              {props.profile.displayName || props.profile.handle}
+              {sanitizeText(props.profile.name) || props.profile.handle}
             </Text>
             <Text fw={600} c={'gray'} lineClamp={1}>
               @{props.profile.handle}

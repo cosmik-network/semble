@@ -1,4 +1,4 @@
-import FollowingContainer from '@/features/follows/containers/followingContainer/FollowingContainer';
+import FollowersContainer from '@/features/follows/containers/followersContainer/FollowersContainer';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -7,5 +7,5 @@ interface Props {
 export default async function Page(props: Props) {
   const { handle } = await props.params;
 
-  return <FollowingContainer handle={handle} />;
+  return <FollowersContainer handle={handle} />;
 }

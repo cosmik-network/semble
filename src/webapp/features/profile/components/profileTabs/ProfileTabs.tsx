@@ -29,6 +29,9 @@ export default function ProfileTabs({ handle }: Props) {
               <TabItem value="collections" href={`${basePath}/collections`}>
                 Collections
               </TabItem>
+              <TabItem value="community" href={`${basePath}/community`}>
+                Community
+              </TabItem>
             </Group>
           </Tabs.List>
         </ScrollAreaAutosize>

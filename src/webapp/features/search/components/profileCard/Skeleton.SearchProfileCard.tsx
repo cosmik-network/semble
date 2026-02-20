@@ -1,6 +1,6 @@
 import { Avatar, Card, Group, Skeleton, Stack } from '@mantine/core';
 
-export default function ProfileCardSkeleton() {
+export default function SearchProfileCardSkeleton() {
   return (
     <Card withBorder radius={'lg'} p={'sm'} h={'100%'}>
       <Stack gap={'md'}>

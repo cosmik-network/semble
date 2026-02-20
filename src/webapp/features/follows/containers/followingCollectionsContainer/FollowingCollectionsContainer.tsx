@@ -13,22 +13,15 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 
 interface Props {
-  identifier: string;
-  profileName: string;
   handle: string;
 }
 
-export default function FollowingCollectionsContainer({
-  identifier,
-  profileName,
-  handle,
-}: Props) {
+export default function FollowingCollectionsContainer(props: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    useFollowingCollections({ identifier });
+    useFollowingCollections({ identifier: props.handle });
 
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-  const collectionCount = allCollections.length;
 
   if (isPending) {
     return (
@@ -43,17 +36,10 @@ export default function FollowingCollectionsContainer({
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Stack gap={0}>
-          <Title order={2}>{profileName}</Title>
-          <Text c="gray" size="lg">
-            {collectionCount} Collection Following
-          </Text>
-        </Stack>
-
         {allCollections.length === 0 ? (
           <Center>
             <Text fz="h3" fw={600} c="gray">
-              Not following any collections yet
+              Not following any collections... yet
             </Text>
           </Center>
         ) : (

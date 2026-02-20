@@ -1,35 +1,19 @@
 'use client';
 
-import {
-  Container,
-  Stack,
-  Text,
-  Center,
-  Avatar,
-  Group,
-  Paper,
-  Title,
-} from '@mantine/core';
+import { Container, Stack, Text, Center } from '@mantine/core';
 import useFollowers from '../../lib/queries/useFollowers';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import Link from 'next/link';
+import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 
 interface Props {
-  identifier: string;
-  profileName: string;
   handle: string;
 }
 
-export default function FollowersContainer({
-  identifier,
-  profileName,
-  handle,
-}: Props) {
+export default function FollowersContainer(props: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    useFollowers({ identifier });
+    useFollowers({ identifier: props.handle });
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
-  const followerCount = allUsers.length;
 
   if (isPending) {
     return (
@@ -43,18 +27,11 @@ export default function FollowersContainer({
 
   return (
     <Container p="xs" size="xl">
-      <Stack>
-        <Stack gap={0}>
-          <Title order={2}>{profileName}</Title>
-          <Text c="gray" size="lg">
-            {followerCount} Follower{followerCount !== 1 ? 's' : ''}
-          </Text>
-        </Stack>
-
+      <Stack align="center">
         {allUsers.length === 0 ? (
           <Center>
             <Text fz="h3" fw={600} c="gray">
-              No followers yet
+              No followers... yet
             </Text>
           </Center>
         ) : (
@@ -65,33 +42,12 @@ export default function FollowersContainer({
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Stack gap="xs" maw={600} mx="auto">
-              {allUsers.map((user) => (
-                <Paper
-                  key={user.id}
-                  p="md"
-                  withBorder
-                  component={Link}
-                  href={`/profile/${user.handle}`}
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  <Group>
-                    <Avatar
-                      src={user.avatarUrl?.replace(
-                        'avatar',
-                        'avatar_thumbnail',
-                      )}
-                      size="md"
-                    />
-                    <Stack gap={0}>
-                      <Text fw={600}>{user.name}</Text>
-                      <Text c="gray" size="sm">
-                        @{user.handle}
-                      </Text>
-                    </Stack>
-                  </Group>
-                </Paper>
-              ))}
+            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
+              <Stack gap={60}>
+                {allUsers.map((user) => (
+                  <ProfileCard key={user.id} profile={user} />
+                ))}
+              </Stack>
             </Stack>
           </InfiniteScroll>
         )}
