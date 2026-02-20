@@ -76,6 +76,10 @@ export default function useAddCard(
         };
 
         posthog.capture('card_saved', eventProperties);
+
+        // Clear super properties after capture
+        posthog.unregister('original_save_source');
+        posthog.unregister('original_active_filters');
       }
     },
   });
