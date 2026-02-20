@@ -447,7 +447,9 @@ export class CardNotificationSaga {
         }
 
         // Build AT URI: at://{did}/network.cosmik.local.collection/{rkey}
-        const atUri = `at://${collectionAuthorDid.value}/network.cosmik.local.collection/${parsedUrl.rkey}`;
+        const atprotoCollection =
+          this.configService.getAtProtoCollections().collection;
+        const atUri = `at://${collectionAuthorDid.value}/${atprotoCollection}/${parsedUrl.rkey}`;
 
         // Resolve AT URI to get CollectionId
         const collectionIdResult =
