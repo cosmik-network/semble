@@ -4,6 +4,7 @@ import SembleActions from '../../components/sembleActions/SembleActions';
 
 interface Props {
   url: string;
+  viaCardId?: string;
 }
 
 export default async function SembleActionsContainer(props: Props) {
@@ -13,5 +14,5 @@ export default async function SembleActionsContainer(props: Props) {
     return <GuestSembleActions url={props.url} />;
   }
 
-  return <SembleActions url={props.url} />;
+  return <SembleActions url={props.url} viaCardId={props.viaCardId} />;
 }

@@ -125,6 +125,8 @@
     "ts-jest": "^29.3.2",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@posthog/react": "^1.8.0",
+    "posthog-js": "^1.348.0"
   }
 }

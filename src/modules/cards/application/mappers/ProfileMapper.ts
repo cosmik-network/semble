@@ -20,6 +20,7 @@ export class ProfileMapper {
       bannerUrl: profile.bannerUrl,
       description: profile.bio,
       isFollowing: profile.isFollowing,
+      followsYou: profile.followsYou,
       followerCount: profile.followerCount,
       followingCount: profile.followingCount,
       followedCollectionsCount: profile.followedCollectionsCount,
@@ -37,6 +38,7 @@ export class ProfileMapper {
     avatarUrl?: string;
     bannerUrl?: string;
     description?: string;
+    followsYou?: boolean;
     followerCount?: number;
     followingCount?: number;
     followedCollectionsCount?: number;
@@ -48,6 +50,7 @@ export class ProfileMapper {
       avatarUrl: profile.avatarUrl,
       bannerUrl: profile.bannerUrl,
       description: profile.bio,
+      followsYou: profile.followsYou,
       followerCount: profile.followerCount,
       followingCount: profile.followingCount,
       followedCollectionsCount: profile.followedCollectionsCount,

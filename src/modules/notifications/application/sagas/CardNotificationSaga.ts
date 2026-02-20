@@ -5,12 +5,22 @@ import { CardRemovedFromLibraryEvent } from '../../../cards/domain/events/CardRe
 import {
   CreateNotificationUseCase,
   CreateUserAddedYourCardNotificationDTO,
+  CreateUserAddedYourBskyPostNotificationDTO,
+  CreateUserAddedYourCollectionNotificationDTO,
 } from '../useCases/commands/CreateNotificationUseCase';
 import { NotificationType } from '@semble/types';
 import { ISagaStateStore } from '../../../feeds/application/sagas/ISagaStateStore';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
 import { INotificationRepository } from '../../domain/INotificationRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
+import { IUserRepository } from '../../../user/domain/repositories/IUserRepository';
+import { IIdentityResolutionService } from '../../../atproto/domain/services/IIdentityResolutionService';
+import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
+import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
+import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
+import { NotificationUrlParser } from '../services/NotificationUrlParser';
+import { DIDOrHandle } from '../../../atproto/domain/DIDOrHandle';
+import { DID } from '../../../atproto/domain/DID';
 
 interface PendingCardNotification {
   cardId: string;
@@ -31,6 +41,11 @@ export class CardNotificationSaga {
     private stateStore: ISagaStateStore,
     private cardRepository: ICardRepository,
     private notificationRepository: INotificationRepository,
+    private userRepository: IUserRepository,
+    private identityResolutionService: IIdentityResolutionService,
+    private collectionRepository: ICollectionRepository,
+    private atUriResolutionService: IAtUriResolutionService,
+    private configService: EnvironmentConfigService,
   ) {}
 
   async handleCardEvent(
@@ -114,6 +129,10 @@ export class CardNotificationSaga {
 
       // Only create notifications for cards that have a viaCardId
       if (!card.viaCardId) {
+        // If no viaCardId but there's a URL, check if it mentions a user/collection
+        if (card.url) {
+          return this.handleUrlMentionNotification(event, card);
+        }
         return ok(undefined);
       }
 
@@ -330,6 +349,275 @@ export class CardNotificationSaga {
         collectionIds:
           pending.collectionIds.length > 0 ? pending.collectionIds : undefined,
       };
+
+      await this.createNotificationUseCase.execute(request);
+    } finally {
+      await this.deletePendingNotification(aggregationKey);
+      await this.releaseLock(aggregationKey);
+    }
+  }
+
+  /**
+   * Handle notifications for URLs that mention users (Bluesky posts) or collections
+   */
+  private async handleUrlMentionNotification(
+    event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
+    card: any,
+  ): Promise<Result<void>> {
+    try {
+      const appUrl = this.configService.getAppConfig().appUrl;
+      const urlString = card.url.toString();
+
+      // Parse URL to detect if it mentions a user/collection
+      console.log('Parsing URL for potential notification:', urlString, appUrl);
+      const parsedUrl = NotificationUrlParser.extractMentionedEntityFromUrl(
+        urlString,
+        appUrl,
+      );
+      console.log('Parsed URL result:', parsedUrl);
+
+      if (!parsedUrl) {
+        // URL doesn't match any known pattern
+        return ok(undefined);
+      }
+
+      // Determine recipient based on URL type
+      let recipientDid: string | null = null;
+      let notificationType:
+        | NotificationType.USER_ADDED_YOUR_BSKY_POST
+        | NotificationType.USER_ADDED_YOUR_COLLECTION
+        | null = null;
+
+      if (parsedUrl.type === 'BLUESKY_POST') {
+        // Extract handle/DID and resolve to DID
+        const didOrHandleResult = DIDOrHandle.create(parsedUrl.handleOrDid);
+        if (didOrHandleResult.isErr()) {
+          console.warn(
+            `Failed to parse DID/handle from Bluesky URL: ${parsedUrl.handleOrDid}`,
+          );
+          return ok(undefined);
+        }
+
+        const didOrHandle = didOrHandleResult.value;
+
+        // Resolve to DID if it's a handle
+        let did: DID;
+        if (didOrHandle.isDID) {
+          did = didOrHandle.getDID()!;
+        } else {
+          const resolveResult =
+            await this.identityResolutionService.resolveToDID(didOrHandle);
+          if (resolveResult.isErr()) {
+            console.warn(
+              `Failed to resolve handle to DID: ${parsedUrl.handleOrDid}`,
+            );
+            return ok(undefined);
+          }
+          did = resolveResult.value;
+        }
+
+        recipientDid = did.value;
+        notificationType = NotificationType.USER_ADDED_YOUR_BSKY_POST;
+      } else if (parsedUrl.type === 'SEMBLE_COLLECTION') {
+        // Resolve handle to DID first
+        const didOrHandleResult = DIDOrHandle.create(parsedUrl.handleOrDid);
+        if (didOrHandleResult.isErr()) {
+          console.warn(
+            `Failed to parse DID/handle from Semble URL: ${parsedUrl.handleOrDid}`,
+          );
+          return ok(undefined);
+        }
+
+        const didOrHandle = didOrHandleResult.value;
+
+        // Resolve to DID if it's a handle
+        let collectionAuthorDid: DID;
+        if (didOrHandle.isDID) {
+          collectionAuthorDid = didOrHandle.getDID()!;
+        } else {
+          const resolveResult =
+            await this.identityResolutionService.resolveToDID(didOrHandle);
+          if (resolveResult.isErr()) {
+            console.warn(
+              `Failed to resolve handle to DID: ${parsedUrl.handleOrDid}`,
+            );
+            return ok(undefined);
+          }
+          collectionAuthorDid = resolveResult.value;
+        }
+
+        // Build AT URI: at://{did}/network.cosmik.local.collection/{rkey}
+        const atprotoCollection =
+          this.configService.getAtProtoCollections().collection;
+        const atUri = `at://${collectionAuthorDid.value}/${atprotoCollection}/${parsedUrl.rkey}`;
+
+        // Resolve AT URI to get CollectionId
+        const collectionIdResult =
+          await this.atUriResolutionService.resolveCollectionId(atUri);
+
+        if (collectionIdResult.isErr() || !collectionIdResult.value) {
+          console.warn(`Collection not found for AT URI: ${atUri}`);
+          return ok(undefined);
+        }
+
+        const collectionId = collectionIdResult.value;
+
+        // Fetch collection to get author DID
+        const collectionResult =
+          await this.collectionRepository.findById(collectionId);
+
+        if (collectionResult.isErr() || !collectionResult.value) {
+          console.warn(`Collection not found for ID: ${collectionId}`);
+          return ok(undefined);
+        }
+
+        const collection = collectionResult.value;
+        recipientDid = collection.authorId.value;
+        notificationType = NotificationType.USER_ADDED_YOUR_COLLECTION;
+      }
+
+      if (!recipientDid || !notificationType) {
+        return ok(undefined);
+      }
+
+      // Check if user exists in our system
+      const recipientDidResult = DID.create(recipientDid);
+      if (recipientDidResult.isErr()) {
+        console.warn(`Invalid recipient DID: ${recipientDid}`);
+        return ok(undefined);
+      }
+
+      const userResult = await this.userRepository.findByDID(
+        recipientDidResult.value,
+      );
+      if (userResult.isErr() || !userResult.value) {
+        // User doesn't exist in our system, don't create notification
+        return ok(undefined);
+      }
+
+      const actorId = this.getActorId(event);
+
+      // Don't create notification if user is adding their own content
+      if (recipientDid === actorId) {
+        return ok(undefined);
+      }
+
+      // Use aggregation logic similar to viaCard notifications
+      const aggregationKey = this.createKey(event, recipientDid);
+
+      // Retry lock acquisition
+      const maxRetries = 15;
+      const baseDelay = 100;
+      const maxDelay = 2000;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const lockAcquired = await this.acquireLock(aggregationKey);
+
+        if (lockAcquired) {
+          try {
+            const existing = await this.getPendingNotification(aggregationKey);
+
+            if (existing && this.isWithinWindow(existing)) {
+              this.mergeNotification(existing, event);
+              await this.setPendingNotification(aggregationKey, existing);
+            } else {
+              const newNotification = this.createNewPendingNotification(
+                event,
+                recipientDid,
+              );
+              await this.setPendingNotification(
+                aggregationKey,
+                newNotification,
+              );
+              await this.scheduleFlushForUrlMention(
+                aggregationKey,
+                notificationType,
+              );
+            }
+
+            return ok(undefined);
+          } finally {
+            await this.releaseLock(aggregationKey);
+          }
+        }
+
+        // Lock not acquired, wait and retry
+        if (attempt < maxRetries - 1) {
+          const exponentialDelay = baseDelay * Math.pow(1.5, attempt);
+          const jitter = Math.random() * 50;
+          const delay = Math.min(exponentialDelay + jitter, maxDelay);
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+
+      console.warn(
+        `Failed to acquire lock after ${maxRetries} attempts for ${aggregationKey}`,
+      );
+      return ok(undefined);
+    } catch (error) {
+      console.error('Error in handleUrlMentionNotification:', error);
+      return err(error as Error);
+    }
+  }
+
+  /**
+   * Schedule flush for URL mention notifications
+   */
+  private async scheduleFlushForUrlMention(
+    aggregationKey: string,
+    notificationType:
+      | NotificationType.USER_ADDED_YOUR_BSKY_POST
+      | NotificationType.USER_ADDED_YOUR_COLLECTION,
+  ): Promise<void> {
+    setTimeout(async () => {
+      await this.flushUrlMentionNotification(aggregationKey, notificationType);
+    }, this.AGGREGATION_WINDOW_MS);
+  }
+
+  /**
+   * Flush URL mention notification
+   */
+  private async flushUrlMentionNotification(
+    aggregationKey: string,
+    notificationType:
+      | NotificationType.USER_ADDED_YOUR_BSKY_POST
+      | NotificationType.USER_ADDED_YOUR_COLLECTION,
+  ): Promise<void> {
+    const lockAcquired = await this.acquireLock(aggregationKey);
+    if (!lockAcquired) return;
+
+    try {
+      const pending = await this.getPendingNotification(aggregationKey);
+      if (!pending) return;
+
+      let request:
+        | CreateUserAddedYourBskyPostNotificationDTO
+        | CreateUserAddedYourCollectionNotificationDTO;
+
+      if (notificationType === NotificationType.USER_ADDED_YOUR_BSKY_POST) {
+        request = {
+          type: NotificationType.USER_ADDED_YOUR_BSKY_POST,
+          recipientUserId: pending.recipientUserId,
+          actorUserId: pending.actorId,
+          cardId: pending.cardId,
+          collectionIds:
+            pending.collectionIds.length > 0
+              ? pending.collectionIds
+              : undefined,
+        };
+      } else {
+        request = {
+          type: NotificationType.USER_ADDED_YOUR_COLLECTION,
+          recipientUserId: pending.recipientUserId,
+          actorUserId: pending.actorId,
+          cardId: pending.cardId,
+          collectionIds:
+            pending.collectionIds.length > 0
+              ? pending.collectionIds
+              : undefined,
+        };
+      }
 
       await this.createNotificationUseCase.execute(request);
     } finally {

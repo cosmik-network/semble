@@ -8,6 +8,7 @@ import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedByS
 
 interface Props {
   url: string;
+  viaCardId?: string;
 }
 
 export default async function SembleHeader(props: Props) {
@@ -16,7 +17,10 @@ export default async function SembleHeader(props: Props) {
       <UrlMetadataHeader url={props.url}>
         <Stack align="center">
           <Suspense fallback={<SembleActionsContainerSkeleton />}>
-            <SembleActionsContainer url={props.url} />
+            <SembleActionsContainer
+              url={props.url}
+              viaCardId={props.viaCardId}
+            />
           </Suspense>
         </Stack>
       </UrlMetadataHeader>

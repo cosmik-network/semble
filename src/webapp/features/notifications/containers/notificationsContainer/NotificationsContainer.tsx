@@ -21,8 +21,11 @@ import { useEffect, useRef } from 'react';
 import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
+import { CardSaveSource } from '@/features/analytics/types';
+import { usePathname } from 'next/navigation';
 
 export default function NotificationsContainer() {
+  const pathname = usePathname();
   const {
     data,
     error,
@@ -117,7 +120,14 @@ export default function NotificationsContainer() {
             <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
               <Stack gap={60}>
                 {allNotifications.map((item) => (
-                  <NotificationItem key={item.id} item={item} />
+                  <NotificationItem
+                    key={item.id}
+                    item={item}
+                    analyticsContext={{
+                      saveSource: CardSaveSource.NOTIFICATIONS,
+                      pagePath: pathname,
+                    }}
+                  />
                 ))}
               </Stack>
             </Stack>

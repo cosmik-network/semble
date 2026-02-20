@@ -7,6 +7,7 @@ export interface User {
   bannerUrl?: string;
   description?: string;
   isFollowing?: boolean; // Whether the calling user follows this user
+  followsYou?: boolean; // Whether this user follows the calling user
   followerCount?: number; // Number of users following this user
   followingCount?: number; // Number of users this user follows
   followedCollectionsCount?: number; // Number of collections this user follows

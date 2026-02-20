@@ -24,9 +24,27 @@ export interface CreateUserAddedToYourCollectionNotificationDTO {
   collectionId: string;
 }
 
+export interface CreateUserAddedYourBskyPostNotificationDTO {
+  type: NotificationType.USER_ADDED_YOUR_BSKY_POST;
+  recipientUserId: string;
+  actorUserId: string;
+  cardId: string;
+  collectionIds?: string[];
+}
+
+export interface CreateUserAddedYourCollectionNotificationDTO {
+  type: NotificationType.USER_ADDED_YOUR_COLLECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  cardId: string;
+  collectionIds?: string[];
+}
+
 export type CreateNotificationDTO =
   | CreateUserAddedYourCardNotificationDTO
-  | CreateUserAddedToYourCollectionNotificationDTO;
+  | CreateUserAddedToYourCollectionNotificationDTO
+  | CreateUserAddedYourBskyPostNotificationDTO
+  | CreateUserAddedYourCollectionNotificationDTO;
 
 export interface CreateNotificationResponseDTO {
   notificationId: string;
@@ -140,6 +158,58 @@ export class CreateNotificationUseCase
             actorId,
             cardId,
             collectionIdResult.value,
+          );
+      } else if (request.type === NotificationType.USER_ADDED_YOUR_BSKY_POST) {
+        // Validate collection IDs if provided
+        let collectionIds: CollectionId[] | undefined;
+        if (request.collectionIds && request.collectionIds.length > 0) {
+          collectionIds = [];
+          for (const collectionIdStr of request.collectionIds) {
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
+            if (collectionIdResult.isErr()) {
+              return err(
+                new ValidationError(
+                  `Invalid collection ID: ${collectionIdResult.error.message}`,
+                ),
+              );
+            }
+            collectionIds.push(collectionIdResult.value);
+          }
+        }
+
+        notificationResult =
+          await this.notificationService.createUserAddedYourBskyPostNotification(
+            recipientId,
+            actorId,
+            cardId,
+            collectionIds,
+          );
+      } else if (request.type === NotificationType.USER_ADDED_YOUR_COLLECTION) {
+        // Validate collection IDs if provided
+        let collectionIds: CollectionId[] | undefined;
+        if (request.collectionIds && request.collectionIds.length > 0) {
+          collectionIds = [];
+          for (const collectionIdStr of request.collectionIds) {
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
+            if (collectionIdResult.isErr()) {
+              return err(
+                new ValidationError(
+                  `Invalid collection ID: ${collectionIdResult.error.message}`,
+                ),
+              );
+            }
+            collectionIds.push(collectionIdResult.value);
+          }
+        }
+
+        notificationResult =
+          await this.notificationService.createUserAddedYourCollectionNotification(
+            recipientId,
+            actorId,
+            cardId,
+            collectionIds,
           );
       } else {
         // Type exhaustiveness check
