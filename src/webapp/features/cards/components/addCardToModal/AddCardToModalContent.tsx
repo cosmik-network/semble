@@ -12,6 +12,7 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { track } from '@vercel/analytics';
 import AddCardActions from '../addCardActions/AddCardActions';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   onClose: () => void;
@@ -20,6 +21,7 @@ interface Props {
   note?: string;
   cardContent?: UrlCard['cardContent'];
   viaCardId?: string;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddCardToModalContent(props: Props) {
@@ -28,8 +30,10 @@ export default function AddCardToModalContent(props: Props) {
   const [note, setNote] = useState(isMyCard ? props.note : '');
   const { data, error } = useMyCollections();
 
-  const addCard = useAddCard();
-  const updateCardAssociations = useUpdateCardAssociations();
+  const addCard = useAddCard(props.analyticsContext);
+  const updateCardAssociations = useUpdateCardAssociations(
+    props.analyticsContext,
+  );
 
   if (error) {
     return <CollectionSelectorError />;
@@ -98,6 +102,7 @@ export default function AddCardToModalContent(props: Props) {
       note?: string;
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
+      addToLibrary?: boolean;
     } = { cardId: cardStatus.data.card.id };
 
     if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
@@ -107,6 +112,9 @@ export default function AddCardToModalContent(props: Props) {
       updatedCardPayload.removeFromCollectionIds = removedCollections.map(
         (c) => c.id,
       );
+
+    // Track as a card save if we're adding collections or a note (indicates user is saving/organizing the card)
+    updatedCardPayload.addToLibrary = hasAdded || hasNoteChanged;
 
     updateCardAssociations.mutate(
       {

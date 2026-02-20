@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   id: string;
@@ -32,6 +33,7 @@ interface Props {
   urlLibraryCount: number;
   urlIsInLibrary: boolean;
   viaCardId?: string;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -194,6 +196,7 @@ export default function UrlCardActions(props: Props) {
         isInYourLibrary={props.urlIsInLibrary}
         urlLibraryCount={props.urlLibraryCount}
         viaCardId={props.viaCardId}
+        analyticsContext={props.analyticsContext}
       />
 
       <NoteCardModal

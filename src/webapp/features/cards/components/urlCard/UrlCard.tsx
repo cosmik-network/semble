@@ -11,6 +11,9 @@ import styles from './UrlCard.module.css';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import Link from 'next/link';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import posthog from 'posthog-js';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 interface Props {
   id: string;
@@ -25,6 +28,7 @@ interface Props {
   cardAuthor?: User;
   viaCardId?: string;
   showAuthor?: boolean;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function UrlCard(props: Props) {
@@ -35,6 +39,8 @@ export default function UrlCard(props: Props) {
     e.stopPropagation();
 
     let targetUrl: string;
+    const isNavigatingToSemble =
+      !isCollectionPage(props.url) && !isProfilePage(props.url);
 
     if (isCollectionPage(props.url) || isProfilePage(props.url)) {
       targetUrl = props.url;
@@ -45,6 +51,28 @@ export default function UrlCard(props: Props) {
       } else {
         targetUrl = `/url?id=${props.cardContent.url}`;
       }
+    }
+
+    // Register super properties and capture click event when navigating to semble page
+    if (
+      isNavigatingToSemble &&
+      props.analyticsContext &&
+      shouldCaptureAnalytics()
+    ) {
+      // Register super properties for later card_saved event
+      posthog.register({
+        original_save_source: props.analyticsContext.saveSource,
+        original_active_filters: props.analyticsContext.activeFilters,
+      });
+
+      // Capture card clicked event
+      posthog.capture('card_clicked', {
+        card_id: props.id,
+        url: props.cardContent.url,
+        save_source: props.analyticsContext.saveSource,
+        active_filters: props.analyticsContext.activeFilters,
+        via_card_id: props.viaCardId,
+      });
     }
 
     // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
@@ -133,6 +161,7 @@ export default function UrlCard(props: Props) {
             urlLibraryCount={props.urlLibraryCount}
             urlIsInLibrary={props.urlIsInLibrary ?? false}
             viaCardId={props.viaCardId}
+            analyticsContext={props.analyticsContext}
           />
         </Stack>
       </Stack>

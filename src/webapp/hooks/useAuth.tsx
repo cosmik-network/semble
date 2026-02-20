@@ -7,6 +7,9 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { usePathname } from 'next/navigation';
+import posthog from 'posthog-js';
+import { isInternalUser, isEarlyTester } from '@/lib/userLists';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 const ENABLE_AUTH_LOGGING = true;
 
@@ -33,6 +36,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (ENABLE_AUTH_LOGGING) {
       console.log('[useAuth] Initiating logout process');
     }
+
+    // Reset PostHog user identity
+    if (shouldCaptureAnalytics()) {
+      posthog.reset();
+      if (ENABLE_AUTH_LOGGING) {
+        console.log('[useAuth] PostHog user identity reset');
+      }
+    }
+
     await ClientCookieAuthService.clearTokens();
     queryClient.clear();
     router.push('/login');
@@ -53,6 +65,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Handle other auth errors
     if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.data, query.isError, query.isLoading, pathname, router, logout]);
+
+  // Set super properties for anonymous tracking (no PII)
+  useEffect(() => {
+    const user = query.data;
+
+    // Set super properties when analytics is enabled and user is available
+    // These properties are included in all events automatically
+    if (shouldCaptureAnalytics() && user) {
+      posthog.register({
+        is_internal: isInternalUser(user.handle),
+        is_early_tester: isEarlyTester(user.handle),
+      });
+    }
+  }, [query.data]);
 
   const contextValue: AuthContextType = {
     user: query.data ?? null,

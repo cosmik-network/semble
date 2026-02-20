@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface Props {
   urlLibraryCount: number;
   viaCardId?: string;
   cardContent?: UrlCard['cardContent'];
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -63,6 +65,7 @@ export default function AddCardToModal(props: Props) {
             cardContent={props.cardContent}
             note={props.note}
             viaCardId={props.viaCardId}
+            analyticsContext={props.analyticsContext}
           />
         </Suspense>
       </Stack>
