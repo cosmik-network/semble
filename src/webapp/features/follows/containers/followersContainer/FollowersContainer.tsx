@@ -26,7 +26,7 @@ export default function FollowersContainer(props: Props) {
   }
 
   return (
-    <Container p="xs" size="xl" fluid>
+    <Container p="xs" size="xl">
       <Stack align="center">
         {allUsers.length === 0 ? (
           <Center>
