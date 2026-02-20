@@ -31,6 +31,7 @@ export default function Providers(props: Props) {
       autocapture: false,
       capture_pageview: false,
       capture_pageleave: false,
+      person_profiles: 'identified_only',
     });
   }, []);
 

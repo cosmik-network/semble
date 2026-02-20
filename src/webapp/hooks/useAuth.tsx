@@ -66,15 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.data, query.isError, query.isLoading, pathname, router, logout]);
 
-  // Identify user in PostHog when authenticated
+  // Set super properties for anonymous tracking (no PII)
   useEffect(() => {
     const user = query.data;
 
-    // Only identify when analytics is enabled and user is available
+    // Set super properties when analytics is enabled and user is available
+    // These properties are included in all events automatically
     if (shouldCaptureAnalytics() && user) {
-      posthog.identify(user.id, {
-        name: user.name,
-        handle: user.handle,
+      posthog.register({
         is_internal: isInternalUser(user.handle),
         is_early_tester: isEarlyTester(user.handle),
       });
