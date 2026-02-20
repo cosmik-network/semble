@@ -1,4 +1,4 @@
-import { Container, Stack, Group, Avatar, Skeleton, Card } from '@mantine/core';
+import { Container, Stack, Group, Skeleton } from '@mantine/core';
 import { Fragment } from 'react';
 
 export default function ProfileHeaderSkeleton() {
