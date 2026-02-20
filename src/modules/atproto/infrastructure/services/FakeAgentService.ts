@@ -19,6 +19,7 @@ export class FakeAgentService implements IAgentService {
               displayName: mockData.name,
               description: mockData.bio,
               avatar: mockData.avatarUrl,
+              banner: mockData.bannerUrl,
             },
           };
         },
