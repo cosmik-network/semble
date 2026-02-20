@@ -1,50 +1,65 @@
-import {
-  Container,
-  Stack,
-  Grid,
-  GridCol,
-  Avatar,
-  Group,
-  Skeleton,
-} from '@mantine/core';
+import { Container, Stack, Group, Avatar, Skeleton, Card } from '@mantine/core';
+import { Fragment } from 'react';
 
 export default function ProfileHeaderSkeleton() {
   return (
-    <Container p={'xs'} size={'xl'}>
-      <Stack gap={'sm'}>
-        <Stack gap={'xl'}>
-          <Grid gutter={'md'} align={'center'} grow>
-            <GridCol span={'auto'}>
-              <Avatar
-                size={'95px'}
+    <Fragment>
+      {/* Banner */}
+      <Skeleton h={150} radius={0} />
+
+      <Container p={0} size={'xl'}>
+        <Stack gap={'sm'} p={'xs'}>
+          <Stack gap={'xs'}>
+            <Group justify="space-between" align="start">
+              {/* Avatar */}
+              <Skeleton
+                h={95}
+                w={95}
                 mt={'-57.5'}
                 radius={'lg'}
                 style={{
                   border: '2.5px solid var(--mantine-color-body)',
                 }}
               />
-            </GridCol>
-            <GridCol span={{ base: 12, xs: 10 }}>
+
+              {/* Follow button skeleton */}
+              <Skeleton w={100} h={36} radius={'xl'} mt={4} />
+            </Group>
+
+            {/* Profile info */}
+            <Stack gap={'sm'}>
               <Stack gap={0}>
-                <Stack gap={0}>
-                  {/* Name */}
-                  <Skeleton w={'30%'} h={27} />
+                {/* Name */}
+                <Skeleton w={'30%'} h={32} mb={4} />
 
-                  <Group gap={'xs'}>
-                    {/* Handle */}
-                    <Skeleton w={'40%'} h={22} mt={'xs'} />
-                    {/* Bluesky badge */}
-                    <Skeleton w={26} h={26} radius={'xl'} />
-                  </Group>
-                </Stack>
+                <Group gap={'xs'}>
+                  {/* Handle */}
+                  <Skeleton w={'40%'} h={24} />
 
-                {/* Description */}
-                <Skeleton w={'80%'} h={22} mt={'md'} />
+                  {/* Bluesky badge */}
+                  <Skeleton w={26} h={26} radius={'xl'} />
+                </Group>
               </Stack>
-            </GridCol>
-          </Grid>
+
+              {/* Description */}
+              <Stack gap={'xs'}>
+                <Skeleton w={'80%'} h={20} />
+                <Skeleton w={'70%'} h={20} />
+              </Stack>
+
+              {/* Follow stats */}
+              <Group gap="sm">
+                {/* Followers */}
+                <Skeleton w={100} h={21} />
+                {/* Following */}
+                <Skeleton w={90} h={21} />
+                {/* Collection Following */}
+                <Skeleton w={150} h={21} />
+              </Group>
+            </Stack>
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
+      </Container>
+    </Fragment>
   );
 }
