@@ -1,4 +1,4 @@
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
 import { User } from '@semble/types';
 import Link from 'next/link';
 import { sanitizeText } from '@/lib/utils/text';
@@ -33,6 +33,13 @@ export default function ProfileCard(props: Props) {
             </Text>
           </Stack>
         </Group>
+
+        {props.profile.followsYou && (
+          <Badge variant="light" color="gray">
+            Follows you
+          </Badge>
+        )}
+
         {props.profile.description && (
           <Text size="sm" lineClamp={2}>
             {props.profile.description}

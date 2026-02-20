@@ -42,12 +42,10 @@ export default function FollowingContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-              <Stack gap={60}>
-                {allUsers.map((user) => (
-                  <ProfileCard key={user.id} profile={user} />
-                ))}
-              </Stack>
+            <Stack gap={'xs'}>
+              {allUsers.map((user) => (
+                <ProfileCard key={user.id} profile={user} />
+              ))}
             </Stack>
           </InfiniteScroll>
         )}
