@@ -4,6 +4,7 @@ import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
+import CollectionHeader from '@/features/collections/components/collectionHeader/CollectionHeader';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -41,20 +42,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Layout(props: Props) {
-  const { rkey, handle } = await props.params;
-
-  const collection = await getCollectionPageByAtUri({
-    recordKey: rkey,
-    handle,
-  });
+  const { handle, rkey } = await props.params;
 
   return (
     <Fragment>
       <Header>
-        <BackButton href={`/profile/${handle}/collections/${rkey}`}>
-          {truncateText(collection.name, 20)}
+        <BackButton href={`/profile/${handle}/collections`}>
+          {`@${truncateText(handle, 20)}`}
         </BackButton>
       </Header>
+      <CollectionHeader handle={handle} rkey={rkey} />
       {props.children}
     </Fragment>
   );

@@ -12,7 +12,6 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
 import { useSearchParams } from 'next/navigation';
-import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 
 interface Props {
   rkey: string;
@@ -52,14 +51,6 @@ export default function CollectionContainerContent(props: Props) {
 
   return (
     <Fragment>
-      <Group>
-        <CardFilters.Root>
-          <CardFilters.SortSelect />
-          <CardFilters.ViewToggle />
-          <CardFilters.TypeFilter />
-        </CardFilters.Root>
-      </Group>
-
       {allCards.length > 0 ? (
         <InfiniteScroll
           dataLength={allCards.length}
