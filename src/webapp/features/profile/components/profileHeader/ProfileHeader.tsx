@@ -6,8 +6,6 @@ import {
   Text,
   Title,
   Spoiler,
-  Grid,
-  GridCol,
   ActionIcon,
   Tooltip,
   Image,
