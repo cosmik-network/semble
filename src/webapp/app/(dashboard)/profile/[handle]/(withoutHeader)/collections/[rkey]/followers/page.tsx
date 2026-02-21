@@ -1,6 +1,5 @@
 import CollectionFollowersContainer from '@/features/follows/containers/collectionFollowersContainer/CollectionFollowersContainer';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
-import { Fragment } from 'react';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -15,14 +14,5 @@ export default async function Page(props: Props) {
     handle,
   });
 
-  return (
-    <Fragment>
-      <CollectionFollowersContainer
-        collectionId={collection.id}
-        collectionName={collection.name}
-        handle={handle}
-        rkey={rkey}
-      />
-    </Fragment>
-  );
+  return <CollectionFollowersContainer collectionId={collection.id} />;
 }

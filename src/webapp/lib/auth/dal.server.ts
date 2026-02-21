@@ -11,6 +11,7 @@ interface Options {
 
 export const verifySessionOnServer = cache(async (options?: Options) => {
   const cookieStore = await cookies();
+
   const res = await fetch(`${appUrl}/api/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(), // forward user's cookies

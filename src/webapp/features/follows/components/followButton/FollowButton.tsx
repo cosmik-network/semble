@@ -12,8 +12,6 @@ interface Props {
   targetType: 'USER' | 'COLLECTION';
   targetHandle?: string; // Handle of the user or collection author
   initialIsFollowing?: boolean;
-  variant?: 'filled' | 'light' | 'outline' | 'subtle';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   followText?: string;
 }
 
@@ -22,8 +20,6 @@ export default function FollowButton({
   targetType,
   targetHandle,
   initialIsFollowing = false,
-  variant = 'filled',
-  size = 'sm',
   followText = 'Follow',
 }: Props) {
   const { data: featureFlags } = useFeatureFlags();
@@ -75,9 +71,8 @@ export default function FollowButton({
     <Button
       onClick={handleClick}
       loading={isLoading}
-      variant={isFollowing ? 'outline' : 'light'}
-      color={isFollowing ? 'gray' : 'cyan'}
-      size={size}
+      variant={isFollowing ? 'light' : 'filled'}
+      color={isFollowing ? 'gray' : 'dark'}
     >
       {isFollowing ? 'Following' : followText}
     </Button>

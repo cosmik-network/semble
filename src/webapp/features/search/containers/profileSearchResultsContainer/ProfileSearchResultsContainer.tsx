@@ -4,7 +4,7 @@ import useProfileSearch from '../../lib/queries/useProfileSearch';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Stack } from '@mantine/core';
 import ProfileSearchResultsContainerError from './Error.ProfileSearchResultsContainer';
-import ProfileCard from '../../components/profileCard/ProfileCard';
+import SearchProfileCard from '../../components/profileCard/SearchProfileCard';
 import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 
@@ -47,7 +47,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
           <Grid gutter="xs">
             {allProfiles.map((profile) => (
               <Grid.Col key={profile.did} span={12}>
-                <ProfileCard profile={profile} />
+                <SearchProfileCard profile={profile} />
               </Grid.Col>
             ))}
           </Grid>

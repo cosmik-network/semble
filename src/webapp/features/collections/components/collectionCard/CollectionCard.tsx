@@ -35,8 +35,6 @@ export default function CollectionCard(props: Props) {
   const { collection } = props;
   const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
-  const relativeUpdateDate =
-    time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
   const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
@@ -137,7 +135,7 @@ export default function CollectionCard(props: Props) {
               {collection.cardCount === 1 ? 'card' : 'cards'}
             </Text>
             <Text c={'gray'} fz={'sm'}>
-              {relativeUpdateDate}
+              Updated {time}
             </Text>
           </Group>
         </Stack>

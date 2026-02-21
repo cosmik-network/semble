@@ -9,7 +9,7 @@ interface Props {
 
 export default function Header(props: Props) {
   return (
-    <Paper pos={'sticky'} top={0} style={{ zIndex: 1 }}>
+    <Paper pos={'sticky'} top={0} radius={0} style={{ zIndex: 1 }}>
       <Group gap={'xs'} p={'xs'} justify="space-between">
         <Group gap={'xs'}>
           {props.children}

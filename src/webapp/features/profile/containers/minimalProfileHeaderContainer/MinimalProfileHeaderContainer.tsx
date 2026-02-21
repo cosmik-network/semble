@@ -12,7 +12,7 @@ interface Props {
 
 export default function MinimalProfileHeaderContainer(props: Props) {
   const [{ y: yScroll }] = useWindowScroll();
-  const HEADER_REVEAL_SCROLL_THRESHOLD = 140;
+  const HEADER_REVEAL_SCROLL_THRESHOLD = 260;
 
   return (
     <Box

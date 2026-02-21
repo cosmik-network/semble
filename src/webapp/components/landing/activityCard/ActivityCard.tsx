@@ -25,8 +25,6 @@ interface Props {
 
 export default function ActivityCard(props: Props) {
   const time = getRelativeTime(props.createdAt.toString());
-  const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
-
   const router = useRouter();
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
@@ -71,7 +69,7 @@ export default function ActivityCard(props: Props) {
               </Text>
             </Group>
             <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-              {relativeCreatedDate}
+              {time}
             </Text>
           </Group>
         </Card>
