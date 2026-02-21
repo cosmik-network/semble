@@ -33,7 +33,7 @@ export default function CollectionActions(props: Props) {
 
   return (
     <Fragment>
-      <Group gap={'xs'}>
+      <Group gap={'xs'} mx={{ base: 'auto', md: 0 }}>
         {isAuthenticated &&
           (props.collection.accessType === CollectionAccessType.OPEN ||
             isAuthor) && (

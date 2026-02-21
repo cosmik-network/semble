@@ -5,13 +5,14 @@ import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
-import { Anchor, Box, Button, Grid, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Grid, Group, Stack, Text } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
 import { useSearchParams } from 'next/navigation';
+import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 
 interface Props {
   rkey: string;
@@ -51,6 +52,14 @@ export default function CollectionContainerContent(props: Props) {
 
   return (
     <Fragment>
+      <Group>
+        <CardFilters.Root>
+          <CardFilters.SortSelect />
+          <CardFilters.ViewToggle />
+          <CardFilters.TypeFilter />
+        </CardFilters.Root>
+      </Group>
+
       {allCards.length > 0 ? (
         <InfiniteScroll
           dataLength={allCards.length}

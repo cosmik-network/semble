@@ -8,11 +8,11 @@ interface Props {
   handle: string;
 }
 
-export default function ProfileTabs({ handle }: Props) {
+export default function ProfileTabs(props: Props) {
   const pathname = usePathname();
   const segment = pathname.split('/')[3];
   const currentTab = segment || 'profile'; // treat base route as 'profile'
-  const basePath = `/profile/${handle}`;
+  const basePath = `/profile/${props.handle}`;
 
   return (
     <Tabs value={currentTab}>

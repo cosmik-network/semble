@@ -10,10 +10,12 @@ import {
   Avatar,
   Tooltip,
   Badge,
+  Box,
+  Divider,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Fragment, Suspense } from 'react';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
@@ -25,6 +27,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
+import CollectionTabs from '../../components/collectionTabs/CollectionTabs';
 
 interface Props {
   rkey: string;
@@ -50,134 +53,149 @@ export default function CollectionContainer(props: Props) {
   }
 
   return (
-    <Container p="xs" size="xl">
-      <Stack gap={'lg'}>
-        <Stack gap={'xs'}>
-          <Group justify="space-between" align="start">
-            <Stack gap={0}>
-              <Group gap={'xs'}>
-                <Text
-                  fw={700}
-                  c={
-                    collection.accessType === CollectionAccessType.OPEN
-                      ? 'green'
-                      : 'grape'
-                  }
-                >
-                  Collection
-                </Text>
+    <Fragment>
+      <Box
+        h={80}
+        style={{
+          background:
+            accessType === CollectionAccessType.OPEN
+              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-2))'
+              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-2))',
+        }}
+      />
+      <Container p="xs" size="xl">
+        <Stack gap={'lg'}>
+          <Stack gap={'xs'}>
+            <Group justify="space-between" align="start">
+              <Stack gap={0}>
+                <Group gap={'xs'}>
+                  <Text
+                    fw={700}
+                    c={
+                      collection.accessType === CollectionAccessType.OPEN
+                        ? 'green'
+                        : 'grape'
+                    }
+                  >
+                    Collection
+                  </Text>
 
-                {accessType === CollectionAccessType.OPEN && (
-                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                    <Badge
-                      color="green"
-                      leftSection={<FaSeedling />}
-                      variant="light"
+                  {accessType === CollectionAccessType.OPEN && (
+                    <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                      <Badge
+                        color="green"
+                        leftSection={<FaSeedling />}
+                        variant="light"
+                      >
+                        Open
+                      </Badge>
+                    </Tooltip>
+                  )}
+                </Group>
+                <Group gap={8}>
+                  <Title order={1}>{collection.name}</Title>
+                  {isMarginUri(collection.uri) && (
+                    <MarginLogo size={20} marginUrl={marginUrl} />
+                  )}
+                </Group>
+                {collection.description && (
+                  <Text c="gray" mt="lg" maw={700}>
+                    {collection.description}
+                  </Text>
+                )}
+              </Stack>
+            </Group>
+          </Stack>
+
+          <Stack justify="flex-start">
+            <Group justify="space-between" gap={'lg'}>
+              <Stack gap={'xs'}>
+                <Group gap={5}>
+                  <Text fw={600} fz={'sm'} c={'dimmed'} span>
+                    By
+                  </Text>
+                  <Group gap={5}>
+                    <Avatar
+                      size={'xs'}
+                      radius={'sm'}
+                      component={Link}
+                      href={`/profile/${collection.author.handle}`}
+                      src={collection.author.avatarUrl?.replace(
+                        'avatar',
+                        'avatar_thumbnail',
+                      )}
+                      alt={`${collection.author.name}'s avatar`}
+                    />
+                    <Anchor
+                      component={Link}
+                      href={`/profile/${collection.author.handle}`}
+                      fw={600}
+                      c="bright"
                     >
-                      Open
-                    </Badge>
-                  </Tooltip>
-                )}
-              </Group>
-              <Group gap={8}>
-                <Title order={1}>{collection.name}</Title>
-                {isMarginUri(collection.uri) && (
-                  <MarginLogo size={20} marginUrl={marginUrl} />
-                )}
-              </Group>
-              {collection.description && (
-                <Text c="gray" mt="lg" maw={700}>
-                  {collection.description}
-                </Text>
-              )}
-            </Stack>
-          </Group>
+                      {collection.author.name}
+                    </Anchor>
+                  </Group>
+                </Group>
+                <Group gap={'xs'}>
+                  <Group gap={5}>
+                    <Text fw={500} fz={'sm'} c={'bright'}>
+                      {collection.cardCount ?? 0}
+                    </Text>
+                    <Text fw={500} fz={'sm'} c={'dimmed'}>
+                      Cards
+                    </Text>
+                  </Group>
 
-          <Group gap={'xs'} justify="space-between">
-            <Group gap={5}>
-              <Avatar
-                size={'sm'}
-                component={Link}
-                href={`/profile/${collection.author.handle}`}
-                src={collection.author.avatarUrl?.replace(
-                  'avatar',
-                  'avatar_thumbnail',
-                )}
-                alt={`${collection.author.name}'s avatar`}
+                  <Divider orientation="vertical" />
+
+                  {/*<Stack gap={0} align="center">
+                  <Text fw={500} fz={'sm'} c={'bright'}>
+                    Followers
+                  </Text>
+                  <Text fw={500} fz={'sm'} c={'dimmed'}>
+                    TBD
+                  </Text>
+                </Stack>*/}
+
+                  <Group gap={5}>
+                    <Text fw={500} fz={'sm'} c={'bright'}>
+                      Created
+                    </Text>
+                    <Text fw={500} fz={'sm'} c={'dimmed'}>
+                      {getRelativeTime(collection.createdAt)}
+                    </Text>
+                  </Group>
+                  <Divider orientation="vertical" />
+
+                  <Group gap={5}>
+                    <Text fw={500} fz={'sm'} c={'bright'}>
+                      Updated
+                    </Text>
+                    <Text fw={500} fz={'sm'} c={'dimmed'}>
+                      {getRelativeTime(collection.updatedAt)}
+                    </Text>
+                  </Group>
+                </Group>
+              </Stack>
+
+              <CollectionActions
+                collection={{
+                  ...collection,
+                  rkey: props.rkey,
+                }}
               />
-              <Anchor
-                component={Link}
-                href={`/profile/${collection.author.handle}`}
-                fw={600}
-                c="bright"
-              >
-                {collection.author.name}
-              </Anchor>
             </Group>
-            <Group gap={'lg'}>
-              <Stack gap={0} align="center">
-                <Text fw={500} fz={'sm'} c={'bright'}>
-                  Cards
-                </Text>
-                <Text fw={500} fz={'sm'} c={'dimmed'}>
-                  {collection.cardCount ?? 0}
-                </Text>
-              </Stack>
 
-              {/*<Stack gap={0} align="center">
-                <Text fw={500} fz={'sm'} c={'bright'}>
-                  Followers
-                </Text>
-                <Text fw={500} fz={'sm'} c={'dimmed'}>
-                  TBD
-                </Text>
-              </Stack>*/}
-
-              <Stack gap={0} align="center">
-                <Text fw={500} fz={'sm'} c={'bright'}>
-                  Created
-                </Text>
-                <Text fw={500} fz={'sm'} c={'dimmed'}>
-                  {getRelativeTime(collection.createdAt)}
-                </Text>
-              </Stack>
-
-              <Stack gap={0} align="center">
-                <Text fw={500} fz={'sm'} c={'bright'}>
-                  Updated
-                </Text>
-                <Text fw={500} fz={'sm'} c={'dimmed'}>
-                  {getRelativeTime(collection.updatedAt)}
-                </Text>
-              </Stack>
-            </Group>
-          </Group>
+            <CollectionTabs rkey={props.rkey} handle={props.handle} />
+            <Suspense fallback={<CollectionContainerContentSkeleton />}>
+              <CollectionContainerContent
+                rkey={props.rkey}
+                handle={props.handle}
+              />
+            </Suspense>
+          </Stack>
         </Stack>
-
-        <Stack justify="flex-start">
-          <Group justify="space-between" gap={'xs'}>
-            <CardFilters.Root>
-              <CardFilters.SortSelect />
-              <CardFilters.ViewToggle />
-              <CardFilters.TypeFilter />
-            </CardFilters.Root>
-
-            <CollectionActions
-              collection={{
-                ...collection,
-                rkey: props.rkey,
-              }}
-            />
-          </Group>
-
-          <Suspense fallback={<CollectionContainerContentSkeleton />}>
-            <CollectionContainerContent
-              rkey={props.rkey}
-              handle={props.handle}
-            />
-          </Suspense>
-        </Stack>
-      </Stack>
-    </Container>
+      </Container>
+    </Fragment>
   );
 }
