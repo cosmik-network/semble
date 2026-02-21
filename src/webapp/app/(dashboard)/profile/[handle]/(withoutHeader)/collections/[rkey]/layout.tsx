@@ -3,8 +3,11 @@ import Header from '@/components/navigation/header/Header';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
 import CollectionHeader from '@/features/collections/components/collectionHeader/CollectionHeader';
+import CollectionHeaderSkeleton from '@/features/collections/components/collectionHeader/Skeleton.CollectionHeader';
+import CollectionTabs from '@/features/collections/components/collectionTabs/CollectionTabs';
+import { Container } from '@mantine/core';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -51,7 +54,12 @@ export default async function Layout(props: Props) {
           {`@${truncateText(handle, 20)}`}
         </BackButton>
       </Header>
-      <CollectionHeader handle={handle} rkey={rkey} />
+      <Suspense fallback={<CollectionHeaderSkeleton />}>
+        <CollectionHeader handle={handle} rkey={rkey} />
+      </Suspense>
+      <Container size={'xl'} p={'xs'}>
+        <CollectionTabs handle={handle} rkey={rkey} />
+      </Container>
       {props.children}
     </Fragment>
   );

@@ -22,7 +22,6 @@ import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
-import CollectionTabs from '../collectionTabs/CollectionTabs';
 
 interface Props {
   rkey: string;
@@ -177,8 +176,6 @@ export default function CollectionHeader(props: Props) {
               />
             </Group>
           </Stack>
-
-          <CollectionTabs rkey={props.rkey} handle={props.handle} />
         </Stack>
       </Container>
     </Fragment>
