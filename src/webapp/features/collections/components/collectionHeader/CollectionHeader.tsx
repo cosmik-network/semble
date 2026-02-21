@@ -44,14 +44,29 @@ export default function CollectionHeader(props: Props) {
 
   return (
     <Fragment>
+      {/* Light mode gradient */}
       <Box
+        lightHidden
         style={{
           width: '100%',
-          height: '80px',
+          height: '40px',
           background:
             accessType === CollectionAccessType.OPEN
-              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-3))'
-              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-3))',
+              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-9))'
+              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-9))',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Dark mode gradient */}
+      <Box
+        darkHidden
+        style={{
+          width: '100%',
+          height: '40px',
+          background:
+            accessType === CollectionAccessType.OPEN
+              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-1))'
+              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-1))',
           pointerEvents: 'none',
         }}
       />

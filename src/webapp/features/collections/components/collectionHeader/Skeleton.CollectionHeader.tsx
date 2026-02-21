@@ -3,13 +3,25 @@ import { Container, Group, Stack, Skeleton, Box } from '@mantine/core';
 export default function CollectionHeaderSkeleton() {
   return (
     <>
-      {/* Gradient background */}
+      {/* Light mode gradient */}
       <Box
+        lightHidden
         style={{
           width: '100%',
-          height: '80px',
+          height: '40px',
           background:
-            'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-dimmed))',
+            'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-gray-8))',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Dark mode gradient */}
+      <Box
+        darkHidden
+        style={{
+          width: '100%',
+          height: '40px',
+          background:
+            'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-gray-1))',
           pointerEvents: 'none',
         }}
       />
