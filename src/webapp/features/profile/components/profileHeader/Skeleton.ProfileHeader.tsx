@@ -53,7 +53,7 @@ export default function ProfileHeaderSkeleton() {
                 <Skeleton w={100} h={21} />
                 {/* Following */}
                 <Skeleton w={90} h={21} />
-                {/* Collection Following */}
+                {/* Collections Following */}
                 <Skeleton w={150} h={21} />
               </Group>
             </Stack>

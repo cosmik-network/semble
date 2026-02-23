@@ -142,14 +142,14 @@ export default async function ProfileHeader(props: Props) {
 
                   <Anchor
                     component={Link}
-                    href={`/profile/${props.handle}/community/collection-following`}
+                    href={`/profile/${props.handle}/community/collections-following`}
                     underline="never"
                   >
                     <Text fw={500} c={'bright'} span>
                       {profile.followedCollectionsCount}
                     </Text>
                     <Text fw={500} c={'gray'} span>
-                      {' Collection Following'}
+                      {' Collections Following'}
                     </Text>
                   </Anchor>
                 </Group>

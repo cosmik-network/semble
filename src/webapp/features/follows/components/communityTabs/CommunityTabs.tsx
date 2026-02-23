@@ -16,8 +16,8 @@ export default function CommunityTabs() {
   const getCurrentValue = () => {
     if (pathname === basePath) return 'followers';
     if (pathname.endsWith('/following')) return 'following';
-    if (pathname.endsWith('/collection-following'))
-      return 'collection-following';
+    if (pathname.endsWith('/collections-following'))
+      return 'collections-following';
     return 'followers';
   };
 
@@ -34,7 +34,7 @@ export default function CommunityTabs() {
       data={[
         { label: 'Followers', value: 'followers' },
         { label: 'Following', value: 'following' },
-        { label: 'Collection Following', value: 'collection-following' },
+        { label: 'Collections Following', value: 'collections-following' },
       ]}
     />
   );
