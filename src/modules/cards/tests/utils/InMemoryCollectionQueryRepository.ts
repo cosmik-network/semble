@@ -10,6 +10,7 @@ import {
   CollectionForUrlQueryOptions,
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
+  CollectionContributorDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -393,6 +394,79 @@ export class InMemoryCollectionQueryRepository
     } catch (error) {
       throw new Error(
         `Failed to get open collections with contributor: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async getCollectionContributors(
+    collectionId: string,
+    authorId: string,
+    options: { page: number; limit: number },
+  ): Promise<PaginatedQueryResult<CollectionContributorDTO>> {
+    try {
+      const allCollections = this.collectionRepository.getAllCollections();
+      const collection = allCollections.find(
+        (c) => c.collectionId.getStringValue() === collectionId,
+      );
+
+      if (!collection) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      // Get unique contributors (excluding author) with their contribution counts
+      const contributorMap = new Map<
+        string,
+        { userId: string; contributionCount: number; lastContributedAt: Date }
+      >();
+
+      for (const link of collection.cardLinks) {
+        const contributorId = link.addedBy.value;
+
+        // Skip the collection author
+        if (contributorId === authorId) {
+          continue;
+        }
+
+        if (contributorMap.has(contributorId)) {
+          const existing = contributorMap.get(contributorId)!;
+          existing.contributionCount++;
+          if (link.addedAt > existing.lastContributedAt) {
+            existing.lastContributedAt = link.addedAt;
+          }
+        } else {
+          contributorMap.set(contributorId, {
+            userId: contributorId,
+            contributionCount: 1,
+            lastContributedAt: link.addedAt,
+          });
+        }
+      }
+
+      // Convert to array and sort by most recent contribution
+      let contributors = Array.from(contributorMap.values()).sort(
+        (a, b) => b.lastContributedAt.getTime() - a.lastContributedAt.getTime(),
+      );
+
+      const totalCount = contributors.length;
+
+      // Apply pagination
+      const { page, limit } = options;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      contributors = contributors.slice(startIndex, endIndex);
+
+      return {
+        items: contributors,
+        totalCount,
+        hasMore: endIndex < totalCount,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to get collection contributors: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

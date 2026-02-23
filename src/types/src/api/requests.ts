@@ -292,3 +292,7 @@ export interface GetFollowingCollectionsCountParams {
 export interface GetCollectionFollowersCountParams {
   collectionId: string; // Collection UUID
 }
+
+export interface GetCollectionContributorsParams extends PaginationParams {
+  collectionId: string; // Collection UUID
+}

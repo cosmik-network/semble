@@ -18,12 +18,15 @@ import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useNavbarContext } from '@/providers/navbar';
+import { CardSaveSource } from '@/features/analytics/types';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   handle: string;
 }
 
 export default function ProfileContainer(props: Props) {
+  const pathname = usePathname();
   const { data: collectionsData } = useCollections({
     limit: 4,
     didOrHandle: props.handle,
@@ -81,6 +84,10 @@ export default function ProfileContainer(props: Props) {
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
                       viaCardId={card.id}
+                      analyticsContext={{
+                        saveSource: CardSaveSource.PROFILE,
+                        pagePath: pathname,
+                      }}
                     />
                   </Grid.Col>
                 ))}

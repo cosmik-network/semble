@@ -22,6 +22,7 @@ import {
   CollectionForUrlQueryOptions,
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
+  CollectionContributorDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
@@ -493,6 +494,72 @@ export class DrizzleCollectionQueryRepository
       };
     } catch (error) {
       console.error('Error in getOpenCollectionsWithContributor:', error);
+      throw error;
+    }
+  }
+
+  async getCollectionContributors(
+    collectionId: string,
+    authorId: string,
+    options: { page: number; limit: number },
+  ): Promise<PaginatedQueryResult<CollectionContributorDTO>> {
+    try {
+      const { page, limit } = options;
+      const offset = (page - 1) * limit;
+
+      // Get unique contributors with their contribution count and last contribution time
+      // Exclude the collection author
+      const contributorsQuery = this.db
+        .select({
+          userId: collectionCards.addedBy,
+          contributionCount: sql<number>`CAST(COUNT(*) AS INTEGER)`.as(
+            'contribution_count',
+          ),
+          lastContributedAt: sql<Date>`MAX(${collectionCards.addedAt})`.as(
+            'last_contributed_at',
+          ),
+        })
+        .from(collectionCards)
+        .where(
+          and(
+            eq(collectionCards.collectionId, collectionId),
+            sql`${collectionCards.addedBy} != ${authorId}`, // Exclude author
+          ),
+        )
+        .groupBy(collectionCards.addedBy)
+        .orderBy(sql`MAX(${collectionCards.addedAt}) DESC`) // Most recent contribution first
+        .limit(limit)
+        .offset(offset);
+
+      const contributors = await contributorsQuery;
+
+      // Get total count of distinct contributors (excluding author)
+      const countQuery = this.db
+        .select({
+          count: sql<number>`COUNT(DISTINCT ${collectionCards.addedBy})`,
+        })
+        .from(collectionCards)
+        .where(
+          and(
+            eq(collectionCards.collectionId, collectionId),
+            sql`${collectionCards.addedBy} != ${authorId}`,
+          ),
+        );
+
+      const countResult = await countQuery;
+      const totalCount = countResult[0]?.count || 0;
+
+      return {
+        items: contributors.map((c) => ({
+          userId: c.userId,
+          contributionCount: c.contributionCount,
+          lastContributedAt: c.lastContributedAt,
+        })),
+        totalCount,
+        hasMore: page * limit < totalCount,
+      };
+    } catch (error) {
+      console.error('Error in getCollectionContributors:', error);
       throw error;
     }
   }

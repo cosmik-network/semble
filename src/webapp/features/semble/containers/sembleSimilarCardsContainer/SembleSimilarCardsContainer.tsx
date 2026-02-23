@@ -8,14 +8,16 @@ import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { UrlType } from '@semble/types';
+import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   url: string;
 }
 
 export default function SembleSimilarCardsContainer(props: Props) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
 
@@ -58,7 +60,16 @@ export default function SembleSimilarCardsContainer(props: Props) {
           <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
             {allSimilarUrls.map((urlView) => (
               <Grid.Col key={urlView.url} span={12}>
-                <SimilarUrlCard urlView={urlView} />
+                <SimilarUrlCard
+                  urlView={urlView}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.SIMILAR_CARDS,
+                    activeFilters: {
+                      urlType: selectedUrlType,
+                    },
+                    pagePath: pathname,
+                  }}
+                />
               </Grid.Col>
             ))}
           </Grid>

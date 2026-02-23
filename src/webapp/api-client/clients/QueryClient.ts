@@ -46,6 +46,8 @@ import {
   GetFollowingCollectionsCountParams,
   GetCollectionFollowersCountParams,
   GetFollowCountResponse,
+  GetCollectionContributorsParams,
+  GetCollectionContributorsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -450,5 +452,20 @@ export class QueryClient extends BaseClient {
       'GET',
       `/api/collections/${params.collectionId}/followers/count`,
     );
+  }
+
+  async getCollectionContributors(
+    params: GetCollectionContributorsParams,
+  ): Promise<GetCollectionContributorsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/${params.collectionId}/contributors?${queryString}`
+      : `/api/collections/${params.collectionId}/contributors`;
+
+    return this.request<GetCollectionContributorsResponse>('GET', endpoint);
   }
 }

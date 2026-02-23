@@ -54,6 +54,7 @@ import { GetFollowersCountController } from '../../../../modules/user/infrastruc
 import { GetFollowingCollectionsCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCollectionsCountController';
 import { GetCollectionFollowersController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersCountController';
+import { GetCollectionContributorsController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionContributorsController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -102,6 +103,7 @@ export interface Controllers {
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   getCollectionFollowersController: GetCollectionFollowersController;
   getCollectionFollowersCountController: GetCollectionFollowersCountController;
+  getCollectionContributorsController: GetCollectionContributorsController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
   getGemActivityFeedController: GetGemActivityFeedController;
@@ -264,6 +266,10 @@ export class ControllerFactory {
       getCollectionFollowersCountController:
         new GetCollectionFollowersCountController(
           useCases.getCollectionFollowersCountUseCase,
+        ),
+      getCollectionContributorsController:
+        new GetCollectionContributorsController(
+          useCases.getCollectionContributorsUseCase,
         ),
 
       // Feed controllers

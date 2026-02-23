@@ -29,6 +29,7 @@ import { GetCollectionPageByAtUriController } from '../controllers/GetCollection
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
+import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -61,6 +62,7 @@ export function createCardsModuleRoutes(
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
   getCollectionFollowersController: GetCollectionFollowersController,
   getCollectionFollowersCountController: GetCollectionFollowersCountController,
+  getCollectionContributorsController: GetCollectionContributorsController,
 ): Router {
   const router = Router();
 
@@ -104,6 +106,7 @@ export function createCardsModuleRoutes(
       getOpenCollectionsWithContributorController,
       getCollectionFollowersController,
       getCollectionFollowersCountController,
+      getCollectionContributorsController,
     ),
   );
 

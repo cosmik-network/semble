@@ -11,7 +11,8 @@ import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
+import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   rkey: string;
@@ -27,6 +28,7 @@ const sortOrderMap: Record<CardSortField, SortOrder> = {
 };
 
 export default function CollectionContainerContent(props: Props) {
+  const pathname = usePathname();
   const { desktopOpened } = useNavbarContext();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { user } = useAuth();
@@ -84,6 +86,14 @@ export default function CollectionContainerContent(props: Props) {
                   currentCollection={firstPage}
                   viaCardId={card.id}
                   showAuthor={props.handle !== card.author.handle}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.COLLECTION,
+                    activeFilters: {
+                      urlType: selectedUrlType,
+                      sort: sortBy,
+                    },
+                    pagePath: pathname,
+                  }}
                 />
               </Grid.Col>
             ))}

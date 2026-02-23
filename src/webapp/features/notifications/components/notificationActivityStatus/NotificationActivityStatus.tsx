@@ -83,10 +83,10 @@ export default function NotificationActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added your Bluesky post to their library</Text>
+              <Text span>added your post to their library</Text>
             ) : (
               <Fragment>
-                <Text span>added your Bluesky post to </Text>
+                <Text span>added your post to </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,

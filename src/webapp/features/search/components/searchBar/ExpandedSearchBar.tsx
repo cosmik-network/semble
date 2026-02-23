@@ -18,6 +18,7 @@ import { MdOutlinePeopleAlt } from 'react-icons/md';
 import { SearchFilters } from '../searchFilters/SearchFilters';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
 import { track } from '@vercel/analytics';
+import posthog from 'posthog-js';
 
 interface Props {
   query?: string;
@@ -143,6 +144,7 @@ export default function SearchBar(props: Props) {
               loading={isPending}
               onClick={() => {
                 track('Search: search button clicked');
+                posthog.capture('Search: search button clicked');
               }}
             >
               <IoSearch size={24} />

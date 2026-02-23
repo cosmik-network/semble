@@ -2,18 +2,19 @@ import type { Metadata } from 'next';
 import { getDomain } from '@/lib/utils/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { redirect } from 'next/navigation';
+import SemblePageClient from '@/features/semble/containers/sembleContainer/SemblePageClient';
 import SembleContainer from '@/features/semble/containers/sembleContainer/SembleContainer';
-import { Fragment, Suspense } from 'react';
+import { Suspense } from 'react';
 import SembleContainerSkeleton from '@/features/semble/containers/sembleContainer/Skeleton.SembleContainer';
 
 interface Props {
-  searchParams: Promise<{ id: string | undefined }>;
+  searchParams: Promise<{ id: string | undefined; viaCardId?: string }>;
 }
 
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ id: string | undefined }>;
+  searchParams: Promise<{ id: string | undefined; viaCardId?: string }>;
 }): Promise<Metadata> {
   const { id: url } = await searchParams;
 
@@ -42,15 +43,19 @@ export async function generateMetadata({
 }
 
 export default async function Page(props: Props) {
-  const { id: url } = await props.searchParams;
+  const searchParams = await props.searchParams;
+  const url = searchParams.id;
+  const viaCardId = searchParams.viaCardId;
 
   if (!url) {
     redirect('/');
   }
 
   return (
-    <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-      <SembleContainer url={url} />
-    </Suspense>
+    <SemblePageClient viaCardId={viaCardId}>
+      <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
+        <SembleContainer url={url} viaCardId={viaCardId} />
+      </Suspense>
+    </SemblePageClient>
   );
 }
