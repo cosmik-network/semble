@@ -13,6 +13,11 @@ export interface User {
   followedCollectionsCount?: number; // Number of collections this user follows
 }
 
+// Extended User interface for contributors with contribution count
+export interface ContributorUser extends User {
+  contributionCount: number; // Number of cards this user contributed to the collection
+}
+
 // Type alias for inline profile objects (without isFollowing)
 // Used for nested author objects in collections, cards, etc.
 export type UserProfileDTO = Omit<User, 'isFollowing'>;

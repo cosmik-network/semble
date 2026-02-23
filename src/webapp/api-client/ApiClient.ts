@@ -98,6 +98,8 @@ import type {
   GetFollowingCollectionsCountParams,
   GetCollectionFollowersCountParams,
   GetFollowCountResponse,
+  GetCollectionContributorsParams,
+  GetCollectionContributorsResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -286,6 +288,12 @@ export class ApiClient {
     params: GetCollectionFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
     return this.queryClient.getCollectionFollowersCount(params);
+  }
+
+  async getCollectionContributors(
+    params: GetCollectionContributorsParams,
+  ): Promise<GetCollectionContributorsResponse> {
+    return this.queryClient.getCollectionContributors(params);
   }
 
   // Card operations - delegate to CardClient

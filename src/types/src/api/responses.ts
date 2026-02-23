@@ -1,5 +1,6 @@
 import {
   User,
+  ContributorUser,
   Pagination,
   CardSorting,
   CollectionSorting,
@@ -400,4 +401,10 @@ export interface GetCollectionFollowersResponse {
 // Follow count response types
 export interface GetFollowCountResponse {
   count: number;
+}
+
+// Contributor response types
+export interface GetCollectionContributorsResponse {
+  users: ContributorUser[];
+  pagination: Pagination;
 }
