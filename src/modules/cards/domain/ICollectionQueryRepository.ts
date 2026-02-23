@@ -93,6 +93,12 @@ export interface GetOpenCollectionsWithContributorOptions {
   sortOrder: SortOrder;
 }
 
+export interface CollectionContributorDTO {
+  userId: string;
+  contributionCount: number;
+  lastContributedAt: Date;
+}
+
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
@@ -116,4 +122,10 @@ export interface ICollectionQueryRepository {
   getOpenCollectionsWithContributor(
     options: GetOpenCollectionsWithContributorOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
+
+  getCollectionContributors(
+    collectionId: string,
+    authorId: string,
+    options: { page: number; limit: number },
+  ): Promise<PaginatedQueryResult<CollectionContributorDTO>>;
 }
