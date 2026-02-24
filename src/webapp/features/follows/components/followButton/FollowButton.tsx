@@ -1,9 +1,9 @@
 'use client';
+
 import { Button } from '@mantine/core';
 import { startTransition } from 'react';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { isApprovedHandle } from '@/lib/approvedHandles';
 
 interface Props {
   targetId: string;
@@ -13,16 +13,10 @@ interface Props {
   followText?: string;
 }
 
-export default function FollowButton({
-  targetId,
-  targetType,
-  targetHandle,
-  initialIsFollowing = false,
-  followText = 'Follow',
-}: Props) {
+export default function FollowButton(props: Props) {
   const { data: featureFlags } = useFeatureFlags();
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
-    useToggleFollow(initialIsFollowing);
+    useToggleFollow(props.initialIsFollowing ?? false);
 
   if (!featureFlags?.following) {
     return null;
@@ -33,13 +27,16 @@ export default function FollowButton({
       onClick={() =>
         startTransition(() => {
           setOptimisticIsFollowing(!isFollowing);
-          toggleAction({ targetId, targetType });
+          toggleAction({
+            targetId: props.targetId,
+            targetType: props.targetType,
+          });
         })
       }
       variant={isFollowing ? 'light' : 'filled'}
       color={isFollowing ? 'gray' : 'dark'}
     >
-      {isFollowing ? 'Following' : followText}
+      {isFollowing ? 'Following' : (props.followText ?? 'Follow')}
     </Button>
   );
 }
