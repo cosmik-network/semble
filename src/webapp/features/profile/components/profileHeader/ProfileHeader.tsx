@@ -77,7 +77,7 @@ export default async function ProfileHeader(props: Props) {
                   {profile.name}
                 </Title>
                 <Group gap={'xs'}>
-                  {profile.followsYou && (
+                  {featureFlags.following && profile.followsYou && (
                     <Badge variant="light" color="gray">
                       Follows you
                     </Badge>
