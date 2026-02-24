@@ -3,14 +3,14 @@
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { SegmentedControl } from '@mantine/core';
 
-export default function CommunityTabs() {
+export default function NetworkTabs() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
 
   const handle = params.handle as string;
 
-  const basePath = `/profile/${handle}/community`;
+  const basePath = `/profile/${handle}/network`;
 
   // Determine active tab from URL
   const getCurrentValue = () => {

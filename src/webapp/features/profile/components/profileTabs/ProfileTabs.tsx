@@ -29,8 +29,8 @@ export default function ProfileTabs(props: Props) {
               <TabItem value="collections" href={`${basePath}/collections`}>
                 Collections
               </TabItem>
-              <TabItem value="community" href={`${basePath}/community`}>
-                Community
+              <TabItem value="network" href={`${basePath}/network`}>
+                Network
               </TabItem>
             </Group>
           </Tabs.List>

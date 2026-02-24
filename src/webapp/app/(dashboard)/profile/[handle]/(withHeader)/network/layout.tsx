@@ -1,4 +1,4 @@
-import CommunityTabs from '@/features/follows/components/communityTabs/CommunityTabs';
+import NetworkTabs from '@/features/follows/components/networkTabs/NetworkTabs';
 import { getProfile } from '@/features/profile/lib/dal.server';
 import { Container } from '@mantine/core';
 import type { Metadata } from 'next';
@@ -41,7 +41,7 @@ export default function Layout(props: Props) {
   return (
     <Fragment>
       <Container p="xs" size="xl">
-        <CommunityTabs />
+        <NetworkTabs />
       </Container>
       {props.children}
     </Fragment>

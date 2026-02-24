@@ -28,7 +28,7 @@ export default function ProfileFollowStats(props: Props) {
     <Group gap="sm">
       <Anchor
         component={Link}
-        href={`/profile/${props.handle}/community`}
+        href={`/profile/${props.handle}/network`}
         underline="never"
       >
         <Text fw={500} c={'bright'} span>
@@ -42,7 +42,7 @@ export default function ProfileFollowStats(props: Props) {
 
       <Anchor
         component={Link}
-        href={`/profile/${props.handle}/community/following`}
+        href={`/profile/${props.handle}/network/following`}
         underline="never"
       >
         <Text fw={500} c={'bright'} span>
@@ -55,7 +55,7 @@ export default function ProfileFollowStats(props: Props) {
 
       <Anchor
         component={Link}
-        href={`/profile/${props.handle}/community/collections-following`}
+        href={`/profile/${props.handle}/network/collections-following`}
         underline="never"
       >
         <Text fw={500} c={'bright'} span>
