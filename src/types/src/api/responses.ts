@@ -137,17 +137,7 @@ export interface GetUrlCardsResponse {
   sorting: CardSorting;
 }
 
-export interface GetCollectionPageResponse {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  accessType?: CollectionAccessType;
-  author: User;
-  urlCards: UrlCard[];
-  cardCount: number;
-  createdAt: string;
-  updatedAt: string;
+export interface GetCollectionPageResponse extends Collection {
   pagination: Pagination;
   sorting: CardSorting;
 }
