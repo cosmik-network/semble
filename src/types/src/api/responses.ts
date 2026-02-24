@@ -103,6 +103,7 @@ export interface Collection {
   createdAt: string;
   updatedAt: string;
   isFollowing?: boolean; // Whether the calling user follows this collection
+  followerCount?: number; // Number of users following this collection
 }
 
 // Context-specific variations

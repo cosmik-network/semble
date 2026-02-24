@@ -37,6 +37,8 @@ export interface GetCollectionPageResult {
     avatarUrl?: string;
   };
   urlCards: CollectionPageUrlCardDTO[];
+  cardCount: number;
+  followerCount: number;
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -115,11 +117,40 @@ export class GetCollectionPageUseCase
 
       const collectionUri = collectionPublishedRecordId?.uri;
 
-      // Get author profile
-      const profileResult = await this.profileService.getProfile(
-        collection.authorId.value,
-        query.callingUserId,
-      );
+      // Parallelize independent async operations
+      const [profileResult, cardsResult, followResult, followerCountResult] =
+        await Promise.all([
+          // Get author profile
+          this.profileService.getProfile(
+            collection.authorId.value,
+            query.callingUserId,
+          ),
+          // Get cards in the collection
+          this.cardQueryRepo.getCardsInCollection(
+            query.collectionId,
+            {
+              page,
+              limit,
+              sortBy,
+              sortOrder,
+              urlType,
+            },
+            query.callingUserId,
+          ),
+          // Check if the calling user follows this collection
+          query.callingUserId
+            ? this.followsRepository.findByFollowerAndTarget(
+                query.callingUserId,
+                collection.collectionId.getStringValue(),
+                FollowTargetType.COLLECTION,
+              )
+            : Promise.resolve(ok(null)),
+          // Get follower count for this collection
+          this.followsRepository.getFollowersCount(
+            collection.collectionId.getStringValue(),
+            FollowTargetType.COLLECTION,
+          ),
+        ]);
 
       if (profileResult.isErr()) {
         return err(
@@ -130,19 +161,6 @@ export class GetCollectionPageUseCase
       }
 
       const authorProfile = profileResult.value;
-
-      // Get cards in the collection
-      const cardsResult = await this.cardQueryRepo.getCardsInCollection(
-        query.collectionId,
-        {
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          urlType,
-        },
-        query.callingUserId,
-      );
 
       // Extract unique author IDs from all cards
       const uniqueAuthorIds = Array.from(
@@ -187,20 +205,16 @@ export class GetCollectionPageUseCase
         },
       );
 
-      // Check if the calling user follows this collection
+      // Process follow status (already fetched in parallel above)
       let isFollowing: boolean | undefined = undefined;
-      if (query.callingUserId) {
-        const followResult =
-          await this.followsRepository.findByFollowerAndTarget(
-            query.callingUserId,
-            collection.collectionId.getStringValue(),
-            FollowTargetType.COLLECTION,
-          );
-
-        if (followResult.isOk()) {
-          isFollowing = followResult.value !== null;
-        }
+      if (followResult.isOk()) {
+        isFollowing = followResult.value !== null;
       }
+
+      // Process follower count (already fetched in parallel above)
+      const followerCount = followerCountResult.isOk()
+        ? followerCountResult.value
+        : 0;
 
       return ok({
         id: collection.collectionId.getStringValue(),
@@ -217,6 +231,7 @@ export class GetCollectionPageUseCase
         },
         urlCards: enrichedCards,
         cardCount: collection.cardCount,
+        followerCount,
         createdAt: collection.createdAt.toISOString(),
         updatedAt: collection.updatedAt.toISOString(),
         isFollowing,
