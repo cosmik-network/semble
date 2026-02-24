@@ -4,7 +4,6 @@ import { followTarget, unfollowTarget } from '../dal';
 import { followKeys } from '../followKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
-import { notificationKeys } from '@/features/notifications/lib/notificationKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 
 interface ToggleFollowPayload {
