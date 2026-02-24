@@ -1,5 +1,6 @@
 import { getServerAuthStatus } from './serverAuth';
 import { INTERNAL_HANDLES } from './userLists';
+import { isApprovedHandle } from './approvedHandles';
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
@@ -14,6 +15,6 @@ export async function getServerFeatureFlags() {
     leafletMentions: show,
     animatedLandingTitle: show,
     openCollections: true,
-    following: show,
+    following: show || (user?.handle && isApprovedHandle(user.handle)),
   };
 }

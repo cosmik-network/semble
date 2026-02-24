@@ -9,10 +9,12 @@ export async function GET() {
     console.error('Error fetching feature flags:', error);
     // Return default flags if there's an error
     return NextResponse.json({
-      similarCards: false,
       cardSearch: false,
       urlTypeFilter: false,
+      leafletMentions: false,
       animatedLandingTitle: false,
+      openCollections: false,
+      following: false,
     });
   }
 }

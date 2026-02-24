@@ -24,10 +24,7 @@ export default function FollowButton({
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
     useToggleFollow(initialIsFollowing);
 
-  const isFollowingEnabled =
-    featureFlags?.following && isApprovedHandle(targetHandle);
-
-  if (!isFollowingEnabled) {
+  if (!featureFlags?.following) {
     return null;
   }
 
