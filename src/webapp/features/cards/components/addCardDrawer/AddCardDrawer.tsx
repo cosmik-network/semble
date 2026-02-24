@@ -50,8 +50,16 @@ export default function AddCardDrawer(props: Props) {
     useState(initialCollections);
 
   const { data: collections } = useMyCollections({ limit: 30 });
-  const myCollections =
+  const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
+
+  // Put selectedCollection first, then others
+  const myCollections = props.selectedCollection
+    ? [
+        props.selectedCollection,
+        ...allCollections.filter((c) => c.id !== props.selectedCollection?.id),
+      ]
+    : allCollections;
 
   const addCard = useAddCard({
     saveSource: CardSaveSource.ADD_CARD_DRAWER,
