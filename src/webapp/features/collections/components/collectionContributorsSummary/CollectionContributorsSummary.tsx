@@ -3,6 +3,7 @@
 import { Anchor, Avatar, AvatarGroup, Text } from '@mantine/core';
 import Link from 'next/link';
 import useCollectionContributors from '../../lib/queries/useCollectionContributors';
+import { Fragment } from 'react';
 
 interface Props {
   collectionId: string;
@@ -23,12 +24,12 @@ export default function CollectionContributorsShortcut({
   }
 
   return (
-    <>
+    <Fragment>
       <Text fz="sm" fw={600} c="dimmed">
         ·
       </Text>
       <AvatarGroup>
-        {data.pages[0].users.slice(0, 2).map((u) => (
+        {data.pages[0].users.slice(0, 3).map((u) => (
           <Avatar
             component={Link}
             href={`/profile/${handle}/collections/${rkey}/contributors`}
@@ -49,6 +50,6 @@ export default function CollectionContributorsShortcut({
         {totalContributors}{' '}
         {totalContributors === 1 ? 'Contributor' : 'Contributors'}
       </Anchor>
-    </>
+    </Fragment>
   );
 }
