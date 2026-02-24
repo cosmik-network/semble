@@ -15,16 +15,6 @@ export default function CollectionFollowersContainer(props: Props) {
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
 
-  if (isPending) {
-    return (
-      <Container p="xs" size="xl">
-        <Center>
-          <Text c="gray">Loading...</Text>
-        </Center>
-      </Container>
-    );
-  }
-
   return (
     <Container p="xs" size="xl">
       <Stack align="center">

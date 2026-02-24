@@ -27,6 +27,9 @@ export default function CollectionTabs(props: Props) {
               <TabItem value="followers" href={`${basePath}/followers`}>
                 Followers
               </TabItem>
+              <TabItem value="contributors" href={`${basePath}/contributors`}>
+                Contributors
+              </TabItem>
             </Group>
           </Tabs.List>
         </ScrollAreaAutosize>
