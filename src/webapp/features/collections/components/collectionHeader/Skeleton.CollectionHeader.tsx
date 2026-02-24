@@ -42,7 +42,7 @@ export default function CollectionHeaderSkeleton() {
                 <Skeleton w={300} h={36} mt={8} />
 
                 {/* Description */}
-                <Skeleton w={500} h={22} mt={'lg'} />
+                {/*<Skeleton w={'100%'} color="grape" h={22} mt={'lg'} />*/}
               </Stack>
             </Group>
 
