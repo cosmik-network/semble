@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await getProfile(handle);
 
   return {
-    title: `${profile.name}'s community`,
-    description: `Explore ${profile.name}'s community on Semble`,
+    title: `${profile.name}'s followers`,
+    description: `Explore ${profile.name}'s followers on Semble`,
     authors: [
       {
         name: profile.name,
