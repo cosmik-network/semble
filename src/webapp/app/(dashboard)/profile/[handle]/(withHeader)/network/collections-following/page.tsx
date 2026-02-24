@@ -1,5 +1,4 @@
 import FollowingCollectionsContainer from '@/features/follows/containers/followingCollectionsContainer/FollowingCollectionsContainer';
-import { getProfile } from '@/features/profile/lib/dal.server';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -7,13 +6,6 @@ interface Props {
 
 export default async function Page(props: Props) {
   const { handle } = await props.params;
-  const profile = await getProfile(handle);
 
-  return (
-    <FollowingCollectionsContainer
-      identifier={profile.id}
-      profileName={profile.name}
-      handle={handle}
-    />
-  );
+  return <FollowingCollectionsContainer handle={handle} />;
 }

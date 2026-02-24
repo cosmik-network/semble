@@ -30,7 +30,7 @@ interface Props {
 export default function FeedActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt.toString());
-  const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
+  const relativeCreatedDate = time === 'now' ? `Now` : time;
 
   const renderActivityText = () => {
     const collections = props.collections ?? [];

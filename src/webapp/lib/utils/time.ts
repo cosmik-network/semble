@@ -12,11 +12,11 @@ export const getRelativeTime = (dateString: string) => {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   const interval = intervals.find((i) => i.seconds < seconds);
 
-  if (!interval) return 'just now';
+  if (!interval) return 'now';
   const count = Math.floor(seconds / interval.seconds);
-  if (count < 1) return 'just now';
+  if (count < 1) return 'now';
 
-  return `${count}${interval.label}`;
+  return `${count}${interval.label} ago`;
 };
 
 export const getFormattedDate = (date: string) => {

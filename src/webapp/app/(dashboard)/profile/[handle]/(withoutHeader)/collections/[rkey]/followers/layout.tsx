@@ -1,9 +1,6 @@
-import BackButton from '@/components/navigation/backButton/BackButton';
-import Header from '@/components/navigation/header/Header';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
-import { truncateText } from '@/lib/utils/text';
+
 import type { Metadata } from 'next';
-import { Fragment } from 'react';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
@@ -19,10 +16,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 
   return {
-    title: `${collection.name} (by ${collection.author.name})`,
+    title: `${collection.name}'s followers`,
     description:
-      collection.description ??
-      `View ${collection.author.name}'s collection on Semble`,
+      collection.description ?? `View ${collection.name}'s followers on Semble`,
     authors: [
       {
         name: collection.author.name,
@@ -40,22 +36,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Layout(props: Props) {
-  const { rkey, handle } = await props.params;
-
-  const collection = await getCollectionPageByAtUri({
-    recordKey: rkey,
-    handle,
-  });
-
-  return (
-    <Fragment>
-      <Header>
-        <BackButton href={`/profile/${handle}/collections/${rkey}`}>
-          {truncateText(collection.name, 20)}
-        </BackButton>
-      </Header>
-      {props.children}
-    </Fragment>
-  );
+export default function Layout(props: Props) {
+  return props.children;
 }

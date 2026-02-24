@@ -35,8 +35,6 @@ export default function CollectionCard(props: Props) {
   const { collection } = props;
   const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
-  const relativeUpdateDate =
-    time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
   const accessType = collection.accessType;
   const { settings } = useUserSettings();
   const router = useRouter();
@@ -73,7 +71,7 @@ export default function CollectionCard(props: Props) {
       onClick={handleNavigateToCollection}
       onAuxClick={handleAuxClick}
     >
-      <Stack justify="space-between">
+      <Stack justify="space-between" h="100%">
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
@@ -114,7 +112,7 @@ export default function CollectionCard(props: Props) {
               </Group>
             </Group>
             {collection.description && (
-              <Text c={'gray'} lineClamp={2}>
+              <Text fz={'sm'} c={'gray'} lineClamp={3}>
                 {collection.description}
               </Text>
             )}
@@ -130,17 +128,17 @@ export default function CollectionCard(props: Props) {
           {settings.tinkerMode && (
             <CollectionCardDebugView collection={props.collection} />
           )}
-
-          <Group justify="space-between" gap={'xs'}>
-            <Text c={'gray'} fz={'sm'}>
-              {collection.cardCount}{' '}
-              {collection.cardCount === 1 ? 'card' : 'cards'}
-            </Text>
-            <Text c={'gray'} fz={'sm'}>
-              {relativeUpdateDate}
-            </Text>
-          </Group>
         </Stack>
+
+        <Group justify="space-between" gap={'xs'}>
+          <Text c={'gray'} fz={'sm'}>
+            {collection.cardCount}{' '}
+            {collection.cardCount === 1 ? 'card' : 'cards'}
+          </Text>
+          <Text c={'gray'} fz={'sm'}>
+            Updated {time}
+          </Text>
+        </Group>
       </Stack>
     </Card>
   );

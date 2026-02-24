@@ -51,7 +51,6 @@ export default function CollectionActions(props: Props) {
             targetId={props.collection.id}
             targetType="COLLECTION"
             targetHandle={props.collection.author?.handle}
-            size="sm"
             initialIsFollowing={props.collection.isFollowing}
           />
         )}
@@ -69,6 +68,7 @@ export default function CollectionActions(props: Props) {
                 notifications.show({
                   message: 'Link copied!',
                   position: 'bottom-center',
+                  id: props.collection.id,
                 });
               }}
             >

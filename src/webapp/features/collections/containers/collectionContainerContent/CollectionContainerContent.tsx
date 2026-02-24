@@ -5,7 +5,7 @@ import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
-import { Anchor, Box, Button, Grid, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Grid, Group, Stack, Text } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
