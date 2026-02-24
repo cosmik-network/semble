@@ -19,7 +19,6 @@ function invalidateFollowQueries(
 ) {
   queryClient.invalidateQueries({ queryKey: followKeys.all() });
   queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-  queryClient.invalidateQueries({ queryKey: notificationKeys.all() });
   queryClient.invalidateQueries({ queryKey: profileKeys.all() });
 
   if (targetType === 'USER') {
