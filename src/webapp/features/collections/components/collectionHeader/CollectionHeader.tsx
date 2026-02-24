@@ -15,7 +15,8 @@ import {
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
+import CollectionContributorsSummary from '../collectionContributorsSummary/CollectionContributorsSummary';
 import CollectionActions from '../collectionActions/CollectionActions';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
@@ -139,6 +140,13 @@ export default function CollectionHeader(props: Props) {
                     >
                       {collection.author.name}
                     </Anchor>
+                    <Suspense fallback={null}>
+                      <CollectionContributorsSummary
+                        collectionId={collection.id}
+                        handle={props.handle}
+                        rkey={props.rkey}
+                      />
+                    </Suspense>
                   </Group>
                 </Group>
                 <Group gap={'xs'}>

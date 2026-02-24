@@ -226,3 +226,15 @@ export const getOpenCollectionsWithContributor = cache(
     };
   },
 );
+
+export const getCollectionContributors = cache(
+  async (collectionId: string, params?: PageParams) => {
+    const client = createSembleClient();
+    const response = await client.getCollectionContributors({
+      collectionId,
+      page: params?.page,
+      limit: params?.limit,
+    });
+    return response;
+  },
+);
