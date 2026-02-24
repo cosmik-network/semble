@@ -71,7 +71,7 @@ export default function CollectionCard(props: Props) {
       onClick={handleNavigateToCollection}
       onAuxClick={handleAuxClick}
     >
-      <Stack justify="space-between">
+      <Stack justify="space-between" h="100%">
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
@@ -128,17 +128,17 @@ export default function CollectionCard(props: Props) {
           {settings.tinkerMode && (
             <CollectionCardDebugView collection={props.collection} />
           )}
-
-          <Group justify="space-between" gap={'xs'}>
-            <Text c={'gray'} fz={'sm'}>
-              {collection.cardCount}{' '}
-              {collection.cardCount === 1 ? 'card' : 'cards'}
-            </Text>
-            <Text c={'gray'} fz={'sm'}>
-              Updated {time}
-            </Text>
-          </Group>
         </Stack>
+
+        <Group justify="space-between" gap={'xs'}>
+          <Text c={'gray'} fz={'sm'}>
+            {collection.cardCount}{' '}
+            {collection.cardCount === 1 ? 'card' : 'cards'}
+          </Text>
+          <Text c={'gray'} fz={'sm'}>
+            Updated {time}
+          </Text>
+        </Group>
       </Stack>
     </Card>
   );
