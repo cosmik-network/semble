@@ -29,7 +29,7 @@ export default function CollectionContributorsShortcut({
       </Text>
       <Anchor
         component={Link}
-        href={`/collection/${handle}/${rkey}/contributors`}
+        href={`/profile/${handle}/collections/${rkey}/contributors`}
         fz="sm"
         fw={600}
         c="blue"

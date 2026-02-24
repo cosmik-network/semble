@@ -23,6 +23,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
+import CollectionContributorsSummarySkeleton from '../collectionContributorsSummary/Skeleton.CollectionContributorsSummary';
 
 interface Props {
   rkey: string;
@@ -140,7 +141,9 @@ export default function CollectionHeader(props: Props) {
                     >
                       {collection.author.name}
                     </Anchor>
-                    <Suspense fallback={null}>
+                    <Suspense
+                      fallback={<CollectionContributorsSummarySkeleton />}
+                    >
                       <CollectionContributorsSummary
                         collectionId={collection.id}
                         handle={props.handle}
