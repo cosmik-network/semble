@@ -9,7 +9,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import { notifications } from '@mantine/notifications';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 
 interface Props {
@@ -20,7 +19,6 @@ interface Props {
 
 export default function CollectionActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const { data: featureFlags } = useFeatureFlags();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
@@ -50,7 +48,7 @@ export default function CollectionActions(props: Props) {
           <FollowButton
             targetId={props.collection.id}
             targetType="COLLECTION"
-            targetHandle={props.collection.author?.handle}
+            targetHandle={props.collection.author.handle}
             initialIsFollowing={props.collection.isFollowing}
           />
         )}
