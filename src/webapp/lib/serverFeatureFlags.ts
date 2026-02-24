@@ -1,20 +1,16 @@
 import { getServerAuthStatus } from './serverAuth';
-import { INTERNAL_HANDLES } from './userLists';
 import { isApprovedHandle } from './approvedHandles';
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
-
-  const show =
-    process.env.VERCEL_ENV !== 'production' ||
-    (user?.handle && INTERNAL_HANDLES.includes(user.handle));
+  const show = isApprovedHandle(user?.handle);
 
   return {
-    cardSearch: show,
-    urlTypeFilter: show,
+    cardSearch: true,
+    urlTypeFilter: true,
     leafletMentions: show,
-    animatedLandingTitle: show,
+    animatedLandingTitle: true,
     openCollections: true,
-    following: show || (user?.handle && isApprovedHandle(user.handle)),
+    following: show,
   };
 }
