@@ -112,7 +112,7 @@ export default function CollectionCard(props: Props) {
               </Group>
             </Group>
             {collection.description && (
-              <Text fz={'sm'} c={'gray'} lineClamp={2}>
+              <Text fz={'sm'} c={'gray'} lineClamp={3}>
                 {collection.description}
               </Text>
             )}
