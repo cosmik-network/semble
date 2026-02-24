@@ -46,16 +46,6 @@ export default function ProfileHeaderSkeleton() {
                 <Skeleton w={'80%'} h={20} />
                 <Skeleton w={'70%'} h={20} />
               </Stack>
-
-              {/* Follow stats */}
-              <Group gap="sm">
-                {/* Followers */}
-                <Skeleton w={100} h={21} />
-                {/* Following */}
-                <Skeleton w={90} h={21} />
-                {/* Collections Following */}
-                <Skeleton w={150} h={21} />
-              </Group>
             </Stack>
           </Stack>
         </Stack>

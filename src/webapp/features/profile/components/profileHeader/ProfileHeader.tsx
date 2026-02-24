@@ -9,19 +9,19 @@ import {
   ActionIcon,
   Tooltip,
   Image,
-  Anchor,
   Badge,
   Card,
 } from '@mantine/core';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal.server';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import Link from 'next/link';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
+import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
+import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
 
 interface Props {
   handle: string;
@@ -112,47 +112,16 @@ export default async function ProfileHeader(props: Props) {
 
               {/* follow stats */}
               {featureFlags.following && (
-                <Group gap="sm">
-                  <Anchor
-                    component={Link}
-                    href={`/profile/${props.handle}/community`}
-                    underline="never"
-                  >
-                    <Text fw={500} c={'bright'} span>
-                      {profile.followerCount}
-                    </Text>
-                    <Text fw={500} c={'gray'} span>
-                      {' Follower'}
-                      {profile.followerCount !== 1 ? 's' : ''}
-                    </Text>
-                  </Anchor>
-
-                  <Anchor
-                    component={Link}
-                    href={`/profile/${props.handle}/community/following`}
-                    underline="never"
-                  >
-                    <Text fw={500} c={'bright'} span>
-                      {profile.followingCount}
-                    </Text>
-                    <Text fw={500} c={'gray'} span>
-                      {' Following'}
-                    </Text>
-                  </Anchor>
-
-                  <Anchor
-                    component={Link}
-                    href={`/profile/${props.handle}/community/collections-following`}
-                    underline="never"
-                  >
-                    <Text fw={500} c={'bright'} span>
-                      {profile.followedCollectionsCount}
-                    </Text>
-                    <Text fw={500} c={'gray'} span>
-                      {' Collections Following'}
-                    </Text>
-                  </Anchor>
-                </Group>
+                <Suspense fallback={<FollowStatsSkeleton />}>
+                  <ProfileFollowStats
+                    handle={props.handle}
+                    initialFollowerCount={profile.followerCount ?? 0}
+                    initialFollowingCount={profile.followingCount ?? 0}
+                    initialFollowedCollectionsCount={
+                      profile.followedCollectionsCount ?? 0
+                    }
+                  />
+                </Suspense>
               )}
             </Stack>
           </Stack>
