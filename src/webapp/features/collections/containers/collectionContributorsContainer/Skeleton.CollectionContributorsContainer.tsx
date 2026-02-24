@@ -1,7 +1,7 @@
-import ProfileCardSkeleton from '@/features/profile/components/profileCard/Skeleton.ProfileCard';
 import { Container, Stack } from '@mantine/core';
+import ProfileCardSkeleton from '@/features/profile/components/profileCard/Skeleton.ProfileCard';
 
-export default function CollectionFollowersContainerSkeleton() {
+export default function CollectionContributorsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack gap={'xs'}>
