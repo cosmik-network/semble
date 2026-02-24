@@ -1,5 +1,5 @@
 import { ProfileView } from '@/api-client';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
 
 interface Props {
@@ -32,6 +32,13 @@ export default function SearchProfileCard(props: Props) {
             </Text>
           </Stack>
         </Group>
+
+        {props.profile.viewer?.followedBy && (
+          <Badge variant="light" color="gray">
+            Follows you
+          </Badge>
+        )}
+
         {props.profile.description && (
           <Text size="sm" lineClamp={2}>
             {props.profile.description}
