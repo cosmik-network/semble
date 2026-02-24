@@ -8,7 +8,7 @@ export default function CollectionContainerSkeleton() {
         <Group justify="space-between" gap={'xs'}>
           {/* Card Filters */}
           <Group gap={'xs'}>
-            <Skeleton w={120} h={36} radius={'md'} />
+            <Skeleton w={96} h={36} radius={'xl'} />
           </Group>
         </Group>
 
