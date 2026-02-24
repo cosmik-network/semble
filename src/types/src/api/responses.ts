@@ -138,6 +138,7 @@ export interface GetUrlCardsResponse {
 }
 
 export interface GetCollectionPageResponse extends Collection {
+  urlCards: UrlCard[];
   pagination: Pagination;
   sorting: CardSorting;
 }
