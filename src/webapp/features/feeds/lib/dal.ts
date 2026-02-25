@@ -1,6 +1,7 @@
 import { createSembleClient } from '@/services/client.apiClient';
 import { UrlType, ActivitySource } from '@semble/types';
 import { cache } from 'react';
+import { verifySessionOnClient } from '@/lib/auth/dal';
 
 interface PageParams {
   page?: number;
@@ -34,6 +35,9 @@ export const getGemsActivityFeed = cache(async (params?: PageParams) => {
 });
 
 export const getFollowingFeed = cache(async (params?: PageParams) => {
+  const session = await verifySessionOnClient({ redirectOnFail: true });
+  if (!session) throw new Error('No session found');
+
   const client = createSembleClient();
   const response = await client.getFollowingFeed({
     page: params?.page,
