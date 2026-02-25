@@ -31,6 +31,7 @@ export default function CollectionContributorsShortcut({
       <AvatarGroup>
         {data.pages[0].users.slice(0, 3).map((u) => (
           <Avatar
+            key={u.id}
             component={Link}
             href={`/profile/${handle}/collections/${rkey}/contributors`}
             src={u.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
