@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Stack, Text, Center } from '@mantine/core';
+import { Container, Stack, Text, Center, Badge } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import useCollectionContributors from '../../lib/queries/useCollectionContributors';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
@@ -34,7 +34,16 @@ export default function CollectionContributorsContainer(props: Props) {
           >
             <Stack gap={'xs'}>
               {allUsers.map((user) => (
-                <ProfileCard key={user.id} profile={user} />
+                <ProfileCard key={user.id} profile={user}>
+                  {user.contributionCount && (
+                    <Badge variant="light" color="blue">
+                      {user.contributionCount}{' '}
+                      {user.contributionCount === 1
+                        ? 'Contribution'
+                        : 'Contributions'}
+                    </Badge>
+                  )}
+                </ProfileCard>
               ))}
             </Stack>
           </InfiniteScroll>

@@ -2,9 +2,11 @@ import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
 import { User } from '@semble/types';
 import Link from 'next/link';
 import { sanitizeText } from '@/lib/utils/text';
+import { ReactNode } from 'react';
 
 interface Props {
   profile: User;
+  children?: ReactNode;
 }
 
 export default function ProfileCard(props: Props) {
@@ -34,11 +36,14 @@ export default function ProfileCard(props: Props) {
           </Stack>
         </Group>
 
-        {props.profile.followsYou && (
-          <Badge variant="light" color="gray">
-            Follows you
-          </Badge>
-        )}
+        <Group gap="xs">
+          {props.profile.followsYou && (
+            <Badge variant="light" color="gray">
+              Follows you
+            </Badge>
+          )}
+          {props.children}
+        </Group>
 
         {props.profile.description && (
           <Text size="sm" lineClamp={2}>
