@@ -16,7 +16,7 @@ export default function CollectionContributorsShortcut({
   handle,
   rkey,
 }: Props) {
-  const { data } = useCollectionContributors({ collectionId, limit: 1 });
+  const { data } = useCollectionContributors({ collectionId, limit: 3 });
   const totalContributors = data?.pages[0]?.pagination.totalCount ?? 0;
 
   if (totalContributors === 0) {
