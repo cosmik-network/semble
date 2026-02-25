@@ -118,10 +118,6 @@ export default function FeedControls() {
                     <Menu.Item
                       key={option.value}
                       onClick={() => handleFeedClick(option.value)}
-                      disabled={
-                        option.value === 'following' &&
-                        optimisticSource === ActivitySource.MARGIN
-                      }
                     >
                       {option.label}
                     </Menu.Item>
