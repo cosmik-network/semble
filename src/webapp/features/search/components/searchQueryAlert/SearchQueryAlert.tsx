@@ -18,7 +18,7 @@ export default function SearchQueryAlert(props: Props) {
           <Text fz={'sm'} fw={500} c={'dimmed'} lineClamp={1}>
             Showing results for{' '}
             <Text fz={'sm'} fw={600} c={'bright'} span>
-              "{props.query}"
+              {props.query}
             </Text>
           </Text>
         ) : (
