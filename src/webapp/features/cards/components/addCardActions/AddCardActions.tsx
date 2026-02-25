@@ -145,6 +145,7 @@ export default function AddCardActions(props: Props) {
             <Button
               variant="light"
               color="red"
+              size="xs"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowDeleteWarning(true);
