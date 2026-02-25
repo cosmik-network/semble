@@ -16,8 +16,8 @@ const sourceOptions = [
 ];
 
 const feedOptions = [
-  { value: 'global', label: 'Global' },
-  { value: 'following', label: 'Following' },
+  { value: 'global' as const, label: 'Global' },
+  { value: 'following' as const, label: 'Following' },
 ];
 
 export default function FeedControls() {
@@ -50,6 +50,12 @@ export default function FeedControls() {
         params.set('source', source);
       } else {
         params.delete('source');
+      }
+
+      // if Margin is selected and feed is Following, switch to Global
+      if (source === ActivitySource.MARGIN && feedFromUrl === 'following') {
+        setOptimisticFeed('global');
+        params.set('feed', 'global');
       }
 
       router.push(`?${params.toString()}`, { scroll: false });
@@ -97,6 +103,10 @@ export default function FeedControls() {
                     <Menu.Item
                       key={option.value}
                       onClick={() => handleFeedClick(option.value)}
+                      disabled={
+                        option.value === 'following' &&
+                        optimisticSource === ActivitySource.MARGIN
+                      }
                     >
                       {option.label}
                     </Menu.Item>
