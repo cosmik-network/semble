@@ -1,15 +1,34 @@
 import { getServerAuthStatus } from './serverAuth';
-import { isApprovedHandle } from './approvedHandles';
+
+const APPROVED_HANDLES = new Set([
+  'wesleyfinck.org',
+  'ronentk.me',
+  'pouriade.com',
+  'bmann.ca',
+  'tynanpurdy.com',
+  'erlend.sh',
+  'tgoerke.bsky.social',
+  'psingletary.com',
+  'hilarybaumann.com',
+  'cosmik.network',
+  'semble.so',
+  'atproto.science',
+  'chrisshank.com',
+  'jasmine-pyz.bsky.social',
+]);
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
-  const show = isApprovedHandle(user?.handle);
+
+  const show =
+    process.env.VERCEL_ENV !== 'production' ||
+    (user?.handle && APPROVED_HANDLES.has(user.handle));
 
   return {
-    cardSearch: true,
-    urlTypeFilter: true,
+    cardSearch: show,
+    urlTypeFilter: show,
     leafletMentions: show,
-    animatedLandingTitle: true,
+    animatedLandingTitle: show,
     openCollections: true,
     following: show,
   };
