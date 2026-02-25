@@ -81,15 +81,8 @@ export class GetSimilarUrlsForUrlUseCase
         },
       );
 
-      if (similarUrlsResult.isErr()) {
-        return err(
-          new ValidationError(
-            `Failed to find similar URLs: ${similarUrlsResult.error.message}`,
-          ),
-        );
-      }
-
-      const allUrls = similarUrlsResult.value;
+      // If search fails, return empty results instead of erroring
+      const allUrls = similarUrlsResult.isOk() ? similarUrlsResult.value : [];
       const totalAvailable = allUrls.length; // This is max 50
 
       // Apply pagination to the 50 results
