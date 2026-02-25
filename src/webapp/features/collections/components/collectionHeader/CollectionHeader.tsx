@@ -155,23 +155,27 @@ export default function CollectionHeader(props: Props) {
                 <Group gap={'xs'}>
                   <Group gap={5}>
                     <Text fw={500} fz={'sm'} c={'bright'}>
-                      {collection.cardCount ?? 0}
+                      {collection.cardCount}
                     </Text>
                     <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      Cards
+                      {collection.cardCount === 1 ? 'Card' : 'Cards'}
                     </Text>
                   </Group>
 
                   <Divider orientation="vertical" />
 
-                  {/*<Stack gap={0} align="center">
-                              <Text fw={500} fz={'sm'} c={'bright'}>
-                                Followers
-                              </Text>
-                              <Text fw={500} fz={'sm'} c={'dimmed'}>
-                                TBD
-                              </Text>
-                            </Stack>*/}
+                  <Group gap={5}>
+                    <Text fw={500} fz={'sm'} c={'bright'}>
+                      {collection.followerCount}
+                    </Text>
+                    <Text fw={500} fz={'sm'} c={'dimmed'}>
+                      {collection.followerCount === 1
+                        ? 'Follower'
+                        : 'Followers'}
+                    </Text>
+                  </Group>
+
+                  <Divider orientation="vertical" />
 
                   <Group gap={5}>
                     <Text fw={500} fz={'sm'} c={'bright'}>
@@ -181,6 +185,7 @@ export default function CollectionHeader(props: Props) {
                       {getRelativeTime(collection.createdAt)}
                     </Text>
                   </Group>
+
                   <Divider orientation="vertical" />
 
                   <Group gap={5}>
