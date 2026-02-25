@@ -24,6 +24,7 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
 import CollectionContributorsSummarySkeleton from '../collectionContributorsSummary/Skeleton.CollectionContributorsSummary';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   rkey: string;
@@ -35,6 +36,8 @@ export default function CollectionHeader(props: Props) {
     rkey: props.rkey,
     handle: props.handle,
   });
+
+  const { data: featureFlags } = useFeatureFlags();
 
   if (isPending) {
     return null; // You can add a skeleton here if needed
@@ -164,18 +167,21 @@ export default function CollectionHeader(props: Props) {
 
                   <Divider orientation="vertical" />
 
-                  <Group gap={5}>
-                    <Text fw={500} fz={'sm'} c={'bright'}>
-                      {collection.followerCount}
-                    </Text>
-                    <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      {collection.followerCount === 1
-                        ? 'Follower'
-                        : 'Followers'}
-                    </Text>
-                  </Group>
-
-                  <Divider orientation="vertical" />
+                  {featureFlags?.following && (
+                    <>
+                      <Group gap={5}>
+                        <Text fw={500} fz={'sm'} c={'bright'}>
+                          {collection.followerCount}
+                        </Text>
+                        <Text fw={500} fz={'sm'} c={'dimmed'}>
+                          {collection.followerCount === 1
+                            ? 'Follower'
+                            : 'Followers'}
+                        </Text>
+                      </Group>
+                      <Divider orientation="vertical" />
+                    </>
+                  )}
 
                   <Group gap={5}>
                     <Text fw={500} fz={'sm'} c={'bright'}>
