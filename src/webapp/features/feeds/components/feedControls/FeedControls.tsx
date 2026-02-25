@@ -90,7 +90,7 @@ export default function FeedControls() {
   };
 
   return (
-    <ScrollAreaAutosize type="scroll">
+    <ScrollAreaAutosize type="scroll" offsetScrollbars={true}>
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
         <Group gap={'xs'} wrap="nowrap">
           <Combobox
