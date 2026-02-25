@@ -1,6 +1,6 @@
 'use client';
 
-import { ScrollAreaAutosize, Button, Group, Menu } from '@mantine/core';
+import { ScrollAreaAutosize, Button, Group, Menu, Image } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FeedFilters from '../feedFilters/FeedFilters';
@@ -8,11 +8,25 @@ import { ActivitySource } from '@semble/types';
 import { useOptimistic, useTransition } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import MarginLogo from '@/components/MarginLogo';
+import SembleLogo from '@/assets/semble-logo.svg';
 
 const sourceOptions = [
-  { value: null, label: 'All' },
-  { value: ActivitySource.SEMBLE, label: 'Semble' },
-  { value: ActivitySource.MARGIN, label: 'Margin' },
+  { value: null, label: 'All', icon: null },
+  {
+    value: ActivitySource.SEMBLE,
+    label: 'Semble',
+    icon: (
+      <Image
+        src={SembleLogo.src}
+        alt="Semble logo"
+        w={16}
+        h={'auto'}
+        mx={'auto'}
+      />
+    ),
+  },
+  { value: ActivitySource.MARGIN, label: 'Margin', icon: <MarginLogo /> },
 ];
 
 const feedOptions = [
@@ -91,6 +105,7 @@ export default function FeedControls() {
                 <Menu.Item
                   key={String(option.value)}
                   onClick={() => handleSourceClick(option.value)}
+                  leftSection={option.icon}
                 >
                   {option.label}
                 </Menu.Item>
