@@ -133,6 +133,7 @@ export default function FeedControls() {
             <Button variant="light" color="cyan">
               {selectedSource?.label}
               {featureFlags?.following !== false && ` / ${selectedFeed?.label}`}
+              {optimisticType && ` / ${upperFirst(optimisticType)}s`}
             </Button>
           </Menu.Target>
 
