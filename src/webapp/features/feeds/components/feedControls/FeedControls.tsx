@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  ScrollAreaAutosize,
-  Combobox,
-  useCombobox,
-  Button,
-  Group,
-} from '@mantine/core';
+import { ScrollAreaAutosize, Button, Group, Menu } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FeedFilters from '../feedFilters/FeedFilters';
@@ -42,18 +36,6 @@ export default function FeedControls() {
 
   const [, startTransition] = useTransition();
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-  });
-
-  const sourceCombobox = useCombobox({
-    onDropdownClose: () => sourceCombobox.resetSelectedOption(),
-  });
-
-  const feedCombobox = useCombobox({
-    onDropdownClose: () => feedCombobox.resetSelectedOption(),
-  });
-
   const selectedSource =
     sourceOptions.find((o) => o.value === optimisticSource) || sourceOptions[0];
   const selectedFeed =
@@ -72,8 +54,6 @@ export default function FeedControls() {
 
       router.push(`?${params.toString()}`, { scroll: false });
     });
-
-    sourceCombobox.closeDropdown();
   };
 
   const handleFeedClick = (feed: 'global' | 'following') => {
@@ -85,88 +65,46 @@ export default function FeedControls() {
 
       router.push(`?${params.toString()}`, { scroll: false });
     });
-
-    feedCombobox.closeDropdown();
   };
 
   return (
     <ScrollAreaAutosize type="scroll" offsetScrollbars={'x'}>
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
         <Group gap={'xs'} wrap="nowrap">
-          <Combobox
-            store={sourceCombobox}
-            onOptionSubmit={(value) => {
-              const option = sourceOptions.find(
-                (o) => String(o.value) === value,
-              );
-              if (option) {
-                handleSourceClick(option.value);
-              }
-            }}
-            width={150}
-          >
-            <Combobox.Target>
-              <Button
-                variant="light"
-                color="cyan"
-                leftSection={<Combobox.Chevron />}
-                onClick={() => sourceCombobox.toggleDropdown()}
-              >
+          <Menu width={200}>
+            <Menu.Target>
+              <Button variant="light" color="cyan">
                 {selectedSource?.label}
+                {featureFlags?.following && ` / ${selectedFeed?.label}`}
               </Button>
-            </Combobox.Target>
+            </Menu.Target>
 
-            <Combobox.Dropdown>
-              <Combobox.Options>
-                {sourceOptions.map((option) => (
-                  <Combobox.Option
-                    key={String(option.value)}
-                    value={String(option.value)}
-                    active={option.value === optimisticSource}
-                  >
-                    {option.label}
-                  </Combobox.Option>
-                ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
-
-          {featureFlags?.following && (
-            <Combobox
-              store={feedCombobox}
-              onOptionSubmit={(value) => {
-                if (value === 'global' || value === 'following') {
-                  handleFeedClick(value);
-                }
-              }}
-              width={150}
-            >
-              <Combobox.Target>
-                <Button
-                  variant="light"
-                  color="blue"
-                  leftSection={<Combobox.Chevron />}
-                  onClick={() => feedCombobox.toggleDropdown()}
+            <Menu.Dropdown>
+              <Menu.Label>Source</Menu.Label>
+              {sourceOptions.map((option) => (
+                <Menu.Item
+                  key={String(option.value)}
+                  onClick={() => handleSourceClick(option.value)}
                 >
-                  {selectedFeed?.label}
-                </Button>
-              </Combobox.Target>
+                  {option.label}
+                </Menu.Item>
+              ))}
 
-              <Combobox.Dropdown>
-                <Combobox.Options>
+              {featureFlags?.following && (
+                <>
+                  <Menu.Label>Feed</Menu.Label>
                   {feedOptions.map((option) => (
-                    <Combobox.Option
+                    <Menu.Item
                       key={option.value}
-                      value={option.value}
-                      active={option.value === optimisticFeed}
+                      onClick={() => handleFeedClick(option.value)}
                     >
                       {option.label}
-                    </Combobox.Option>
+                    </Menu.Item>
                   ))}
-                </Combobox.Options>
-              </Combobox.Dropdown>
-            </Combobox>
-          )}
+                </>
+              )}
+            </Menu.Dropdown>
+          </Menu>
 
           <Button
             component={Link}
