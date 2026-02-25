@@ -11,6 +11,7 @@ export default function SearchQueryAlert(props: Props) {
       p={'xs'}
       radius={'lg'}
       color="gray"
+      variant="transparent"
       w={'100%'}
       title={
         props.query ? (
