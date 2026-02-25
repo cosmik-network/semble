@@ -7,6 +7,7 @@ import FeedFilters from '../feedFilters/FeedFilters';
 import { ActivitySource } from '@semble/types';
 import { useOptimistic, useTransition } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
+import { IoMdCheckmark } from 'react-icons/io';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
@@ -106,6 +107,9 @@ export default function FeedControls() {
                   key={String(option.value)}
                   onClick={() => handleSourceClick(option.value)}
                   leftSection={option.icon}
+                  rightSection={
+                    option.value === optimisticSource ? <IoMdCheckmark /> : null
+                  }
                 >
                   {option.label}
                 </Menu.Item>
@@ -118,6 +122,11 @@ export default function FeedControls() {
                     <Menu.Item
                       key={option.value}
                       onClick={() => handleFeedClick(option.value)}
+                      rightSection={
+                        option.value === optimisticFeed ? (
+                          <IoMdCheckmark />
+                        ) : null
+                      }
                     >
                       {option.label}
                     </Menu.Item>
