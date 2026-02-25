@@ -155,10 +155,10 @@ export default function CollectionHeader(props: Props) {
                 <Group gap={'xs'}>
                   <Group gap={5}>
                     <Text fw={500} fz={'sm'} c={'bright'}>
-                      {collection.cardCount ?? 0}
+                      {collection.cardCount}
                     </Text>
                     <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      Cards
+                      {collection.cardCount === 1 ? 'Card' : 'Cards'}
                     </Text>
                   </Group>
 
@@ -169,7 +169,9 @@ export default function CollectionHeader(props: Props) {
                       {collection.followerCount}
                     </Text>
                     <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      Followers
+                      {collection.followerCount === 1
+                        ? 'Follower'
+                        : 'Followers'}
                     </Text>
                   </Group>
 
