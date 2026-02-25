@@ -11,6 +11,7 @@ import { SearchCollectionsController } from '../controllers/SearchCollectionsCon
 import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
+import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCollectionRoutes(
@@ -27,6 +28,7 @@ export function createCollectionRoutes(
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
   getCollectionFollowersController: GetCollectionFollowersController,
   getCollectionFollowersCountController: GetCollectionFollowersCountController,
+  getCollectionContributorsController: GetCollectionContributorsController,
 ): Router {
   const router = Router();
 
@@ -77,6 +79,13 @@ export function createCollectionRoutes(
     '/:collectionId/followers/count',
     authMiddleware.optionalAuth(),
     (req, res) => getCollectionFollowersCountController.execute(req, res),
+  );
+
+  // GET /api/collections/:collectionId/contributors - Get collection contributors
+  router.get(
+    '/:collectionId/contributors',
+    authMiddleware.optionalAuth(),
+    (req, res) => getCollectionContributorsController.execute(req, res),
   );
 
   // GET /api/collections/:collectionId - Get collection page

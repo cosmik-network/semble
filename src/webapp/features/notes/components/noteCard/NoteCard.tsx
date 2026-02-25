@@ -12,7 +12,6 @@ interface Props {
 
 export default function NoteCard(props: Props) {
   const time = getRelativeTime(props.createdAt);
-  const relativeCreateDate = time === 'just now' ? `${time}` : `${time} ago`;
 
   return (
     <Card p={'sm'} radius={'lg'} h={'100%'} withBorder>
@@ -44,7 +43,7 @@ export default function NoteCard(props: Props) {
               {' · '}
             </Text>
             <Text c={'gray'} span>
-              {relativeCreateDate}{' '}
+              {time}{' '}
             </Text>
           </Text>
         </Group>

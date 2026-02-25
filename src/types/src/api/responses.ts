@@ -1,5 +1,6 @@
 import {
   User,
+  ContributorUser,
   Pagination,
   CardSorting,
   CollectionSorting,
@@ -102,6 +103,7 @@ export interface Collection {
   createdAt: string;
   updatedAt: string;
   isFollowing?: boolean; // Whether the calling user follows this collection
+  followerCount?: number; // Number of users following this collection
 }
 
 // Context-specific variations
@@ -135,17 +137,8 @@ export interface GetUrlCardsResponse {
   sorting: CardSorting;
 }
 
-export interface GetCollectionPageResponse {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  accessType?: CollectionAccessType;
-  author: User;
+export interface GetCollectionPageResponse extends Collection {
   urlCards: UrlCard[];
-  cardCount: number;
-  createdAt: string;
-  updatedAt: string;
   pagination: Pagination;
   sorting: CardSorting;
 }
@@ -400,4 +393,10 @@ export interface GetCollectionFollowersResponse {
 // Follow count response types
 export interface GetFollowCountResponse {
   count: number;
+}
+
+// Contributor response types
+export interface GetCollectionContributorsResponse {
+  users: ContributorUser[];
+  pagination: Pagination;
 }

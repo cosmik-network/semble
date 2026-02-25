@@ -50,8 +50,16 @@ export default function AddCardDrawer(props: Props) {
     useState(initialCollections);
 
   const { data: collections } = useMyCollections({ limit: 30 });
-  const myCollections =
+  const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
+
+  // Put selectedCollection first, then others
+  const myCollections = props.selectedCollection
+    ? [
+        props.selectedCollection,
+        ...allCollections.filter((c) => c.id !== props.selectedCollection?.id),
+      ]
+    : allCollections;
 
   const addCard = useAddCard({
     saveSource: CardSaveSource.ADD_CARD_DRAWER,
@@ -121,7 +129,7 @@ export default function AddCardDrawer(props: Props) {
       </Drawer.Header>
       <Container size={'sm'} p={0}>
         <form onSubmit={handleAddCard}>
-          <Stack gap={'xl'}>
+          <Stack gap={'lg'}>
             <Stack>
               <Stack>
                 <TextInput
@@ -170,7 +178,11 @@ export default function AddCardDrawer(props: Props) {
                   {selectedCollections.length > 0 &&
                     `(${selectedCollections.length})`}
                 </Text>
-                <ScrollArea.Autosize type="hover" scrollbars="x">
+                <ScrollArea.Autosize
+                  type="hover"
+                  scrollbars="x"
+                  offsetScrollbars={true}
+                >
                   <Group gap={'xs'} wrap="nowrap">
                     <Button
                       onClick={toggleCollectionSelector}

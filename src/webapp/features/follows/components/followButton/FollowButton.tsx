@@ -1,85 +1,42 @@
 'use client';
 
 import { Button } from '@mantine/core';
-import { useState, useEffect } from 'react';
-import useFollowTarget from '../../lib/mutations/useFollowTarget';
-import useUnfollowTarget from '../../lib/mutations/useUnfollowTarget';
+import { startTransition } from 'react';
+import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { isApprovedHandle } from '@/lib/approvedHandles';
 
 interface Props {
   targetId: string;
   targetType: 'USER' | 'COLLECTION';
-  targetHandle?: string; // Handle of the user or collection author
+  targetHandle?: string;
   initialIsFollowing?: boolean;
-  variant?: 'filled' | 'light' | 'outline' | 'subtle';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   followText?: string;
 }
 
-export default function FollowButton({
-  targetId,
-  targetType,
-  targetHandle,
-  initialIsFollowing = false,
-  variant = 'filled',
-  size = 'sm',
-  followText = 'Follow',
-}: Props) {
+export default function FollowButton(props: Props) {
   const { data: featureFlags } = useFeatureFlags();
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const followMutation = useFollowTarget();
-  const unfollowMutation = useUnfollowTarget();
+  const { isFollowing, toggleAction, setOptimisticIsFollowing } =
+    useToggleFollow(props.initialIsFollowing ?? false);
 
-  // Sync local state when the prop changes (e.g., after query refetch)
-  useEffect(() => {
-    setIsFollowing(initialIsFollowing);
-  }, [initialIsFollowing]);
-
-  // Check if following feature is enabled for current user and target user is approved
-  const isFollowingEnabled =
-    featureFlags?.following && isApprovedHandle(targetHandle);
-
-  // Return early only AFTER all hooks have been called
-  if (!isFollowingEnabled) {
+  if (!featureFlags?.following) {
     return null;
   }
 
-  const isLoading = followMutation.isPending || unfollowMutation.isPending;
-
-  const handleClick = async () => {
-    if (isFollowing) {
-      setIsFollowing(false);
-      unfollowMutation.mutate(
-        { targetId, targetType },
-        {
-          onError: () => {
-            setIsFollowing(true);
-          },
-        },
-      );
-    } else {
-      setIsFollowing(true);
-      followMutation.mutate(
-        { targetId, targetType },
-        {
-          onError: () => {
-            setIsFollowing(false);
-          },
-        },
-      );
-    }
-  };
-
   return (
     <Button
-      onClick={handleClick}
-      loading={isLoading}
-      variant={isFollowing ? 'outline' : 'light'}
-      color={isFollowing ? 'gray' : 'cyan'}
-      size={size}
+      onClick={() =>
+        startTransition(() => {
+          setOptimisticIsFollowing(!isFollowing);
+          toggleAction({
+            targetId: props.targetId,
+            targetType: props.targetType,
+          });
+        })
+      }
+      variant={isFollowing ? 'light' : 'filled'}
+      color={isFollowing ? 'gray' : 'dark'}
     >
-      {isFollowing ? 'Following' : followText}
+      {isFollowing ? 'Following' : (props.followText ?? 'Follow')}
     </Button>
   );
 }

@@ -10,6 +10,7 @@ import {
   ScrollArea,
   Stack,
   Text,
+  ThemeIcon,
 } from '@mantine/core';
 import {
   NotificationItem,
@@ -23,6 +24,7 @@ import styles from '../../../feeds/components/feedActivityStatus/FeedActivitySta
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
+import { getNotificationTypeIcon } from '../../lib/utils/icon';
 
 interface Props {
   user: NotificationItem['user'];
@@ -35,7 +37,7 @@ interface Props {
 export default function NotificationActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt);
-  const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
+  const TypeIcon = getNotificationTypeIcon(props.type);
 
   const getActivityText = () => {
     const collections = props.collections ?? [];
@@ -226,6 +228,16 @@ export default function NotificationActivityStatus(props: Props) {
       <Stack gap={'xs'} p={'xs'}>
         <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
           <Group gap={'xs'} wrap="nowrap" align="center">
+            {TypeIcon && (
+              <ThemeIcon
+                size={'sm'}
+                variant="transparent"
+                c={'tangerine'}
+                radius={'xl'}
+              >
+                <TypeIcon />
+              </ThemeIcon>
+            )}
             <Avatar
               component={Link}
               href={`/profile/${props.user.handle}`}
@@ -235,7 +247,7 @@ export default function NotificationActivityStatus(props: Props) {
             <Text fw={500}>
               {getActivityText()}
               <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-                {relativeCreatedDate}
+                {time}
               </Text>
             </Text>
           </Group>

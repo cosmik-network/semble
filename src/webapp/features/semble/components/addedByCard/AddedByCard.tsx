@@ -11,8 +11,6 @@ interface Props {
 
 export default function AddedByCard(props: Props) {
   const time = getRelativeTime(props.item.card.createdAt);
-  const relativeAddedDate =
-    time === 'just now' ? `Added ${time}` : `Added ${time} ago`;
   const isMargin = isMarginUri(props.item.card.uri);
   const marginUrl = isMargin
     ? `https://margin.at/profile/${props.item.card.author.id}`
@@ -56,7 +54,7 @@ export default function AddedByCard(props: Props) {
           </Stack>
         </Group>
 
-        <Text c={'gray'}>{relativeAddedDate}</Text>
+        <Text c={'gray'}>Added {time}</Text>
       </Group>
     </Card>
   );
