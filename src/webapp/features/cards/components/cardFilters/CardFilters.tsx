@@ -92,6 +92,7 @@ export function SortSelect() {
         rightSection={
           optimisticSort === CardSortField.UPDATED_AT && <IoMdCheckmark />
         }
+        closeMenuOnClick={false}
       >
         Newest
       </Menu.Item>
@@ -101,6 +102,7 @@ export function SortSelect() {
         rightSection={
           optimisticSort === CardSortField.CREATED_AT && <IoMdCheckmark />
         }
+        closeMenuOnClick={false}
       >
         Oldest
       </Menu.Item>
@@ -110,6 +112,7 @@ export function SortSelect() {
         rightSection={
           optimisticSort === CardSortField.LIBRARY_COUNT && <IoMdCheckmark />
         }
+        closeMenuOnClick={false}
       >
         Most Popular
       </Menu.Item>
@@ -214,6 +217,7 @@ export function ViewToggle() {
         leftSection={<BsGrid />}
         rightSection={settings.cardView === 'grid' && <IoMdCheckmark />}
         onClick={() => updateSetting('cardView', 'grid')}
+        closeMenuOnClick={false}
       >
         Grid
       </Menu.Item>
@@ -221,6 +225,7 @@ export function ViewToggle() {
         leftSection={<BsListTask />}
         rightSection={settings.cardView === 'list' && <IoMdCheckmark />}
         onClick={() => updateSetting('cardView', 'list')}
+        closeMenuOnClick={false}
       >
         List{' '}
       </Menu.Item>

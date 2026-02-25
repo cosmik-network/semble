@@ -13,7 +13,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 
 export default function MyFeedContainer() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
@@ -28,6 +27,7 @@ export default function MyFeedContainer() {
   const followingFeed = useFollowingFeed({
     urlType: selectedUrlType,
     source: selectedSource,
+    enabled: selectedFeed === 'following',
   });
 
   // Use the appropriate feed based on selection
