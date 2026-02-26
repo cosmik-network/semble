@@ -18,21 +18,19 @@ import { useEffect } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function Page() {
   const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   useEffect(() => {
-    if (isAuthenticated && !isExtensionLogin) {
+    if (isAuthenticated) {
       refreshAuth();
       router.push('/home');
     }
-  }, [isAuthenticated, router, isExtensionLogin, refreshAuth]);
+  }, [isAuthenticated, router, refreshAuth]);
 
   if (isAuthenticated || isLoading) {
     return (
