@@ -8,6 +8,9 @@ export const createAtprotoRoutes = (
   router.get('/client-metadata.json', (req, res) => {
     res.json(nodeOauthClient.clientMetadata);
   });
+  router.get('/oauth-client-metadata.json', (req, res) => {
+    res.json(nodeOauthClient.clientMetadata);
+  });
 
   return router;
 };

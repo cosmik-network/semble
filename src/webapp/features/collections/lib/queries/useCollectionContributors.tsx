@@ -12,7 +12,11 @@ export default function useCollectionContributors({
   limit = 20,
 }: Props) {
   const query = useSuspenseInfiniteQuery({
-    queryKey: [...collectionKeys.collection(collectionId), 'contributors', limit],
+    queryKey: [
+      ...collectionKeys.collection(collectionId),
+      'contributors',
+      limit,
+    ],
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getCollectionContributors(collectionId, {
