@@ -150,16 +150,12 @@ export default function OAuthLoginForm(props: Props) {
 
           {props.error && <Alert title={props.error} color="red" />}
 
-          <UnstyledButton
-            c={'gray'}
-            fw={600}
-            fz={'sm'}
-            onClick={props.onSwitchToAppPassword}
-          >
-            Or{' '}
-            <Text c={'blue'} fw={600} fz={'sm'} span>
-              use your app password
-            </Text>
+          <Text fw={500} c="stone">
+            Or
+          </Text>
+
+          <UnstyledButton fw={500} onClick={props.onSwitchToAppPassword}>
+            Use your app password
           </UnstyledButton>
         </Stack>
       </form>
