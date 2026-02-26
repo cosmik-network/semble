@@ -166,4 +166,9 @@ export interface ICardQueryRepository {
     url: string,
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
+
+  getBatchUrlCardViews(
+    cardIds: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlCardView>>;
 }

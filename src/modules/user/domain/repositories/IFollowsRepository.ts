@@ -128,4 +128,22 @@ export interface IFollowsRepository {
     targetId: string,
     targetType: FollowTargetType,
   ): Promise<Result<number>>;
+
+  /**
+   * Check if a follower follows multiple targets in a single query.
+   *
+   * @param followerId - DID of the follower
+   * @param targetIds - Array of target IDs to check
+   * @param targetType - Type of targets (USER or COLLECTION)
+   * @returns Map of targetId -> boolean indicating if followed
+   *
+   * Example:
+   *   checkFollowingMultiple('did:plc:alice123', ['uuid-1', 'uuid-2', 'uuid-3'], FollowTargetType.COLLECTION)
+   *   → Map{ 'uuid-1' => true, 'uuid-2' => false, 'uuid-3' => true }
+   */
+  checkFollowingMultiple(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, boolean>>>;
 }
