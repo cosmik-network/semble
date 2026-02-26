@@ -2,8 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ExtensionService } from '@/services/extensionService';
-import { ApiClient } from '@/api-client/ApiClient';
 import { Card, Center, Loader, Stack, Title, Text } from '@mantine/core';
 
 function AuthCompleteContent() {
@@ -13,11 +11,6 @@ function AuthCompleteContent() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      // Create API client instance
-      const apiClient = new ApiClient(
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-      );
-
       const error = searchParams.get('error');
 
       // Check for error parameter
@@ -27,38 +20,12 @@ function AuthCompleteContent() {
         return;
       }
 
-      const handleExtensionTokenGeneration = async () => {
-        try {
-          setMessage('Generating extension tokens...');
-
-          const tokens = await apiClient.generateExtensionTokens();
-          await ExtensionService.sendTokensToExtension(tokens);
-          ExtensionService.clearExtensionTokensRequested();
-
-          setMessage('Extension tokens generated successfully!');
-
-          // Redirect to extension success page after successful extension token generation
-          setTimeout(() => router.push('/extension/auth/complete'), 1000);
-        } catch (extensionError: any) {
-          console.error('Failed to generate extension tokens:', extensionError);
-          ExtensionService.clearExtensionTokensRequested();
-
-          // Redirect to extension error page
-          router.push('/extension/auth/error');
-        }
-      };
-
       // With cookie-based auth, tokens are automatically set in cookies by the backend
       // No need to handle tokens from URL parameters anymore
       setMessage('Authentication successful!');
 
-      // Check if extension tokens were requested
-      if (ExtensionService.isExtensionTokensRequested()) {
-        handleExtensionTokenGeneration();
-      } else {
-        // Redirect to home after a brief moment
-        setTimeout(() => router.push('/home'), 500);
-      }
+      // Redirect to home after a brief moment
+      router.push('/home');
     };
 
     handleAuth();
