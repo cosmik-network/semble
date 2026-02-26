@@ -3,7 +3,6 @@
 import { Button } from '@mantine/core';
 import { startTransition } from 'react';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   targetId: string;
@@ -14,13 +13,8 @@ interface Props {
 }
 
 export default function FollowButton(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
     useToggleFollow(props.initialIsFollowing ?? false);
-
-  if (!featureFlags?.following) {
-    return null;
-  }
 
   return (
     <Button

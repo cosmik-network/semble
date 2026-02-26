@@ -14,7 +14,6 @@ import { ActivitySource, UrlType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
@@ -45,7 +44,6 @@ const feedOptions = [
 ];
 
 export default function FeedControls() {
-  const { data: featureFlags } = useFeatureFlags();
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
@@ -132,7 +130,7 @@ export default function FeedControls() {
           <Menu.Target>
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
               {selectedSource?.label}
-              {featureFlags?.following !== false && ` / ${selectedFeed?.label}`}
+              {` / ${selectedFeed?.label}`}
               {optimisticType && ` / ${upperFirst(optimisticType)}s`}
             </Button>
           </Menu.Target>
@@ -153,23 +151,21 @@ export default function FeedControls() {
               </Menu.Item>
             ))}
 
-            {featureFlags?.following && (
-              <>
-                <Menu.Label>Feed</Menu.Label>
-                {feedOptions.map((option) => (
-                  <Menu.Item
-                    key={option.value}
-                    onClick={() => handleFeedClick(option.value)}
-                    rightSection={
-                      option.value === optimisticFeed ? <IoMdCheckmark /> : null
-                    }
-                    closeMenuOnClick={false}
-                  >
-                    {option.label}
-                  </Menu.Item>
-                ))}
-              </>
-            )}
+            <>
+              <Menu.Label>Feed</Menu.Label>
+              {feedOptions.map((option) => (
+                <Menu.Item
+                  key={option.value}
+                  onClick={() => handleFeedClick(option.value)}
+                  rightSection={
+                    option.value === optimisticFeed ? <IoMdCheckmark /> : null
+                  }
+                  closeMenuOnClick={false}
+                >
+                  {option.label}
+                </Menu.Item>
+              ))}
+            </>
 
             <Menu.Label>Type</Menu.Label>
             <Popover

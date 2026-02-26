@@ -3,7 +3,6 @@
 import { Group, Paper, ScrollAreaAutosize, Tabs } from '@mantine/core';
 import TabItem from './TabItem';
 import { usePathname } from 'next/navigation';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   handle: string;
@@ -14,7 +13,6 @@ export default function ProfileTabs(props: Props) {
   const segment = pathname.split('/')[3];
   const currentTab = segment || 'profile'; // treat base route as 'profile'
   const basePath = `/profile/${props.handle}`;
-  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <Tabs value={currentTab}>
@@ -31,11 +29,9 @@ export default function ProfileTabs(props: Props) {
               <TabItem value="collections" href={`${basePath}/collections`}>
                 Collections
               </TabItem>
-              {featureFlags?.following && (
-                <TabItem value="network" href={`${basePath}/network`}>
-                  Network
-                </TabItem>
-              )}
+              <TabItem value="network" href={`${basePath}/network`}>
+                Network
+              </TabItem>
             </Group>
           </Tabs.List>
         </ScrollAreaAutosize>

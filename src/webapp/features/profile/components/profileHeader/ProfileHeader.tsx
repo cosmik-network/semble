@@ -77,7 +77,7 @@ export default async function ProfileHeader(props: Props) {
                   {profile.name}
                 </Title>
                 <Group gap={'xs'}>
-                  {featureFlags.following && profile.followsYou && (
+                  {profile.followsYou && (
                     <Badge variant="light" color="gray">
                       Follows you
                     </Badge>
@@ -111,18 +111,16 @@ export default async function ProfileHeader(props: Props) {
               )}
 
               {/* follow stats */}
-              {featureFlags.following && (
-                <Suspense fallback={<FollowStatsSkeleton />}>
-                  <ProfileFollowStats
-                    handle={props.handle}
-                    initialFollowerCount={profile.followerCount ?? 0}
-                    initialFollowingCount={profile.followingCount ?? 0}
-                    initialFollowedCollectionsCount={
-                      profile.followedCollectionsCount ?? 0
-                    }
-                  />
-                </Suspense>
-              )}
+              <Suspense fallback={<FollowStatsSkeleton />}>
+                <ProfileFollowStats
+                  handle={props.handle}
+                  initialFollowerCount={profile.followerCount ?? 0}
+                  initialFollowingCount={profile.followingCount ?? 0}
+                  initialFollowedCollectionsCount={
+                    profile.followedCollectionsCount ?? 0
+                  }
+                />
+              </Suspense>
             </Stack>
           </Stack>
         </Stack>

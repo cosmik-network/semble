@@ -30,6 +30,6 @@ export async function getServerFeatureFlags() {
     leafletMentions: show,
     animatedLandingTitle: show,
     openCollections: true,
-    following: show,
+    following: true,
   };
 }
