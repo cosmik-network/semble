@@ -130,7 +130,7 @@ export default function FeedControls() {
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
         <Menu width={200}>
           <Menu.Target>
-            <Button variant="light" color="cyan">
+            <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
               {selectedSource?.label}
               {featureFlags?.following !== false && ` / ${selectedFeed?.label}`}
               {optimisticType && ` / ${upperFirst(optimisticType)}s`}
