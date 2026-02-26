@@ -3,6 +3,8 @@
 import { Group, Paper, ScrollAreaAutosize, Tabs } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import TabItem from './TabItem';
+import useCollection from '../../lib/queries/useCollection';
+import { CollectionAccessType } from '@semble/types';
 
 interface Props {
   handle: string;
@@ -14,6 +16,14 @@ export default function CollectionTabs(props: Props) {
   const segment = pathname.split('/')[5]; // Index 5 is the segment after rkey
   const currentTab = segment || 'cards'; // treat base route as 'cards'
   const basePath = `/profile/${props.handle}/collections/${props.rkey}`;
+
+  const { data } = useCollection({
+    rkey: props.rkey,
+    handle: props.handle,
+  });
+
+  const collection = data.pages[0];
+  const isOpenCollection = collection.accessType === CollectionAccessType.OPEN;
 
   return (
     <Tabs value={currentTab}>
@@ -27,9 +37,11 @@ export default function CollectionTabs(props: Props) {
               <TabItem value="followers" href={`${basePath}/followers`}>
                 Followers
               </TabItem>
-              <TabItem value="contributors" href={`${basePath}/contributors`}>
-                Contributors
-              </TabItem>
+              {isOpenCollection && (
+                <TabItem value="contributors" href={`${basePath}/contributors`}>
+                  Contributors
+                </TabItem>
+              )}
             </Group>
           </Tabs.List>
         </ScrollAreaAutosize>
