@@ -9,3 +9,4 @@ dist/
 build
 *storybook.log
 storybook-static
+src/webapp/tsconfig.tsbuildinfo
