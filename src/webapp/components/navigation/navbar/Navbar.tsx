@@ -1,5 +1,3 @@
-'use client';
-
 import CollectionsNavList from '@/features/collections/components/collectionsNavList/CollectionsNavList';
 import NavItem from '../navItem/NavItem';
 import {

@@ -1,5 +1,3 @@
-'use client';
-
 import { IconType } from 'react-icons/lib';
 import { ActionIcon, Anchor, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
