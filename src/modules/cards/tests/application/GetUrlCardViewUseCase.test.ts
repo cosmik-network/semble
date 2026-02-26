@@ -482,6 +482,7 @@ describe('GetUrlCardViewUseCase', () => {
         getLibrariesForCard: jest.fn(),
         getLibrariesForUrl: jest.fn(),
         getNoteCardsForUrl: jest.fn(),
+        getBatchUrlCardViews: jest.fn(),
       };
 
       const errorUseCase = new GetUrlCardViewUseCase(

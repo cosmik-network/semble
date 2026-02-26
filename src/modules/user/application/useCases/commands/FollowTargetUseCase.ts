@@ -14,6 +14,11 @@ import { CollectionId } from '../../../../cards/domain/value-objects/CollectionI
 import { PublishedRecordId } from '../../../../cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
+import {
+  ICardQueryRepository,
+  CardSortField,
+  SortOrder,
+} from '../../../../cards/domain/ICardQueryRepository';
 
 export interface FollowTargetDTO {
   followerId: string; // DID
@@ -42,6 +47,7 @@ export class FollowTargetUseCase extends BaseUseCase<
     private collectionRepository: ICollectionRepository,
     private followPublisher: IFollowPublisher,
     private profileService: IProfileService,
+    private cardQueryRepository: ICardQueryRepository,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -104,7 +110,21 @@ export class FollowTargetUseCase extends BaseUseCase<
         }
 
         if (!userResult.value) {
-          return err(new ValidationError('Target user not found'));
+          // User not in user table, check if they have at least 1 card
+          const cardsResult = await this.cardQueryRepository.getUrlCardsOfUser(
+            request.targetId,
+            {
+              page: 1,
+              limit: 1,
+              sortBy: CardSortField.CREATED_AT,
+              sortOrder: SortOrder.DESC,
+            },
+          );
+
+          if (cardsResult.totalCount === 0) {
+            return err(new ValidationError('Target user not found'));
+          }
+          // User has cards, allow follow to proceed
         }
       } else if (targetType.value === 'COLLECTION') {
         const collectionIdResult = CollectionId.createFromString(

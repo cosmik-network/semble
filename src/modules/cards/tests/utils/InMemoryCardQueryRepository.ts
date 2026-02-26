@@ -622,6 +622,22 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
+  async getBatchUrlCardViews(
+    cardIds: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlCardView>> {
+    const resultMap = new Map<string, UrlCardView>();
+
+    for (const cardId of cardIds) {
+      const cardView = await this.getUrlCardBasic(cardId, callingUserId);
+      if (cardView) {
+        resultMap.set(cardId, cardView);
+      }
+    }
+
+    return resultMap;
+  }
+
   clear(): void {
     // No separate state to clear
   }

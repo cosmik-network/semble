@@ -200,6 +200,7 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         services.followPublisher,
         services.profileService,
+        repositories.cardQueryRepository,
         services.eventPublisher,
       ),
       unfollowTargetUseCase: new UnfollowTargetUseCase(
@@ -506,6 +507,7 @@ export class UseCaseFactory {
       repositories.collectionRepository,
       services.followPublisher,
       services.profileService,
+      repositories.cardQueryRepository,
       services.eventPublisher,
     );
 

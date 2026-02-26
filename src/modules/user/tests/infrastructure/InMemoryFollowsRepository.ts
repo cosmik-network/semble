@@ -178,6 +178,30 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async checkFollowingMultiple(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, boolean>>> {
+    try {
+      // Build map with all targetIds initialized to false
+      const followMap = new Map<string, boolean>();
+      targetIds.forEach((id) => followMap.set(id, false));
+
+      // Check each target ID
+      for (const targetId of targetIds) {
+        const key = `${followerId}:${targetId}:${targetType.value}`;
+        if (this.follows.has(key)) {
+          followMap.set(targetId, true);
+        }
+      }
+
+      return ok(followMap);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.follows.clear();

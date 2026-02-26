@@ -708,6 +708,7 @@ describe('GetCollectionPageUseCase', () => {
         findById: jest
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
+        findByIds: jest.fn(),
         save: jest.fn(),
         delete: jest.fn(),
         findByCuratorId: jest.fn(),
@@ -765,6 +766,7 @@ describe('GetCollectionPageUseCase', () => {
         getLibrariesForCard: jest.fn(),
         getLibrariesForUrl: jest.fn(),
         getNoteCardsForUrl: jest.fn(),
+        getBatchUrlCardViews: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(

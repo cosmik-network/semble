@@ -55,6 +55,21 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async findByIds(ids: CollectionId[]): Promise<Result<Collection[]>> {
+    try {
+      const collections: Collection[] = [];
+      for (const id of ids) {
+        const collection = this.collections.get(id.getStringValue());
+        if (collection) {
+          collections.push(this.clone(collection));
+        }
+      }
+      return ok(collections);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async findByCuratorId(curatorId: CuratorId): Promise<Result<Collection[]>> {
     try {
       const collections = Array.from(this.collections.values()).filter(
