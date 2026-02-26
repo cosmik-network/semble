@@ -21,12 +21,25 @@ export class OAuthClientFactory {
 
     if (!isProd) {
       // Development: granular scopes with client metadata endpoint
+      const collections = configService.getAtProtoCollections();
+
+      const cosmikCollections = [
+        collections.card,
+        collections.collection,
+        collections.collectionLink,
+        collections.follow,
+        collections.collectionLinkRemoval,
+      ]
+        .map((c) => `collection=${c}`)
+        .join('&');
 
       const scope = [
         'atproto',
-        'repo?collection=network.cosmik.card&collection=network.cosmik.collection&collection=network.cosmik.collectionLink&collection=network.cosmik.follow&collection=network.cosmik.collectionLinkRemoval',
+        `repo?${cosmikCollections}`,
         'repo:at.margin.collection?action=update&action=delete',
-        'rpc?lxm=app.bsky.feed.searchPosts&lxm=app.bsky.actor.searchActors&aud=did:web:api.bsky.app%23bsky_appview',
+        'rpc:app.bsky.feed.searchPosts?aud=*',
+        'rpc:app.bsky.actor.searchActors?aud=*',
+        'rpc:app.bsky.actor.getProfile?aud=*',
       ].join(' ');
 
       return {
