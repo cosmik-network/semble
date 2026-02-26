@@ -1,6 +1,5 @@
-'use client';
-
 import { AppShellFooter, Avatar, Group, Indicator } from '@mantine/core';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { BiSearch } from 'react-icons/bi';

@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { NavLink, Stack } from '@mantine/core';
 import { BiCollection, BiRightArrowAlt } from 'react-icons/bi';
