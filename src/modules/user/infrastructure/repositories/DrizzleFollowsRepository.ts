@@ -417,4 +417,39 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
       return err(error);
     }
   }
+
+  async checkFollowingMultiple(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, boolean>>> {
+    try {
+      if (targetIds.length === 0) {
+        return ok(new Map());
+      }
+
+      // Get all follows for this follower and the target IDs in one query
+      const results = await this.db
+        .select({ targetId: follows.targetId })
+        .from(follows)
+        .where(
+          and(
+            eq(follows.followerId, followerId),
+            inArray(follows.targetId, targetIds),
+            eq(follows.targetType, targetType.value),
+          ),
+        );
+
+      // Build map with all targetIds initialized to false
+      const followMap = new Map<string, boolean>();
+      targetIds.forEach((id) => followMap.set(id, false));
+
+      // Set true for targetIds that were found
+      results.forEach((row) => followMap.set(row.targetId, true));
+
+      return ok(followMap);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
 }

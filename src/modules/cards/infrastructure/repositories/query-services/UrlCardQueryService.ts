@@ -995,6 +995,158 @@ export class UrlCardQueryService {
     }
   }
 
+  async getBatchUrlCardViews(
+    cardIds: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlCardView>> {
+    try {
+      if (cardIds.length === 0) {
+        return new Map();
+      }
+
+      // Fetch all cards in one query
+      const cardsQuery = this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
+        );
+
+      const cardsResult = await cardsQuery;
+
+      if (cardsResult.length === 0) {
+        return new Map();
+      }
+
+      // Get unique URLs for batch queries
+      const urls = [...new Set(cardsResult.map((card) => card.url || ''))];
+
+      // Get notes for all cards in one query
+      const notesQuery = this.db
+        .select({
+          id: cards.id,
+          parentCardId: cards.parentCardId,
+          authorId: cards.authorId,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            inArray(cards.parentCardId, cardIds),
+          ),
+        );
+
+      const notesResult = await notesQuery;
+
+      // Get urlLibraryCount for all URLs in one query
+      const urlLibraryCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const urlLibraryCountsResult = await urlLibraryCountsQuery;
+
+      // Create map of URL to urlLibraryCount
+      const urlLibraryCountMap = new Map<string, number>();
+      urlLibraryCountsResult.forEach((row) => {
+        if (row.url) {
+          urlLibraryCountMap.set(row.url, row.count);
+        }
+      });
+
+      // Get urlInLibrary for all URLs if callingUserId is provided
+      let urlInLibraryMap: Map<string, boolean> | undefined;
+      if (callingUserId) {
+        const urlInLibraryQuery = this.db
+          .select({
+            url: cards.url,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.authorId, callingUserId),
+              eq(cards.type, CardTypeEnum.URL),
+              inArray(cards.url, urls),
+            ),
+          );
+
+        const urlInLibraryResult = await urlInLibraryQuery;
+
+        urlInLibraryMap = new Map<string, boolean>();
+        // Initialize all URLs as false
+        urls.forEach((url) => urlInLibraryMap!.set(url, false));
+        // Set true for URLs the calling user has
+        urlInLibraryResult.forEach((row) => {
+          if (row.url) {
+            urlInLibraryMap!.set(row.url, true);
+          }
+        });
+      }
+
+      // Build result map
+      const resultMap = new Map<string, UrlCardView>();
+
+      for (const card of cardsResult) {
+        // Find note for this card (matching both parentCardId and authorId)
+        const note = notesResult.find(
+          (n) => n.parentCardId === card.id && n.authorId === card.authorId,
+        );
+
+        // Get urlLibraryCount from map
+        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+
+        // Get urlInLibrary from map
+        const urlInLibrary = urlInLibraryMap?.get(card.url || '');
+
+        const rawCardData = {
+          id: card.id,
+          authorId: card.authorId,
+          url: card.url || '',
+          uri: card.publishedRecordUri || undefined,
+          contentData: card.contentData,
+          libraryCount: card.libraryCount,
+          urlLibraryCount,
+          urlInLibrary,
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+          note: note
+            ? {
+                id: note.id,
+                contentData: note.contentData,
+              }
+            : undefined,
+        };
+
+        const urlCardView = CardMapper.toCollectionCardQueryResult(rawCardData);
+        resultMap.set(card.id, urlCardView);
+      }
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchUrlCardViews:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CardSortField) {
     switch (sortBy) {
       case CardSortField.CREATED_AT:

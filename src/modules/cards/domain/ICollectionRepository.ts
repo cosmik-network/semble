@@ -6,6 +6,7 @@ import { CuratorId } from './value-objects/CuratorId';
 
 export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;
+  findByIds(ids: CollectionId[]): Promise<Result<Collection[]>>;
   findByCuratorId(curatorId: CuratorId): Promise<Result<Collection[]>>;
   findByCardId(cardId: CardId): Promise<Result<Collection[]>>;
   findByCuratorIdContainingCard(

@@ -100,6 +100,122 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async findByIds(ids: CollectionId[]): Promise<Result<Collection[]>> {
+    try {
+      if (ids.length === 0) {
+        return ok([]);
+      }
+
+      const collectionIds = ids.map((id) => id.getStringValue());
+
+      // Get all collections in one query
+      const collectionResults = await this.db
+        .select({
+          collection: collections,
+          publishedRecord: publishedRecords,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .where(inArray(collections.id, collectionIds));
+
+      if (collectionResults.length === 0) {
+        return ok([]);
+      }
+
+      // Get all collaborators in one query
+      const allCollaboratorResults = await this.db
+        .select()
+        .from(collectionCollaborators)
+        .where(inArray(collectionCollaborators.collectionId, collectionIds));
+
+      // Group collaborators by collection ID
+      const collaboratorsByCollection = new Map<string, string[]>();
+      allCollaboratorResults.forEach((c) => {
+        if (!collaboratorsByCollection.has(c.collectionId)) {
+          collaboratorsByCollection.set(c.collectionId, []);
+        }
+        collaboratorsByCollection.get(c.collectionId)!.push(c.collaboratorId);
+      });
+
+      // Get all card links in one query
+      const allCardLinkResults = await this.db
+        .select({
+          cardLink: collectionCards,
+          publishedRecord: publishedRecords,
+        })
+        .from(collectionCards)
+        .leftJoin(
+          publishedRecords,
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
+        )
+        .where(inArray(collectionCards.collectionId, collectionIds));
+
+      // Group card links by collection ID
+      const cardLinksByCollection = new Map<
+        string,
+        Array<{
+          cardId: string;
+          addedBy: string;
+          addedAt: Date;
+          publishedRecordId?: string;
+          publishedRecord?: any;
+        }>
+      >();
+      allCardLinkResults.forEach((link) => {
+        if (!cardLinksByCollection.has(link.cardLink.collectionId)) {
+          cardLinksByCollection.set(link.cardLink.collectionId, []);
+        }
+        cardLinksByCollection.get(link.cardLink.collectionId)!.push({
+          cardId: link.cardLink.cardId,
+          addedBy: link.cardLink.addedBy,
+          addedAt: link.cardLink.addedAt,
+          publishedRecordId: link.publishedRecord?.id,
+          publishedRecord: link.publishedRecord || undefined,
+        });
+      });
+
+      // Build domain collections
+      const domainCollections: Collection[] = [];
+      for (const result of collectionResults) {
+        const collectionId = result.collection.id;
+        const collaborators = collaboratorsByCollection.get(collectionId) || [];
+        const cardLinks = cardLinksByCollection.get(collectionId) || [];
+
+        const collectionDTO: CollectionDTO = {
+          id: result.collection.id,
+          authorId: result.collection.authorId,
+          name: result.collection.name,
+          description: result.collection.description || undefined,
+          accessType: result.collection.accessType,
+          cardCount: result.collection.cardCount,
+          createdAt: result.collection.createdAt,
+          updatedAt: result.collection.updatedAt,
+          publishedRecordId: result.publishedRecord?.id || null,
+          publishedRecord: result.publishedRecord || undefined,
+          collaborators,
+          cardLinks,
+        };
+
+        const domainResult = CollectionMapper.toDomain(collectionDTO);
+        if (domainResult.isErr()) {
+          console.error(
+            'Error mapping collection to domain:',
+            domainResult.error,
+          );
+          continue;
+        }
+        domainCollections.push(domainResult.value);
+      }
+
+      return ok(domainCollections);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async findByCuratorId(curatorId: CuratorId): Promise<Result<Collection[]>> {
     try {
       const curatorIdString = curatorId.value;
