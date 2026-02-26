@@ -18,7 +18,6 @@ export class OAuthClientFactory {
     const enc = encodeURIComponent;
     const isLocal = configService.get().environment === 'local';
     const isProd = configService.get().environment === 'prod';
-    console.log('env value', configService.get().environment);
 
     if (!isProd) {
       // Development: granular scopes with client metadata endpoint
