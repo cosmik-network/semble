@@ -147,6 +147,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         opened={opened}
         onClose={() => setOpened(false)}
         position="bottom"
+        padding={'sm'}
         size="sm"
         withCloseButton={false}
         overlayProps={UPDATE_OVERLAY_PROPS}

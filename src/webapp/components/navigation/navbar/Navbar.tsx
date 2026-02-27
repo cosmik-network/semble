@@ -25,10 +25,10 @@ import { Suspense, useState } from 'react';
 import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
-import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
+import Composer from '@/features/composer/components/Composer';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -98,10 +98,11 @@ export default function Navbar() {
             setOpenAddDrawer(true);
           }}
         >
-          New Card
+          Create
         </Button>
       </AppShellSection>
-      <AddCardDrawer
+
+      <Composer
         isOpen={openAddDrawer}
         onClose={() => setOpenAddDrawer(false)}
       />
