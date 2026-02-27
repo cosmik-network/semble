@@ -3,8 +3,9 @@
 import CollectionCardPreview from '@/features/collections/components/collectionCardPreview/CollectionCardPreview';
 import CollectionCardPreviewSkeleton from '@/features/collections/components/collectionCardPreview/Skeleton.CollectionCardPreview';
 import useCollection from '@/features/collections/lib/queries/useCollection';
-import { Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
+import { Avatar, Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
 import { CollectionAccessType } from '@semble/types';
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 
@@ -33,18 +34,30 @@ export default function SembleCollectionCardContent(props: Props) {
               </Text>
             )}
           </Group>
-          {accessType === CollectionAccessType.OPEN && (
-            <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-              <ThemeIcon
-                size={'sm'}
-                variant="light"
-                color={'green'}
-                radius={'xl'}
-              >
-                <FaSeedling size={12} />
-              </ThemeIcon>
-            </Tooltip>
-          )}
+          <Group gap={'xs'} wrap="nowrap">
+            {accessType === CollectionAccessType.OPEN && (
+              <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                <ThemeIcon
+                  size={'sm'}
+                  variant="light"
+                  color={'green'}
+                  radius={'xl'}
+                >
+                  <FaSeedling size={12} />
+                </ThemeIcon>
+              </Tooltip>
+            )}
+            <Avatar
+              component={Link}
+              href={`/profile/${collection.author.handle}`}
+              src={collection.author.avatarUrl?.replace(
+                'avatar',
+                'avatar_thumbnail',
+              )}
+              alt={`${collection.author.handle}'s avatar`}
+              size={'sm'}
+            />
+          </Group>
         </Group>
         {collection.description && (
           <Text c={'gray'} fz={'sm'} lineClamp={3}>
