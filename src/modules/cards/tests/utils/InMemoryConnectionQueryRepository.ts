@@ -3,6 +3,7 @@ import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
   ConnectionForUrlDTO,
+  ConnectionForUserDTO,
   ConnectionSortField,
   SortOrder,
 } from '../../domain/IConnectionQueryRepository';
@@ -100,6 +101,75 @@ export class InMemoryConnectionQueryRepository
           direction === 'source'
             ? connection.target.stringValue
             : connection.source.stringValue,
+      }),
+    );
+
+    return {
+      items,
+      totalCount: filteredConnections.length,
+      hasMore:
+        offset + paginatedConnections.length < filteredConnections.length,
+    };
+  }
+
+  async getConnectionsForUser(
+    curatorId: string,
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+    const { page, limit, sortBy, sortOrder, connectionTypes } = options;
+
+    // Get all connections from the repository
+    const allConnections = this.connectionRepository.getAllConnections();
+
+    // Filter connections by curator and URL-to-URL type
+    let filteredConnections = allConnections.filter((connection) => {
+      return (
+        connection.curatorId.value === curatorId &&
+        connection.source.type === UrlOrCardIdType.URL &&
+        connection.target.type === UrlOrCardIdType.URL
+      );
+    });
+
+    // Apply connection type filter if provided
+    if (connectionTypes && connectionTypes.length > 0) {
+      filteredConnections = filteredConnections.filter((connection) =>
+        connection.type
+          ? connectionTypes.includes(connection.type.value)
+          : false,
+      );
+    }
+
+    // Sort connections
+    filteredConnections.sort((a, b) => {
+      const dateA =
+        sortBy === ConnectionSortField.UPDATED_AT ? a.updatedAt : a.createdAt;
+      const dateB =
+        sortBy === ConnectionSortField.UPDATED_AT ? b.updatedAt : b.createdAt;
+
+      const comparison = dateA.getTime() - dateB.getTime();
+      return sortOrder === SortOrder.ASC ? comparison : -comparison;
+    });
+
+    // Apply pagination
+    const offset = (page - 1) * limit;
+    const paginatedConnections = filteredConnections.slice(
+      offset,
+      offset + limit,
+    );
+
+    // Map to DTOs
+    const items: ConnectionForUserDTO[] = paginatedConnections.map(
+      (connection) => ({
+        connection: {
+          id: connection.connectionId.getStringValue(),
+          type: connection.type?.value,
+          note: connection.note?.value,
+          createdAt: connection.createdAt,
+          updatedAt: connection.updatedAt,
+          curatorId: connection.curatorId.value,
+        },
+        sourceUrl: connection.source.stringValue,
+        targetUrl: connection.target.stringValue,
       }),
     );
 

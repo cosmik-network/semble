@@ -37,6 +37,20 @@ export interface ConnectionForUrlDTO {
   url: string; // The other URL in the connection (target for forward, source for backward)
 }
 
+// DTO for curator's connections - includes both source and target URLs
+export interface ConnectionForUserDTO {
+  connection: {
+    id: string;
+    type?: ConnectionTypeEnum;
+    note?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    curatorId: string;
+  };
+  sourceUrl: string;
+  targetUrl: string;
+}
+
 export interface IConnectionQueryRepository {
   /**
    * Get connections where the given URL is the source (forward connections)
@@ -55,4 +69,13 @@ export interface IConnectionQueryRepository {
     url: string,
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
+
+  /**
+   * Get all connections created by a specific curator
+   * Returns connections with both source and target URLs
+   */
+  getConnectionsForUser(
+    curatorId: string,
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
 }
