@@ -1,28 +1,61 @@
-import { Group, Stack, Text } from '@mantine/core';
-import { UrlCard } from '@semble/types';
+'use client';
+
+import CollectionCardPreview from '@/features/collections/components/collectionCardPreview/CollectionCardPreview';
+import CollectionCardPreviewSkeleton from '@/features/collections/components/collectionCardPreview/Skeleton.CollectionCardPreview';
+import useCollection from '@/features/collections/lib/queries/useCollection';
+import { Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
+import { CollectionAccessType } from '@semble/types';
+import { Suspense } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
-  cardContent: UrlCard['cardContent'];
+  rkey: string;
+  handle: string;
 }
 
 export default function SembleCollectionCardContent(props: Props) {
+  const { data } = useCollection({
+    rkey: props.rkey,
+    handle: props.handle,
+  });
+
+  const collection = data.pages[0];
+  const accessType = collection.accessType;
+
   return (
-    <Group justify="space-between" align="start" gap={'lg'}>
-      <Stack gap={0} flex={1}>
-        <Text c={'grape'} fw={500}>
-          Collection
-        </Text>
-        {props.cardContent.title && (
-          <Text c={'bright'} lineClamp={2} fw={500} w={'fit-content'}>
-            {props.cardContent.title}
-          </Text>
-        )}
-        {props.cardContent.description && (
-          <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
-            {props.cardContent.description}
+    <Stack gap={'xs'}>
+      <Stack gap={0}>
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap={4}>
+            {collection.name && (
+              <Text fw={500} lineClamp={1} c={'bright'}>
+                {collection.name}
+              </Text>
+            )}
+          </Group>
+          {accessType === CollectionAccessType.OPEN && (
+            <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+              <ThemeIcon
+                size={'sm'}
+                variant="light"
+                color={'green'}
+                radius={'xl'}
+              >
+                <FaSeedling size={12} />
+              </ThemeIcon>
+            </Tooltip>
+          )}
+        </Group>
+        {collection.description && (
+          <Text c={'gray'} fz={'sm'} lineClamp={3}>
+            {collection.description}
           </Text>
         )}
       </Stack>
-    </Group>
+
+      <Suspense fallback={<CollectionCardPreviewSkeleton />}>
+        <CollectionCardPreview rkey={props.rkey} handle={props.handle} />
+      </Suspense>
+    </Stack>
   );
 }

@@ -4,11 +4,12 @@ import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardCo
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
-import { MouseEvent } from 'react';
+import { MouseEvent, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { sanitizeText } from '@/lib/utils/text';
 import { getRelativeTime } from '@/lib/utils/time';
+import UrlCardContentSkeleton from '@/features/cards/components/urlCardContent/Skeleton.UrlCardContent';
 
 interface Props {
   id: string;
@@ -85,11 +86,13 @@ export default function ActivityCard(props: Props) {
         withBorder
       >
         <Stack justify="space-between" gap={'sm'} flex={1}>
-          <UrlCardContent
-            url={props.url}
-            uri={props.uri}
-            cardContent={props.cardContent}
-          />
+          <Suspense fallback={<UrlCardContentSkeleton />}>
+            <UrlCardContent
+              url={props.url}
+              uri={props.uri}
+              cardContent={props.cardContent}
+            />
+          </Suspense>
         </Stack>
       </Card>
     </Stack>

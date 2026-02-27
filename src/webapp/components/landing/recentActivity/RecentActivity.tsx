@@ -17,7 +17,7 @@ import { unstable_cache } from 'next/cache';
 const getRecentActivity = unstable_cache(
   async () => {
     try {
-      const results = await Promise.all([
+      const results = await Promise.allSettled([
         getUrlCards('ronentk.me', { limit: 1 }),
         getUrlCards('wesleyfinck.org', { limit: 1 }),
         getUrlCards('pouriade.com', { limit: 1 }),
@@ -29,7 +29,8 @@ const getRecentActivity = unstable_cache(
       ]);
 
       return results
-        .flatMap((result) => result.cards)
+        .filter((result) => result.status === 'fulfilled')
+        .flatMap((result) => result.value.cards)
         .sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),

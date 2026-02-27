@@ -50,11 +50,35 @@ export enum SupportedPlatform {
   DEFAULT = 'default',
 }
 
-type PlatformData = { type: SupportedPlatform; url: string };
+type PlatformData =
+  | {
+      type: SupportedPlatform.SEMBLE_COLLECTION;
+      url: string;
+      handle: string;
+      rkey: string;
+    }
+  | {
+      type: Exclude<SupportedPlatform, SupportedPlatform.SEMBLE_COLLECTION>;
+      url: string;
+    };
 
 export const detectUrlPlatform = (url: string): PlatformData => {
   if (isCollectionPage(url)) {
-    return { type: SupportedPlatform.SEMBLE_COLLECTION, url };
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      // expected format: profile/:handle/collections/:rkey
+      const handle = pathParts[1];
+      const rkey = pathParts[3];
+      return { type: SupportedPlatform.SEMBLE_COLLECTION, url, handle, rkey };
+    } catch {
+      return {
+        type: SupportedPlatform.SEMBLE_COLLECTION,
+        url,
+        handle: '',
+        rkey: '',
+      };
+    }
   }
 
   try {
