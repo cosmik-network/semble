@@ -1,3 +1,5 @@
+'use client';
+
 import { ActionIcon, Affix } from '@mantine/core';
 import { Fragment, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
