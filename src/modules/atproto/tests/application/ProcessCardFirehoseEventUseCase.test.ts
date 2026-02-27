@@ -5,6 +5,7 @@ import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/use
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { InMemoryCardRepository } from '../../../cards/tests/utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
+import { InMemoryConnectionRepository } from '../../../cards/tests/utils/InMemoryConnectionRepository';
 import { FakeCardPublisher } from '../../../cards/tests/utils/FakeCardPublisher';
 import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
 import { FakeMetadataService } from '../../../cards/tests/utils/FakeMetadataService';
@@ -26,6 +27,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
   let removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let connectionRepository: InMemoryConnectionRepository;
   let cardPublisher: FakeCardPublisher;
   let collectionPublisher: FakeCollectionPublisher;
   let metadataService: FakeMetadataService;
@@ -39,6 +41,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     configService = new EnvironmentConfigService();
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    connectionRepository = InMemoryConnectionRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
     metadataService = new FakeMetadataService();
@@ -59,6 +62,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
       cardRepository,
+      connectionRepository,
     );
 
     addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(

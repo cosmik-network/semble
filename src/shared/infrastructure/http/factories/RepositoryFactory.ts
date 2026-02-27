@@ -13,6 +13,7 @@ import { InMemoryCardRepository } from '../../../../modules/cards/tests/utils/In
 import { InMemoryCardQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../../../../modules/cards/tests/utils/InMemoryCollectionRepository';
 import { InMemoryCollectionQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryCollectionQueryRepository';
+import { InMemoryConnectionRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionRepository';
 import { InMemoryUserRepository } from '../../../../modules/user/tests/infrastructure/InMemoryUserRepository';
 import { InMemoryTokenRepository } from '../../../../modules/user/tests/infrastructure/InMemoryTokenRepository';
 import { InMemoryAppPasswordSessionRepository } from '../../../../modules/atproto/tests/infrastructure/InMemoryAppPasswordSessionRepository';
@@ -76,6 +77,7 @@ export class RepositoryFactory {
       const tokenRepository = InMemoryTokenRepository.getInstance();
       const cardRepository = InMemoryCardRepository.getInstance();
       const collectionRepository = InMemoryCollectionRepository.getInstance();
+      const connectionRepository = InMemoryConnectionRepository.getInstance();
       const cardQueryRepository = new InMemoryCardQueryRepository(
         cardRepository,
         collectionRepository,
@@ -91,6 +93,7 @@ export class RepositoryFactory {
       const atUriResolutionService = new InMemoryAtUriResolutionService(
         collectionRepository,
         cardRepository,
+        connectionRepository,
       );
       const notificationRepository =
         InMemoryNotificationRepository.getInstance();
@@ -107,8 +110,7 @@ export class RepositoryFactory {
         cardQueryRepository,
         collectionRepository,
         collectionQueryRepository,
-        // TODO: Create InMemoryConnectionRepository
-        connectionRepository: null as any,
+        connectionRepository,
         appPasswordSessionRepository,
         feedRepository,
         followsRepository,

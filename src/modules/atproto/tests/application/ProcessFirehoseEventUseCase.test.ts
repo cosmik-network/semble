@@ -24,6 +24,7 @@ import { DeleteConnectionUseCase } from '../../../cards/application/useCases/com
 import { InMemoryCardRepository } from '../../../cards/tests/utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../../../cards/tests/utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
+import { InMemoryConnectionRepository } from '../../../cards/tests/utils/InMemoryConnectionRepository';
 import { FakeCardPublisher } from '../../../cards/tests/utils/FakeCardPublisher';
 import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
 import { FakeConnectionPublisher } from '../../../cards/tests/utils/FakeConnectionPublisher';
@@ -60,6 +61,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let cardRepository: InMemoryCardRepository;
   let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let connectionRepository: InMemoryConnectionRepository;
   let cardPublisher: FakeCardPublisher;
   let collectionPublisher: FakeCollectionPublisher;
   let metadataService: FakeMetadataService;
@@ -90,6 +92,7 @@ describe('ProcessFirehoseEventUseCase', () => {
     // Set up all the real dependencies
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    connectionRepository = InMemoryConnectionRepository.getInstance();
     cardQueryRepository = new InMemoryCardQueryRepository(
       cardRepository,
       collectionRepository,
@@ -114,6 +117,7 @@ describe('ProcessFirehoseEventUseCase', () => {
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
       cardRepository,
+      connectionRepository,
     );
 
     // Create use cases for card processing

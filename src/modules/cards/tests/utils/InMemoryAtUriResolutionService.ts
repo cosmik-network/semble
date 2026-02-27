@@ -10,11 +10,13 @@ import { ConnectionId } from '../../domain/value-objects/ConnectionId';
 import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
+import { InMemoryConnectionRepository } from './InMemoryConnectionRepository';
 
 export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
   constructor(
     private collectionRepository: InMemoryCollectionRepository,
     private cardRepository: InMemoryCardRepository,
+    private connectionRepository: InMemoryConnectionRepository,
   ) {}
 
   async resolveAtUri(
@@ -53,6 +55,17 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
               },
             });
           }
+        }
+      }
+
+      // Check connections
+      const allConnections = this.connectionRepository.getAllConnections();
+      for (const connection of allConnections) {
+        if (connection.publishedRecordId?.uri === atUri) {
+          return ok({
+            type: AtUriResourceType.CONNECTION,
+            id: connection.connectionId,
+          });
         }
       }
 
@@ -128,8 +141,16 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
   async resolveConnectionId(
     atUri: string,
   ): Promise<Result<ConnectionId | null>> {
-    // For testing purposes, return null (connection not found)
-    // TODO: When InMemoryConnectionRepository is created, search through connections
-    return ok(null);
+    const result = await this.resolveAtUri(atUri);
+
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    if (!result.value || result.value.type !== AtUriResourceType.CONNECTION) {
+      return ok(null);
+    }
+
+    return ok(result.value.id as ConnectionId);
   }
 }
