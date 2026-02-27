@@ -34,6 +34,8 @@ import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/appli
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
+import { GetForwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetForwardConnectionsForUrlUseCase';
+import { GetBackwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetBackwardConnectionsForUrlUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
@@ -137,6 +139,8 @@ export interface UseCases {
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
+  getForwardConnectionsForUrlUseCase: GetForwardConnectionsForUrlUseCase;
+  getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
@@ -377,6 +381,18 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
+      getForwardConnectionsForUrlUseCase:
+        new GetForwardConnectionsForUrlUseCase(
+          repositories.connectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+        ),
+      getBackwardConnectionsForUrlUseCase:
+        new GetBackwardConnectionsForUrlUseCase(
+          repositories.connectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+        ),
 
       // Feed use cases
       getGlobalFeedUseCase: new GetGlobalFeedUseCase(
