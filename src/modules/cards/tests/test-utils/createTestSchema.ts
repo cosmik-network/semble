@@ -120,6 +120,21 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       PRIMARY KEY (follower_id, target_id, target_type)
     )`,
 
+    // Connections table (references published_records)
+    sql`CREATE TABLE IF NOT EXISTS connections (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      curator_id TEXT NOT NULL,
+      source_type TEXT NOT NULL,
+      source_value TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      target_value TEXT NOT NULL,
+      connection_type TEXT,
+      note TEXT,
+      published_record_id UUID REFERENCES published_records(id),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
     // Following feed items table (references feed_activities)
     sql`CREATE TABLE IF NOT EXISTS following_feed_items (
       user_id TEXT NOT NULL,
@@ -264,6 +279,23 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+  `);
+
+  // Connections table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_curator_id_idx ON connections(curator_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_source_idx ON connections(source_type, source_value);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_target_idx ON connections(target_type, target_value);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_created_at_idx ON connections(created_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_curator_created_at_idx ON connections(curator_id, created_at DESC);
   `);
 
   // Following feed items indexes
