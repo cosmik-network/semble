@@ -400,3 +400,52 @@ export interface GetCollectionContributorsResponse {
   users: ContributorUser[];
   pagination: Pagination;
 }
+
+// Connection response types
+export interface CreateConnectionResponse {
+  connectionId: string;
+}
+
+export interface UpdateConnectionResponse {
+  connectionId: string;
+}
+
+export interface DeleteConnectionResponse {
+  connectionId: string;
+}
+
+export interface ConnectionForUrl {
+  connection: {
+    id: string;
+    type?: string;
+    note?: string;
+    createdAt: string;
+    updatedAt: string;
+    curator: User;
+  };
+  url: UrlView;
+}
+
+export interface ConnectionSorting {
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface GetForwardConnectionsForUrlResponse {
+  connections: ConnectionForUrl[];
+  pagination: Pagination;
+  sorting: ConnectionSorting;
+}
+
+export interface GetBackwardConnectionsForUrlResponse {
+  connections: ConnectionForUrl[];
+  pagination: Pagination;
+  sorting: ConnectionSorting;
+}
+
+// Search URLs response types
+export interface SearchUrlsResponse {
+  urls: UrlView[];
+  pagination: Pagination;
+  sorting: CardSorting;
+}

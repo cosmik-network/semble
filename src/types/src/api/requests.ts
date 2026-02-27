@@ -296,3 +296,41 @@ export interface GetCollectionFollowersCountParams {
 export interface GetCollectionContributorsParams extends PaginationParams {
   collectionId: string; // Collection UUID
 }
+
+// Connection request types
+export interface CreateConnectionRequest {
+  sourceType: 'URL' | 'CARD';
+  sourceValue: string;
+  targetType: 'URL' | 'CARD';
+  targetValue: string;
+  connectionType?: 'CITATION' | 'REFERENCE' | 'RELATED' | 'INSPIRED_BY';
+  note?: string;
+}
+
+export interface UpdateConnectionRequest {
+  connectionId: string;
+  note?: string;
+  removeNote?: boolean;
+}
+
+export interface DeleteConnectionRequest {
+  connectionId: string;
+}
+
+export interface GetForwardConnectionsForUrlParams
+  extends PaginatedSortedParams {
+  url: string;
+  connectionTypes?: ('CITATION' | 'REFERENCE' | 'RELATED' | 'INSPIRED_BY')[];
+}
+
+export interface GetBackwardConnectionsForUrlParams
+  extends PaginatedSortedParams {
+  url: string;
+  connectionTypes?: ('CITATION' | 'REFERENCE' | 'RELATED' | 'INSPIRED_BY')[];
+}
+
+// Search URLs request types
+export interface SearchUrlsParams extends PaginatedSortedParams {
+  searchQuery: string;
+  urlType?: UrlType;
+}

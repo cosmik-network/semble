@@ -55,6 +55,12 @@ import { GetFollowingCollectionsCountController } from '../../../../modules/user
 import { GetCollectionFollowersController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionContributorsController';
+import { CreateConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/CreateConnectionController';
+import { UpdateConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateConnectionController';
+import { DeleteConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteConnectionController';
+import { GetForwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetForwardConnectionsForUrlController';
+import { GetBackwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetBackwardConnectionsForUrlController';
+import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -104,6 +110,14 @@ export interface Controllers {
   getCollectionFollowersController: GetCollectionFollowersController;
   getCollectionFollowersCountController: GetCollectionFollowersCountController;
   getCollectionContributorsController: GetCollectionContributorsController;
+  // Connection controllers
+  createConnectionController: CreateConnectionController;
+  updateConnectionController: UpdateConnectionController;
+  deleteConnectionController: DeleteConnectionController;
+  getForwardConnectionsForUrlController: GetForwardConnectionsForUrlController;
+  getBackwardConnectionsForUrlController: GetBackwardConnectionsForUrlController;
+  // Search controllers
+  searchUrlsController: SearchUrlsController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
   getGemActivityFeedController: GetGemActivityFeedController;
@@ -271,6 +285,30 @@ export class ControllerFactory {
         new GetCollectionContributorsController(
           useCases.getCollectionContributorsUseCase,
         ),
+
+      // Connection controllers
+      createConnectionController: new CreateConnectionController(
+        useCases.createConnectionUseCase,
+      ),
+      updateConnectionController: new UpdateConnectionController(
+        useCases.updateConnectionUseCase,
+      ),
+      deleteConnectionController: new DeleteConnectionController(
+        useCases.deleteConnectionUseCase,
+      ),
+      getForwardConnectionsForUrlController:
+        new GetForwardConnectionsForUrlController(
+          useCases.getForwardConnectionsForUrlUseCase,
+        ),
+      getBackwardConnectionsForUrlController:
+        new GetBackwardConnectionsForUrlController(
+          useCases.getBackwardConnectionsForUrlUseCase,
+        ),
+
+      // Search controllers
+      searchUrlsController: new SearchUrlsController(
+        useCases.searchUrlsUseCase,
+      ),
 
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(

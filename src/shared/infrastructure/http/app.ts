@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
+import { createConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
 import { createNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
@@ -113,6 +114,7 @@ export const createExpressApp = (
     controllers.getUrlStatusForMyLibraryController,
     controllers.getLibrariesForUrlController,
     controllers.getNoteCardsForUrlController,
+    controllers.searchUrlsController,
     // Collection controllers
     controllers.createCollectionController,
     controllers.updateCollectionController,
@@ -127,6 +129,15 @@ export const createExpressApp = (
     controllers.getCollectionFollowersController,
     controllers.getCollectionFollowersCountController,
     controllers.getCollectionContributorsController,
+  );
+
+  const connectionRouter = createConnectionRoutes(
+    services.authMiddleware,
+    controllers.createConnectionController,
+    controllers.updateConnectionController,
+    controllers.deleteConnectionController,
+    controllers.getForwardConnectionsForUrlController,
+    controllers.getBackwardConnectionsForUrlController,
   );
 
   const feedRouter = createFeedRoutes(
@@ -160,6 +171,7 @@ export const createExpressApp = (
   app.use('/api/users', userRouter);
   app.use('/atproto', atprotoRouter);
   app.use('/api', cardsRouter);
+  app.use('/api/connections', connectionRouter);
   app.use('/api/feeds', feedRouter);
   app.use('/api/search', searchRouter);
   app.use('/api/notifications', notificationRouter);

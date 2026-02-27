@@ -2,6 +2,7 @@ import {
   QueryClient,
   CardClient,
   CollectionClient,
+  ConnectionClient,
   UserClient,
   FeedClient,
   NotificationClient,
@@ -100,6 +101,20 @@ import type {
   GetFollowCountResponse,
   GetCollectionContributorsParams,
   GetCollectionContributorsResponse,
+  // Connection types
+  CreateConnectionRequest,
+  CreateConnectionResponse,
+  UpdateConnectionRequest,
+  UpdateConnectionResponse,
+  DeleteConnectionRequest,
+  DeleteConnectionResponse,
+  GetForwardConnectionsForUrlParams,
+  GetForwardConnectionsForUrlResponse,
+  GetBackwardConnectionsForUrlParams,
+  GetBackwardConnectionsForUrlResponse,
+  // Search types
+  SearchUrlsParams,
+  SearchUrlsResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -107,6 +122,7 @@ export class ApiClient {
   private queryClient: QueryClient;
   private cardClient: CardClient;
   private collectionClient: CollectionClient;
+  private connectionClient: ConnectionClient;
   private userClient: UserClient;
   private feedClient: FeedClient;
   private notificationClient: NotificationClient;
@@ -118,6 +134,7 @@ export class ApiClient {
     this.queryClient = new QueryClient(baseUrl, accessToken);
     this.cardClient = new CardClient(baseUrl, accessToken);
     this.collectionClient = new CollectionClient(baseUrl, accessToken);
+    this.connectionClient = new ConnectionClient(baseUrl, accessToken);
     this.userClient = new UserClient(baseUrl, accessToken);
     this.feedClient = new FeedClient(baseUrl, accessToken);
     this.notificationClient = new NotificationClient(baseUrl, accessToken);
@@ -450,6 +467,42 @@ export class ApiClient {
 
   async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
     return this.notificationClient.markAllNotificationsAsRead();
+  }
+
+  // Connection operations
+  async createConnection(
+    request: CreateConnectionRequest,
+  ): Promise<CreateConnectionResponse> {
+    return this.connectionClient.createConnection(request);
+  }
+
+  async updateConnection(
+    request: UpdateConnectionRequest,
+  ): Promise<UpdateConnectionResponse> {
+    return this.connectionClient.updateConnection(request);
+  }
+
+  async deleteConnection(
+    request: DeleteConnectionRequest,
+  ): Promise<DeleteConnectionResponse> {
+    return this.connectionClient.deleteConnection(request);
+  }
+
+  async getForwardConnectionsForUrl(
+    params: GetForwardConnectionsForUrlParams,
+  ): Promise<GetForwardConnectionsForUrlResponse> {
+    return this.queryClient.getForwardConnectionsForUrl(params);
+  }
+
+  async getBackwardConnectionsForUrl(
+    params: GetBackwardConnectionsForUrlParams,
+  ): Promise<GetBackwardConnectionsForUrlResponse> {
+    return this.queryClient.getBackwardConnectionsForUrl(params);
+  }
+
+  // Search operations
+  async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
+    return this.queryClient.searchUrls(params);
   }
 }
 

@@ -71,6 +71,7 @@ import { GetFollowersCountUseCase } from '../../../../modules/user/application/u
 import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsCountUseCase';
 import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
+import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -141,6 +142,12 @@ export interface UseCases {
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   getForwardConnectionsForUrlUseCase: GetForwardConnectionsForUrlUseCase;
   getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase;
+  // Connection use cases
+  createConnectionUseCase: CreateConnectionUseCase;
+  updateConnectionUseCase: UpdateConnectionUseCase;
+  deleteConnectionUseCase: DeleteConnectionUseCase;
+  // Search use cases
+  searchUrlsUseCase: SearchUrlsUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
@@ -393,6 +400,27 @@ export class UseCaseFactory {
           repositories.cardQueryRepository,
           services.profileService,
         ),
+
+      // Connection use cases
+      createConnectionUseCase: new CreateConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+        services.eventPublisher,
+      ),
+      updateConnectionUseCase: new UpdateConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+      ),
+      deleteConnectionUseCase: new DeleteConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+        services.eventPublisher,
+      ),
+
+      // Search use cases
+      searchUrlsUseCase: new SearchUrlsUseCase(
+        repositories.cardQueryRepository,
+      ),
 
       // Feed use cases
       getGlobalFeedUseCase: new GetGlobalFeedUseCase(
