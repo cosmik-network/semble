@@ -297,6 +297,53 @@ export const schemaDict = {
       },
     },
   },
+  NetworkCosmikConnection: {
+    lexicon: 1,
+    id: 'network.cosmik.connection',
+    description:
+      'A record representing a connection between two entities (URLs or cards).',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          'A connection linking a source to a target, with optional type and note.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['source', 'target'],
+          properties: {
+            source: {
+              type: 'string',
+              description: 'Source entity (URL string or AT URI)',
+            },
+            target: {
+              type: 'string',
+              description: 'Target entity (URL string or AT URI)',
+            },
+            connectionType: {
+              type: 'string',
+              description: 'Optional type of connection',
+            },
+            note: {
+              type: 'string',
+              description: 'Optional note about the connection',
+              maxLength: 1000,
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this connection was created.',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this connection was last updated.',
+            },
+          },
+        },
+      },
+    },
+  },
   NetworkCosmikDefs: {
     lexicon: 1,
     id: 'network.cosmik.defs',
@@ -990,6 +1037,7 @@ export const ids = {
   NetworkCosmikCollection: 'network.cosmik.collection',
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
   NetworkCosmikCollectionLinkRemoval: 'network.cosmik.collectionLinkRemoval',
+  NetworkCosmikConnection: 'network.cosmik.connection',
   NetworkCosmikDefs: 'network.cosmik.defs',
   NetworkCosmikFollow: 'network.cosmik.follow',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',

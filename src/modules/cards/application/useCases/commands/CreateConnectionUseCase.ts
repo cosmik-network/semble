@@ -83,9 +83,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       );
       if (sourceResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid source: ${sourceResult.error.message}`,
-          ),
+          new ValidationError(`Invalid source: ${sourceResult.error.message}`),
         );
       }
       const source = sourceResult.value;
@@ -97,9 +95,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       );
       if (targetResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid target: ${targetResult.error.message}`,
-          ),
+          new ValidationError(`Invalid target: ${targetResult.error.message}`),
         );
       }
       const target = targetResult.value;
@@ -182,9 +178,8 @@ export class CreateConnectionUseCase extends BaseUseCase<
       }
 
       // Publish domain events (ConnectionCreatedEvent)
-      const publishEventsResult = await this.publishEventsForAggregate(
-        connection,
-      );
+      const publishEventsResult =
+        await this.publishEventsForAggregate(connection);
       if (publishEventsResult.isErr()) {
         console.error(
           'Failed to publish domain events:',

@@ -126,9 +126,8 @@ export class DeleteConnectionUseCase extends BaseUseCase<
       }
 
       // Publish domain events (ConnectionRemovedEvent)
-      const publishEventsResult = await this.publishEventsForAggregate(
-        connection,
-      );
+      const publishEventsResult =
+        await this.publishEventsForAggregate(connection);
       if (publishEventsResult.isErr()) {
         console.error(
           'Failed to publish domain events:',

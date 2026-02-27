@@ -37,6 +37,7 @@ export interface EnvironmentConfig {
       marginCollectionItem: string;
       collectionLinkRemoval: string;
       follow: string;
+      connection: string;
     };
     serviceAccount: {
       identifier: string;
@@ -133,6 +134,10 @@ export class EnvironmentConfigService {
             environment === Environment.PROD
               ? ATPROTO_NSID.COSMIK.FOLLOW
               : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.follow`,
+          connection:
+            environment === Environment.PROD
+              ? ATPROTO_NSID.COSMIK.CONNECTION
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.connection`,
           // Margin collections - no environment suffix
           marginBookmark: ATPROTO_NSID.MARGIN.BOOKMARK,
           marginCollection: ATPROTO_NSID.MARGIN.COLLECTION,
