@@ -58,6 +58,7 @@ export default function EditNoteDrawer(props: Props) {
       }}
       withCloseButton={false}
       position="bottom"
+      padding={'sm'}
       size={'xs'}
       overlayProps={UPDATE_OVERLAY_PROPS}
       onClick={(e) => e.stopPropagation()}
