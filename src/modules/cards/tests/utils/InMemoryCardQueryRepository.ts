@@ -11,6 +11,8 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   UrlLibraryInfo,
+  SearchUrlsOptions,
+  UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -686,6 +688,168 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     }
 
     return resultMap;
+  }
+
+  async searchUrls(
+    options: SearchUrlsOptions,
+  ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
+    try {
+      const { searchQuery, page, limit, sortBy, sortOrder, urlType } = options;
+
+      // Get all URL cards
+      const allCards = this.cardRepository.getAllCards();
+      let urlCards = allCards.filter((card) => card.isUrlCard);
+
+      // Filter by urlType if specified
+      if (urlType) {
+        urlCards = urlCards.filter(
+          (card) => card.content.urlContent?.metadata?.type === urlType,
+        );
+      }
+
+      // Tokenize search query into words
+      const searchWords = searchQuery.trim().toLowerCase().split(/\s+/);
+
+      // Filter cards by tokenized substring search
+      const matchingCards = urlCards.filter((card) => {
+        const title =
+          card.content.urlContent?.metadata?.title?.toLowerCase() || '';
+        const description =
+          card.content.urlContent?.metadata?.description?.toLowerCase() || '';
+        const url = card.content.urlContent?.url.value.toLowerCase() || '';
+
+        // All words must match somewhere in title, description, or url
+        return searchWords.every((word) => {
+          return (
+            title.includes(word) ||
+            description.includes(word) ||
+            url.includes(word)
+          );
+        });
+      });
+
+      // Deduplicate by URL - keep most recent card per URL
+      const urlMap = new Map<
+        string,
+        { card: Card; contentData: any; updatedAt: Date }
+      >();
+
+      matchingCards.forEach((card) => {
+        const url = card.content.urlContent?.url.value;
+        if (!url) return;
+
+        const existing = urlMap.get(url);
+        if (
+          !existing ||
+          card.updatedAt.getTime() > existing.updatedAt.getTime()
+        ) {
+          // Build contentData from card
+          const contentData = {
+            url: card.content.urlContent?.url.value,
+            metadata: card.content.urlContent?.metadata
+              ? {
+                  url: card.content.urlContent.metadata.url,
+                  title: card.content.urlContent.metadata.title,
+                  description: card.content.urlContent.metadata.description,
+                  author: card.content.urlContent.metadata.author,
+                  publishedDate: card.content.urlContent.metadata.publishedDate,
+                  siteName: card.content.urlContent.metadata.siteName,
+                  imageUrl: card.content.urlContent.metadata.imageUrl,
+                  type: card.content.urlContent.metadata.type,
+                  retrievedAt: card.content.urlContent.metadata.retrievedAt,
+                  doi: card.content.urlContent.metadata.doi,
+                  isbn: card.content.urlContent.metadata.isbn,
+                }
+              : undefined,
+          };
+
+          urlMap.set(url, {
+            card,
+            contentData,
+            updatedAt: card.updatedAt,
+          });
+        }
+      });
+
+      // Convert to array
+      const uniqueUrls = Array.from(urlMap.entries()).map(([url, data]) => ({
+        url,
+        contentData: data.contentData,
+        updatedAt: data.updatedAt,
+        card: data.card,
+      }));
+
+      // For LIBRARY_COUNT sorting, calculate library counts
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        const itemsWithCounts = uniqueUrls.map((item) => {
+          // Use the existing helper method to get library count
+          const libraryCount = this.getUrlLibraryCount(item.url);
+
+          return {
+            ...item,
+            libraryCount,
+          };
+        });
+
+        // Sort by library count
+        itemsWithCounts.sort((a, b) => {
+          const comparison = a.libraryCount - b.libraryCount;
+          return sortOrder === SortOrder.ASC ? comparison : -comparison;
+        });
+
+        // Paginate
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedItems = itemsWithCounts.slice(startIndex, endIndex);
+
+        return {
+          items: paginatedItems.map((item) => ({
+            url: item.url,
+            contentData: item.contentData,
+            updatedAt: item.updatedAt,
+          })),
+          totalCount: itemsWithCounts.length,
+          hasMore: endIndex < itemsWithCounts.length,
+        };
+      }
+
+      // For other sort fields (CREATED_AT, UPDATED_AT)
+      uniqueUrls.sort((a, b) => {
+        let comparison = 0;
+
+        switch (sortBy) {
+          case CardSortField.CREATED_AT:
+            comparison =
+              a.card.createdAt.getTime() - b.card.createdAt.getTime();
+            break;
+          case CardSortField.UPDATED_AT:
+          default:
+            comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+            break;
+        }
+
+        return sortOrder === SortOrder.ASC ? comparison : -comparison;
+      });
+
+      // Paginate
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedUrls = uniqueUrls.slice(startIndex, endIndex);
+
+      return {
+        items: paginatedUrls.map((item) => ({
+          url: item.url,
+          contentData: item.contentData,
+          updatedAt: item.updatedAt,
+        })),
+        totalCount: uniqueUrls.length,
+        hasMore: endIndex < uniqueUrls.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to search URLs: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   clear(): void {

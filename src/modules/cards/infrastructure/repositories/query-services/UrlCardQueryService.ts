@@ -1,4 +1,14 @@
-import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  asc,
+  count,
+  countDistinct,
+  inArray,
+  and,
+  sql,
+  or,
+} from 'drizzle-orm';
 import { UrlType } from '../../../domain/value-objects/UrlType';
 import { UrlCardView } from '../../../domain/ICardQueryRepository';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
@@ -11,6 +21,8 @@ import {
   CardSortField,
   SortOrder,
   UrlLibraryInfo,
+  SearchUrlsOptions,
+  UrlSearchResultDTO,
 } from '../../../domain/ICardQueryRepository';
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
@@ -1268,6 +1280,192 @@ export class UrlCardQueryService {
       return resultMap;
     } catch (error) {
       console.error('Error in getBatchUrlLibraryInfo:', error);
+      throw error;
+    }
+  }
+
+  async searchUrls(
+    options: SearchUrlsOptions,
+  ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
+    try {
+      const { searchQuery, page, limit, sortBy, sortOrder, urlType } = options;
+      const offset = (page - 1) * limit;
+
+      // Tokenize search query into words
+      const searchWords = searchQuery.trim().split(/\s+/);
+
+      // Build WHERE conditions for tokenized substring search
+      const searchConditions = searchWords.map((word) => {
+        const pattern = `%${word}%`;
+        return or(
+          sql`${cards.contentData}->'metadata'->>'title' ILIKE ${pattern}`,
+          sql`${cards.contentData}->'metadata'->>'description' ILIKE ${pattern}`,
+          sql`${cards.url} ILIKE ${pattern}`,
+        )!;
+      });
+
+      // Base WHERE conditions
+      const whereConditions = [
+        eq(cards.type, CardTypeEnum.URL),
+        ...searchConditions,
+      ];
+
+      // Add urlType filter if provided
+      if (urlType) {
+        whereConditions.push(eq(cards.urlType, urlType));
+      }
+
+      const whereClause = and(...whereConditions);
+
+      // For LIBRARY_COUNT sorting, we need special handling
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        // First, get all matching URL cards
+        const allMatchingCardsQuery = this.db
+          .select({
+            url: cards.url,
+            contentData: cards.contentData,
+            updatedAt: cards.updatedAt,
+          })
+          .from(cards)
+          .where(whereClause)
+          .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
+
+        const allMatchingCards = await allMatchingCardsQuery;
+
+        if (allMatchingCards.length === 0) {
+          return {
+            items: [],
+            totalCount: 0,
+            hasMore: false,
+          };
+        }
+
+        // Deduplicate by URL - keep first (most recent) occurrence
+        const urlMap = new Map<string, { contentData: any; updatedAt: Date }>();
+        allMatchingCards.forEach((card) => {
+          if (card.url && !urlMap.has(card.url)) {
+            urlMap.set(card.url, {
+              contentData: card.contentData,
+              updatedAt: card.updatedAt,
+            });
+          }
+        });
+
+        const uniqueUrls = Array.from(urlMap.keys());
+
+        // Calculate urlLibraryCount for sorting
+        const urlLibraryCountsQuery = this.db
+          .select({
+            url: cards.url,
+            count: countDistinct(libraryMemberships.userId),
+          })
+          .from(cards)
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(
+              eq(cards.type, CardTypeEnum.URL),
+              inArray(cards.url, uniqueUrls),
+            ),
+          )
+          .groupBy(cards.url);
+
+        const urlLibraryCounts = await urlLibraryCountsQuery;
+
+        // Create map of URL to library count
+        const countMap = new Map<string, number>();
+        urlLibraryCounts.forEach((row) => {
+          if (row.url) {
+            countMap.set(row.url, row.count);
+          }
+        });
+
+        // Build items with library counts
+        const itemsWithCounts = uniqueUrls.map((url) => {
+          const cardData = urlMap.get(url)!;
+          return {
+            url,
+            contentData: cardData.contentData,
+            updatedAt: cardData.updatedAt,
+            libraryCount: countMap.get(url) || 0,
+          };
+        });
+
+        // Sort by library count
+        itemsWithCounts.sort((a, b) => {
+          const comparison = a.libraryCount - b.libraryCount;
+          return sortOrder === SortOrder.ASC ? comparison : -comparison;
+        });
+
+        // Apply pagination
+        const paginatedItems = itemsWithCounts.slice(offset, offset + limit);
+
+        // Map to result DTOs
+        const items: UrlSearchResultDTO[] = paginatedItems.map((item) => ({
+          url: item.url,
+          contentData: item.contentData,
+          updatedAt: item.updatedAt,
+        }));
+
+        return {
+          items,
+          totalCount: uniqueUrls.length,
+          hasMore: offset + paginatedItems.length < uniqueUrls.length,
+        };
+      }
+
+      // For other sort fields (CREATED_AT, UPDATED_AT), sort in SQL
+      const sortColumn = this.getSortColumn(sortBy);
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+
+      // Get distinct URLs with most recent card data using a subquery approach
+      // First, get all matching cards ordered by updatedAt
+      const matchingCardsQuery = this.db
+        .select({
+          url: cards.url,
+          contentData: cards.contentData,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .where(whereClause)
+        .orderBy(orderDirection(sortColumn));
+
+      const matchingCards = await matchingCardsQuery;
+
+      // Deduplicate by URL - keep first occurrence (most recent due to order)
+      const urlMap = new Map<string, { contentData: any; updatedAt: Date }>();
+      matchingCards.forEach((card) => {
+        if (card.url && !urlMap.has(card.url)) {
+          urlMap.set(card.url, {
+            contentData: card.contentData,
+            updatedAt: card.updatedAt,
+          });
+        }
+      });
+
+      // Convert to array and paginate
+      const uniqueUrls = Array.from(urlMap.entries());
+      const paginatedUrls = uniqueUrls.slice(offset, offset + limit);
+
+      // Map to result DTOs
+      const items: UrlSearchResultDTO[] = paginatedUrls.map(([url, data]) => ({
+        url,
+        contentData: data.contentData,
+        updatedAt: data.updatedAt,
+      }));
+
+      // Get total count by counting unique URLs
+      const totalCount = uniqueUrls.length;
+
+      return {
+        items,
+        totalCount,
+        hasMore: offset + items.length < totalCount,
+      };
+    } catch (error) {
+      console.error('Error in searchUrls:', error);
       throw error;
     }
   }

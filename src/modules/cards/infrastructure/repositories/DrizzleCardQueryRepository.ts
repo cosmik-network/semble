@@ -10,6 +10,8 @@ import {
   NoteCardForUrlRawDTO,
   UrlCardView,
   UrlLibraryInfo,
+  SearchUrlsOptions,
+  UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
@@ -100,5 +102,11 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     callingUserId?: string,
   ): Promise<Map<string, UrlLibraryInfo>> {
     return this.urlCardQueryService.getBatchUrlLibraryInfo(urls, callingUserId);
+  }
+
+  async searchUrls(
+    options: SearchUrlsOptions,
+  ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
+    return this.urlCardQueryService.searchUrls(options);
   }
 }
