@@ -6,6 +6,7 @@ import {
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
+import { ConnectionId } from '../../domain/value-objects/ConnectionId';
 import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -121,6 +122,14 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
   > {
     // For testing purposes, return null (follow not found)
     // In a real implementation, this would search through follow records
+    return ok(null);
+  }
+
+  async resolveConnectionId(
+    atUri: string,
+  ): Promise<Result<ConnectionId | null>> {
+    // For testing purposes, return null (connection not found)
+    // TODO: When InMemoryConnectionRepository is created, search through connections
     return ok(null);
   }
 }

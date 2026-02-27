@@ -13,6 +13,7 @@ import { ProcessMarginCollectionFirehoseEventUseCase } from './ProcessMarginColl
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from './ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from './ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from './ProcessFollowFirehoseEventUseCase';
+import { ProcessConnectionFirehoseEventUseCase } from './ProcessConnectionFirehoseEventUseCase';
 import type { RepoRecord } from '@atproto/lexicon';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
@@ -22,6 +23,7 @@ import { Record as MarginCollectionRecord } from '../../infrastructure/lexicon/t
 import { Record as MarginCollectionItemRecord } from '../../infrastructure/lexicon/types/at/margin/collectionItem';
 import { Record as CollectionLinkRemovalRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLinkRemoval';
 import { Record as FollowRecord } from '../../infrastructure/lexicon/types/network/cosmik/follow';
+import { Record as ConnectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/connection';
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
@@ -50,6 +52,7 @@ export class ProcessFirehoseEventUseCase
     private processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
     private processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase,
     private processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase,
+    private processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase,
   ) {}
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
@@ -231,6 +234,23 @@ export class ProcessFirehoseEventUseCase
           return this.processFollowFirehoseEventUseCase.execute({
             ...request,
             record: request.record as FollowRecord | undefined,
+          });
+        case collections.connection:
+          // Validate ConnectionRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const connectionRecord = request.record as ConnectionRecord;
+            if (!connectionRecord.source || !connectionRecord.target) {
+              return err(
+                new ValidationError('Invalid connection record structure'),
+              );
+            }
+          }
+          return this.processConnectionFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as ConnectionRecord | undefined,
           });
         default:
           return err(

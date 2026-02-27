@@ -169,6 +169,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       collections.collection,
       collections.collectionLink,
       collections.follow,
+      collections.connection,
       FIREHOSE_COLLECTIONS.APP_BSKY_POST,
     ];
   }

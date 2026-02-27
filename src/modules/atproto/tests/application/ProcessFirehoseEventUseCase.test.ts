@@ -1,5 +1,6 @@
 import { ProcessFirehoseEventUseCase } from '../../application/useCases/ProcessFirehoseEventUseCase';
 import { InMemoryFirehoseEventDuplicationService } from '../utils/InMemoryFirehoseEventDuplicationService';
+import { ok } from '../../../../shared/core/Result';
 import { ProcessCardFirehoseEventUseCase } from '../../application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
@@ -8,6 +9,7 @@ import { ProcessMarginCollectionFirehoseEventUseCase } from '../../application/u
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from '../../application/useCases/ProcessFollowFirehoseEventUseCase';
+import { ProcessConnectionFirehoseEventUseCase } from '../../application/useCases/ProcessConnectionFirehoseEventUseCase';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
@@ -16,11 +18,15 @@ import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCase
 import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
+import { CreateConnectionUseCase } from '../../../cards/application/useCases/commands/CreateConnectionUseCase';
+import { UpdateConnectionUseCase } from '../../../cards/application/useCases/commands/UpdateConnectionUseCase';
+import { DeleteConnectionUseCase } from '../../../cards/application/useCases/commands/DeleteConnectionUseCase';
 import { InMemoryCardRepository } from '../../../cards/tests/utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../../../cards/tests/utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
 import { FakeCardPublisher } from '../../../cards/tests/utils/FakeCardPublisher';
 import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
+import { FakeConnectionPublisher } from '../../../cards/tests/utils/FakeConnectionPublisher';
 import { FakeMetadataService } from '../../../cards/tests/utils/FakeMetadataService';
 import { FakeEventPublisher } from '../../../cards/tests/utils/FakeEventPublisher';
 import { CardLibraryService } from '../../../cards/domain/services/CardLibraryService';
@@ -47,6 +53,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
   let processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
   let processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
+  let processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase;
 
   // Dependencies for real use cases
   let atUriResolutionService: InMemoryAtUriResolutionService;
@@ -71,6 +78,10 @@ describe('ProcessFirehoseEventUseCase', () => {
   let userRepository: InMemoryUserRepository;
   let followPublisher: FakeFollowPublisher;
   let profileService: FakeProfileService;
+  let createConnectionUseCase: CreateConnectionUseCase;
+  let updateConnectionUseCase: UpdateConnectionUseCase;
+  let deleteConnectionUseCase: DeleteConnectionUseCase;
+  let connectionPublisher: FakeConnectionPublisher;
 
   beforeEach(() => {
     duplicationService = new InMemoryFirehoseEventDuplicationService();
@@ -224,6 +235,30 @@ describe('ProcessFirehoseEventUseCase', () => {
       collectionRepository,
     );
 
+    // Set up connection-related dependencies
+    connectionPublisher = new FakeConnectionPublisher();
+
+    // Create stub connection use cases (not fully implemented yet)
+    createConnectionUseCase = {
+      execute: async () => ok({ connectionId: 'test-connection-id' }),
+    } as any;
+
+    updateConnectionUseCase = {
+      execute: async () => ok({ connectionId: 'test-connection-id' }),
+    } as any;
+
+    deleteConnectionUseCase = {
+      execute: async () => ok({ connectionId: 'test-connection-id' }),
+    } as any;
+
+    processConnectionFirehoseEventUseCase =
+      new ProcessConnectionFirehoseEventUseCase(
+        atUriResolutionService,
+        createConnectionUseCase,
+        updateConnectionUseCase,
+        deleteConnectionUseCase,
+      );
+
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
       configService,
@@ -235,6 +270,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       processMarginCollectionItemFirehoseEventUseCase,
       processCollectionLinkRemovalFirehoseEventUseCase,
       processFollowFirehoseEventUseCase,
+      processConnectionFirehoseEventUseCase,
     );
   });
 

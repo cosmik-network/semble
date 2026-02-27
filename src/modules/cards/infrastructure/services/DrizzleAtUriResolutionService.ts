@@ -7,11 +7,13 @@ import {
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
+import { ConnectionId } from '../../domain/value-objects/ConnectionId';
 import {
   collections,
   collectionCards,
 } from '../repositories/schema/collection.sql';
 import { cards } from '../repositories/schema/card.sql';
+import { connections } from '../repositories/schema/connection.sql';
 import { publishedRecords } from '../repositories/schema/publishedRecord.sql';
 import { follows } from '../../../user/infrastructure/repositories/schema/follows.sql';
 import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
@@ -244,6 +246,37 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
         targetId: followData.targetId,
         targetType: targetTypeResult.value,
       });
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async resolveConnectionId(
+    atUri: string,
+  ): Promise<Result<ConnectionId | null>> {
+    try {
+      const connectionResult = await this.db
+        .select({ id: connections.id })
+        .from(connections)
+        .innerJoin(
+          publishedRecords,
+          eq(connections.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(publishedRecords.uri, atUri))
+        .limit(1);
+
+      if (connectionResult.length === 0) {
+        return ok(null);
+      }
+
+      const connectionIdResult = ConnectionId.createFromString(
+        connectionResult[0]!.id,
+      );
+      if (connectionIdResult.isErr()) {
+        return err(connectionIdResult.error);
+      }
+
+      return ok(connectionIdResult.value);
     } catch (error) {
       return err(error as Error);
     }

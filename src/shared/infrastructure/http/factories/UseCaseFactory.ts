@@ -48,6 +48,10 @@ import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessFollowFirehoseEventUseCase';
+import { ProcessConnectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessConnectionFirehoseEventUseCase';
+import { CreateConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateConnectionUseCase';
+import { UpdateConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateConnectionUseCase';
+import { DeleteConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteConnectionUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -86,6 +90,7 @@ export interface WorkerUseCases {
   processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
   processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
   processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
+  processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -500,6 +505,24 @@ export class UseCaseFactory {
       services.collectionPublisher,
     );
 
+    // Connection use cases
+    const createConnectionUseCase = new CreateConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+      services.eventPublisher,
+    );
+
+    const updateConnectionUseCase = new UpdateConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+    );
+
+    const deleteConnectionUseCase = new DeleteConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+      services.eventPublisher,
+    );
+
     // Follow use cases
     const followTargetUseCase = new FollowTargetUseCase(
       repositories.followsRepository,
@@ -581,6 +604,14 @@ export class UseCaseFactory {
         repositories.collectionRepository,
       );
 
+    const processConnectionFirehoseEventUseCase =
+      new ProcessConnectionFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        createConnectionUseCase,
+        updateConnectionUseCase,
+        deleteConnectionUseCase,
+      );
+
     // ========================================
     // LEVEL 3: Sync use cases (depend on Level 2)
     // ========================================
@@ -618,6 +649,7 @@ export class UseCaseFactory {
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
       processFollowFirehoseEventUseCase,
+      processConnectionFirehoseEventUseCase,
       // Level 3
       syncAccountDataUseCase,
     };

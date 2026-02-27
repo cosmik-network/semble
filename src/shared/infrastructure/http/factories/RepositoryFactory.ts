@@ -7,6 +7,7 @@ import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/
 import { DrizzleCardQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardQueryRepository';
 import { DrizzleCollectionRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCollectionRepository';
 import { DrizzleCollectionQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCollectionQueryRepository';
+import { DrizzleConnectionRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleConnectionRepository';
 import { DrizzleAppPasswordSessionRepository } from 'src/modules/atproto/infrastructure/repositories/DrizzleAppPasswordSessionRepository';
 import { InMemoryCardRepository } from '../../../../modules/cards/tests/utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryCardQueryRepository';
@@ -19,6 +20,7 @@ import { ICardRepository } from 'src/modules/cards/domain/ICardRepository';
 import { ICardQueryRepository } from 'src/modules/cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { ICollectionQueryRepository } from 'src/modules/cards/domain/ICollectionQueryRepository';
+import { IConnectionRepository } from 'src/modules/cards/domain/IConnectionRepository';
 import { IUserRepository } from 'src/modules/user/domain/repositories/IUserRepository';
 import { ITokenRepository } from 'src/modules/user/domain/repositories/ITokenRepository';
 import { IAppPasswordSessionRepository } from 'src/modules/atproto/infrastructure/repositories/IAppPasswordSessionRepository';
@@ -53,6 +55,7 @@ export interface Repositories {
   cardQueryRepository: ICardQueryRepository;
   collectionRepository: ICollectionRepository;
   collectionQueryRepository: ICollectionQueryRepository;
+  connectionRepository: IConnectionRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
   followsRepository: IFollowsRepository;
@@ -104,6 +107,8 @@ export class RepositoryFactory {
         cardQueryRepository,
         collectionRepository,
         collectionQueryRepository,
+        // TODO: Create InMemoryConnectionRepository
+        connectionRepository: null as any,
         appPasswordSessionRepository,
         feedRepository,
         followsRepository,
@@ -129,6 +134,7 @@ export class RepositoryFactory {
       cardQueryRepository: new DrizzleCardQueryRepository(db),
       collectionRepository: new DrizzleCollectionRepository(db),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
+      connectionRepository: new DrizzleConnectionRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
       followsRepository: new DrizzleFollowsRepository(db),
