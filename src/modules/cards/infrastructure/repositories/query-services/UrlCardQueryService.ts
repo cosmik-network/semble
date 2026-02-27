@@ -10,6 +10,7 @@ import {
   LibraryForUrlDTO,
   CardSortField,
   SortOrder,
+  UrlLibraryInfo,
 } from '../../../domain/ICardQueryRepository';
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
@@ -1143,6 +1144,130 @@ export class UrlCardQueryService {
       return resultMap;
     } catch (error) {
       console.error('Error in getBatchUrlCardViews:', error);
+      throw error;
+    }
+  }
+
+  async getBatchUrlLibraryInfo(
+    urls: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlLibraryInfo>> {
+    try {
+      // Return empty map if no URLs provided
+      if (urls.length === 0) {
+        return new Map();
+      }
+
+      // 1. Get URL library counts (distinct users per URL)
+      const urlLibraryCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const urlLibraryCountsResult = await urlLibraryCountsQuery;
+
+      // Build map of URL to library count
+      const urlLibraryCountMap = new Map<string, number>();
+      urlLibraryCountsResult.forEach((row) => {
+        if (row.url) {
+          urlLibraryCountMap.set(row.url, Number(row.count));
+        }
+      });
+
+      // 2. Get URLs that calling user has (if callingUserId provided)
+      let urlInLibraryMap: Map<string, boolean> | undefined;
+      if (callingUserId) {
+        urlInLibraryMap = new Map();
+
+        const userUrlsQuery = this.db
+          .select({
+            url: cards.url,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.type, CardTypeEnum.URL),
+              eq(cards.authorId, callingUserId),
+              inArray(cards.url, urls),
+            ),
+          );
+
+        const userUrlsResult = await userUrlsQuery;
+
+        userUrlsResult.forEach((row) => {
+          if (row.url) {
+            urlInLibraryMap!.set(row.url, true);
+          }
+        });
+      }
+
+      // 3. Get sample card metadata for each URL (one card per URL)
+      // We'll get the most recently updated card for each URL
+      const sampleCardsQuery = this.db
+        .select({
+          url: cards.url,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .orderBy(desc(cards.updatedAt));
+
+      const sampleCardsResult = await sampleCardsQuery;
+
+      // Build map of URL to sample card (keep first occurrence per URL)
+      const sampleCardMap = new Map<string, any>();
+      sampleCardsResult.forEach((row) => {
+        if (row.url && !sampleCardMap.has(row.url)) {
+          sampleCardMap.set(row.url, row.contentData);
+        }
+      });
+
+      // 4. Build result map
+      const resultMap = new Map<string, UrlLibraryInfo>();
+
+      urls.forEach((url) => {
+        const urlLibraryCount = urlLibraryCountMap.get(url) || 0;
+        const urlInLibrary = urlInLibraryMap?.get(url);
+        const contentData = sampleCardMap.get(url);
+
+        // Build metadata from contentData or create minimal metadata
+        const metadata = contentData
+          ? {
+              url: contentData.url || url,
+              title: contentData.title,
+              description: contentData.description,
+              author: contentData.author,
+              publishedDate: contentData.publishedDate
+                ? new Date(contentData.publishedDate)
+                : undefined,
+              siteName: contentData.siteName,
+              imageUrl: contentData.imageUrl,
+              type: contentData.type,
+              retrievedAt: contentData.retrievedAt
+                ? new Date(contentData.retrievedAt)
+                : undefined,
+              doi: contentData.doi,
+              isbn: contentData.isbn,
+            }
+          : {
+              url,
+            };
+
+        resultMap.set(url, {
+          urlLibraryCount,
+          urlInLibrary,
+          metadata,
+        });
+      });
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchUrlLibraryInfo:', error);
       throw error;
     }
   }

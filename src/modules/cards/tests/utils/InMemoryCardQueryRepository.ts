@@ -10,6 +10,7 @@ import {
   SortOrder,
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
+  UrlLibraryInfo,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -633,6 +634,55 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       if (cardView) {
         resultMap.set(cardId, cardView);
       }
+    }
+
+    return resultMap;
+  }
+
+  async getBatchUrlLibraryInfo(
+    urls: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlLibraryInfo>> {
+    const resultMap = new Map<string, UrlLibraryInfo>();
+
+    for (const url of urls) {
+      // Get URL library count using existing helper
+      const urlLibraryCount = this.getUrlLibraryCount(url);
+
+      // Check if URL is in calling user's library
+      const urlInLibrary = callingUserId
+        ? this.isUrlInUserLibrary(url, callingUserId)
+        : undefined;
+
+      // Get metadata from any card with this URL
+      const allCards = this.cardRepository.getAllCards();
+      const urlCard = allCards.find(
+        (card) => card.isUrlCard && card.url?.value === url,
+      );
+
+      const metadata = urlCard?.content.urlContent
+        ? {
+            url: urlCard.content.urlContent.url.value,
+            title: urlCard.content.urlContent.metadata?.title,
+            description: urlCard.content.urlContent.metadata?.description,
+            author: urlCard.content.urlContent.metadata?.author,
+            publishedDate: urlCard.content.urlContent.metadata?.publishedDate,
+            siteName: urlCard.content.urlContent.metadata?.siteName,
+            imageUrl: urlCard.content.urlContent.metadata?.imageUrl,
+            type: urlCard.content.urlContent.metadata?.type,
+            retrievedAt: urlCard.content.urlContent.metadata?.retrievedAt,
+            doi: urlCard.content.urlContent.metadata?.doi,
+            isbn: urlCard.content.urlContent.metadata?.isbn,
+          }
+        : {
+            url,
+          };
+
+      resultMap.set(url, {
+        urlLibraryCount,
+        urlInLibrary,
+        metadata,
+      });
     }
 
     return resultMap;

@@ -675,6 +675,7 @@ describe('GetUrlCardsUseCase', () => {
         getLibrariesForUrl: jest.fn(),
         getNoteCardsForUrl: jest.fn(),
         getBatchUrlCardViews: jest.fn(),
+        getBatchUrlLibraryInfo: jest.fn(),
       };
 
       const errorUseCase = new GetUrlCardsUseCase(

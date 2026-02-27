@@ -5,11 +5,7 @@ import {
   ConnectionSortField,
   SortOrder,
 } from '../../../domain/IConnectionQueryRepository';
-import {
-  ICardQueryRepository,
-  CardSortField,
-  SortOrder as CardSortOrder,
-} from '../../../domain/ICardQueryRepository';
+import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { UserProfileDTO, UrlMetadata, PaginationDTO } from '@semble/types';
@@ -133,7 +129,13 @@ export class GetBackwardConnectionsForUrlUseCase
 
       const profileMap = profileMapResult.value;
 
-      // Fetch URL metadata and library info for all unique URLs
+      // Fetch URL metadata and library info for all unique URLs in a single batch query
+      const urlLibraryInfoMap = await this.cardQueryRepo.getBatchUrlLibraryInfo(
+        uniqueUrls,
+        query.callingUserId,
+      );
+
+      // Convert to the format expected by the rest of the code
       const urlDataMap = new Map<
         string,
         {
@@ -143,53 +145,31 @@ export class GetBackwardConnectionsForUrlUseCase
         }
       >();
 
-      await Promise.all(
-        uniqueUrls.map(async (url) => {
-          // Get library info for this URL
-          const librariesResult = await this.cardQueryRepo.getLibrariesForUrl(
-            url,
-            {
-              page: 1,
-              limit: 1000, // Get all to count
-              sortBy: CardSortField.CREATED_AT,
-              sortOrder: CardSortOrder.DESC,
-            },
-          );
-
-          const urlLibraryCount = librariesResult.totalCount;
-          const urlInLibrary = query.callingUserId
-            ? librariesResult.items.some(
-                (lib) => lib.userId === query.callingUserId,
-              )
-            : undefined;
-
-          // Get URL metadata from a card if it exists
-          let metadata: UrlMetadata = { url };
-
-          if (librariesResult.items.length > 0) {
-            const cardMetadata = librariesResult.items[0]!.card.cardContent;
-            metadata = {
-              url: cardMetadata.url,
-              title: cardMetadata.title,
-              description: cardMetadata.description,
-              author: cardMetadata.author,
-              publishedDate: cardMetadata.publishedDate?.toISOString(),
-              siteName: cardMetadata.siteName,
-              imageUrl: cardMetadata.imageUrl,
-              type: cardMetadata.type,
-              retrievedAt: cardMetadata.retrievedAt?.toISOString(),
-              doi: cardMetadata.doi,
-              isbn: cardMetadata.isbn,
-            };
-          }
+      uniqueUrls.forEach((url) => {
+        const urlInfo = urlLibraryInfoMap.get(url);
+        if (urlInfo) {
+          // Convert dates to ISO strings for metadata
+          const metadata: UrlMetadata = {
+            url: urlInfo.metadata.url,
+            title: urlInfo.metadata.title,
+            description: urlInfo.metadata.description,
+            author: urlInfo.metadata.author,
+            publishedDate: urlInfo.metadata.publishedDate?.toISOString(),
+            siteName: urlInfo.metadata.siteName,
+            imageUrl: urlInfo.metadata.imageUrl,
+            type: urlInfo.metadata.type,
+            retrievedAt: urlInfo.metadata.retrievedAt?.toISOString(),
+            doi: urlInfo.metadata.doi,
+            isbn: urlInfo.metadata.isbn,
+          };
 
           urlDataMap.set(url, {
             metadata,
-            urlLibraryCount,
-            urlInLibrary,
+            urlLibraryCount: urlInfo.urlLibraryCount,
+            urlInLibrary: urlInfo.urlInLibrary,
           });
-        }),
-      );
+        }
+      });
 
       // Map items with enriched data
       const enrichedConnections: ConnectionForUrlView[] = result.items.map(

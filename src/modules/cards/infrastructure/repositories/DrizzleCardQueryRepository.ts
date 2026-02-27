@@ -9,6 +9,7 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   UrlCardView,
+  UrlLibraryInfo,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
@@ -92,5 +93,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
       cardIds,
       callingUserId,
     );
+  }
+
+  async getBatchUrlLibraryInfo(
+    urls: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlLibraryInfo>> {
+    return this.urlCardQueryService.getBatchUrlLibraryInfo(urls, callingUserId);
   }
 }
