@@ -9,7 +9,6 @@ import {
   Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
-import { Dispatch, SetStateAction, useState } from 'react';
 import { getDomain } from '@/lib/utils/link';
 
 interface Props {
