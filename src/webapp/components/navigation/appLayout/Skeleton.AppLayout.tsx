@@ -1,12 +1,8 @@
 'use client';
 
 import { AppShell } from '@mantine/core';
-import Navbar from '@/components/navigation/navbar/Navbar';
-import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
-import BottomBar from '../bottomBar/BottomBar';
 import { useMediaQuery } from '@mantine/hooks';
-import { Suspense } from 'react';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
 
@@ -14,7 +10,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function AppLayout(props: Props) {
+export default function AppLayoutSkeleton(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
   const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
 
@@ -35,21 +31,9 @@ export default function AppLayout(props: Props) {
         height: isMobile ? 85 : 0,
       }}
     >
-      <Suspense fallback={<NavbarSkeleton />}>
-        <Navbar />
-      </Suspense>
-
-      <AppShell.Main>
-        {props.children}
-
-        <Suspense>
-          <ComposerDrawer />
-        </Suspense>
-      </AppShell.Main>
-
-      <Suspense fallback={<BottomBarSkeleton />}>
-        <BottomBar />
-      </Suspense>
+      <NavbarSkeleton />
+      <AppShell.Main>{props.children}</AppShell.Main>
+      <BottomBarSkeleton />
     </AppShell>
   );
 }
