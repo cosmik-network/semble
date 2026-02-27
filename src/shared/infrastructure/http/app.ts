@@ -136,6 +136,7 @@ export const createExpressApp = (
     controllers.createConnectionController,
     controllers.updateConnectionController,
     controllers.deleteConnectionController,
+    controllers.getConnectionsController,
     controllers.getForwardConnectionsForUrlController,
     controllers.getBackwardConnectionsForUrlController,
   );

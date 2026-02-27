@@ -58,6 +58,7 @@ import { GetCollectionContributorsController } from '../../../../modules/cards/i
 import { CreateConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/CreateConnectionController';
 import { UpdateConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateConnectionController';
 import { DeleteConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteConnectionController';
+import { GetConnectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsController';
 import { GetForwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetForwardConnectionsForUrlController';
 import { GetBackwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetBackwardConnectionsForUrlController';
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
@@ -111,6 +112,7 @@ export interface Controllers {
   getCollectionFollowersCountController: GetCollectionFollowersCountController;
   getCollectionContributorsController: GetCollectionContributorsController;
   // Connection controllers
+  getConnectionsController: GetConnectionsController;
   createConnectionController: CreateConnectionController;
   updateConnectionController: UpdateConnectionController;
   deleteConnectionController: DeleteConnectionController;
@@ -287,6 +289,9 @@ export class ControllerFactory {
         ),
 
       // Connection controllers
+      getConnectionsController: new GetConnectionsController(
+        useCases.getConnectionsUseCase,
+      ),
       createConnectionController: new CreateConnectionController(
         useCases.createConnectionUseCase,
       ),

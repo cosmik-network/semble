@@ -449,3 +449,22 @@ export interface SearchUrlsResponse {
   pagination: Pagination;
   sorting: CardSorting;
 }
+
+// Get connections response types
+export interface ConnectionWithSourceAndTarget {
+  connection: {
+    id: string;
+    type?: string;
+    note?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  source: UrlView;
+  target: UrlView;
+}
+
+export interface GetConnectionsResponse {
+  connections: ConnectionWithSourceAndTarget[];
+  pagination: Pagination;
+  sorting: ConnectionSorting;
+}

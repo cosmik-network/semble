@@ -36,6 +36,7 @@ import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/applicati
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { GetForwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetForwardConnectionsForUrlUseCase';
 import { GetBackwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetBackwardConnectionsForUrlUseCase';
+import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
@@ -143,6 +144,7 @@ export interface UseCases {
   getForwardConnectionsForUrlUseCase: GetForwardConnectionsForUrlUseCase;
   getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase;
   // Connection use cases
+  getConnectionsUseCase: GetConnectionsUseCase;
   createConnectionUseCase: CreateConnectionUseCase;
   updateConnectionUseCase: UpdateConnectionUseCase;
   deleteConnectionUseCase: DeleteConnectionUseCase;
@@ -402,6 +404,11 @@ export class UseCaseFactory {
         ),
 
       // Connection use cases
+      getConnectionsUseCase: new GetConnectionsUseCase(
+        repositories.connectionQueryRepository,
+        repositories.cardQueryRepository,
+        services.identityResolutionService,
+      ),
       createConnectionUseCase: new CreateConnectionUseCase(
         repositories.connectionRepository,
         services.connectionPublisher,

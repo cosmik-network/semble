@@ -48,6 +48,8 @@ import {
   GetFollowCountResponse,
   GetCollectionContributorsParams,
   GetCollectionContributorsResponse,
+  GetConnectionsParams,
+  GetConnectionsResponse,
   GetForwardConnectionsForUrlParams,
   GetForwardConnectionsForUrlResponse,
   GetBackwardConnectionsForUrlParams,
@@ -511,6 +513,26 @@ export class QueryClient extends BaseClient {
       'GET',
       `/api/connections/backward?${searchParams}`,
     );
+  }
+
+  async getConnections(
+    params: GetConnectionsParams,
+  ): Promise<GetConnectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.connectionTypes) {
+      searchParams.set('connectionTypes', params.connectionTypes.join(','));
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/connections/user/${params.identifier}?${queryString}`
+      : `/api/connections/user/${params.identifier}`;
+
+    return this.request<GetConnectionsResponse>('GET', endpoint);
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {

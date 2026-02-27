@@ -334,3 +334,9 @@ export interface SearchUrlsParams extends PaginatedSortedParams {
   searchQuery: string;
   urlType?: UrlType;
 }
+
+// Get connections request types
+export interface GetConnectionsParams extends PaginatedSortedParams {
+  identifier: string; // Can be DID or handle
+  connectionTypes?: ('CITATION' | 'REFERENCE' | 'RELATED' | 'INSPIRED_BY')[];
+}

@@ -108,6 +108,8 @@ import type {
   UpdateConnectionResponse,
   DeleteConnectionRequest,
   DeleteConnectionResponse,
+  GetConnectionsParams,
+  GetConnectionsResponse,
   GetForwardConnectionsForUrlParams,
   GetForwardConnectionsForUrlResponse,
   GetBackwardConnectionsForUrlParams,
@@ -470,6 +472,12 @@ export class ApiClient {
   }
 
   // Connection operations
+  async getConnections(
+    params: GetConnectionsParams,
+  ): Promise<GetConnectionsResponse> {
+    return this.queryClient.getConnections(params);
+  }
+
   async createConnection(
     request: CreateConnectionRequest,
   ): Promise<CreateConnectionResponse> {
