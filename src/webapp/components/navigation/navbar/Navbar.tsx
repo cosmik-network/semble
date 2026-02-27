@@ -98,7 +98,7 @@ export default function Navbar() {
             setOpenAddDrawer(true);
           }}
         >
-          Create
+          Add
         </Button>
       </AppShellSection>
 
