@@ -193,7 +193,7 @@ export default function Composer(props: Props) {
         <Drawer.Header>
           <Stack gap="md" w="100%">
             <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
-              Create New
+              New
             </Drawer.Title>
             <SegmentedControl
               value={mode}
