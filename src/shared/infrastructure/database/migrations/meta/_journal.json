@@ -127,6 +127,13 @@
       "when": 1770860659903,
       "tag": "0017_heavy_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1772242800899,
+      "tag": "0018_classy_changeling",
+      "breakpoints": true
     }
   ]
 }
