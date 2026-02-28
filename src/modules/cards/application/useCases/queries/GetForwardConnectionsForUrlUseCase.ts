@@ -11,6 +11,8 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { UserProfileDTO, UrlMetadata, PaginationDTO } from '@semble/types';
 import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
+import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { UrlMetadata as UrlMetadataVO } from '../../../domain/value-objects/UrlMetadata';
 
 export interface GetForwardConnectionsForUrlQuery {
   url: string;
@@ -66,6 +68,7 @@ export class GetForwardConnectionsForUrlUseCase
     private connectionQueryRepo: IConnectionQueryRepository,
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
+    private metadataService: IMetadataService,
   ) {}
 
   async execute(
@@ -128,7 +131,37 @@ export class GetForwardConnectionsForUrlUseCase
 
       const profileMap = profileMapResult.value;
 
-      // Fetch URL metadata and library info for all unique URLs in a single batch query
+      // Fetch metadata from external service in parallel
+      const metadataResults = await Promise.allSettled(
+        uniqueUrls.map(async (urlString) => {
+          const urlResult = URL.create(urlString);
+          if (urlResult.isErr()) {
+            return { url: urlString, metadata: null };
+          }
+          const metadataResult = await this.metadataService.fetchMetadata(
+            urlResult.value,
+          );
+          if (metadataResult.isOk()) {
+            return { url: urlString, metadata: metadataResult.value };
+          }
+          // Fallback to minimal metadata if fetch fails
+          const fallbackResult = UrlMetadataVO.create({ url: urlString });
+          return {
+            url: urlString,
+            metadata: fallbackResult.isOk() ? fallbackResult.value : null,
+          };
+        }),
+      );
+
+      // Build metadata map from external fetch results
+      const externalMetadataMap = new Map<string, UrlMetadataVO | null>();
+      metadataResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          externalMetadataMap.set(result.value.url, result.value.metadata);
+        }
+      });
+
+      // Fetch URL library info for counts and in-library status
       const urlLibraryInfoMap = await this.cardQueryRepo.getBatchUrlLibraryInfo(
         uniqueUrls,
         query.callingUserId,
@@ -146,20 +179,20 @@ export class GetForwardConnectionsForUrlUseCase
 
       uniqueUrls.forEach((url) => {
         const urlInfo = urlLibraryInfoMap.get(url);
-        if (urlInfo) {
-          // Convert dates to ISO strings for metadata
+        const externalMetadata = externalMetadataMap.get(url);
+
+        if (urlInfo && externalMetadata) {
+          // Convert UrlMetadataVO to UrlMetadata DTO with dates as ISO strings
           const metadata: UrlMetadata = {
-            url: urlInfo.metadata.url,
-            title: urlInfo.metadata.title,
-            description: urlInfo.metadata.description,
-            author: urlInfo.metadata.author,
-            publishedDate: urlInfo.metadata.publishedDate?.toISOString(),
-            siteName: urlInfo.metadata.siteName,
-            imageUrl: urlInfo.metadata.imageUrl,
-            type: urlInfo.metadata.type,
-            retrievedAt: urlInfo.metadata.retrievedAt?.toISOString(),
-            doi: urlInfo.metadata.doi,
-            isbn: urlInfo.metadata.isbn,
+            url: externalMetadata.url,
+            title: externalMetadata.title,
+            description: externalMetadata.description,
+            author: externalMetadata.author,
+            siteName: externalMetadata.siteName,
+            imageUrl: externalMetadata.imageUrl,
+            type: externalMetadata.type,
+            doi: externalMetadata.doi,
+            isbn: externalMetadata.isbn,
           };
 
           urlDataMap.set(url, {

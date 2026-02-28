@@ -5,6 +5,7 @@ import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
+import { FakeMetadataService } from '../utils/FakeMetadataService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Connection } from '../../domain/Connection';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
@@ -27,6 +28,7 @@ describe('GetConnectionsUseCase', () => {
   let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let identityResolver: FakeIdentityResolutionService;
+  let metadataService: FakeMetadataService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -43,11 +45,13 @@ describe('GetConnectionsUseCase', () => {
       collectionRepository,
     );
     identityResolver = new FakeIdentityResolutionService();
+    metadataService = new FakeMetadataService();
 
     useCase = new GetConnectionsUseCase(
       connectionQueryRepository,
       cardQueryRepository,
       identityResolver,
+      metadataService,
     );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();

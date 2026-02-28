@@ -395,12 +395,14 @@ export class UseCaseFactory {
           repositories.connectionQueryRepository,
           repositories.cardQueryRepository,
           services.profileService,
+          services.metadataService,
         ),
       getBackwardConnectionsForUrlUseCase:
         new GetBackwardConnectionsForUrlUseCase(
           repositories.connectionQueryRepository,
           repositories.cardQueryRepository,
           services.profileService,
+          services.metadataService,
         ),
 
       // Connection use cases
@@ -408,6 +410,7 @@ export class UseCaseFactory {
         repositories.connectionQueryRepository,
         repositories.cardQueryRepository,
         services.identityResolutionService,
+        services.metadataService,
       ),
       createConnectionUseCase: new CreateConnectionUseCase(
         repositories.connectionRepository,
