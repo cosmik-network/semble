@@ -115,6 +115,14 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     return ok(undefined);
   }
 
+  public updateType(
+    type: ConnectionType,
+  ): Result<void, ConnectionValidationError> {
+    this.props.type = type;
+    this.props.updatedAt = new Date();
+    return ok(undefined);
+  }
+
   private raiseCreatedEvent(): Result<void> {
     const event = ConnectionCreatedEvent.create(
       this.connectionId,

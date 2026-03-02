@@ -9,9 +9,11 @@ import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecord
 import { IConnectionPublisher } from '../../ports/IConnectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { ConnectionNote } from '../../../domain/value-objects/ConnectionNote';
+import { ConnectionType } from '../../../domain/value-objects/ConnectionType';
 
 export interface UpdateConnectionDTO {
   connectionId: string;
+  connectionType?: string;
   note?: string;
   removeNote?: boolean;
   curatorId: string;
@@ -97,6 +99,24 @@ export class UpdateConnectionUseCase
             'Only the connection curator can update the connection',
           ),
         );
+      }
+
+      // Handle connection type update
+      if (request.connectionType !== undefined) {
+        const typeResult = ConnectionType.createFromString(
+          request.connectionType,
+        );
+        if (typeResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection type: ${typeResult.error.message}`,
+            ),
+          );
+        }
+        const updateResult = connection.updateType(typeResult.value);
+        if (updateResult.isErr()) {
+          return err(new ValidationError(updateResult.error.message));
+        }
       }
 
       // Handle note update/removal

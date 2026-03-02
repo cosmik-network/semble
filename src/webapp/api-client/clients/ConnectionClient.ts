@@ -26,6 +26,7 @@ export class ConnectionClient extends BaseClient {
       'PUT',
       `/api/connections/${request.connectionId}`,
       {
+        connectionType: request.connectionType,
         note: request.note,
         removeNote: request.removeNote,
       },

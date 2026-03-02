@@ -309,6 +309,7 @@ export interface CreateConnectionRequest {
 
 export interface UpdateConnectionRequest {
   connectionId: string;
+  connectionType?: ConnectionType;
   note?: string;
   removeNote?: boolean;
 }
