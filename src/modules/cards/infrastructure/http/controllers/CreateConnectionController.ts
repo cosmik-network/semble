@@ -42,19 +42,6 @@ export class CreateConnectionController extends Controller {
         return this.badRequest(res, 'Invalid target type. Must be URL or CARD');
       }
 
-      // Validate connectionType if provided
-      if (
-        connectionType !== undefined &&
-        !['CITATION', 'REFERENCE', 'RELATED', 'INSPIRED_BY'].includes(
-          connectionType,
-        )
-      ) {
-        return this.badRequest(
-          res,
-          'Invalid connectionType. Must be CITATION, REFERENCE, RELATED, or INSPIRED_BY',
-        );
-      }
-
       const result = await this.createConnectionUseCase.execute({
         sourceType,
         sourceValue,

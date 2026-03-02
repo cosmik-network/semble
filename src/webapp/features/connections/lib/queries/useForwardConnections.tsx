@@ -1,28 +1,19 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getForwardConnectionsForUrl } from '../dal';
 import { connectionKeys } from '../connectionKeys';
-
-type ConnectionTypeEnum =
-  | 'SUPPORTS'
-  | 'OPPOSES'
-  | 'ADDRESSES'
-  | 'HELPFUL'
-  | 'LEADS_TO'
-  | 'RELATED'
-  | 'SUPPLEMENT'
-  | 'EXPLAINER';
+import { ConnectionType } from '@semble/types';
 
 interface Props {
   url: string;
   limit?: number;
-  connectionTypes?: ConnectionTypeEnum[];
+  connectionTypes?: ConnectionType[];
 }
 
 export default function useForwardConnections(props: Props) {
   const limit = props?.limit ?? 16;
 
   const forwardConnections = useSuspenseInfiniteQuery({
-    queryKey: connectionKeys.forwardForUrlInfinite(props.url, props.limit),
+    queryKey: connectionKeys.forwardForUrlInfinite(props.url, props.limit, props.connectionTypes),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getForwardConnectionsForUrl({

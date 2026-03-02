@@ -13,17 +13,10 @@ import { useDisclosure } from '@mantine/hooks';
 import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
-import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { ConnectionType } from '@semble/types';
 
-type ConnectionTypeEnum =
-  | 'SUPPORTS'
-  | 'OPPOSES'
-  | 'ADDRESSES'
-  | 'HELPFUL'
-  | 'LEADS_TO'
-  | 'RELATED'
-  | 'SUPPLEMENT'
-  | 'EXPLAINER';
+type Direction = 'outgoing' | 'incoming';
 
 interface Props {
   url: string;
@@ -32,14 +25,11 @@ interface Props {
 export default function SembleConnectionsContainer(props: Props) {
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const searchParams = useSearchParams();
 
-  const direction =
-    (searchParams.get('direction') as 'outgoing' | 'incoming') ?? 'outgoing';
-  const connectionTypeParam = searchParams.get('connectionType');
-  const connectionTypes = connectionTypeParam
-    ? [connectionTypeParam as ConnectionTypeEnum]
-    : undefined;
+  const [direction, setDirection] = useState<Direction>('outgoing');
+  const [connectionType, setConnectionType] = useState<ConnectionType | null>(null);
+
+  const connectionTypes = connectionType ? [connectionType] : undefined;
 
   const {
     data: forwardData,
@@ -90,8 +80,11 @@ export default function SembleConnectionsContainer(props: Props) {
       <Stack gap={'md'} align="center">
         <Group justify="space-between" w={'100%'} maw={600}>
           <Group gap={'xs'}>
-            <DirectionToggle />
-            <ConnectionFilters.Root>
+            <DirectionToggle value={direction} onChange={setDirection} />
+            <ConnectionFilters.Root
+              connectionType={connectionType}
+              onConnectionTypeChange={setConnectionType}
+            >
               <ConnectionFilters.ConnectionTypeFilter />
             </ConnectionFilters.Root>
           </Group>

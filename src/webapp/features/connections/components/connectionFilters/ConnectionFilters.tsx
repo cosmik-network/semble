@@ -1,19 +1,17 @@
 'use client';
 
 import { Group, Button, Menu } from '@mantine/core';
-import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
   useContext,
   ReactNode,
-  useOptimistic,
-  useTransition,
 } from 'react';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
+import { ConnectionType } from '@semble/types';
 
 // Connection type enum values matching the backend
-const CONNECTION_TYPES = [
+const CONNECTION_TYPES: ConnectionType[] = [
   'SUPPORTS',
   'OPPOSES',
   'ADDRESSES',
@@ -22,14 +20,12 @@ const CONNECTION_TYPES = [
   'RELATED',
   'SUPPLEMENT',
   'EXPLAINER',
-] as const;
-
-type ConnectionType = (typeof CONNECTION_TYPES)[number];
+];
 
 // context
 interface FilterContextValue {
-  router: ReturnType<typeof useRouter>;
-  searchParams: ReturnType<typeof useSearchParams>;
+  connectionType: ConnectionType | null;
+  onConnectionTypeChange: (type: ConnectionType | null) => void;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -44,15 +40,18 @@ const useFilterContext = () => {
 };
 
 // root
-export function Root(props: { children: ReactNode }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface RootProps {
+  children: ReactNode;
+  connectionType: ConnectionType | null;
+  onConnectionTypeChange: (type: ConnectionType | null) => void;
+}
 
+export function Root(props: RootProps) {
   return (
     <FilterContext.Provider
       value={{
-        router,
-        searchParams,
+        connectionType: props.connectionType,
+        onConnectionTypeChange: props.onConnectionTypeChange,
       }}
     >
       <Menu shadow="sm">
@@ -70,30 +69,9 @@ export function Root(props: { children: ReactNode }) {
 // connection type filter
 export function ConnectionTypeFilter() {
   const ctx = useFilterContext();
-  const [, startTransition] = useTransition();
-
-  const typeFromUrl = ctx.searchParams.get(
-    'connectionType',
-  ) as ConnectionType | null;
-
-  const [optimisticType, setOptimisticType] =
-    useOptimistic<ConnectionType | null>(typeFromUrl);
 
   const onChange = (type?: ConnectionType) => {
-    const nextType = type ?? null;
-
-    startTransition(() => {
-      setOptimisticType(nextType);
-
-      const params = new URLSearchParams(ctx.searchParams.toString());
-      if (nextType) {
-        params.set('connectionType', nextType);
-      } else {
-        params.delete('connectionType');
-      }
-
-      ctx.router.replace(`?${params.toString()}`, { scroll: false });
-    });
+    ctx.onConnectionTypeChange(type ?? null);
   };
 
   const formatConnectionType = (type: string) => {
@@ -109,7 +87,7 @@ export function ConnectionTypeFilter() {
       <Button
         size="xs"
         color="blue"
-        variant={optimisticType === null ? 'filled' : 'light'}
+        variant={ctx.connectionType === null ? 'filled' : 'light'}
         onClick={() => onChange()}
       >
         All Types
@@ -121,7 +99,7 @@ export function ConnectionTypeFilter() {
             key={type}
             size="xs"
             color="blue"
-            variant={optimisticType === type ? 'filled' : 'light'}
+            variant={ctx.connectionType === type ? 'filled' : 'light'}
             onClick={() => onChange(type)}
           >
             {formatConnectionType(type)}

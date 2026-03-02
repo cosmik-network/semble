@@ -1,28 +1,19 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getBackwardConnectionsForUrl } from '../dal';
 import { connectionKeys } from '../connectionKeys';
-
-type ConnectionTypeEnum =
-  | 'SUPPORTS'
-  | 'OPPOSES'
-  | 'ADDRESSES'
-  | 'HELPFUL'
-  | 'LEADS_TO'
-  | 'RELATED'
-  | 'SUPPLEMENT'
-  | 'EXPLAINER';
+import { ConnectionType } from '@semble/types';
 
 interface Props {
   url: string;
   limit?: number;
-  connectionTypes?: ConnectionTypeEnum[];
+  connectionTypes?: ConnectionType[];
 }
 
 export default function useBackwardConnections(props: Props) {
   const limit = props?.limit ?? 16;
 
   const backwardConnections = useSuspenseInfiniteQuery({
-    queryKey: connectionKeys.backwardForUrlInfinite(props.url, props.limit),
+    queryKey: connectionKeys.backwardForUrlInfinite(props.url, props.limit, props.connectionTypes),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getBackwardConnectionsForUrl({

@@ -16,9 +16,7 @@ export const createConnection = cache(
     try {
       const response = await client.createConnection(request);
       return response;
-    } catch (error) {
-      await logoutUser();
-    }
+    } catch (error) {}
   },
 );
 
