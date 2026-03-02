@@ -11,6 +11,16 @@ interface Options {
 
 export const verifySessionOnServer = cache(async (options?: Options) => {
   const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
+
+  // tokens are missing
+  if (!accessToken || !refreshToken) {
+    if (options?.redirectOnFail) {
+      redirect('/login');
+    }
+    return null;
+  }
 
   const res = await fetch(`${appUrl}/api/auth/me`, {
     headers: {
