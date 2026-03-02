@@ -10,6 +10,7 @@ import {
   TabsPanel,
 } from '@mantine/core';
 import TabItem from './TabItem';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
@@ -36,6 +37,7 @@ type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
 
 export default function SembleTabs(props: Props) {
   const [activeTab, setActiveTab] = useState<TabValue>('similar');
+  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <Tabs
@@ -47,7 +49,9 @@ export default function SembleTabs(props: Props) {
         <TabsList>
           <Group wrap="nowrap">
             <TabItem value="similar">Similar cards</TabItem>
-            <TabItem value="connections">Connections</TabItem>
+            {featureFlags?.connections && (
+              <TabItem value="connections">Connections</TabItem>
+            )}
             <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
@@ -81,11 +85,13 @@ export default function SembleTabs(props: Props) {
           </Suspense>
         </TabsPanel>
 
-        <TabsPanel value="connections">
-          <Suspense fallback={<SembleConnectionsContainerSkeleton />}>
-            <SembleConnectionsContainer url={props.url} />
-          </Suspense>
-        </TabsPanel>
+        {featureFlags?.connections && (
+          <TabsPanel value="connections">
+            <Suspense fallback={<SembleConnectionsContainerSkeleton />}>
+              <SembleConnectionsContainer url={props.url} />
+            </Suspense>
+          </TabsPanel>
+        )}
 
         <TabsPanel value="mentions">
           <Suspense fallback={<SembleMentionsContainerSkeleton />}>
