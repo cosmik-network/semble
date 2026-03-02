@@ -23,10 +23,10 @@ export default function ProfileHeaderSkeleton() {
               />
 
               <Group gap={'xs'}>
-                {/* Search button */}
-                <Skeleton w={32} h={32} radius={'xl'} mt={4} />
                 {/* Follow button skeleton */}
                 <Skeleton w={100} h={36} radius={'xl'} mt={4} />
+                {/* Search button */}
+                <Skeleton w={32} h={32} radius={'xl'} mt={4} />
               </Group>
             </Group>
 
