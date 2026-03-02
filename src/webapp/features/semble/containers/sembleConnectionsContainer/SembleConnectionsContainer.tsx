@@ -14,7 +14,7 @@ import AddConnectionDrawer from '@/features/connections/components/addConnection
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
-import { ConnectionType } from '@semble/types';
+import { ConnectionType, ConnectionForUrl } from '@semble/types';
 
 type Direction = 'outgoing' | 'incoming';
 
@@ -30,6 +30,28 @@ export default function SembleConnectionsContainer(props: Props) {
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
     null,
   );
+  const [connectionToEdit, setConnectionToEdit] = useState<{
+    connection: ConnectionForUrl['connection'];
+    targetUrl: string;
+  } | null>(null);
+
+  const handleOpenCreateDrawer = () => {
+    setConnectionToEdit(null);
+    openDrawer();
+  };
+
+  const handleOpenEditDrawer = (
+    connection: ConnectionForUrl['connection'],
+    targetUrl: string,
+  ) => {
+    setConnectionToEdit({ connection, targetUrl });
+    openDrawer();
+  };
+
+  const handleCloseDrawer = () => {
+    setConnectionToEdit(null);
+    closeDrawer();
+  };
 
   const connectionTypes = connectionType ? [connectionType] : undefined;
 
@@ -92,7 +114,7 @@ export default function SembleConnectionsContainer(props: Props) {
           </Group>
           <Button
             leftSection={<IoMdAdd size={18} />}
-            onClick={openDrawer}
+            onClick={handleOpenCreateDrawer}
             size="sm"
           >
             Add connection
@@ -120,6 +142,12 @@ export default function SembleConnectionsContainer(props: Props) {
                     direction={
                       direction === 'outgoing' ? 'forward' : 'backward'
                     }
+                    onEdit={() =>
+                      handleOpenEditDrawer(
+                        connectionForUrl.connection,
+                        connectionForUrl.url.url,
+                      )
+                    }
                   />
                 </Grid.Col>
               ))}
@@ -130,8 +158,9 @@ export default function SembleConnectionsContainer(props: Props) {
 
       <AddConnectionDrawer
         isOpen={drawerOpened}
-        onClose={closeDrawer}
+        onClose={handleCloseDrawer}
         sourceUrl={props.url}
+        connectionToEdit={connectionToEdit || undefined}
       />
     </>
   );

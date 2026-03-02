@@ -21,12 +21,18 @@ import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
+import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
+import { ConnectionForUrl } from '@semble/types';
 
 interface Props {
   onClose: () => void;
   sourceUrl: string;
+  connectionToEdit?: {
+    connection: ConnectionForUrl['connection'];
+    targetUrl: string;
+  };
 }
 
 const CONNECTION_TYPES = [
@@ -42,12 +48,16 @@ const CONNECTION_TYPES = [
 
 export default function AddConnectionForm(props: Props) {
   const createConnection = useCreateConnection();
+  const updateConnection = useUpdateConnection();
+  const isEditMode = !!props.connectionToEdit;
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(
+    props.connectionToEdit?.targetUrl || '',
+  );
   const [debounced] = useDebouncedValue(inputValue, 200);
 
   const {
@@ -70,47 +80,79 @@ export default function AddConnectionForm(props: Props) {
 
   const form = useForm({
     initialValues: {
-      targetUrl: '',
-      connectionType: '',
-      note: '',
+      targetUrl: props.connectionToEdit?.targetUrl || '',
+      connectionType: props.connectionToEdit?.connection.type || '',
+      note: props.connectionToEdit?.connection.note || '',
     },
   });
 
   const MAX_NOTE_LENGTH = 500;
 
-  const handleCreateConnection = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const values = form.getValues();
 
-    createConnection.mutate(
-      {
-        sourceUrl: props.sourceUrl,
-        targetUrl: values.targetUrl,
-        connectionType: values.connectionType
-          ? (values.connectionType as any)
-          : undefined,
-        note: values.note || undefined,
-      },
-      {
-        onSuccess: () => {
-          props.onClose();
-          notifications.show({
-            message: 'Connection created successfully',
-            color: 'green',
-          });
+    if (isEditMode && props.connectionToEdit) {
+      // Update existing connection
+      updateConnection.mutate(
+        {
+          connectionId: props.connectionToEdit.connection.id,
+          connectionType: values.connectionType
+            ? (values.connectionType as any)
+            : undefined,
+          note: values.note || undefined,
         },
-        onError: () => {
-          notifications.show({
-            message: 'Could not create connection.',
-            color: 'red',
-          });
+        {
+          onSuccess: () => {
+            props.onClose();
+            notifications.show({
+              message: 'Connection updated successfully',
+              color: 'green',
+            });
+          },
+          onError: () => {
+            notifications.show({
+              message: 'Could not update connection.',
+              color: 'red',
+            });
+          },
+          onSettled: () => {
+            form.reset();
+          },
         },
-        onSettled: () => {
-          form.reset();
+      );
+    } else {
+      // Create new connection
+      createConnection.mutate(
+        {
+          sourceUrl: props.sourceUrl,
+          targetUrl: values.targetUrl,
+          connectionType: values.connectionType
+            ? (values.connectionType as any)
+            : undefined,
+          note: values.note || undefined,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            props.onClose();
+            notifications.show({
+              message: 'Connection created successfully',
+              color: 'green',
+            });
+          },
+          onError: () => {
+            notifications.show({
+              message: 'Could not create connection.',
+              color: 'red',
+            });
+          },
+          onSettled: () => {
+            form.reset();
+          },
+        },
+      );
+    }
   };
 
   const options = urls.map((urlView) => (
@@ -144,7 +186,7 @@ export default function AddConnectionForm(props: Props) {
   ));
 
   return (
-    <form onSubmit={handleCreateConnection}>
+    <form onSubmit={handleSubmit}>
       <Stack gap={'xl'}>
         <Stack gap={4}>
           <Input.Label size="md" htmlFor="targetUrl" required>
@@ -174,13 +216,14 @@ export default function AddConnectionForm(props: Props) {
                   form.setFieldValue('targetUrl', val);
                   combobox.openDropdown();
                 }}
-                onFocus={() => combobox.openDropdown()}
+                onFocus={() => !isEditMode && combobox.openDropdown()}
                 onBlur={() => combobox.closeDropdown()}
                 leftSection={<IoMdLink size={22} />}
                 rightSection={isFetching && <Loader size={18} />}
                 variant="filled"
                 size="md"
                 required
+                disabled={isEditMode}
               />
             </Combobox.Target>
 
@@ -246,8 +289,16 @@ export default function AddConnectionForm(props: Props) {
           >
             Cancel
           </Button>
-          <Button type="submit" size="md" loading={createConnection.isPending}>
-            Create connection
+          <Button
+            type="submit"
+            size="md"
+            loading={
+              isEditMode
+                ? updateConnection.isPending
+                : createConnection.isPending
+            }
+          >
+            {isEditMode ? 'Update connection' : 'Create connection'}
           </Button>
         </Group>
       </Stack>

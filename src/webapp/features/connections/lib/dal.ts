@@ -5,6 +5,8 @@ import {
   GetBackwardConnectionsForUrlParams,
   SearchUrlsParams,
   ConnectionType,
+  UpdateConnectionRequest,
+  DeleteConnectionRequest,
 } from '@semble/types';
 import { cache } from 'react';
 
@@ -47,3 +49,33 @@ export const searchUrls = cache(async (params: SearchUrlsParams) => {
   const response = await client.searchUrls(params);
   return response;
 });
+
+export const updateConnection = cache(
+  async (request: UpdateConnectionRequest) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+
+    try {
+      const response = await client.updateConnection(request);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
+export const deleteConnection = cache(
+  async (request: DeleteConnectionRequest) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+
+    try {
+      const response = await client.deleteConnection(request);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
