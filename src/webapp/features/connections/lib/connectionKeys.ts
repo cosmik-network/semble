@@ -32,4 +32,17 @@ export const connectionKeys = {
     ] as const,
   userConnections: (identifier: string) =>
     ['connections', 'user', identifier] as const,
+  userConnectionsInfinite: (
+    identifier: string,
+    limit?: number,
+    connectionTypes?: ConnectionType[],
+  ) =>
+    [
+      'connections',
+      'user',
+      identifier,
+      'infinite',
+      limit,
+      connectionTypes,
+    ] as const,
 };

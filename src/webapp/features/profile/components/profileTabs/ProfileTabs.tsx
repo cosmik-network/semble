@@ -29,6 +29,9 @@ export default function ProfileTabs(props: Props) {
               <TabItem value="collections" href={`${basePath}/collections`}>
                 Collections
               </TabItem>
+              <TabItem value="connections" href={`${basePath}/connections`}>
+                Connections
+              </TabItem>
               <TabItem value="network" href={`${basePath}/network`}>
                 Network
               </TabItem>

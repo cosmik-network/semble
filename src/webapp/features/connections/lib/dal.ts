@@ -3,6 +3,7 @@ import { createSembleClient } from '@/services/client.apiClient';
 import {
   GetForwardConnectionsForUrlParams,
   GetBackwardConnectionsForUrlParams,
+  GetConnectionsParams,
   SearchUrlsParams,
   ConnectionType,
   UpdateConnectionRequest,
@@ -77,5 +78,13 @@ export const deleteConnection = cache(
     } catch (error) {
       throw error;
     }
+  },
+);
+
+export const getUserConnections = cache(
+  async (params: GetConnectionsParams) => {
+    const client = createSembleClient();
+    const response = await client.getConnections(params);
+    return response;
   },
 );
