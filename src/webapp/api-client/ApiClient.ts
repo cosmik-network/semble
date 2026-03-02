@@ -102,7 +102,6 @@ import type {
   GetCollectionContributorsParams,
   GetCollectionContributorsResponse,
   // Connection types
-  CreateConnectionRequest,
   CreateConnectionResponse,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
@@ -114,6 +113,7 @@ import type {
   GetForwardConnectionsForUrlResponse,
   GetBackwardConnectionsForUrlParams,
   GetBackwardConnectionsForUrlResponse,
+  ConnectionType,
   // Search types
   SearchUrlsParams,
   SearchUrlsResponse,
@@ -478,10 +478,13 @@ export class ApiClient {
     return this.queryClient.getConnections(params);
   }
 
-  async createConnection(
-    request: CreateConnectionRequest,
-  ): Promise<CreateConnectionResponse> {
-    return this.connectionClient.createConnection(request);
+  async createConnection(params: {
+    sourceUrl: string;
+    targetUrl: string;
+    connectionType?: ConnectionType;
+    note?: string;
+  }): Promise<CreateConnectionResponse> {
+    return this.connectionClient.createConnection(params);
   }
 
   async updateConnection(

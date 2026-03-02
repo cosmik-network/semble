@@ -85,10 +85,8 @@ export default function AddConnectionForm(props: Props) {
 
     createConnection.mutate(
       {
-        sourceType: 'URL',
-        sourceValue: props.sourceUrl,
-        targetType: 'URL',
-        targetValue: values.targetUrl,
+        sourceUrl: props.sourceUrl,
+        targetUrl: values.targetUrl,
         connectionType: values.connectionType
           ? (values.connectionType as any)
           : undefined,

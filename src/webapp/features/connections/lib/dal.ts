@@ -1,21 +1,26 @@
 import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
-  CreateConnectionRequest,
   GetForwardConnectionsForUrlParams,
   GetBackwardConnectionsForUrlParams,
   SearchUrlsParams,
+  ConnectionType,
 } from '@semble/types';
 import { cache } from 'react';
 
 export const createConnection = cache(
-  async (request: CreateConnectionRequest) => {
+  async (params: {
+    sourceUrl: string;
+    targetUrl: string;
+    connectionType?: ConnectionType;
+    note?: string;
+  }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
     try {
-      const response = await client.createConnection(request);
+      const response = await client.createConnection(params);
       return response;
     } catch (error) {}
   },

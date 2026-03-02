@@ -6,13 +6,27 @@ import {
   UpdateConnectionResponse,
   DeleteConnectionRequest,
   DeleteConnectionResponse,
+  ConnectionType,
 } from '@semble/types';
 
 export class ConnectionClient extends BaseClient {
-  async createConnection(
-    request: CreateConnectionRequest,
-  ): Promise<CreateConnectionResponse> {
+  async createConnection(params: {
+    sourceUrl: string;
+    targetUrl: string;
+    connectionType?: ConnectionType;
+    note?: string;
+  }): Promise<CreateConnectionResponse> {
     try {
+      // Transform simplified params to full request format
+      const request: CreateConnectionRequest = {
+        sourceType: 'URL',
+        sourceValue: params.sourceUrl,
+        targetType: 'URL',
+        targetValue: params.targetUrl,
+        connectionType: params.connectionType,
+        note: params.note,
+      };
+
       console.log(
         'Creating connection with request:',
         JSON.stringify(request, null, 2),
@@ -32,12 +46,6 @@ export class ConnectionClient extends BaseClient {
       throw error;
     }
   }
-  //   return this.request<CreateConnectionResponse>(
-  //     'POST',
-  //     '/api/connections',
-  //     request,
-  //   );
-  // }
 
   async updateConnection(
     request: UpdateConnectionRequest,
