@@ -22,8 +22,12 @@ export default function ProfileHeaderSkeleton() {
                 }}
               />
 
-              {/* Follow button skeleton */}
-              <Skeleton w={100} h={36} radius={'xl'} mt={4} />
+              <Group gap={'xs'}>
+                {/* Search button */}
+                <Skeleton w={32} h={32} radius={'xl'} mt={4} />
+                {/* Follow button skeleton */}
+                <Skeleton w={100} h={36} radius={'xl'} mt={4} />
+              </Group>
             </Group>
 
             {/* Profile info */}
