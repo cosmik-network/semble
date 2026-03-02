@@ -156,7 +156,7 @@ export default function AddConnectionForm(props: Props) {
             shadow="sm"
             radius={'md'}
             store={combobox}
-            withinPortal={false}
+            position="bottom-start"
             onOptionSubmit={(url) => {
               form.setFieldValue('targetUrl', url);
               setInputValue(url);

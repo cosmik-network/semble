@@ -85,20 +85,7 @@ export class SearchUrlsUseCase
             return null;
           }
 
-          // Convert metadata dates to ISO strings
-          const metadata: UrlMetadata = {
-            url: urlInfo.metadata.url,
-            title: urlInfo.metadata.title,
-            description: urlInfo.metadata.description,
-            author: urlInfo.metadata.author,
-            publishedDate: urlInfo.metadata.publishedDate?.toISOString(),
-            siteName: urlInfo.metadata.siteName,
-            imageUrl: urlInfo.metadata.imageUrl,
-            type: urlInfo.metadata.type,
-            retrievedAt: urlInfo.metadata.retrievedAt?.toISOString(),
-            doi: urlInfo.metadata.doi,
-            isbn: urlInfo.metadata.isbn,
-          };
+          const metadata: UrlMetadata = item.contentData.metadata;
 
           const urlView: UrlView = {
             url: item.url,
