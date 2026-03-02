@@ -34,6 +34,9 @@ import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/appli
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
+import { GetForwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetForwardConnectionsForUrlUseCase';
+import { GetBackwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetBackwardConnectionsForUrlUseCase';
+import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
@@ -48,6 +51,10 @@ import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessFollowFirehoseEventUseCase';
+import { ProcessConnectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessConnectionFirehoseEventUseCase';
+import { CreateConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateConnectionUseCase';
+import { UpdateConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateConnectionUseCase';
+import { DeleteConnectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteConnectionUseCase';
 import { GetMyNotificationsUseCase } from '../../../../modules/notifications/application/useCases/queries/GetMyNotificationsUseCase';
 import { GetUnreadNotificationCountUseCase } from '../../../../modules/notifications/application/useCases/queries/GetUnreadNotificationCountUseCase';
 import { MarkNotificationsAsReadUseCase } from '../../../../modules/notifications/application/useCases/commands/MarkNotificationsAsReadUseCase';
@@ -65,6 +72,7 @@ import { GetFollowersCountUseCase } from '../../../../modules/user/application/u
 import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsCountUseCase';
 import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
+import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -86,6 +94,7 @@ export interface WorkerUseCases {
   processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
   processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
   processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
+  processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -132,6 +141,15 @@ export interface UseCases {
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
+  getForwardConnectionsForUrlUseCase: GetForwardConnectionsForUrlUseCase;
+  getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase;
+  // Connection use cases
+  getConnectionsUseCase: GetConnectionsUseCase;
+  createConnectionUseCase: CreateConnectionUseCase;
+  updateConnectionUseCase: UpdateConnectionUseCase;
+  deleteConnectionUseCase: DeleteConnectionUseCase;
+  // Search use cases
+  searchUrlsUseCase: SearchUrlsUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
@@ -372,6 +390,47 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
+      getForwardConnectionsForUrlUseCase:
+        new GetForwardConnectionsForUrlUseCase(
+          repositories.connectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+          services.metadataService,
+        ),
+      getBackwardConnectionsForUrlUseCase:
+        new GetBackwardConnectionsForUrlUseCase(
+          repositories.connectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+          services.metadataService,
+        ),
+
+      // Connection use cases
+      getConnectionsUseCase: new GetConnectionsUseCase(
+        repositories.connectionQueryRepository,
+        repositories.cardQueryRepository,
+        services.identityResolutionService,
+        services.metadataService,
+      ),
+      createConnectionUseCase: new CreateConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+        services.eventPublisher,
+      ),
+      updateConnectionUseCase: new UpdateConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+      ),
+      deleteConnectionUseCase: new DeleteConnectionUseCase(
+        repositories.connectionRepository,
+        services.connectionPublisher,
+        services.eventPublisher,
+      ),
+
+      // Search use cases
+      searchUrlsUseCase: new SearchUrlsUseCase(
+        repositories.cardQueryRepository,
+      ),
 
       // Feed use cases
       getGlobalFeedUseCase: new GetGlobalFeedUseCase(
@@ -500,6 +559,24 @@ export class UseCaseFactory {
       services.collectionPublisher,
     );
 
+    // Connection use cases
+    const createConnectionUseCase = new CreateConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+      services.eventPublisher,
+    );
+
+    const updateConnectionUseCase = new UpdateConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+    );
+
+    const deleteConnectionUseCase = new DeleteConnectionUseCase(
+      repositories.connectionRepository,
+      services.connectionPublisher,
+      services.eventPublisher,
+    );
+
     // Follow use cases
     const followTargetUseCase = new FollowTargetUseCase(
       repositories.followsRepository,
@@ -581,6 +658,14 @@ export class UseCaseFactory {
         repositories.collectionRepository,
       );
 
+    const processConnectionFirehoseEventUseCase =
+      new ProcessConnectionFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        createConnectionUseCase,
+        updateConnectionUseCase,
+        deleteConnectionUseCase,
+      );
+
     // ========================================
     // LEVEL 3: Sync use cases (depend on Level 2)
     // ========================================
@@ -618,6 +703,7 @@ export class UseCaseFactory {
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
       processFollowFirehoseEventUseCase,
+      processConnectionFirehoseEventUseCase,
       // Level 3
       syncAccountDataUseCase,
     };

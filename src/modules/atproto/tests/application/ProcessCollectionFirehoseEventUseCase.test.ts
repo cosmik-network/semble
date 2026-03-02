@@ -4,6 +4,7 @@ import { CreateCollectionUseCase } from '../../../cards/application/useCases/com
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
 import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
+import { InMemoryConnectionRepository } from '../../../cards/tests/utils/InMemoryConnectionRepository';
 import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
 import { CollectionBuilder } from '../../../cards/tests/utils/builders/CollectionBuilder';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
@@ -20,6 +21,7 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
   let deleteCollectionUseCase: DeleteCollectionUseCase;
   let collectionRepository: InMemoryCollectionRepository;
   let cardRepository: InMemoryCardRepository;
+  let connectionRepository: InMemoryConnectionRepository;
   let collectionPublisher: FakeCollectionPublisher;
   let curatorId: CuratorId;
   let configService: EnvironmentConfigService;
@@ -28,11 +30,13 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     configService = new EnvironmentConfigService();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     cardRepository = InMemoryCardRepository.getInstance();
+    connectionRepository = InMemoryConnectionRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
 
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
       cardRepository,
+      connectionRepository,
     );
 
     createCollectionUseCase = new CreateCollectionUseCase(

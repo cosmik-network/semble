@@ -9,6 +9,7 @@ interface FeatureFlags {
   animatedLandingTitle: boolean;
   openCollections: boolean;
   following: boolean;
+  connections: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {

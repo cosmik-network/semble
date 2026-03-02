@@ -9,6 +9,22 @@ export interface CardQueryOptions {
   urlType?: UrlType;
 }
 
+export interface SearchUrlsOptions {
+  searchQuery: string;
+  page: number;
+  limit: number;
+  sortBy: CardSortField;
+  sortOrder: SortOrder;
+  urlType?: UrlType;
+}
+
+// Raw result from URL search - will be enriched with library info in use case
+export interface UrlSearchResultDTO {
+  url: string;
+  contentData: any; // JSONB contentData with metadata
+  updatedAt: Date;
+}
+
 export interface PaginatedQueryResult<T> {
   items: T[];
   totalCount: number;
@@ -132,6 +148,25 @@ export interface NoteCardForUrlDTO {
   updatedAt: Date;
 }
 
+// Batch URL library info for efficient multi-URL queries
+export interface UrlLibraryInfo {
+  urlLibraryCount: number; // distinct users with this URL
+  urlInLibrary?: boolean; // whether calling user has it
+  metadata: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    publishedDate?: Date;
+    siteName?: string;
+    imageUrl?: string;
+    type?: string;
+    retrievedAt?: Date;
+    doi?: string;
+    isbn?: string;
+  };
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
@@ -171,4 +206,13 @@ export interface ICardQueryRepository {
     cardIds: string[],
     callingUserId?: string,
   ): Promise<Map<string, UrlCardView>>;
+
+  getBatchUrlLibraryInfo(
+    urls: string[],
+    callingUserId?: string,
+  ): Promise<Map<string, UrlLibraryInfo>>;
+
+  searchUrls(
+    options: SearchUrlsOptions,
+  ): Promise<PaginatedQueryResult<UrlSearchResultDTO>>;
 }

@@ -2,17 +2,23 @@ import { Result } from 'src/shared/core/Result';
 import { CollectionId } from '../value-objects/CollectionId';
 
 import { CardId } from '../value-objects/CardId';
+import { ConnectionId } from '../value-objects/ConnectionId';
 import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
 
 export enum AtUriResourceType {
   CARD = 'card',
   COLLECTION = 'collection',
   COLLECTION_LINK = 'collection_link',
+  CONNECTION = 'connection',
 }
 
 export interface AtUriResolutionResult {
   type: AtUriResourceType;
-  id: CollectionId | CardId | { collectionId: CollectionId; cardId: CardId };
+  id:
+    | CollectionId
+    | CardId
+    | ConnectionId
+    | { collectionId: CollectionId; cardId: CardId };
 }
 
 export interface IAtUriResolutionService {
@@ -31,4 +37,5 @@ export interface IAtUriResolutionService {
       targetType: FollowTargetType;
     } | null>
   >;
+  resolveConnectionId(atUri: string): Promise<Result<ConnectionId | null>>;
 }

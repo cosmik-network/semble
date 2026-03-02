@@ -3,6 +3,7 @@ import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMem
 import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { InMemoryCardRepository } from '../../../cards/tests/utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
+import { InMemoryConnectionRepository } from '../../../cards/tests/utils/InMemoryConnectionRepository';
 import { FakeCardPublisher } from '../../../cards/tests/utils/FakeCardPublisher';
 import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
 import { FakeEventPublisher } from '../../../cards/tests/utils/FakeEventPublisher';
@@ -23,6 +24,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
   let updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let connectionRepository: InMemoryConnectionRepository;
   let cardPublisher: FakeCardPublisher;
   let collectionPublisher: FakeCollectionPublisher;
   let eventPublisher: FakeEventPublisher;
@@ -35,6 +37,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
     configService = new EnvironmentConfigService();
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    connectionRepository = InMemoryConnectionRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
     eventPublisher = new FakeEventPublisher();
@@ -54,6 +57,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
       cardRepository,
+      connectionRepository,
     );
 
     updateUrlCardAssociationsUseCase = new UpdateUrlCardAssociationsUseCase(

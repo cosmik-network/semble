@@ -268,6 +268,7 @@ export class AtProtoJetstreamService implements IFirehoseService {
       collections.marginCollectionItem,
       collections.collectionLinkRemoval,
       collections.follow,
+      collections.connection,
     ];
   }
 

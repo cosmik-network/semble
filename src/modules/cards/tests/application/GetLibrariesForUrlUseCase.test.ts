@@ -370,6 +370,8 @@ describe('GetLibrariesForUrlUseCase', () => {
           .mockRejectedValue(new Error('Database error')),
         getNoteCardsForUrl: jest.fn(),
         getBatchUrlCardViews: jest.fn(),
+        getBatchUrlLibraryInfo: jest.fn(),
+        searchUrls: jest.fn(),
       };
 
       const errorUseCase = new GetLibrariesForUrlUseCase(

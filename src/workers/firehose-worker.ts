@@ -40,6 +40,7 @@ async function main() {
     useCases.processMarginCollectionItemFirehoseEventUseCase,
     useCases.processCollectionLinkRemovalFirehoseEventUseCase,
     useCases.processFollowFirehoseEventUseCase,
+    useCases.processConnectionFirehoseEventUseCase,
   );
 
   const firehoseEventHandler = new FirehoseEventHandler(

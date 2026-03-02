@@ -6,8 +6,11 @@ import { CardRemovedFromCollectionEvent } from '../../../modules/cards/domain/ev
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
 import { UserFollowedTargetEvent } from '../../../modules/user/domain/events/UserFollowedTargetEvent';
 import { UserUnfollowedTargetEvent } from '../../../modules/user/domain/events/UserUnfollowedTargetEvent';
+import { ConnectionCreatedEvent } from '../../../modules/cards/domain/events/ConnectionCreatedEvent';
+import { ConnectionRemovedEvent } from '../../../modules/cards/domain/events/ConnectionRemovedEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../modules/cards/domain/value-objects/ConnectionId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
 import { DID } from '../../../modules/user/domain/value-objects/DID';
 import { FollowTargetType } from '../../../modules/user/domain/value-objects/FollowTargetType';
@@ -73,6 +76,18 @@ export interface SerializedUserUnfollowedTargetEvent extends SerializedEvent {
   targetType: 'USER' | 'COLLECTION';
 }
 
+export interface SerializedConnectionCreatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.CONNECTION_CREATED;
+  connectionId: string;
+  curatorId: string;
+}
+
+export interface SerializedConnectionRemovedEvent extends SerializedEvent {
+  eventType: typeof EventNames.CONNECTION_REMOVED;
+  connectionId: string;
+  curatorId: string;
+}
+
 export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
@@ -80,7 +95,9 @@ export type SerializedEventUnion =
   | SerializedCardRemovedFromCollectionEvent
   | SerializedCollectionCreatedEvent
   | SerializedUserFollowedTargetEvent
-  | SerializedUserUnfollowedTargetEvent;
+  | SerializedUserUnfollowedTargetEvent
+  | SerializedConnectionCreatedEvent
+  | SerializedConnectionRemovedEvent;
 
 export class EventMapper {
   static toSerialized(event: IDomainEvent): SerializedEventUnion {
@@ -161,6 +178,26 @@ export class EventMapper {
         followerId: event.followerId.value,
         targetId: event.targetId,
         targetType: event.targetType.value,
+      };
+    }
+
+    if (event instanceof ConnectionCreatedEvent) {
+      return {
+        eventType: EventNames.CONNECTION_CREATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        connectionId: event.connectionId.getValue().toString(),
+        curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof ConnectionRemovedEvent) {
+      return {
+        eventType: EventNames.CONNECTION_REMOVED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        connectionId: event.connectionId.getValue().toString(),
+        curatorId: event.curatorId.value,
       };
     }
 
@@ -270,6 +307,30 @@ export class EventMapper {
           followerId,
           eventData.targetId,
           targetType,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CONNECTION_CREATED: {
+        const connectionId = ConnectionId.createFromString(
+          eventData.connectionId,
+        ).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return ConnectionCreatedEvent.reconstruct(
+          connectionId,
+          curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CONNECTION_REMOVED: {
+        const connectionId = ConnectionId.createFromString(
+          eventData.connectionId,
+        ).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return ConnectionRemovedEvent.reconstruct(
+          connectionId,
+          curatorId,
           dateTimeOccurred,
         ).unwrap();
       }
