@@ -17,7 +17,6 @@ import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal.server';
 import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
@@ -30,7 +29,6 @@ interface Props {
 export default async function ProfileHeader(props: Props) {
   const session = await verifySessionOnServer();
   const profile = await getProfile(props.handle);
-  const featureFlags = await getServerFeatureFlags();
 
   return (
     <Fragment>
