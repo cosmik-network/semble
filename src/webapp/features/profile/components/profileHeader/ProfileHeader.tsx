@@ -21,6 +21,8 @@ import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
+import Link from 'next/link';
+import { IoSearch } from 'react-icons/io5';
 
 interface Props {
   handle: string;
@@ -58,14 +60,26 @@ export default async function ProfileHeader(props: Props) {
                   border: '2.5px solid var(--mantine-color-body)',
                 }}
               />
-              {props.handle !== session?.handle && (
-                <FollowButton
-                  targetId={profile.id}
-                  targetType="USER"
-                  targetHandle={props.handle}
-                  initialIsFollowing={profile.isFollowing}
-                />
-              )}
+              <Group gap={'xs'}>
+                {props.handle !== session?.handle && (
+                  <FollowButton
+                    targetId={profile.id}
+                    targetType="USER"
+                    targetHandle={props.handle}
+                    initialIsFollowing={profile.isFollowing}
+                  />
+                )}
+                <ActionIcon
+                  component={Link}
+                  href={`/search/cards?handle=${props.handle}`}
+                  variant="light"
+                  color="gray"
+                  size={'lg'}
+                  radius={'xl'}
+                >
+                  <IoSearch />
+                </ActionIcon>
+              </Group>
             </Group>
 
             {/* profile info */}
