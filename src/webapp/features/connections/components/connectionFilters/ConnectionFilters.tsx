@@ -1,11 +1,7 @@
 'use client';
 
 import { Group, Button, Menu } from '@mantine/core';
-import {
-  createContext,
-  useContext,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';

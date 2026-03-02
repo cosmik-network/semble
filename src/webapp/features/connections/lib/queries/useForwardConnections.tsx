@@ -13,7 +13,11 @@ export default function useForwardConnections(props: Props) {
   const limit = props?.limit ?? 16;
 
   const forwardConnections = useSuspenseInfiniteQuery({
-    queryKey: connectionKeys.forwardForUrlInfinite(props.url, props.limit, props.connectionTypes),
+    queryKey: connectionKeys.forwardForUrlInfinite(
+      props.url,
+      props.limit,
+      props.connectionTypes,
+    ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getForwardConnectionsForUrl({

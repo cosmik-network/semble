@@ -4,6 +4,7 @@ import {
   CreateConnectionRequest,
   GetForwardConnectionsForUrlParams,
   GetBackwardConnectionsForUrlParams,
+  SearchUrlsParams,
 } from '@semble/types';
 import { cache } from 'react';
 
@@ -35,3 +36,9 @@ export const getBackwardConnectionsForUrl = cache(
     return response;
   },
 );
+
+export const searchUrls = cache(async (params: SearchUrlsParams) => {
+  const client = createSembleClient();
+  const response = await client.searchUrls(params);
+  return response;
+});

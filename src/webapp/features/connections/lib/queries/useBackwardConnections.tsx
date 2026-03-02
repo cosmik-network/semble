@@ -13,7 +13,11 @@ export default function useBackwardConnections(props: Props) {
   const limit = props?.limit ?? 16;
 
   const backwardConnections = useSuspenseInfiniteQuery({
-    queryKey: connectionKeys.backwardForUrlInfinite(props.url, props.limit, props.connectionTypes),
+    queryKey: connectionKeys.backwardForUrlInfinite(
+      props.url,
+      props.limit,
+      props.connectionTypes,
+    ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getBackwardConnectionsForUrl({

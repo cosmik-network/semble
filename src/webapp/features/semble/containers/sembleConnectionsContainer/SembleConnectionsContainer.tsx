@@ -27,7 +27,9 @@ export default function SembleConnectionsContainer(props: Props) {
     useDisclosure(false);
 
   const [direction, setDirection] = useState<Direction>('outgoing');
-  const [connectionType, setConnectionType] = useState<ConnectionType | null>(null);
+  const [connectionType, setConnectionType] = useState<ConnectionType | null>(
+    null,
+  );
 
   const connectionTypes = connectionType ? [connectionType] : undefined;
 

@@ -2,18 +2,26 @@
 
 import {
   Button,
+  Combobox,
   Group,
+  Image,
   Input,
+  Loader,
+  ScrollArea,
   Select,
   Stack,
   Text,
   Textarea,
-  TextInput,
+  useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
+import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 
 interface Props {
@@ -34,6 +42,31 @@ const CONNECTION_TYPES = [
 
 export default function AddConnectionForm(props: Props) {
   const createConnection = useCreateConnection();
+
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+  });
+
+  const [inputValue, setInputValue] = useState('');
+  const [debounced] = useDebouncedValue(inputValue, 200);
+
+  const {
+    data: searchResults,
+    isFetching,
+    error,
+  } = useQuery({
+    queryKey: ['url search', debounced],
+    queryFn: () =>
+      searchUrls({
+        searchQuery: debounced,
+        limit: 10,
+      }),
+    enabled: debounced.trim().length > 0,
+  });
+
+  const urls = searchResults?.urls ?? [];
+  const empty =
+    !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
 
   const form = useForm({
     initialValues: {
@@ -82,21 +115,91 @@ export default function AddConnectionForm(props: Props) {
     );
   };
 
+  const options = urls.map((urlView) => (
+    <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
+      <Group gap={'xs'} wrap="nowrap" align="flex-start">
+        {urlView.metadata.imageUrl && (
+          <Image
+            src={urlView.metadata.imageUrl}
+            alt={urlView.metadata.title || 'URL thumbnail'}
+            w={60}
+            h={60}
+            radius="sm"
+            fit="cover"
+          />
+        )}
+        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
+            {urlView.metadata.title || urlView.url}
+          </Text>
+          {urlView.metadata.description && (
+            <Text c={'dimmed'} lineClamp={2} size="xs">
+              {urlView.metadata.description}
+            </Text>
+          )}
+          <Text c={'gray'} lineClamp={1} size="xs">
+            {urlView.url}
+          </Text>
+        </Stack>
+      </Group>
+    </Combobox.Option>
+  ));
+
   return (
     <form onSubmit={handleCreateConnection}>
       <Stack gap={'xl'}>
-        <TextInput
-          id="targetUrl"
-          label="Target URL"
-          type="url"
-          placeholder="https://www.example.com"
-          variant="filled"
-          required
-          size="md"
-          leftSection={<IoMdLink size={22} />}
-          key={form.key('targetUrl')}
-          {...form.getInputProps('targetUrl')}
-        />
+        <Stack gap={4}>
+          <Input.Label size="md" htmlFor="targetUrl" required>
+            Target URL
+          </Input.Label>
+          <Combobox
+            shadow="sm"
+            radius={'md'}
+            store={combobox}
+            withinPortal={false}
+            onOptionSubmit={(url) => {
+              form.setFieldValue('targetUrl', url);
+              setInputValue(url);
+              combobox.closeDropdown();
+            }}
+          >
+            <Combobox.Target>
+              <Input
+                id="targetUrl"
+                component="input"
+                type="url"
+                placeholder="https://www.example.com or start typing to search for urls"
+                value={inputValue}
+                onChange={(e) => {
+                  const val = e.currentTarget.value;
+                  setInputValue(val);
+                  form.setFieldValue('targetUrl', val);
+                  combobox.openDropdown();
+                }}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+                leftSection={<IoMdLink size={22} />}
+                rightSection={isFetching && <Loader size={18} />}
+                variant="filled"
+                size="md"
+                required
+              />
+            </Combobox.Target>
+
+            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
+              <Combobox.Options>
+                <ScrollArea.Autosize type="scroll" mah={300}>
+                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
+                  {error && (
+                    <Combobox.Empty>Could not search for URLs</Combobox.Empty>
+                  )}
+                  {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
+                  {options.length > 0 && options}
+                </ScrollArea.Autosize>
+              </Combobox.Options>
+            </Combobox.Dropdown>
+          </Combobox>
+        </Stack>
 
         <Select
           id="connectionType"
