@@ -15,6 +15,8 @@ const APPROVED_HANDLES = new Set([
   'atproto.science',
   'chrisshank.com',
   'jasmine-pyz.bsky.social',
+  'uppy-hacker.bsky.social',
+  'joelchan86.bsky.social',
 ]);
 
 export async function getServerFeatureFlags() {
@@ -31,5 +33,6 @@ export async function getServerFeatureFlags() {
     animatedLandingTitle: show,
     openCollections: true,
     following: true,
+    connections: show,
   };
 }

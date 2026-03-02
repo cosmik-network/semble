@@ -15,9 +15,11 @@ import { BlueskyProfileService } from '../../../../modules/atproto/infrastructur
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
+import { ATProtoConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoConnectionPublisher';
 import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
+import { FakeConnectionPublisher } from '../../../../modules/cards/tests/utils/FakeConnectionPublisher';
 import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/FakeFollowPublisher';
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
@@ -28,6 +30,7 @@ import { AppPasswordSessionService } from 'src/modules/atproto/infrastructure/se
 import { AtpAppPasswordProcessor } from 'src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor';
 import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
 import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublisher';
+import { IConnectionPublisher } from 'src/modules/cards/application/ports/IConnectionPublisher';
 import { IFollowPublisher } from 'src/modules/user/application/ports/IFollowPublisher';
 import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 import { BullMQEventSubscriber } from '../../events/BullMQEventSubscriber';
@@ -93,6 +96,7 @@ export interface SharedServices {
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
   collectionPublisher: ICollectionPublisher;
+  connectionPublisher: IConnectionPublisher;
   followPublisher: IFollowPublisher;
 }
 
@@ -404,6 +408,13 @@ export class ServiceFactory {
           collections.collectionLinkRemoval,
         );
 
+    const connectionPublisher = useFakePublishers
+      ? new FakeConnectionPublisher()
+      : new ATProtoConnectionPublisher(
+          atProtoAgentService,
+          collections.connection,
+        );
+
     const followPublisher = useFakePublishers
       ? new FakeFollowPublisher()
       : new ATProtoFollowPublisher(
@@ -461,6 +472,7 @@ export class ServiceFactory {
       cardCollectionService,
       eventPublisher,
       collectionPublisher,
+      connectionPublisher,
       followPublisher,
     };
   }

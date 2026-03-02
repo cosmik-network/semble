@@ -30,6 +30,7 @@ import { GetCollectionsForUrlController } from '../controllers/GetCollectionsFor
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
+import { SearchUrlsController } from '../controllers/SearchUrlsController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -49,6 +50,7 @@ export function createCardsModuleRoutes(
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
+  searchUrlsController: SearchUrlsController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -86,6 +88,7 @@ export function createCardsModuleRoutes(
       getUrlStatusForMyLibraryController,
       getLibrariesForUrlController,
       getNoteCardsForUrlController,
+      searchUrlsController,
     ),
   );
 

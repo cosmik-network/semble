@@ -10,6 +10,7 @@ import {
   TabsPanel,
 } from '@mantine/core';
 import TabItem from './TabItem';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
@@ -25,14 +26,18 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleMentionsContainer from '../../containers/sembleMentionsContainer/SembleMentionsContainer';
 import SembleMentionsContainerSkeleton from '../../containers/sembleMentionsContainer/Skeleton.SembleMentionsContainer';
 
+import SembleConnectionsContainer from '../../containers/sembleConnectionsContainer/SembleConnectionsContainer';
+import SembleConnectionsContainerSkeleton from '../../containers/sembleConnectionsContainer/Skeleton.SembleConnectionsContainer';
+
 interface Props {
   url: string;
 }
 
-type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar';
+type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
 
 export default function SembleTabs(props: Props) {
   const [activeTab, setActiveTab] = useState<TabValue>('similar');
+  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <Tabs
@@ -44,6 +49,9 @@ export default function SembleTabs(props: Props) {
         <TabsList>
           <Group wrap="nowrap">
             <TabItem value="similar">Similar cards</TabItem>
+            {featureFlags?.connections && (
+              <TabItem value="connections">Connections</TabItem>
+            )}
             <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
@@ -76,6 +84,14 @@ export default function SembleTabs(props: Props) {
             <SembleSimilarCardsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
+
+        {featureFlags?.connections && (
+          <TabsPanel value="connections">
+            <Suspense fallback={<SembleConnectionsContainerSkeleton />}>
+              <SembleConnectionsContainer url={props.url} />
+            </Suspense>
+          </TabsPanel>
+        )}
 
         <TabsPanel value="mentions">
           <Suspense fallback={<SembleMentionsContainerSkeleton />}>

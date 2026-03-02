@@ -48,6 +48,14 @@ import {
   GetFollowCountResponse,
   GetCollectionContributorsParams,
   GetCollectionContributorsResponse,
+  GetConnectionsParams,
+  GetConnectionsResponse,
+  GetForwardConnectionsForUrlParams,
+  GetForwardConnectionsForUrlResponse,
+  GetBackwardConnectionsForUrlParams,
+  GetBackwardConnectionsForUrlResponse,
+  SearchUrlsParams,
+  SearchUrlsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -467,5 +475,78 @@ export class QueryClient extends BaseClient {
       : `/api/collections/${params.collectionId}/contributors`;
 
     return this.request<GetCollectionContributorsResponse>('GET', endpoint);
+  }
+
+  async getForwardConnectionsForUrl(
+    params: GetForwardConnectionsForUrlParams,
+  ): Promise<GetForwardConnectionsForUrlResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('url', params.url);
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.connectionTypes) {
+      searchParams.set('connectionTypes', params.connectionTypes.join(','));
+    }
+
+    return this.request<GetForwardConnectionsForUrlResponse>(
+      'GET',
+      `/api/connections/forward?${searchParams}`,
+    );
+  }
+
+  async getBackwardConnectionsForUrl(
+    params: GetBackwardConnectionsForUrlParams,
+  ): Promise<GetBackwardConnectionsForUrlResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('url', params.url);
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.connectionTypes) {
+      searchParams.set('connectionTypes', params.connectionTypes.join(','));
+    }
+
+    return this.request<GetBackwardConnectionsForUrlResponse>(
+      'GET',
+      `/api/connections/backward?${searchParams}`,
+    );
+  }
+
+  async getConnections(
+    params: GetConnectionsParams,
+  ): Promise<GetConnectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.connectionTypes) {
+      searchParams.set('connectionTypes', params.connectionTypes.join(','));
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/connections/user/${params.identifier}?${queryString}`
+      : `/api/connections/user/${params.identifier}`;
+
+    return this.request<GetConnectionsResponse>('GET', endpoint);
+  }
+
+  async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('searchQuery', params.searchQuery);
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.urlType) searchParams.set('urlType', params.urlType);
+
+    return this.request<SearchUrlsResponse>(
+      'GET',
+      `/api/cards/search?${searchParams}`,
+    );
   }
 }

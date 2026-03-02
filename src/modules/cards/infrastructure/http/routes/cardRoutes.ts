@@ -14,6 +14,7 @@ import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsControl
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
+import { SearchUrlsController } from '../controllers/SearchUrlsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCardRoutes(
@@ -33,10 +34,16 @@ export function createCardRoutes(
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
+  searchUrlsController: SearchUrlsController,
 ): Router {
   const router = Router();
 
   // Query routes
+  // GET /api/cards/search - Search URLs
+  router.get('/search', authMiddleware.optionalAuth(), (req, res) =>
+    searchUrlsController.execute(req, res),
+  );
+
   // GET /api/cards/metadata - Get URL metadata
   router.get('/metadata', authMiddleware.optionalAuth(), (req, res) =>
     getUrlMetadataController.execute(req, res),

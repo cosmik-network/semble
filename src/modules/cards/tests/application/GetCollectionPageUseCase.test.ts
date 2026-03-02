@@ -767,6 +767,8 @@ describe('GetCollectionPageUseCase', () => {
         getLibrariesForUrl: jest.fn(),
         getNoteCardsForUrl: jest.fn(),
         getBatchUrlCardViews: jest.fn(),
+        getBatchUrlLibraryInfo: jest.fn(),
+        searchUrls: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(

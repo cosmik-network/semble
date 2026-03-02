@@ -3,7 +3,7 @@
 import type { UrlCard, Collection, User } from '@/api-client';
 import { Anchor, Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
-import { MouseEvent } from 'react';
+import { MouseEvent, Suspense } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
+import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
 
 interface Props {
   id: string;
@@ -104,11 +105,13 @@ export default function UrlCard(props: Props) {
       onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between" flex={1}>
-        <UrlCardContent
-          url={props.url}
-          uri={props.uri}
-          cardContent={props.cardContent}
-        />
+        <Suspense fallback={<UrlCardContentSkeleton />}>
+          <UrlCardContent
+            url={props.url}
+            uri={props.uri}
+            cardContent={props.cardContent}
+          />
+        </Suspense>
 
         {settings.tinkerMode && (
           <UrlCardDebugView

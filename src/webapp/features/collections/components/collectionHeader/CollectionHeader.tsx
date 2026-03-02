@@ -31,14 +31,10 @@ interface Props {
 }
 
 export default function CollectionHeader(props: Props) {
-  const { data, isPending } = useCollection({
+  const { data } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
   });
-
-  if (isPending) {
-    return null; // You can add a skeleton here if needed
-  }
 
   const collection = data.pages[0];
   const accessType = collection.accessType;

@@ -296,3 +296,59 @@ export interface GetCollectionFollowersCountParams {
 export interface GetCollectionContributorsParams extends PaginationParams {
   collectionId: string; // Collection UUID
 }
+
+// Connection types matching the domain model
+export type ConnectionType =
+  | 'SUPPORTS'
+  | 'OPPOSES'
+  | 'ADDRESSES'
+  | 'HELPFUL'
+  | 'LEADS_TO'
+  | 'RELATED'
+  | 'SUPPLEMENT'
+  | 'EXPLAINER';
+
+// Connection request types
+export interface CreateConnectionRequest {
+  sourceType: 'URL' | 'CARD';
+  sourceValue: string;
+  targetType: 'URL' | 'CARD';
+  targetValue: string;
+  connectionType?: ConnectionType;
+  note?: string;
+}
+
+export interface UpdateConnectionRequest {
+  connectionId: string;
+  connectionType?: ConnectionType;
+  note?: string;
+  removeNote?: boolean;
+}
+
+export interface DeleteConnectionRequest {
+  connectionId: string;
+}
+
+export interface GetForwardConnectionsForUrlParams
+  extends PaginatedSortedParams {
+  url: string;
+  connectionTypes?: ConnectionType[];
+}
+
+export interface GetBackwardConnectionsForUrlParams
+  extends PaginatedSortedParams {
+  url: string;
+  connectionTypes?: ConnectionType[];
+}
+
+// Search URLs request types
+export interface SearchUrlsParams extends PaginatedSortedParams {
+  searchQuery: string;
+  urlType?: UrlType;
+}
+
+// Get connections request types
+export interface GetConnectionsParams extends PaginatedSortedParams {
+  identifier: string; // Can be DID or handle
+  connectionTypes?: ConnectionType[];
+}

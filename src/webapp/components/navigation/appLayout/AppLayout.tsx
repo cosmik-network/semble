@@ -6,6 +6,9 @@ import ComposerDrawer from '@/features/composer/components/composerDrawer/Compos
 import { useNavbarContext } from '@/providers/navbar';
 import BottomBar from '../bottomBar/BottomBar';
 import { useMediaQuery } from '@mantine/hooks';
+import { Suspense } from 'react';
+import NavbarSkeleton from '../navbar/Skeleton.Navbar';
+import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
 
 interface Props {
   children: React.ReactNode;
@@ -32,13 +35,21 @@ export default function AppLayout(props: Props) {
         height: isMobile ? 85 : 0,
       }}
     >
-      <Navbar />
+      <Suspense fallback={<NavbarSkeleton />}>
+        <Navbar />
+      </Suspense>
 
       <AppShell.Main>
         {props.children}
-        <ComposerDrawer />
+
+        <Suspense>
+          <ComposerDrawer />
+        </Suspense>
       </AppShell.Main>
-      <BottomBar />
+
+      <Suspense fallback={<BottomBarSkeleton />}>
+        <BottomBar />
+      </Suspense>
     </AppShell>
   );
 }

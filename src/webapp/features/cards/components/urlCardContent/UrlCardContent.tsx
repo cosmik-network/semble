@@ -12,6 +12,7 @@ import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/Y
 import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import PlyrfmTrack from '@/features/platforms/plyrfm/components/plyrfmTrack/PlyrFmTrack';
+import UrlCardContentSkeleton from './Skeleton.UrlCardContent';
 
 interface Props {
   url: string;
@@ -25,7 +26,33 @@ export default function UrlCardContent(props: Props) {
   const { settings } = useUserSettings();
 
   if (platform.type === SupportedPlatform.SEMBLE_COLLECTION) {
-    return <SembleCollectionCardContent cardContent={props.cardContent} />;
+    if (!platform.handle || !platform.rkey) {
+      return (
+        <LinkCardContent
+          cardContent={props.cardContent}
+          uri={props.uri}
+          authorHandle={props.authorHandle}
+        />
+      );
+    }
+    return (
+      <ErrorBoundary
+        fallback={
+          <LinkCardContent
+            cardContent={props.cardContent}
+            uri={props.uri}
+            authorHandle={props.authorHandle}
+          />
+        }
+      >
+        <Suspense fallback={<UrlCardContentSkeleton />}>
+          <SembleCollectionCardContent
+            rkey={platform.rkey}
+            handle={platform.handle}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
   }
 
   if (
