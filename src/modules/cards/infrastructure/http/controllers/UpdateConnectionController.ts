@@ -12,7 +12,7 @@ export class UpdateConnectionController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { connectionId } = req.params;
-      const { note, removeNote } = req.body;
+      const { note, removeNote, connectionType } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -23,10 +23,14 @@ export class UpdateConnectionController extends Controller {
         return this.badRequest(res, 'Connection ID is required');
       }
 
-      if (note === undefined && removeNote === undefined) {
+      if (
+        note === undefined &&
+        removeNote === undefined &&
+        connectionType === undefined
+      ) {
         return this.badRequest(
           res,
-          'Either note or removeNote must be provided',
+          'At least one of note, removeNote, or connectionType must be provided',
         );
       }
 
@@ -34,6 +38,7 @@ export class UpdateConnectionController extends Controller {
         connectionId,
         note,
         removeNote,
+        connectionType,
         curatorId,
       });
 
