@@ -29,6 +29,7 @@ export default async function UrlAddedBySummary(props: Props) {
             src={p.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={p.user.handle}
             name={p.user.handle}
+            size={'sm'}
           />
         ))}
       </AvatarGroup>
