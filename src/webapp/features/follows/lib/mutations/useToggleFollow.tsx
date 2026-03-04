@@ -5,6 +5,8 @@ import { followKeys } from '../followKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
+import posthog from 'posthog-js';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 interface ToggleFollowPayload {
   targetId: string;
@@ -52,6 +54,14 @@ export function useToggleFollow(initialIsFollowing: boolean) {
         console.log(
           `[toggleFollow] intended: ${intended} | result: ${final} | match: ✅`,
         );
+
+        // Track follow event in PostHog (only on follow, not unfollow)
+        if (!currentIsFollowing && shouldCaptureAnalytics()) {
+          posthog.capture('target_followed', {
+            target_type: targetType.toLowerCase(),
+          });
+        }
+
         return !currentIsFollowing;
       } catch {
         const final = currentIsFollowing ? 'followed' : 'unfollowed';
