@@ -28,7 +28,7 @@ export default function CollectionNavItem(props: Props) {
       href={props.url}
       label={props.name}
       active={isActive}
-      color="gray"
+      color={isOpenCollection ? 'green' : 'gray'}
       classNames={{
         root: isActive
           ? `${styles.navLink} ${isOpenCollection ? styles.navLinkActiveGreen : styles.navLinkActive}`
