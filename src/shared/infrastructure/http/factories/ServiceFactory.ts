@@ -319,10 +319,7 @@ export class ServiceFactory {
     );
 
     // Profile Service with Redis caching
-    const baseProfileService = new BlueskyProfileService(
-      atProtoAgentService,
-      repositories.followsRepository,
-    );
+    const baseProfileService = new BlueskyProfileService(atProtoAgentService);
 
     let profileService: IProfileService;
 

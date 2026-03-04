@@ -205,6 +205,7 @@ export class UseCaseFactory {
       getProfileUseCase: new GetProfileUseCase(
         services.profileService,
         services.identityResolutionService,
+        repositories.followsRepository,
       ),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,

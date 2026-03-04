@@ -4,6 +4,7 @@ import { err, ok, Result } from 'src/shared/core/Result';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { ProfileMapper } from '../../mappers/ProfileMapper';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 
 export interface GetMyProfileQuery {
   userId: string;
@@ -32,6 +33,7 @@ export class GetProfileUseCase
   constructor(
     private profileService: IProfileService,
     private identityResolver: IIdentityResolutionService,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(query: GetMyProfileQuery): Promise<Result<GetMyProfileResult>> {
@@ -87,8 +89,31 @@ export class GetProfileUseCase
 
       const profile = profileResult.value;
 
+      // Fetch follow counts from the follows repository
+      const countsResult = await this.followsRepository.getProfileFollowCounts(
+        didResult.value.value,
+      );
+
+      if (countsResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch follow counts: ${countsResult.error instanceof Error ? countsResult.error.message : 'Unknown error'}`,
+          ),
+        );
+      }
+
+      const counts = countsResult.value;
+
+      // Merge counts into profile
+      const profileWithCounts = {
+        ...profile,
+        followerCount: counts.followerCount,
+        followingCount: counts.followingCount,
+        followedCollectionsCount: counts.followedCollectionsCount,
+      };
+
       // Map profile using ProfileMapper
-      return ok(ProfileMapper.toUser(profile));
+      return ok(ProfileMapper.toUser(profileWithCounts));
     } catch (error) {
       return err(
         new Error(

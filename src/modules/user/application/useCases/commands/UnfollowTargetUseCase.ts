@@ -122,17 +122,7 @@ export class UnfollowTargetUseCase extends BaseUseCase<
         // Don't fail the operation
       }
 
-      // 9. Invalidate profile counts cache
-      // Invalidate follower's counts (followingCount decreased)
-      if (this.profileService.invalidateCounts) {
-        await this.profileService.invalidateCounts(request.followerId);
-      }
-      // Invalidate target's counts (followerCount decreased, only for USER targets)
-      if (targetType.value === 'USER' && this.profileService.invalidateCounts) {
-        await this.profileService.invalidateCounts(request.targetId);
-      }
-
-      // 10. Return success
+      // 9. Return success
       return ok(undefined);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

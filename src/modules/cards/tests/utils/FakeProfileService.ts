@@ -21,11 +21,6 @@ export class FakeProfileService implements IProfileService {
     return ok(profile);
   }
 
-  async invalidateCounts(userId: string): Promise<void> {
-    // No-op for fake implementation
-    // In real implementation, this would invalidate the cache
-  }
-
   // Test helper methods
   addProfile(profile: UserProfile): void {
     this.profiles.set(profile.id, profile);
