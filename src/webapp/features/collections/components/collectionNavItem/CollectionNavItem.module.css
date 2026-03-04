@@ -7,12 +7,30 @@
   }
 }
 
+/* navlink inactive (open collection - green) */
+.navLinkGreen {
+  color: var(--mantine-color-green-7);
+
+  @mixin dark {
+    color: var(--mantine-color-green-5);
+  }
+}
+
 /* navlink active */
 .navLinkActive {
   color: var(--mantine-color-dark-filled);
 
   @mixin dark {
     color: var(--mantine-color-white);
+  }
+}
+
+/* navlink active (open collection - green) */
+.navLinkActiveGreen {
+  color: var(--mantine-color-green-9);
+
+  @mixin dark {
+    color: var(--mantine-color-green-4);
   }
 }
 
@@ -34,6 +52,17 @@
 
   @mixin dark {
     background-color: var(--mantine-color-gray-6);
+    color: var(--mantine-color-white);
+  }
+}
+
+/* badge active (open collection - green) */
+.badgeActiveGreen {
+  background-color: var(--mantine-color-green-9);
+  color: var(--mantine-color-white);
+
+  @mixin dark {
+    background-color: var(--mantine-color-green-7);
     color: var(--mantine-color-white);
   }
 }
