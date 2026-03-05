@@ -8,7 +8,6 @@ import {
   Input,
   Loader,
   ScrollArea,
-  Select,
   Stack,
   Text,
   Textarea,
@@ -25,6 +24,17 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 import { ConnectionForUrl } from '@semble/types';
+import {
+  BiSupport,
+  BiBlock,
+  BiMessageSquareDetail,
+  BiHelpCircle,
+  BiRightArrowAlt,
+  BiLink,
+  BiBookContent,
+  BiInfoCircle,
+} from 'react-icons/bi';
+import { MdOutlinePsychologyAlt } from 'react-icons/md';
 
 interface Props {
   onClose: () => void;
@@ -36,14 +46,54 @@ interface Props {
 }
 
 const CONNECTION_TYPES = [
-  { value: 'SUPPORTS', label: 'Supports' },
-  { value: 'OPPOSES', label: 'Opposes' },
-  { value: 'ADDRESSES', label: 'Addresses' },
-  { value: 'HELPFUL', label: 'Helpful' },
-  { value: 'LEADS_TO', label: 'Leads to' },
-  { value: 'RELATED', label: 'Related' },
-  { value: 'SUPPLEMENT', label: 'Supplement' },
-  { value: 'EXPLAINER', label: 'Explainer' },
+  {
+    value: 'SUPPORTS',
+    label: 'Supports',
+    description: 'Provides evidence or arguments in favor',
+    icon: BiSupport,
+  },
+  {
+    value: 'OPPOSES',
+    label: 'Opposes',
+    description: 'Provides counter-evidence or opposing arguments',
+    icon: BiBlock,
+  },
+  {
+    value: 'ADDRESSES',
+    label: 'Addresses',
+    description: 'Responds to or answers a question or topic',
+    icon: BiMessageSquareDetail,
+  },
+  {
+    value: 'HELPFUL',
+    label: 'Helpful',
+    description: 'Provides useful context or background',
+    icon: BiHelpCircle,
+  },
+  {
+    value: 'LEADS_TO',
+    label: 'Leads to',
+    description: 'Logically or temporally precedes',
+    icon: BiRightArrowAlt,
+  },
+  {
+    value: 'RELATED',
+    label: 'Related',
+    description: 'Generally connected or associated',
+    icon: BiLink,
+  },
+  {
+    value: 'SUPPLEMENT',
+    label: 'Supplement',
+    description: 'Adds additional information or details',
+    icon: BiBookContent,
+  },
+  {
+    value: 'EXPLAINER',
+    label: 'Explainer',
+    description: 'Explains or clarifies concepts',
+    icon: MdOutlinePsychologyAlt,
+  },
 ];
 
 export default function AddConnectionForm(props: Props) {
@@ -51,8 +101,12 @@ export default function AddConnectionForm(props: Props) {
   const updateConnection = useUpdateConnection();
   const isEditMode = !!props.connectionToEdit;
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
+  const urlCombobox = useCombobox({
+    onDropdownClose: () => urlCombobox.resetSelectedOption(),
+  });
+
+  const typeCombobox = useCombobox({
+    onDropdownClose: () => typeCombobox.resetSelectedOption(),
   });
 
   const [inputValue, setInputValue] = useState(
@@ -195,12 +249,12 @@ export default function AddConnectionForm(props: Props) {
           <Combobox
             shadow="sm"
             radius={'md'}
-            store={combobox}
+            store={urlCombobox}
             position="bottom-start"
             onOptionSubmit={(url) => {
               form.setFieldValue('targetUrl', url);
               setInputValue(url);
-              combobox.closeDropdown();
+              urlCombobox.closeDropdown();
             }}
           >
             <Combobox.Target>
@@ -214,10 +268,10 @@ export default function AddConnectionForm(props: Props) {
                   const val = e.currentTarget.value;
                   setInputValue(val);
                   form.setFieldValue('targetUrl', val);
-                  combobox.openDropdown();
+                  urlCombobox.openDropdown();
                 }}
-                onFocus={() => !isEditMode && combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
+                onFocus={() => !isEditMode && urlCombobox.openDropdown()}
+                onBlur={() => urlCombobox.closeDropdown()}
                 leftSection={<IoMdLink size={22} />}
                 rightSection={isFetching && <Loader size={18} />}
                 variant="filled"
@@ -242,22 +296,79 @@ export default function AddConnectionForm(props: Props) {
           </Combobox>
         </Stack>
 
-        <Select
-          id="connectionType"
-          label="Connection Type"
-          placeholder="Select connection type (optional)"
-          variant="filled"
-          size="md"
-          data={CONNECTION_TYPES}
-          key={form.key('connectionType')}
-          {...form.getInputProps('connectionType')}
-          clearable
-        />
+        <Stack gap={4}>
+          <Input.Label size="md" htmlFor="connectionType">
+            Connection Type
+          </Input.Label>
+          <Combobox
+            shadow="sm"
+            radius="md"
+            store={typeCombobox}
+            position="bottom-start"
+            onOptionSubmit={(value) => {
+              form.setFieldValue('connectionType', value);
+              typeCombobox.closeDropdown();
+            }}
+          >
+            <Combobox.Target>
+              <Input
+                id="connectionType"
+                component="button"
+                type="button"
+                pointer
+                rightSection={<Combobox.Chevron />}
+                onClick={() => typeCombobox.toggleDropdown()}
+                variant="filled"
+                size="md"
+              >
+                {form.values.connectionType ? (
+                  (() => {
+                    const selectedType = CONNECTION_TYPES.find(
+                      (t) => t.value === form.values.connectionType,
+                    );
+                    const Icon = selectedType?.icon;
+                    return (
+                      <Group gap="xs">
+                        {Icon && <Icon size={18} />}
+                        <Text>{selectedType?.label}</Text>
+                      </Group>
+                    );
+                  })()
+                ) : (
+                  <Text c="dimmed">Select connection type</Text>
+                )}
+              </Input>
+            </Combobox.Target>
+
+            <Combobox.Dropdown>
+              <Combobox.Options>
+                {CONNECTION_TYPES.map((type) => {
+                  const Icon = type.icon;
+                  return (
+                    <Combobox.Option key={type.value} value={type.value} p={8}>
+                      <Group gap="sm" wrap="nowrap">
+                        {Icon && <Icon size={20} />}
+                        <Stack gap={0} style={{ flex: 1 }}>
+                          <Text size="sm" fw={500}>
+                            {type.label}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {type.description}
+                          </Text>
+                        </Stack>
+                      </Group>
+                    </Combobox.Option>
+                  );
+                })}
+              </Combobox.Options>
+            </Combobox.Dropdown>
+          </Combobox>
+        </Stack>
 
         <Stack gap={0}>
           <Group justify="space-between">
             <Input.Label size="md" htmlFor="note">
-              Note (optional)
+              How is this related?
             </Input.Label>
             <Text c={'gray'} aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}
@@ -266,7 +377,35 @@ export default function AddConnectionForm(props: Props) {
 
           <Textarea
             id="note"
-            placeholder="Add a note about this connection"
+            placeholder={
+              form.values.connectionType
+                ? (() => {
+                    const selectedType = CONNECTION_TYPES.find(
+                      (t) => t.value === form.values.connectionType,
+                    );
+                    switch (selectedType?.value) {
+                      case 'SUPPORTS':
+                        return 'Explain how this supports or provides evidence...';
+                      case 'OPPOSES':
+                        return 'Describe the counter-argument or opposing view...';
+                      case 'ADDRESSES':
+                        return 'Explain how this responds to or answers the topic...';
+                      case 'HELPFUL':
+                        return 'Describe what context or background this provides...';
+                      case 'LEADS_TO':
+                        return 'Explain the logical or temporal connection...';
+                      case 'RELATED':
+                        return 'Describe how these are connected...';
+                      case 'SUPPLEMENT':
+                        return 'Explain what additional information this adds...';
+                      case 'EXPLAINER':
+                        return 'Describe what concepts this clarifies...';
+                      default:
+                        return 'Explain the relationship between these resources...';
+                    }
+                  })()
+                : 'Explain the relationship between these resources...'
+            }
             variant="filled"
             size="md"
             rows={3}
