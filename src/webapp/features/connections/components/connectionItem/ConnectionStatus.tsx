@@ -77,19 +77,10 @@ export default function ConnectionStatus(props: Props) {
           {sanitizeText(curator.name)}
         </Text>{' '}
         <Text span>
-          {props.direction === 'forward' ? 'connected  to' : 'connected from'}
+          {props.direction === 'forward'
+            ? `connected this to`
+            : 'connected from'}
         </Text>
-        {connectionType && (
-          <Badge
-            size="sm"
-            variant="light"
-            color="pink"
-            ml={'xs'}
-            style={{ textTransform: 'capitalize' }}
-          >
-            {connectionType.toLowerCase().replace('_', ' ')}
-          </Badge>
-        )}
         <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
           {relativeCreatedDate}
         </Text>
@@ -139,6 +130,16 @@ export default function ConnectionStatus(props: Props) {
               </Box>
             )}
           </Group>
+          {props.connection.type && (
+            <Badge
+              size="sm"
+              variant="light"
+              color="pink"
+              style={{ textTransform: 'capitalize' }}
+            >
+              {props.connection.type.toLowerCase().replace('_', ' ')}
+            </Badge>
+          )}
           {props.connection.note && (
             <Spoiler
               showLabel={'Read more'}

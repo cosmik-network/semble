@@ -33,7 +33,7 @@ export default function AddConnectionDrawer(props: Props) {
           {isEditMode ? 'Edit Connection' : 'New Connection'}
         </Drawer.Title>
       </Drawer.Header>
-      <Container size={'sm'} p={0}>
+      <Container size={'xs'} p={0}>
         <AddConnectionForm
           onClose={props.onClose}
           sourceUrl={props.sourceUrl}

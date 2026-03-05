@@ -81,7 +81,7 @@ export default function ProfileConnectionItem(props: Props) {
               <Group gap={'xs'} wrap="wrap">
                 <MdArrowDownward size={20} />
                 {props.connection.connection.type && (
-                  <Badge size="md" variant="light" color="blue">
+                  <Badge size="md" variant="light" color="pink">
                     {formatConnectionType(props.connection.connection.type)}
                   </Badge>
                 )}
