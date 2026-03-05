@@ -468,3 +468,30 @@ export interface GetConnectionsResponse {
   pagination: Pagination;
   sorting: ConnectionSorting;
 }
+
+// Graph response types
+export interface GraphNode {
+  id: string;
+  type: 'USER' | 'URL' | 'COLLECTION' | 'NOTE';
+  label: string;
+  metadata: Record<string, any>;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type:
+    | 'USER_FOLLOWS_USER'
+    | 'USER_FOLLOWS_COLLECTION'
+    | 'USER_AUTHORED_URL'
+    | 'NOTE_REFERENCES_URL'
+    | 'COLLECTION_CONTAINS_URL'
+    | 'URL_CONNECTS_URL';
+  metadata?: Record<string, any>;
+}
+
+export interface GetGraphDataResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}

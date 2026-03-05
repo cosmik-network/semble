@@ -56,6 +56,8 @@ import {
   GetBackwardConnectionsForUrlResponse,
   SearchUrlsParams,
   SearchUrlsResponse,
+  GetGraphDataParams,
+  GetGraphDataResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -548,5 +550,11 @@ export class QueryClient extends BaseClient {
       'GET',
       `/api/cards/search?${searchParams}`,
     );
+  }
+
+  async getGraphData(
+    params?: GetGraphDataParams,
+  ): Promise<GetGraphDataResponse> {
+    return this.request<GetGraphDataResponse>('GET', '/api/graph/data');
   }
 }

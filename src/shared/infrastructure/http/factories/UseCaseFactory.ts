@@ -73,6 +73,7 @@ import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/ap
 import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
 import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
+import { GetGraphDataUseCase } from '../../../../modules/cards/application/useCases/queries/GetGraphDataUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -148,6 +149,8 @@ export interface UseCases {
   createConnectionUseCase: CreateConnectionUseCase;
   updateConnectionUseCase: UpdateConnectionUseCase;
   deleteConnectionUseCase: DeleteConnectionUseCase;
+  // Graph use cases
+  getGraphDataUseCase: GetGraphDataUseCase;
   // Search use cases
   searchUrlsUseCase: SearchUrlsUseCase;
   // Feed use cases
@@ -426,6 +429,11 @@ export class UseCaseFactory {
         repositories.connectionRepository,
         services.connectionPublisher,
         services.eventPublisher,
+      ),
+
+      // Graph use cases
+      getGraphDataUseCase: new GetGraphDataUseCase(
+        repositories.graphQueryRepository,
       ),
 
       // Search use cases

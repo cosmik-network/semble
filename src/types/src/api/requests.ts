@@ -352,3 +352,8 @@ export interface GetConnectionsParams extends PaginatedSortedParams {
   identifier: string; // Can be DID or handle
   connectionTypes?: ConnectionType[];
 }
+
+// Graph request types
+export interface GetGraphDataParams {
+  // No parameters needed for global graph in v1
+}
