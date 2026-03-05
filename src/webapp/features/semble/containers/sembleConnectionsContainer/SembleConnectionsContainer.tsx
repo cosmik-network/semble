@@ -32,7 +32,7 @@ export default function SembleConnectionsContainer(props: Props) {
   );
   const [connectionToEdit, setConnectionToEdit] = useState<{
     connection: ConnectionForUrl['connection'];
-    sourceUrl: string;
+    targetUrl: string;
   } | null>(null);
 
   const handleOpenCreateDrawer = () => {
@@ -42,9 +42,9 @@ export default function SembleConnectionsContainer(props: Props) {
 
   const handleOpenEditDrawer = (
     connection: ConnectionForUrl['connection'],
-    sourceUrl: string,
+    targetUrl: string,
   ) => {
-    setConnectionToEdit({ connection, sourceUrl });
+    setConnectionToEdit({ connection, targetUrl });
     openDrawer();
   };
 
@@ -159,7 +159,7 @@ export default function SembleConnectionsContainer(props: Props) {
       <AddConnectionDrawer
         isOpen={drawerOpened}
         onClose={handleCloseDrawer}
-        targetUrl={props.url}
+        sourceUrl={props.url}
         connectionToEdit={connectionToEdit || undefined}
       />
     </>

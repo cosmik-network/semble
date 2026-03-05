@@ -75,9 +75,9 @@ export default function ProfileConnectionItem(props: Props) {
         />
 
         {/* Connection Metadata */}
-        <Card p={'xs'} radius={'md'} bg={'dark.6'}>
-          <Group justify="space-between" wrap="nowrap" align="start">
-            <Stack gap={4} style={{ flex: 1 }}>
+        <Card p={'xs'} radius={'md'}>
+          <Group justify="space-between" wrap="nowrap" align="center">
+            <Stack gap={4}>
               <Group gap={'xs'} wrap="wrap">
                 <MdArrowDownward size={20} />
                 {props.connection.connection.type && (

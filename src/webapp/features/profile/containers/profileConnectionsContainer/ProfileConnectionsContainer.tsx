@@ -119,10 +119,10 @@ export default function ProfileConnectionsContainer(props: Props) {
         <AddConnectionDrawer
           isOpen={drawerOpened}
           onClose={handleCloseDrawer}
-          targetUrl={connectionToEdit.targetUrl}
+          sourceUrl={connectionToEdit.sourceUrl}
           connectionToEdit={{
             connection: connectionToEdit.connection,
-            sourceUrl: connectionToEdit.sourceUrl,
+            targetUrl: connectionToEdit.targetUrl,
           }}
         />
       )}

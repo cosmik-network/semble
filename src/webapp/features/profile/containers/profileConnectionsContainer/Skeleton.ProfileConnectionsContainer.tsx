@@ -16,7 +16,7 @@ function ProfileConnectionItemSkeleton() {
       <UrlCardSkeleton />
 
       {/* Connection metadata */}
-      <Card p={'xs'} radius={'md'} bg={'dark.6'}>
+      <Card p={'xs'} radius={'md'}>
         <Group gap={'xs'}>
           <Skeleton height={20} width={20} circle />
           <Skeleton height={24} width={80} radius={'xl'} />
