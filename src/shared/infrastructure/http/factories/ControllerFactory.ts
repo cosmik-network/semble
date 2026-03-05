@@ -62,6 +62,7 @@ import { GetConnectionsController } from '../../../../modules/cards/infrastructu
 import { GetForwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetForwardConnectionsForUrlController';
 import { GetBackwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetBackwardConnectionsForUrlController';
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
+import { GetGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetGraphDataController';
 import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
@@ -118,6 +119,8 @@ export interface Controllers {
   deleteConnectionController: DeleteConnectionController;
   getForwardConnectionsForUrlController: GetForwardConnectionsForUrlController;
   getBackwardConnectionsForUrlController: GetBackwardConnectionsForUrlController;
+  // Graph controllers
+  getGraphDataController: GetGraphDataController;
   // Search controllers
   searchUrlsController: SearchUrlsController;
   // Feed controllers
@@ -309,6 +312,11 @@ export class ControllerFactory {
         new GetBackwardConnectionsForUrlController(
           useCases.getBackwardConnectionsForUrlUseCase,
         ),
+
+      // Graph controllers
+      getGraphDataController: new GetGraphDataController(
+        useCases.getGraphDataUseCase,
+      ),
 
       // Search controllers
       searchUrlsController: new SearchUrlsController(

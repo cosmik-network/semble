@@ -56,6 +56,8 @@ import {
   GetBackwardConnectionsForUrlResponse,
   SearchUrlsParams,
   SearchUrlsResponse,
+  GetGraphDataParams,
+  GetGraphDataResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -548,5 +550,31 @@ export class QueryClient extends BaseClient {
       'GET',
       `/api/cards/search?${searchParams}`,
     );
+  }
+
+  async getGraphData(
+    params?: GetGraphDataParams,
+  ): Promise<GetGraphDataResponse> {
+    // Check if mock data should be used (for performance testing)
+    // Set NEXT_PUBLIC_USE_MOCK_GRAPH_DATA=true in .env.local to enable
+    const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
+    // const useMockData = true;
+
+    if (useMockData) {
+      const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(
+        './mockGraphData'
+      );
+
+      // You can change the preset here for different test scenarios
+      // Options: small, medium, large, extraLarge, denseSmall
+      const mockData = generateMockGraphData(MOCK_GRAPH_PRESETS.large);
+
+      // Simulate network delay for realistic testing
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      return mockData;
+    }
+
+    return this.request<GetGraphDataResponse>('GET', '/api/graph/data');
   }
 }

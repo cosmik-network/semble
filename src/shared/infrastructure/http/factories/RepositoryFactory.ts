@@ -51,6 +51,9 @@ import { InMemorySyncStatusRepository } from '../../../../modules/sync/tests/inf
 import { IFollowsRepository } from '../../../../modules/user/domain/repositories/IFollowsRepository';
 import { DrizzleFollowsRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleFollowsRepository';
 import { InMemoryFollowsRepository } from '../../../../modules/user/tests/infrastructure/InMemoryFollowsRepository';
+import { IGraphQueryRepository } from '../../../../modules/cards/domain/IGraphQueryRepository';
+import { DrizzleGraphQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleGraphQueryRepository';
+import { InMemoryGraphQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryGraphQueryRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -61,6 +64,7 @@ export interface Repositories {
   collectionQueryRepository: ICollectionQueryRepository;
   connectionRepository: IConnectionRepository;
   connectionQueryRepository: IConnectionQueryRepository;
+  graphQueryRepository: IGraphQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
   followsRepository: IFollowsRepository;
@@ -93,6 +97,7 @@ export class RepositoryFactory {
       const connectionQueryRepository = new InMemoryConnectionQueryRepository(
         connectionRepository,
       );
+      const graphQueryRepository = InMemoryGraphQueryRepository.getInstance();
       const appPasswordSessionRepository =
         InMemoryAppPasswordSessionRepository.getInstance();
       const feedRepository = InMemoryFeedRepository.getInstance();
@@ -119,6 +124,7 @@ export class RepositoryFactory {
         collectionQueryRepository,
         connectionRepository,
         connectionQueryRepository,
+        graphQueryRepository,
         appPasswordSessionRepository,
         feedRepository,
         followsRepository,
@@ -146,6 +152,7 @@ export class RepositoryFactory {
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       connectionRepository: new DrizzleConnectionRepository(db),
       connectionQueryRepository: new DrizzleConnectionQueryRepository(db),
+      graphQueryRepository: new DrizzleGraphQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
       followsRepository: new DrizzleFollowsRepository(db),

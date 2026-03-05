@@ -6,6 +6,7 @@ import { createUserRoutes } from '../../../modules/user/infrastructure/http/rout
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
+import { createGraphRoutes } from '../../../modules/cards/infrastructure/http/routes/graphRoutes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
 import { createNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
@@ -141,6 +142,11 @@ export const createExpressApp = (
     controllers.getBackwardConnectionsForUrlController,
   );
 
+  const graphRouter = createGraphRoutes(
+    services.authMiddleware,
+    controllers.getGraphDataController,
+  );
+
   const feedRouter = createFeedRoutes(
     services.authMiddleware,
     controllers.getGlobalFeedController,
@@ -173,6 +179,7 @@ export const createExpressApp = (
   app.use('/atproto', atprotoRouter);
   app.use('/api', cardsRouter);
   app.use('/api/connections', connectionRouter);
+  app.use('/api/graph', graphRouter);
   app.use('/api/feeds', feedRouter);
   app.use('/api/search', searchRouter);
   app.use('/api/notifications', notificationRouter);

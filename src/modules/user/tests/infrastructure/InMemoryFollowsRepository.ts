@@ -202,6 +202,54 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getProfileFollowCounts(userId: string): Promise<
+    Result<{
+      followerCount: number;
+      followingCount: number;
+      followedCollectionsCount: number;
+    }>
+  > {
+    try {
+      let followerCount = 0;
+      let followingCount = 0;
+      let followedCollectionsCount = 0;
+
+      for (const follow of this.follows.values()) {
+        // Count followers (users who follow this user)
+        if (
+          follow.targetId === userId &&
+          follow.targetType.value === FollowTargetTypeEnum.USER
+        ) {
+          followerCount++;
+        }
+
+        // Count following (users this user follows)
+        if (
+          follow.followerId.value === userId &&
+          follow.targetType.value === FollowTargetTypeEnum.USER
+        ) {
+          followingCount++;
+        }
+
+        // Count followed collections
+        if (
+          follow.followerId.value === userId &&
+          follow.targetType.value === FollowTargetTypeEnum.COLLECTION
+        ) {
+          followedCollectionsCount++;
+        }
+      }
+
+      return ok({
+        followerCount,
+        followingCount,
+        followedCollectionsCount,
+      });
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.follows.clear();

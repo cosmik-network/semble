@@ -117,6 +117,8 @@ import type {
   // Search types
   SearchUrlsParams,
   SearchUrlsResponse,
+  // Graph types
+  GetGraphDataResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -514,6 +516,11 @@ export class ApiClient {
   // Search operations
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
     return this.queryClient.searchUrls(params);
+  }
+
+  // Graph operations
+  async getGraphData(): Promise<GetGraphDataResponse> {
+    return this.queryClient.getGraphData();
   }
 }
 

@@ -231,17 +231,7 @@ export class FollowTargetUseCase extends BaseUseCase<
         // Don't fail the operation
       }
 
-      // 12. Invalidate profile counts cache
-      // Invalidate follower's counts (followingCount increased)
-      if (this.profileService.invalidateCounts) {
-        await this.profileService.invalidateCounts(request.followerId);
-      }
-      // Invalidate target's counts (followerCount increased, only for USER targets)
-      if (targetType.value === 'USER' && this.profileService.invalidateCounts) {
-        await this.profileService.invalidateCounts(request.targetId);
-      }
-
-      // 13. Return success
+      // 12. Return success
       return ok({
         followId: follow.followId.toString(),
       });

@@ -452,4 +452,36 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
       return err(error);
     }
   }
+
+  async getProfileFollowCounts(userId: string): Promise<
+    Result<{
+      followerCount: number;
+      followingCount: number;
+      followedCollectionsCount: number;
+    }>
+  > {
+    try {
+      // Get all three counts in a single query using subqueries
+      const result = await this.db.execute(sql`
+        SELECT
+          (SELECT COUNT(*)::int FROM ${follows} WHERE ${follows.targetId} = ${userId} AND ${follows.targetType} = 'USER') as follower_count,
+          (SELECT COUNT(*)::int FROM ${follows} WHERE ${follows.followerId} = ${userId} AND ${follows.targetType} = 'USER') as following_count,
+          (SELECT COUNT(*)::int FROM ${follows} WHERE ${follows.followerId} = ${userId} AND ${follows.targetType} = 'COLLECTION') as followed_collections_count
+      `);
+
+      const row = result[0] as {
+        follower_count: number;
+        following_count: number;
+        followed_collections_count: number;
+      };
+
+      return ok({
+        followerCount: row.follower_count ?? 0,
+        followingCount: row.following_count ?? 0,
+        followedCollectionsCount: row.followed_collections_count ?? 0,
+      });
+    } catch (error: any) {
+      return err(error);
+    }
+  }
 }

@@ -10,6 +10,7 @@ interface FeatureFlags {
   openCollections: boolean;
   following: boolean;
   connections: boolean;
+  graphView: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {

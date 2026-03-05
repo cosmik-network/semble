@@ -146,4 +146,22 @@ export interface IFollowsRepository {
     targetIds: string[],
     targetType: FollowTargetType,
   ): Promise<Result<Map<string, boolean>>>;
+
+  /**
+   * Get all follow counts for a user profile in a single query.
+   *
+   * @param userId - DID of the user
+   * @returns Object with followerCount, followingCount, and followedCollectionsCount
+   *
+   * Example:
+   *   getProfileFollowCounts('did:plc:alice123')
+   *   → { followerCount: 150, followingCount: 45, followedCollectionsCount: 12 }
+   */
+  getProfileFollowCounts(userId: string): Promise<
+    Result<{
+      followerCount: number;
+      followingCount: number;
+      followedCollectionsCount: number;
+    }>
+  >;
 }

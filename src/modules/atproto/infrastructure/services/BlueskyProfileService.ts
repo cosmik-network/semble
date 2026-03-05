@@ -6,14 +6,9 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
-import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
-import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 
 export class BlueskyProfileService implements IProfileService {
-  constructor(
-    private readonly agentService: IAgentService,
-    private readonly followsRepository: IFollowsRepository,
-  ) {}
+  constructor(private readonly agentService: IAgentService) {}
 
   async getProfile(
     userId: string,
@@ -82,67 +77,7 @@ export class BlueskyProfileService implements IProfileService {
         bio: profile.description,
       };
 
-      // Fetch follower/following counts in parallel
-      const [
-        followerCountResult,
-        followingCountResult,
-        collectionsCountResult,
-      ] = await Promise.all([
-        this.followsRepository.getFollowersCount(userId, FollowTargetType.USER),
-        this.followsRepository.getFollowingCount(userId, FollowTargetType.USER),
-        this.followsRepository.getFollowingCount(
-          userId,
-          FollowTargetType.COLLECTION,
-        ),
-      ]);
-
-      // Add counts to profile (default to 0 on error)
-      const followerCount = followerCountResult.isOk()
-        ? followerCountResult.value
-        : 0;
-      const followingCount = followingCountResult.isOk()
-        ? followingCountResult.value
-        : 0;
-      const followedCollectionsCount = collectionsCountResult.isOk()
-        ? collectionsCountResult.value
-        : 0;
-
-      // Add follow status if callerId is provided
-      let isFollowing: boolean | undefined = undefined;
-      let followsYou: boolean | undefined = undefined;
-      if (callerDid && callerDid !== userId) {
-        const followResult =
-          await this.followsRepository.findByFollowerAndTarget(
-            callerDid,
-            userId,
-            FollowTargetType.USER,
-          );
-
-        if (followResult.isOk()) {
-          isFollowing = followResult.value !== null;
-        }
-
-        // Check if the profile user follows the caller
-        const followsYouResult =
-          await this.followsRepository.findByFollowerAndTarget(
-            userId,
-            callerDid,
-            FollowTargetType.USER,
-          );
-
-        if (followsYouResult.isOk()) {
-          followsYou = followsYouResult.value !== null;
-        }
-      }
-
-      return ok({
-        ...userProfile,
-        isFollowing,
-        followsYou,
-        followerCount,
-        followingCount,
-        followedCollectionsCount,
-      });
+      return ok(userProfile);
     } catch (error) {
       return err(
         new Error(

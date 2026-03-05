@@ -1,0 +1,297 @@
+'use client';
+
+import { useState, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import { Box, LoadingOverlay } from '@mantine/core';
+import useGraphData from '../../lib/queries/useGraphData';
+import type {
+  ExtendedGraphNode,
+  ExtendedGraphEdge,
+  PopupPosition,
+} from '../../types';
+import {
+  getNodeColor,
+  getNodeSecondaryColor,
+  NODE_SIZE,
+} from '../../lib/utils/nodeStyles';
+import {
+  PHYSICS_CONFIG,
+  VISUAL_CONFIG,
+  INTERACTION_CONFIG,
+} from '../../lib/utils/graphConfig';
+import NodePopupPreview from '../nodePopups/NodePopupPreview';
+import NodePopupDetail from '../nodePopups/NodePopupDetail';
+import { useRouter } from 'next/navigation';
+import styles from './GraphView.module.css';
+
+// Dynamically import ForceGraph2D to avoid SSR issues
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
+  ssr: false,
+  loading: () => (
+    <Box pos="relative" h="100vh" w="100%">
+      <LoadingOverlay visible />
+    </Box>
+  ),
+});
+
+export default function GraphView() {
+  const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const graphRef = useRef<any>(undefined);
+
+  // State for dual popup system
+  const [hoverNode, setHoverNode] = useState<ExtendedGraphNode | null>(null);
+  const [pinnedNode, setPinnedNode] = useState<ExtendedGraphNode | null>(null);
+  const [previewPos, setPreviewPos] = useState<PopupPosition>({ x: 0, y: 0 });
+  const [detailPos, setDetailPos] = useState<PopupPosition>({ x: 0, y: 0 });
+
+  // Fetch and process graph data
+  const { data: graphData } = useGraphData();
+
+  // Handle node hover (preview popup)
+  const handleNodeHover = useCallback(
+    (node: any) => {
+      const typedNode = node as ExtendedGraphNode | null;
+      if (
+        typedNode &&
+        !pinnedNode &&
+        typedNode.x !== undefined &&
+        typedNode.y !== undefined
+      ) {
+        setHoverNode(typedNode);
+        // Calculate screen coordinates for the node
+        if (graphRef.current) {
+          const screenPos = graphRef.current.graph2ScreenCoords(
+            typedNode.x,
+            typedNode.y,
+          );
+          setPreviewPos({ x: screenPos.x + 15, y: screenPos.y - 10 });
+        }
+      } else if (!pinnedNode) {
+        setHoverNode(null);
+      }
+    },
+    [pinnedNode],
+  );
+
+  // Handle node click (detail popup)
+  const handleNodeClick = useCallback((node: any) => {
+    const typedNode = node as ExtendedGraphNode;
+    setPinnedNode(typedNode);
+    setHoverNode(null); // Hide preview when pinning detail
+
+    // Convert graph coordinates to screen coordinates
+    if (
+      graphRef.current &&
+      typedNode.x !== undefined &&
+      typedNode.y !== undefined
+    ) {
+      const screenPos = graphRef.current.graph2ScreenCoords(
+        typedNode.x,
+        typedNode.y,
+      );
+      // Offset to the right of the node
+      setDetailPos({ x: screenPos.x + 20, y: screenPos.y });
+    }
+  }, []);
+
+  // Handle background click (close detail popup)
+  const handleBackgroundClick = useCallback(() => {
+    setPinnedNode(null);
+  }, []);
+
+  // Update detail popup position during zoom/pan
+  const handleZoomPan = useCallback(() => {
+    if (
+      pinnedNode &&
+      graphRef.current &&
+      pinnedNode.x !== undefined &&
+      pinnedNode.y !== undefined
+    ) {
+      const screenPos = graphRef.current.graph2ScreenCoords(
+        pinnedNode.x,
+        pinnedNode.y,
+      );
+      setDetailPos({ x: screenPos.x + 20, y: screenPos.y });
+    }
+  }, [pinnedNode]);
+
+  // Handle navigation from popups
+  const handleNavigate = useCallback(
+    (nodeId: string) => {
+      const node = graphData?.nodes.find((n) => n.id === nodeId);
+      if (!node) return;
+
+      let route: string;
+      switch (node.type) {
+        case 'USER':
+          route = `/profile/${node.metadata.handle}`;
+          break;
+        case 'COLLECTION':
+          route = `/collections/${node.metadata.handle}/${node.metadata.rkey}`;
+          break;
+        case 'URL':
+          route = `/url?id=${encodeURIComponent(node.metadata.url)}`;
+          break;
+        case 'NOTE':
+          route = `/url?id=${encodeURIComponent(node.metadata.parentUrl)}`;
+          break;
+        default:
+          return;
+      }
+
+      router.push(route);
+    },
+    [graphData, router],
+  );
+
+  // Close detail popup
+  const handleCloseDetail = useCallback(() => {
+    setPinnedNode(null);
+  }, []);
+
+  // Custom node canvas renderer
+  const nodeCanvasObject = useCallback(
+    (nodeData: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const node = nodeData as ExtendedGraphNode;
+      if (node.x === undefined || node.y === undefined) return;
+
+      const size =
+        (node.val || NODE_SIZE.DEFAULT) * (1 / Math.sqrt(globalScale));
+      const isSelected = node === pinnedNode || node === hoverNode;
+
+      // Create gradient for node fill
+      const gradient = ctx.createRadialGradient(
+        node.x,
+        node.y,
+        0,
+        node.x,
+        node.y,
+        size * 1.5,
+      );
+      const primaryColor = getNodeColor(node.type);
+      const secondaryColor = getNodeSecondaryColor(node.type);
+      gradient.addColorStop(0, primaryColor);
+      gradient.addColorStop(
+        1,
+        isSelected ? VISUAL_CONFIG.node.shadowColor : secondaryColor,
+      );
+
+      // Draw node circle
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Add glow effect for selected nodes
+      if (isSelected) {
+        ctx.shadowColor = VISUAL_CONFIG.node.shadowColor;
+        ctx.shadowBlur = VISUAL_CONFIG.node.shadowBlurSelected;
+      }
+
+      // Draw border
+      ctx.strokeStyle = VISUAL_CONFIG.node.borderColor;
+      ctx.lineWidth = isSelected
+        ? VISUAL_CONFIG.node.borderWidthSelected
+        : VISUAL_CONFIG.node.borderWidth;
+      ctx.stroke();
+
+      // Reset shadow
+      ctx.shadowBlur = VISUAL_CONFIG.node.shadowBlur;
+
+      // Draw label (only when zoomed in or for highly connected nodes)
+      const shouldShowLabel =
+        globalScale > VISUAL_CONFIG.label.minZoomToShow ||
+        (node.connectionCount &&
+          node.connectionCount >=
+            VISUAL_CONFIG.label.minConnectionsToAlwaysShow);
+
+      if (shouldShowLabel) {
+        ctx.font = `${VISUAL_CONFIG.label.fontSize / globalScale}px ${VISUAL_CONFIG.label.fontFamily}`;
+        ctx.fillStyle = VISUAL_CONFIG.label.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.label, node.x, node.y + size + 10 / globalScale);
+      }
+
+      // Draw connection count badge for highly connected nodes
+      if (node.connectionCount && node.connectionCount >= 5) {
+        const badgeSize = 4 / globalScale;
+        ctx.beginPath();
+        ctx.arc(node.x + size, node.y - size, badgeSize, 0, 2 * Math.PI);
+        ctx.fillStyle = VISUAL_CONFIG.node.shadowColor;
+        ctx.fill();
+      }
+    },
+    [pinnedNode, hoverNode],
+  );
+
+  // Custom node pointer area for better hit detection
+  const nodePointerAreaPaint = useCallback(
+    (nodeData: any, color: string, ctx: CanvasRenderingContext2D) => {
+      const node = nodeData as ExtendedGraphNode;
+      if (node.x === undefined || node.y === undefined) return;
+
+      const size =
+        (node.val || NODE_SIZE.DEFAULT) * INTERACTION_CONFIG.hitAreaMultiplier;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+      ctx.fill();
+    },
+    [],
+  );
+
+  if (!graphData) {
+    return (
+      <Box pos="relative" h="100vh" w="100%">
+        <LoadingOverlay visible />
+      </Box>
+    );
+  }
+
+  return (
+    <Box pos="relative" h="calc(100vh - 60px)" w="100%" className={styles.root}>
+      <ForceGraph2D
+        ref={graphRef}
+        graphData={graphData}
+        nodeCanvasObject={nodeCanvasObject}
+        nodePointerAreaPaint={nodePointerAreaPaint}
+        onNodeHover={handleNodeHover}
+        onNodeClick={handleNodeClick}
+        onBackgroundClick={handleBackgroundClick}
+        onZoom={handleZoomPan}
+        onEngineTick={handleZoomPan}
+        backgroundColor={VISUAL_CONFIG.backgroundColor}
+        linkColor={() => VISUAL_CONFIG.link.color}
+        linkWidth={() => VISUAL_CONFIG.link.width}
+        linkDirectionalArrowLength={VISUAL_CONFIG.arrow.length}
+        linkDirectionalArrowRelPos={VISUAL_CONFIG.arrow.relativePosition}
+        warmupTicks={PHYSICS_CONFIG.warmupTicks}
+        cooldownTicks={PHYSICS_CONFIG.cooldownTicks}
+        d3AlphaDecay={PHYSICS_CONFIG.d3AlphaDecay}
+        d3VelocityDecay={PHYSICS_CONFIG.d3VelocityDecay}
+        enableNodeDrag={INTERACTION_CONFIG.enableNodeDrag}
+        enableZoomInteraction={INTERACTION_CONFIG.enableZoom}
+        enablePanInteraction={INTERACTION_CONFIG.enablePan}
+        minZoom={INTERACTION_CONFIG.minZoom}
+        maxZoom={INTERACTION_CONFIG.maxZoom}
+      />
+
+      {/* Hover preview popup */}
+      {hoverNode && !pinnedNode && (
+        <NodePopupPreview node={hoverNode} position={previewPos} />
+      )}
+
+      {/* Click detail popup */}
+      {pinnedNode && (
+        <NodePopupDetail
+          node={pinnedNode}
+          position={detailPos}
+          onClose={handleCloseDetail}
+          onNavigate={handleNavigate}
+        />
+      )}
+    </Box>
+  );
+}

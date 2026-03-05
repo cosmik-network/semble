@@ -1,0 +1,12 @@
+.root {
+  cursor: grab;
+  user-select: none;
+}
+
+.root:active {
+  cursor: grabbing;
+}
+
+.root canvas {
+  display: block;
+}
