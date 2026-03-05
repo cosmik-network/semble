@@ -23,7 +23,7 @@ export default function AddConnectionDrawer(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       withCloseButton={false}
-      size={'37rem'}
+      size={'30.5rem'}
       padding={'sm'}
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}

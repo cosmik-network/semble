@@ -14,6 +14,7 @@ import {
   Stack,
   Text,
   Textarea,
+  ThemeIcon,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
@@ -292,7 +293,7 @@ export default function AddConnectionForm(props: Props) {
             variant="dashed"
             orientation="vertical"
             size={'sm'}
-            h={30}
+            h={25}
             mx={'auto'}
           />
 
@@ -301,7 +302,7 @@ export default function AddConnectionForm(props: Props) {
               shadow="sm"
               radius="md"
               store={typeCombobox}
-              position="bottom-start"
+              position="bottom"
               width={320}
               onOptionSubmit={(value) => {
                 form.setFieldValue('connectionType', value);
@@ -311,7 +312,7 @@ export default function AddConnectionForm(props: Props) {
               <Combobox.Target>
                 <Button
                   variant="light"
-                  color="grape"
+                  color="teal"
                   size="sm"
                   onClick={() => typeCombobox.toggleDropdown()}
                   leftSection={
@@ -369,7 +370,7 @@ export default function AddConnectionForm(props: Props) {
             variant="dashed"
             orientation="vertical"
             size={'sm'}
-            h={30}
+            h={25}
             mx={'auto'}
           />
 
@@ -391,7 +392,7 @@ export default function AddConnectionForm(props: Props) {
                     id="targetUrl"
                     component="input"
                     type="url"
-                    placeholder="Search for cards or add URL"
+                    placeholder="Search cards or add a URL"
                     value={inputValue}
                     onChange={(e) => {
                       const val = e.currentTarget.value;
@@ -402,8 +403,8 @@ export default function AddConnectionForm(props: Props) {
                     onFocus={() => !isEditMode && urlCombobox.openDropdown()}
                     onBlur={() => urlCombobox.closeDropdown()}
                     rightSection={isFetching && <Loader size={18} />}
-                    variant="filled"
-                    size="md"
+                    variant="unstyled"
+                    size="xs"
                     required
                     disabled={isEditMode}
                     styles={{
@@ -416,7 +417,11 @@ export default function AddConnectionForm(props: Props) {
 
                 <Combobox.Dropdown hidden={debounced.trim().length === 0}>
                   <Combobox.Options>
-                    <ScrollArea.Autosize type="scroll" mah={300}>
+                    <ScrollArea.Autosize
+                      type="scroll"
+                      mah={300}
+                      offsetScrollbars
+                    >
                       {isFetching && (
                         <Combobox.Empty>Searching...</Combobox.Empty>
                       )}
@@ -425,20 +430,20 @@ export default function AddConnectionForm(props: Props) {
                           Could not search for URLs
                         </Combobox.Empty>
                       )}
-                      {options.length > 0 && <>{options}</>}
-                      {empty && <Combobox.Empty>No cards found</Combobox.Empty>}
                       {!isFetching && !error && (
                         <>
                           <Combobox.Option value={inputValue}>
-                            <Group
-                              gap="xs"
-                              wrap="nowrap"
-                              justify="center"
-                              p={0}
-                            >
-                              <BiPlus size={18} />
+                            <Group gap="xs" wrap="nowrap" p={0}>
+                              <ThemeIcon
+                                radius={'xl'}
+                                size={'sm'}
+                                variant="light"
+                                color="gray"
+                              >
+                                <BiPlus />
+                              </ThemeIcon>
                               <Stack gap={0} style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>
+                                <Text size="sm" fw={600}>
                                   Add this URL
                                 </Text>
                                 <Text size="xs" c="dimmed" lineClamp={1}>
@@ -447,8 +452,18 @@ export default function AddConnectionForm(props: Props) {
                               </Stack>
                             </Group>
                           </Combobox.Option>
+                          {options.length > 0 && (
+                            <Divider
+                              my={0}
+                              label="or choose a card"
+                              labelPosition="center"
+                              variant="dashed"
+                            />
+                          )}
                         </>
                       )}
+                      {options.length > 0 && <>{options}</>}
+                      {empty && <Combobox.Empty>No cards found</Combobox.Empty>}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
                 </Combobox.Dropdown>
