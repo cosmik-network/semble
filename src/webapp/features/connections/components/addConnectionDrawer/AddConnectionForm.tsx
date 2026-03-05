@@ -289,13 +289,7 @@ export default function AddConnectionForm(props: Props) {
             </VisuallyHidden>
           </Stack>
 
-          <Divider
-            variant="dashed"
-            orientation="vertical"
-            size={'sm'}
-            h={25}
-            mx={'auto'}
-          />
+          <Divider orientation="vertical" size={'sm'} h={25} mx={'auto'} />
 
           <Stack gap={'md'} align="center">
             <Combobox
@@ -331,7 +325,7 @@ export default function AddConnectionForm(props: Props) {
                     ? CONNECTION_TYPES.find(
                         (t) => t.value === form.values.connectionType,
                       )?.label
-                    : 'Select relation'}
+                    : 'Select a relation'}
                 </Button>
               </Combobox.Target>
 
