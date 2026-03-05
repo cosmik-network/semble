@@ -24,7 +24,7 @@ export default function AddConnectionModal(props: Props) {
       onClose={props.onClose}
       title={isEditMode ? 'Edit Connection' : 'New Connection'}
       overlayProps={DEFAULT_OVERLAY_PROPS}
-      size="lg"
+      size="md"
       centered
       onClick={(e) => e.stopPropagation()}
     >

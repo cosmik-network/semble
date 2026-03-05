@@ -306,7 +306,7 @@ export default function AddConnectionForm(props: Props) {
               <Combobox.Target>
                 <Button
                   variant="light"
-                  color="teal"
+                  color="pink"
                   size="sm"
                   onClick={() => typeCombobox.toggleDropdown()}
                   leftSection={
@@ -355,7 +355,7 @@ export default function AddConnectionForm(props: Props) {
                           p={8}
                           bg={
                             isSelected
-                              ? 'var(--mantine-color-teal-light)'
+                              ? 'var(--mantine-color-pink-light)'
                               : undefined
                           }
                         >
@@ -476,7 +476,7 @@ export default function AddConnectionForm(props: Props) {
                         </>
                       )}
                       {options.length > 0 && <>{options}</>}
-                      {empty && <Combobox.Empty>No cards found</Combobox.Empty>}
+                      {/*{empty && <Combobox.Empty>No cards found</Combobox.Empty>}*/}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
                 </Combobox.Dropdown>

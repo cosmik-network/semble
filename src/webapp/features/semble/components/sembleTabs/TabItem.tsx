@@ -1,4 +1,4 @@
-import { TabsTab } from '@mantine/core';
+import { Badge, TabsTab } from '@mantine/core';
 import classes from './TabItem.module.css';
 import { track } from '@vercel/analytics';
 import posthog from 'posthog-js';
@@ -18,6 +18,13 @@ export default function TabItem(props: Props) {
         track(`Semble: ${props.value} tab`);
         posthog.capture(`Semble: ${props.value} tab`);
       }}
+      rightSection={
+        props.value === 'connections' ? (
+          <Badge variant="light" color="gray" circle>
+            1
+          </Badge>
+        ) : undefined
+      }
     >
       {props.children}
     </TabsTab>

@@ -13,6 +13,7 @@ import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { LuGitCompareArrows } from 'react-icons/lu';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   url: string;
@@ -24,6 +25,7 @@ export default function SembleActions(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   const { data } = useSembleLibraries({ url: props.url });
   const allLibraries =
@@ -68,7 +70,16 @@ export default function SembleActions(props: Props) {
             </Tooltip>
           )}
         </CopyButton>
-        <ActionIcon variant="light" color="teal" size={'xl'} radius={'xl'}>
+        <ActionIcon
+          variant="light"
+          color="pink"
+          size={'xl'}
+          radius={'xl'}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAddConnectionModal(true);
+          }}
+        >
           <LuGitCompareArrows size={22} />
         </ActionIcon>
         <Button
@@ -87,6 +98,12 @@ export default function SembleActions(props: Props) {
           {isInYourLibrary ? 'Update card' : 'Add to library'}
         </Button>
       </Group>
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={props.url}
+      />
 
       <AddCardToModal
         isOpen={showAddToModal}
