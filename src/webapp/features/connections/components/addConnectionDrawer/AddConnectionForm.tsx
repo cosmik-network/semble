@@ -3,7 +3,9 @@
 import {
   Button,
   Card,
+  Center,
   Combobox,
+  Divider,
   Group,
   Image,
   Input,
@@ -12,7 +14,6 @@ import {
   Stack,
   Text,
   Textarea,
-  Timeline,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
@@ -24,7 +25,6 @@ import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
-import { IoMdLink } from 'react-icons/io';
 import { ConnectionForUrl } from '@semble/types';
 import {
   BiSupport,
@@ -34,19 +34,18 @@ import {
   BiRightArrowAlt,
   BiLink,
   BiBookContent,
-  BiInfoCircle,
+  BiPlus,
 } from 'react-icons/bi';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
-import { TbArrowsExchange2 } from 'react-icons/tb';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   onClose: () => void;
-  targetUrl: string;
+  sourceUrl: string;
   connectionToEdit?: {
     connection: ConnectionForUrl['connection'];
-    sourceUrl: string;
+    targetUrl: string;
   };
 }
 
@@ -115,7 +114,7 @@ export default function AddConnectionForm(props: Props) {
   });
 
   const [inputValue, setInputValue] = useState(
-    props.connectionToEdit?.sourceUrl || '',
+    props.connectionToEdit?.targetUrl || '',
   );
   const [debounced] = useDebouncedValue(inputValue, 200);
 
@@ -133,13 +132,13 @@ export default function AddConnectionForm(props: Props) {
     enabled: debounced.trim().length > 0,
   });
 
-  const { data: targetUrlMetadata } = useQuery({
-    queryKey: ['url metadata', props.targetUrl],
+  const { data: sourceUrlMetadata } = useQuery({
+    queryKey: ['url metadata', props.sourceUrl],
     queryFn: async () => {
       const client = createSembleClient();
-      return client.getUrlMetadata(props.targetUrl);
+      return client.getUrlMetadata(props.sourceUrl);
     },
-    enabled: !!props.targetUrl,
+    enabled: !!props.sourceUrl,
   });
 
   const urls = searchResults?.urls ?? [];
@@ -148,8 +147,8 @@ export default function AddConnectionForm(props: Props) {
 
   const form = useForm({
     initialValues: {
-      sourceUrl: props.connectionToEdit?.sourceUrl || '',
-      targetUrl: props.targetUrl,
+      sourceUrl: props.sourceUrl,
+      targetUrl: props.connectionToEdit?.targetUrl || '',
       connectionType: props.connectionToEdit?.connection.type || '',
       note: props.connectionToEdit?.connection.note || '',
     },
@@ -234,28 +233,23 @@ export default function AddConnectionForm(props: Props) {
 
   const options = urls.map((urlView) => (
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} wrap="nowrap" align="flex-start">
+      <Group gap={'xs'} align="center">
         {urlView.metadata.imageUrl && (
           <Image
             src={urlView.metadata.imageUrl}
             alt={urlView.metadata.title || 'URL thumbnail'}
-            w={60}
-            h={60}
+            w={35}
+            h={35}
             radius="sm"
             fit="cover"
           />
         )}
-        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap={0}>
           <Text fw={500} c={'bright'} lineClamp={1} size="sm">
             {urlView.metadata.title || urlView.url}
           </Text>
-          {urlView.metadata.description && (
-            <Text c={'dimmed'} lineClamp={2} size="xs">
-              {urlView.metadata.description}
-            </Text>
-          )}
           <Text c={'gray'} lineClamp={1} size="xs">
-            {urlView.url}
+            {getDomain(urlView.url)}
           </Text>
         </Stack>
       </Group>
@@ -264,40 +258,145 @@ export default function AddConnectionForm(props: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Stack gap={'xl'}>
-        <Timeline active={1} bulletSize={22} lineWidth={2} color="gray">
-          <Timeline.Item
-            lineVariant="dashed"
-            bullet={
-              <Text fw={700} fz={'xs'}>
-                1
-              </Text>
-            }
-            title="From"
-          >
-            <Stack gap={4} mt={4}>
+      <Stack gap={'lg'}>
+        <Stack gap={0}>
+          <Stack gap={0}>
+            <Card padding="xs" radius="md" withBorder>
+              <Group gap="xs">
+                {sourceUrlMetadata?.metadata?.imageUrl && (
+                  <Image
+                    src={sourceUrlMetadata.metadata.imageUrl}
+                    alt={sourceUrlMetadata.metadata.title || 'URL thumbnail'}
+                    w={35}
+                    h={35}
+                    radius="sm"
+                    fit="cover"
+                  />
+                )}
+                <Stack gap={0}>
+                  <Text fw={600} size="sm" lineClamp={2}>
+                    {sourceUrlMetadata?.metadata?.title || props.sourceUrl}
+                  </Text>
+                  <Text size="xs" c="dimmed" lineClamp={1}>
+                    {getDomain(props.sourceUrl)}
+                  </Text>
+                </Stack>
+              </Group>
+            </Card>
+            <VisuallyHidden>
+              <Input.Label htmlFor="sourceUrl">From</Input.Label>
+            </VisuallyHidden>
+          </Stack>
+
+          <Divider
+            variant="dashed"
+            orientation="vertical"
+            size={'sm'}
+            h={30}
+            mx={'auto'}
+          />
+
+          <Stack gap={'md'} align="center">
+            <Combobox
+              shadow="sm"
+              radius="md"
+              store={typeCombobox}
+              position="bottom-start"
+              width={320}
+              onOptionSubmit={(value) => {
+                form.setFieldValue('connectionType', value);
+                typeCombobox.closeDropdown();
+              }}
+            >
+              <Combobox.Target>
+                <Button
+                  variant="light"
+                  color="grape"
+                  size="sm"
+                  onClick={() => typeCombobox.toggleDropdown()}
+                  leftSection={
+                    form.values.connectionType
+                      ? (() => {
+                          const selectedType = CONNECTION_TYPES.find(
+                            (t) => t.value === form.values.connectionType,
+                          );
+                          const Icon = selectedType?.icon;
+                          return Icon ? <Icon size={16} /> : null;
+                        })()
+                      : null
+                  }
+                >
+                  {form.values.connectionType
+                    ? CONNECTION_TYPES.find(
+                        (t) => t.value === form.values.connectionType,
+                      )?.label
+                    : 'Select relation'}
+                </Button>
+              </Combobox.Target>
+
+              <Combobox.Dropdown>
+                <Combobox.Options>
+                  <ScrollArea.Autosize type="scroll" mah={300}>
+                    {CONNECTION_TYPES.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <Combobox.Option
+                          key={type.value}
+                          value={type.value}
+                          p={8}
+                        >
+                          <Group gap="sm" wrap="nowrap">
+                            {Icon && <Icon size={20} />}
+                            <Stack gap={0} style={{ flex: 1 }}>
+                              <Text size="sm" fw={500}>
+                                {type.label}
+                              </Text>
+                              <Text size="xs" c="dimmed">
+                                {type.description}
+                              </Text>
+                            </Stack>
+                          </Group>
+                        </Combobox.Option>
+                      );
+                    })}
+                  </ScrollArea.Autosize>
+                </Combobox.Options>
+              </Combobox.Dropdown>
+            </Combobox>
+          </Stack>
+
+          <Divider
+            variant="dashed"
+            orientation="vertical"
+            size={'sm'}
+            h={30}
+            mx={'auto'}
+          />
+
+          <Card padding="xs" radius="md" withBorder>
+            <Stack gap={0}>
               <Combobox
                 shadow="sm"
                 radius={'md'}
                 store={urlCombobox}
                 position="bottom-start"
                 onOptionSubmit={(url) => {
-                  form.setFieldValue('sourceUrl', url);
+                  form.setFieldValue('targetUrl', url);
                   setInputValue(url);
                   urlCombobox.closeDropdown();
                 }}
               >
                 <Combobox.Target>
                   <Input
-                    id="sourceUrl"
+                    id="targetUrl"
                     component="input"
                     type="url"
-                    placeholder="https://www.example.com or start typing to search"
+                    placeholder="Search for cards or add URL"
                     value={inputValue}
                     onChange={(e) => {
                       const val = e.currentTarget.value;
                       setInputValue(val);
-                      form.setFieldValue('sourceUrl', val);
+                      form.setFieldValue('targetUrl', val);
                       urlCombobox.openDropdown();
                     }}
                     onFocus={() => !isEditMode && urlCombobox.openDropdown()}
@@ -326,125 +425,33 @@ export default function AddConnectionForm(props: Props) {
                           Could not search for URLs
                         </Combobox.Empty>
                       )}
-                      {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
+                      {empty && (
+                        <Combobox.Option value={inputValue} p={12}>
+                          <Group gap="sm" wrap="nowrap" justify="center">
+                            <BiPlus size={18} />
+                            <Stack gap={0} style={{ flex: 1 }}>
+                              <Text size="sm" fw={500}>
+                                Add this URL
+                              </Text>
+                              <Text size="xs" c="dimmed" lineClamp={1}>
+                                {inputValue}
+                              </Text>
+                            </Stack>
+                          </Group>
+                        </Combobox.Option>
+                      )}
                       {options.length > 0 && options}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
                 </Combobox.Dropdown>
               </Combobox>
               <VisuallyHidden>
-                <Input.Label htmlFor="sourceUrl" required>
-                  From
+                <Input.Label htmlFor="targetUrl" required>
+                  To
                 </Input.Label>
               </VisuallyHidden>
             </Stack>
-          </Timeline.Item>
-
-          <Timeline.Item
-            bullet={
-              <Text fw={700} fz={'xs'}>
-                2
-              </Text>
-            }
-            title="To"
-          >
-            <Stack gap={4} mt={4}>
-              <Card padding="xs" radius="md" withBorder>
-                <Group gap="xs" wrap="nowrap" align="flex-start">
-                  {targetUrlMetadata?.metadata?.imageUrl && (
-                    <Image
-                      src={targetUrlMetadata.metadata.imageUrl}
-                      alt={targetUrlMetadata.metadata.title || 'URL thumbnail'}
-                      w={40}
-                      h={40}
-                      radius="sm"
-                      fit="cover"
-                    />
-                  )}
-                  <Stack gap={0}>
-                    <Text fw={600} size="sm" lineClamp={2}>
-                      {targetUrlMetadata?.metadata?.title || props.targetUrl}
-                    </Text>
-                    <Text size="xs" c="dimmed" lineClamp={1}>
-                      {getDomain(props.targetUrl)}
-                    </Text>
-                  </Stack>
-                </Group>
-              </Card>
-              <VisuallyHidden>
-                <Input.Label htmlFor="targetUrl">To</Input.Label>
-              </VisuallyHidden>
-            </Stack>
-          </Timeline.Item>
-        </Timeline>
-
-        <Stack gap={4}>
-          <Input.Label size="md" htmlFor="connectionType">
-            Connection Type
-          </Input.Label>
-          <Combobox
-            shadow="sm"
-            radius="md"
-            store={typeCombobox}
-            position="bottom-start"
-            onOptionSubmit={(value) => {
-              form.setFieldValue('connectionType', value);
-              typeCombobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <Input
-                id="connectionType"
-                component="button"
-                type="button"
-                pointer
-                rightSection={<Combobox.Chevron />}
-                onClick={() => typeCombobox.toggleDropdown()}
-                variant="filled"
-                size="md"
-              >
-                {form.values.connectionType ? (
-                  (() => {
-                    const selectedType = CONNECTION_TYPES.find(
-                      (t) => t.value === form.values.connectionType,
-                    );
-                    const Icon = selectedType?.icon;
-                    return (
-                      <Group gap="xs">
-                        {Icon && <Icon size={18} />}
-                        <Text>{selectedType?.label}</Text>
-                      </Group>
-                    );
-                  })()
-                ) : (
-                  <Text c="dimmed">Select connection type</Text>
-                )}
-              </Input>
-            </Combobox.Target>
-
-            <Combobox.Dropdown>
-              <Combobox.Options>
-                {CONNECTION_TYPES.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <Combobox.Option key={type.value} value={type.value} p={8}>
-                      <Group gap="sm" wrap="nowrap">
-                        {Icon && <Icon size={20} />}
-                        <Stack gap={0} style={{ flex: 1 }}>
-                          <Text size="sm" fw={500}>
-                            {type.label}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {type.description}
-                          </Text>
-                        </Stack>
-                      </Group>
-                    </Combobox.Option>
-                  );
-                })}
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+          </Card>
         </Stack>
 
         <Stack gap={0}>
