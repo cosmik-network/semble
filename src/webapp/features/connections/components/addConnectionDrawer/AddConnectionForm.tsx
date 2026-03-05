@@ -433,7 +433,7 @@ export default function AddConnectionForm(props: Props) {
                     <ScrollArea.Autosize
                       type="scroll"
                       mah={300}
-                      offsetScrollbars
+                      offsetScrollbars={'y'}
                     >
                       {isFetching && (
                         <Combobox.Empty>Searching...</Combobox.Empty>
@@ -562,7 +562,7 @@ export default function AddConnectionForm(props: Props) {
                 : createConnection.isPending
             }
           >
-            {isEditMode ? 'Update connection' : 'Create connection'}
+            {isEditMode ? 'Update' : 'Create'}
           </Button>
         </Group>
       </Stack>

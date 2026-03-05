@@ -117,7 +117,7 @@ export default function SembleConnectionsContainer(props: Props) {
             onClick={handleOpenCreateDrawer}
             size="sm"
           >
-            Add connection
+            Add
           </Button>
         </Group>
 

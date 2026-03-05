@@ -16,6 +16,8 @@ import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCard
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { MdIosShare, MdOutlineStickyNote2 } from 'react-icons/md';
 import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { BiLink } from 'react-icons/bi';
 import { useAuth } from '@/hooks/useAuth';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
@@ -65,6 +67,7 @@ export default function UrlCardActions(props: Props) {
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
   const [showAddToModal, setShowAddToModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   if (!isAuthenticated) {
     return null;
@@ -92,6 +95,19 @@ export default function UrlCardActions(props: Props) {
             }}
           >
             {props.urlLibraryCount}
+          </Button>
+          <Button
+            variant="light"
+            color={'gray'}
+            size="xs"
+            radius={'xl'}
+            leftSection={<BiLink size={18} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAddConnectionModal(true);
+            }}
+          >
+            0
           </Button>
           {props.note && (
             <ActionIcon
@@ -219,6 +235,12 @@ export default function UrlCardActions(props: Props) {
         isOpen={showRemoveFromLibaryModal}
         onClose={() => setShowRemoveFromLibraryModal(false)}
         cardId={props.id}
+      />
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={props.cardContent.url}
       />
     </Fragment>
   );
