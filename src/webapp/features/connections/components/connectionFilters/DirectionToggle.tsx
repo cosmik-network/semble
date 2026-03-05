@@ -19,8 +19,8 @@ export default function DirectionToggle(props: Props) {
       value={props.value}
       onChange={handleChange}
       data={[
-        { label: 'Outgoing', value: 'outgoing' },
-        { label: 'Incoming', value: 'incoming' },
+        { label: 'To', value: 'outgoing' },
+        { label: 'From', value: 'incoming' },
       ]}
     />
   );
