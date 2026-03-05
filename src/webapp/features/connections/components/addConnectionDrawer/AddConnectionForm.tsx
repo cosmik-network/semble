@@ -43,10 +43,10 @@ import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   onClose: () => void;
-  sourceUrl: string;
+  targetUrl: string;
   connectionToEdit?: {
     connection: ConnectionForUrl['connection'];
-    targetUrl: string;
+    sourceUrl: string;
   };
 }
 
@@ -115,7 +115,7 @@ export default function AddConnectionForm(props: Props) {
   });
 
   const [inputValue, setInputValue] = useState(
-    props.connectionToEdit?.targetUrl || '',
+    props.connectionToEdit?.sourceUrl || '',
   );
   const [debounced] = useDebouncedValue(inputValue, 200);
 
@@ -133,13 +133,13 @@ export default function AddConnectionForm(props: Props) {
     enabled: debounced.trim().length > 0,
   });
 
-  const { data: sourceUrlMetadata } = useQuery({
-    queryKey: ['url metadata', props.sourceUrl],
+  const { data: targetUrlMetadata } = useQuery({
+    queryKey: ['url metadata', props.targetUrl],
     queryFn: async () => {
       const client = createSembleClient();
-      return client.getUrlMetadata(props.sourceUrl);
+      return client.getUrlMetadata(props.targetUrl);
     },
-    enabled: !!props.sourceUrl,
+    enabled: !!props.targetUrl,
   });
 
   const urls = searchResults?.urls ?? [];
@@ -148,8 +148,8 @@ export default function AddConnectionForm(props: Props) {
 
   const form = useForm({
     initialValues: {
-      sourceUrl: props.sourceUrl,
-      targetUrl: props.connectionToEdit?.targetUrl || '',
+      sourceUrl: props.connectionToEdit?.sourceUrl || '',
+      targetUrl: props.targetUrl,
       connectionType: props.connectionToEdit?.connection.type || '',
       note: props.connectionToEdit?.connection.note || '',
     },
@@ -273,44 +273,7 @@ export default function AddConnectionForm(props: Props) {
                 1
               </Text>
             }
-            title="Source URL"
-          >
-            <Stack gap={4} mt={4}>
-              <Card padding="xs" radius="md" withBorder>
-                <Group gap="xs" wrap="nowrap" align="flex-start">
-                  {sourceUrlMetadata?.metadata?.imageUrl && (
-                    <Image
-                      src={sourceUrlMetadata.metadata.imageUrl}
-                      alt={sourceUrlMetadata.metadata.title || 'URL thumbnail'}
-                      w={40}
-                      h={40}
-                      radius="sm"
-                      fit="cover"
-                    />
-                  )}
-                  <Stack gap={0}>
-                    <Text fw={600} size="sm" lineClamp={2}>
-                      {sourceUrlMetadata?.metadata?.title || props.sourceUrl}
-                    </Text>
-                    <Text size="xs" c="dimmed" lineClamp={1}>
-                      {getDomain(props.sourceUrl)}
-                    </Text>
-                  </Stack>
-                </Group>
-              </Card>
-              <VisuallyHidden>
-                <Input.Label htmlFor="sourceUrl">Source URL</Input.Label>
-              </VisuallyHidden>
-            </Stack>
-          </Timeline.Item>
-
-          <Timeline.Item
-            bullet={
-              <Text fw={700} fz={'xs'}>
-                2
-              </Text>
-            }
-            title="Target URL"
+            title="From"
           >
             <Stack gap={4} mt={4}>
               <Combobox
@@ -319,14 +282,14 @@ export default function AddConnectionForm(props: Props) {
                 store={urlCombobox}
                 position="bottom-start"
                 onOptionSubmit={(url) => {
-                  form.setFieldValue('targetUrl', url);
+                  form.setFieldValue('sourceUrl', url);
                   setInputValue(url);
                   urlCombobox.closeDropdown();
                 }}
               >
                 <Combobox.Target>
                   <Input
-                    id="targetUrl"
+                    id="sourceUrl"
                     component="input"
                     type="url"
                     placeholder="https://www.example.com or start typing to search"
@@ -334,7 +297,7 @@ export default function AddConnectionForm(props: Props) {
                     onChange={(e) => {
                       const val = e.currentTarget.value;
                       setInputValue(val);
-                      form.setFieldValue('targetUrl', val);
+                      form.setFieldValue('sourceUrl', val);
                       urlCombobox.openDropdown();
                     }}
                     onFocus={() => !isEditMode && urlCombobox.openDropdown()}
@@ -370,9 +333,46 @@ export default function AddConnectionForm(props: Props) {
                 </Combobox.Dropdown>
               </Combobox>
               <VisuallyHidden>
-                <Input.Label htmlFor="targetUrl" required>
-                  Target URL
+                <Input.Label htmlFor="sourceUrl" required>
+                  From
                 </Input.Label>
+              </VisuallyHidden>
+            </Stack>
+          </Timeline.Item>
+
+          <Timeline.Item
+            bullet={
+              <Text fw={700} fz={'xs'}>
+                2
+              </Text>
+            }
+            title="To"
+          >
+            <Stack gap={4} mt={4}>
+              <Card padding="xs" radius="md" withBorder>
+                <Group gap="xs" wrap="nowrap" align="flex-start">
+                  {targetUrlMetadata?.metadata?.imageUrl && (
+                    <Image
+                      src={targetUrlMetadata.metadata.imageUrl}
+                      alt={targetUrlMetadata.metadata.title || 'URL thumbnail'}
+                      w={40}
+                      h={40}
+                      radius="sm"
+                      fit="cover"
+                    />
+                  )}
+                  <Stack gap={0}>
+                    <Text fw={600} size="sm" lineClamp={2}>
+                      {targetUrlMetadata?.metadata?.title || props.targetUrl}
+                    </Text>
+                    <Text size="xs" c="dimmed" lineClamp={1}>
+                      {getDomain(props.targetUrl)}
+                    </Text>
+                  </Stack>
+                </Group>
+              </Card>
+              <VisuallyHidden>
+                <Input.Label htmlFor="targetUrl">To</Input.Label>
               </VisuallyHidden>
             </Stack>
           </Timeline.Item>

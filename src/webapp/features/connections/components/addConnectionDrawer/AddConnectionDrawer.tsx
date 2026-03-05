@@ -8,10 +8,10 @@ import { ConnectionForUrl } from '@semble/types';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  sourceUrl: string;
+  targetUrl: string;
   connectionToEdit?: {
     connection: ConnectionForUrl['connection'];
-    targetUrl: string;
+    sourceUrl: string;
   };
 }
 
@@ -36,7 +36,7 @@ export default function AddConnectionDrawer(props: Props) {
       <Container size={'sm'} p={0}>
         <AddConnectionForm
           onClose={props.onClose}
-          sourceUrl={props.sourceUrl}
+          targetUrl={props.targetUrl}
           connectionToEdit={props.connectionToEdit}
         />
       </Container>
