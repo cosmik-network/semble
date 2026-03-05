@@ -52,13 +52,23 @@ export default function useGraphData() {
       };
     });
 
+    // Create a set of valid node IDs for edge validation
+    const validNodeIds = new Set(processedNodes.map((node) => node.id));
+
     // Step 3: Process edges (add value for thickness if needed)
-    const processedEdges: ExtendedGraphEdge[] = query.data.edges.map(
-      (edge) => ({
+    // Filter out edges that reference non-existent nodes
+    const processedEdges: ExtendedGraphEdge[] = query.data.edges
+      .filter((edge) => {
+        const sourceId =
+          typeof edge.source === 'string' ? edge.source : edge.source;
+        const targetId =
+          typeof edge.target === 'string' ? edge.target : edge.target;
+        return validNodeIds.has(sourceId) && validNodeIds.has(targetId);
+      })
+      .map((edge) => ({
         ...edge,
         value: 1, // Default thickness, can be customized based on edge type
-      }),
-    );
+      }));
 
     return {
       nodes: processedNodes,
