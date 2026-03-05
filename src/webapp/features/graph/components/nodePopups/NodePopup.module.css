@@ -1,0 +1,73 @@
+/* Preview popup (hover) */
+.preview {
+  max-width: 250px;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.95);
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+/* Detail popup (click) */
+.detail {
+  animation: slideIn 0.2s ease-out;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Arrow pointer for detail popup */
+.arrow {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid var(--mantine-color-default-border);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .preview {
+    background-color: rgba(26, 27, 30, 0.95);
+  }
+}
+
+/* Scrollbar styling for detail popup */
+.detail::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.detail::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-gray-4);
+  border-radius: 3px;
+}
+
+.detail::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-gray-5);
+}
