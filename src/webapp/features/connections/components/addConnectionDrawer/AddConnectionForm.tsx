@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Card,
   Combobox,
   Group,
   Image,
@@ -11,6 +12,7 @@ import {
   Stack,
   Text,
   Textarea,
+  Timeline,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
@@ -35,6 +37,9 @@ import {
   BiInfoCircle,
 } from 'react-icons/bi';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
+import { TbArrowsExchange2 } from 'react-icons/tb';
+import { createSembleClient } from '@/services/client.apiClient';
+import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   onClose: () => void;
@@ -128,12 +133,22 @@ export default function AddConnectionForm(props: Props) {
     enabled: debounced.trim().length > 0,
   });
 
+  const { data: sourceUrlMetadata } = useQuery({
+    queryKey: ['url metadata', props.sourceUrl],
+    queryFn: async () => {
+      const client = createSembleClient();
+      return client.getUrlMetadata(props.sourceUrl);
+    },
+    enabled: !!props.sourceUrl,
+  });
+
   const urls = searchResults?.urls ?? [];
   const empty =
     !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
 
   const form = useForm({
     initialValues: {
+      sourceUrl: props.sourceUrl,
       targetUrl: props.connectionToEdit?.targetUrl || '',
       connectionType: props.connectionToEdit?.connection.type || '',
       note: props.connectionToEdit?.connection.note || '',
@@ -141,6 +156,14 @@ export default function AddConnectionForm(props: Props) {
   });
 
   const MAX_NOTE_LENGTH = 500;
+
+  const handleSwapUrls = () => {
+    const currentSource = form.values.sourceUrl;
+    const currentTarget = form.values.targetUrl;
+    form.setFieldValue('sourceUrl', currentTarget);
+    form.setFieldValue('targetUrl', currentSource);
+    setInputValue(currentSource);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +203,7 @@ export default function AddConnectionForm(props: Props) {
       // Create new connection
       createConnection.mutate(
         {
-          sourceUrl: props.sourceUrl,
+          sourceUrl: values.sourceUrl,
           targetUrl: values.targetUrl,
           connectionType: values.connectionType
             ? (values.connectionType as any)
@@ -242,59 +265,118 @@ export default function AddConnectionForm(props: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={'xl'}>
-        <Stack gap={4}>
-          <Input.Label size="md" htmlFor="targetUrl" required>
-            Target URL
-          </Input.Label>
-          <Combobox
-            shadow="sm"
-            radius={'md'}
-            store={urlCombobox}
-            position="bottom-start"
-            onOptionSubmit={(url) => {
-              form.setFieldValue('targetUrl', url);
-              setInputValue(url);
-              urlCombobox.closeDropdown();
-            }}
+        <Timeline active={1} bulletSize={22} lineWidth={2} color="gray">
+          <Timeline.Item
+            lineVariant="dashed"
+            bullet={
+              <Text fw={700} fz={'xs'}>
+                1
+              </Text>
+            }
+            title="Source URL"
           >
-            <Combobox.Target>
-              <Input
-                id="targetUrl"
-                component="input"
-                type="url"
-                placeholder="https://www.example.com or start typing to search for urls"
-                value={inputValue}
-                onChange={(e) => {
-                  const val = e.currentTarget.value;
-                  setInputValue(val);
-                  form.setFieldValue('targetUrl', val);
-                  urlCombobox.openDropdown();
-                }}
-                onFocus={() => !isEditMode && urlCombobox.openDropdown()}
-                onBlur={() => urlCombobox.closeDropdown()}
-                leftSection={<IoMdLink size={22} />}
-                rightSection={isFetching && <Loader size={18} />}
-                variant="filled"
-                size="md"
-                required
-                disabled={isEditMode}
-              />
-            </Combobox.Target>
-
-            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
-              <Combobox.Options>
-                <ScrollArea.Autosize type="scroll" mah={300}>
-                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
-                  {error && (
-                    <Combobox.Empty>Could not search for URLs</Combobox.Empty>
+            <Stack gap={4} mt={4}>
+              <Card padding="xs" radius="md" withBorder>
+                <Group gap="xs" wrap="nowrap" align="flex-start">
+                  {sourceUrlMetadata?.metadata?.imageUrl && (
+                    <Image
+                      src={sourceUrlMetadata.metadata.imageUrl}
+                      alt={sourceUrlMetadata.metadata.title || 'URL thumbnail'}
+                      w={40}
+                      h={40}
+                      radius="sm"
+                      fit="cover"
+                    />
                   )}
-                  {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
-                  {options.length > 0 && options}
-                </ScrollArea.Autosize>
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
-        </Stack>
+                  <Stack gap={0}>
+                    <Text fw={600} size="sm" lineClamp={2}>
+                      {sourceUrlMetadata?.metadata?.title || props.sourceUrl}
+                    </Text>
+                    <Text size="xs" c="dimmed" lineClamp={1}>
+                      {getDomain(props.sourceUrl)}
+                    </Text>
+                  </Stack>
+                </Group>
+              </Card>
+              <VisuallyHidden>
+                <Input.Label htmlFor="sourceUrl">Source URL</Input.Label>
+              </VisuallyHidden>
+            </Stack>
+          </Timeline.Item>
+
+          <Timeline.Item
+            bullet={
+              <Text fw={700} fz={'xs'}>
+                2
+              </Text>
+            }
+            title="Target URL"
+          >
+            <Stack gap={4} mt={4}>
+              <Combobox
+                shadow="sm"
+                radius={'md'}
+                store={urlCombobox}
+                position="bottom-start"
+                onOptionSubmit={(url) => {
+                  form.setFieldValue('targetUrl', url);
+                  setInputValue(url);
+                  urlCombobox.closeDropdown();
+                }}
+              >
+                <Combobox.Target>
+                  <Input
+                    id="targetUrl"
+                    component="input"
+                    type="url"
+                    placeholder="https://www.example.com or start typing to search"
+                    value={inputValue}
+                    onChange={(e) => {
+                      const val = e.currentTarget.value;
+                      setInputValue(val);
+                      form.setFieldValue('targetUrl', val);
+                      urlCombobox.openDropdown();
+                    }}
+                    onFocus={() => !isEditMode && urlCombobox.openDropdown()}
+                    onBlur={() => urlCombobox.closeDropdown()}
+                    rightSection={isFetching && <Loader size={18} />}
+                    variant="filled"
+                    size="md"
+                    required
+                    disabled={isEditMode}
+                    styles={{
+                      input: {
+                        fontSize: '0.875rem',
+                      },
+                    }}
+                  />
+                </Combobox.Target>
+
+                <Combobox.Dropdown hidden={debounced.trim().length === 0}>
+                  <Combobox.Options>
+                    <ScrollArea.Autosize type="scroll" mah={300}>
+                      {isFetching && (
+                        <Combobox.Empty>Searching...</Combobox.Empty>
+                      )}
+                      {error && (
+                        <Combobox.Empty>
+                          Could not search for URLs
+                        </Combobox.Empty>
+                      )}
+                      {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
+                      {options.length > 0 && options}
+                    </ScrollArea.Autosize>
+                  </Combobox.Options>
+                </Combobox.Dropdown>
+              </Combobox>
+              <VisuallyHidden>
+                <Input.Label htmlFor="targetUrl" required>
+                  Target URL
+                </Input.Label>
+              </VisuallyHidden>
+            </Stack>
+          </Timeline.Item>
+        </Timeline>
 
         <Stack gap={4}>
           <Input.Label size="md" htmlFor="connectionType">
