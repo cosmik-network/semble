@@ -34,5 +34,6 @@ export async function getServerFeatureFlags() {
     openCollections: true,
     following: true,
     connections: show,
+    graphView: show,
   };
 }

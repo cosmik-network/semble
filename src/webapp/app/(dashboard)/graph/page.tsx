@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Box, LoadingOverlay } from '@mantine/core';
-import GraphView from '@/features/graph/components/graphView/GraphView';
+import GraphViewWithFeatureFlag from '@/features/graph/components/graphView/GraphViewWithFeatureFlag';
 
 export const metadata = {
   title: 'Graph View | Semble',
@@ -16,7 +16,7 @@ export default function GraphPage() {
         </Box>
       }
     >
-      <GraphView />
+      <GraphViewWithFeatureFlag />
     </Suspense>
   );
 }

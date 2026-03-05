@@ -15,6 +15,8 @@ export async function GET() {
       animatedLandingTitle: false,
       openCollections: false,
       following: false,
+      connections: false,
+      graphView: false,
     });
   }
 }
