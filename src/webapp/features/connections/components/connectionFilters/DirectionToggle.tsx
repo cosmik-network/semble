@@ -16,6 +16,7 @@ export default function DirectionToggle(props: Props) {
 
   return (
     <SegmentedControl
+      radius={'xl'}
       value={props.value}
       onChange={handleChange}
       data={[
