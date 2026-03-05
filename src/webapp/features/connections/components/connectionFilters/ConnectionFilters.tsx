@@ -82,7 +82,7 @@ export function ConnectionTypeFilter() {
     <Group gap={6}>
       <Button
         size="xs"
-        color="blue"
+        color="teal"
         variant={ctx.connectionType === null ? 'filled' : 'light'}
         onClick={() => onChange()}
       >
@@ -94,7 +94,7 @@ export function ConnectionTypeFilter() {
           <Button
             key={type}
             size="xs"
-            color="blue"
+            color="teal"
             variant={ctx.connectionType === type ? 'filled' : 'light'}
             onClick={() => onChange(type)}
           >

@@ -338,18 +338,37 @@ export default function AddConnectionForm(props: Props) {
               <Combobox.Dropdown>
                 <Combobox.Options>
                   <ScrollArea.Autosize type="scroll" mah={300}>
+                    {form.values.connectionType && (
+                      <Combobox.Option value="" p={8}>
+                        <Button
+                          variant="light"
+                          color="red"
+                          radius={'md'}
+                          fullWidth
+                        >
+                          Remove relation
+                        </Button>
+                      </Combobox.Option>
+                    )}
                     {CONNECTION_TYPES.map((type) => {
                       const Icon = type.icon;
+                      const isSelected =
+                        form.values.connectionType === type.value;
                       return (
                         <Combobox.Option
                           key={type.value}
                           value={type.value}
                           p={8}
+                          bg={
+                            isSelected
+                              ? 'var(--mantine-color-teal-light)'
+                              : undefined
+                          }
                         >
                           <Group gap="sm" wrap="nowrap">
                             {Icon && <Icon size={20} />}
                             <Stack gap={0} style={{ flex: 1 }}>
-                              <Text size="sm" fw={500}>
+                              <Text size="sm" fw={isSelected ? 600 : 500}>
                                 {type.label}
                               </Text>
                               <Text size="xs" c="dimmed">

@@ -83,7 +83,7 @@ export default function ConnectionStatus(props: Props) {
           <Badge
             size="sm"
             variant="light"
-            color="blue"
+            color="teal"
             ml={'xs'}
             style={{ textTransform: 'capitalize' }}
           >
