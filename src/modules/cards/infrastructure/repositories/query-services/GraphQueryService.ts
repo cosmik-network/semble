@@ -164,7 +164,6 @@ export class GraphQueryService {
       .select({
         followerId: follows.followerId,
         targetId: follows.targetId,
-        createdAt: follows.createdAt,
       })
       .from(follows)
       .where(eq(follows.targetType, 'user'));
@@ -174,9 +173,7 @@ export class GraphQueryService {
       source: `user:${row.followerId}`,
       target: `user:${row.targetId}`,
       type: 'USER_FOLLOWS_USER' as const,
-      metadata: {
-        createdAt: row.createdAt.toISOString(),
-      },
+      metadata: {},
     }));
   }
 
@@ -185,7 +182,6 @@ export class GraphQueryService {
       .select({
         followerId: follows.followerId,
         targetId: follows.targetId,
-        createdAt: follows.createdAt,
       })
       .from(follows)
       .where(eq(follows.targetType, 'collection'));
@@ -195,9 +191,7 @@ export class GraphQueryService {
       source: `user:${row.followerId}`,
       target: `collection:${row.targetId}`,
       type: 'USER_FOLLOWS_COLLECTION' as const,
-      metadata: {
-        createdAt: row.createdAt.toISOString(),
-      },
+      metadata: {},
     }));
   }
 
@@ -206,7 +200,6 @@ export class GraphQueryService {
       .select({
         authorId: cards.authorId,
         url: cards.url,
-        createdAt: cards.createdAt,
       })
       .from(cards)
       .where(and(eq(cards.type, 'URL'), sql`${cards.url} IS NOT NULL`));
@@ -216,9 +209,7 @@ export class GraphQueryService {
       source: `user:${row.authorId}`,
       target: `url:${row.url}`,
       type: 'USER_AUTHORED_URL' as const,
-      metadata: {
-        createdAt: row.createdAt.toISOString(),
-      },
+      metadata: {},
     }));
   }
 
@@ -227,12 +218,10 @@ export class GraphQueryService {
     const results = await this.db.execute<{
       note_id: string;
       parent_url: string;
-      created_at: Date;
     }>(sql`
       SELECT
         note_cards.id as note_id,
-        parent_cards.url as parent_url,
-        note_cards.created_at
+        parent_cards.url as parent_url
       FROM cards as note_cards
       INNER JOIN cards as parent_cards
         ON note_cards.parent_card_id = parent_cards.id
@@ -246,9 +235,7 @@ export class GraphQueryService {
       source: `note:${row.note_id}`,
       target: `url:${row.parent_url}`,
       type: 'NOTE_REFERENCES_URL' as const,
-      metadata: {
-        createdAt: row.created_at.toISOString(),
-      },
+      metadata: {},
     }));
   }
 
@@ -258,7 +245,6 @@ export class GraphQueryService {
         collectionId: collectionCards.collectionId,
         cardId: collectionCards.cardId,
         url: cards.url,
-        addedAt: collectionCards.addedAt,
         addedBy: collectionCards.addedBy,
       })
       .from(collectionCards)
@@ -271,7 +257,6 @@ export class GraphQueryService {
       target: `url:${row.url}`,
       type: 'COLLECTION_CONTAINS_URL' as const,
       metadata: {
-        addedAt: row.addedAt.toISOString(),
         addedBy: row.addedBy,
       },
     }));
@@ -286,7 +271,6 @@ export class GraphQueryService {
         connectionType: connections.connectionType,
         note: connections.note,
         curatorId: connections.curatorId,
-        createdAt: connections.createdAt,
       })
       .from(connections)
       .where(
@@ -305,7 +289,6 @@ export class GraphQueryService {
         connectionType: row.connectionType,
         note: row.note,
         curatorId: row.curatorId,
-        createdAt: row.createdAt.toISOString(),
       },
     }));
   }
