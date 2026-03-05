@@ -425,22 +425,30 @@ export default function AddConnectionForm(props: Props) {
                           Could not search for URLs
                         </Combobox.Empty>
                       )}
-                      {empty && (
-                        <Combobox.Option value={inputValue} p={12}>
-                          <Group gap="sm" wrap="nowrap" justify="center">
-                            <BiPlus size={18} />
-                            <Stack gap={0} style={{ flex: 1 }}>
-                              <Text size="sm" fw={500}>
-                                Add this URL
-                              </Text>
-                              <Text size="xs" c="dimmed" lineClamp={1}>
-                                {inputValue}
-                              </Text>
-                            </Stack>
-                          </Group>
-                        </Combobox.Option>
+                      {options.length > 0 && <>{options}</>}
+                      {empty && <Combobox.Empty>No cards found</Combobox.Empty>}
+                      {!isFetching && !error && (
+                        <>
+                          <Combobox.Option value={inputValue}>
+                            <Group
+                              gap="xs"
+                              wrap="nowrap"
+                              justify="center"
+                              p={0}
+                            >
+                              <BiPlus size={18} />
+                              <Stack gap={0} style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>
+                                  Add this URL
+                                </Text>
+                                <Text size="xs" c="dimmed" lineClamp={1}>
+                                  {inputValue}
+                                </Text>
+                              </Stack>
+                            </Group>
+                          </Combobox.Option>
+                        </>
                       )}
-                      {options.length > 0 && options}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
                 </Combobox.Dropdown>

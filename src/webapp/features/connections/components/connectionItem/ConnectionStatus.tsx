@@ -77,7 +77,7 @@ export default function ConnectionStatus(props: Props) {
           {sanitizeText(curator.name)}
         </Text>{' '}
         <Text span>
-          {props.direction === 'forward' ? 'connected to' : 'connected from'}
+          {props.direction === 'forward' ? 'connected  to' : 'connected from'}
         </Text>
         {connectionType && (
           <Badge
