@@ -15,6 +15,7 @@ import { ConnectionFilters } from '@/features/connections/components/connectionF
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionForUrl } from '@semble/types';
+import { LuGitCompareArrows } from 'react-icons/lu';
 
 type Direction = 'outgoing' | 'incoming';
 
@@ -113,11 +114,12 @@ export default function SembleConnectionsContainer(props: Props) {
             </ConnectionFilters.Root>
           </Group>
           <Button
-            leftSection={<IoMdAdd size={18} />}
+            leftSection={<LuGitCompareArrows size={18} />}
             onClick={handleOpenCreateDrawer}
             size="sm"
+            color="teal"
           >
-            Add
+            Connect
           </Button>
         </Group>
 
@@ -134,7 +136,7 @@ export default function SembleConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+            <Grid gutter="60" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connectionForUrl, index) => (
                 <Grid.Col key={`${direction}-${index}`} span={12}>
                   <ConnectionItem

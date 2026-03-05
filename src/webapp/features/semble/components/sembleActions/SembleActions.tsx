@@ -12,6 +12,7 @@ import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import { LuGitCompareArrows } from 'react-icons/lu';
 
 interface Props {
   url: string;
@@ -67,6 +68,9 @@ export default function SembleActions(props: Props) {
             </Tooltip>
           )}
         </CopyButton>
+        <ActionIcon variant="light" color="teal" size={'xl'} radius={'xl'}>
+          <LuGitCompareArrows size={22} />
+        </ActionIcon>
         <Button
           variant={isInYourLibrary ? 'default' : 'filled'}
           size="md"

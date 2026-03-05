@@ -10,7 +10,7 @@ import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
-import { LuUnplug } from 'react-icons/lu';
+import { LuGitCompareArrows, LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
@@ -23,6 +23,7 @@ import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import { CgArrowLongRightC } from 'react-icons/cg';
 
 interface Props {
   id: string;
@@ -101,7 +102,7 @@ export default function UrlCardActions(props: Props) {
             color={'gray'}
             size="xs"
             radius={'xl'}
-            leftSection={<BiLink size={18} />}
+            leftSection={<LuGitCompareArrows size={18} />}
             onClick={(e) => {
               e.stopPropagation();
               setShowAddConnectionModal(true);
