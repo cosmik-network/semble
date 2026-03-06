@@ -66,21 +66,21 @@ export default function CollectionHeaderSkeleton() {
 
                   <Group gap={5}>
                     <Skeleton w={20} h={20} />
-                    <Skeleton w={80} h={20} />
+                    <Skeleton w={60} h={20} />
                   </Group>
 
                   <Skeleton w={1} h={20} />
 
                   <Group gap={5}>
                     <Skeleton w={50} h={20} />
-                    <Skeleton w={80} h={20} />
+                    <Skeleton w={30} h={20} />
                   </Group>
 
                   <Skeleton w={1} h={20} />
 
                   <Group gap={5}>
                     <Skeleton w={50} h={20} />
-                    <Skeleton w={80} h={20} />
+                    <Skeleton w={30} h={20} />
                   </Group>
                 </Group>
               </Stack>
