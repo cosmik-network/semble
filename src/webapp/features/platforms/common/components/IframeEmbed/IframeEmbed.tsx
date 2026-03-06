@@ -1,5 +1,13 @@
 import { getDomain } from '@/lib/utils/link';
-import { Anchor, Text, Card, Stack, Tooltip, AspectRatio } from '@mantine/core';
+import {
+  Anchor,
+  Text,
+  Card,
+  Stack,
+  Tooltip,
+  AspectRatio,
+  MantineRadius,
+} from '@mantine/core';
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { Fragment } from 'react';
@@ -9,6 +17,7 @@ interface IframeEmbedProps {
   cardContent: UrlCard['cardContent'];
   height?: number | string;
   aspectRatio?: number;
+  radius?: MantineRadius;
 }
 
 export default function IframeEmbed(props: IframeEmbedProps) {
@@ -16,7 +25,7 @@ export default function IframeEmbed(props: IframeEmbedProps) {
   const height = props.height ?? 200;
 
   const iframeElement = (
-    <Card p={0}>
+    <Card p={0} radius={props.radius ?? 'md'}>
       <iframe
         src={props.url}
         height={props.aspectRatio ? '100%' : height}

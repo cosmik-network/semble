@@ -47,6 +47,8 @@ export enum SupportedPlatform {
   SPOTIFY = 'spotify',
   PLYRFM_TRACK = 'plyr.fm',
   YOUTUBE_VIDEO = 'youtube video',
+  BANDCAMP_ALBUM = 'bandcamp album',
+  BANDCAMP_TRACK = 'bandcamp track',
   DEFAULT = 'default',
 }
 
@@ -182,6 +184,28 @@ export const detectUrlPlatform = (url: string): PlatformData => {
           type: SupportedPlatform.PLYRFM_TRACK,
           url: `https://plyr.fm/embed/track/${id}`,
         };
+      }
+    }
+
+    // bandcamp
+    const bandcampRegex = /^[a-z\d][a-z\d-]{2,}[a-z\d]\.bandcamp\.com$/i;
+    if (bandcampRegex.test(parsedUrl.hostname)) {
+      const pathComponents = parsedUrl.pathname.split('/');
+      switch (pathComponents[1]) {
+        case 'album':
+          return {
+            type: SupportedPlatform.BANDCAMP_ALBUM,
+            url: `https://bandcamp.com/EmbeddedPlayer/url=${encodeURIComponent(
+              parsedUrl.href,
+            )}/size=medium/minimal=true/transparent=true/`,
+          };
+        case 'track':
+          return {
+            type: SupportedPlatform.BANDCAMP_TRACK,
+            url: `https://bandcamp.com/EmbeddedPlayer/url=${encodeURIComponent(
+              parsedUrl.href,
+            )}/size=medium/minimal=true/transparent=true/`,
+          };
       }
     }
 

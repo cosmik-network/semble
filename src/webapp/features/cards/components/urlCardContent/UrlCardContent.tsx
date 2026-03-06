@@ -104,7 +104,8 @@ export default function UrlCardContent(props: Props) {
       <IframeEmbed
         url={platform.url}
         cardContent={props.cardContent}
-        height={200}
+        height={152}
+        radius={'lg'}
       />
     );
   }
@@ -118,6 +119,21 @@ export default function UrlCardContent(props: Props) {
         url={platform.url}
         cardContent={props.cardContent}
         height={200}
+      />
+    );
+  }
+
+  if (
+    (platform.type === SupportedPlatform.BANDCAMP_ALBUM ||
+      platform.type === SupportedPlatform.BANDCAMP_TRACK) &&
+    settings.cardView !== 'list'
+  ) {
+    return (
+      <IframeEmbed
+        url={platform.url}
+        cardContent={props.cardContent}
+        height={120}
+        radius={0}
       />
     );
   }
