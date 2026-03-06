@@ -117,12 +117,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                     />
                   ) : (
                     <CollectionSelectorItemList
-                      collections={allCollections.filter(
-                        (c) =>
-                          !props.selectedCollections.some(
-                            (sel) => sel.id === c.id,
-                          ),
-                      )}
+                      collections={allCollections}
                       selectedCollections={props.selectedCollections}
                       onChange={handleCollectionChange}
                     />
