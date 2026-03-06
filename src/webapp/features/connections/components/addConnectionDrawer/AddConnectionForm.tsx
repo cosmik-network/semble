@@ -328,7 +328,6 @@ export default function AddConnectionForm(props: Props) {
                     : 'Select a relation'}
                 </Button>
               </Combobox.Target>
-
               <Combobox.Dropdown>
                 <Combobox.Options>
                   <ScrollArea.Autosize type="scroll" mah={300}>

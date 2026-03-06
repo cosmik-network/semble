@@ -64,31 +64,32 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Stack gap={'xs'} align="stretch">
+      <Group gap={'0'} align="center" wrap="nowrap">
         {/* Source URL */}
-        <UrlCard
-          id={sourceUrlView.url}
-          url={sourceUrlView.url}
-          cardContent={sourceUrlView.metadata}
-          urlLibraryCount={sourceUrlView.urlLibraryCount}
-          urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
-        />
+        <Box style={{ flex: 1 }}>
+          <UrlCard
+            id={sourceUrlView.url}
+            url={sourceUrlView.url}
+            cardContent={sourceUrlView.metadata}
+            urlLibraryCount={sourceUrlView.urlLibraryCount}
+            urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
+          />
+        </Box>
+
+        <Divider orientation="horizontal" w={20} variant="dashed" size="sm" />
 
         {/* Connection Metadata */}
-        <Card p={'xs'} radius={'md'}>
+        <Card p={'xs'} radius={'md'} w={100}>
           <Group justify="space-between" wrap="nowrap" align="center">
-            <Stack gap={4}>
+            <Stack gap={0} align="center">
               <Group gap={'xs'} wrap="wrap">
-                <MdArrowDownward size={20} />
                 {props.connection.connection.type && (
                   <Badge size="md" variant="light" color="pink">
                     {formatConnectionType(props.connection.connection.type)}
                   </Badge>
                 )}
-                <Text fz={'sm'} fw={600} c={'gray'}>
-                  {relativeCreatedDate}
-                </Text>
               </Group>
+
               {props.connection.connection.note && (
                 <Spoiler
                   showLabel={'Read more'}
@@ -100,8 +101,11 @@ export default function ProfileConnectionItem(props: Props) {
                   </Text>
                 </Spoiler>
               )}
+              {/*<Text mt={'sm'} fz={'sm'} fw={600} c={'gray'}>
+                {relativeCreatedDate}
+              </Text>*/}
             </Stack>
-            {isOwner && props.onEdit && (
+            {/*{isOwner && props.onEdit && (
               <Box>
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
@@ -126,19 +130,23 @@ export default function ProfileConnectionItem(props: Props) {
                   </Menu.Dropdown>
                 </Menu>
               </Box>
-            )}
+            )}*/}
           </Group>
         </Card>
 
+        <Divider orientation="horizontal" variant="dashed" w={20} size="sm" />
+
         {/* Target URL */}
-        <UrlCard
-          id={targetUrlView.url}
-          url={targetUrlView.url}
-          cardContent={targetUrlView.metadata}
-          urlLibraryCount={targetUrlView.urlLibraryCount}
-          urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
-        />
-      </Stack>
+        <Box style={{ flex: 1 }}>
+          <UrlCard
+            id={targetUrlView.url}
+            url={targetUrlView.url}
+            cardContent={targetUrlView.metadata}
+            urlLibraryCount={targetUrlView.urlLibraryCount}
+            urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
+          />
+        </Box>
+      </Group>
 
       <Modal
         opened={deleteModalOpened}
