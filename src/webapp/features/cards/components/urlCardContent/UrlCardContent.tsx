@@ -8,10 +8,8 @@ import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/Blu
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
-import YoutubeVideo from '@/features/platforms/youtube/components/YoutubeVideo/YoutubeVideo';
-import SpotifyEmbed from '@/features/platforms/spotify/components/SpotifyEmbed/SpotifyEmbed';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import PlyrfmTrack from '@/features/platforms/plyrfm/components/plyrfmTrack/PlyrFmTrack';
+import IframeEmbed from '@/features/platforms/common/components/IframeEmbed/IframeEmbed';
 import UrlCardContentSkeleton from './Skeleton.UrlCardContent';
 
 interface Props {
@@ -89,21 +87,39 @@ export default function UrlCardContent(props: Props) {
     platform.type === SupportedPlatform.YOUTUBE_VIDEO &&
     settings.cardView !== 'list'
   ) {
-    return <YoutubeVideo url={platform.url} cardContent={props.cardContent} />;
+    return (
+      <IframeEmbed
+        url={platform.url}
+        cardContent={props.cardContent}
+        aspectRatio={16 / 8}
+      />
+    );
   }
 
   if (
     platform.type === SupportedPlatform.SPOTIFY &&
     settings.cardView !== 'list'
   ) {
-    return <SpotifyEmbed url={platform.url} cardContent={props.cardContent} />;
+    return (
+      <IframeEmbed
+        url={platform.url}
+        cardContent={props.cardContent}
+        height={200}
+      />
+    );
   }
 
   if (
     platform.type === SupportedPlatform.PLYRFM_TRACK &&
     settings.cardView !== 'list'
   ) {
-    return <PlyrfmTrack url={platform.url} cardContent={props.cardContent} />;
+    return (
+      <IframeEmbed
+        url={platform.url}
+        cardContent={props.cardContent}
+        height={200}
+      />
+    );
   }
 
   return (

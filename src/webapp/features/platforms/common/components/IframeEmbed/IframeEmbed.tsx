@@ -1,16 +1,30 @@
 import { getDomain } from '@/lib/utils/link';
-import { Anchor, Text, Card, Stack, Tooltip } from '@mantine/core';
+import { Anchor, Text, Card, Stack, Tooltip, AspectRatio } from '@mantine/core';
 import { UrlCard } from '@semble/types';
 import Link from 'next/link';
 import { Fragment } from 'react';
 
-interface Props {
+interface IframeEmbedProps {
   url: string;
   cardContent: UrlCard['cardContent'];
+  height?: number | string;
+  aspectRatio?: number;
 }
 
-export default function PlyrfmTrack(props: Props) {
+export default function IframeEmbed(props: IframeEmbedProps) {
   const domain = getDomain(props.url);
+  const height = props.height ?? 200;
+
+  const iframeElement = (
+    <Card p={0}>
+      <iframe
+        src={props.url}
+        height={props.aspectRatio ? '100%' : height}
+        allowFullScreen
+        style={{ border: 0 }}
+      />
+    </Card>
+  );
 
   return (
     <Fragment>
@@ -22,6 +36,7 @@ export default function PlyrfmTrack(props: Props) {
             href={props.cardContent.url}
             target="_blank"
             c={'gray'}
+            fz={'sm'}
             lineClamp={1}
             w={'fit-content'}
           >
@@ -35,14 +50,11 @@ export default function PlyrfmTrack(props: Props) {
         )}
       </Stack>
 
-      <Card p={0}>
-        <iframe
-          src={props.url}
-          height={200}
-          allowFullScreen
-          style={{ border: 0 }}
-        />
-      </Card>
+      {props.aspectRatio ? (
+        <AspectRatio ratio={props.aspectRatio}>{iframeElement}</AspectRatio>
+      ) : (
+        iframeElement
+      )}
     </Fragment>
   );
 }
