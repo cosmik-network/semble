@@ -184,8 +184,9 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         onClose={() => setIsDrawerOpen(false)}
         initialName={search}
         initialAccessType={CollectionAccessType.OPEN}
-        onCreate={() => {
+        onCreate={(collection) => {
           setSearch('');
+          handleCollectionChange(true, collection);
         }}
       />
     </Fragment>
