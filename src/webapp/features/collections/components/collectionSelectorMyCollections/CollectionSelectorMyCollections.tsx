@@ -33,7 +33,8 @@ export default function CollectionSelectorMyCollections(props: Props) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const allCollections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
+    data?.pages.flatMap((page) => page.collections ?? []).filter((c) => c.id) ??
+    [];
 
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = props.selectedCollections.length > 0;
@@ -169,8 +170,9 @@ export default function CollectionSelectorMyCollections(props: Props) {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         initialName={search}
-        onCreate={() => {
+        onCreate={(collection) => {
           setSearch('');
+          handleCollectionChange(true, collection);
         }}
       />
     </Fragment>

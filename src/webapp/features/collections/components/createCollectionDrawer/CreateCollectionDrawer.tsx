@@ -1,6 +1,6 @@
 'use client';
 
-import { CollectionAccessType } from '@semble/types';
+import { Collection, CollectionAccessType } from '@semble/types';
 import { Container, Drawer } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import CreateCollectionForm from './CreateCollectionForm';
@@ -10,7 +10,7 @@ interface Props {
   onClose: () => void;
   initialName?: string;
   initialAccessType?: CollectionAccessType;
-  onCreate?: () => void;
+  onCreate?: (collection: Collection) => void;
 }
 
 export default function CreateCollectionDrawer(props: Props) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { CollectionAccessType } from '@semble/types';
+import { Collection, CollectionAccessType } from '@semble/types';
 import {
   Button,
   Group,
@@ -14,16 +14,19 @@ import { useForm } from '@mantine/form';
 import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
 import { FaSeedling } from 'react-icons/fa6';
+import { useQueryClient } from '@tanstack/react-query';
+import { collectionKeys } from '../../lib/collectionKeys';
 
 interface Props {
   onClose: () => void;
   initialName?: string;
   initialAccessType?: CollectionAccessType;
-  onCreate?: () => void;
+  onCreate?: (collection: Collection) => void;
 }
 
 export default function CreateCollectionForm(props: Props) {
   const createCollection = useCreateCollection();
+  const queryClient = useQueryClient();
   const form = useForm({
     initialValues: {
       name: props.initialName ?? '',
@@ -43,11 +46,28 @@ export default function CreateCollectionForm(props: Props) {
         accessType: form.getValues().accessType,
       },
       {
-        onSuccess: () => {
-          props.onClose();
-          if (props.onCreate) {
-            props.onCreate();
+        onSuccess: async (data) => {
+          if (data?.collectionId && props.onCreate) {
+            // Wait for the query to refetch and get the new collection
+            await queryClient.refetchQueries({
+              queryKey: collectionKeys.mine(),
+            });
+
+            // Find the newly created collection from the cache
+            const queryState = queryClient.getQueryState<{
+              pages: Array<{ collections: Collection[] }>;
+            }>(collectionKeys.mine());
+
+            // Look through all pages to find the collection
+            const newCollection = queryState?.data?.pages
+              .flatMap((page) => page.collections ?? [])
+              .find((col) => col.id === data.collectionId);
+
+            if (newCollection) {
+              props.onCreate(newCollection);
+            }
           }
+          props.onClose();
         },
         onError: () => {
           notifications.show({
