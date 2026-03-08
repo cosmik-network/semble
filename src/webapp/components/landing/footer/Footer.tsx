@@ -21,7 +21,7 @@ export default function Footer() {
         <Group gap="0">
           <ActionIcon
             component="a"
-            href="https://bsky.app/profile/cosmik.network"
+            href="https://bsky.app/profile/semble.so"
             target="_blank"
             variant="subtle"
             color="dark.2"
