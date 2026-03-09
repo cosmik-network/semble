@@ -361,7 +361,7 @@ export default function AddConnectionForm(props: Props) {
                         <Combobox.Option
                           key={type.value}
                           value={type.value}
-                          p={8}
+                          p={5}
                           bg={
                             isSelected
                               ? 'var(--mantine-color-green-light)'
@@ -473,7 +473,7 @@ export default function AddConnectionForm(props: Props) {
                                 <BiPlus />
                               </ThemeIcon>
                               <Stack gap={0} style={{ flex: 1 }}>
-                                <Text size="sm" fw={600}>
+                                <Text size="sm" fw={600} c={'bright'}>
                                   Add this link
                                 </Text>
                                 <Text size="xs" c="dimmed" lineClamp={1}>
