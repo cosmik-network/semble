@@ -16,6 +16,9 @@ import {
 } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 
+// Resync interval: 7 days in milliseconds
+const RESYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export interface SyncAccountDataDTO {
   curatorId: string;
   cardId: string;
@@ -76,19 +79,49 @@ export class SyncAccountDataUseCase
 
       const existingSyncStatus = syncStatusResult.value;
 
-      if (existingSyncStatus && existingSyncStatus.syncState.isCompleted()) {
-        console.log(
-          `[SYNC] User ${request.curatorId} has already been synced, skipping`,
-        );
-        return ok(undefined);
-      }
-
       // Defense in depth: check if another process is already syncing
       if (existingSyncStatus && existingSyncStatus.syncState.isInProgress()) {
         console.log(
           `[SYNC] User ${request.curatorId} sync is already in progress, skipping`,
         );
         return ok(undefined);
+      }
+
+      // Check if already synced - environment-aware behavior
+      if (existingSyncStatus && existingSyncStatus.syncState.isCompleted()) {
+        const environment = envConfig.get().environment;
+
+        // In production, never auto-resync
+        if (environment === Environment.PROD) {
+          console.log(
+            `[SYNC] User ${request.curatorId} has already been synced, skipping (PROD)`,
+          );
+          return ok(undefined);
+        }
+
+        // In dev/local, check if resync is needed based on time
+        const lastSyncedAt = existingSyncStatus.lastSyncedAt;
+        if (lastSyncedAt) {
+          const timeSinceLastSync = Date.now() - lastSyncedAt.getTime();
+          const daysSinceLastSync = Math.floor(
+            timeSinceLastSync / (24 * 60 * 60 * 1000),
+          );
+
+          if (timeSinceLastSync < RESYNC_INTERVAL_MS) {
+            console.log(
+              `[SYNC] User ${request.curatorId} was synced ${daysSinceLastSync} days ago, skipping (${environment})`,
+            );
+            return ok(undefined);
+          }
+
+          console.log(
+            `[SYNC] User ${request.curatorId} was synced ${daysSinceLastSync} days ago, triggering resync (${environment})`,
+          );
+        } else {
+          console.log(
+            `[SYNC] User ${request.curatorId} has no lastSyncedAt timestamp, triggering resync (${environment})`,
+          );
+        }
       }
 
       // only listen for test account in local env

@@ -1,3 +1,6 @@
+// IMPORTANT: Import instrument.ts first to initialize Sentry as early as possible
+import './instrument';
+
 import { configService } from './shared/infrastructure/config';
 import { AppProcess } from './shared/infrastructure/processes/AppProcess';
 import { FeedWorkerProcess } from './shared/infrastructure/processes/FeedWorkerProcess';

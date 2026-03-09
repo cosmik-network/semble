@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
+    instrument: 'src/instrument.ts',
     'workers/feed-worker': 'src/workers/feed-worker.ts',
     'workers/search-worker': 'src/workers/search-worker.ts',
     'workers/firehose-worker': 'src/workers/firehose-worker.ts',

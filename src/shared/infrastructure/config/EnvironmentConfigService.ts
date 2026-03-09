@@ -67,6 +67,10 @@ export interface EnvironmentConfig {
       maxRetriesPerRequest: number | null; // Disable automatic retries
     };
   };
+  sentry: {
+    dsn: string;
+    environment: string;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -171,6 +175,10 @@ export class EnvironmentConfigService {
         },
         redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
       },
+      sentry: {
+        dsn: process.env.SENTRY_DSN || '',
+        environment: environment,
+      },
     };
 
     this.applyEnvironmentSpecificConfig();
@@ -245,6 +253,10 @@ export class EnvironmentConfigService {
 
   public getRedisConfig() {
     return this.config.workers.redisConfig;
+  }
+
+  public getSentryConfig() {
+    return this.config.sentry;
   }
 
   public getRuntimeConfig() {

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 import { ITokenService } from '../../../../modules/user/application/services/ITokenService';
 import { CookieService } from '../services/CookieService';
 
@@ -61,6 +62,9 @@ export class AuthMiddleware {
         // Attach user DID to request for use in controllers
         req.did = didResult.value;
 
+        // Set user context in Sentry for error tracking
+        Sentry.setUser({ id: didResult.value });
+
         // Continue to the next middleware or controller
         next();
       } catch (error) {
@@ -93,6 +97,9 @@ export class AuthMiddleware {
         if (didResult.isOk() && didResult.value) {
           // Attach user DID to request for use in controllers
           req.did = didResult.value;
+
+          // Set user context in Sentry for error tracking
+          Sentry.setUser({ id: didResult.value });
         }
 
         // Continue to the controller regardless of token validity
@@ -132,6 +139,10 @@ export class AuthMiddleware {
         }
 
         req.did = didResult.value;
+
+        // Set user context in Sentry for error tracking
+        Sentry.setUser({ id: didResult.value });
+
         next();
       } catch (error) {
         res.status(500).json({ message: 'Authentication error' });
@@ -168,6 +179,10 @@ export class AuthMiddleware {
         }
 
         req.did = didResult.value;
+
+        // Set user context in Sentry for error tracking
+        Sentry.setUser({ id: didResult.value });
+
         next();
       } catch (error) {
         res.status(500).json({ message: 'Authentication error' });
