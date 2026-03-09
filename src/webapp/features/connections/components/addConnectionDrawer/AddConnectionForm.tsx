@@ -22,7 +22,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
@@ -371,7 +371,11 @@ export default function AddConnectionForm(props: Props) {
                           <Group gap="sm" wrap="nowrap">
                             {Icon && <Icon size={20} color="green" />}
                             <Stack gap={0} style={{ flex: 1 }}>
-                              <Text size="sm" fw={isSelected ? 600 : 500}>
+                              <Text
+                                size="sm"
+                                c={'bright'}
+                                fw={isSelected ? 600 : 500}
+                              >
                                 {type.label}
                               </Text>
                               <Text size="xs" c="dimmed">
@@ -457,7 +461,7 @@ export default function AddConnectionForm(props: Props) {
                         </Combobox.Empty>
                       )}
                       {!isFetching && !error && (
-                        <>
+                        <Fragment>
                           <Combobox.Option value={inputValue}>
                             <Group gap="xs" wrap="nowrap" p={0}>
                               <ThemeIcon
@@ -486,9 +490,9 @@ export default function AddConnectionForm(props: Props) {
                               variant="dashed"
                             />
                           )}
-                        </>
+                        </Fragment>
                       )}
-                      {options.length > 0 && <>{options}</>}
+                      {options.length > 0 && <Fragment>{options}</Fragment>}
                       {/*{empty && <Combobox.Empty>No cards found</Combobox.Empty>}*/}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
