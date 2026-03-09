@@ -4,12 +4,12 @@ primary_region = 'yyz'
 [build]
 
 [processes]
-  web = "npm start"
-  feed-worker = "npm run worker:feeds"
-  search-worker = "npm run worker:search"
-  firehose-worker = "npm run worker:firehose"
-  notification-worker = "npm run worker:notifications"
-  sync-worker = "npm run worker:sync"
+  web = "PROCESS_TYPE=web npm start"
+  feed-worker = "PROCESS_TYPE=feed-worker npm run worker:feeds"
+  search-worker = "PROCESS_TYPE=search-worker npm run worker:search"
+  firehose-worker = "PROCESS_TYPE=firehose-worker npm run worker:firehose"
+  notification-worker = "PROCESS_TYPE=notification-worker npm run worker:notifications"
+  sync-worker = "PROCESS_TYPE=sync-worker npm run worker:sync"
 
 [http_service]
   internal_port = 3000
