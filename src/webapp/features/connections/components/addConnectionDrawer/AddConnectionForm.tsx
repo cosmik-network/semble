@@ -536,7 +536,7 @@ export default function AddConnectionForm(props: Props) {
                       case 'HELPFUL':
                         return 'Describe what context or background this provides...';
                       case 'LEADS_TO':
-                        return 'Explain the logical or temporal connection...';
+                        return 'Explain how this link leads to the other';
                       case 'RELATED':
                         return 'Describe how these are connected...';
                       case 'SUPPLEMENT':
