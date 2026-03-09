@@ -67,7 +67,7 @@ const CONNECTION_TYPES = [
   },
   {
     value: 'ADDRESSES',
-    label: 'Informs',
+    label: 'Addresses',
     description: 'Responds to or answers a question or topic',
     icon: BiMessageSquareDetail,
   },
@@ -156,7 +156,7 @@ export default function AddConnectionForm(props: Props) {
       note: props.connectionToEdit?.connection.note || '',
     },
     validateInputOnChange: false,
-    validateInputOnBlur: false,
+    validateInputOnBlur: true,
     validate: {
       targetUrl: (value) => {
         if (!value || value.trim() === '') {
