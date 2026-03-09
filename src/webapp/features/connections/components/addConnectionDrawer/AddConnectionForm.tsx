@@ -29,14 +29,11 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { ConnectionForUrl } from '@semble/types';
 import {
-  BiBlock,
   BiMessageSquareDetail,
   BiHelpCircle,
   BiRightArrowAlt,
   BiLink,
-  BiBookContent,
   BiPlus,
-  BiLike,
   BiCheckCircle,
   BiXCircle,
 } from 'react-icons/bi';
@@ -70,7 +67,7 @@ const CONNECTION_TYPES = [
   },
   {
     value: 'ADDRESSES',
-    label: 'Addresses',
+    label: 'Informs',
     description: 'Responds to or answers a question or topic',
     icon: BiMessageSquareDetail,
   },
@@ -155,7 +152,7 @@ export default function AddConnectionForm(props: Props) {
     initialValues: {
       sourceUrl: props.sourceUrl,
       targetUrl: props.connectionToEdit?.targetUrl || '',
-      connectionType: props.connectionToEdit?.connection.type || '',
+      connectionType: props.connectionToEdit?.connection.type || 'RELATED',
       note: props.connectionToEdit?.connection.note || '',
     },
   });
@@ -239,7 +236,7 @@ export default function AddConnectionForm(props: Props) {
 
   const options = urls.map((urlView) => (
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} align="center">
+      <Group gap={'xs'} align="center" wrap="nowrap">
         {urlView.metadata.imageUrl && (
           <Image
             src={urlView.metadata.imageUrl}
@@ -352,7 +349,7 @@ export default function AddConnectionForm(props: Props) {
                           }
                         >
                           <Group gap="sm" wrap="nowrap">
-                            {Icon && <Icon size={20} />}
+                            {Icon && <Icon size={20} color="green" />}
                             <Stack gap={0} style={{ flex: 1 }}>
                               <Text size="sm" fw={isSelected ? 600 : 500}>
                                 {type.label}
@@ -371,13 +368,7 @@ export default function AddConnectionForm(props: Props) {
             </Combobox>
           </Stack>
 
-          <Divider
-            variant="dashed"
-            orientation="vertical"
-            size={'sm'}
-            h={25}
-            mx={'auto'}
-          />
+          <Divider orientation="vertical" size={'sm'} h={25} mx={'auto'} />
 
           <ThemeIcon
             variant="light"
@@ -459,7 +450,7 @@ export default function AddConnectionForm(props: Props) {
                               </ThemeIcon>
                               <Stack gap={0} style={{ flex: 1 }}>
                                 <Text size="sm" fw={600}>
-                                  Add this URL
+                                  Add this link
                                 </Text>
                                 <Text size="xs" c="dimmed" lineClamp={1}>
                                   {inputValue}
