@@ -397,7 +397,7 @@ export default function AddConnectionForm(props: Props) {
                   <Input
                     id="targetUrl"
                     component="input"
-                    type="url"
+                    type="text"
                     placeholder="Search cards or add a URL"
                     value={inputValue}
                     onChange={(e) => {
