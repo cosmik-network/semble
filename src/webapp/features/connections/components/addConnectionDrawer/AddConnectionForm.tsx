@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Box,
   Button,
   Card,
   Center,
@@ -28,7 +29,6 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { ConnectionForUrl } from '@semble/types';
 import {
-  BiSupport,
   BiBlock,
   BiMessageSquareDetail,
   BiHelpCircle,
@@ -36,10 +36,15 @@ import {
   BiLink,
   BiBookContent,
   BiPlus,
+  BiLike,
+  BiCheckCircle,
+  BiXCircle,
 } from 'react-icons/bi';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
+import { IoIosArrowDown } from 'react-icons/io';
+import { PiNewspaperClipping } from 'react-icons/pi';
 
 interface Props {
   onClose: () => void;
@@ -55,13 +60,13 @@ const CONNECTION_TYPES = [
     value: 'SUPPORTS',
     label: 'Supports',
     description: 'Provides evidence or arguments in favor',
-    icon: BiSupport,
+    icon: BiCheckCircle,
   },
   {
     value: 'OPPOSES',
     label: 'Opposes',
     description: 'Provides counter-evidence or opposing arguments',
-    icon: BiBlock,
+    icon: BiXCircle,
   },
   {
     value: 'ADDRESSES',
@@ -78,7 +83,7 @@ const CONNECTION_TYPES = [
   {
     value: 'LEADS_TO',
     label: 'Leads to',
-    description: 'Logically or temporally precedes',
+    description: 'Leads to the next thing',
     icon: BiRightArrowAlt,
   },
   {
@@ -91,7 +96,7 @@ const CONNECTION_TYPES = [
     value: 'SUPPLEMENT',
     label: 'Supplement',
     description: 'Adds additional information or details',
-    icon: BiBookContent,
+    icon: PiNewspaperClipping,
   },
   {
     value: 'EXPLAINER',
@@ -306,7 +311,7 @@ export default function AddConnectionForm(props: Props) {
               <Combobox.Target>
                 <Button
                   variant="light"
-                  color="pink"
+                  color="green"
                   size="sm"
                   onClick={() => typeCombobox.toggleDropdown()}
                   leftSection={
@@ -331,18 +336,6 @@ export default function AddConnectionForm(props: Props) {
               <Combobox.Dropdown>
                 <Combobox.Options>
                   <ScrollArea.Autosize type="scroll" mah={300}>
-                    {form.values.connectionType && (
-                      <Combobox.Option value="" p={8}>
-                        <Button
-                          variant="light"
-                          color="red"
-                          radius={'md'}
-                          fullWidth
-                        >
-                          Remove relation
-                        </Button>
-                      </Combobox.Option>
-                    )}
                     {CONNECTION_TYPES.map((type) => {
                       const Icon = type.icon;
                       const isSelected =
@@ -354,7 +347,7 @@ export default function AddConnectionForm(props: Props) {
                           p={8}
                           bg={
                             isSelected
-                              ? 'var(--mantine-color-pink-light)'
+                              ? 'var(--mantine-color-green-light)'
                               : undefined
                           }
                         >
@@ -385,6 +378,16 @@ export default function AddConnectionForm(props: Props) {
             h={25}
             mx={'auto'}
           />
+
+          <ThemeIcon
+            variant="light"
+            size={'sm'}
+            mx={'auto'}
+            color={'gray'}
+            radius={'xl'}
+          >
+            <IoIosArrowDown size={16} />
+          </ThemeIcon>
 
           <Card padding="xs" radius="md" withBorder>
             <Stack gap={0}>
