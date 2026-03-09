@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Router } from 'express';
+import * as Sentry from '@sentry/node';
 import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
@@ -184,6 +185,9 @@ export const createExpressApp = (
   app.use('/api/search', searchRouter);
   app.use('/api/notifications', notificationRouter);
   app.use('/api/test', testRouter);
+
+  // Sentry error handler - must be after all routes and before other error middleware
+  Sentry.setupExpressErrorHandler(app);
 
   return app;
 };

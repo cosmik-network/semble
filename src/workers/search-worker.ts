@@ -1,3 +1,6 @@
+// IMPORTANT: Import instrument.ts first to initialize Sentry as early as possible
+import '../instrument';
+
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
 import { SearchWorkerProcess } from '../shared/infrastructure/processes/SearchWorkerProcess';
 
