@@ -155,6 +155,21 @@ export default function AddConnectionForm(props: Props) {
       connectionType: props.connectionToEdit?.connection.type || 'RELATED',
       note: props.connectionToEdit?.connection.note || '',
     },
+    validateInputOnChange: false,
+    validateInputOnBlur: false,
+    validate: {
+      targetUrl: (value) => {
+        if (!value || value.trim() === '') {
+          return 'Please enter a URL';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
+    },
   });
 
   const MAX_NOTE_LENGTH = 500;
@@ -169,6 +184,11 @@ export default function AddConnectionForm(props: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validation = form.validate();
+    if (validation.hasErrors) {
+      return;
+    }
 
     const values = form.getValues();
 
@@ -398,7 +418,7 @@ export default function AddConnectionForm(props: Props) {
                     id="targetUrl"
                     component="input"
                     type="text"
-                    placeholder="Search cards or add a URL"
+                    placeholder="Search cards or add a link"
                     value={inputValue}
                     onChange={(e) => {
                       const val = e.currentTarget.value;
@@ -412,10 +432,10 @@ export default function AddConnectionForm(props: Props) {
                     variant="unstyled"
                     size="xs"
                     required
-                    disabled={isEditMode}
+                    error={form.errors.targetUrl}
                     styles={{
                       input: {
-                        fontSize: '0.875rem',
+                        fontSize: 'var(--mantine-font-size-sm)',
                       },
                     }}
                   />
@@ -481,6 +501,11 @@ export default function AddConnectionForm(props: Props) {
               </VisuallyHidden>
             </Stack>
           </Card>
+          {form.errors.targetUrl && (
+            <Text size="sm" c="red" mt="xs">
+              {form.errors.targetUrl}
+            </Text>
+          )}
         </Stack>
 
         <Stack gap={0}>
