@@ -73,9 +73,9 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Grid gutter="md" align="center">
+      <Grid gutter={'xs'} align="center">
         {/* Source URL */}
-        <Grid.Col span={{ base: 12, sm: 6, md: 5 }}>
+        <Grid.Col span={{ base: 12, xs: 5 }}>
           <UrlCard
             id={sourceUrlView.url}
             url={sourceUrlView.url}
@@ -86,9 +86,9 @@ export default function ProfileConnectionItem(props: Props) {
         </Grid.Col>
 
         {/* Connection Metadata */}
-        <Grid.Col span={{ base: 12, md: 2 }}>
-          <Card p={'xs'} radius={'md'}>
-            <Group justify="space-between" wrap="nowrap" align="center">
+        <Grid.Col span={{ base: 12, xs: 2 }}>
+          <Card p={0} radius={'md'}>
+            <Group justify="center" wrap="nowrap" align="center">
               <Stack gap={0} align="center">
                 <Group gap={'xs'} wrap="wrap">
                   {props.connection.connection.type && (
@@ -144,7 +144,7 @@ export default function ProfileConnectionItem(props: Props) {
         </Grid.Col>
 
         {/* Target URL */}
-        <Grid.Col span={{ base: 12, sm: 6, md: 5 }}>
+        <Grid.Col span={{ base: 12, xs: 5 }}>
           <UrlCard
             id={targetUrlView.url}
             url={targetUrlView.url}
