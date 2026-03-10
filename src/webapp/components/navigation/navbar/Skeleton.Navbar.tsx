@@ -37,7 +37,7 @@ export default function NavbarSkeleton() {
           {/* Profile Menu Skeleton */}
           <Group gap="sm" m={5} wrap="nowrap">
             <Skeleton h={38} w={38} />
-            <Skeleton height={18} width="100%" />
+            <Skeleton height={18} width="80%" />
           </Group>
 
           {/* Nav Items Skeleton */}
