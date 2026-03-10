@@ -15,7 +15,7 @@ export default function RecentCards() {
   const { desktopOpened } = useNavbarContext();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
-  const { data: myCardsData } = useMyCards({ limit: 8 });
+  const { data: myCardsData } = useMyCards({ limit: 10 });
   const cards = myCardsData.pages.flatMap((page) => page.cards) ?? [];
 
   return (
