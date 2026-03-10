@@ -515,7 +515,33 @@ export default function AddConnectionForm(props: Props) {
         <Stack gap={0}>
           <Group justify="space-between">
             <Input.Label size="md" htmlFor="note">
-              How is this related?
+              {form.values.connectionType
+                ? (() => {
+                    const selectedType = CONNECTION_TYPES.find(
+                      (t) => t.value === form.values.connectionType,
+                    );
+                    switch (selectedType?.value) {
+                      case 'SUPPORTS':
+                        return 'How does this support it?';
+                      case 'OPPOSES':
+                        return 'How does this oppose it?';
+                      case 'ADDRESSES':
+                        return 'How does this address it?';
+                      case 'HELPFUL':
+                        return 'How is this helpful?';
+                      case 'LEADS_TO':
+                        return 'How does this lead to it?';
+                      case 'RELATED':
+                        return 'How are these related?';
+                      case 'SUPPLEMENT':
+                        return 'What does this add?';
+                      case 'EXPLAINER':
+                        return 'What does this explain?';
+                      default:
+                        return 'Add context (optional)';
+                    }
+                  })()
+                : 'Add context (optional)'}
             </Input.Label>
             <Text c={'gray'} aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}
