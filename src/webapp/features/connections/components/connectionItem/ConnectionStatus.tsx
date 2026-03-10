@@ -134,7 +134,7 @@ export default function ConnectionStatus(props: Props) {
             <Badge
               size="sm"
               variant="light"
-              color="pink"
+              color="green"
               style={{ textTransform: 'capitalize' }}
             >
               {props.connection.type.toLowerCase().replace('_', ' ')}

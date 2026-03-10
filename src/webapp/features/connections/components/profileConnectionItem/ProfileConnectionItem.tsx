@@ -1,5 +1,14 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
-import { Stack, Card, Group, Text, Badge, Divider, Box } from '@mantine/core';
+import {
+  Stack,
+  Card,
+  Group,
+  Text,
+  Badge,
+  Divider,
+  Box,
+  Grid,
+} from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { MdArrowDownward } from 'react-icons/md';
 import { upperFirst } from '@mantine/hooks';
@@ -64,9 +73,9 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Group gap={'0'} align="center" wrap="nowrap">
+      <Grid gutter="md" align="center">
         {/* Source URL */}
-        <Box style={{ flex: 1 }}>
+        <Grid.Col span={{ base: 12, sm: 6, md: 5 }}>
           <UrlCard
             id={sourceUrlView.url}
             url={sourceUrlView.url}
@@ -74,70 +83,68 @@ export default function ProfileConnectionItem(props: Props) {
             urlLibraryCount={sourceUrlView.urlLibraryCount}
             urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
           />
-        </Box>
-
-        <Divider orientation="horizontal" w={20} variant="dashed" size="sm" />
+        </Grid.Col>
 
         {/* Connection Metadata */}
-        <Card p={'xs'} radius={'md'} w={100}>
-          <Group justify="space-between" wrap="nowrap" align="center">
-            <Stack gap={0} align="center">
-              <Group gap={'xs'} wrap="wrap">
-                {props.connection.connection.type && (
-                  <Badge size="md" variant="light" color="pink">
-                    {formatConnectionType(props.connection.connection.type)}
-                  </Badge>
+        <Grid.Col span={{ base: 12, md: 2 }}>
+          <Card p={'xs'} radius={'md'}>
+            <Group justify="space-between" wrap="nowrap" align="center">
+              <Stack gap={0} align="center">
+                <Group gap={'xs'} wrap="wrap">
+                  {props.connection.connection.type && (
+                    <Badge size="md" variant="light" color="green">
+                      {formatConnectionType(props.connection.connection.type)}
+                    </Badge>
+                  )}
+                </Group>
+
+                {props.connection.connection.note && (
+                  <Spoiler
+                    showLabel={'Read more'}
+                    hideLabel={'See less'}
+                    maxHeight={60}
+                  >
+                    <Text fw={500} fs={'italic'} c={'dimmed'} fz={'sm'}>
+                      {props.connection.connection.note}
+                    </Text>
+                  </Spoiler>
                 )}
-              </Group>
-
-              {props.connection.connection.note && (
-                <Spoiler
-                  showLabel={'Read more'}
-                  hideLabel={'See less'}
-                  maxHeight={60}
-                >
-                  <Text fw={500} fs={'italic'} c={'dimmed'} fz={'sm'}>
-                    {props.connection.connection.note}
-                  </Text>
-                </Spoiler>
-              )}
-              {/*<Text mt={'sm'} fz={'sm'} fw={600} c={'gray'}>
-                {relativeCreatedDate}
-              </Text>*/}
-            </Stack>
-            {/*{isOwner && props.onEdit && (
-              <Box>
-                <Menu shadow="md" width={200} position="bottom-end">
-                  <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsVertical size={18} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={<MdEdit size={16} />}
-                      onClick={props.onEdit}
-                    >
-                      Edit
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={<MdDelete size={16} />}
-                      color="red"
-                      onClick={() => setDeleteModalOpened(true)}
-                    >
-                      Delete
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Box>
-            )}*/}
-          </Group>
-        </Card>
-
-        <Divider orientation="horizontal" variant="dashed" w={20} size="sm" />
+                {/*<Text mt={'sm'} fz={'sm'} fw={600} c={'gray'}>
+                  {relativeCreatedDate}
+                </Text>*/}
+              </Stack>
+              {/*{isOwner && props.onEdit && (
+                <Box>
+                  <Menu shadow="md" width={200} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="gray" size="lg">
+                        <HiDotsVertical size={18} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<MdEdit size={16} />}
+                        onClick={props.onEdit}
+                      >
+                        Edit
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<MdDelete size={16} />}
+                        color="red"
+                        onClick={() => setDeleteModalOpened(true)}
+                      >
+                        Delete
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Box>
+              )}*/}
+            </Group>
+          </Card>
+        </Grid.Col>
 
         {/* Target URL */}
-        <Box style={{ flex: 1 }}>
+        <Grid.Col span={{ base: 12, sm: 6, md: 5 }}>
           <UrlCard
             id={targetUrlView.url}
             url={targetUrlView.url}
@@ -145,8 +152,8 @@ export default function ProfileConnectionItem(props: Props) {
             urlLibraryCount={targetUrlView.urlLibraryCount}
             urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
           />
-        </Box>
-      </Group>
+        </Grid.Col>
+      </Grid>
 
       <Modal
         opened={deleteModalOpened}

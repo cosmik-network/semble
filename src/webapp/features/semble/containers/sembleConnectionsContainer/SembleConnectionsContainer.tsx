@@ -117,7 +117,7 @@ export default function SembleConnectionsContainer(props: Props) {
             leftSection={<LuGitCompareArrows size={18} />}
             onClick={handleOpenCreateDrawer}
             size="sm"
-            color="pink"
+            color="green"
           >
             Connect
           </Button>

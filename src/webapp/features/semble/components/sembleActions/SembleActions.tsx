@@ -71,8 +71,7 @@ export default function SembleActions(props: Props) {
           )}
         </CopyButton>
         <ActionIcon
-          variant="light"
-          color="pink"
+          color="green"
           size={'xl'}
           radius={'xl'}
           onClick={(e) => {
