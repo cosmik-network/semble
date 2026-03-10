@@ -35,9 +35,9 @@ export default function NavbarSkeleton() {
       <AppShellSection grow component={ScrollArea}>
         <Stack mt={'xl'}>
           {/* Profile Menu Skeleton */}
-          <Group gap="sm" mx={5}>
+          <Group gap="sm" m={5} wrap="nowrap">
             <Skeleton h={38} w={38} />
-            <Skeleton height={18} width="60%" />
+            <Skeleton height={18} width="100%" />
           </Group>
 
           {/* Nav Items Skeleton */}
