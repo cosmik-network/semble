@@ -14,7 +14,7 @@ export default function RecentCardsSkeleton() {
       </Group>
 
       <Grid gutter="xs">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 10 }).map((_, i) => (
           <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
             <UrlCardSkeleton />
           </GridCol>
