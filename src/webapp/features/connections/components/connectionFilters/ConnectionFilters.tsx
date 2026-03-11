@@ -3,19 +3,60 @@
 import { Group, Button, Menu } from '@mantine/core';
 import { createContext, useContext, ReactNode } from 'react';
 import { upperFirst } from '@mantine/hooks';
-import { MdFilterList } from 'react-icons/md';
+import { MdFilterList, MdOutlinePsychologyAlt } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
+import {
+  BiMessageSquareDetail,
+  BiHelpCircle,
+  BiRightArrowAlt,
+  BiLink,
+  BiCheckCircle,
+  BiXCircle,
+} from 'react-icons/bi';
+import { PiNewspaperClipping } from 'react-icons/pi';
 
 // Connection type enum values matching the backend
-const CONNECTION_TYPES: ConnectionType[] = [
-  'SUPPORTS',
-  'OPPOSES',
-  'ADDRESSES',
-  'HELPFUL',
-  'LEADS_TO',
-  'RELATED',
-  'SUPPLEMENT',
-  'EXPLAINER',
+const CONNECTION_TYPES = [
+  {
+    value: 'SUPPORTS' as ConnectionType,
+    label: 'Supports',
+    icon: BiCheckCircle,
+  },
+  {
+    value: 'OPPOSES' as ConnectionType,
+    label: 'Opposes',
+    icon: BiXCircle,
+  },
+  {
+    value: 'ADDRESSES' as ConnectionType,
+    label: 'Addresses',
+    icon: BiMessageSquareDetail,
+  },
+  {
+    value: 'HELPFUL' as ConnectionType,
+    label: 'Helpful',
+    icon: BiHelpCircle,
+  },
+  {
+    value: 'LEADS_TO' as ConnectionType,
+    label: 'Leads to',
+    icon: BiRightArrowAlt,
+  },
+  {
+    value: 'RELATED' as ConnectionType,
+    label: 'Related',
+    icon: BiLink,
+  },
+  {
+    value: 'SUPPLEMENT' as ConnectionType,
+    label: 'Supplement',
+    icon: PiNewspaperClipping,
+  },
+  {
+    value: 'EXPLAINER' as ConnectionType,
+    label: 'Explainer',
+    icon: MdOutlinePsychologyAlt,
+  },
 ];
 
 // context
@@ -70,14 +111,6 @@ export function ConnectionTypeFilter() {
     ctx.onConnectionTypeChange(type ?? null);
   };
 
-  const formatConnectionType = (type: string) => {
-    return type
-      .toLowerCase()
-      .split('_')
-      .map((word) => upperFirst(word))
-      .join(' ');
-  };
-
   return (
     <Group gap={6}>
       <Button
@@ -90,15 +123,17 @@ export function ConnectionTypeFilter() {
       </Button>
 
       {CONNECTION_TYPES.map((type) => {
+        const Icon = type.icon;
         return (
           <Button
-            key={type}
+            key={type.value}
             size="xs"
             color="green"
-            variant={ctx.connectionType === type ? 'filled' : 'light'}
-            onClick={() => onChange(type)}
+            variant={ctx.connectionType === type.value ? 'filled' : 'light'}
+            onClick={() => onChange(type.value)}
+            leftSection={<Icon size={16} />}
           >
-            {formatConnectionType(type)}
+            {type.label}
           </Button>
         );
       })}
