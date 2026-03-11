@@ -6,6 +6,7 @@ import ConnectionStatus from './ConnectionStatus';
 interface Props {
   connectionForUrl: ConnectionForUrl;
   direction: 'forward' | 'backward';
+  sourceUrl: string;
   onEdit?: () => void;
 }
 
@@ -17,6 +18,8 @@ export default function ConnectionItem(props: Props) {
       <ConnectionStatus
         connection={props.connectionForUrl.connection}
         direction={props.direction}
+        sourceUrl={props.sourceUrl}
+        targetUrl={urlView}
         onEdit={props.onEdit}
       />
       <UrlCard

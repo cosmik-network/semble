@@ -12,12 +12,13 @@ import {
   Modal,
   Button,
   Box,
+  Image,
 } from '@mantine/core';
-import { ConnectionForUrl, User } from '@semble/types';
+import { ConnectionForUrl, User, UrlView } from '@semble/types';
 import Link from 'next/link';
 import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
-import { sanitizeText } from '@/lib/utils/text';
+import { sanitizeText, truncateText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
@@ -52,6 +53,8 @@ const CONNECTION_TYPE_CONFIG: Record<
 interface Props {
   connection: ConnectionForUrl['connection'];
   direction: 'forward' | 'backward';
+  sourceUrl: string;
+  targetUrl: UrlView;
   onEdit?: () => void;
 }
 
@@ -90,6 +93,43 @@ export default function ConnectionStatus(props: Props) {
     const curator = props.connection.curator;
     const connectionType = props.connection.type;
 
+    const CardButton = ({
+      url,
+      title,
+      imageUrl,
+    }: {
+      url: string;
+      title?: string;
+      imageUrl?: string;
+    }) => (
+      <Button
+        component={Link}
+        href={`/semble/${encodeURIComponent(url)}`}
+        variant="outline"
+        color="gray.3"
+        bg="gray.2"
+        c={'gray.7'}
+        size="compact-sm"
+        radius={'md'}
+        leftSection={
+          imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt=""
+              w={16}
+              h={16}
+              fit="cover"
+              radius={'sm'}
+            />
+          ) : (
+            <Avatar size={18} radius={'sm'} />
+          )
+        }
+      >
+        {truncateText(title || 'Card', 15)}
+      </Button>
+    );
+
     return (
       <Text component="div" fw={500}>
         <Text
@@ -100,11 +140,44 @@ export default function ConnectionStatus(props: Props) {
         >
           {sanitizeText(curator.name)}
         </Text>{' '}
-        <Text span>
-          {props.direction === 'forward'
-            ? `connected [Card A] -> [Card B]`
-            : 'connected [Card B] -> [Card A]'}
-        </Text>
+        <Group
+          gap={4}
+          wrap="nowrap"
+          component="span"
+          display="inline-flex"
+          style={{ verticalAlign: 'middle' }}
+        >
+          <Text span>connected</Text>
+          {props.direction === 'forward' ? (
+            <>
+              <CardButton
+                url={props.sourceUrl}
+                title="This card"
+                imageUrl={undefined}
+              />
+              <Text span>→</Text>
+              <CardButton
+                url={props.targetUrl.url}
+                title={props.targetUrl.metadata.title}
+                imageUrl={props.targetUrl.metadata.imageUrl}
+              />
+            </>
+          ) : (
+            <>
+              <CardButton
+                url={props.targetUrl.url}
+                title={props.targetUrl.metadata.title}
+                imageUrl={props.targetUrl.metadata.imageUrl}
+              />
+              <Text span>→</Text>
+              <CardButton
+                url={props.sourceUrl}
+                title="This card"
+                imageUrl={undefined}
+              />
+            </>
+          )}
+        </Group>
         <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
           {relativeCreatedDate}
         </Text>

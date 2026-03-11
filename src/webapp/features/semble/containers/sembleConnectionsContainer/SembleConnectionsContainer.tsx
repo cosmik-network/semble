@@ -144,6 +144,7 @@ export default function SembleConnectionsContainer(props: Props) {
                     direction={
                       direction === 'outgoing' ? 'forward' : 'backward'
                     }
+                    sourceUrl={props.url}
                     onEdit={() =>
                       handleOpenEditDrawer(
                         connectionForUrl.connection,
