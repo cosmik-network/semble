@@ -42,6 +42,7 @@ import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
 import { PiNewspaperClipping } from 'react-icons/pi';
+import { LuChevronsUpDown } from 'react-icons/lu';
 
 interface Props {
   onClose: () => void;
@@ -342,6 +343,7 @@ export default function AddConnectionForm(props: Props) {
                         })()
                       : null
                   }
+                  rightSection={<LuChevronsUpDown />}
                 >
                   {form.values.connectionType
                     ? CONNECTION_TYPES.find(
