@@ -92,7 +92,7 @@ export default function ProfileConnectionItem(props: Props) {
               <Stack gap={0} align="center">
                 <Group gap={'xs'} wrap="wrap">
                   {props.connection.connection.type && (
-                    <Badge size="md" color="green">
+                    <Badge size="md" color="green" variant="light">
                       {formatConnectionType(props.connection.connection.type)}
                     </Badge>
                   )}
