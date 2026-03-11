@@ -80,7 +80,7 @@ export default function SembleActions(props: Props) {
             );
           }}
         >
-          {isInYourLibrary ? 'Update card' : 'Add to library'}
+          {isInYourLibrary ? 'Update' : 'Add'}
         </Button>
       </Group>
 
