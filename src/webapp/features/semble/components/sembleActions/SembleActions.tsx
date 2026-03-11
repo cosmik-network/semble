@@ -12,8 +12,8 @@ import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
-import { LuGitCompareArrows } from 'react-icons/lu';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { TbPlugConnected } from 'react-icons/tb';
 
 interface Props {
   url: string;
@@ -52,7 +52,7 @@ export default function SembleActions(props: Props) {
               <ActionIcon
                 variant="light"
                 color="gray"
-                size={'xl'}
+                size={'lg'}
                 radius={'xl'}
                 onClick={() => {
                   copy();
@@ -65,25 +65,26 @@ export default function SembleActions(props: Props) {
                   });
                 }}
               >
-                <MdIosShare size={22} />
+                <MdIosShare size={18} />
               </ActionIcon>
             </Tooltip>
           )}
         </CopyButton>
-        <ActionIcon
+        <Button
           color="green"
-          size={'xl'}
+          size={'sm'}
           radius={'xl'}
+          leftSection={<TbPlugConnected size={18} />}
           onClick={(e) => {
             e.stopPropagation();
             setShowAddConnectionModal(true);
           }}
         >
-          <LuGitCompareArrows size={22} />
-        </ActionIcon>
+          Connect
+        </Button>
         <Button
           variant={isInYourLibrary ? 'default' : 'filled'}
-          size="md"
+          size="sm"
           leftSection={
             isInYourLibrary ? <IoMdCheckmark size={18} /> : <FiPlus size={18} />
           }
@@ -94,7 +95,7 @@ export default function SembleActions(props: Props) {
             );
           }}
         >
-          {isInYourLibrary ? 'Update card' : 'Add to library'}
+          {isInYourLibrary ? 'Update' : 'Add to library'}
         </Button>
       </Group>
 

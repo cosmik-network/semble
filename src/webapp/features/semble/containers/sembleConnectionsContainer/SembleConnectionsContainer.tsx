@@ -15,7 +15,7 @@ import { ConnectionFilters } from '@/features/connections/components/connectionF
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionForUrl } from '@semble/types';
-import { LuGitCompareArrows } from 'react-icons/lu';
+import { TbPlugConnected } from 'react-icons/tb';
 
 type Direction = 'outgoing' | 'incoming';
 
@@ -114,7 +114,7 @@ export default function SembleConnectionsContainer(props: Props) {
             </ConnectionFilters.Root>
           </Group>
           <Button
-            leftSection={<LuGitCompareArrows size={18} />}
+            leftSection={<TbPlugConnected size={18} />}
             onClick={handleOpenCreateDrawer}
             size="sm"
             color="green"

@@ -18,7 +18,7 @@ import { HiDotsVertical } from 'react-icons/hi';
 import { MdEdit, MdDelete } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
 
 interface Props {
@@ -72,8 +72,8 @@ export default function ProfileConnectionItem(props: Props) {
   const relativeCreatedDate = time === 'now' ? `Now` : time;
 
   return (
-    <>
-      <Grid gutter={'xs'} align="center">
+    <Fragment>
+      <Grid gutter={0} align="center">
         {/* Source URL */}
         <Grid.Col span={{ base: 12, xs: 5 }}>
           <UrlCard
@@ -92,7 +92,7 @@ export default function ProfileConnectionItem(props: Props) {
               <Stack gap={0} align="center">
                 <Group gap={'xs'} wrap="wrap">
                   {props.connection.connection.type && (
-                    <Badge size="md" variant="light" color="green">
+                    <Badge size="md" color="green">
                       {formatConnectionType(props.connection.connection.type)}
                     </Badge>
                   )}
@@ -113,7 +113,7 @@ export default function ProfileConnectionItem(props: Props) {
                   {relativeCreatedDate}
                 </Text>*/}
               </Stack>
-              {/*{isOwner && props.onEdit && (
+              {isOwner && props.onEdit && (
                 <Box>
                   <Menu shadow="md" width={200} position="bottom-end">
                     <Menu.Target>
@@ -138,11 +138,10 @@ export default function ProfileConnectionItem(props: Props) {
                     </Menu.Dropdown>
                   </Menu>
                 </Box>
-              )}*/}
+              )}
             </Group>
           </Card>
         </Grid.Col>
-
         {/* Target URL */}
         <Grid.Col span={{ base: 12, xs: 5 }}>
           <UrlCard
@@ -181,6 +180,6 @@ export default function ProfileConnectionItem(props: Props) {
           </Group>
         </Stack>
       </Modal>
-    </>
+    </Fragment>
   );
 }
