@@ -39,7 +39,7 @@ interface Props {
 export default async function BlueskySemblePost(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
-  const { metadata } = await getUrlMetadata(props.url);
+  const { metadata } = await getUrlMetadata({ url: props.url });
   const urlTypeIcon = getUrlTypeIcon(metadata.type as UrlType);
   const IconComponent = urlTypeIcon as IconType;
 

@@ -1,6 +1,11 @@
 import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
-import { CardSortField, SortOrder, UrlType } from '@semble/types';
+import {
+  CardSortField,
+  GetUrlMetadataParams,
+  SortOrder,
+  UrlType,
+} from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -11,9 +16,9 @@ interface PageParams {
   urlType?: UrlType;
 }
 
-export const getUrlMetadata = cache(async (url: string) => {
+export const getUrlMetadata = cache(async (params: GetUrlMetadataParams) => {
   const client = createSembleClient();
-  const response = await client.getUrlMetadata(url);
+  const response = await client.getUrlMetadata(params);
 
   return response;
 });

@@ -11,6 +11,8 @@ import {
 } from '@mantine/core';
 import TabItem from './TabItem';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import type { UrlAggregateStats } from '@semble/types';
+import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
@@ -31,6 +33,7 @@ import SembleConnectionsContainerSkeleton from '../../containers/sembleConnectio
 
 interface Props {
   url: string;
+  stats?: UrlAggregateStats;
 }
 
 type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
@@ -38,6 +41,13 @@ type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
 export default function SembleTabs(props: Props) {
   const [activeTab, setActiveTab] = useState<TabValue>('similar');
   const { data: featureFlags } = useFeatureFlags();
+  const { data: urlMetadata } = useUrlMetadata({
+    url: props.url,
+    includeStats: true,
+    initialData: props.stats ? { stats: props.stats } : undefined,
+  });
+
+  const stats = urlMetadata?.stats;
 
   return (
     <Tabs
@@ -50,11 +60,19 @@ export default function SembleTabs(props: Props) {
           <Group wrap="nowrap">
             <TabItem value="similar">Similar cards</TabItem>
             {featureFlags?.connections && (
-              <TabItem value="connections">Connections</TabItem>
+              <TabItem value="connections" count={stats?.connections.all.total}>
+                Connections
+              </TabItem>
             )}
-            <TabItem value="notes">Notes</TabItem>
-            <TabItem value="collections">Collections</TabItem>
-            <TabItem value="addedBy">Added by</TabItem>
+            <TabItem value="notes" count={stats?.noteCount}>
+              Notes
+            </TabItem>
+            <TabItem value="collections" count={stats?.collectionCount}>
+              Collections
+            </TabItem>
+            <TabItem value="addedBy" count={stats?.libraryCount}>
+              Added by
+            </TabItem>
             <TabItem value="mentions">Mentions</TabItem>
           </Group>
         </TabsList>
