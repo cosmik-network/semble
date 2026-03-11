@@ -62,13 +62,13 @@ export default function SembleActions(props: Props) {
                   });
                 }}
               >
-                <MdIosShare size={22} />
+                <MdIosShare size={20} />
               </ActionIcon>
             </Tooltip>
           )}
         </CopyButton>
         <Button
-          variant={isInYourLibrary ? 'default' : 'filled'}
+          variant={isInYourLibrary ? 'light' : 'filled'}
           size="md"
           leftSection={
             isInYourLibrary ? <IoMdCheckmark size={18} /> : <FiPlus size={18} />
