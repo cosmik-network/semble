@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ActionIcon,
   Box,
   Button,
   Card,
@@ -42,7 +43,7 @@ import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
 import { PiNewspaperClipping } from 'react-icons/pi';
-import { LuChevronsUpDown } from 'react-icons/lu';
+import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 
 interface Props {
   onClose: () => void;
@@ -314,7 +315,7 @@ export default function AddConnectionForm(props: Props) {
 
           <Divider orientation="vertical" size={'sm'} h={25} mx={'auto'} />
 
-          <Stack gap={'md'} align="center">
+          <Group gap={'xs'} align="center" justify="center">
             <Combobox
               shadow="sm"
               radius="md"
@@ -392,19 +393,26 @@ export default function AddConnectionForm(props: Props) {
                 </Combobox.Options>
               </Combobox.Dropdown>
             </Combobox>
+
+            <ActionIcon
+              variant="light"
+              size={'lg'}
+              color={'blue'}
+              radius={'xl'}
+              onClick={handleSwapUrls}
+              title="Reverse connection"
+            >
+              <LuArrowUpDown size={16} />
+            </ActionIcon>
+          </Group>
+
+          <Stack align="center" gap={0}>
+            <Divider orientation="vertical" size={'sm'} h={25} mx={'auto'} />
+
+            <ThemeIcon variant="light" size={'sm'} color={'gray'} radius={'xl'}>
+              <IoIosArrowDown size={16} />
+            </ThemeIcon>
           </Stack>
-
-          <Divider orientation="vertical" size={'sm'} h={25} mx={'auto'} />
-
-          <ThemeIcon
-            variant="light"
-            size={'sm'}
-            mx={'auto'}
-            color={'gray'}
-            radius={'xl'}
-          >
-            <IoIosArrowDown size={16} />
-          </ThemeIcon>
 
           <Card padding="xs" radius="md" withBorder>
             <Stack gap={0}>
