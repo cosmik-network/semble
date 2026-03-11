@@ -104,7 +104,7 @@ export default function SembleConnectionsContainer(props: Props) {
     <>
       <Stack gap={'md'} align="center">
         <Group justify="space-between" w={'100%'} maw={600}>
-          <Group gap={'xs'}>
+          <Group justify="space-between" w={'100%'}>
             <DirectionToggle value={direction} onChange={setDirection} />
             <ConnectionFilters.Root
               connectionType={connectionType}

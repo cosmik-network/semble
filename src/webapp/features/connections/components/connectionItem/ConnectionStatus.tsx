@@ -102,8 +102,8 @@ export default function ConnectionStatus(props: Props) {
         </Text>{' '}
         <Text span>
           {props.direction === 'forward'
-            ? `connected this to`
-            : 'connected from'}
+            ? `connected [Card A] -> [Card B]`
+            : 'connected [Card B] -> [Card A]'}
         </Text>
         <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
           {relativeCreatedDate}
