@@ -38,7 +38,7 @@ export default function InfiniteScroll(props: Props) {
       {props.isLoading &&
         (props.loader || (
           <Center>
-            <Loader />
+            <Loader size={'sm'} color={'gray'} />
           </Center>
         ))}
 

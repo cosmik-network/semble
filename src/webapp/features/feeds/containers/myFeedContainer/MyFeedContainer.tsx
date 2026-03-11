@@ -60,7 +60,7 @@ export default function MyFeedContainer() {
       <Stack align="center">
         {isRefetching && (
           <Stack align="center" gap={'xs'}>
-            <Loader color={'gray'} />
+            <Loader size={'sm'} color={'gray'} />
             <Text fw={600} c={'gray'}>
               Fetching the latest activities...
             </Text>
