@@ -21,9 +21,33 @@ import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete } from 'react-icons/md';
+import { MdEdit, MdDelete, MdOutlinePsychologyAlt } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
+import {
+  BiMessageSquareDetail,
+  BiHelpCircle,
+  BiRightArrowAlt,
+  BiLink,
+  BiCheckCircle,
+  BiXCircle,
+} from 'react-icons/bi';
+import { PiNewspaperClipping } from 'react-icons/pi';
+import { ConnectionType } from '@semble/types';
+
+const CONNECTION_TYPE_CONFIG: Record<
+  ConnectionType,
+  { label: string; icon: React.ComponentType }
+> = {
+  SUPPORTS: { label: 'Supports', icon: BiCheckCircle },
+  OPPOSES: { label: 'Opposes', icon: BiXCircle },
+  ADDRESSES: { label: 'Addresses', icon: BiMessageSquareDetail },
+  HELPFUL: { label: 'Helpful', icon: BiHelpCircle },
+  LEADS_TO: { label: 'Leads to', icon: BiRightArrowAlt },
+  RELATED: { label: 'Related', icon: BiLink },
+  SUPPLEMENT: { label: 'Supplement', icon: PiNewspaperClipping },
+  EXPLAINER: { label: 'Explainer', icon: MdOutlinePsychologyAlt },
+};
 
 interface Props {
   connection: ConnectionForUrl['connection'];
@@ -130,16 +154,21 @@ export default function ConnectionStatus(props: Props) {
               </Box>
             )}
           </Group>
-          {props.connection.type && (
-            <Badge
-              size="sm"
-              variant="light"
-              color="green"
-              style={{ textTransform: 'capitalize' }}
-            >
-              {props.connection.type.toLowerCase().replace('_', ' ')}
-            </Badge>
-          )}
+          {props.connection.type &&
+            (() => {
+              const config = CONNECTION_TYPE_CONFIG[props.connection.type];
+              const Icon = config.icon;
+              return (
+                <Badge
+                  size="sm"
+                  variant="light"
+                  color="green"
+                  leftSection={<Icon />}
+                >
+                  {config.label}
+                </Badge>
+              );
+            })()}
           {props.connection.note && (
             <Spoiler
               showLabel={'Read more'}

@@ -10,11 +10,11 @@ export default function SembleHeaderBackground() {
         alt="bg"
         fit="cover"
         w="100%"
-        h={80}
+        h={60}
         lightHidden
       />
 
-      <Image src={BG.src} alt="bg" fit="cover" w="100%" h={80} darkHidden />
+      <Image src={BG.src} alt="bg" fit="cover" w="100%" h={60} darkHidden />
 
       {/* White gradient overlay */}
       <Box

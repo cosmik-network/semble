@@ -113,14 +113,14 @@ export default function SembleConnectionsContainer(props: Props) {
               <ConnectionFilters.ConnectionTypeFilter />
             </ConnectionFilters.Root>
           </Group>
-          <Button
+          {/*<Button
             leftSection={<TbPlugConnected size={18} />}
             onClick={handleOpenCreateDrawer}
             size="sm"
             color="green"
           >
             Connect
-          </Button>
+          </Button>*/}
         </Group>
 
         {connections.length === 0 && !isPending ? (
