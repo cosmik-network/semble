@@ -83,7 +83,7 @@ export default function SembleActions(props: Props) {
           Connect
         </Button>
         <Button
-          variant={isInYourLibrary ? 'default' : 'filled'}
+          variant={isInYourLibrary ? 'light' : 'filled'}
           size="sm"
           leftSection={
             isInYourLibrary ? <IoMdCheckmark size={18} /> : <FiPlus size={18} />
@@ -95,7 +95,7 @@ export default function SembleActions(props: Props) {
             );
           }}
         >
-          {isInYourLibrary ? 'Update' : 'Add to library'}
+          {isInYourLibrary ? 'Update' : 'Add to'}
         </Button>
       </Group>
 

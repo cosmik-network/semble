@@ -17,9 +17,11 @@ export default function DirectionToggle(props: Props) {
   return (
     <SegmentedControl
       radius={'xl'}
+      withItemsBorders={false}
       value={props.value}
       onChange={handleChange}
       data={[
+        { label: 'All', value: 'all' },
         { label: 'To', value: 'outgoing' },
         { label: 'From', value: 'incoming' },
       ]}
