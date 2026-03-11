@@ -21,7 +21,7 @@ import { getRelativeTime } from '@/lib/utils/time';
 import { sanitizeText, truncateText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
-import { HiDotsVertical } from 'react-icons/hi';
+import { HiDotsHorizontal, HiDotsVertical } from 'react-icons/hi';
 import { MdEdit, MdDelete, MdOutlinePsychologyAlt } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
@@ -189,7 +189,7 @@ export default function ConnectionStatus(props: Props) {
     <>
       <Card p={0} className={styles.root} radius={'lg'}>
         <Stack gap={'xs'} p={'xs'}>
-          <Group gap={'xs'} wrap="nowrap" align="center">
+          <Group gap={'xs'} wrap="nowrap" align="start">
             <Avatar
               component={Link}
               href={`/profile/${props.connection.curator.handle}`}
@@ -205,7 +205,7 @@ export default function ConnectionStatus(props: Props) {
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
                     <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsVertical size={18} />
+                      <HiDotsHorizontal />
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -227,6 +227,17 @@ export default function ConnectionStatus(props: Props) {
               </Box>
             )}
           </Group>
+          {props.connection.note && (
+            <Spoiler
+              showLabel={'Read more'}
+              hideLabel={'See less'}
+              maxHeight={100}
+            >
+              <Text fw={500} fs={'italic'} c={'gray'}>
+                {props.connection.note}
+              </Text>
+            </Spoiler>
+          )}
           {props.connection.type &&
             (() => {
               const config = CONNECTION_TYPE_CONFIG[props.connection.type];
@@ -242,17 +253,6 @@ export default function ConnectionStatus(props: Props) {
                 </Badge>
               );
             })()}
-          {props.connection.note && (
-            <Spoiler
-              showLabel={'Read more'}
-              hideLabel={'See less'}
-              maxHeight={100}
-            >
-              <Text fw={500} fs={'italic'} c={'gray'}>
-                {props.connection.note}
-              </Text>
-            </Spoiler>
-          )}
         </Stack>
       </Card>
 
