@@ -7,6 +7,7 @@ import {
   ConnectionForUserDTO,
 } from '../../domain/IConnectionQueryRepository';
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
+import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 
 export class DrizzleConnectionQueryRepository
   implements IConnectionQueryRepository
@@ -45,5 +46,14 @@ export class DrizzleConnectionQueryRepository
       curatorId,
       options,
     );
+  }
+
+  async getConnectionStatsForUrl(url: string): Promise<{
+    forwardTotal: number;
+    backwardTotal: number;
+    forwardByType: Map<ConnectionTypeEnum, number>;
+    backwardByType: Map<ConnectionTypeEnum, number>;
+  }> {
+    return this.connectionQueryService.getConnectionStatsForUrl(url);
   }
 }

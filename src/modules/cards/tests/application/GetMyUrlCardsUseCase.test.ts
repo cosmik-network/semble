@@ -677,6 +677,7 @@ describe('GetUrlCardsUseCase', () => {
         getBatchUrlCardViews: jest.fn(),
         getBatchUrlLibraryInfo: jest.fn(),
         searchUrls: jest.fn(),
+        getUrlAggregateStats: jest.fn(),
       };
 
       const errorUseCase = new GetUrlCardsUseCase(

@@ -8,6 +8,7 @@ import {
   GetCollectionPageResponse,
   GetCollectionsResponse,
   GetUrlStatusForMyLibraryResponse,
+  GetUrlMetadataParams,
   GetMyUrlCardsParams,
   GetUrlCardsParams,
   GetCollectionPageParams,
@@ -61,11 +62,16 @@ import {
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
-  async getUrlMetadata(url: string): Promise<GetUrlMetadataResponse> {
-    const params = new URLSearchParams({ url });
+  async getUrlMetadata(
+    params: GetUrlMetadataParams,
+  ): Promise<GetUrlMetadataResponse> {
+    const queryParams = new URLSearchParams({ url: params.url });
+    if (params.includeStats !== undefined) {
+      queryParams.set('includeStats', params.includeStats.toString());
+    }
     return this.request<GetUrlMetadataResponse>(
       'GET',
-      `/api/cards/metadata?${params}`,
+      `/api/cards/metadata?${queryParams}`,
     );
   }
 

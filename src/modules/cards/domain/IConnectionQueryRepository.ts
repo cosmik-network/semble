@@ -78,4 +78,15 @@ export interface IConnectionQueryRepository {
     curatorId: string,
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
+
+  /**
+   * Get connection statistics for a URL (counts by type for forward and backward)
+   * Used for efficient aggregation without fetching full data
+   */
+  getConnectionStatsForUrl(url: string): Promise<{
+    forwardTotal: number;
+    backwardTotal: number;
+    forwardByType: Map<ConnectionTypeEnum, number>;
+    backwardByType: Map<ConnectionTypeEnum, number>;
+  }>;
 }

@@ -471,6 +471,30 @@ export class InMemoryCollectionQueryRepository
     }
   }
 
+  async getCollectionCountForUrl(url: string): Promise<number> {
+    const allCards = this.cardRepository?.getAllCards() || [];
+    const allCollections = this.collectionRepository?.getAllCollections() || [];
+
+    // Find all URL cards with this URL
+    const urlCards = allCards.filter(
+      (c) => c.type.value === 'URL' && c.url?.value === url,
+    );
+    const urlCardIds = new Set(urlCards.map((c) => c.cardId.getStringValue()));
+
+    // Count collections that contain any of these URL cards
+    const collectionsWithUrl = new Set<string>();
+    allCollections.forEach((collection) => {
+      for (const cardInCollection of collection.cardIds) {
+        if (urlCardIds.has(cardInCollection.getStringValue())) {
+          collectionsWithUrl.add(collection.collectionId.getStringValue());
+          break;
+        }
+      }
+    });
+
+    return collectionsWithUrl.size;
+  }
+
   clear(): void {
     // No separate state to clear
   }

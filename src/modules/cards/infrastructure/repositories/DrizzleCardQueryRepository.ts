@@ -109,4 +109,11 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
     return this.urlCardQueryService.searchUrls(options);
   }
+
+  async getUrlAggregateStats(url: string): Promise<{
+    libraryCount: number;
+    noteCount: number;
+  }> {
+    return this.urlCardQueryService.getUrlAggregateStats(url);
+  }
 }

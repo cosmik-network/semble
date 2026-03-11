@@ -852,6 +852,39 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     }
   }
 
+  async getUrlAggregateStats(url: string): Promise<{
+    libraryCount: number;
+    noteCount: number;
+  }> {
+    const allCards = this.cardRepository.getAllCards();
+
+    // Get library count - count distinct users who have URL cards with this URL
+    const urlCards = allCards.filter(
+      (c) => c.type.value === 'URL' && c.url?.value === url,
+    );
+    const uniqueUsers = new Set<string>();
+    urlCards.forEach((card) => {
+      card.libraryMemberships.forEach((membership) => {
+        uniqueUsers.add(membership.curatorId.value);
+      });
+    });
+    const libraryCount = uniqueUsers.size;
+
+    // Get note count - count NOTE cards that reference URL cards with this URL
+    const urlCardIds = new Set(urlCards.map((c) => c.cardId.getStringValue()));
+    const noteCount = allCards.filter(
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId &&
+        urlCardIds.has(c.parentCardId.getStringValue()),
+    ).length;
+
+    return {
+      libraryCount,
+      noteCount,
+    };
+  }
+
   clear(): void {
     // No separate state to clear
   }

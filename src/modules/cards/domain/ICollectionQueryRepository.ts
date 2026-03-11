@@ -128,4 +128,10 @@ export interface ICollectionQueryRepository {
     authorId: string,
     options: { page: number; limit: number },
   ): Promise<PaginatedQueryResult<CollectionContributorDTO>>;
+
+  /**
+   * Get the count of collections containing a specific URL
+   * Used for efficient counting without fetching full data
+   */
+  getCollectionCountForUrl(url: string): Promise<number>;
 }
