@@ -203,7 +203,8 @@ export default function Composer(props: Props) {
                 { label: 'Card', value: 'card' },
                 { label: 'Collection', value: 'collection' },
               ]}
-              w={300}
+              w={200}
+              radius={'xl'}
               mx="auto"
             />
           </Stack>

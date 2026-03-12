@@ -22,6 +22,7 @@ export default function DirectionToggle(props: Props) {
         { label: 'Outgoing', value: 'outgoing' },
         { label: 'Incoming', value: 'incoming' },
       ]}
+      radius={'xl'}
     />
   );
 }
