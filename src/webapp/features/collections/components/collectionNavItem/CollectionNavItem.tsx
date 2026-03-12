@@ -6,6 +6,7 @@ import styles from './CollectionNavItem.module.css';
 import { isMarginUri } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { CollectionAccessType } from '@semble/types';
+import { abbreviateNumber } from '@/lib/utils/text';
 
 interface Props {
   name: string;
@@ -41,6 +42,7 @@ export default function CollectionNavItem(props: Props) {
       rightSection={
         props.cardCount > 0 ? (
           <Badge
+            fullWidth
             className={
               isActive
                 ? isOpenCollection
@@ -48,9 +50,8 @@ export default function CollectionNavItem(props: Props) {
                   : styles.badgeActive
                 : styles.badge
             }
-            circle
           >
-            {props.cardCount}
+            {abbreviateNumber(props.cardCount)}
           </Badge>
         ) : null
       }

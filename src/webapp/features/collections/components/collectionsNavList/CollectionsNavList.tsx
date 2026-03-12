@@ -1,63 +1,105 @@
 'use client';
 
 import Link from 'next/link';
-import { NavLink, Stack } from '@mantine/core';
-import { BiCollection, BiRightArrowAlt } from 'react-icons/bi';
+import { ActionIcon, Group, NavLink, Stack, Text } from '@mantine/core';
+import { BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useMyCollections from '../../lib/queries/useMyCollections';
-import { useToggle } from '@mantine/hooks';
 import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { useNavbarContext } from '@/providers/navbar';
+import useFollowingCollections from '@/features/follows/lib/queries/useFollowingCollections';
 
 export default function CollectionsNavList() {
   const { toggleMobile } = useNavbarContext();
   const { data, error } = useMyCollections({ limit: 30 });
-  const { data: profile } = useMyProfile();
-  const [opened, toggleMenu] = useToggle([true, false]);
+  const { data: profile, error: profileError } = useMyProfile();
+  const { data: followingCollections, error: errorFollowingCollections } =
+    useFollowingCollections({ identifier: profile.handle, limit: 30 });
 
-  if (error) {
+  if (error || errorFollowingCollections || profileError) {
     return <CollectionsNavListError />;
   }
 
   const collections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
-  return (
-    <NavLink
-      variant="subtle"
-      c="gray"
-      label="Collections"
-      leftSection={<BiCollection size={22} />}
-      opened={opened}
-      onClick={() => toggleMenu()}
-    >
-      <CreateCollectionShortcut />
+  const followedCollections =
+    followingCollections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
-      <NavLink
-        component={Link}
-        href={`/profile/${profile.handle}/collections`}
-        label="View all"
-        variant="subtle"
-        c="blue"
-        leftSection={<BiRightArrowAlt size={25} />}
-        onClick={toggleMobile}
-      />
+  return (
+    <Stack gap={'xs'}>
+      <Group justify="space-between">
+        <Text fw={600} c={'gray'}>
+          Collections
+        </Text>
+
+        <Group gap={'xs'}>
+          <ActionIcon
+            component={Link}
+            href={`/profile/${profile.handle}/collections`}
+            variant="light"
+            radius={'xl'}
+            color="blue"
+            onClick={toggleMobile}
+          >
+            <BiRightArrowAlt size={18} />
+          </ActionIcon>
+          <CreateCollectionShortcut />
+        </Group>
+      </Group>
 
       <Stack gap={0}>
-        {collections.map((collection) => (
-          <CollectionNavItem
-            key={collection.id}
-            name={collection.name}
-            url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
-            cardCount={collection.cardCount}
-            accessType={collection.accessType}
-            uri={collection.uri}
-          />
-        ))}
+        <NavLink label="My Collections" c={'gray'}>
+          <Stack gap={0}>
+            {collections.map((collection) => (
+              <CollectionNavItem
+                key={collection.id}
+                name={collection.name}
+                url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
+                cardCount={collection.cardCount}
+                accessType={collection.accessType}
+                uri={collection.uri}
+              />
+            ))}
+            <NavLink
+              component={Link}
+              href={`/profile/${profile.handle}/collections`}
+              label="View all"
+              variant="subtle"
+              c="blue"
+              leftSection={<BiRightArrowAlt size={25} />}
+              onClick={toggleMobile}
+            />
+          </Stack>
+        </NavLink>
+
+        <NavLink label="Following" c={'gray'}>
+          <Stack gap={0}>
+            {followedCollections.map((collection) => (
+              <CollectionNavItem
+                key={collection.id}
+                name={collection.name}
+                url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
+                cardCount={collection.cardCount}
+                accessType={collection.accessType}
+                uri={collection.uri}
+              />
+            ))}
+            <NavLink
+              component={Link}
+              href={`/profile/${profile.handle}/network/collections-following`}
+              label="View all"
+              variant="subtle"
+              c="blue"
+              leftSection={<BiRightArrowAlt size={25} />}
+              onClick={toggleMobile}
+            />
+          </Stack>
+        </NavLink>
       </Stack>
-    </NavLink>
+    </Stack>
   );
 }

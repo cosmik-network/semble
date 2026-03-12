@@ -1,4 +1,4 @@
-import { NavLink } from '@mantine/core';
+import { ActionIcon, Button, NavLink } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
@@ -8,14 +8,14 @@ export default function CreateCollectionShortcut() {
 
   return (
     <Fragment>
-      <NavLink
-        component="button"
-        label={'Create'}
-        variant="subtle"
-        c="blue"
-        leftSection={<FiPlus size={25} />}
+      <ActionIcon
+        variant="light"
+        radius={'xl'}
+        color="blue"
         onClick={() => setIsDrawerOpen(true)}
-      />
+      >
+        <FiPlus size={18} />
+      </ActionIcon>
       <CreateCollectionDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
