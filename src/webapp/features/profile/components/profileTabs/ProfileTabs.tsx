@@ -25,26 +25,32 @@ export default function ProfileTabs(props: Props) {
     <Tabs value={currentTab}>
       <Paper radius={0}>
         <ScrollAreaAutosize type="scroll">
-          <Tabs.List>
-            <Group wrap="nowrap">
-              <TabItem value="profile" href={basePath}>
-                Profile
+          <Tabs.List style={{ flexWrap: 'nowrap' }}>
+            <TabItem value="profile" href={basePath}>
+              Profile
+            </TabItem>
+            <TabItem
+              value="cards"
+              href={`${basePath}/cards`}
+              count={profile.urlCardCount}
+            >
+              Cards
+            </TabItem>
+            <TabItem
+              value="collections"
+              href={`${basePath}/collections`}
+              count={profile.collectionCount}
+            >
+              Collections
+            </TabItem>
+            {featureFlags?.connections && (
+              <TabItem value="connections" href={`${basePath}/connections`}>
+                Connections
               </TabItem>
-              <TabItem value="cards" href={`${basePath}/cards`}>
-                {`Cards${profile.urlCardCount !== undefined ? ` (${profile.urlCardCount})` : ''}`}
-              </TabItem>
-              <TabItem value="collections" href={`${basePath}/collections`}>
-                {`Collections${profile.collectionCount !== undefined ? ` (${profile.collectionCount})` : ''}`}
-              </TabItem>
-              {featureFlags?.connections && (
-                <TabItem value="connections" href={`${basePath}/connections`}>
-                  Connections
-                </TabItem>
-              )}
-              <TabItem value="network" href={`${basePath}/network`}>
-                Network
-              </TabItem>
-            </Group>
+            )}
+            <TabItem value="network" href={`${basePath}/network`}>
+              Network
+            </TabItem>
           </Tabs.List>
         </ScrollAreaAutosize>
       </Paper>
