@@ -787,6 +787,7 @@ describe('GetCollectionsForUrlUseCase', () => {
         getOpenCollectionsWithContributor: jest.fn(),
         getCollectionContributors: jest.fn(),
         getCollectionCountForUrl: jest.fn(),
+        getProfileCollectionCount: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionsForUrlUseCase(

@@ -5,10 +5,13 @@ import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { ProfileMapper } from '../../mappers/ProfileMapper';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
+import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
 
 export interface GetMyProfileQuery {
   userId: string;
   callerDid?: string;
+  includeStats?: boolean;
 }
 
 export interface GetMyProfileResult {
@@ -34,6 +37,8 @@ export class GetProfileUseCase
     private profileService: IProfileService,
     private identityResolver: IIdentityResolutionService,
     private followsRepository: IFollowsRepository,
+    private cardQueryRepository: ICardQueryRepository,
+    private collectionQueryRepository: ICollectionQueryRepository,
   ) {}
 
   async execute(query: GetMyProfileQuery): Promise<Result<GetMyProfileResult>> {
@@ -104,12 +109,29 @@ export class GetProfileUseCase
 
       const counts = countsResult.value;
 
+      // Conditionally fetch card and collection stats
+      let profileStats = {};
+      if (query.includeStats) {
+        const [cardStats, collectionCount] = await Promise.all([
+          this.cardQueryRepository.getProfileCardStats(didResult.value.value),
+          this.collectionQueryRepository.getProfileCollectionCount(
+            didResult.value.value,
+          ),
+        ]);
+
+        profileStats = {
+          urlCardCount: cardStats.urlCardCount,
+          collectionCount: collectionCount,
+        };
+      }
+
       // Merge counts into profile
       const profileWithCounts = {
         ...profile,
         followerCount: counts.followerCount,
         followingCount: counts.followingCount,
         followedCollectionsCount: counts.followedCollectionsCount,
+        ...profileStats,
       };
 
       // Map profile using ProfileMapper

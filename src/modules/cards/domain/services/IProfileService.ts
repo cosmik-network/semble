@@ -16,4 +16,6 @@ export interface UserProfile {
   followerCount?: number;
   followingCount?: number;
   followedCollectionsCount?: number;
+  urlCardCount?: number;
+  collectionCount?: number;
 }
