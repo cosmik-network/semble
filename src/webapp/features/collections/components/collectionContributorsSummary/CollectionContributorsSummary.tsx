@@ -49,7 +49,7 @@ export default function CollectionContributorsShortcut({
         c="blue"
       >
         {totalContributors}{' '}
-        {totalContributors === 1 ? 'Contributor' : 'Contributors'}
+        {Number(totalContributors) === 1 ? 'Contributor' : 'Contributors'}
       </Anchor>
     </Fragment>
   );
