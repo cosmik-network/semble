@@ -21,7 +21,7 @@ export default function TabItem(props: Props) {
       fw={600}
       rightSection={
         props.count && props.count > 0 ? (
-          <Badge variant="light" color="gray" circle>
+          <Badge variant="light" color="gray" fullWidth>
             {props.count > 99 ? '99+' : props.count}
           </Badge>
         ) : undefined
