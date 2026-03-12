@@ -317,6 +317,9 @@ export class UseCaseFactory {
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,
         repositories.cardRepository,
+        repositories.cardQueryRepository,
+        repositories.collectionQueryRepository,
+        repositories.connectionQueryRepository,
       ),
       getUrlCardViewUseCase: new GetUrlCardViewUseCase(
         repositories.cardQueryRepository,

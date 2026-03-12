@@ -19,7 +19,7 @@ export default function useGraphNodeUrl({ url, enabled = true }: Props) {
         queryKey: url ? [url] : ['graph', 'url', 'metadata', 'empty'],
         queryFn: () => {
           if (!url) throw new Error('URL is required');
-          return getUrlMetadata(url);
+          return getUrlMetadata({ url });
         },
         enabled: enabled && !!url,
         staleTime: 3 * 60 * 1000, // 3 minutes - URLs change more often

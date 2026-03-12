@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and, inArray, SQL, desc, asc, count } from 'drizzle-orm';
+import { eq, and, inArray, SQL, desc, asc, count, sql } from 'drizzle-orm';
 import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
@@ -201,5 +201,78 @@ export class ConnectionQueryService {
       totalCount,
       hasMore: offset + results.length < totalCount,
     };
+  }
+
+  async getConnectionStatsForUrl(url: string): Promise<{
+    forwardTotal: number;
+    backwardTotal: number;
+    forwardByType: Map<ConnectionTypeEnum, number>;
+    backwardByType: Map<ConnectionTypeEnum, number>;
+  }> {
+    try {
+      // Get forward connections (where URL is source) grouped by type
+      const forwardStats = await this.db
+        .select({
+          connectionType: connections.connectionType,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.sourceType, 'URL'),
+            eq(connections.sourceValue, url),
+            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
+          ),
+        )
+        .groupBy(connections.connectionType);
+
+      // Get backward connections (where URL is target) grouped by type
+      const backwardStats = await this.db
+        .select({
+          connectionType: connections.connectionType,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.targetType, 'URL'),
+            eq(connections.targetValue, url),
+            eq(connections.sourceType, 'URL'), // Only URL-to-URL connections
+          ),
+        )
+        .groupBy(connections.connectionType);
+
+      // Process forward stats
+      let forwardTotal = 0;
+      const forwardByType = new Map<ConnectionTypeEnum, number>();
+      forwardStats.forEach((stat) => {
+        const count = Number(stat.count);
+        forwardTotal += count;
+        if (stat.connectionType) {
+          forwardByType.set(stat.connectionType as ConnectionTypeEnum, count);
+        }
+      });
+
+      // Process backward stats
+      let backwardTotal = 0;
+      const backwardByType = new Map<ConnectionTypeEnum, number>();
+      backwardStats.forEach((stat) => {
+        const count = Number(stat.count);
+        backwardTotal += count;
+        if (stat.connectionType) {
+          backwardByType.set(stat.connectionType as ConnectionTypeEnum, count);
+        }
+      });
+
+      return {
+        forwardTotal,
+        backwardTotal,
+        forwardByType,
+        backwardByType,
+      };
+    } catch (error) {
+      console.error('Error in getConnectionStatsForUrl:', error);
+      throw error;
+    }
   }
 }

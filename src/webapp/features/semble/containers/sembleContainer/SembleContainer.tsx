@@ -7,10 +7,12 @@ import SembleHeaderBackground from './SembleHeaderBackground';
 import BlueskySembleHeader from '@/features/platforms/bluesky/container/blueskySembleHeader/BlueskySembleHeader';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import BlueskySembleHeaderSkeleton from '@/features/platforms/bluesky/container/blueskySembleHeader/Skeleton.BlueskySembleHeader';
+import type { UrlAggregateStats } from '@semble/types';
 
 interface Props {
   url: string;
   viaCardId?: string;
+  stats?: UrlAggregateStats;
 }
 
 export default function SembleContainer(props: Props) {
@@ -42,7 +44,7 @@ export default function SembleContainer(props: Props) {
               <SembleHeader url={props.url} viaCardId={props.viaCardId} />
             </Suspense>
           )}
-          <SembleTabs url={props.url} />
+          <SembleTabs url={props.url} stats={props.stats} />
         </Stack>
       </Container>
     </Container>

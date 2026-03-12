@@ -598,6 +598,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         searchCollections: jest.fn(),
         getOpenCollectionsWithContributor: jest.fn(),
         getCollectionContributors: jest.fn(),
+        getCollectionCountForUrl: jest.fn(),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

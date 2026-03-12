@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   let metadata: Metadata = {};
   if (url) {
     try {
-      const result = await getUrlMetadata(getUrlFromSlug([url]));
+      const result = await getUrlMetadata({ url: getUrlFromSlug([url]) });
       const libraries = await getLibrariesForUrl(getUrlFromSlug([url]));
 
       metadata = {

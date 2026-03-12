@@ -22,7 +22,7 @@ export async function generateMetadata({
     redirect('/');
   }
 
-  const { metadata } = await getUrlMetadata(url);
+  const { metadata } = await getUrlMetadata({ url, includeStats: true });
   const domain = getDomain(url);
   const title = metadata.title ? `${metadata.title} (${domain})` : url;
 
@@ -51,10 +51,13 @@ export default async function Page(props: Props) {
     redirect('/');
   }
 
+  // Fetch metadata with stats for the tabs
+  const { stats } = await getUrlMetadata({ url, includeStats: true });
+
   return (
     <SemblePageClient viaCardId={viaCardId}>
       <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-        <SembleContainer url={url} viaCardId={viaCardId} />
+        <SembleContainer url={url} viaCardId={viaCardId} stats={stats} />
       </Suspense>
     </SemblePageClient>
   );
