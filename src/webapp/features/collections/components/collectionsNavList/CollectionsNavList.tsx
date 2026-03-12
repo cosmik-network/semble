@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ActionIcon, Group, NavLink, Stack, Text } from '@mantine/core';
-import { BiRightArrowAlt } from 'react-icons/bi';
+import { Button, Group, NavLink, Stack, Text } from '@mantine/core';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useMyCollections from '../../lib/queries/useMyCollections';
 import CollectionsNavListError from './Error.CollectionsNavList';
@@ -37,16 +36,17 @@ export default function CollectionsNavList() {
         </Text>
 
         <Group gap={'xs'}>
-          <ActionIcon
+          <Button
             component={Link}
             href={`/profile/${profile.handle}/collections`}
             variant="light"
             radius={'xl'}
+            size="xs"
             color="blue"
             onClick={toggleMobile}
           >
-            <BiRightArrowAlt size={18} />
-          </ActionIcon>
+            View all
+          </Button>
           <CreateCollectionShortcut />
         </Group>
       </Group>
@@ -70,7 +70,6 @@ export default function CollectionsNavList() {
               label="View all"
               variant="subtle"
               c="blue"
-              leftSection={<BiRightArrowAlt size={25} />}
               onClick={toggleMobile}
             />
           </Stack>
@@ -94,7 +93,6 @@ export default function CollectionsNavList() {
               label="View all"
               variant="subtle"
               c="blue"
-              leftSection={<BiRightArrowAlt size={25} />}
               onClick={toggleMobile}
             />
           </Stack>
