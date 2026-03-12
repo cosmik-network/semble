@@ -89,4 +89,13 @@ export interface IConnectionQueryRepository {
     forwardByType: Map<ConnectionTypeEnum, number>;
     backwardByType: Map<ConnectionTypeEnum, number>;
   }>;
+
+  /**
+   * Get connection statistics for a curator (total count and breakdown by type)
+   * Used for efficient aggregation without fetching full data
+   */
+  getConnectionStatsForCurator(curatorId: string): Promise<{
+    total: number;
+    byType: Map<ConnectionTypeEnum, number>;
+  }>;
 }

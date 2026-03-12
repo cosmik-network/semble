@@ -231,4 +231,33 @@ export class InMemoryConnectionQueryRepository
       backwardByType,
     };
   }
+
+  async getConnectionStatsForCurator(curatorId: string): Promise<{
+    total: number;
+    byType: Map<ConnectionTypeEnum, number>;
+  }> {
+    const allConnections = this.connectionRepository.getAllConnections();
+
+    // Get all URL-to-URL connections created by this curator
+    const curatorConnections = allConnections.filter(
+      (connection) =>
+        connection.curatorId.value === curatorId &&
+        connection.source.type === UrlOrCardIdType.URL &&
+        connection.target.type === UrlOrCardIdType.URL,
+    );
+
+    // Count by type
+    const byType = new Map<ConnectionTypeEnum, number>();
+    curatorConnections.forEach((connection) => {
+      if (connection.type) {
+        const current = byType.get(connection.type.value) || 0;
+        byType.set(connection.type.value, current + 1);
+      }
+    });
+
+    return {
+      total: curatorConnections.length,
+      byType,
+    };
+  }
 }
