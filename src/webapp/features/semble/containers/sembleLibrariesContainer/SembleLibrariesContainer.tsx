@@ -6,7 +6,7 @@ import { Grid } from '@mantine/core';
 import SembleLibrariesContainerError from './Error.SembleLibrariesContainer';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { LuLibrary } from 'react-icons/lu';
-import AddedByCard from '../../components/addedByCard/AddedByCard';
+import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 
 interface Props {
   url: string;
@@ -54,7 +54,7 @@ export default function SembleLibrariesContainer(props: Props) {
               base: 12,
             }}
           >
-            <AddedByCard item={item} />
+            <ProfileCard profile={item.user} />
           </Grid.Col>
         ))}
       </Grid>

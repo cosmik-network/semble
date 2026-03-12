@@ -1,5 +1,5 @@
-import { Divider, Grid, GridCol } from '@mantine/core';
-import AddedByCardSkeleton from '../../components/addedByCard/Skeleton.AddedByCard';
+import { Grid, GridCol } from '@mantine/core';
+import ProfileCardSkeleton from '@/features/profile/components/profileCard/Skeleton.ProfileCard';
 
 export default function SembleLibrariesContainerSkeleton() {
   return (
@@ -9,10 +9,10 @@ export default function SembleLibrariesContainerSkeleton() {
           base: 12,
         }}
       >
-        <AddedByCardSkeleton />
-        <AddedByCardSkeleton />
-        <AddedByCardSkeleton />
-        <AddedByCardSkeleton />
+        <ProfileCardSkeleton />
+        <ProfileCardSkeleton />
+        <ProfileCardSkeleton />
+        <ProfileCardSkeleton />
       </GridCol>
     </Grid>
   );
