@@ -112,7 +112,10 @@ describe('GetConnectionsUseCase', () => {
       await cardRepository.save(card2);
       await cardRepository.save(card3);
 
-      // Create connections from curator1
+      // Create connections from curator1 with explicit timestamps to ensure stable ordering
+      const baseTime = new Date('2024-01-01T00:00:00Z');
+      const laterTime = new Date('2024-01-02T00:00:00Z');
+
       const source1 = UrlOrCardId.createFromUrl(
         URL.create(url1).unwrap(),
       ).unwrap();
@@ -124,6 +127,8 @@ describe('GetConnectionsUseCase', () => {
         target: target1,
         type: ConnectionType.create(ConnectionTypeEnum.SUPPORTS).unwrap(),
         curatorId: curator1,
+        createdAt: baseTime,
+        updatedAt: baseTime,
       }).unwrap();
 
       const source2 = UrlOrCardId.createFromUrl(
@@ -138,6 +143,8 @@ describe('GetConnectionsUseCase', () => {
         type: ConnectionType.create(ConnectionTypeEnum.RELATED).unwrap(),
         note: ConnectionNote.create('Test note').unwrap(),
         curatorId: curator1,
+        createdAt: laterTime,
+        updatedAt: laterTime,
       }).unwrap();
 
       await connectionRepository.save(connection1);
