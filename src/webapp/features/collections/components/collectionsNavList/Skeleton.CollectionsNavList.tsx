@@ -9,7 +9,7 @@ export default function CollectionsNavListSkeleton() {
         </Text>
 
         <Group gap={'xs'}>
-          <Skeleton radius={'xl'} h={26} w={26} />
+          <Skeleton radius={'xl'} h={26} w={73} />
           <Skeleton radius={'xl'} h={26} w={26} />
         </Group>
       </Group>
