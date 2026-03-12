@@ -3,7 +3,6 @@
 import { useState, Suspense } from 'react';
 import {
   Box,
-  Group,
   ScrollAreaAutosize,
   Tabs,
   TabsList,
@@ -56,25 +55,23 @@ export default function SembleTabs(props: Props) {
       onChange={(val) => setActiveTab(val as TabValue)}
     >
       <ScrollAreaAutosize type="scroll">
-        <TabsList>
-          <Group wrap="nowrap">
-            <TabItem value="similar">Similar cards</TabItem>
-            {featureFlags?.connections && (
-              <TabItem value="connections" count={stats?.connections.all.total}>
-                Connections
-              </TabItem>
-            )}
-            <TabItem value="notes" count={stats?.noteCount}>
-              Notes
+        <TabsList style={{ flexWrap: 'nowrap' }}>
+          <TabItem value="similar">Similar cards</TabItem>
+          {featureFlags?.connections && (
+            <TabItem value="connections" count={stats?.connections.all.total}>
+              Connections
             </TabItem>
-            <TabItem value="collections" count={stats?.collectionCount}>
-              Collections
-            </TabItem>
-            <TabItem value="addedBy" count={stats?.libraryCount}>
-              Added by
-            </TabItem>
-            <TabItem value="mentions">Mentions</TabItem>
-          </Group>
+          )}
+          <TabItem value="notes" count={stats?.noteCount}>
+            Notes
+          </TabItem>
+          <TabItem value="collections" count={stats?.collectionCount}>
+            Collections
+          </TabItem>
+          <TabItem value="addedBy" count={stats?.libraryCount}>
+            Added by
+          </TabItem>
+          <TabItem value="mentions">Mentions</TabItem>
         </TabsList>
       </ScrollAreaAutosize>
 
