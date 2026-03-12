@@ -23,4 +23,6 @@ export const cardKeys = {
     sortOrder,
     urlType,
   ],
+  urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
+    [...cardKeys.all(), 'metadata', url, options] as const,
 };

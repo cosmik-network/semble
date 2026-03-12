@@ -20,6 +20,20 @@ export default function useRemoveCardFromLibrary() {
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
+      // Invalidate all URL metadata queries with stats to update tab counts
+      queryClient.invalidateQueries({
+        predicate: (query): boolean => {
+          const key = query.queryKey as unknown[];
+          return !!(
+            key[0] === 'cards' &&
+            key[1] === 'metadata' &&
+            key[3] &&
+            typeof key[3] === 'object' &&
+            'includeStats' in key[3] &&
+            key[3].includeStats === true
+          );
+        },
+      });
     },
   });
 

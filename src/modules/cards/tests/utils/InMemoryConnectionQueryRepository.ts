@@ -9,6 +9,7 @@ import {
 } from '../../domain/IConnectionQueryRepository';
 import { InMemoryConnectionRepository } from './InMemoryConnectionRepository';
 import { UrlOrCardIdType } from '../../domain/value-objects/UrlOrCardId';
+import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 
 export class InMemoryConnectionQueryRepository
   implements IConnectionQueryRepository
@@ -178,6 +179,56 @@ export class InMemoryConnectionQueryRepository
       totalCount: filteredConnections.length,
       hasMore:
         offset + paginatedConnections.length < filteredConnections.length,
+    };
+  }
+
+  async getConnectionStatsForUrl(url: string): Promise<{
+    forwardTotal: number;
+    backwardTotal: number;
+    forwardByType: Map<ConnectionTypeEnum, number>;
+    backwardByType: Map<ConnectionTypeEnum, number>;
+  }> {
+    const allConnections = this.connectionRepository.getAllConnections();
+
+    // Forward connections (where URL is source)
+    const forwardConnections = allConnections.filter(
+      (connection) =>
+        connection.source.type === UrlOrCardIdType.URL &&
+        connection.source.stringValue === url &&
+        connection.target.type === UrlOrCardIdType.URL,
+    );
+
+    // Backward connections (where URL is target)
+    const backwardConnections = allConnections.filter(
+      (connection) =>
+        connection.target.type === UrlOrCardIdType.URL &&
+        connection.target.stringValue === url &&
+        connection.source.type === UrlOrCardIdType.URL,
+    );
+
+    // Count by type for forward connections
+    const forwardByType = new Map<ConnectionTypeEnum, number>();
+    forwardConnections.forEach((connection) => {
+      if (connection.type) {
+        const current = forwardByType.get(connection.type.value) || 0;
+        forwardByType.set(connection.type.value, current + 1);
+      }
+    });
+
+    // Count by type for backward connections
+    const backwardByType = new Map<ConnectionTypeEnum, number>();
+    backwardConnections.forEach((connection) => {
+      if (connection.type) {
+        const current = backwardByType.get(connection.type.value) || 0;
+        backwardByType.set(connection.type.value, current + 1);
+      }
+    });
+
+    return {
+      forwardTotal: forwardConnections.length,
+      backwardTotal: backwardConnections.length,
+      forwardByType,
+      backwardByType,
     };
   }
 }

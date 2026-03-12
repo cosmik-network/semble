@@ -26,7 +26,10 @@ interface Props {
 }
 
 export default async function UrlMetadataHeader(props: Props) {
-  const { metadata } = await getUrlMetadata(props.url);
+  const { metadata } = await getUrlMetadata({
+    url: props.url,
+    includeStats: true,
+  });
   const urlTypeIcon = getUrlTypeIcon(metadata.type as UrlType);
   const IconComponent = urlTypeIcon as IconType;
 

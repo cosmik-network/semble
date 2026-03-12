@@ -1470,6 +1470,60 @@ export class UrlCardQueryService {
     }
   }
 
+  async getUrlAggregateStats(url: string): Promise<{
+    libraryCount: number;
+    noteCount: number;
+  }> {
+    try {
+      // Get library count - count distinct users who have cards with this URL
+      const libraryCountResult = await this.db
+        .select({
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
+
+      const libraryCount = Number(libraryCountResult[0]?.count || 0);
+
+      // Get note count - count NOTE cards that have a parent card with this URL
+      // First get all URL cards with this URL
+      const urlCardIds = await this.db
+        .select({ id: cards.id })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
+
+      let noteCount = 0;
+      if (urlCardIds.length > 0) {
+        // Count NOTE cards that reference any of these URL cards
+        const noteCountResult = await this.db
+          .select({
+            count: count(cards.id),
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.type, CardTypeEnum.NOTE),
+              inArray(
+                cards.parentCardId,
+                urlCardIds.map((c) => c.id),
+              ),
+            ),
+          );
+
+        noteCount = Number(noteCountResult[0]?.count || 0);
+      }
+
+      return {
+        libraryCount,
+        noteCount,
+      };
+    } catch (error) {
+      console.error('Error in getUrlAggregateStats:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CardSortField) {
     switch (sortBy) {
       case CardSortField.CREATED_AT:

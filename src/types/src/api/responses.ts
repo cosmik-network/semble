@@ -68,8 +68,29 @@ export interface UrlMetadata {
   isbn?: string;
 }
 
+export interface UrlAggregateStats {
+  libraryCount: number;
+  noteCount: number;
+  collectionCount: number;
+  connections: {
+    all: {
+      total: number;
+      [type: string]: number;
+    };
+    incoming: {
+      total: number;
+      [type: string]: number;
+    };
+    outgoing: {
+      total: number;
+      [type: string]: number;
+    };
+  };
+}
+
 export interface GetUrlMetadataResponse {
   metadata: UrlMetadata;
+  stats?: UrlAggregateStats; // Optional, only included when includeStats is true
 }
 
 // Unified UrlCard interface - base for all card responses

@@ -163,6 +163,11 @@ export interface GetProfileParams {
   identifier: string; // Can be DID or handle
 }
 
+export interface GetUrlMetadataParams {
+  url: string;
+  includeStats?: boolean; // Optional flag to include aggregate statistics
+}
+
 export interface GetUrlStatusForMyLibraryParams {
   url: string;
 }

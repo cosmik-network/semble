@@ -215,4 +215,13 @@ export interface ICardQueryRepository {
   searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>>;
+
+  /**
+   * Get aggregate statistics for a URL (library count and note count)
+   * Used for efficient counting without fetching full data
+   */
+  getUrlAggregateStats(url: string): Promise<{
+    libraryCount: number;
+    noteCount: number;
+  }>;
 }

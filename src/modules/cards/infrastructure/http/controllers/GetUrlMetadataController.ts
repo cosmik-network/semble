@@ -10,13 +10,19 @@ export class GetUrlMetadataController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { url } = req.query;
+      const { url, includeStats } = req.query;
 
       if (!url || typeof url !== 'string') {
         return this.badRequest(res, 'URL query parameter is required');
       }
 
-      const result = await this.getUrlMetadataUseCase.execute({ url });
+      // Parse includeStats as boolean
+      const includeStatsParam = includeStats === 'true' || includeStats === '1';
+
+      const result = await this.getUrlMetadataUseCase.execute({
+        url,
+        includeStats: includeStatsParam,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error);

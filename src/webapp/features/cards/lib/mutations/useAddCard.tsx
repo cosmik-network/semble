@@ -45,6 +45,10 @@ export default function useAddCard(
       queryClient.invalidateQueries({
         queryKey: collectionKeys.bySembleUrl(variables.url),
       });
+      // Invalidate URL metadata with stats to update tab counts
+      queryClient.invalidateQueries({
+        queryKey: cardKeys.urlMetadata(variables.url, { includeStats: true }),
+      });
 
       // invalidate each collection query individually
       variables.collectionIds?.forEach((id) => {

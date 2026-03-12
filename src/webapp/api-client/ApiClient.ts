@@ -24,6 +24,7 @@ import type {
   CompleteOAuthSignInRequest,
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
+  GetUrlMetadataParams,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetCollectionPageByAtUriParams,
@@ -145,8 +146,10 @@ export class ApiClient {
   }
 
   // Query operations - delegate to QueryClient
-  async getUrlMetadata(url: string): Promise<GetUrlMetadataResponse> {
-    return this.queryClient.getUrlMetadata(url);
+  async getUrlMetadata(
+    params: GetUrlMetadataParams,
+  ): Promise<GetUrlMetadataResponse> {
+    return this.queryClient.getUrlMetadata(params);
   }
 
   async getMyUrlCards(

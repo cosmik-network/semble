@@ -6,9 +6,16 @@ import posthog from 'posthog-js';
 interface Props {
   value: string;
   children: string;
+  count?: number;
 }
 
 export default function TabItem(props: Props) {
+  // Display count if provided and greater than 0
+  const displayText =
+    props.count && props.count > 0
+      ? `${props.children} (${props.count})`
+      : props.children;
+
   return (
     <TabsTab
       value={props.value}
@@ -19,7 +26,7 @@ export default function TabItem(props: Props) {
         posthog.capture(`Semble: ${props.value} tab`);
       }}
     >
-      {props.children}
+      {displayText}
     </TabsTab>
   );
 }
