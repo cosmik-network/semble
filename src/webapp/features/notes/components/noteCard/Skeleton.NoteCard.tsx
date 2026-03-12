@@ -12,7 +12,7 @@ export default function NoteCardSkeleton() {
         </Stack>
 
         {/* Updated at */}
-        <Skeleton w={80} h={14} />
+        <Skeleton w={54} h={14} />
       </Stack>
     </Card>
   );

@@ -129,7 +129,7 @@ export default function CollectionCard(props: Props) {
             {collection.cardCount === 1 ? 'card' : 'cards'}
           </Text>
           <Text c={'gray'} fz={'sm'}>
-            Updated {time}
+            {time}
           </Text>
         </Group>
       </Stack>
