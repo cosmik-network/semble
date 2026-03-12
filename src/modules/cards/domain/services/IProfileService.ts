@@ -18,4 +18,6 @@ export interface UserProfile {
   followedCollectionsCount?: number;
   urlCardCount?: number;
   collectionCount?: number;
+  connectionCount?: number;
+  connectionsByType?: { total: number; [type: string]: number };
 }

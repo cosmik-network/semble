@@ -56,4 +56,11 @@ export class DrizzleConnectionQueryRepository
   }> {
     return this.connectionQueryService.getConnectionStatsForUrl(url);
   }
+
+  async getConnectionStatsForCurator(curatorId: string): Promise<{
+    total: number;
+    byType: Map<ConnectionTypeEnum, number>;
+  }> {
+    return this.connectionQueryService.getConnectionStatsForCurator(curatorId);
+  }
 }

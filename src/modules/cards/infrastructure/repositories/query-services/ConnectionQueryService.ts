@@ -275,4 +275,46 @@ export class ConnectionQueryService {
       throw error;
     }
   }
+
+  async getConnectionStatsForCurator(curatorId: string): Promise<{
+    total: number;
+    byType: Map<ConnectionTypeEnum, number>;
+  }> {
+    try {
+      // Get all connections created by curator grouped by type
+      const stats = await this.db
+        .select({
+          connectionType: connections.connectionType,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.curatorId, curatorId),
+            eq(connections.sourceType, 'URL'),
+            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
+          ),
+        )
+        .groupBy(connections.connectionType);
+
+      // Process stats
+      let total = 0;
+      const byType = new Map<ConnectionTypeEnum, number>();
+      stats.forEach((stat) => {
+        const count = Number(stat.count);
+        total += count;
+        if (stat.connectionType) {
+          byType.set(stat.connectionType as ConnectionTypeEnum, count);
+        }
+      });
+
+      return {
+        total,
+        byType,
+      };
+    } catch (error) {
+      console.error('Error in getConnectionStatsForCurator:', error);
+      throw error;
+    }
+  }
 }

@@ -13,6 +13,8 @@ export interface User {
   followedCollectionsCount?: number; // Number of collections this user follows
   urlCardCount?: number; // Number of URL cards authored by this user
   collectionCount?: number; // Number of collections created by this user
+  connectionCount?: number; // Total number of connections created by this user
+  connectionsByType?: { total: number; [type: string]: number }; // Breakdown of connections by type
 }
 
 // Extended User interface for contributors with contribution count
