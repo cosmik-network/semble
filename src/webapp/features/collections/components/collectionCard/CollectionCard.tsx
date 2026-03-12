@@ -21,7 +21,6 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
-import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
@@ -76,7 +75,15 @@ export default function CollectionCard(props: Props) {
           <Stack gap={0}>
             <Group justify="space-between" wrap="nowrap">
               <Group gap={4}>
-                <Text fw={500} lineClamp={1} c={'bright'}>
+                <Text
+                  fw={500}
+                  lineClamp={1}
+                  c={
+                    accessType === CollectionAccessType.OPEN
+                      ? 'green'
+                      : 'bright'
+                  }
+                >
                   {collection.name}
                 </Text>
                 {isMarginUri(collection.uri) && (
@@ -84,32 +91,18 @@ export default function CollectionCard(props: Props) {
                 )}
               </Group>
 
-              <Group gap={'xs'} wrap="nowrap">
-                {accessType === CollectionAccessType.OPEN && (
-                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                    <ThemeIcon
-                      size={'sm'}
-                      variant="light"
-                      color={'green'}
-                      radius={'xl'}
-                    >
-                      <FaSeedling size={12} />
-                    </ThemeIcon>
-                  </Tooltip>
-                )}
-                {props.showAuthor && (
-                  <Avatar
-                    component={Link}
-                    href={`/profile/${collection.author.handle}`}
-                    src={collection.author.avatarUrl?.replace(
-                      'avatar',
-                      'avatar_thumbnail',
-                    )}
-                    alt={`${collection.author.handle}'s avatar`}
-                    size={'sm'}
-                  />
-                )}
-              </Group>
+              {props.showAuthor && (
+                <Avatar
+                  component={Link}
+                  href={`/profile/${collection.author.handle}`}
+                  src={collection.author.avatarUrl?.replace(
+                    'avatar',
+                    'avatar_thumbnail',
+                  )}
+                  alt={`${collection.author.handle}'s avatar`}
+                  size={'sm'}
+                />
+              )}
             </Group>
             {collection.description && (
               <Text fz={'sm'} c={'gray'} lineClamp={3}>

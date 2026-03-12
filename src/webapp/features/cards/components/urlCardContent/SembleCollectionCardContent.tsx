@@ -29,35 +29,28 @@ export default function SembleCollectionCardContent(props: Props) {
         <Group justify="space-between" wrap="nowrap">
           <Group gap={4}>
             {collection.name && (
-              <Text fw={500} lineClamp={1} c={'bright'}>
+              <Text
+                fw={500}
+                lineClamp={1}
+                c={
+                  accessType === CollectionAccessType.OPEN ? 'green' : 'bright'
+                }
+              >
                 {collection.name}
               </Text>
             )}
           </Group>
-          <Group gap={'xs'} wrap="nowrap">
-            {accessType === CollectionAccessType.OPEN && (
-              <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                <ThemeIcon
-                  size={'sm'}
-                  variant="light"
-                  color={'green'}
-                  radius={'xl'}
-                >
-                  <FaSeedling size={12} />
-                </ThemeIcon>
-              </Tooltip>
+
+          <Avatar
+            component={Link}
+            href={`/profile/${collection.author.handle}`}
+            src={collection.author.avatarUrl?.replace(
+              'avatar',
+              'avatar_thumbnail',
             )}
-            <Avatar
-              component={Link}
-              href={`/profile/${collection.author.handle}`}
-              src={collection.author.avatarUrl?.replace(
-                'avatar',
-                'avatar_thumbnail',
-              )}
-              alt={`${collection.author.handle}'s avatar`}
-              size={'sm'}
-            />
-          </Group>
+            alt={`${collection.author.handle}'s avatar`}
+            size={'sm'}
+          />
         </Group>
         {collection.description && (
           <Text c={'gray'} fz={'sm'} lineClamp={3}>
