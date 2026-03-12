@@ -582,6 +582,23 @@ export class DrizzleCollectionQueryRepository
     }
   }
 
+  async getProfileCollectionCount(authorId: string): Promise<number> {
+    try {
+      // Count collections created by this user
+      const result = await this.db
+        .select({
+          count: count(collections.id),
+        })
+        .from(collections)
+        .where(eq(collections.authorId, authorId));
+
+      return Number(result[0]?.count || 0);
+    } catch (error) {
+      console.error('Error in getProfileCollectionCount:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CollectionSortField) {
     switch (sortBy) {
       case CollectionSortField.NAME:

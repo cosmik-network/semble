@@ -116,4 +116,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   }> {
     return this.urlCardQueryService.getUrlAggregateStats(url);
   }
+
+  async getProfileCardStats(authorId: string): Promise<{
+    urlCardCount: number;
+  }> {
+    return this.urlCardQueryService.getProfileCardStats(authorId);
+  }
 }

@@ -134,4 +134,10 @@ export interface ICollectionQueryRepository {
    * Used for efficient counting without fetching full data
    */
   getCollectionCountForUrl(url: string): Promise<number>;
+
+  /**
+   * Get the count of collections created by a user
+   * Used for efficient profile stats without fetching full data
+   */
+  getProfileCollectionCount(authorId: string): Promise<number>;
 }

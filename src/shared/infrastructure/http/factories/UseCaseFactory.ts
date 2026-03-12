@@ -209,6 +209,8 @@ export class UseCaseFactory {
         services.profileService,
         services.identityResolutionService,
         repositories.followsRepository,
+        repositories.cardQueryRepository,
+        repositories.collectionQueryRepository,
       ),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,

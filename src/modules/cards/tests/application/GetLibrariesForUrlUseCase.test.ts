@@ -373,6 +373,7 @@ describe('GetLibrariesForUrlUseCase', () => {
         getBatchUrlLibraryInfo: jest.fn(),
         searchUrls: jest.fn(),
         getUrlAggregateStats: jest.fn(),
+        getProfileCardStats: jest.fn(),
       };
 
       const errorUseCase = new GetLibrariesForUrlUseCase(

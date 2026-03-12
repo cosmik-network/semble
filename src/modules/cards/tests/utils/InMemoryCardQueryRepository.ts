@@ -885,6 +885,21 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     };
   }
 
+  async getProfileCardStats(authorId: string): Promise<{
+    urlCardCount: number;
+  }> {
+    const allCards = this.cardRepository.getAllCards();
+
+    // Count URL cards authored by this user
+    const urlCardCount = allCards.filter(
+      (c) => c.type.value === 'URL' && c.curatorId.value === authorId,
+    ).length;
+
+    return {
+      urlCardCount,
+    };
+  }
+
   clear(): void {
     // No separate state to clear
   }
