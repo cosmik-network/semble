@@ -18,7 +18,7 @@ export default function TabItem(props: Props) {
       rightSection={
         props.count && props.count > 0 ? (
           <Badge variant="light" color="gray" circle>
-            1
+            {props.count}
           </Badge>
         ) : undefined
       }
