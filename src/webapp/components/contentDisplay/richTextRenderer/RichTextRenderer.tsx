@@ -34,6 +34,7 @@ export default function RichTextRenderer({
           return (
             <Anchor
               key={`mention-${i}`}
+              component={Link}
               href={`/profile/${segment.text.slice(1)}`}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
