@@ -3,6 +3,7 @@
 import { Badge, Tabs } from '@mantine/core';
 import classes from './TabItem.module.css';
 import { useRouter } from 'next/navigation';
+import { abbreviateNumber } from '@/lib/utils/text';
 
 interface Props {
   value: string;
@@ -22,7 +23,7 @@ export default function TabItem(props: Props) {
       rightSection={
         props.count && props.count > 0 ? (
           <Badge variant="light" color="gray" fullWidth>
-            {props.count > 99 ? '99+' : props.count}
+            {abbreviateNumber(props.count)}
           </Badge>
         ) : undefined
       }
