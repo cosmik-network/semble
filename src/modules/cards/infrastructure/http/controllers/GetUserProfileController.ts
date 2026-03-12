@@ -19,6 +19,8 @@ export class GetUserProfileController extends Controller {
       const result = await this.getProfileUseCase.execute({
         userId: identifier,
         callerDid: req.did,
+        includeStats:
+          req.query.includeStats === 'true' || req.query.includeStats === '1',
       });
 
       if (result.isErr()) {

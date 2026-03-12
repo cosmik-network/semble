@@ -172,8 +172,10 @@ export class ApiClient {
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
-  async getMyProfile(): Promise<GetProfileResponse> {
-    return this.queryClient.getMyProfile();
+  async getMyProfile(params?: {
+    includeStats?: boolean;
+  }): Promise<GetProfileResponse> {
+    return this.queryClient.getMyProfile(params);
   }
 
   async getProfile(params: GetProfileParams): Promise<GetProfileResponse> {

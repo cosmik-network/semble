@@ -124,14 +124,29 @@ export class QueryClient extends BaseClient {
     );
   }
 
-  async getMyProfile(): Promise<GetProfileResponse> {
-    return this.request<GetProfileResponse>('GET', '/api/users/me');
+  async getMyProfile(params?: {
+    includeStats?: boolean;
+  }): Promise<GetProfileResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.includeStats !== undefined) {
+      queryParams.set('includeStats', params.includeStats.toString());
+    }
+    const queryString = queryParams.toString();
+    return this.request<GetProfileResponse>(
+      'GET',
+      `/api/users/me${queryString ? `?${queryString}` : ''}`,
+    );
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
+    const queryParams = new URLSearchParams();
+    if (params.includeStats !== undefined) {
+      queryParams.set('includeStats', params.includeStats.toString());
+    }
+    const queryString = queryParams.toString();
     return this.request<GetProfileResponse>(
       'GET',
-      `/api/users/${params.identifier}`,
+      `/api/users/${params.identifier}${queryString ? `?${queryString}` : ''}`,
     );
   }
 

@@ -1524,6 +1524,31 @@ export class UrlCardQueryService {
     }
   }
 
+  async getProfileCardStats(authorId: string): Promise<{
+    urlCardCount: number;
+  }> {
+    try {
+      // Get count of URL cards authored by this user
+      const urlCardCountResult = await this.db
+        .select({
+          count: count(cards.id),
+        })
+        .from(cards)
+        .where(
+          and(eq(cards.authorId, authorId), eq(cards.type, CardTypeEnum.URL)),
+        );
+
+      const urlCardCount = Number(urlCardCountResult[0]?.count || 0);
+
+      return {
+        urlCardCount,
+      };
+    } catch (error) {
+      console.error('Error in getProfileCardStats:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CardSortField) {
     switch (sortBy) {
       case CardSortField.CREATED_AT:

@@ -11,6 +11,8 @@ export interface User {
   followerCount?: number; // Number of users following this user
   followingCount?: number; // Number of users this user follows
   followedCollectionsCount?: number; // Number of collections this user follows
+  urlCardCount?: number; // Number of URL cards authored by this user
+  collectionCount?: number; // Number of collections created by this user
 }
 
 // Extended User interface for contributors with contribution count

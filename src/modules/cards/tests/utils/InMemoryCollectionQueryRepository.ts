@@ -495,6 +495,17 @@ export class InMemoryCollectionQueryRepository
     return collectionsWithUrl.size;
   }
 
+  async getProfileCollectionCount(authorId: string): Promise<number> {
+    const allCollections = this.collectionRepository?.getAllCollections() || [];
+
+    // Count collections created by this user
+    const collectionCount = allCollections.filter(
+      (c) => c.authorId.value === authorId,
+    ).length;
+
+    return collectionCount;
+  }
+
   clear(): void {
     // No separate state to clear
   }

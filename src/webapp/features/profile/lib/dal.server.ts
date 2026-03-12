@@ -9,11 +9,14 @@ import { cache } from 'react';
  * Use this in Server Components only.
  * For Client Components, use getProfile from dal.ts instead.
  */
-export const getProfile = cache(async (didOrHandle: string) => {
-  const client = await createServerSembleClient();
-  const response = await client.getProfile({
-    identifier: didOrHandle,
-  });
+export const getProfile = cache(
+  async (didOrHandle: string, includeStats?: boolean) => {
+    const client = await createServerSembleClient();
+    const response = await client.getProfile({
+      identifier: didOrHandle,
+      includeStats,
+    });
 
-  return response;
-});
+    return response;
+  },
+);

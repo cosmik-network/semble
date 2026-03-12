@@ -161,6 +161,7 @@ export interface GenerateExtensionTokensRequest {
 
 export interface GetProfileParams {
   identifier: string; // Can be DID or handle
+  includeStats?: boolean; // Include card and collection counts
 }
 
 export interface GetUrlMetadataParams {

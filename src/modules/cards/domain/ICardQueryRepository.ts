@@ -224,4 +224,12 @@ export interface ICardQueryRepository {
     libraryCount: number;
     noteCount: number;
   }>;
+
+  /**
+   * Get aggregate card statistics for a user profile
+   * Used for efficient counting of URL cards authored by user
+   */
+  getProfileCardStats(authorId: string): Promise<{
+    urlCardCount: number;
+  }>;
 }

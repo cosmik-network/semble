@@ -4,12 +4,13 @@ import { profileKeys } from '../profileKeys';
 
 interface Props {
   didOrHandle: string;
+  includeStats?: boolean;
 }
 
 export default function useProfile(props: Props) {
   const profile = useSuspenseQuery({
-    queryKey: profileKeys.profile(props.didOrHandle),
-    queryFn: () => getProfile(props.didOrHandle),
+    queryKey: profileKeys.profile(props.didOrHandle, props.includeStats),
+    queryFn: () => getProfile(props.didOrHandle, props.includeStats),
   });
 
   return profile;
