@@ -239,14 +239,14 @@ export default function AddConnectionForm(props: Props) {
         <Stack gap={0}>
           <Stack gap={0}>
             <Card withBorder component="article" p={'xs'} radius={'lg'}>
-              <Group gap="xs">
+              <Group gap="xs" wrap="nowrap">
                 {sourceUrlMetadata?.metadata?.imageUrl && (
                   <Image
                     src={sourceUrlMetadata.metadata.imageUrl}
                     alt={`${sourceUrlMetadata.metadata.title} social preview image`}
                     radius={'md'}
-                    w={40}
-                    h={40}
+                    w={45}
+                    h={45}
                   />
                 )}
                 <Stack gap={0}>
@@ -254,17 +254,19 @@ export default function AddConnectionForm(props: Props) {
                     {sourceUrlMetadata?.metadata?.title ||
                       form.values.sourceUrl}
                   </Text>
-                  <Anchor
-                    component={Link}
-                    href={form.values.sourceUrl}
-                    target="_blank"
-                    c={'gray'}
-                    fz={'sm'}
-                    lineClamp={1}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {getDomain(form.values.sourceUrl)}
-                  </Anchor>
+                  <Tooltip label={form.values.sourceUrl}>
+                    <Anchor
+                      component={Link}
+                      href={form.values.sourceUrl}
+                      target="_blank"
+                      c={'gray'}
+                      fz={'sm'}
+                      lineClamp={1}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {getDomain(form.values.sourceUrl)}
+                    </Anchor>
+                  </Tooltip>
                 </Stack>
               </Group>
             </Card>
