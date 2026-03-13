@@ -15,6 +15,7 @@ import {
   Text,
   Textarea,
   ThemeIcon,
+  Tooltip,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
@@ -75,15 +76,6 @@ export default function AddConnectionForm(props: Props) {
     enabled: debounced.trim().length > 0,
   });
 
-  const { data: sourceUrlMetadata } = useQuery({
-    queryKey: ['url metadata', props.sourceUrl],
-    queryFn: async () => {
-      const client = createSembleClient();
-      return client.getUrlMetadata({ url: props.sourceUrl });
-    },
-    enabled: !!props.sourceUrl,
-  });
-
   const urls = searchResults?.urls ?? [];
   const empty =
     !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
@@ -98,6 +90,17 @@ export default function AddConnectionForm(props: Props) {
     validateInputOnChange: false,
     validateInputOnBlur: true,
     validate: {
+      sourceUrl: (value) => {
+        if (!value || value.trim() === '') {
+          return 'Source URL is required';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
       targetUrl: (value) => {
         if (!value || value.trim() === '') {
           return 'Please enter a URL';
@@ -110,6 +113,15 @@ export default function AddConnectionForm(props: Props) {
         }
       },
     },
+  });
+
+  const { data: sourceUrlMetadata } = useQuery({
+    queryKey: ['url metadata', form.values.sourceUrl],
+    queryFn: async () => {
+      const client = createSembleClient();
+      return client.getUrlMetadata({ url: form.values.sourceUrl });
+    },
+    enabled: !!form.values.sourceUrl,
   });
 
   const MAX_NOTE_LENGTH = 500;
@@ -238,10 +250,11 @@ export default function AddConnectionForm(props: Props) {
                 )}
                 <Stack gap={0}>
                   <Text fw={600} size="sm" lineClamp={2}>
-                    {sourceUrlMetadata?.metadata?.title || props.sourceUrl}
+                    {sourceUrlMetadata?.metadata?.title ||
+                      form.values.sourceUrl}
                   </Text>
                   <Text size="xs" c="dimmed" lineClamp={1}>
-                    {getDomain(props.sourceUrl)}
+                    {getDomain(form.values.sourceUrl)}
                   </Text>
                 </Stack>
               </Group>
@@ -332,16 +345,19 @@ export default function AddConnectionForm(props: Props) {
                 </Combobox.Dropdown>
               </Combobox>
 
-              <ActionIcon
-                variant="light"
-                size={'lg'}
-                color={'blue'}
-                radius={'xl'}
-                onClick={handleSwapUrls}
-                title="Reverse connection"
-              >
-                <LuArrowUpDown size={16} />
-              </ActionIcon>
+              <Tooltip label="Swap" position="top">
+                <ActionIcon
+                  variant="light"
+                  size={'lg'}
+                  color={'blue'}
+                  radius={'xl'}
+                  onClick={handleSwapUrls}
+                  disabled={!form.values.targetUrl}
+                  title="Reverse connection"
+                >
+                  <LuArrowUpDown size={16} />
+                </ActionIcon>
+              </Tooltip>
             </Group>
           </Card>
 
