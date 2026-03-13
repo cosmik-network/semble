@@ -151,7 +151,6 @@ export default function AddConnectionForm(props: Props) {
         id: 'same-url-error',
         title: 'A link cannot be connected to itself',
         message: 'Please choose a different link to connect',
-        color: 'red',
       });
       return;
     }
@@ -171,13 +170,11 @@ export default function AddConnectionForm(props: Props) {
             props.onClose();
             notifications.show({
               message: 'Connection updated successfully',
-              color: 'green',
             });
           },
           onError: () => {
             notifications.show({
               message: 'Could not update connection.',
-              color: 'red',
             });
           },
           onSettled: () => {
@@ -201,13 +198,11 @@ export default function AddConnectionForm(props: Props) {
             props.onClose();
             notifications.show({
               message: 'Connection created successfully',
-              color: 'green',
             });
           },
           onError: () => {
             notifications.show({
               message: 'Could not create connection.',
-              color: 'red',
             });
           },
           onSettled: () => {
