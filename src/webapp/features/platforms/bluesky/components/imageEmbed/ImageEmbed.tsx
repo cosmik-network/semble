@@ -20,6 +20,50 @@ export default function ImageEmbed(props: Props) {
   const { settings } = useUserSettings();
 
   if (settings.cardView === 'grid') {
+    if (props.images.length === 3) {
+      return (
+        <SimpleGrid cols={2} spacing="xs">
+          <AspectRatio
+            ratio={
+              props.images[0]?.aspectRatio
+                ? props.images[0].aspectRatio.width /
+                  props.images[0].aspectRatio.height
+                : 1 / 1
+            }
+          >
+            <Image
+              src={props.images[0].thumb}
+              alt={props.images[0].alt}
+              radius="sm"
+              h={'100%'}
+              w={'100%'}
+              mah={160}
+            />
+          </AspectRatio>
+          <SimpleGrid cols={1} spacing="xs">
+            {props.images.slice(1).map((img, i) => {
+              const ratio = img?.aspectRatio
+                ? img.aspectRatio.width / img.aspectRatio.height
+                : 1 / 1;
+
+              return (
+                <AspectRatio ratio={ratio} key={i + 1}>
+                  <Image
+                    src={img.thumb}
+                    alt={img.alt}
+                    radius="sm"
+                    h={'100%'}
+                    w={'100%'}
+                    mah={75}
+                  />
+                </AspectRatio>
+              );
+            })}
+          </SimpleGrid>
+        </SimpleGrid>
+      );
+    }
+
     return (
       <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
         {props.images.map((img, i) => {
@@ -78,32 +122,76 @@ export default function ImageEmbed(props: Props) {
       }
       maxHeight={280}
     >
-      <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
-        {props.images.map((img, i) => {
-          const ratio =
-            props.images.length === 1
-              ? img?.aspectRatio
-                ? img.aspectRatio.width / img.aspectRatio.height
-                : 16 / 9
-              : img?.aspectRatio
+      {props.images.length === 3 ? (
+        <SimpleGrid cols={2} spacing="xs">
+          <AspectRatio
+            ratio={
+              props.images[0]?.aspectRatio
+                ? props.images[0].aspectRatio.width /
+                  props.images[0].aspectRatio.height
+                : 1 / 1
+            }
+          >
+            <Anchor href={props.images[0].fullsize} target="_blank">
+              <Image
+                src={props.images[0].thumb}
+                alt={props.images[0].alt}
+                radius="sm"
+                h={'100%'}
+                w={'100%'}
+              />
+            </Anchor>
+          </AspectRatio>
+          <SimpleGrid cols={1} spacing="xs">
+            {props.images.slice(1).map((img, i) => {
+              const ratio = img?.aspectRatio
                 ? img.aspectRatio.width / img.aspectRatio.height
                 : 1 / 1;
 
-          return (
-            <AspectRatio ratio={ratio} key={i}>
-              <Anchor href={img.fullsize} target="_blank">
-                <Image
-                  src={img.thumb}
-                  alt={img.alt}
-                  radius="sm"
-                  h={'100%'}
-                  w={'100%'}
-                />
-              </Anchor>
-            </AspectRatio>
-          );
-        })}
-      </SimpleGrid>
+              return (
+                <AspectRatio ratio={ratio} key={i + 1}>
+                  <Anchor href={img.fullsize} target="_blank">
+                    <Image
+                      src={img.thumb}
+                      alt={img.alt}
+                      radius="sm"
+                      h={'100%'}
+                      w={'100%'}
+                    />
+                  </Anchor>
+                </AspectRatio>
+              );
+            })}
+          </SimpleGrid>
+        </SimpleGrid>
+      ) : (
+        <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
+          {props.images.map((img, i) => {
+            const ratio =
+              props.images.length === 1
+                ? img?.aspectRatio
+                  ? img.aspectRatio.width / img.aspectRatio.height
+                  : 16 / 9
+                : img?.aspectRatio
+                  ? img.aspectRatio.width / img.aspectRatio.height
+                  : 1 / 1;
+
+            return (
+              <AspectRatio ratio={ratio} key={i}>
+                <Anchor href={img.fullsize} target="_blank">
+                  <Image
+                    src={img.thumb}
+                    alt={img.alt}
+                    radius="sm"
+                    h={'100%'}
+                    w={'100%'}
+                  />
+                </Anchor>
+              </AspectRatio>
+            );
+          })}
+        </SimpleGrid>
+      )}
     </Spoiler>
   );
 }
