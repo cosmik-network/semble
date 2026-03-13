@@ -29,6 +29,7 @@ export default function ConnectionItem(props: Props) {
         cardContent={urlView.metadata}
         urlLibraryCount={urlView.urlLibraryCount}
         urlIsInLibrary={urlView.urlInLibrary ?? false}
+        urlConnectionCount={urlView.urlConnectionCount ?? 0}
       />
     </Stack>
   );

@@ -21,6 +21,8 @@ import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import { TbPlugConnected } from 'react-icons/tb';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   id: string;
@@ -32,6 +34,7 @@ interface Props {
   currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary: boolean;
+  urlConnectionCount: number;
   viaCardId?: string;
   analyticsContext?: CardSaveAnalyticsContext;
 }
@@ -65,6 +68,7 @@ export default function UrlCardActions(props: Props) {
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
   const [showAddToModal, setShowAddToModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   if (!isAuthenticated) {
     return null;
@@ -92,6 +96,25 @@ export default function UrlCardActions(props: Props) {
             }}
           >
             {props.urlLibraryCount}
+          </Button>
+          <Button
+            variant="light"
+            color={'gray'}
+            size="xs"
+            radius={'xl'}
+            leftSection={
+              props.urlConnectionCount > 0 ? <TbPlugConnected /> : undefined
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAddConnectionModal(true);
+            }}
+          >
+            {props.urlConnectionCount ? (
+              props.urlConnectionCount
+            ) : (
+              <TbPlugConnected />
+            )}
           </Button>
           {props.note && (
             <ActionIcon
@@ -197,6 +220,12 @@ export default function UrlCardActions(props: Props) {
         urlLibraryCount={props.urlLibraryCount}
         viaCardId={props.viaCardId}
         analyticsContext={props.analyticsContext}
+      />
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={props.cardContent.url}
       />
 
       <NoteCardModal
