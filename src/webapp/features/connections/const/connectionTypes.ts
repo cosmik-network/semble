@@ -8,7 +8,6 @@ import {
 } from 'react-icons/bi';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
 import { PiNewspaperClipping } from 'react-icons/pi';
-import { IconType } from 'react-icons';
 
 export const CONNECTION_TYPES = [
   {
