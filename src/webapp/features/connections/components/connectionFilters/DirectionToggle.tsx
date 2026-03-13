@@ -24,6 +24,7 @@ export default function DirectionToggle(props: Props) {
         { label: 'Incoming', value: 'incoming' },
       ]}
       radius={'xl'}
+      withItemsBorders={false}
     />
   );
 }
