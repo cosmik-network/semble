@@ -9,7 +9,6 @@ import SembleConnectionsContainerError from './Error.SembleConnectionsContainer'
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
-import { IoMdAdd } from 'react-icons/io';
 import { useDisclosure } from '@mantine/hooks';
 import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
