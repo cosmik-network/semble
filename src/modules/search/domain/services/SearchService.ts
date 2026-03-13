@@ -303,47 +303,40 @@ export class SearchService {
     }>,
     callingUserId?: string,
   ): Promise<UrlView[]> {
+    // Extract all URLs
+    const urls = searchResults.map((result) => result.url);
+
+    // Batch fetch library info for all URLs
+    const urlLibraryInfoMap =
+      await this.cardQueryRepository.getBatchUrlLibraryInfo(
+        urls,
+        callingUserId,
+      );
+
     // Enrich each URL with library context
-    const enrichedResults = await Promise.all(
-      searchResults.map(async (result) => {
-        // Get library information for this URL
-        const librariesResult =
-          await this.cardQueryRepository.getLibrariesForUrl(result.url, {
-            page: 1,
-            limit: 1000, // Get all libraries to count them
-            sortBy: CardSortField.CREATED_AT,
-            sortOrder: SortOrder.DESC,
-          });
+    const enrichedResults = searchResults.map((result) => {
+      const libraryInfo = urlLibraryInfoMap.get(result.url);
 
-        const urlLibraryCount = librariesResult.totalCount;
-
-        // Check if calling user has this URL in their library
-        // Default to false if no calling user (unauthenticated request)
-        const urlInLibrary = callingUserId
-          ? librariesResult.items.some(
-              (library) => library.userId === callingUserId,
-            )
-          : false;
-
-        return {
+      return {
+        url: result.url,
+        metadata: {
           url: result.url,
-          metadata: {
-            url: result.url,
-            title: result.metadata.title,
-            description: result.metadata.description,
-            author: result.metadata.author,
-            siteName: result.metadata.siteName,
-            imageUrl: result.metadata.imageUrl,
-            type: result.metadata.type,
-            retrievedAt: result.metadata.retrievedAt?.toISOString(),
-            doi: result.metadata.doi,
-            isbn: result.metadata.isbn,
-          },
-          urlLibraryCount,
-          urlInLibrary,
-        };
-      }),
-    );
+          title: result.metadata.title,
+          description: result.metadata.description,
+          author: result.metadata.author,
+          siteName: result.metadata.siteName,
+          imageUrl: result.metadata.imageUrl,
+          type: result.metadata.type,
+          retrievedAt: result.metadata.retrievedAt?.toISOString(),
+          doi: result.metadata.doi,
+          isbn: result.metadata.isbn,
+        },
+        urlLibraryCount: libraryInfo?.urlLibraryCount || 0,
+        urlInLibrary: libraryInfo?.urlInLibrary,
+        urlConnectionCount: libraryInfo?.urlConnectionCount,
+        urlIsConnected: libraryInfo?.urlIsConnected,
+      };
+    });
 
     return enrichedResults;
   }
@@ -357,37 +350,40 @@ export class SearchService {
     callingUserId?: string,
     filterByUserId?: string,
   ): Promise<UrlView[]> {
-    // Enrich each URL with library context and filter by user
-    const enrichedResults = await Promise.all(
-      searchResults.map(async (result) => {
-        // Get library information for this URL
-        const librariesResult =
-          await this.cardQueryRepository.getLibrariesForUrl(result.url, {
-            page: 1,
-            limit: 1000, // Get all libraries to count them
-            sortBy: CardSortField.CREATED_AT,
-            sortOrder: SortOrder.DESC,
-          });
+    // Extract all URLs
+    const urls = searchResults.map((result) => result.url);
 
-        // If filtering by user, check if this user has the URL
-        if (filterByUserId) {
-          const userHasUrl = librariesResult.items.some(
-            (library) => library.userId === filterByUserId,
-          );
-          if (!userHasUrl) {
-            return null; // Filter out this result
-          }
+    // Batch fetch library info for all URLs
+    const urlLibraryInfoMap =
+      await this.cardQueryRepository.getBatchUrlLibraryInfo(
+        urls,
+        callingUserId,
+      );
+
+    // If filtering by user, get all their URLs once
+    let userUrlSet: Set<string> | undefined;
+    if (filterByUserId) {
+      const userCardsResult = await this.cardQueryRepository.getUrlCardsOfUser(
+        filterByUserId,
+        {
+          page: 1,
+          limit: 10000, // Large limit to get all URLs
+          sortBy: CardSortField.CREATED_AT,
+          sortOrder: SortOrder.DESC,
+        },
+      );
+      userUrlSet = new Set(userCardsResult.items.map((card) => card.url));
+    }
+
+    // Enrich each URL with library context and filter by user
+    const enrichedResults = searchResults
+      .map((result) => {
+        // Filter by user if needed
+        if (filterByUserId && userUrlSet && !userUrlSet.has(result.url)) {
+          return null; // Filter out this result
         }
 
-        const urlLibraryCount = librariesResult.totalCount;
-
-        // Check if calling user has this URL in their library
-        // Default to false if no calling user (unauthenticated request)
-        const urlInLibrary = callingUserId
-          ? librariesResult.items.some(
-              (library) => library.userId === callingUserId,
-            )
-          : false;
+        const libraryInfo = urlLibraryInfoMap.get(result.url);
 
         return {
           url: result.url,
@@ -403,13 +399,14 @@ export class SearchService {
             doi: result.metadata.doi,
             isbn: result.metadata.isbn,
           },
-          urlLibraryCount,
-          urlInLibrary,
+          urlLibraryCount: libraryInfo?.urlLibraryCount || 0,
+          urlInLibrary: libraryInfo?.urlInLibrary,
+          urlConnectionCount: libraryInfo?.urlConnectionCount,
+          urlIsConnected: libraryInfo?.urlIsConnected,
         };
-      }),
-    );
+      })
+      .filter((result) => result !== null) as UrlView[];
 
-    // Filter out null results
-    return enrichedResults.filter((result) => result !== null);
+    return enrichedResults;
   }
 }

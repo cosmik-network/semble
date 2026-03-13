@@ -44,6 +44,8 @@ export interface EnrichedNotificationResult {
   cardLibraryCount?: number;
   cardUrlLibraryCount?: number;
   cardUrlInLibrary?: boolean;
+  cardUrlConnectionCount?: number;
+  cardUrlIsConnected?: boolean;
   cardCreatedAt?: Date;
   cardUpdatedAt?: Date;
   cardNote?: {

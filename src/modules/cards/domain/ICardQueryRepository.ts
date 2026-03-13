@@ -64,6 +64,8 @@ export interface UrlCardView {
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
+  urlConnectionCount?: number;
+  urlIsConnected?: boolean;
   createdAt: Date;
   updatedAt: Date;
   authorId: string; // NEW - needed to enrich with author profile
@@ -152,6 +154,8 @@ export interface NoteCardForUrlDTO {
 export interface UrlLibraryInfo {
   urlLibraryCount: number; // distinct users with this URL
   urlInLibrary?: boolean; // whether calling user has it
+  urlConnectionCount?: number; // total connections involving this URL
+  urlIsConnected?: boolean; // whether calling user has any connection with this URL
   metadata: {
     url: string;
     title?: string;

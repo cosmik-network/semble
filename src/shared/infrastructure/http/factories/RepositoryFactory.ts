@@ -89,6 +89,7 @@ export class RepositoryFactory {
       const cardQueryRepository = new InMemoryCardQueryRepository(
         cardRepository,
         collectionRepository,
+        connectionRepository,
       );
       const collectionQueryRepository = new InMemoryCollectionQueryRepository(
         collectionRepository,

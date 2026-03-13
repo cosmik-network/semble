@@ -129,19 +129,11 @@ export class GetFollowingFeedUseCase
         ),
       ];
 
-      // Hydrate card data and fetch card authors
-      const cardDataMap = new Map<string, UrlCardView>();
-      const cardViews = await Promise.all(
-        cardIds.map((cardId) =>
-          this.cardQueryRepository.getUrlCardView(cardId, query.callingUserId),
-        ),
+      // Batch fetch card data
+      const cardDataMap = await this.cardQueryRepository.getBatchUrlCardViews(
+        cardIds,
+        query.callingUserId,
       );
-      cardIds.forEach((cardId, idx) => {
-        const cardView = cardViews[idx];
-        if (cardView) {
-          cardDataMap.set(cardId, cardView);
-        }
-      });
 
       // Get unique card author IDs
       const cardAuthorIds = [
@@ -180,48 +172,50 @@ export class GetFollowingFeedUseCase
         ),
       ];
 
-      // Fetch all collections first (without author data)
-      const collectionResults = await Promise.all(
-        collectionIds.map(async (collectionId) => {
-          const collectionIdResult =
-            CollectionId.createFromString(collectionId);
-          if (collectionIdResult.isErr()) {
-            return null; // Skip invalid collection IDs
-          }
-          const collectionResult = await this.collectionRepository.findById(
-            collectionIdResult.value,
-          );
-          if (collectionResult.isErr() || !collectionResult.value) {
-            return null;
-          }
+      // Batch fetch all collections
+      const collectionIdObjects: CollectionId[] = [];
+      const collectionIdMap = new Map<string, string>(); // Map UUID string to original string
 
-          const collection = collectionResult.value;
-          const uri = collection.publishedRecordId?.uri;
-
-          // Get the card IDs in this collection
-          const cardIds = new Set(
-            collection.cardIds.map((cardId) => cardId.getStringValue()),
-          );
-
-          return {
-            id: collection.collectionId.getStringValue(),
-            uri,
-            name: collection.name.toString(),
-            description: collection.description?.toString(),
-            accessType: collection.accessType,
-            authorId: collection.authorId.value,
-            cardCount: collection.cardCount,
-            createdAt: collection.createdAt.toISOString(),
-            updatedAt: collection.updatedAt.toISOString(),
-            cardIds,
+      for (const collectionId of collectionIds) {
+        const collectionIdResult = CollectionId.createFromString(collectionId);
+        if (collectionIdResult.isOk()) {
+          collectionIdObjects.push(collectionIdResult.value);
+          collectionIdMap.set(
+            collectionIdResult.value.getStringValue(),
             collectionId,
-          };
-        }),
-      );
+          );
+        }
+      }
 
-      const validCollections = collectionResults.filter(
-        (result) => result !== null,
-      );
+      const collectionsResult =
+        await this.collectionRepository.findByIds(collectionIdObjects);
+
+      if (collectionsResult.isErr()) {
+        return err(AppError.UnexpectedError.create(collectionsResult.error));
+      }
+
+      const validCollections = collectionsResult.value.map((collection) => {
+        const uri = collection.publishedRecordId?.uri;
+        const cardIds = new Set(
+          collection.cardIds.map((cardId) => cardId.getStringValue()),
+        );
+
+        return {
+          id: collection.collectionId.getStringValue(),
+          uri,
+          name: collection.name.toString(),
+          description: collection.description?.toString(),
+          accessType: collection.accessType,
+          authorId: collection.authorId.value,
+          cardCount: collection.cardCount,
+          createdAt: collection.createdAt.toISOString(),
+          updatedAt: collection.updatedAt.toISOString(),
+          cardIds,
+          collectionId: collectionIdMap.get(
+            collection.collectionId.getStringValue(),
+          )!,
+        };
+      });
 
       // Get unique collection author IDs
       const collectionAuthorIds = [
@@ -340,6 +334,8 @@ export class GetFollowingFeedUseCase
           libraryCount: cardView.libraryCount,
           urlLibraryCount: cardView.urlLibraryCount,
           urlInLibrary: cardView.urlInLibrary,
+          urlConnectionCount: cardView.urlConnectionCount,
+          urlIsConnected: cardView.urlIsConnected,
           createdAt: cardView.createdAt.toISOString(),
           updatedAt: cardView.updatedAt.toISOString(),
           author: cardAuthor,

@@ -85,6 +85,8 @@ export interface RawUrlCardData {
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
+  urlConnectionCount?: number;
+  urlIsConnected?: boolean;
   createdAt: Date;
   updatedAt: Date;
   collections: {
@@ -408,6 +410,8 @@ export class CardMapper {
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
       urlInLibrary: raw.urlInLibrary,
+      urlConnectionCount: raw.urlConnectionCount,
+      urlIsConnected: raw.urlIsConnected,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -425,6 +429,8 @@ export class CardMapper {
     libraryCount: number;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
     createdAt: Date;
     updatedAt: Date;
     note?: {
@@ -468,6 +474,8 @@ export class CardMapper {
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
       urlInLibrary: raw.urlInLibrary,
+      urlConnectionCount: raw.urlConnectionCount,
+      urlIsConnected: raw.urlIsConnected,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -485,6 +493,8 @@ export class CardMapper {
     libraryCount: number;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
     createdAt: Date;
     updatedAt: Date;
     inLibraries: {
@@ -537,6 +547,8 @@ export class CardMapper {
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
       urlInLibrary: raw.urlInLibrary,
+      urlConnectionCount: raw.urlConnectionCount,
+      urlIsConnected: raw.urlIsConnected,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,

@@ -17,14 +17,18 @@ import {
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
+import { IConnectionRepository } from '../../domain/IConnectionRepository';
 import { Card } from '../../domain/Card';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
+import { URL } from '../../domain/value-objects/URL';
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   constructor(
     private cardRepository: InMemoryCardRepository,
     private collectionRepository: InMemoryCollectionRepository,
+    private connectionRepository?: IConnectionRepository,
   ) {}
 
   async getUrlCardsOfUser(
@@ -47,8 +51,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         );
       }
 
-      const userCardResults = userCards.map((card) =>
-        this.cardToUrlCardQueryResult(card, callingUserId),
+      const userCardResults = await Promise.all(
+        userCards.map((card) =>
+          this.cardToUrlCardQueryResult(card, callingUserId),
+        ),
       );
 
       // Sort cards
@@ -103,10 +109,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
-  private cardToUrlCardQueryResult(
+  private async cardToUrlCardQueryResult(
     card: Card,
     callingUserId?: string,
-  ): UrlCardQueryResultDTO {
+  ): Promise<UrlCardQueryResultDTO> {
     if (!card.isUrlCard || !card.content.urlContent) {
       throw new Error('Card is not a URL card');
     }
@@ -151,31 +157,36 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         }
       : undefined;
 
+    const url = card.content.urlContent.url.value;
+
     // Compute urlInLibrary if callingUserId is provided
     const urlInLibrary = callingUserId
-      ? this.isUrlInUserLibrary(
-          card.content.urlContent.url.value,
-          callingUserId,
-        )
+      ? this.isUrlInUserLibrary(url, callingUserId)
+      : undefined;
+
+    // Get connection count and connection status
+    const urlConnectionCount = await this.getUrlConnectionCount(url);
+    const urlIsConnected = callingUserId
+      ? await this.isUrlConnectedByUser(url, callingUserId)
       : undefined;
 
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
       uri: card.publishedRecordId?.uri,
-      url: card.content.urlContent.url.value,
+      url,
       cardContent: {
-        url: card.content.urlContent.url.value,
+        url,
         title: card.content.urlContent.metadata?.title,
         description: card.content.urlContent.metadata?.description,
         author: card.content.urlContent.metadata?.author,
         imageUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
-      urlLibraryCount: this.getUrlLibraryCount(
-        card.content.urlContent.url.value,
-      ),
+      urlLibraryCount: this.getUrlLibraryCount(url),
       urlInLibrary,
+      urlConnectionCount,
+      urlIsConnected,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -218,6 +229,79 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         card.url?.value === url &&
         card.curatorId.value === userId,
     );
+  }
+
+  private async getUrlConnectionCount(url: string): Promise<number> {
+    if (!this.connectionRepository) {
+      return 0;
+    }
+
+    try {
+      const urlResult = URL.create(url);
+      if (urlResult.isErr()) {
+        return 0;
+      }
+
+      const urlOrCardIdResult = UrlOrCardId.createFromUrl(urlResult.value);
+      if (urlOrCardIdResult.isErr()) {
+        return 0;
+      }
+
+      const urlOrCardId = urlOrCardIdResult.value;
+
+      // Get connections where this URL is the source
+      const sourceConnectionsResult =
+        await this.connectionRepository.findBySource(urlOrCardId);
+      const sourceConnections = sourceConnectionsResult.isOk()
+        ? sourceConnectionsResult.value
+        : [];
+
+      // Get connections where this URL is the target
+      const targetConnectionsResult =
+        await this.connectionRepository.findByTarget(urlOrCardId);
+      const targetConnections = targetConnectionsResult.isOk()
+        ? targetConnectionsResult.value
+        : [];
+
+      return sourceConnections.length + targetConnections.length;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  private async isUrlConnectedByUser(
+    url: string,
+    userId: string,
+  ): Promise<boolean> {
+    if (!this.connectionRepository) {
+      return false;
+    }
+
+    try {
+      const curatorId = CuratorId.create(userId);
+      if (curatorId.isErr()) {
+        return false;
+      }
+
+      // Get all connections by this curator
+      const connectionsResult = await this.connectionRepository.findByCuratorId(
+        curatorId.value,
+      );
+      if (connectionsResult.isErr()) {
+        return false;
+      }
+
+      const connections = connectionsResult.value;
+
+      // Check if any connection involves this URL (as source or target)
+      return connections.some(
+        (conn) =>
+          (conn.source.isUrl && conn.source.url?.value === url) ||
+          (conn.target.isUrl && conn.target.url?.value === url),
+      );
+    } catch (error) {
+      return false;
+    }
   }
 
   async getCardsInCollection(
@@ -265,9 +349,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         );
       }
 
-      const collectionCardResults = collectionCards.map((card) =>
-        this.toCollectionCardQueryResult(
-          this.cardToUrlCardQueryResult(card, callingUserId),
+      const collectionCardResults = await Promise.all(
+        collectionCards.map(async (card) =>
+          this.toCollectionCardQueryResult(
+            await this.cardToUrlCardQueryResult(card, callingUserId),
+          ),
         ),
       );
 
@@ -352,7 +438,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       return null;
     }
 
-    const urlCardResult = this.cardToUrlCardQueryResult(card, callingUserId);
+    const urlCardResult = await this.cardToUrlCardQueryResult(
+      card,
+      callingUserId,
+    );
 
     // Get library memberships from the card itself
     const libraries = card.libraryMemberships.map((membership) => ({
@@ -406,30 +495,35 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         }
       : undefined;
 
+    const url = card.content.urlContent!.url.value;
+
     // Compute urlInLibrary if callingUserId is provided
     const urlInLibrary = callingUserId
-      ? this.isUrlInUserLibrary(
-          card.content.urlContent!.url.value,
-          callingUserId,
-        )
+      ? this.isUrlInUserLibrary(url, callingUserId)
+      : undefined;
+
+    // Get connection count and connection status
+    const urlConnectionCount = await this.getUrlConnectionCount(url);
+    const urlIsConnected = callingUserId
+      ? await this.isUrlConnectedByUser(url, callingUserId)
       : undefined;
 
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
-      url: card.content.urlContent!.url.value,
+      url,
       cardContent: {
-        url: card.content.urlContent!.url.value,
+        url,
         title: card.content.urlContent!.metadata?.title,
         description: card.content.urlContent!.metadata?.description,
         author: card.content.urlContent!.metadata?.author,
         imageUrl: card.content.urlContent!.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
-      urlLibraryCount: this.getUrlLibraryCount(
-        card.content.urlContent!.url.value,
-      ),
+      urlLibraryCount: this.getUrlLibraryCount(url),
       urlInLibrary,
+      urlConnectionCount,
+      urlIsConnected,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -656,6 +750,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         ? this.isUrlInUserLibrary(url, callingUserId)
         : undefined;
 
+      // Get connection count and connection status
+      const urlConnectionCount = await this.getUrlConnectionCount(url);
+      const urlIsConnected = callingUserId
+        ? await this.isUrlConnectedByUser(url, callingUserId)
+        : undefined;
+
       // Get metadata from any card with this URL
       const allCards = this.cardRepository.getAllCards();
       const urlCard = allCards.find(
@@ -683,6 +783,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       resultMap.set(url, {
         urlLibraryCount,
         urlInLibrary,
+        urlConnectionCount,
+        urlIsConnected,
         metadata,
       });
     }

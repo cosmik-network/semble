@@ -38,6 +38,8 @@ export interface ConnectionForUrlView {
     metadata: UrlMetadata;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
   };
 }
 
@@ -175,6 +177,8 @@ export class GetBackwardConnectionsForUrlUseCase
           metadata: UrlMetadata;
           urlLibraryCount: number;
           urlInLibrary?: boolean;
+          urlConnectionCount?: number;
+          urlIsConnected?: boolean;
         }
       >();
 
@@ -200,6 +204,8 @@ export class GetBackwardConnectionsForUrlUseCase
             metadata,
             urlLibraryCount: urlInfo.urlLibraryCount,
             urlInLibrary: urlInfo.urlInLibrary,
+            urlConnectionCount: urlInfo.urlConnectionCount,
+            urlIsConnected: urlInfo.urlIsConnected,
           });
         }
       });
@@ -233,6 +239,8 @@ export class GetBackwardConnectionsForUrlUseCase
               metadata: urlData.metadata,
               urlLibraryCount: urlData.urlLibraryCount,
               urlInLibrary: urlData.urlInLibrary,
+              urlConnectionCount: urlData.urlConnectionCount,
+              urlIsConnected: urlData.urlIsConnected,
             },
           };
         },
