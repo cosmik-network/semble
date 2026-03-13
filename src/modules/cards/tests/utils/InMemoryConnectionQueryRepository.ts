@@ -20,17 +20,100 @@ export class InMemoryConnectionQueryRepository
     url: string,
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrl(url, 'source', options);
+    return this.getConnectionsForUrlPrivate(url, 'source', options);
   }
 
   async getBackwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrl(url, 'target', options);
+    return this.getConnectionsForUrlPrivate(url, 'target', options);
   }
 
-  private async getConnectionsForUrl(
+  async getConnectionsForUrl(
+    url: string,
+    direction: 'forward' | 'backward' | 'both',
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+    const { page, limit, sortBy, sortOrder, connectionTypes } = options;
+
+    // Get all connections from the repository
+    const allConnections = this.connectionRepository.getAllConnections();
+
+    // Filter connections based on direction and URL type
+    let filteredConnections = allConnections.filter((connection) => {
+      const isSourceMatch =
+        connection.source.type === UrlOrCardIdType.URL &&
+        connection.source.stringValue === url;
+      const isTargetMatch =
+        connection.target.type === UrlOrCardIdType.URL &&
+        connection.target.stringValue === url;
+      const bothUrlToUrl =
+        connection.source.type === UrlOrCardIdType.URL &&
+        connection.target.type === UrlOrCardIdType.URL;
+
+      if (direction === 'forward') {
+        return isSourceMatch && bothUrlToUrl;
+      } else if (direction === 'backward') {
+        return isTargetMatch && bothUrlToUrl;
+      } else {
+        // both
+        return (isSourceMatch || isTargetMatch) && bothUrlToUrl;
+      }
+    });
+
+    // Apply connection type filter if provided
+    if (connectionTypes && connectionTypes.length > 0) {
+      filteredConnections = filteredConnections.filter((connection) =>
+        connection.type
+          ? connectionTypes.includes(connection.type.value)
+          : false,
+      );
+    }
+
+    // Sort connections
+    filteredConnections.sort((a, b) => {
+      const dateA =
+        sortBy === ConnectionSortField.UPDATED_AT ? a.updatedAt : a.createdAt;
+      const dateB =
+        sortBy === ConnectionSortField.UPDATED_AT ? b.updatedAt : b.createdAt;
+
+      const comparison = dateA.getTime() - dateB.getTime();
+      return sortOrder === SortOrder.ASC ? comparison : -comparison;
+    });
+
+    // Apply pagination
+    const offset = (page - 1) * limit;
+    const paginatedConnections = filteredConnections.slice(
+      offset,
+      offset + limit,
+    );
+
+    // Map to DTOs with both source and target
+    const items: ConnectionForUserDTO[] = paginatedConnections.map(
+      (connection) => ({
+        connection: {
+          id: connection.connectionId.getStringValue(),
+          type: connection.type?.value,
+          note: connection.note?.value,
+          createdAt: connection.createdAt,
+          updatedAt: connection.updatedAt,
+          curatorId: connection.curatorId.value,
+        },
+        sourceUrl: connection.source.stringValue,
+        targetUrl: connection.target.stringValue,
+      }),
+    );
+
+    return {
+      items,
+      totalCount: filteredConnections.length,
+      hasMore:
+        offset + paginatedConnections.length < filteredConnections.length,
+    };
+  }
+
+  private async getConnectionsForUrlPrivate(
     url: string,
     direction: 'source' | 'target',
     options: ConnectionQueryOptions,

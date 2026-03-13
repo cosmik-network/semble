@@ -114,6 +114,8 @@ import type {
   GetForwardConnectionsForUrlResponse,
   GetBackwardConnectionsForUrlParams,
   GetBackwardConnectionsForUrlResponse,
+  GetConnectionsForUrlParams,
+  GetConnectionsForUrlResponse,
   ConnectionType,
   // Search types
   SearchUrlsParams,
@@ -516,6 +518,12 @@ export class ApiClient {
     params: GetBackwardConnectionsForUrlParams,
   ): Promise<GetBackwardConnectionsForUrlResponse> {
     return this.queryClient.getBackwardConnectionsForUrl(params);
+  }
+
+  async getConnectionsForUrl(
+    params: GetConnectionsForUrlParams,
+  ): Promise<GetConnectionsForUrlResponse> {
+    return this.queryClient.getConnectionsForUrl(params);
   }
 
   // Search operations

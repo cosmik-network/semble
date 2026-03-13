@@ -59,8 +59,7 @@ import { CreateConnectionController } from '../../../../modules/cards/infrastruc
 import { UpdateConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateConnectionController';
 import { DeleteConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteConnectionController';
 import { GetConnectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsController';
-import { GetForwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetForwardConnectionsForUrlController';
-import { GetBackwardConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetBackwardConnectionsForUrlController';
+import { GetConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsForUrlController';
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
 import { GetGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetGraphDataController';
 import { CookieService } from '../services/CookieService';
@@ -117,8 +116,7 @@ export interface Controllers {
   createConnectionController: CreateConnectionController;
   updateConnectionController: UpdateConnectionController;
   deleteConnectionController: DeleteConnectionController;
-  getForwardConnectionsForUrlController: GetForwardConnectionsForUrlController;
-  getBackwardConnectionsForUrlController: GetBackwardConnectionsForUrlController;
+  getConnectionsForUrlController: GetConnectionsForUrlController;
   // Graph controllers
   getGraphDataController: GetGraphDataController;
   // Search controllers
@@ -304,14 +302,9 @@ export class ControllerFactory {
       deleteConnectionController: new DeleteConnectionController(
         useCases.deleteConnectionUseCase,
       ),
-      getForwardConnectionsForUrlController:
-        new GetForwardConnectionsForUrlController(
-          useCases.getForwardConnectionsForUrlUseCase,
-        ),
-      getBackwardConnectionsForUrlController:
-        new GetBackwardConnectionsForUrlController(
-          useCases.getBackwardConnectionsForUrlUseCase,
-        ),
+      getConnectionsForUrlController: new GetConnectionsForUrlController(
+        useCases.getConnectionsForUrlUseCase,
+      ),
 
       // Graph controllers
       getGraphDataController: new GetGraphDataController(

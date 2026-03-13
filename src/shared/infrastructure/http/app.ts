@@ -139,8 +139,7 @@ export const createExpressApp = (
     controllers.updateConnectionController,
     controllers.deleteConnectionController,
     controllers.getConnectionsController,
-    controllers.getForwardConnectionsForUrlController,
-    controllers.getBackwardConnectionsForUrlController,
+    controllers.getConnectionsForUrlController,
   );
 
   const graphRouter = createGraphRoutes(

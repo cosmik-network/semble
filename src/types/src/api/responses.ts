@@ -468,6 +468,12 @@ export interface GetBackwardConnectionsForUrlResponse {
   sorting: ConnectionSorting;
 }
 
+export interface GetConnectionsForUrlResponse {
+  connections: ConnectionWithSourceAndTarget[];
+  pagination: Pagination;
+  sorting: ConnectionSorting;
+}
+
 // Search URLs response types
 export interface SearchUrlsResponse {
   urls: UrlView[];
@@ -483,6 +489,7 @@ export interface ConnectionWithSourceAndTarget {
     note?: string;
     createdAt: string;
     updatedAt: string;
+    curator: User;
   };
   source: UrlView;
   target: UrlView;
