@@ -15,7 +15,7 @@ export const CONNECTION_TYPES = [
     label: 'Related',
     description: 'Generally connected or associated',
     icon: BiLink,
-    notePlaceholder: 'Describe how these are connected...',
+    notePlaceholder: 'Describe how these are related...',
   },
   {
     value: 'SUPPORTS',
@@ -53,19 +53,19 @@ export const CONNECTION_TYPES = [
     notePlaceholder: 'Explain how this link leads to the other',
   },
   {
+    value: 'EXPLAINER',
+    label: 'Explainer',
+    description: 'Explains or summarizes for a broader audience',
+    icon: MdOutlinePsychologyAlt,
+    notePlaceholder: 'Describe what concepts this clarifies...',
+  },
+  {
     value: 'SUPPLEMENT',
     label: 'Supplement',
     description:
       'Accompanying resources (e.g. data, code, other supplemental material)',
     icon: PiNewspaperClipping,
     notePlaceholder: 'Explain what additional information this adds...',
-  },
-  {
-    value: 'EXPLAINER',
-    label: 'Explainer',
-    description: 'Explains or summarizes for a broader audience',
-    icon: MdOutlinePsychologyAlt,
-    notePlaceholder: 'Describe what concepts this clarifies...',
   },
 ] as const;
 
