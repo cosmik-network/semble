@@ -103,6 +103,8 @@ export interface UrlCard {
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
+  urlConnectionCount?: number;
+  urlIsConnected?: boolean;
   createdAt: string;
   updatedAt: string;
   author: User;
@@ -246,6 +248,8 @@ export interface UrlView {
   metadata: UrlMetadata;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
+  urlConnectionCount?: number;
+  urlIsConnected?: boolean;
 }
 
 export interface GetSimilarUrlsForUrlResponse {

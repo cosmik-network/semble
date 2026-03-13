@@ -349,6 +349,8 @@ export class GetGlobalFeedUseCase
           libraryCount: cardView.libraryCount,
           urlLibraryCount: cardView.urlLibraryCount,
           urlInLibrary: cardView.urlInLibrary,
+          urlConnectionCount: cardView.urlConnectionCount,
+          urlIsConnected: cardView.urlIsConnected,
           createdAt: cardView.createdAt.toISOString(),
           updatedAt: cardView.updatedAt.toISOString(),
           author: cardAuthor,

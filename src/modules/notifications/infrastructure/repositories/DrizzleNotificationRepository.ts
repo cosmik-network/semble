@@ -1,4 +1,4 @@
-import { eq, desc, and, count, inArray } from 'drizzle-orm';
+import { eq, desc, and, count, inArray, or, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   INotificationRepository,
@@ -23,6 +23,7 @@ import {
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
+import { connections } from '../../../cards/infrastructure/repositories/schema/connection.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { countDistinct } from 'drizzle-orm';
 
@@ -481,6 +482,8 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       let cardsResult: any[] = [];
       let urlLibraryCountMap = new Map<string, number>();
       let urlInLibrarySet = new Set<string>();
+      let urlConnectionCountMap = new Map<string, number>();
+      let urlIsConnectedSet = new Set<string>();
       let notesResult: any[] = [];
       let collectionsResult: any[] = [];
 
@@ -553,6 +556,70 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           urlInLibraryResult.forEach((row) => {
             if (row.url) {
               urlInLibrarySet.add(row.url);
+            }
+          });
+
+          // Get connection counts for these URLs
+          const urlConnectionCountsQuery = this.db
+            .select({
+              url: sql<string>`CASE
+                WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
+                WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
+              END`.as('url'),
+              count: count(),
+            })
+            .from(connections)
+            .where(
+              or(
+                and(
+                  eq(connections.sourceType, 'URL'),
+                  inArray(connections.sourceValue, urls),
+                ),
+                and(
+                  eq(connections.targetType, 'URL'),
+                  inArray(connections.targetValue, urls),
+                ),
+              ),
+            )
+            .groupBy(sql`url`);
+
+          const urlConnectionCountsResult = await urlConnectionCountsQuery;
+          urlConnectionCountsResult.forEach((row) => {
+            if (row.url) {
+              urlConnectionCountMap.set(row.url, row.count);
+            }
+          });
+
+          // Check which URLs the calling user has connections with
+          const urlIsConnectedQuery = this.db
+            .select({
+              url: sql<string>`CASE
+                WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
+                WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
+              END`.as('url'),
+            })
+            .from(connections)
+            .where(
+              and(
+                eq(connections.curatorId, callingUserId),
+                or(
+                  and(
+                    eq(connections.sourceType, 'URL'),
+                    inArray(connections.sourceValue, urls),
+                  ),
+                  and(
+                    eq(connections.targetType, 'URL'),
+                    inArray(connections.targetValue, urls),
+                  ),
+                ),
+              ),
+            )
+            .groupBy(sql`url`);
+
+          const urlIsConnectedResult = await urlIsConnectedQuery;
+          urlIsConnectedResult.forEach((row) => {
+            if (row.url) {
+              urlIsConnectedSet.add(row.url);
             }
           });
         }
@@ -724,6 +791,11 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
           const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
           const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
+          const urlConnectionCount =
+            urlConnectionCountMap.get(card.url || '') || 0;
+          const urlIsConnected = card.url
+            ? urlIsConnectedSet.has(card.url)
+            : false;
 
           enrichedNotifications.push({
             id: notification.id,
@@ -752,6 +824,8 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             cardLibraryCount: card.libraryCount,
             cardUrlLibraryCount: urlLibraryCount,
             cardUrlInLibrary: urlInLibrary,
+            cardUrlConnectionCount: urlConnectionCount,
+            cardUrlIsConnected: urlIsConnected,
             cardCreatedAt: card.createdAt,
             cardUpdatedAt: card.updatedAt,
             cardNote: note

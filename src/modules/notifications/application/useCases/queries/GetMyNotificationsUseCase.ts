@@ -266,6 +266,8 @@ export class GetMyNotificationsUseCase
               libraryCount: notification.cardLibraryCount || 0,
               urlLibraryCount: notification.cardUrlLibraryCount || 0,
               urlInLibrary: notification.cardUrlInLibrary,
+              urlConnectionCount: notification.cardUrlConnectionCount,
+              urlIsConnected: notification.cardUrlIsConnected,
               createdAt: notification.cardCreatedAt?.toISOString() || '',
               updatedAt: notification.cardUpdatedAt?.toISOString() || '',
               author: {

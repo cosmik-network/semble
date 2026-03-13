@@ -92,6 +92,8 @@ export class SearchUrlsUseCase
             metadata,
             urlLibraryCount: urlInfo.urlLibraryCount,
             urlInLibrary: urlInfo.urlInLibrary,
+            urlConnectionCount: urlInfo.urlConnectionCount,
+            urlIsConnected: urlInfo.urlIsConnected,
           };
 
           return urlView;

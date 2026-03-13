@@ -37,12 +37,16 @@ export interface ConnectionView {
     metadata: UrlMetadata;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
   };
   target: {
     url: string;
     metadata: UrlMetadata;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
   };
 }
 
@@ -164,6 +168,8 @@ export class GetConnectionsUseCase
           metadata: UrlMetadata;
           urlLibraryCount: number;
           urlInLibrary?: boolean;
+          urlConnectionCount?: number;
+          urlIsConnected?: boolean;
         }
       >();
 
@@ -189,6 +195,8 @@ export class GetConnectionsUseCase
             metadata,
             urlLibraryCount: urlInfo.urlLibraryCount,
             urlInLibrary: urlInfo.urlInLibrary,
+            urlConnectionCount: urlInfo.urlConnectionCount,
+            urlIsConnected: urlInfo.urlIsConnected,
           });
         }
       });
@@ -218,12 +226,16 @@ export class GetConnectionsUseCase
             metadata: sourceData.metadata,
             urlLibraryCount: sourceData.urlLibraryCount,
             urlInLibrary: sourceData.urlInLibrary,
+            urlConnectionCount: sourceData.urlConnectionCount,
+            urlIsConnected: sourceData.urlIsConnected,
           },
           target: {
             url: item.targetUrl,
             metadata: targetData.metadata,
             urlLibraryCount: targetData.urlLibraryCount,
             urlInLibrary: targetData.urlInLibrary,
+            urlConnectionCount: targetData.urlConnectionCount,
+            urlIsConnected: targetData.urlIsConnected,
           },
         };
       });
