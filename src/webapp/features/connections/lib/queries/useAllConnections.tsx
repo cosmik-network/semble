@@ -9,11 +9,11 @@ interface Props {
   connectionTypes?: ConnectionType[];
 }
 
-export default function useForwardConnections(props: Props) {
+export default function useAllConnections(props: Props) {
   const limit = props?.limit ?? 16;
 
-  const forwardConnections = useSuspenseInfiniteQuery({
-    queryKey: connectionKeys.forwardForUrlInfinite(
+  const allConnections = useSuspenseInfiniteQuery({
+    queryKey: connectionKeys.allForUrlInfinite(
       props.url,
       props.limit,
       props.connectionTypes,
@@ -22,7 +22,7 @@ export default function useForwardConnections(props: Props) {
     queryFn: ({ pageParam = 1 }) => {
       return getConnectionsForUrl({
         url: props.url,
-        direction: 'forward',
+        direction: 'both',
         page: pageParam,
         limit,
         connectionTypes: props.connectionTypes,
@@ -36,5 +36,5 @@ export default function useForwardConnections(props: Props) {
     },
   });
 
-  return forwardConnections;
+  return allConnections;
 }

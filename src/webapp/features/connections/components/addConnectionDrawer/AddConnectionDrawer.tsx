@@ -3,14 +3,14 @@
 import { Container, Drawer } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from './AddConnectionForm';
-import { ConnectionForUrl } from '@semble/types';
+import { ConnectionWithSourceAndTarget } from '@semble/types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   sourceUrl: string;
   connectionToEdit?: {
-    connection: ConnectionForUrl['connection'];
+    connection: ConnectionWithSourceAndTarget['connection'];
     targetUrl: string;
   };
 }
