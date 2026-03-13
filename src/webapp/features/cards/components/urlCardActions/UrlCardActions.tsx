@@ -103,7 +103,9 @@ export default function UrlCardActions(props: Props) {
             size="xs"
             radius={'xl'}
             leftSection={
-              props.urlConnectionCount > 0 ? <TbPlugConnected /> : undefined
+              props.urlConnectionCount > 0 ? (
+                <TbPlugConnected size={15} />
+              ) : undefined
             }
             onClick={(e) => {
               e.stopPropagation();
@@ -113,7 +115,7 @@ export default function UrlCardActions(props: Props) {
             {props.urlConnectionCount ? (
               props.urlConnectionCount
             ) : (
-              <TbPlugConnected />
+              <TbPlugConnected size={15} />
             )}
           </Button>
           {props.note && (
