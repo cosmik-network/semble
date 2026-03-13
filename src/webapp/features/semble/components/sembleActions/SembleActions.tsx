@@ -12,6 +12,7 @@ import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import { TbPlugConnected } from 'react-icons/tb';
 
 interface Props {
   url: string;
@@ -23,6 +24,7 @@ export default function SembleActions(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   const { data } = useSembleLibraries({ url: props.url });
   const allLibraries =
@@ -67,6 +69,18 @@ export default function SembleActions(props: Props) {
             </Tooltip>
           )}
         </CopyButton>
+        <Button
+          color="green"
+          size={'sm'}
+          radius={'xl'}
+          leftSection={<TbPlugConnected size={18} />}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAddConnectionModal(true);
+          }}
+        >
+          Connect
+        </Button>
         <Button
           variant={isInYourLibrary ? 'light' : 'filled'}
           size="md"
