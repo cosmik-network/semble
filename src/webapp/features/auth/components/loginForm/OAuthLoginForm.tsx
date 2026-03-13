@@ -12,6 +12,7 @@ import {
   Group,
   Avatar,
   ScrollArea,
+  Anchor,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -21,6 +22,7 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { UseFormReturnType } from '@mantine/form';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
+import Link from 'next/link';
 
 interface LoginFormValues {
   handle: string;
@@ -117,6 +119,7 @@ export default function OAuthLoginForm(props: Props) {
                 variant="filled"
                 size="lg"
                 w="100%"
+                miw={300}
                 required
               />
             </Combobox.Target>
@@ -150,17 +153,32 @@ export default function OAuthLoginForm(props: Props) {
 
           {props.error && <Alert title={props.error} color="red" />}
 
-          <UnstyledButton
-            c={'gray'}
-            fw={600}
-            fz={'sm'}
-            onClick={props.onSwitchToAppPassword}
-          >
-            Or{' '}
-            <Text c={'blue'} fw={600} fz={'sm'} span>
-              use your app password
+          <Stack align="center" gap={0}>
+            <UnstyledButton
+              c={'gray'}
+              fw={500}
+              fz={'sm'}
+              onClick={props.onSwitchToAppPassword}
+            >
+              Or{' '}
+              <Text c={'blue'} fw={500} fz={'sm'} span>
+                use your app password
+              </Text>
+            </UnstyledButton>
+
+            <Text fw={500} fz={'sm'} c={'gray'}>
+              {"Don't have an account? "}
+              <Anchor
+                component={Link}
+                href="/signup"
+                fw={500}
+                fz={'sm'}
+                c={'blue'}
+              >
+                Sign up
+              </Anchor>
             </Text>
-          </UnstyledButton>
+          </Stack>
         </Stack>
       </form>
     </Stack>

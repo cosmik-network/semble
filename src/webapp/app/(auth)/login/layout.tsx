@@ -48,56 +48,51 @@ export default async function Layout(props: Props) {
               </Title>
             </Stack>
             {props.children}
-            <Stack align="center" gap={0}>
-              <Text fw={500} c={'stone'}>
-                {"Don't have an account? "}
-                <Anchor href="/signup" fw={500}>
-                  Sign up
-                </Anchor>
-              </Text>
-              <Popover withArrow shadow="sm">
-                <PopoverTarget>
-                  <Button
-                    variant="transparent"
-                    size="md"
-                    fw={500}
-                    fs={'italic'}
-                    c={'gray'}
-                    rightSection={<IoMdHelpCircleOutline size={22} />}
-                  >
-                    How your Cosmik Network account works
-                  </Button>
-                </PopoverTarget>
-                <PopoverDropdown>
-                  <Text fw={500} ta="center" maw={380}>
-                    If you have a Bluesky account, you can sign in with it; no
-                    new account is needed. In future, you will have the option
-                    to migrate your account to the{' '}
-                    <Anchor
-                      href="https://cosmik.network"
-                      target="_blank"
-                      fw={500}
-                      c={'blue'}
-                    >
-                      Cosmik Network
-                    </Anchor>
-                    .
-                  </Text>
-                </PopoverDropdown>
-              </Popover>
-            </Stack>
           </Stack>
-          <Text fw={500} ta={'center'} c={'dark.1'}>
-            By continuing, you agree to our{' '}
-            <Anchor
-              component={Link}
-              href={'/privacy-policy'}
-              c="dark.2"
-              fw={600}
-            >
-              Privacy Policy
-            </Anchor>
-          </Text>
+          <Stack gap={0}>
+            <Popover withArrow shadow="sm">
+              <PopoverTarget>
+                <Button
+                  variant="transparent"
+                  fw={500}
+                  fs={'italic'}
+                  c={'dark.1'}
+                  rightSection={<IoMdHelpCircleOutline size={22} />}
+                >
+                  How your Cosmik Network account works
+                </Button>
+              </PopoverTarget>
+              <PopoverDropdown>
+                <Text fw={500} ta="center" maw={380}>
+                  If you have a Bluesky account, you can sign in with it; no new
+                  account is needed. In future, you will have the option to
+                  migrate your account to the{' '}
+                  <Anchor
+                    href="https://cosmik.network"
+                    target="_blank"
+                    fw={500}
+                    c={'blue'}
+                  >
+                    Cosmik Network
+                  </Anchor>
+                  .
+                </Text>
+              </PopoverDropdown>
+            </Popover>
+            <Text fw={500} fz={'sm'} ta={'center'} c={'dark.1'}>
+              By continuing, you agree to our{' '}
+              <Anchor
+                component={Link}
+                href={'/privacy-policy'}
+                c="dark.1"
+                fw={600}
+                fz={'sm'}
+                underline="always"
+              >
+                Privacy Policy
+              </Anchor>
+            </Text>
+          </Stack>
         </Stack>
       </Center>
     </Container>
