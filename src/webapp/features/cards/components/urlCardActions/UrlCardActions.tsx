@@ -84,18 +84,26 @@ export default function UrlCardActions(props: Props) {
             size="xs"
             radius={'xl'}
             leftSection={
-              props.urlIsInLibrary ? (
-                <IoMdCheckmark size={18} />
-              ) : (
-                <FiPlus size={18} />
-              )
+              props.urlLibraryCount > 0 ? (
+                props.urlIsInLibrary ? (
+                  <IoMdCheckmark size={18} />
+                ) : (
+                  <FiPlus size={18} />
+                )
+              ) : undefined
             }
             onClick={(e) => {
               e.stopPropagation();
               setShowAddToModal(true);
             }}
           >
-            {props.urlLibraryCount}
+            {props.urlLibraryCount ? (
+              props.urlLibraryCount
+            ) : props.urlIsInLibrary ? (
+              <IoMdCheckmark size={18} />
+            ) : (
+              <FiPlus size={18} />
+            )}
           </Button>
           <Button
             variant="light"
