@@ -464,11 +464,7 @@ export default function AddConnectionForm(props: Props) {
         <Stack gap={0}>
           <Group justify="space-between">
             <Input.Label size="md" htmlFor="note">
-              {form.values.connectionType
-                ? (CONNECTION_TYPES.find(
-                    (t) => t.value === form.values.connectionType,
-                  )?.notePrompt ?? 'Add context (optional)')
-                : 'Add context (optional)'}
+              Note
             </Input.Label>
             <Text c={'gray'} aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}

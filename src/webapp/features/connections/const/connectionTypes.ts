@@ -15,7 +15,6 @@ export const CONNECTION_TYPES = [
     label: 'Related',
     description: 'Generally connected or associated',
     icon: BiLink,
-    notePrompt: 'How are these related?',
     notePlaceholder: 'Describe how these are connected...',
   },
   {
@@ -23,7 +22,6 @@ export const CONNECTION_TYPES = [
     label: 'Supports',
     description: 'Provides evidence or reasoning in favor',
     icon: BiCheckCircle,
-    notePrompt: 'How does this support it?',
     notePlaceholder: 'Explain how this supports or provides evidence...',
   },
   {
@@ -31,7 +29,6 @@ export const CONNECTION_TYPES = [
     label: 'Opposes',
     description: 'Provides counter-evidence or reasoning against',
     icon: BiXCircle,
-    notePrompt: 'How does this oppose it?',
     notePlaceholder: 'Describe the counter-argument or opposing view...',
   },
   {
@@ -39,7 +36,6 @@ export const CONNECTION_TYPES = [
     label: 'Addresses',
     description: 'Responds to or answers a question or topic',
     icon: BiMessageSquareDetail,
-    notePrompt: 'How does this address it?',
     notePlaceholder: 'Explain how this responds to or answers the topic...',
   },
   {
@@ -47,7 +43,6 @@ export const CONNECTION_TYPES = [
     label: 'Helpful',
     description: 'Provides useful context or background',
     icon: BiHelpCircle,
-    notePrompt: 'How is this helpful?',
     notePlaceholder: 'Describe what context or background this provides...',
   },
   {
@@ -55,7 +50,6 @@ export const CONNECTION_TYPES = [
     label: 'Leads to',
     description: 'Led me to discover this',
     icon: BiRightArrowAlt,
-    notePrompt: 'How does this lead to it?',
     notePlaceholder: 'Explain how this link leads to the other',
   },
   {
@@ -64,7 +58,6 @@ export const CONNECTION_TYPES = [
     description:
       'Accompanying resources (e.g. data, code, other supplemental material)',
     icon: PiNewspaperClipping,
-    notePrompt: 'What does this add?',
     notePlaceholder: 'Explain what additional information this adds...',
   },
   {
@@ -72,7 +65,6 @@ export const CONNECTION_TYPES = [
     label: 'Explainer',
     description: 'Explains or summarizes for a broader audience',
     icon: MdOutlinePsychologyAlt,
-    notePrompt: 'What does this explain?',
     notePlaceholder: 'Describe what concepts this clarifies...',
   },
 ] as const;
