@@ -223,33 +223,51 @@ export class UrlCardQueryService {
         }
 
         // Get connection counts for each URL
-        const urlConnectionCountsQuery = this.db
+        // Query connections where URLs are sources
+        const sourceConnectionCountsQuery = this.db
           .select({
-            url: sql<string>`CASE
-              WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-              WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-            END`.as('url'),
+            url: connections.sourceValue,
             count: count(),
           })
           .from(connections)
           .where(
-            or(
-              and(
-                eq(connections.sourceType, 'URL'),
-                inArray(connections.sourceValue, urls_paginated),
-              ),
-              and(
-                eq(connections.targetType, 'URL'),
-                inArray(connections.targetValue, urls_paginated),
-              ),
+            and(
+              eq(connections.sourceType, 'URL'),
+              inArray(connections.sourceValue, urls_paginated),
+              eq(connections.targetType, 'URL'),
             ),
           )
-          .groupBy(sql`url`);
+          .groupBy(connections.sourceValue);
 
-        const urlConnectionCountsResult = await urlConnectionCountsQuery;
+        // Query connections where URLs are targets
+        const targetConnectionCountsQuery = this.db
+          .select({
+            url: connections.targetValue,
+            count: count(),
+          })
+          .from(connections)
+          .where(
+            and(
+              eq(connections.targetType, 'URL'),
+              inArray(connections.targetValue, urls_paginated),
+              eq(connections.sourceType, 'URL'),
+            ),
+          )
+          .groupBy(connections.targetValue);
+
+        const [sourceConnectionCounts, targetConnectionCounts] =
+          await Promise.all([
+            sourceConnectionCountsQuery,
+            targetConnectionCountsQuery,
+          ]);
 
         const urlConnectionCountMap = new Map<string, number>();
-        urlConnectionCountsResult.forEach((row) => {
+        sourceConnectionCounts.forEach((row) => {
+          if (row.url) {
+            urlConnectionCountMap.set(row.url, Number(row.count));
+          }
+        });
+        targetConnectionCounts.forEach((row) => {
           if (row.url) {
             urlConnectionCountMap.set(
               row.url,
@@ -263,38 +281,50 @@ export class UrlCardQueryService {
         if (callingUserId) {
           urlIsConnectedMap = new Map();
 
-          const userConnectionsQuery = this.db
+          // Query for URLs where user's connections have them as source
+          const userSourceConnectionsQuery = this.db
             .select({
-              url: sql<string>`CASE
-                WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-                WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-              END`.as('url'),
+              url: connections.sourceValue,
             })
             .from(connections)
             .where(
               and(
                 eq(connections.curatorId, callingUserId),
-                or(
-                  and(
-                    eq(connections.sourceType, 'URL'),
-                    inArray(connections.sourceValue, urls_paginated),
-                  ),
-                  and(
-                    eq(connections.targetType, 'URL'),
-                    inArray(connections.targetValue, urls_paginated),
-                  ),
-                ),
+                eq(connections.sourceType, 'URL'),
+                inArray(connections.sourceValue, urls_paginated),
+                eq(connections.targetType, 'URL'),
               ),
             );
 
-          const userConnectionsResult = await userConnectionsQuery;
+          // Query for URLs where user's connections have them as target
+          const userTargetConnectionsQuery = this.db
+            .select({
+              url: connections.targetValue,
+            })
+            .from(connections)
+            .where(
+              and(
+                eq(connections.curatorId, callingUserId),
+                eq(connections.targetType, 'URL'),
+                inArray(connections.targetValue, urls_paginated),
+                eq(connections.sourceType, 'URL'),
+              ),
+            );
+
+          const [userSourceConnections, userTargetConnections] =
+            await Promise.all([
+              userSourceConnectionsQuery,
+              userTargetConnectionsQuery,
+            ]);
 
           urls_paginated.forEach((url) => urlIsConnectedMap!.set(url, false));
-          userConnectionsResult.forEach((row) => {
-            if (row.url) {
-              urlIsConnectedMap!.set(row.url, true);
-            }
-          });
+          [...userSourceConnections, ...userTargetConnections].forEach(
+            (row) => {
+              if (row.url) {
+                urlIsConnectedMap!.set(row.url, true);
+              }
+            },
+          );
         }
 
         const totalCount = allUrlCardsResult.length;
@@ -483,33 +513,51 @@ export class UrlCardQueryService {
       }
 
       // Get connection counts for each URL
-      const urlConnectionCountsQuery = this.db
+      // Query connections where URLs are sources
+      const sourceConnectionCountsQuery = this.db
         .select({
-          url: sql<string>`CASE
-            WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-            WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-          END`.as('url'),
+          url: connections.sourceValue,
           count: count(),
         })
         .from(connections)
         .where(
-          or(
-            and(
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls),
-            ),
-            and(
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls),
-            ),
+          and(
+            eq(connections.sourceType, 'URL'),
+            inArray(connections.sourceValue, urls),
+            eq(connections.targetType, 'URL'),
           ),
         )
-        .groupBy(sql`url`);
+        .groupBy(connections.sourceValue);
 
-      const urlConnectionCountsResult = await urlConnectionCountsQuery;
+      // Query connections where URLs are targets
+      const targetConnectionCountsQuery = this.db
+        .select({
+          url: connections.targetValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.targetType, 'URL'),
+            inArray(connections.targetValue, urls),
+            eq(connections.sourceType, 'URL'),
+          ),
+        )
+        .groupBy(connections.targetValue);
+
+      const [sourceConnectionCounts, targetConnectionCounts] =
+        await Promise.all([
+          sourceConnectionCountsQuery,
+          targetConnectionCountsQuery,
+        ]);
 
       const urlConnectionCountMap = new Map<string, number>();
-      urlConnectionCountsResult.forEach((row) => {
+      sourceConnectionCounts.forEach((row) => {
+        if (row.url) {
+          urlConnectionCountMap.set(row.url, Number(row.count));
+        }
+      });
+      targetConnectionCounts.forEach((row) => {
         if (row.url) {
           urlConnectionCountMap.set(
             row.url,
@@ -523,34 +571,44 @@ export class UrlCardQueryService {
       if (callingUserId) {
         urlIsConnectedMap = new Map();
 
-        const userConnectionsQuery = this.db
+        // Query for URLs where user's connections have them as source
+        const userSourceConnectionsQuery = this.db
           .select({
-            url: sql<string>`CASE
-              WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-              WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-            END`.as('url'),
+            url: connections.sourceValue,
           })
           .from(connections)
           .where(
             and(
               eq(connections.curatorId, callingUserId),
-              or(
-                and(
-                  eq(connections.sourceType, 'URL'),
-                  inArray(connections.sourceValue, urls),
-                ),
-                and(
-                  eq(connections.targetType, 'URL'),
-                  inArray(connections.targetValue, urls),
-                ),
-              ),
+              eq(connections.sourceType, 'URL'),
+              inArray(connections.sourceValue, urls),
+              eq(connections.targetType, 'URL'),
             ),
           );
 
-        const userConnectionsResult = await userConnectionsQuery;
+        // Query for URLs where user's connections have them as target
+        const userTargetConnectionsQuery = this.db
+          .select({
+            url: connections.targetValue,
+          })
+          .from(connections)
+          .where(
+            and(
+              eq(connections.curatorId, callingUserId),
+              eq(connections.targetType, 'URL'),
+              inArray(connections.targetValue, urls),
+              eq(connections.sourceType, 'URL'),
+            ),
+          );
+
+        const [userSourceConnections, userTargetConnections] =
+          await Promise.all([
+            userSourceConnectionsQuery,
+            userTargetConnectionsQuery,
+          ]);
 
         urls.forEach((url) => urlIsConnectedMap!.set(url, false));
-        userConnectionsResult.forEach((row) => {
+        [...userSourceConnections, ...userTargetConnections].forEach((row) => {
           if (row.url) {
             urlIsConnectedMap!.set(row.url, true);
           }
@@ -1438,34 +1496,52 @@ export class UrlCardQueryService {
       }
 
       // 3. Get connection counts for each URL (total connections where URL is source or target)
-      const urlConnectionCountsQuery = this.db
+      // Query connections where URLs are sources
+      const sourceConnectionCountsQuery = this.db
         .select({
-          url: sql<string>`CASE
-            WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-            WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-          END`.as('url'),
+          url: connections.sourceValue,
           count: count(),
         })
         .from(connections)
         .where(
-          or(
-            and(
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls),
-            ),
-            and(
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls),
-            ),
+          and(
+            eq(connections.sourceType, 'URL'),
+            inArray(connections.sourceValue, urls),
+            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
           ),
         )
-        .groupBy(sql`url`);
+        .groupBy(connections.sourceValue);
 
-      const urlConnectionCountsResult = await urlConnectionCountsQuery;
+      // Query connections where URLs are targets
+      const targetConnectionCountsQuery = this.db
+        .select({
+          url: connections.targetValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.targetType, 'URL'),
+            inArray(connections.targetValue, urls),
+            eq(connections.sourceType, 'URL'), // Only URL-to-URL connections
+          ),
+        )
+        .groupBy(connections.targetValue);
 
-      // Build map of URL to connection count
+      const [sourceConnectionCounts, targetConnectionCounts] =
+        await Promise.all([
+          sourceConnectionCountsQuery,
+          targetConnectionCountsQuery,
+        ]);
+
+      // Build map of URL to connection count (combining source and target counts)
       const urlConnectionCountMap = new Map<string, number>();
-      urlConnectionCountsResult.forEach((row) => {
+      sourceConnectionCounts.forEach((row) => {
+        if (row.url) {
+          urlConnectionCountMap.set(row.url, Number(row.count));
+        }
+      });
+      targetConnectionCounts.forEach((row) => {
         if (row.url) {
           urlConnectionCountMap.set(
             row.url,
@@ -1479,33 +1555,44 @@ export class UrlCardQueryService {
       if (callingUserId) {
         urlIsConnectedMap = new Map();
 
-        const userConnectionsQuery = this.db
+        // Query for URLs where user's connections have them as source
+        const userSourceConnectionsQuery = this.db
           .select({
-            url: sql<string>`CASE
-              WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-              WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-            END`.as('url'),
+            url: connections.sourceValue,
           })
           .from(connections)
           .where(
             and(
               eq(connections.curatorId, callingUserId),
-              or(
-                and(
-                  eq(connections.sourceType, 'URL'),
-                  inArray(connections.sourceValue, urls),
-                ),
-                and(
-                  eq(connections.targetType, 'URL'),
-                  inArray(connections.targetValue, urls),
-                ),
-              ),
+              eq(connections.sourceType, 'URL'),
+              inArray(connections.sourceValue, urls),
+              eq(connections.targetType, 'URL'),
             ),
           );
 
-        const userConnectionsResult = await userConnectionsQuery;
+        // Query for URLs where user's connections have them as target
+        const userTargetConnectionsQuery = this.db
+          .select({
+            url: connections.targetValue,
+          })
+          .from(connections)
+          .where(
+            and(
+              eq(connections.curatorId, callingUserId),
+              eq(connections.targetType, 'URL'),
+              inArray(connections.targetValue, urls),
+              eq(connections.sourceType, 'URL'),
+            ),
+          );
 
-        userConnectionsResult.forEach((row) => {
+        const [userSourceConnections, userTargetConnections] =
+          await Promise.all([
+            userSourceConnectionsQuery,
+            userTargetConnectionsQuery,
+          ]);
+
+        // Mark URLs as connected if they appear in either source or target
+        [...userSourceConnections, ...userTargetConnections].forEach((row) => {
           if (row.url) {
             urlIsConnectedMap!.set(row.url, true);
           }

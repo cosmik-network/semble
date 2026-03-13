@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetBackwardConnectionsForUrlUseCase } from '../../../application/useCases/queries/GetBackwardConnectionsForUrlUseCase';
+import { GetConnectionsForUrlUseCase } from '../../../application/useCases/queries/GetConnectionsForUrlUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import {
   ConnectionSortField,
@@ -8,9 +8,9 @@ import {
 } from '../../../domain/IConnectionQueryRepository';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 
-export class GetBackwardConnectionsForUrlController extends Controller {
+export class GetConnectionsForUrlController extends Controller {
   constructor(
-    private getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase,
+    private getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase,
   ) {
     super();
   }
@@ -22,6 +22,18 @@ export class GetBackwardConnectionsForUrlController extends Controller {
 
       if (!url || typeof url !== 'string') {
         return this.badRequest(res, 'URL is required');
+      }
+
+      // Parse direction parameter
+      const direction =
+        (req.query.direction as 'forward' | 'backward' | 'both') || 'both';
+
+      // Validate direction
+      if (!['forward', 'backward', 'both'].includes(direction)) {
+        return this.badRequest(
+          res,
+          'Invalid direction. Must be "forward", "backward", or "both"',
+        );
       }
 
       // Parse pagination parameters
@@ -43,8 +55,9 @@ export class GetBackwardConnectionsForUrlController extends Controller {
         connectionTypes = typesParam.split(',') as ConnectionTypeEnum[];
       }
 
-      const result = await this.getBackwardConnectionsForUrlUseCase.execute({
+      const result = await this.getConnectionsForUrlUseCase.execute({
         url,
+        direction,
         callingUserId,
         page,
         limit,

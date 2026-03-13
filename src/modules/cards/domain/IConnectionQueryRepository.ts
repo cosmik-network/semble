@@ -71,6 +71,19 @@ export interface IConnectionQueryRepository {
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
 
   /**
+   * Get connections for a URL with optional direction filtering
+   * Returns connections with both source and target URLs
+   * @param url - The URL to get connections for
+   * @param direction - 'forward' (source), 'backward' (target), or 'both' (either)
+   * @param options - Pagination, sorting, and filtering options
+   */
+  getConnectionsForUrl(
+    url: string,
+    direction: 'forward' | 'backward' | 'both',
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
+
+  /**
    * Get all connections created by a specific curator
    * Returns connections with both source and target URLs
    */

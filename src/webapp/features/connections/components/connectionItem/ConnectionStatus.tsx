@@ -13,7 +13,7 @@ import {
   Button,
   Box,
 } from '@mantine/core';
-import { ConnectionForUrl, User } from '@semble/types';
+import { ConnectionWithSourceAndTarget, User } from '@semble/types';
 import Link from 'next/link';
 import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -26,7 +26,7 @@ import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
 
 interface Props {
-  connection: ConnectionForUrl['connection'];
+  connection: ConnectionWithSourceAndTarget['connection'];
   direction: 'forward' | 'backward';
   onEdit?: () => void;
 }

@@ -24,13 +24,13 @@ import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
-import { ConnectionForUrl } from '@semble/types';
+import { ConnectionWithSourceAndTarget } from '@semble/types';
 
 interface Props {
   onClose: () => void;
   sourceUrl: string;
   connectionToEdit?: {
-    connection: ConnectionForUrl['connection'];
+    connection: ConnectionWithSourceAndTarget['connection'];
     targetUrl: string;
   };
 }

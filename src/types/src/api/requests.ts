@@ -347,6 +347,12 @@ export interface GetBackwardConnectionsForUrlParams
   connectionTypes?: ConnectionType[];
 }
 
+export interface GetConnectionsForUrlParams extends PaginatedSortedParams {
+  url: string;
+  direction?: 'forward' | 'backward' | 'both';
+  connectionTypes?: ConnectionType[];
+}
+
 // Search URLs request types
 export interface SearchUrlsParams extends PaginatedSortedParams {
   searchQuery: string;

@@ -1,21 +1,25 @@
-import type { ConnectionForUrl } from '@semble/types';
+import type { ConnectionWithSourceAndTarget } from '@semble/types';
 import { Stack } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import ConnectionStatus from './ConnectionStatus';
 
 interface Props {
-  connectionForUrl: ConnectionForUrl;
+  connection: ConnectionWithSourceAndTarget;
   direction: 'forward' | 'backward';
   onEdit?: () => void;
 }
 
 export default function ConnectionItem(props: Props) {
-  const urlView = props.connectionForUrl.url;
+  // For forward connections, show the target; for backward connections, show the source
+  const urlView =
+    props.direction === 'forward'
+      ? props.connection.target
+      : props.connection.source;
 
   return (
     <Stack gap={'xs'} align="stretch" h={'100%'}>
       <ConnectionStatus
-        connection={props.connectionForUrl.connection}
+        connection={props.connection.connection}
         direction={props.direction}
         onEdit={props.onEdit}
       />

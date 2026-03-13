@@ -14,8 +14,9 @@ import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { UrlMetadata as UrlMetadataVO } from '../../../domain/value-objects/UrlMetadata';
 
-export interface GetForwardConnectionsForUrlQuery {
+export interface GetConnectionsForUrlQuery {
   url: string;
+  direction?: 'forward' | 'backward' | 'both';
   callingUserId?: string;
   page?: number;
   limit?: number;
@@ -24,7 +25,7 @@ export interface GetForwardConnectionsForUrlQuery {
   connectionTypes?: ConnectionTypeEnum[];
 }
 
-export interface ConnectionForUrlView {
+export interface ConnectionView {
   connection: {
     id: string;
     type?: string;
@@ -33,7 +34,15 @@ export interface ConnectionForUrlView {
     updatedAt: string;
     curator: UserProfileDTO;
   };
-  url: {
+  source: {
+    url: string;
+    metadata: UrlMetadata;
+    urlLibraryCount: number;
+    urlInLibrary?: boolean;
+    urlConnectionCount?: number;
+    urlIsConnected?: boolean;
+  };
+  target: {
     url: string;
     metadata: UrlMetadata;
     urlLibraryCount: number;
@@ -43,8 +52,8 @@ export interface ConnectionForUrlView {
   };
 }
 
-export interface GetForwardConnectionsForUrlResult {
-  connections: ConnectionForUrlView[];
+export interface GetConnectionsForUrlResult {
+  connections: ConnectionView[];
   pagination: PaginationDTO;
   sorting: {
     sortBy: ConnectionSortField;
@@ -59,12 +68,9 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetForwardConnectionsForUrlUseCase
+export class GetConnectionsForUrlUseCase
   implements
-    UseCase<
-      GetForwardConnectionsForUrlQuery,
-      Result<GetForwardConnectionsForUrlResult>
-    >
+    UseCase<GetConnectionsForUrlQuery, Result<GetConnectionsForUrlResult>>
 {
   constructor(
     private connectionQueryRepo: IConnectionQueryRepository,
@@ -74,8 +80,8 @@ export class GetForwardConnectionsForUrlUseCase
   ) {}
 
   async execute(
-    query: GetForwardConnectionsForUrlQuery,
-  ): Promise<Result<GetForwardConnectionsForUrlResult>> {
+    query: GetConnectionsForUrlQuery,
+  ): Promise<Result<GetConnectionsForUrlResult>> {
     // Validate URL
     const urlResult = URL.create(query.url);
     if (urlResult.isErr()) {
@@ -89,12 +95,14 @@ export class GetForwardConnectionsForUrlUseCase
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
     const sortBy = query.sortBy || ConnectionSortField.CREATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
+    const direction = query.direction || 'both';
     const connectionTypes = query.connectionTypes; // Optional filter
 
     try {
-      // Execute query to get forward connections
-      const result = await this.connectionQueryRepo.getForwardConnectionsForUrl(
+      // Execute query to get connections
+      const result = await this.connectionQueryRepo.getConnectionsForUrl(
         urlResult.value.value,
+        direction,
         {
           page,
           limit,
@@ -104,12 +112,15 @@ export class GetForwardConnectionsForUrlUseCase
         },
       );
 
-      // Extract unique curator IDs and URLs
+      // Extract unique curator IDs and URLs from both source and target
       const uniqueCuratorIds = Array.from(
         new Set(result.items.map((item) => item.connection.curatorId)),
       );
       const uniqueUrls = Array.from(
-        new Set(result.items.map((item) => item.url)),
+        new Set([
+          ...result.items.map((item) => item.sourceUrl),
+          ...result.items.map((item) => item.targetUrl),
+        ]),
       );
 
       // Fetch curator profiles using ProfileEnricher
@@ -210,40 +221,51 @@ export class GetForwardConnectionsForUrlUseCase
       });
 
       // Map items with enriched data
-      const enrichedConnections: ConnectionForUrlView[] = result.items.map(
-        (item) => {
-          const curator = profileMap.get(item.connection.curatorId);
-          if (!curator) {
-            throw new Error(
-              `Profile not found for curator ${item.connection.curatorId}`,
-            );
-          }
+      const enrichedConnections: ConnectionView[] = result.items.map((item) => {
+        const curator = profileMap.get(item.connection.curatorId);
+        if (!curator) {
+          throw new Error(
+            `Profile not found for curator ${item.connection.curatorId}`,
+          );
+        }
 
-          const urlData = urlDataMap.get(item.url);
-          if (!urlData) {
-            throw new Error(`URL data not found for ${item.url}`);
-          }
+        const sourceData = urlDataMap.get(item.sourceUrl);
+        if (!sourceData) {
+          throw new Error(`URL data not found for ${item.sourceUrl}`);
+        }
 
-          return {
-            connection: {
-              id: item.connection.id,
-              type: item.connection.type,
-              note: item.connection.note,
-              createdAt: item.connection.createdAt.toISOString(),
-              updatedAt: item.connection.updatedAt.toISOString(),
-              curator,
-            },
-            url: {
-              url: item.url,
-              metadata: urlData.metadata,
-              urlLibraryCount: urlData.urlLibraryCount,
-              urlInLibrary: urlData.urlInLibrary,
-              urlConnectionCount: urlData.urlConnectionCount,
-              urlIsConnected: urlData.urlIsConnected,
-            },
-          };
-        },
-      );
+        const targetData = urlDataMap.get(item.targetUrl);
+        if (!targetData) {
+          throw new Error(`URL data not found for ${item.targetUrl}`);
+        }
+
+        return {
+          connection: {
+            id: item.connection.id,
+            type: item.connection.type,
+            note: item.connection.note,
+            createdAt: item.connection.createdAt.toISOString(),
+            updatedAt: item.connection.updatedAt.toISOString(),
+            curator,
+          },
+          source: {
+            url: item.sourceUrl,
+            metadata: sourceData.metadata,
+            urlLibraryCount: sourceData.urlLibraryCount,
+            urlInLibrary: sourceData.urlInLibrary,
+            urlConnectionCount: sourceData.urlConnectionCount,
+            urlIsConnected: sourceData.urlIsConnected,
+          },
+          target: {
+            url: item.targetUrl,
+            metadata: targetData.metadata,
+            urlLibraryCount: targetData.urlLibraryCount,
+            urlInLibrary: targetData.urlInLibrary,
+            urlConnectionCount: targetData.urlConnectionCount,
+            urlIsConnected: targetData.urlIsConnected,
+          },
+        };
+      });
 
       return ok({
         connections: enrichedConnections,
@@ -262,7 +284,7 @@ export class GetForwardConnectionsForUrlUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to retrieve forward connections for URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to retrieve connections for URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }

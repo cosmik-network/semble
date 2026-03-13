@@ -2,6 +2,7 @@
 
 import useForwardConnections from '@/features/connections/lib/queries/useForwardConnections';
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
+import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Button, Grid, Group, Stack } from '@mantine/core';
 import SembleConnectionsContainerError from './Error.SembleConnectionsContainer';
@@ -14,9 +15,9 @@ import AddConnectionDrawer from '@/features/connections/components/addConnection
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
-import { ConnectionType, ConnectionForUrl } from '@semble/types';
+import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
 
-type Direction = 'outgoing' | 'incoming';
+type Direction = 'outgoing' | 'incoming' | 'all';
 
 interface Props {
   url: string;
@@ -31,7 +32,7 @@ export default function SembleConnectionsContainer(props: Props) {
     null,
   );
   const [connectionToEdit, setConnectionToEdit] = useState<{
-    connection: ConnectionForUrl['connection'];
+    connection: ConnectionWithSourceAndTarget['connection'];
     targetUrl: string;
   } | null>(null);
 
@@ -41,7 +42,7 @@ export default function SembleConnectionsContainer(props: Props) {
   };
 
   const handleOpenEditDrawer = (
-    connection: ConnectionForUrl['connection'],
+    connection: ConnectionWithSourceAndTarget['connection'],
     targetUrl: string,
   ) => {
     setConnectionToEdit({ connection, targetUrl });
@@ -79,25 +80,59 @@ export default function SembleConnectionsContainer(props: Props) {
     connectionTypes,
   });
 
+  const {
+    data: allData,
+    error: allError,
+    fetchNextPage: fetchNextAll,
+    hasNextPage: hasNextAll,
+    isFetchingNextPage: isFetchingNextAll,
+    isPending: isPendingAll,
+  } = useAllConnections({
+    url: props.url,
+    connectionTypes,
+  });
+
   const allForwardConnections =
     forwardData?.pages.flatMap((page) => page.connections ?? []) ?? [];
   const allBackwardConnections =
     backwardData?.pages.flatMap((page) => page.connections ?? []) ?? [];
+  const allConnections =
+    allData?.pages.flatMap((page) => page.connections ?? []) ?? [];
 
-  if (forwardError || backwardError) {
+  if (forwardError || backwardError || allError) {
     return <SembleConnectionsContainerError />;
   }
 
   const connections =
-    direction === 'outgoing' ? allForwardConnections : allBackwardConnections;
+    direction === 'outgoing'
+      ? allForwardConnections
+      : direction === 'incoming'
+        ? allBackwardConnections
+        : allConnections;
   const fetchNextPage =
-    direction === 'outgoing' ? fetchNextForward : fetchNextBackward;
+    direction === 'outgoing'
+      ? fetchNextForward
+      : direction === 'incoming'
+        ? fetchNextBackward
+        : fetchNextAll;
   const hasNextPage =
-    direction === 'outgoing' ? hasNextForward : hasNextBackward;
+    direction === 'outgoing'
+      ? hasNextForward
+      : direction === 'incoming'
+        ? hasNextBackward
+        : hasNextAll;
   const isFetchingNextPage =
-    direction === 'outgoing' ? isFetchingNextForward : isFetchingNextBackward;
+    direction === 'outgoing'
+      ? isFetchingNextForward
+      : direction === 'incoming'
+        ? isFetchingNextBackward
+        : isFetchingNextAll;
   const isPending =
-    direction === 'outgoing' ? isPendingForward : isPendingBackward;
+    direction === 'outgoing'
+      ? isPendingForward
+      : direction === 'incoming'
+        ? isPendingBackward
+        : isPendingAll;
 
   return (
     <>
@@ -135,22 +170,30 @@ export default function SembleConnectionsContainer(props: Props) {
             loadMore={fetchNextPage}
           >
             <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
-              {connections.map((connectionForUrl, index) => (
-                <Grid.Col key={`${direction}-${index}`} span={12}>
-                  <ConnectionItem
-                    connectionForUrl={connectionForUrl}
-                    direction={
-                      direction === 'outgoing' ? 'forward' : 'backward'
-                    }
-                    onEdit={() =>
-                      handleOpenEditDrawer(
-                        connectionForUrl.connection,
-                        connectionForUrl.url.url,
-                      )
-                    }
-                  />
-                </Grid.Col>
-              ))}
+              {connections.map((connection, index) => {
+                // Determine the actual direction for this specific connection
+                // If direction is 'all', check if the source URL matches props.url
+                const isForward =
+                  direction === 'all'
+                    ? connection.source.url === props.url
+                    : direction === 'outgoing';
+                const connectionDirection = isForward ? 'forward' : 'backward';
+                const targetUrl = isForward
+                  ? connection.target.url
+                  : connection.source.url;
+
+                return (
+                  <Grid.Col key={`${direction}-${index}`} span={12}>
+                    <ConnectionItem
+                      connection={connection}
+                      direction={connectionDirection}
+                      onEdit={() => {
+                        handleOpenEditDrawer(connection.connection, targetUrl);
+                      }}
+                    />
+                  </Grid.Col>
+                );
+              })}
             </Grid>
           </InfiniteScroll>
         )}

@@ -3,8 +3,7 @@ import { CreateConnectionController } from '../controllers/CreateConnectionContr
 import { UpdateConnectionController } from '../controllers/UpdateConnectionController';
 import { DeleteConnectionController } from '../controllers/DeleteConnectionController';
 import { GetConnectionsController } from '../controllers/GetConnectionsController';
-import { GetForwardConnectionsForUrlController } from '../controllers/GetForwardConnectionsForUrlController';
-import { GetBackwardConnectionsForUrlController } from '../controllers/GetBackwardConnectionsForUrlController';
+import { GetConnectionsForUrlController } from '../controllers/GetConnectionsForUrlController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createConnectionRoutes(
@@ -13,8 +12,7 @@ export function createConnectionRoutes(
   updateConnectionController: UpdateConnectionController,
   deleteConnectionController: DeleteConnectionController,
   getConnectionsController: GetConnectionsController,
-  getForwardConnectionsForUrlController: GetForwardConnectionsForUrlController,
-  getBackwardConnectionsForUrlController: GetBackwardConnectionsForUrlController,
+  getConnectionsForUrlController: GetConnectionsForUrlController,
 ): Router {
   const router = Router();
 
@@ -24,14 +22,9 @@ export function createConnectionRoutes(
     getConnectionsController.execute(req, res),
   );
 
-  // GET /api/connections/forward - Get forward connections for URL
-  router.get('/forward', authMiddleware.optionalAuth(), (req, res) =>
-    getForwardConnectionsForUrlController.execute(req, res),
-  );
-
-  // GET /api/connections/backward - Get backward connections for URL
-  router.get('/backward', authMiddleware.optionalAuth(), (req, res) =>
-    getBackwardConnectionsForUrlController.execute(req, res),
+  // GET /api/connections/url - Get connections for a URL with optional direction filtering
+  router.get('/url', authMiddleware.optionalAuth(), (req, res) =>
+    getConnectionsForUrlController.execute(req, res),
   );
 
   // Command routes

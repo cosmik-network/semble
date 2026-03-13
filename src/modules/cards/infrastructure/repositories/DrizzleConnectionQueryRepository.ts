@@ -38,6 +38,18 @@ export class DrizzleConnectionQueryRepository
     );
   }
 
+  async getConnectionsForUrl(
+    url: string,
+    direction: 'forward' | 'backward' | 'both',
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+    return this.connectionQueryService.getConnectionsForUrlWithDirection(
+      url,
+      direction,
+      options,
+    );
+  }
+
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,

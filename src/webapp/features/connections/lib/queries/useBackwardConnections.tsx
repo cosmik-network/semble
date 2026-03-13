@@ -1,5 +1,5 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
-import { getBackwardConnectionsForUrl } from '../dal';
+import { getConnectionsForUrl } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { ConnectionType } from '@semble/types';
 
@@ -20,8 +20,9 @@ export default function useBackwardConnections(props: Props) {
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
-      return getBackwardConnectionsForUrl({
+      return getConnectionsForUrl({
         url: props.url,
+        direction: 'backward',
         page: pageParam,
         limit,
         connectionTypes: props.connectionTypes,

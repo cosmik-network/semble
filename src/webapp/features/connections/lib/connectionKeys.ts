@@ -30,6 +30,12 @@ export const connectionKeys = {
       limit,
       connectionTypes,
     ] as const,
+  allForUrl: (url: string) => ['connections', 'all', url] as const,
+  allForUrlInfinite: (
+    url: string,
+    limit?: number,
+    connectionTypes?: ConnectionType[],
+  ) => ['connections', 'all', url, 'infinite', limit, connectionTypes] as const,
   userConnections: (identifier: string) =>
     ['connections', 'user', identifier] as const,
   userConnectionsInfinite: (

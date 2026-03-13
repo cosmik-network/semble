@@ -34,8 +34,7 @@ import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/appli
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
-import { GetForwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetForwardConnectionsForUrlUseCase';
-import { GetBackwardConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetBackwardConnectionsForUrlUseCase';
+import { GetConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForUrlUseCase';
 import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
@@ -142,8 +141,7 @@ export interface UseCases {
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
-  getForwardConnectionsForUrlUseCase: GetForwardConnectionsForUrlUseCase;
-  getBackwardConnectionsForUrlUseCase: GetBackwardConnectionsForUrlUseCase;
+  getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase;
   // Connection use cases
   getConnectionsUseCase: GetConnectionsUseCase;
   createConnectionUseCase: CreateConnectionUseCase;
@@ -400,20 +398,12 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getForwardConnectionsForUrlUseCase:
-        new GetForwardConnectionsForUrlUseCase(
-          repositories.connectionQueryRepository,
-          repositories.cardQueryRepository,
-          services.profileService,
-          services.metadataService,
-        ),
-      getBackwardConnectionsForUrlUseCase:
-        new GetBackwardConnectionsForUrlUseCase(
-          repositories.connectionQueryRepository,
-          repositories.cardQueryRepository,
-          services.profileService,
-          services.metadataService,
-        ),
+      getConnectionsForUrlUseCase: new GetConnectionsForUrlUseCase(
+        repositories.connectionQueryRepository,
+        repositories.cardQueryRepository,
+        services.profileService,
+        services.metadataService,
+      ),
 
       // Connection use cases
       getConnectionsUseCase: new GetConnectionsUseCase(

@@ -59,6 +59,8 @@ import {
   SearchUrlsResponse,
   GetGraphDataParams,
   GetGraphDataResponse,
+  GetConnectionsForUrlParams,
+  GetConnectionsForUrlResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -535,6 +537,26 @@ export class QueryClient extends BaseClient {
     return this.request<GetBackwardConnectionsForUrlResponse>(
       'GET',
       `/api/connections/backward?${searchParams}`,
+    );
+  }
+
+  async getConnectionsForUrl(
+    params: GetConnectionsForUrlParams,
+  ): Promise<GetConnectionsForUrlResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('url', params.url);
+    if (params.direction) searchParams.set('direction', params.direction);
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.connectionTypes) {
+      searchParams.set('connectionTypes', params.connectionTypes.join(','));
+    }
+
+    return this.request<GetConnectionsForUrlResponse>(
+      'GET',
+      `/api/connections/url?${searchParams}`,
     );
   }
 
