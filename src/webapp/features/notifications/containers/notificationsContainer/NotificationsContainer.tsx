@@ -11,13 +11,14 @@ import {
   Loader,
   Button,
   Group,
+  Collapse,
 } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotificationsAsRead';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
@@ -46,6 +47,22 @@ export default function NotificationsContainer() {
 
   const allNotifications =
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
+
+  // Ensure animation is visible even for fast refetches
+  const [showRefetchLoader, setShowRefetchLoader] = useState(false);
+  const MIN_DISPLAY_TIME = 400; // milliseconds
+
+  useEffect(() => {
+    if (isRefetching) {
+      setShowRefetchLoader(true);
+    } else if (showRefetchLoader) {
+      // Keep showing the loader for minimum time to ensure animation completes
+      const timer = setTimeout(() => {
+        setShowRefetchLoader(false);
+      }, MIN_DISPLAY_TIME);
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, showRefetchLoader]);
 
   const handleMarkAllAsRead = () => {
     if (unreadData.unreadCount > 0) {
@@ -80,60 +97,58 @@ export default function NotificationsContainer() {
 
   return (
     <Container p="xs" size="xl">
-      <Stack>
-        {unreadData.unreadCount > 0 && (
-          <Group justify="end" mb="md">
-            <Button
-              onClick={handleMarkAllAsRead}
-              variant="subtle"
-              color="tangerine"
-              size="sm"
-              leftSection={<IoCheckmarkDoneSharp size={18} />}
-              loading={markAllAsRead.isPending}
-            >
-              Mark all as read
-            </Button>
-          </Group>
-        )}
-        {isRefetching && (
-          <Stack align="center" gap={'xs'}>
-            <Loader size={'sm'} color={'gray'} />
-            <Text fw={600} c={'gray'}>
-              Fetching the latest notifications...
-            </Text>
-          </Stack>
-        )}
-        {allNotifications.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              No notifications yet
-            </Text>
-          </Center>
-        ) : (
-          <InfiniteScroll
-            dataLength={allNotifications.length}
-            hasMore={!!hasNextPage}
-            isInitialLoading={isPending}
-            isLoading={isFetchingNextPage}
-            loadMore={fetchNextPage}
+      {unreadData.unreadCount > 0 && (
+        <Group justify="end" mb="md">
+          <Button
+            onClick={handleMarkAllAsRead}
+            variant="subtle"
+            color="tangerine"
+            size="sm"
+            leftSection={<IoCheckmarkDoneSharp size={18} />}
+            loading={markAllAsRead.isPending}
           >
-            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-              <Stack gap={60}>
-                {allNotifications.map((item) => (
-                  <NotificationItem
-                    key={item.id}
-                    item={item}
-                    analyticsContext={{
-                      saveSource: CardSaveSource.NOTIFICATIONS,
-                      pagePath: pathname,
-                    }}
-                  />
-                ))}
-              </Stack>
+            Mark all as read
+          </Button>
+        </Group>
+      )}
+      <Collapse in={showRefetchLoader} transitionDuration={400}>
+        <Stack align="center" gap={'xs'}>
+          <Loader size={'sm'} color={'gray'} />
+          <Text fw={600} c={'gray'} mb={'sm'}>
+            Fetching the latest notifications...
+          </Text>
+        </Stack>
+      </Collapse>
+      {allNotifications.length === 0 ? (
+        <Center>
+          <Text fz="h3" fw={600} c="gray">
+            No notifications yet
+          </Text>
+        </Center>
+      ) : (
+        <InfiniteScroll
+          dataLength={allNotifications.length}
+          hasMore={!!hasNextPage}
+          isInitialLoading={isPending}
+          isLoading={isFetchingNextPage}
+          loadMore={fetchNextPage}
+        >
+          <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
+            <Stack gap={60}>
+              {allNotifications.map((item) => (
+                <NotificationItem
+                  key={item.id}
+                  item={item}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.NOTIFICATIONS,
+                    pagePath: pathname,
+                  }}
+                />
+              ))}
             </Stack>
-          </InfiniteScroll>
-        )}
-      </Stack>
+          </Stack>
+        </InfiniteScroll>
+      )}
 
       <Box
         pos={'fixed'}
