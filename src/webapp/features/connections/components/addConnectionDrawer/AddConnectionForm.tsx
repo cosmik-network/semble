@@ -356,7 +356,14 @@ export default function AddConnectionForm(props: Props) {
                 </Combobox.Dropdown>
               </Combobox>
 
-              <Tooltip label="Swap" position="top">
+              <Tooltip
+                label={
+                  form.values.targetUrl
+                    ? 'Swap'
+                    : 'You need to add a link before swapping'
+                }
+                position="top"
+              >
                 <ActionIcon
                   variant="light"
                   size={'lg'}
@@ -364,7 +371,11 @@ export default function AddConnectionForm(props: Props) {
                   radius={'xl'}
                   onClick={handleSwapUrls}
                   disabled={!form.values.targetUrl}
-                  title="Reverse connection"
+                  title={
+                    form.values.targetUrl
+                      ? 'Swap'
+                      : 'You need to add a link before swapping'
+                  }
                 >
                   <LuArrowUpDown size={16} />
                 </ActionIcon>
