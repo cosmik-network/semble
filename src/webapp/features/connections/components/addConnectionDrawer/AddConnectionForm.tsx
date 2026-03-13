@@ -2,6 +2,7 @@
 
 import {
   ActionIcon,
+  Anchor,
   Button,
   Card,
   Combobox,
@@ -34,6 +35,7 @@ import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
+import Link from 'next/link';
 
 interface Props {
   onClose: () => void;
@@ -236,26 +238,33 @@ export default function AddConnectionForm(props: Props) {
       <Stack gap={'lg'}>
         <Stack gap={0}>
           <Stack gap={0}>
-            <Card padding="xs" radius="md" withBorder>
+            <Card withBorder component="article" p={'xs'} radius={'lg'}>
               <Group gap="xs">
                 {sourceUrlMetadata?.metadata?.imageUrl && (
                   <Image
                     src={sourceUrlMetadata.metadata.imageUrl}
-                    alt={sourceUrlMetadata.metadata.title || 'URL thumbnail'}
-                    w={35}
-                    h={35}
-                    radius="sm"
-                    fit="cover"
+                    alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+                    radius={'md'}
+                    w={40}
+                    h={40}
                   />
                 )}
                 <Stack gap={0}>
-                  <Text fw={600} size="sm" lineClamp={2}>
+                  <Text fw={500} lineClamp={1} c={'bright'}>
                     {sourceUrlMetadata?.metadata?.title ||
                       form.values.sourceUrl}
                   </Text>
-                  <Text size="xs" c="dimmed" lineClamp={1}>
+                  <Anchor
+                    component={Link}
+                    href={form.values.sourceUrl}
+                    target="_blank"
+                    c={'gray'}
+                    fz={'sm'}
+                    lineClamp={1}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {getDomain(form.values.sourceUrl)}
-                  </Text>
+                  </Anchor>
                 </Stack>
               </Group>
             </Card>
@@ -369,7 +378,7 @@ export default function AddConnectionForm(props: Props) {
             </ThemeIcon>
           </Stack>
 
-          <Card padding="xs" radius="md" withBorder>
+          <Card padding="xs" radius="lg" withBorder>
             <Stack gap={0}>
               <Combobox
                 shadow="sm"
