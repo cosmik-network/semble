@@ -146,6 +146,16 @@ export default function AddConnectionForm(props: Props) {
 
     const values = form.getValues();
 
+    if (values.sourceUrl === values.targetUrl) {
+      notifications.show({
+        id: 'same-url-error',
+        title: 'A link cannot be connected to itself',
+        message: 'Please choose a different link to connect',
+        color: 'red',
+      });
+      return;
+    }
+
     if (isEditMode && props.connectionToEdit) {
       // Update existing connection
       updateConnection.mutate(
