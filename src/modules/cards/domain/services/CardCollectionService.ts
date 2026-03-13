@@ -155,6 +155,117 @@ export class CardCollectionService implements DomainService {
       | AppError.UnexpectedError
     >
   > {
+    // Use optimized batch operation when not skipping publishing
+    // and when we have multiple collections
+    if (collectionIds.length > 1 && !options?.skipPublishing) {
+      try {
+        // First, check permissions for all collections
+        const collectionsResult =
+          await this.collectionRepository.findByIds(collectionIds);
+        if (collectionsResult.isErr()) {
+          return err(AppError.UnexpectedError.create(collectionsResult.error));
+        }
+
+        const collections = collectionsResult.value;
+        for (const collection of collections) {
+          if (!collection.canAddCard(curatorId)) {
+            return err(
+              new CardCollectionValidationError(
+                `User does not have permission to add cards to collection: ${collection.collectionId.getStringValue()}`,
+              ),
+            );
+          }
+        }
+
+        // First, add card to all collections in memory and publish links
+        const publishedRecordMap = new Map<string, PublishedRecordId>();
+        const modifiedCollections: Collection[] = [];
+
+        for (const collection of collections) {
+          // Check if card already in collection
+          const existingLink = collection.cardLinks.find((link) =>
+            link.cardId.equals(card.cardId),
+          );
+
+          if (!existingLink) {
+            // Add card to collection in memory first
+            const addCardResult = collection.addCard(
+              card.cardId,
+              curatorId,
+              viaCardId,
+              options?.timestamp,
+            );
+            if (addCardResult.isErr()) {
+              return err(
+                new CardCollectionValidationError(
+                  `Failed to add card to collection: ${addCardResult.error.message}`,
+                ),
+              );
+            }
+
+            // Resolve via card published record ID if needed
+            let viaCardPublishedRecordId: PublishedRecordIdProps | undefined;
+            if (viaCardId) {
+              const viaCardResult =
+                await this.cardRepository.findById(viaCardId);
+              if (
+                viaCardResult.isOk() &&
+                viaCardResult.value?.publishedRecordId
+              ) {
+                viaCardPublishedRecordId =
+                  viaCardResult.value.publishedRecordId.getValue();
+              }
+            }
+
+            // Now publish the collection link (card is now in collection)
+            const publishLinkResult =
+              await this.collectionPublisher.publishCardAddedToCollection(
+                card,
+                collection,
+                curatorId,
+                viaCardPublishedRecordId,
+              );
+            if (publishLinkResult.isErr()) {
+              if (publishLinkResult.error instanceof AuthenticationError) {
+                return err(publishLinkResult.error);
+              }
+              return err(
+                new CardCollectionValidationError(
+                  `Failed to publish collection link: ${publishLinkResult.error.message}`,
+                ),
+              );
+            }
+
+            // Mark the link as published in the collection
+            collection.markCardLinkAsPublished(
+              card.cardId,
+              publishLinkResult.value,
+            );
+            publishedRecordMap.set(
+              collection.collectionId.getStringValue(),
+              publishLinkResult.value,
+            );
+            modifiedCollections.push(collection);
+          }
+        }
+
+        // Save all modified collections with their pending commands
+        // This will use the optimized command-based persistence
+        for (const collection of modifiedCollections) {
+          const saveResult = await this.collectionRepository.save(collection);
+          if (saveResult.isErr()) {
+            return err(AppError.UnexpectedError.create(saveResult.error));
+          }
+        }
+
+        // Return all collections (modified and unmodified)
+        return ok(collections);
+      } catch (error) {
+        return err(AppError.UnexpectedError.create(error));
+      }
+    }
+
+    // Fall back to sequential processing for single collection or when skipping publishing
     const updatedCollections: Collection[] = [];
 
     for (const collectionId of collectionIds) {
