@@ -13,6 +13,7 @@ import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { TbPlugConnected } from 'react-icons/tb';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   url: string;
@@ -97,6 +98,12 @@ export default function SembleActions(props: Props) {
           {isInYourLibrary ? 'Update' : 'Add'}
         </Button>
       </Group>
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={props.url}
+      />
 
       <AddCardToModal
         isOpen={showAddToModal}
