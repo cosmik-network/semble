@@ -12,6 +12,14 @@ import { IconType } from 'react-icons';
 
 export const CONNECTION_TYPES = [
   {
+    value: 'RELATED',
+    label: 'Related',
+    description: 'Generally connected or associated',
+    icon: BiLink,
+    notePrompt: 'How are these related?',
+    notePlaceholder: 'Describe how these are connected...',
+  },
+  {
     value: 'SUPPORTS',
     label: 'Supports',
     description: 'Provides evidence or reasoning in favor',
@@ -50,14 +58,6 @@ export const CONNECTION_TYPES = [
     icon: BiRightArrowAlt,
     notePrompt: 'How does this lead to it?',
     notePlaceholder: 'Explain how this link leads to the other',
-  },
-  {
-    value: 'RELATED',
-    label: 'Related',
-    description: 'Generally connected or associated',
-    icon: BiLink,
-    notePrompt: 'How are these related?',
-    notePlaceholder: 'Describe how these are connected...',
   },
   {
     value: 'SUPPLEMENT',

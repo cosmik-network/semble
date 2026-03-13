@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal, Container } from '@mantine/core';
+import { Modal } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from '../addConnectionDrawer/AddConnectionForm';
 import { ConnectionForUrl } from '@semble/types';
