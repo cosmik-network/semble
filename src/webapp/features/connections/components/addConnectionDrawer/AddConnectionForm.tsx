@@ -1,58 +1,59 @@
 'use client';
 
 import {
+  ActionIcon,
   Button,
+  Card,
   Combobox,
+  Divider,
   Group,
   Image,
   Input,
   Loader,
   ScrollArea,
-  Select,
   Stack,
   Text,
   Textarea,
+  ThemeIcon,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
-import { IoMdLink } from 'react-icons/io';
-import { ConnectionWithSourceAndTarget } from '@semble/types';
+import { ConnectionForUrl } from '@semble/types';
+import { BiPlus } from 'react-icons/bi';
+import { createSembleClient } from '@/services/client.apiClient';
+import { getDomain } from '@/lib/utils/link';
+import { IoIosArrowDown } from 'react-icons/io';
+import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 interface Props {
   onClose: () => void;
   sourceUrl: string;
   connectionToEdit?: {
-    connection: ConnectionWithSourceAndTarget['connection'];
+    connection: ConnectionForUrl['connection'];
     targetUrl: string;
   };
 }
-
-const CONNECTION_TYPES = [
-  { value: 'SUPPORTS', label: 'Supports' },
-  { value: 'OPPOSES', label: 'Opposes' },
-  { value: 'ADDRESSES', label: 'Addresses' },
-  { value: 'HELPFUL', label: 'Helpful' },
-  { value: 'LEADS_TO', label: 'Leads to' },
-  { value: 'RELATED', label: 'Related' },
-  { value: 'SUPPLEMENT', label: 'Supplement' },
-  { value: 'EXPLAINER', label: 'Explainer' },
-];
 
 export default function AddConnectionForm(props: Props) {
   const createConnection = useCreateConnection();
   const updateConnection = useUpdateConnection();
   const isEditMode = !!props.connectionToEdit;
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
+  const urlCombobox = useCombobox({
+    onDropdownClose: () => urlCombobox.resetSelectedOption(),
+  });
+
+  const typeCombobox = useCombobox({
+    onDropdownClose: () => typeCombobox.resetSelectedOption(),
   });
 
   const [inputValue, setInputValue] = useState(
@@ -74,22 +75,60 @@ export default function AddConnectionForm(props: Props) {
     enabled: debounced.trim().length > 0,
   });
 
+  const { data: sourceUrlMetadata } = useQuery({
+    queryKey: ['url metadata', props.sourceUrl],
+    queryFn: async () => {
+      const client = createSembleClient();
+      return client.getUrlMetadata({ url: props.sourceUrl });
+    },
+    enabled: !!props.sourceUrl,
+  });
+
   const urls = searchResults?.urls ?? [];
   const empty =
     !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
 
   const form = useForm({
     initialValues: {
+      sourceUrl: props.sourceUrl,
       targetUrl: props.connectionToEdit?.targetUrl || '',
-      connectionType: props.connectionToEdit?.connection.type || '',
+      connectionType: props.connectionToEdit?.connection.type || 'RELATED',
       note: props.connectionToEdit?.connection.note || '',
+    },
+    validateInputOnChange: false,
+    validateInputOnBlur: true,
+    validate: {
+      targetUrl: (value) => {
+        if (!value || value.trim() === '') {
+          return 'Please enter a URL';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
     },
   });
 
   const MAX_NOTE_LENGTH = 500;
 
+  const handleSwapUrls = () => {
+    const currentSource = form.values.sourceUrl;
+    const currentTarget = form.values.targetUrl;
+    form.setFieldValue('sourceUrl', currentTarget);
+    form.setFieldValue('targetUrl', currentSource);
+    setInputValue(currentSource);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validation = form.validate();
+    if (validation.hasErrors) {
+      return;
+    }
 
     const values = form.getValues();
 
@@ -126,7 +165,7 @@ export default function AddConnectionForm(props: Props) {
       // Create new connection
       createConnection.mutate(
         {
-          sourceUrl: props.sourceUrl,
+          sourceUrl: values.sourceUrl,
           targetUrl: values.targetUrl,
           connectionType: values.connectionType
             ? (values.connectionType as any)
@@ -157,28 +196,23 @@ export default function AddConnectionForm(props: Props) {
 
   const options = urls.map((urlView) => (
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} wrap="nowrap" align="flex-start">
+      <Group gap={'xs'} align="center" wrap="nowrap">
         {urlView.metadata.imageUrl && (
           <Image
             src={urlView.metadata.imageUrl}
             alt={urlView.metadata.title || 'URL thumbnail'}
-            w={60}
-            h={60}
+            w={35}
+            h={35}
             radius="sm"
             fit="cover"
           />
         )}
-        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap={0}>
           <Text fw={500} c={'bright'} lineClamp={1} size="sm">
             {urlView.metadata.title || urlView.url}
           </Text>
-          {urlView.metadata.description && (
-            <Text c={'dimmed'} lineClamp={2} size="xs">
-              {urlView.metadata.description}
-            </Text>
-          )}
           <Text c={'gray'} lineClamp={1} size="xs">
-            {urlView.url}
+            {getDomain(urlView.url)}
           </Text>
         </Stack>
       </Group>
@@ -187,77 +221,254 @@ export default function AddConnectionForm(props: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Stack gap={'xl'}>
-        <Stack gap={4}>
-          <Input.Label size="md" htmlFor="targetUrl" required>
-            Target URL
-          </Input.Label>
-          <Combobox
-            shadow="sm"
-            radius={'md'}
-            store={combobox}
-            position="bottom-start"
-            onOptionSubmit={(url) => {
-              form.setFieldValue('targetUrl', url);
-              setInputValue(url);
-              combobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <Input
-                id="targetUrl"
-                component="input"
-                type="url"
-                placeholder="https://www.example.com or start typing to search for urls"
-                value={inputValue}
-                onChange={(e) => {
-                  const val = e.currentTarget.value;
-                  setInputValue(val);
-                  form.setFieldValue('targetUrl', val);
-                  combobox.openDropdown();
+      <Stack gap={'lg'}>
+        <Stack gap={0}>
+          <Stack gap={0}>
+            <Card padding="xs" radius="md" withBorder>
+              <Group gap="xs">
+                {sourceUrlMetadata?.metadata?.imageUrl && (
+                  <Image
+                    src={sourceUrlMetadata.metadata.imageUrl}
+                    alt={sourceUrlMetadata.metadata.title || 'URL thumbnail'}
+                    w={35}
+                    h={35}
+                    radius="sm"
+                    fit="cover"
+                  />
+                )}
+                <Stack gap={0}>
+                  <Text fw={600} size="sm" lineClamp={2}>
+                    {sourceUrlMetadata?.metadata?.title || props.sourceUrl}
+                  </Text>
+                  <Text size="xs" c="dimmed" lineClamp={1}>
+                    {getDomain(props.sourceUrl)}
+                  </Text>
+                </Stack>
+              </Group>
+            </Card>
+            <VisuallyHidden>
+              <Input.Label htmlFor="sourceUrl">From</Input.Label>
+            </VisuallyHidden>
+          </Stack>
+
+          <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
+
+          <Card radius="xl" bg="gray.0" p="xs" w="fit-content" mx="auto">
+            <Group gap={'xs'} align="center" justify="center">
+              <Combobox
+                shadow="sm"
+                radius="md"
+                store={typeCombobox}
+                position="bottom"
+                width={320}
+                onOptionSubmit={(value) => {
+                  form.setFieldValue('connectionType', value);
+                  typeCombobox.closeDropdown();
                 }}
-                onFocus={() => !isEditMode && combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
-                leftSection={<IoMdLink size={22} />}
-                rightSection={isFetching && <Loader size={18} />}
-                variant="filled"
-                size="md"
-                required
-                disabled={isEditMode}
-              />
-            </Combobox.Target>
+              >
+                <Combobox.Target>
+                  <Button
+                    color="green"
+                    size="sm"
+                    onClick={() => typeCombobox.toggleDropdown()}
+                    leftSection={
+                      form.values.connectionType
+                        ? (() => {
+                            const selectedType = CONNECTION_TYPES.find(
+                              (t) => t.value === form.values.connectionType,
+                            );
+                            const Icon = selectedType?.icon;
+                            return Icon ? <Icon size={16} /> : null;
+                          })()
+                        : null
+                    }
+                    rightSection={<LuChevronsUpDown />}
+                  >
+                    {form.values.connectionType
+                      ? CONNECTION_TYPES.find(
+                          (t) => t.value === form.values.connectionType,
+                        )?.label
+                      : 'Select a relation'}
+                  </Button>
+                </Combobox.Target>
+                <Combobox.Dropdown>
+                  <Combobox.Options>
+                    <ScrollArea.Autosize type="scroll" mah={300}>
+                      {CONNECTION_TYPES.map((type) => {
+                        const Icon = type.icon;
+                        const isSelected =
+                          form.values.connectionType === type.value;
+                        return (
+                          <Combobox.Option
+                            key={type.value}
+                            value={type.value}
+                            p={5}
+                            bg={
+                              isSelected
+                                ? 'var(--mantine-color-green-light)'
+                                : undefined
+                            }
+                          >
+                            <Group gap="sm" wrap="nowrap">
+                              {Icon && <Icon size={20} color="green" />}
+                              <Stack gap={0} style={{ flex: 1 }}>
+                                <Text
+                                  size="sm"
+                                  c={'bright'}
+                                  fw={isSelected ? 600 : 500}
+                                >
+                                  {type.label}
+                                </Text>
+                                <Text size="xs" c="dimmed">
+                                  {type.description}
+                                </Text>
+                              </Stack>
+                            </Group>
+                          </Combobox.Option>
+                        );
+                      })}
+                    </ScrollArea.Autosize>
+                  </Combobox.Options>
+                </Combobox.Dropdown>
+              </Combobox>
 
-            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
-              <Combobox.Options>
-                <ScrollArea.Autosize type="scroll" mah={300}>
-                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
-                  {error && (
-                    <Combobox.Empty>Could not search for URLs</Combobox.Empty>
-                  )}
-                  {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
-                  {options.length > 0 && options}
-                </ScrollArea.Autosize>
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+              <ActionIcon
+                variant="light"
+                size={'lg'}
+                color={'blue'}
+                radius={'xl'}
+                onClick={handleSwapUrls}
+                title="Reverse connection"
+              >
+                <LuArrowUpDown size={16} />
+              </ActionIcon>
+            </Group>
+          </Card>
+
+          <Stack align="center" gap={0}>
+            <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
+
+            <ThemeIcon variant="light" size={'sm'} color={'gray'} radius={'sm'}>
+              <IoIosArrowDown size={18} />
+            </ThemeIcon>
+          </Stack>
+
+          <Card padding="xs" radius="md" withBorder>
+            <Stack gap={0}>
+              <Combobox
+                shadow="sm"
+                radius={'md'}
+                store={urlCombobox}
+                position="bottom-start"
+                onOptionSubmit={(url) => {
+                  form.setFieldValue('targetUrl', url);
+                  setInputValue(url);
+                  urlCombobox.closeDropdown();
+                }}
+              >
+                <Combobox.Target>
+                  <Input
+                    id="targetUrl"
+                    component="input"
+                    type="text"
+                    placeholder="Search cards or add a link"
+                    value={inputValue}
+                    onChange={(e) => {
+                      const val = e.currentTarget.value;
+                      setInputValue(val);
+                      form.setFieldValue('targetUrl', val);
+                      urlCombobox.openDropdown();
+                    }}
+                    onFocus={() => !isEditMode && urlCombobox.openDropdown()}
+                    onBlur={() => urlCombobox.closeDropdown()}
+                    rightSection={isFetching && <Loader size={18} />}
+                    variant="unstyled"
+                    size="xs"
+                    required
+                    error={form.errors.targetUrl}
+                    styles={{
+                      input: {
+                        fontSize: 'var(--mantine-font-size-sm)',
+                      },
+                    }}
+                  />
+                </Combobox.Target>
+
+                <Combobox.Dropdown hidden={debounced.trim().length === 0}>
+                  <Combobox.Options>
+                    <ScrollArea.Autosize
+                      type="scroll"
+                      mah={300}
+                      offsetScrollbars={'y'}
+                    >
+                      {isFetching && (
+                        <Combobox.Empty>Searching...</Combobox.Empty>
+                      )}
+                      {error && (
+                        <Combobox.Empty>
+                          Could not search for URLs
+                        </Combobox.Empty>
+                      )}
+                      {!isFetching && !error && (
+                        <Fragment>
+                          <Combobox.Option value={inputValue}>
+                            <Group gap="xs" wrap="nowrap" p={0}>
+                              <ThemeIcon
+                                radius={'xl'}
+                                size={'sm'}
+                                variant="light"
+                                color="gray"
+                              >
+                                <BiPlus />
+                              </ThemeIcon>
+                              <Stack gap={0} style={{ flex: 1 }}>
+                                <Text size="sm" fw={600} c={'bright'}>
+                                  Add this link
+                                </Text>
+                                <Text size="xs" c="dimmed" lineClamp={1}>
+                                  {inputValue}
+                                </Text>
+                              </Stack>
+                            </Group>
+                          </Combobox.Option>
+                          {options.length > 0 && (
+                            <Divider
+                              my={0}
+                              label="or choose a card"
+                              labelPosition="center"
+                              variant="dashed"
+                            />
+                          )}
+                        </Fragment>
+                      )}
+                      {options.length > 0 && <Fragment>{options}</Fragment>}
+                      {/*{empty && <Combobox.Empty>No cards found</Combobox.Empty>}*/}
+                    </ScrollArea.Autosize>
+                  </Combobox.Options>
+                </Combobox.Dropdown>
+              </Combobox>
+              <VisuallyHidden>
+                <Input.Label htmlFor="targetUrl" required>
+                  To
+                </Input.Label>
+              </VisuallyHidden>
+            </Stack>
+          </Card>
+          {form.errors.targetUrl && (
+            <Text size="sm" c="red" mt="xs">
+              {form.errors.targetUrl}
+            </Text>
+          )}
         </Stack>
-
-        <Select
-          id="connectionType"
-          label="Connection Type"
-          placeholder="Select connection type (optional)"
-          variant="filled"
-          size="md"
-          data={CONNECTION_TYPES}
-          key={form.key('connectionType')}
-          {...form.getInputProps('connectionType')}
-          clearable
-        />
 
         <Stack gap={0}>
           <Group justify="space-between">
             <Input.Label size="md" htmlFor="note">
-              Note (optional)
+              {form.values.connectionType
+                ? (CONNECTION_TYPES.find(
+                    (t) => t.value === form.values.connectionType,
+                  )?.notePrompt ?? 'Add context (optional)')
+                : 'Add context (optional)'}
             </Input.Label>
             <Text c={'gray'} aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}
@@ -266,7 +477,14 @@ export default function AddConnectionForm(props: Props) {
 
           <Textarea
             id="note"
-            placeholder="Add a note about this connection"
+            placeholder={
+              form.values.connectionType
+                ? (CONNECTION_TYPES.find(
+                    (t) => t.value === form.values.connectionType,
+                  )?.notePlaceholder ??
+                  'Explain the relationship between these resources...')
+                : 'Explain the relationship between these resources...'
+            }
             variant="filled"
             size="md"
             rows={3}
@@ -298,7 +516,7 @@ export default function AddConnectionForm(props: Props) {
                 : createConnection.isPending
             }
           >
-            {isEditMode ? 'Update connection' : 'Create connection'}
+            {isEditMode ? 'Update' : 'Create'}
           </Button>
         </Group>
       </Stack>
