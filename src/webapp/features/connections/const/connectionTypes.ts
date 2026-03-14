@@ -6,8 +6,8 @@ import {
   BiRightArrowAlt,
   BiLink,
 } from 'react-icons/bi';
+import { BsPaperclip } from 'react-icons/bs';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
-import { PiNewspaperClipping } from 'react-icons/pi';
 
 export const CONNECTION_TYPES = [
   {
@@ -64,7 +64,7 @@ export const CONNECTION_TYPES = [
     label: 'Supplement',
     description:
       'Accompanying resources (e.g. data, code, other supplemental material)',
-    icon: PiNewspaperClipping,
+    icon: BsPaperclip,
     notePlaceholder: 'Explain what additional information this adds...',
   },
 ] as const;
