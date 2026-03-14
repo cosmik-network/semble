@@ -1,7 +1,11 @@
-import { eq, inArray, and } from 'drizzle-orm';
+import { eq, inArray, and, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { ICollectionRepository } from '../../domain/ICollectionRepository';
-import { Collection } from '../../domain/Collection';
+import {
+  Collection,
+  CollectionCommandType,
+  CardLink,
+} from '../../domain/Collection';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -16,7 +20,10 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 
 export class DrizzleCollectionRepository implements ICollectionRepository {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(
+    private db: PostgresJsDatabase,
+    private useOptimizedPersistence: boolean = false,
+  ) {}
 
   async findById(id: CollectionId): Promise<Result<Collection | null>> {
     try {
@@ -603,6 +610,182 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
 
   async save(collection: Collection): Promise<Result<void>> {
     try {
+      const collectionId = collection.collectionId.getStringValue();
+      const pendingCommands = collection.getPendingCommands();
+
+      // If we have pending commands and optimization is enabled, use optimized targeted operations
+      if (this.useOptimizedPersistence && pendingCommands.length > 0) {
+        await this.db.transaction(async (tx) => {
+          // First, ensure the collection exists (upsert)
+          const collectionData =
+            CollectionMapper.toPersistence(collection).collection;
+
+          // Handle collection published record if it exists
+          let publishedRecordId: string | undefined;
+          if (collection.publishedRecordId) {
+            const recordId = new UniqueEntityID().toString();
+            const recordedAt = new Date();
+            const insertResult = await tx
+              .insert(publishedRecords)
+              .values({
+                id: recordId,
+                uri: collection.publishedRecordId.uri,
+                cid: collection.publishedRecordId.cid,
+                recordedAt: recordedAt,
+              })
+              .onConflictDoUpdate({
+                target: [publishedRecords.uri, publishedRecords.cid],
+                set: { recordedAt: recordedAt },
+              })
+              .returning({ id: publishedRecords.id });
+
+            publishedRecordId = insertResult[0]?.id || recordId;
+          }
+
+          // Upsert the collection
+          await tx
+            .insert(collections)
+            .values({
+              ...collectionData,
+              publishedRecordId: publishedRecordId,
+            })
+            .onConflictDoUpdate({
+              target: collections.id,
+              set: {
+                authorId: collectionData.authorId,
+                name: collectionData.name,
+                description: collectionData.description,
+                accessType: collectionData.accessType,
+                cardCount: collectionData.cardCount,
+                updatedAt: collectionData.updatedAt,
+                publishedRecordId: publishedRecordId,
+              },
+            });
+
+          // Process each command
+          for (const command of pendingCommands) {
+            switch (command.type) {
+              case CollectionCommandType.ADD_CARD: {
+                const link = command.payload as CardLink;
+                const cardLinkId = new UniqueEntityID().toString();
+
+                // Handle published record if present - optimized version
+                let publishedRecordId: string | undefined;
+                if (link.publishedRecordId) {
+                  const recordId = new UniqueEntityID().toString();
+                  const recordedAt = new Date();
+                  const insertResult = await tx
+                    .insert(publishedRecords)
+                    .values({
+                      id: recordId,
+                      uri: link.publishedRecordId.uri,
+                      cid: link.publishedRecordId.cid,
+                      recordedAt: recordedAt,
+                    })
+                    .onConflictDoUpdate({
+                      target: [publishedRecords.uri, publishedRecords.cid],
+                      set: { recordedAt: recordedAt }, // Update recordedAt to avoid empty set
+                    })
+                    .returning({ id: publishedRecords.id });
+
+                  publishedRecordId = insertResult[0]?.id || recordId;
+                }
+
+                // Insert the new card link
+                await tx
+                  .insert(collectionCards)
+                  .values({
+                    id: cardLinkId,
+                    collectionId: collectionId,
+                    cardId: link.cardId.getStringValue(),
+                    addedBy: link.addedBy.value,
+                    addedAt: link.addedAt,
+                    viaCardId: link.viaCardId?.getStringValue(),
+                    publishedRecordId: publishedRecordId,
+                  })
+                  .onConflictDoNothing(); // Idempotent - ignore if already exists
+                break;
+              }
+
+              case CollectionCommandType.UPDATE_CARD_LINK: {
+                const { cardId, publishedRecordId } = command.payload;
+
+                // Handle published record - optimized version
+                let recordId: string | undefined;
+                if (publishedRecordId) {
+                  const newRecordId = new UniqueEntityID().toString();
+                  const recordedAt = new Date();
+                  const insertResult = await tx
+                    .insert(publishedRecords)
+                    .values({
+                      id: newRecordId,
+                      uri: publishedRecordId.uri,
+                      cid: publishedRecordId.cid,
+                      recordedAt: recordedAt,
+                    })
+                    .onConflictDoUpdate({
+                      target: [publishedRecords.uri, publishedRecords.cid],
+                      set: { recordedAt: recordedAt }, // Update recordedAt to avoid empty set
+                    })
+                    .returning({ id: publishedRecords.id });
+
+                  recordId = insertResult[0]?.id || newRecordId;
+                }
+
+                // Update the card link
+                await tx
+                  .update(collectionCards)
+                  .set({
+                    publishedRecordId: recordId,
+                  })
+                  .where(
+                    and(
+                      eq(collectionCards.collectionId, collectionId),
+                      eq(collectionCards.cardId, cardId.getStringValue()),
+                    ),
+                  );
+                break;
+              }
+
+              case CollectionCommandType.REMOVE_CARD: {
+                const { cardId } = command.payload;
+
+                // Delete the card link
+                await tx
+                  .delete(collectionCards)
+                  .where(
+                    and(
+                      eq(collectionCards.collectionId, collectionId),
+                      eq(collectionCards.cardId, cardId.getStringValue()),
+                    ),
+                  );
+                break;
+              }
+
+              case CollectionCommandType.ADD_COLLABORATOR:
+              case CollectionCommandType.REMOVE_COLLABORATOR:
+                // Handle collaborator changes if needed
+                break;
+            }
+          }
+
+          // Update collection metadata only (count and timestamp)
+          // Other fields were already handled in the upsert above
+          await tx
+            .update(collections)
+            .set({
+              cardCount: collectionData.cardCount,
+              updatedAt: collectionData.updatedAt,
+            })
+            .where(eq(collections.id, collectionId));
+        });
+
+        // Clear commands after successful save
+        collection.clearPendingCommands();
+        return ok(undefined);
+      }
+
+      // Fall back to full save for collections without commands (e.g., initial creation)
       const {
         collection: collectionData,
         collaborators,
@@ -612,83 +795,49 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       } = CollectionMapper.toPersistence(collection);
 
       await this.db.transaction(async (tx) => {
-        // Handle collection published record if it exists
+        // Handle collection published record if it exists - optimized
         let publishedRecordId: string | undefined = undefined;
 
         if (publishedRecord) {
+          const recordedAt = publishedRecord.recordedAt || new Date();
           const publishedRecordResult = await tx
             .insert(publishedRecords)
             .values({
               id: publishedRecord.id,
               uri: publishedRecord.uri,
               cid: publishedRecord.cid,
-              recordedAt: publishedRecord.recordedAt || new Date(),
+              recordedAt: recordedAt,
             })
-            .onConflictDoNothing({
+            .onConflictDoUpdate({
               target: [publishedRecords.uri, publishedRecords.cid],
+              set: { recordedAt: recordedAt }, // Update recordedAt to avoid empty set
             })
             .returning({ id: publishedRecords.id });
 
-          if (publishedRecordResult.length === 0) {
-            const existingRecord = await tx
-              .select()
-              .from(publishedRecords)
-              .where(
-                and(
-                  eq(publishedRecords.uri, publishedRecord.uri),
-                  eq(publishedRecords.cid, publishedRecord.cid),
-                ),
-              )
-              .limit(1);
-
-            if (existingRecord.length > 0) {
-              publishedRecordId = existingRecord[0]!.id;
-            }
-          } else {
-            publishedRecordId = publishedRecordResult[0]!.id;
-          }
+          publishedRecordId =
+            publishedRecordResult[0]?.id || publishedRecord.id;
         }
 
-        // Handle link published records
-        const linkPublishedRecordMap = new Map<string, string>();
-        if (linkPublishedRecords) {
-          for (const linkRecord of linkPublishedRecords) {
-            const linkPublishedRecordResult = await tx
+        // Batch insert published records if needed
+        const publishedRecordsBatch: any[] = [];
+        if (linkPublishedRecords && linkPublishedRecords.length > 0) {
+          for (const record of linkPublishedRecords) {
+            publishedRecordsBatch.push({
+              id: record.id,
+              uri: record.uri,
+              cid: record.cid,
+              recordedAt: record.recordedAt || new Date(),
+            });
+          }
+
+          // Batch insert all published records at once
+          if (publishedRecordsBatch.length > 0) {
+            await tx
               .insert(publishedRecords)
-              .values({
-                id: linkRecord.id,
-                uri: linkRecord.uri,
-                cid: linkRecord.cid,
-                recordedAt: linkRecord.recordedAt || new Date(),
-              })
+              .values(publishedRecordsBatch)
               .onConflictDoNothing({
                 target: [publishedRecords.uri, publishedRecords.cid],
-              })
-              .returning({ id: publishedRecords.id });
-
-            let actualRecordId: string;
-            if (linkPublishedRecordResult.length === 0) {
-              const existingRecord = await tx
-                .select()
-                .from(publishedRecords)
-                .where(
-                  and(
-                    eq(publishedRecords.uri, linkRecord.uri),
-                    eq(publishedRecords.cid, linkRecord.cid),
-                  ),
-                )
-                .limit(1);
-
-              if (existingRecord.length > 0) {
-                actualRecordId = existingRecord[0]!.id;
-              } else {
-                actualRecordId = linkRecord.id;
-              }
-            } else {
-              actualRecordId = linkPublishedRecordResult[0]!.id;
-            }
-
-            linkPublishedRecordMap.set(linkRecord.id, actualRecordId);
+              });
           }
         }
 
@@ -712,31 +861,26 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
             },
           });
 
-        // Delete existing collaborators and card links
-        await tx
-          .delete(collectionCollaborators)
-          .where(eq(collectionCollaborators.collectionId, collectionData.id));
+        // Only do full resync if this is an initial save or full update
+        if (collection.getIsFullySynced()) {
+          // Delete existing collaborators and card links
+          await tx
+            .delete(collectionCollaborators)
+            .where(eq(collectionCollaborators.collectionId, collectionData.id));
 
-        await tx
-          .delete(collectionCards)
-          .where(eq(collectionCards.collectionId, collectionData.id));
+          await tx
+            .delete(collectionCards)
+            .where(eq(collectionCards.collectionId, collectionData.id));
 
-        // Insert new collaborators
-        if (collaborators.length > 0) {
-          await tx.insert(collectionCollaborators).values(collaborators);
-        }
+          // Insert new collaborators
+          if (collaborators.length > 0) {
+            await tx.insert(collectionCollaborators).values(collaborators);
+          }
 
-        // Insert new card links with mapped published record IDs
-        if (cardLinks.length > 0) {
-          const cardLinksWithMappedRecords = cardLinks.map((link) => ({
-            ...link,
-            publishedRecordId: link.publishedRecordId
-              ? linkPublishedRecordMap.get(link.publishedRecordId) ||
-                link.publishedRecordId
-              : undefined,
-          }));
-
-          await tx.insert(collectionCards).values(cardLinksWithMappedRecords);
+          // Insert new card links
+          if (cardLinks.length > 0) {
+            await tx.insert(collectionCards).values(cardLinks);
+          }
         }
       });
 
@@ -753,6 +897,85 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       // The foreign key constraints with ON DELETE CASCADE will automatically
       // delete related records in the collaborators and card links tables
       await this.db.delete(collections).where(eq(collections.id, id));
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  // Batch operation to add a card to multiple collections efficiently
+  async addCardToMultipleCollections(
+    cardId: CardId,
+    collectionIds: CollectionId[],
+    curatorId: CuratorId,
+    viaCardId?: CardId,
+    publishedRecordIds?: Map<string, string>, // collectionId -> publishedRecordId
+  ): Promise<Result<void>> {
+    try {
+      if (collectionIds.length === 0) {
+        return ok(undefined);
+      }
+
+      const cardIdStr = cardId.getStringValue();
+      const curatorIdStr = curatorId.value;
+      const viaCardIdStr = viaCardId?.getStringValue();
+      const addedAt = new Date();
+
+      await this.db.transaction(async (tx) => {
+        // Prepare batch of card links
+        const cardLinksToInsert: any[] = [];
+        const collectionIdsToUpdate: string[] = [];
+
+        for (const collectionId of collectionIds) {
+          const collectionIdStr = collectionId.getStringValue();
+          const linkId = new UniqueEntityID().toString();
+          const publishedRecordId = publishedRecordIds?.get(collectionIdStr);
+
+          // Check if card already exists in collection
+          const existing = await tx
+            .select()
+            .from(collectionCards)
+            .where(
+              and(
+                eq(collectionCards.collectionId, collectionIdStr),
+                eq(collectionCards.cardId, cardIdStr),
+              ),
+            )
+            .limit(1);
+
+          if (existing.length === 0) {
+            cardLinksToInsert.push({
+              id: linkId,
+              collectionId: collectionIdStr,
+              cardId: cardIdStr,
+              addedBy: curatorIdStr,
+              addedAt: addedAt,
+              viaCardId: viaCardIdStr,
+              publishedRecordId: publishedRecordId,
+            });
+            collectionIdsToUpdate.push(collectionIdStr);
+          }
+        }
+
+        // Batch insert all card links at once
+        if (cardLinksToInsert.length > 0) {
+          await tx.insert(collectionCards).values(cardLinksToInsert);
+
+          // Update all collection counts in a single query
+          await tx.execute(sql`
+            UPDATE collections
+            SET
+              card_count = (
+                SELECT COUNT(*)
+                FROM collection_cards
+                WHERE collection_cards.collection_id = collections.id
+              ),
+              updated_at = NOW()
+            WHERE id = ANY(${collectionIdsToUpdate}::uuid[])
+          `);
+        }
+      });
 
       return ok(undefined);
     } catch (error) {

@@ -715,6 +715,7 @@ describe('GetCollectionPageUseCase', () => {
         findByCardId: jest.fn(),
         findByCuratorIdContainingCard: jest.fn(),
         findContainingCardAddedBy: jest.fn(),
+        addCardToMultipleCollections: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(
