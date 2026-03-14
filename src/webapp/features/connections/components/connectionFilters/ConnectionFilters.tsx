@@ -51,7 +51,9 @@ export function Root(props: RootProps) {
             Filters
           </Button>
         </Menu.Target>
-        <Menu.Dropdown maw={300}>{props.children}</Menu.Dropdown>
+        <Menu.Dropdown maw={300} p={'xs'}>
+          {props.children}
+        </Menu.Dropdown>
       </Menu>
     </FilterContext.Provider>
   );
