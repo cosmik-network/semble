@@ -282,7 +282,13 @@ export default function AddConnectionForm(props: Props) {
 
           <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
 
-          <Card radius="xl" bg="gray.0" p="xs" w="fit-content" mx="auto">
+          <Card
+            radius="xl"
+            bg="var(--mantine-color-default-hover)"
+            p="xs"
+            w="fit-content"
+            mx="auto"
+          >
             <Group gap={'xs'} align="center" justify="center">
               <Combobox
                 shadow="sm"
@@ -391,8 +397,8 @@ export default function AddConnectionForm(props: Props) {
           <Stack align="center" gap={0}>
             <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
 
-            <ThemeIcon variant="light" size={'sm'} color={'gray'} radius={'sm'}>
-              <IoIosArrowDown size={18} />
+            <ThemeIcon variant="light" size={'xs'} color={'gray'} radius={'xl'}>
+              <IoIosArrowDown size={12} />
             </ThemeIcon>
           </Stack>
 
