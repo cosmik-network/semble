@@ -149,7 +149,10 @@ export class RepositoryFactory {
       tokenRepository: new DrizzleTokenRepository(db),
       cardRepository: new DrizzleCardRepository(db),
       cardQueryRepository: new DrizzleCardQueryRepository(db),
-      collectionRepository: new DrizzleCollectionRepository(db),
+      collectionRepository: new DrizzleCollectionRepository(
+        db,
+        configService.shouldUseOptimizedCollectionPersistence(),
+      ),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       connectionRepository: new DrizzleConnectionRepository(db),
       connectionQueryRepository: new DrizzleConnectionQueryRepository(db),

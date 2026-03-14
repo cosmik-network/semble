@@ -208,7 +208,10 @@ export class ServiceFactory {
 
       const redisConfig = configService.getWorkersConfig().redisConfig;
       redisConnection = RedisFactory.createConnection(redisConfig);
-      eventPublisher = new BullMQEventPublisher(redisConnection);
+      eventPublisher = new BullMQEventPublisher(
+        redisConnection,
+        configService.shouldUseOptimizedCollectionPersistence(),
+      );
 
       createEventSubscriber = (queueName: QueueName) => {
         return new BullMQEventSubscriber(redisConnection!, { queueName });
@@ -447,7 +450,10 @@ export class ServiceFactory {
       const redisConnection = RedisFactory.createConnection(
         configService.getWorkersConfig().redisConfig,
       );
-      eventPublisher = new BullMQEventPublisher(redisConnection);
+      eventPublisher = new BullMQEventPublisher(
+        redisConnection,
+        configService.shouldUseOptimizedCollectionPersistence(),
+      );
     }
 
     return {

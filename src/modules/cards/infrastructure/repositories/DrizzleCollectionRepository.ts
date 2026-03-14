@@ -20,7 +20,10 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 
 export class DrizzleCollectionRepository implements ICollectionRepository {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(
+    private db: PostgresJsDatabase,
+    private useOptimizedPersistence: boolean = false,
+  ) {}
 
   async findById(id: CollectionId): Promise<Result<Collection | null>> {
     try {
@@ -610,8 +613,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       const collectionId = collection.collectionId.getStringValue();
       const pendingCommands = collection.getPendingCommands();
 
-      // If we have pending commands, use optimized targeted operations
-      if (pendingCommands.length > 0) {
+      // If we have pending commands and optimization is enabled, use optimized targeted operations
+      if (this.useOptimizedPersistence && pendingCommands.length > 0) {
         await this.db.transaction(async (tx) => {
           // First, ensure the collection exists (upsert)
           const collectionData =
