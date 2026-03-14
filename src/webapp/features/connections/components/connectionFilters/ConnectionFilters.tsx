@@ -11,18 +11,7 @@ import {
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
-
-// Connection type enum values matching the backend
-const CONNECTION_TYPES: ConnectionType[] = [
-  'SUPPORTS',
-  'OPPOSES',
-  'ADDRESSES',
-  'HELPFUL',
-  'LEADS_TO',
-  'RELATED',
-  'SUPPLEMENT',
-  'EXPLAINER',
-];
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 // context
 interface FilterContextValue {
@@ -85,14 +74,6 @@ export function ConnectionTypeFilter() {
     });
   };
 
-  const formatConnectionType = (type: string) => {
-    return type
-      .toLowerCase()
-      .split('_')
-      .map((word) => upperFirst(word))
-      .join(' ');
-  };
-
   return (
     <Group gap={6}>
       <Button
@@ -104,16 +85,20 @@ export function ConnectionTypeFilter() {
         All Types
       </Button>
 
-      {CONNECTION_TYPES.map((type) => {
+      {CONNECTION_TYPES.map((typeConfig) => {
+        const Icon = typeConfig.icon;
         return (
           <Button
-            key={type}
+            key={typeConfig.value}
             size="xs"
             color="green"
-            variant={optimisticConnectionType === type ? 'filled' : 'light'}
-            onClick={() => onChange(type)}
+            variant={
+              optimisticConnectionType === typeConfig.value ? 'filled' : 'light'
+            }
+            onClick={() => onChange(typeConfig.value as ConnectionType)}
+            leftSection={<Icon size={16} />}
           >
-            {formatConnectionType(type)}
+            {typeConfig.label}
           </Button>
         );
       })}
