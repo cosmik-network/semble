@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: 'Semble',
     capable: true,
     statusBarStyle: 'default',
-    startupImage: ['/semble-icon-192x192.png', ...SPLASH_IMAGES],
+    startupImage: SPLASH_IMAGES,
   },
   other: {
     'apple-mobile-web-app-capable': 'yes',
