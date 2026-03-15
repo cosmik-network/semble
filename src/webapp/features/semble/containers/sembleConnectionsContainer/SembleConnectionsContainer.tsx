@@ -9,13 +9,13 @@ import SembleConnectionsContainerError from './Error.SembleConnectionsContainer'
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
-import { IoMdAdd } from 'react-icons/io';
 import { useDisclosure } from '@mantine/hooks';
 import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
+import { TbPlugConnected } from 'react-icons/tb';
 
 type Direction = 'outgoing' | 'incoming' | 'all';
 
@@ -148,11 +148,11 @@ export default function SembleConnectionsContainer(props: Props) {
             </ConnectionFilters.Root>
           </Group>
           <Button
-            leftSection={<IoMdAdd size={18} />}
+            leftSection={<TbPlugConnected size={18} />}
             onClick={handleOpenCreateDrawer}
-            size="sm"
+            color="green"
           >
-            Add connection
+            Connect
           </Button>
         </Group>
 

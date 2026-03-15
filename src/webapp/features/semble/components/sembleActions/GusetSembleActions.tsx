@@ -4,6 +4,7 @@ import { ActionIcon, Button, CopyButton, Group, Tooltip } from '@mantine/core';
 import Link from 'next/link';
 import { MdIosShare } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
+import { TbPlugConnected } from 'react-icons/tb';
 
 interface Props {
   url: string;
@@ -45,6 +46,14 @@ export default function GuestSembleActions(props: Props) {
           </Tooltip>
         )}
       </CopyButton>
+      <Button
+        color="green"
+        size={'md'}
+        radius={'xl'}
+        leftSection={<TbPlugConnected size={18} />}
+      >
+        Log in to connect
+      </Button>
       <Button size="md" component={Link} href={'/login'}>
         Log in to add
       </Button>

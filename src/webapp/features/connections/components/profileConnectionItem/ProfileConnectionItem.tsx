@@ -72,6 +72,7 @@ export default function ProfileConnectionItem(props: Props) {
           cardContent={sourceUrlView.metadata}
           urlLibraryCount={sourceUrlView.urlLibraryCount}
           urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
+          urlConnectionCount={sourceUrlView.urlConnectionCount ?? 0}
         />
 
         {/* Connection Metadata */}
@@ -137,6 +138,7 @@ export default function ProfileConnectionItem(props: Props) {
           cardContent={targetUrlView.metadata}
           urlLibraryCount={targetUrlView.urlLibraryCount}
           urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
+          urlConnectionCount={targetUrlView.urlConnectionCount ?? 0}
         />
       </Stack>
 

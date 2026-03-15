@@ -12,6 +12,8 @@ import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import { TbPlugConnected } from 'react-icons/tb';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   url: string;
@@ -23,6 +25,7 @@ export default function SembleActions(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   const { data } = useSembleLibraries({ url: props.url });
   const allLibraries =
@@ -68,6 +71,18 @@ export default function SembleActions(props: Props) {
           )}
         </CopyButton>
         <Button
+          color="green"
+          size="md"
+          radius={'xl'}
+          leftSection={<TbPlugConnected size={18} />}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAddConnectionModal(true);
+          }}
+        >
+          Connect
+        </Button>
+        <Button
           variant={isInYourLibrary ? 'light' : 'filled'}
           size="md"
           leftSection={
@@ -83,6 +98,12 @@ export default function SembleActions(props: Props) {
           {isInYourLibrary ? 'Update' : 'Add'}
         </Button>
       </Group>
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={props.url}
+      />
 
       <AddCardToModal
         isOpen={showAddToModal}

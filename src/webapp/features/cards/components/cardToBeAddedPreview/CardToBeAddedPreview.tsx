@@ -1,5 +1,4 @@
 import {
-  AspectRatio,
   Group,
   Stack,
   Image,
@@ -23,36 +22,35 @@ export default function CardToBeAddedPreview(props: Props) {
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Stack>
-        <Group gap={'sm'} justify="space-between">
+        <Group gap={'sm'} wrap="nowrap">
           {props.imageUrl && (
-            <AspectRatio ratio={1 / 1} flex={0.1}>
-              <Image
-                src={props.imageUrl}
-                alt={`${props.url} social preview image`}
-                radius={'md'}
-                w={45}
-                h={45}
-              />
-            </AspectRatio>
+            <Image
+              src={props.imageUrl}
+              alt={`${props.url} social preview image`}
+              radius={'md'}
+              w={45}
+              h={45}
+            />
           )}
-          <Stack gap={0} flex={0.9}>
+          <Stack gap={0}>
+            {props.title && (
+              <Text fw={500} lineClamp={1} c={'bright'}>
+                {props.title}
+              </Text>
+            )}
             <Tooltip label={props.url}>
               <Anchor
                 component={Link}
                 href={props.url}
                 target="_blank"
                 c={'gray'}
+                fz={'sm'}
                 lineClamp={1}
                 onClick={(e) => e.stopPropagation()}
               >
                 {domain}
               </Anchor>
             </Tooltip>
-            {props.title && (
-              <Text fw={500} lineClamp={1} c={'bright'}>
-                {props.title}
-              </Text>
-            )}
           </Stack>
         </Group>
       </Stack>

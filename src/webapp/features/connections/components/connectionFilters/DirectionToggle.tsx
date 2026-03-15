@@ -20,10 +20,11 @@ export default function DirectionToggle(props: Props) {
       onChange={handleChange}
       data={[
         { label: 'All', value: 'all' },
-        { label: 'Outgoing', value: 'outgoing' },
-        { label: 'Incoming', value: 'incoming' },
+        { label: 'To', value: 'outgoing' },
+        { label: 'From', value: 'incoming' },
       ]}
       radius={'xl'}
+      withItemsBorders={false}
     />
   );
 }
