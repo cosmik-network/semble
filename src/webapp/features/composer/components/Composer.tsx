@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Center,
   Container,
   Drawer,
   Flex,
@@ -34,6 +35,7 @@ import useMyCollections from '@/features/collections/lib/queries/useMyCollection
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 
@@ -200,8 +202,24 @@ export default function Composer(props: Props) {
               onChange={(value) => setMode(value as ComposerMode)}
               disabled={addCard.isPending || createCollection.isPending}
               data={[
-                { label: 'Card', value: 'card' },
-                { label: 'Collection', value: 'collection' },
+                {
+                  value: 'card',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <FaRegNoteSticky size={16} />
+                      <span>Card</span>
+                    </Center>
+                  ),
+                },
+                {
+                  value: 'collection',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <BiCollection size={16} />
+                      <span>Collection</span>
+                    </Center>
+                  ),
+                },
               ]}
               w={200}
               radius={'xl'}
