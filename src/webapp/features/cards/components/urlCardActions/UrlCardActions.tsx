@@ -10,7 +10,6 @@ import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
-import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
@@ -23,6 +22,7 @@ import { BiCopy } from 'react-icons/bi';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { AiOutlineDisconnect } from 'react-icons/ai';
 
 interface Props {
   id: string;
@@ -194,7 +194,7 @@ export default function UrlCardActions(props: Props) {
             {props.currentCollection &&
               (isAuthor || canRemoveFromOpenCollection) && (
                 <Menu.Item
-                  leftSection={<LuUnplug />}
+                  leftSection={<AiOutlineDisconnect />}
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowRemoveFromCollectionModal(true);
