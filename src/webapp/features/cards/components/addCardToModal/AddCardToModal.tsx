@@ -11,7 +11,7 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { notifications } from '@mantine/notifications';
 import { track } from '@vercel/analytics';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -103,7 +103,7 @@ export default function AddCardToModal(props: Props) {
               autoClose: 5000,
               withCloseButton: true,
               position: 'top-center',
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
         });
@@ -118,7 +118,7 @@ export default function AddCardToModal(props: Props) {
               autoClose: 5000,
               withCloseButton: true,
               position: 'top-center',
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {
@@ -160,7 +160,7 @@ export default function AddCardToModal(props: Props) {
               loading: false,
               autoClose: false,
               withCloseButton: true,
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
         });
@@ -174,7 +174,7 @@ export default function AddCardToModal(props: Props) {
               loading: false,
               autoClose: false,
               withCloseButton: true,
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {

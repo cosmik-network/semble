@@ -1,9 +1,8 @@
 import { Button, Stack, Modal } from '@mantine/core';
 import useRemoveCardFromCollections from '../../lib/mutations/useRemoveCardFromCollections';
 import { notifications } from '@mantine/notifications';
-import { useRouter } from 'next/navigation';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -28,7 +27,7 @@ export default function RemoveCardFromCollectionModal(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

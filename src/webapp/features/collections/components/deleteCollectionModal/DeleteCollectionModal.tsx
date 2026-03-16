@@ -3,7 +3,7 @@ import useDeleteCollection from '../../lib/mutations/useDeleteCollection';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export default function DeleteCollectionModal(props: Props) {
           loading: false,
           autoClose: false,
           withCloseButton: true,
-          icon: <MdError />,
+          icon: <BsExclamation />,
         });
       },
       onSettled: () => {

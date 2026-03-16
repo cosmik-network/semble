@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { notifications } from '@mantine/notifications';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -55,7 +55,7 @@ export default function NoteCardModalContent(props: Props) {
           loading: false,
           autoClose: false,
           withCloseButton: true,
-          icon: <MdError />,
+          icon: <BsExclamation />,
         });
       },
       onSettled: () => {
@@ -90,7 +90,7 @@ export default function NoteCardModalContent(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

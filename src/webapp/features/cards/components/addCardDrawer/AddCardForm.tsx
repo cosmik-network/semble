@@ -34,7 +34,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -138,7 +138,7 @@ export default function AddCardForm(props: Props) {
             autoClose: 5000,
             withCloseButton: true,
             position: 'top-center',
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
       });
@@ -159,7 +159,7 @@ export default function AddCardForm(props: Props) {
             autoClose: 5000,
             withCloseButton: true,
             position: 'top-center',
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

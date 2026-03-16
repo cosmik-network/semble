@@ -1,7 +1,7 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
 import { Stack, Card, Group, Text, Badge, Divider, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdArrowDownward, MdError } from 'react-icons/md';
+import { MdArrowDownward } from 'react-icons/md';
 import { upperFirst } from '@mantine/hooks';
 import { useAuth } from '@/hooks/useAuth';
 import { ActionIcon, Menu, Modal, Button, Spoiler } from '@mantine/core';
@@ -11,6 +11,7 @@ import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -47,7 +48,7 @@ export default function ProfileConnectionItem(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
       },

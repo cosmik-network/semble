@@ -21,9 +21,10 @@ import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete, MdError } from 'react-icons/md';
+import { MdEdit, MdDelete } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -60,7 +61,7 @@ export default function ConnectionStatus(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
       },

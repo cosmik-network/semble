@@ -18,12 +18,16 @@ export default function useAddCard(
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (newCard: {
+    mutationFn: async (newCard: {
       url: string;
       note?: string;
       collectionIds?: string[];
       viaCardId?: string;
     }) => {
+      // TEMPORARY: Fake delay and error for testing
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      throw new Error('Network timeout - failed to save card');
+
       return addUrlToLibrary(newCard.url, {
         note: newCard.note,
         collectionIds: newCard.collectionIds,

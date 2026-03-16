@@ -37,7 +37,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 type ComposerMode = 'card' | 'collection';
 
@@ -177,7 +177,7 @@ export default function Composer(props: Props) {
             autoClose: 5000,
             withCloseButton: true,
             position: 'top-center',
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
       });
@@ -197,7 +197,7 @@ export default function Composer(props: Props) {
             autoClose: 5000,
             withCloseButton: true,
             position: 'top-center',
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {
@@ -232,7 +232,7 @@ export default function Composer(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

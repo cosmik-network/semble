@@ -25,7 +25,7 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -120,7 +120,7 @@ export default function AddConnectionForm(props: Props) {
               loading: false,
               autoClose: false,
               withCloseButton: true,
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {
@@ -155,7 +155,7 @@ export default function AddConnectionForm(props: Props) {
               loading: false,
               autoClose: false,
               withCloseButton: true,
-              icon: <MdError />,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {

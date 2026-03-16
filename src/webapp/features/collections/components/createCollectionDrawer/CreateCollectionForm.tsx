@@ -16,7 +16,7 @@ import { notifications } from '@mantine/notifications';
 import { FaSeedling } from 'react-icons/fa6';
 import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -78,7 +78,7 @@ export default function CreateCollectionForm(props: Props) {
             loading: false,
             autoClose: false,
             withCloseButton: true,
-            icon: <MdError />,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

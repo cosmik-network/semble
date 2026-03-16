@@ -14,7 +14,7 @@ import {
   Textarea,
   VisuallyHidden,
 } from '@mantine/core';
-import { MdError } from 'react-icons/md';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   note?: string;
@@ -42,7 +42,7 @@ export default function AddCardActions(props: Props) {
           autoClose: 5000,
           withCloseButton: true,
           position: 'top-center',
-          icon: <MdError />,
+          icon: <BsExclamation />,
         });
       },
       onSettled: () => {
