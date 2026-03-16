@@ -52,7 +52,7 @@ export default function SembleActions(props: Props) {
               <ActionIcon
                 variant="light"
                 color="gray"
-                size={'xl'}
+                size={36}
                 radius={'xl'}
                 onClick={() => {
                   copy();
@@ -65,14 +65,13 @@ export default function SembleActions(props: Props) {
                   });
                 }}
               >
-                <MdIosShare size={20} />
+                <MdIosShare />
               </ActionIcon>
             </Tooltip>
           )}
         </CopyButton>
         <Button
           color="green"
-          size="md"
           radius={'xl'}
           leftSection={<TbPlugConnected size={18} />}
           onClick={(e) => {
@@ -84,7 +83,6 @@ export default function SembleActions(props: Props) {
         </Button>
         <Button
           variant={isInYourLibrary ? 'light' : 'filled'}
-          size="md"
           leftSection={
             isInYourLibrary ? <IoMdCheckmark size={18} /> : <FiPlus size={18} />
           }

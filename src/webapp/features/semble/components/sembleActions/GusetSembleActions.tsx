@@ -28,7 +28,7 @@ export default function GuestSembleActions(props: Props) {
             <ActionIcon
               variant="light"
               color="gray"
-              size={'xl'}
+              size={36}
               radius={'xl'}
               onClick={() => {
                 copy();
@@ -48,7 +48,6 @@ export default function GuestSembleActions(props: Props) {
       </CopyButton>
       <Button
         color="green"
-        size={'md'}
         radius={'xl'}
         leftSection={<TbPlugConnected size={18} />}
       >
