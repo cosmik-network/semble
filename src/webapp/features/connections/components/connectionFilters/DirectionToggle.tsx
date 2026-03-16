@@ -2,7 +2,7 @@
 
 import { SegmentedControl } from '@mantine/core';
 
-type Direction = 'outgoing' | 'incoming' | 'all';
+type Direction = 'to' | 'from' | 'all';
 
 interface Props {
   value: Direction;
@@ -20,8 +20,8 @@ export default function DirectionToggle(props: Props) {
       onChange={handleChange}
       data={[
         { label: 'All', value: 'all' },
-        { label: 'To', value: 'outgoing' },
-        { label: 'From', value: 'incoming' },
+        { label: 'To', value: 'to' },
+        { label: 'From', value: 'from' },
       ]}
       radius={'xl'}
       withItemsBorders={false}

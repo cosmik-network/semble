@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
 import { TbPlugConnected } from 'react-icons/tb';
 
-type Direction = 'outgoing' | 'incoming' | 'all';
+type Direction = 'to' | 'from' | 'all';
 
 interface Props {
   url: string;
@@ -27,7 +27,7 @@ export default function SembleConnectionsContainer(props: Props) {
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
-  const [direction, setDirection] = useState<Direction>('outgoing');
+  const [direction, setDirection] = useState<Direction>('all');
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
     null,
   );
@@ -104,33 +104,33 @@ export default function SembleConnectionsContainer(props: Props) {
   }
 
   const connections =
-    direction === 'outgoing'
+    direction === 'to'
       ? allForwardConnections
-      : direction === 'incoming'
+      : direction === 'from'
         ? allBackwardConnections
         : allConnections;
   const fetchNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? fetchNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? fetchNextBackward
         : fetchNextAll;
   const hasNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? hasNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? hasNextBackward
         : hasNextAll;
   const isFetchingNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? isFetchingNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? isFetchingNextBackward
         : isFetchingNextAll;
   const isPending =
-    direction === 'outgoing'
+    direction === 'to'
       ? isPendingForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? isPendingBackward
         : isPendingAll;
 
@@ -176,7 +176,7 @@ export default function SembleConnectionsContainer(props: Props) {
                 const isForward =
                   direction === 'all'
                     ? connection.source.url === props.url
-                    : direction === 'outgoing';
+                    : direction === 'to';
                 const connectionDirection = isForward ? 'forward' : 'backward';
                 const targetUrl = isForward
                   ? connection.target.url
