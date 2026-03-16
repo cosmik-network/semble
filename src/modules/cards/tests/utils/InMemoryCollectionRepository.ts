@@ -155,6 +155,51 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async addCardToMultipleCollections(
+    cardId: CardId,
+    collectionIds: CollectionId[],
+    curatorId: CuratorId,
+    viaCardId?: CardId,
+    publishedRecordIds?: Map<string, string>,
+  ): Promise<Result<void>> {
+    try {
+      const addedAt = new Date();
+
+      for (const collectionId of collectionIds) {
+        const collection = this.collections.get(collectionId.getStringValue());
+        if (collection) {
+          // Check if card already exists in collection
+          const existingLink = collection.cardLinks.find((link) =>
+            link.cardId.equals(cardId),
+          );
+
+          if (!existingLink) {
+            // Add the card to the collection
+            const addResult = collection.addCard(
+              cardId,
+              curatorId,
+              viaCardId,
+              addedAt,
+            );
+            if (addResult.isErr()) {
+              return err(addResult.error);
+            }
+
+            // Update the collection
+            this.collections.set(
+              collectionId.getStringValue(),
+              this.clone(collection),
+            );
+          }
+        }
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   // Helper methods for testing
   public clear(): void {
     this.collections.clear();

@@ -8,8 +8,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'A social knowledge network for research',
     start_url: '/home',
     display: 'standalone',
-    background_color: '#ffffff',
+    background_color: 'var(--mantine-color-body)',
     theme_color: theme.colors?.orange?.[6],
+    orientation: 'portrait',
     icons: [
       {
         src: '/semble-icon-192x192.png',

@@ -19,4 +19,13 @@ export interface ICollectionRepository {
   ): Promise<Result<Collection[]>>;
   save(collection: Collection): Promise<Result<void>>;
   delete(collectionId: CollectionId): Promise<Result<void>>;
+
+  // Batch operation for efficient multi-collection updates
+  addCardToMultipleCollections(
+    cardId: CardId,
+    collectionIds: CollectionId[],
+    curatorId: CuratorId,
+    viaCardId?: CardId,
+    publishedRecordIds?: Map<string, string>,
+  ): Promise<Result<void>>;
 }
