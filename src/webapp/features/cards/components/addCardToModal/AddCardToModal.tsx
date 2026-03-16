@@ -6,6 +6,11 @@ import CollectionSelectorSkeleton from '@/features/collections/components/collec
 import AddCardToModalContent from './AddCardToModalContent';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import useAddCard from '@/features/cards/lib/mutations/useAddCard';
+import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { notifications } from '@mantine/notifications';
+import { track } from '@vercel/analytics';
 
 interface Props {
   isOpen: boolean;
@@ -21,6 +26,12 @@ interface Props {
 }
 
 export default function AddCardToModal(props: Props) {
+  const { data: featureFlags } = useFeatureFlags();
+  const addCard = useAddCard(props.analyticsContext);
+  const updateCardAssociations = useUpdateCardAssociations(
+    props.analyticsContext,
+  );
+
   const count = props.urlLibraryCount ?? 0;
 
   const subtitle = (() => {
@@ -34,6 +45,124 @@ export default function AddCardToModal(props: Props) {
       return `Saved by ${count} people`;
     }
   })();
+
+  const handleSubmit = (data: {
+    isAddingNewCard: boolean;
+    cardData?: {
+      url: string;
+      note?: string;
+      collectionIds: string[];
+      viaCardId?: string;
+    };
+    updateData?: {
+      cardId: string;
+      note?: string;
+      addToCollectionIds?: string[];
+      removeFromCollectionIds?: string[];
+      addToLibrary?: boolean;
+      viaCardId?: string;
+    };
+  }) => {
+    track('add or update existing card');
+
+    const isOptimistic = featureFlags?.optimisticCardAdding ?? false;
+
+    if (data.isAddingNewCard && data.cardData) {
+      if (isOptimistic) {
+        const notificationId = `add-card-${Date.now()}`;
+        notifications.show({
+          id: notificationId,
+          loading: true,
+          title: 'Adding card...',
+          message: 'Please wait',
+          autoClose: false,
+          withCloseButton: false,
+        });
+
+        props.onClose();
+
+        addCard.mutate(data.cardData, {
+          onSuccess: () => {
+            notifications.update({
+              id: notificationId,
+              color: 'green',
+              title: 'Success!',
+              message: 'Card added successfully',
+              loading: false,
+              autoClose: 4000,
+            });
+          },
+          onError: () => {
+            notifications.update({
+              id: notificationId,
+              color: 'red',
+              title: 'Error',
+              message: 'Could not add card',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+            });
+          },
+        });
+      } else {
+        addCard.mutate(data.cardData, {
+          onError: () => {
+            notifications.show({ message: 'Could not add card.' });
+          },
+          onSettled: () => {
+            props.onClose();
+          },
+        });
+      }
+    } else if (!data.isAddingNewCard && data.updateData) {
+      if (isOptimistic) {
+        const notificationId = `update-card-${Date.now()}`;
+        notifications.show({
+          id: notificationId,
+          loading: true,
+          title: 'Updating card...',
+          message: 'Please wait',
+          autoClose: false,
+          withCloseButton: false,
+        });
+
+        props.onClose();
+
+        updateCardAssociations.mutate(data.updateData, {
+          onSuccess: () => {
+            notifications.update({
+              id: notificationId,
+              color: 'green',
+              title: 'Success!',
+              message: 'Card updated successfully',
+              loading: false,
+              autoClose: 4000,
+            });
+          },
+          onError: () => {
+            notifications.update({
+              id: notificationId,
+              color: 'red',
+              title: 'Error',
+              message: 'Could not update card',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+            });
+          },
+        });
+      } else {
+        updateCardAssociations.mutate(data.updateData, {
+          onError: () => {
+            notifications.show({ message: 'Could not update card.' });
+          },
+          onSettled: () => {
+            props.onClose();
+          },
+        });
+      }
+    }
+  };
 
   return (
     <Modal
@@ -60,12 +189,13 @@ export default function AddCardToModal(props: Props) {
         <Suspense fallback={<CollectionSelectorSkeleton />}>
           <AddCardToModalContent
             onClose={props.onClose}
+            onSubmit={handleSubmit}
             url={props.url}
             cardId={props.cardId}
             cardContent={props.cardContent}
             note={props.note}
             viaCardId={props.viaCardId}
-            analyticsContext={props.analyticsContext}
+            isSaving={addCard.isPending || updateCardAssociations.isPending}
           />
         </Suspense>
       </Stack>
