@@ -10,10 +10,7 @@ import { EventName, EventNames } from './EventConfig';
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
 
-  constructor(
-    private redisConnection: Redis,
-    private useBatchPublishing: boolean = false,
-  ) {}
+  constructor(private redisConnection: Redis) {}
 
   async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
     // Fire and forget - don't await, just catch errors silently
@@ -25,62 +22,28 @@ export class BullMQEventPublisher implements IEventPublisher {
   }
 
   private async publishEventsAsync(events: IDomainEvent[]): Promise<void> {
-    if (this.useBatchPublishing) {
-      // Optimized path: Group events by queue to enable batch publishing
-      const eventsByQueue = new Map<QueueName, IDomainEvent[]>();
+    // Group events by queue to enable batch publishing
+    const eventsByQueue = new Map<QueueName, IDomainEvent[]>();
 
-      for (const event of events) {
-        const targetQueues = this.getTargetQueues(event.eventName);
+    for (const event of events) {
+      const targetQueues = this.getTargetQueues(event.eventName);
 
-        for (const queueName of targetQueues) {
-          if (!eventsByQueue.has(queueName)) {
-            eventsByQueue.set(queueName, []);
-          }
-          eventsByQueue.get(queueName)!.push(event);
+      for (const queueName of targetQueues) {
+        if (!eventsByQueue.has(queueName)) {
+          eventsByQueue.set(queueName, []);
         }
-      }
-
-      // Publish all events to each queue in batch
-      const publishPromises: Promise<void>[] = [];
-
-      for (const [queueName, queueEvents] of eventsByQueue.entries()) {
-        publishPromises.push(this.publishBatchToQueue(queueName, queueEvents));
-      }
-
-      await Promise.all(publishPromises);
-    } else {
-      // Original path: Publish events one by one
-      for (const event of events) {
-        await this.publishSingleEvent(event);
+        eventsByQueue.get(queueName)!.push(event);
       }
     }
-  }
 
-  private async publishSingleEvent(event: IDomainEvent): Promise<void> {
-    const targetQueues = this.getTargetQueues(event.eventName);
+    // Publish all events to each queue in batch
+    const publishPromises: Promise<void>[] = [];
 
-    for (const queueName of targetQueues) {
-      await this.publishToQueue(queueName, event);
-    }
-  }
-
-  private async publishToQueue(
-    queueName: QueueName,
-    event: IDomainEvent,
-  ): Promise<void> {
-    if (!this.queues.has(queueName)) {
-      this.queues.set(
-        queueName,
-        new Queue(queueName, {
-          connection: this.redisConnection,
-          defaultJobOptions: QueueOptions[queueName],
-        }),
-      );
+    for (const [queueName, queueEvents] of eventsByQueue.entries()) {
+      publishPromises.push(this.publishBatchToQueue(queueName, queueEvents));
     }
 
-    const queue = this.queues.get(queueName)!;
-    const serializedEvent = EventMapper.toSerialized(event);
-    await queue.add(serializedEvent.eventType, serializedEvent);
+    await Promise.all(publishPromises);
   }
 
   private async publishBatchToQueue(

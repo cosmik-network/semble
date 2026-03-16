@@ -13,7 +13,6 @@ export interface EnvironmentConfig {
     useMockAuth: boolean;
     useFakePublishers: boolean;
     useMockVectorDb: boolean;
-    useOptimizedCollectionPersistence: boolean;
   };
   database: {
     url: string;
@@ -88,9 +87,6 @@ export class EnvironmentConfigService {
         useMockAuth: process.env.USE_MOCK_AUTH === 'true',
         useFakePublishers: process.env.USE_FAKE_PUBLISHERS === 'true',
         useMockVectorDb: process.env.USE_MOCK_VECTOR_DB === 'true',
-        useOptimizedCollectionPersistence:
-          process.env.USE_OPTIMIZED_COLLECTION_PERSISTENCE === 'true' ||
-          environment !== Environment.PROD,
       },
       database: {
         url:
@@ -289,10 +285,6 @@ export class EnvironmentConfigService {
 
   public shouldUseMockVectorDb(): boolean {
     return this.config.runtime.useMockVectorDb;
-  }
-
-  public shouldUseOptimizedCollectionPersistence(): boolean {
-    return this.config.runtime.useOptimizedCollectionPersistence;
   }
 
   // Convenience methods for common combinations
