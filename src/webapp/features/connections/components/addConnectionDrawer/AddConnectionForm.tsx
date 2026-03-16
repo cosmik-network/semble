@@ -36,6 +36,7 @@ import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
+import useMyCards from '@/features/cards/lib/queries/useMyCards';
 
 interface Props {
   onClose: () => void;
@@ -62,6 +63,7 @@ export default function AddConnectionForm(props: Props) {
   const [inputValue, setInputValue] = useState(
     props.connectionToEdit?.targetUrl || '',
   );
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
 
   const {
@@ -77,6 +79,8 @@ export default function AddConnectionForm(props: Props) {
       }),
     enabled: debounced.trim().length > 0,
   });
+
+  const { data: recentCards } = useMyCards({ limit: 5 });
 
   const urls = searchResults?.urls ?? [];
   const empty =
@@ -428,8 +432,14 @@ export default function AddConnectionForm(props: Props) {
                       form.setFieldValue('targetUrl', val);
                       urlCombobox.openDropdown();
                     }}
-                    onFocus={() => !isEditMode && urlCombobox.openDropdown()}
-                    onBlur={() => urlCombobox.closeDropdown()}
+                    onFocus={() => {
+                      setIsInputFocused(true);
+                      if (!isEditMode) urlCombobox.openDropdown();
+                    }}
+                    onBlur={() => {
+                      setIsInputFocused(false);
+                      urlCombobox.closeDropdown();
+                    }}
                     rightSection={isFetching && <Loader size={18} />}
                     variant="unstyled"
                     size="xs"
@@ -443,55 +453,107 @@ export default function AddConnectionForm(props: Props) {
                   />
                 </Combobox.Target>
 
-                <Combobox.Dropdown hidden={debounced.trim().length === 0}>
+                <Combobox.Dropdown
+                  hidden={
+                    isFetching ||
+                    (inputValue.trim().length === 0 &&
+                      debounced.trim().length === 0 &&
+                      !(
+                        isInputFocused &&
+                        (recentCards.pages[0].cards.length ?? 0) > 0
+                      )) ||
+                    (inputValue.trim().length === 0 &&
+                      debounced.trim().length > 0)
+                  }
+                >
                   <Combobox.Options>
-                    <ScrollArea.Autosize
-                      type="scroll"
-                      mah={300}
-                      offsetScrollbars={'y'}
-                    >
-                      {isFetching && (
-                        <Combobox.Empty>Searching...</Combobox.Empty>
-                      )}
-                      {error && (
-                        <Combobox.Empty>
-                          Could not search for URLs
-                        </Combobox.Empty>
-                      )}
-                      {!isFetching && !error && (
+                    <ScrollArea.Autosize type="scroll" mah={300}>
+                      {debounced.trim().length === 0 ? (
                         <Fragment>
-                          <Combobox.Option value={inputValue}>
-                            <Group gap="xs" wrap="nowrap" p={0}>
-                              <ThemeIcon
-                                radius={'xl'}
-                                size={'sm'}
-                                variant="light"
-                                color="gray"
-                              >
-                                <BiPlus />
-                              </ThemeIcon>
-                              <Stack gap={0} style={{ flex: 1 }}>
-                                <Text size="sm" fw={600} c={'bright'}>
-                                  Add this link
-                                </Text>
-                                <Text size="xs" c="dimmed" lineClamp={1}>
-                                  {inputValue}
-                                </Text>
-                              </Stack>
-                            </Group>
-                          </Combobox.Option>
-                          {options.length > 0 && (
-                            <Divider
-                              my={0}
-                              label="or choose a card"
-                              labelPosition="center"
-                              variant="dashed"
-                            />
+                          <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
+                            Recent cards
+                          </Text>
+                          {(recentCards.pages[0].cards ?? []).map((card) => (
+                            <Combobox.Option
+                              key={card.url}
+                              value={card.url}
+                              p={5}
+                            >
+                              <Group gap={'xs'} align="center" wrap="nowrap">
+                                {card.cardContent.imageUrl && (
+                                  <Image
+                                    src={card.cardContent.imageUrl}
+                                    alt={
+                                      card.cardContent.title || 'URL thumbnail'
+                                    }
+                                    w={35}
+                                    h={35}
+                                    radius="sm"
+                                    fit="cover"
+                                  />
+                                )}
+                                <Stack gap={0}>
+                                  <Text
+                                    fw={500}
+                                    c={'bright'}
+                                    lineClamp={1}
+                                    size="sm"
+                                  >
+                                    {card.cardContent.title || card.url}
+                                  </Text>
+                                  <Text c={'gray'} lineClamp={1} size="xs">
+                                    {getDomain(card.url)}
+                                  </Text>
+                                </Stack>
+                              </Group>
+                            </Combobox.Option>
+                          ))}
+                        </Fragment>
+                      ) : (
+                        <Fragment>
+                          {error && (
+                            <Combobox.Empty>
+                              Could not search for URLs
+                            </Combobox.Empty>
                           )}
+                          {!isFetching && !error && inputValue.trim() && (
+                            <Fragment>
+                              <Combobox.Option value={inputValue}>
+                                <Group gap="xs" wrap="nowrap" p={0}>
+                                  <ThemeIcon
+                                    radius={'xl'}
+                                    size={'sm'}
+                                    variant="light"
+                                    color="gray"
+                                  >
+                                    <BiPlus />
+                                  </ThemeIcon>
+                                  <Stack gap={0} style={{ flex: 1 }}>
+                                    <Text size="sm" fw={600} c={'bright'}>
+                                      Add this link
+                                    </Text>
+                                    <Text size="xs" c="dimmed" lineClamp={1}>
+                                      {inputValue}
+                                    </Text>
+                                  </Stack>
+                                </Group>
+                              </Combobox.Option>
+                              {options.length > 0 && (
+                                <Text
+                                  size="sm"
+                                  fw={500}
+                                  c="dimmed"
+                                  py="xs"
+                                  px={5}
+                                >
+                                  Search results
+                                </Text>
+                              )}
+                            </Fragment>
+                          )}
+                          {options.length > 0 && <Fragment>{options}</Fragment>}
                         </Fragment>
                       )}
-                      {options.length > 0 && <Fragment>{options}</Fragment>}
-                      {/*{empty && <Combobox.Empty>No cards found</Combobox.Empty>}*/}
                     </ScrollArea.Autosize>
                   </Combobox.Options>
                 </Combobox.Dropdown>
