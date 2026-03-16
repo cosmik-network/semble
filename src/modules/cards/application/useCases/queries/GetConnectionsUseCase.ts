@@ -125,35 +125,91 @@ export class GetConnectionsUseCase
         ]),
       );
 
-      // Fetch metadata from external service in parallel
-      const metadataResults = await Promise.allSettled(
-        uniqueUrls.map(async (urlString) => {
-          const urlResult = URL.create(urlString);
-          if (urlResult.isErr()) {
-            return { url: urlString, metadata: null };
-          }
-          const metadataResult = await this.metadataService.fetchMetadata(
-            urlResult.value,
-          );
-          if (metadataResult.isOk()) {
-            return { url: urlString, metadata: metadataResult.value };
-          }
-          // Fallback to minimal metadata if fetch fails
-          const fallbackResult = UrlMetadataVO.create({ url: urlString });
-          return {
-            url: urlString,
-            metadata: fallbackResult.isOk() ? fallbackResult.value : null,
-          };
-        }),
-      );
+      // Build initial metadata map from stored metadata in connection records
+      const metadataMap = new Map<string, UrlMetadataVO | null>();
+      const urlsNeedingFetch: string[] = [];
 
-      // Build metadata map from external fetch results
-      const externalMetadataMap = new Map<string, UrlMetadataVO | null>();
-      metadataResults.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          externalMetadataMap.set(result.value.url, result.value.metadata);
+      // Check each unique URL to see if we have stored metadata
+      for (const urlString of uniqueUrls) {
+        // Find if this URL appears as source or target in any connection with metadata
+        let hasStoredMetadata = false;
+
+        for (const item of result.items) {
+          if (item.sourceUrl === urlString && item.sourceUrlMetadata) {
+            // Parse stored metadata
+            const metadataResult = UrlMetadataVO.create({
+              url: item.sourceUrlMetadata.url,
+              title: item.sourceUrlMetadata.title,
+              description: item.sourceUrlMetadata.description,
+              author: item.sourceUrlMetadata.author,
+              siteName: item.sourceUrlMetadata.siteName,
+              imageUrl: item.sourceUrlMetadata.imageUrl,
+              type: item.sourceUrlMetadata.type,
+              doi: item.sourceUrlMetadata.doi,
+              isbn: item.sourceUrlMetadata.isbn,
+            });
+            if (metadataResult.isOk()) {
+              metadataMap.set(urlString, metadataResult.value);
+              hasStoredMetadata = true;
+              break;
+            }
+          } else if (item.targetUrl === urlString && item.targetUrlMetadata) {
+            // Parse stored metadata
+            const metadataResult = UrlMetadataVO.create({
+              url: item.targetUrlMetadata.url,
+              title: item.targetUrlMetadata.title,
+              description: item.targetUrlMetadata.description,
+              author: item.targetUrlMetadata.author,
+              siteName: item.targetUrlMetadata.siteName,
+              imageUrl: item.targetUrlMetadata.imageUrl,
+              type: item.targetUrlMetadata.type,
+              doi: item.targetUrlMetadata.doi,
+              isbn: item.targetUrlMetadata.isbn,
+            });
+            if (metadataResult.isOk()) {
+              metadataMap.set(urlString, metadataResult.value);
+              hasStoredMetadata = true;
+              break;
+            }
+          }
         }
-      });
+
+        // If no stored metadata found, add to fetch list
+        if (!hasStoredMetadata) {
+          urlsNeedingFetch.push(urlString);
+        }
+      }
+
+      // Fetch metadata from external service only for URLs without stored metadata
+      if (urlsNeedingFetch.length > 0) {
+        const metadataResults = await Promise.allSettled(
+          urlsNeedingFetch.map(async (urlString) => {
+            const urlResult = URL.create(urlString);
+            if (urlResult.isErr()) {
+              return { url: urlString, metadata: null };
+            }
+            const metadataResult = await this.metadataService.fetchMetadata(
+              urlResult.value,
+            );
+            if (metadataResult.isOk()) {
+              return { url: urlString, metadata: metadataResult.value };
+            }
+            // Fallback to minimal metadata if fetch fails
+            const fallbackResult = UrlMetadataVO.create({ url: urlString });
+            return {
+              url: urlString,
+              metadata: fallbackResult.isOk() ? fallbackResult.value : null,
+            };
+          }),
+        );
+
+        // Add fetched metadata to the map
+        metadataResults.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            metadataMap.set(result.value.url, result.value.metadata);
+          }
+        });
+      }
 
       // Fetch URL library info for counts and in-library status
       const urlLibraryInfoMap = await this.cardQueryRepo.getBatchUrlLibraryInfo(
@@ -175,20 +231,20 @@ export class GetConnectionsUseCase
 
       uniqueUrls.forEach((url) => {
         const urlInfo = urlLibraryInfoMap.get(url);
-        const externalMetadata = externalMetadataMap.get(url);
+        const urlMetadata = metadataMap.get(url);
 
-        if (urlInfo && externalMetadata) {
+        if (urlInfo && urlMetadata) {
           // Convert UrlMetadataVO to UrlMetadata DTO with dates as ISO strings
           const metadata: UrlMetadata = {
-            url: externalMetadata.url,
-            title: externalMetadata.title,
-            description: externalMetadata.description,
-            author: externalMetadata.author,
-            siteName: externalMetadata.siteName,
-            imageUrl: externalMetadata.imageUrl,
-            type: externalMetadata.type,
-            doi: externalMetadata.doi,
-            isbn: externalMetadata.isbn,
+            url: urlMetadata.url,
+            title: urlMetadata.title,
+            description: urlMetadata.description,
+            author: urlMetadata.author,
+            siteName: urlMetadata.siteName,
+            imageUrl: urlMetadata.imageUrl,
+            type: urlMetadata.type,
+            doi: urlMetadata.doi,
+            isbn: urlMetadata.isbn,
           };
 
           urlDataMap.set(url, {
