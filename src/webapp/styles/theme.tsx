@@ -14,6 +14,7 @@ import {
   Tooltip,
   Text,
   Combobox,
+  Notification,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -150,6 +151,12 @@ export const theme = createTheme({
         classNames: {
           option: classes.option,
         },
+      },
+    }),
+    Notification: Notification.extend({
+      defaultProps: {
+        radius: 'lg',
+        withBorder: true,
       },
     }),
   },

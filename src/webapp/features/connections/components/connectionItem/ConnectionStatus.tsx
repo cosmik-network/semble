@@ -21,7 +21,7 @@ import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete } from 'react-icons/md';
+import { MdEdit, MdDelete, MdError } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
 
@@ -56,6 +56,11 @@ export default function ConnectionStatus(props: Props) {
           notifications.show({
             message: 'Could not delete connection.',
             color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
       },

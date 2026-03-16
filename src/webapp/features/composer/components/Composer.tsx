@@ -37,6 +37,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { MdError } from 'react-icons/md';
 
 type ComposerMode = 'card' | 'collection';
 
@@ -173,8 +174,10 @@ export default function Composer(props: Props) {
             title: 'Error',
             message: 'Could not add card',
             loading: false,
-            autoClose: false,
+            autoClose: 5000,
             withCloseButton: true,
+            position: 'top-center',
+            icon: <MdError />,
           });
         },
       });
@@ -187,8 +190,14 @@ export default function Composer(props: Props) {
           window.history.replaceState({}, '', window.location.pathname);
         },
         onError: () => {
-          notifications.show({
-            message: 'Could not add card.',
+          notifications.update({
+            color: 'red',
+            title: 'Error',
+            message: 'Could not add card',
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <MdError />,
           });
         },
         onSettled: () => {
@@ -218,6 +227,12 @@ export default function Composer(props: Props) {
         onError: () => {
           notifications.show({
             message: 'Could not create collection.',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

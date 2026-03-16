@@ -16,6 +16,7 @@ import { notifications } from '@mantine/notifications';
 import { FaSeedling } from 'react-icons/fa6';
 import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   onClose: () => void;
@@ -72,6 +73,12 @@ export default function CreateCollectionForm(props: Props) {
         onError: () => {
           notifications.show({
             message: 'Could not create collection.',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

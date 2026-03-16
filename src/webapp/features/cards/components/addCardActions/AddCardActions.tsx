@@ -14,6 +14,7 @@ import {
   Textarea,
   VisuallyHidden,
 } from '@mantine/core';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   note?: string;
@@ -37,7 +38,11 @@ export default function AddCardActions(props: Props) {
       onError: () => {
         notifications.show({
           message: 'Could not delete note.',
+          color: 'red',
+          autoClose: 5000,
+          withCloseButton: true,
           position: 'top-center',
+          icon: <MdError />,
         });
       },
       onSettled: () => {

@@ -1,7 +1,7 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
 import { Stack, Card, Group, Text, Badge, Divider, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdArrowDownward } from 'react-icons/md';
+import { MdArrowDownward, MdError } from 'react-icons/md';
 import { upperFirst } from '@mantine/hooks';
 import { useAuth } from '@/hooks/useAuth';
 import { ActionIcon, Menu, Modal, Button, Spoiler } from '@mantine/core';
@@ -43,6 +43,11 @@ export default function ProfileConnectionItem(props: Props) {
           notifications.show({
             message: 'Could not delete connection.',
             color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
       },

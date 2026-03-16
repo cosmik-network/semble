@@ -10,6 +10,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   isOpen: boolean;
@@ -40,6 +41,12 @@ export default function EditNoteDrawer(props: Props) {
           notifications.show({
             message: 'Could not update note.',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

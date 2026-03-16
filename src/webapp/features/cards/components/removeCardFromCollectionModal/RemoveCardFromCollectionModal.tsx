@@ -3,6 +3,7 @@ import useRemoveCardFromCollections from '../../lib/mutations/useRemoveCardFromC
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   isOpen: boolean;
@@ -22,6 +23,12 @@ export default function RemoveCardFromCollectionModal(props: Props) {
           notifications.show({
             message: 'Could not remove card from this collection.',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

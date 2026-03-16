@@ -18,6 +18,7 @@ import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   isOpen: boolean;
@@ -65,6 +66,12 @@ export default function EditCollectionModal(props: Props) {
           notifications.show({
             message: 'Could not update collection.',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

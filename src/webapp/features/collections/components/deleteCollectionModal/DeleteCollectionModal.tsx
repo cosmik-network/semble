@@ -3,6 +3,7 @@ import useDeleteCollection from '../../lib/mutations/useDeleteCollection';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   isOpen: boolean;
@@ -24,6 +25,12 @@ export default function DeleteCollectionModal(props: Props) {
         notifications.show({
           message: 'Could not delete collection.',
           position: 'top-center',
+          color: 'red',
+          title: 'Error',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <MdError />,
         });
       },
       onSettled: () => {

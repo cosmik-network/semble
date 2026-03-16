@@ -21,6 +21,7 @@ import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { notifications } from '@mantine/notifications';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   onClose: () => void;
@@ -49,6 +50,12 @@ export default function NoteCardModalContent(props: Props) {
         notifications.show({
           message: 'Could not delete note.',
           position: 'top-center',
+          color: 'red',
+          title: 'Error',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <MdError />,
         });
       },
       onSettled: () => {
@@ -78,6 +85,12 @@ export default function NoteCardModalContent(props: Props) {
           notifications.show({
             message: 'Could not update note.',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <MdError />,
           });
         },
         onSettled: () => {

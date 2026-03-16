@@ -25,6 +25,7 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
+import { MdError } from 'react-icons/md';
 
 interface Props {
   onClose: () => void;
@@ -115,6 +116,11 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Could not update connection.',
               color: 'red',
+              title: 'Error',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+              icon: <MdError />,
             });
           },
           onSettled: () => {
@@ -145,6 +151,11 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Could not create connection.',
               color: 'red',
+              title: 'Error',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+              icon: <MdError />,
             });
           },
           onSettled: () => {
