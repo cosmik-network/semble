@@ -2,26 +2,38 @@
 
 import type { Collection, UrlCard } from '@semble/types';
 import { Stack } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import CollectionSelectorError from '@/features/collections/components/collectionSelector/Error.CollectionSelector';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
-import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
-import useAddCard from '@/features/cards/lib/mutations/useAddCard';
-import { track } from '@vercel/analytics';
 import AddCardActions from '../addCardActions/AddCardActions';
-import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   onClose: () => void;
+  onSubmit: (data: {
+    isAddingNewCard: boolean;
+    cardData?: {
+      url: string;
+      note?: string;
+      collectionIds: string[];
+      viaCardId?: string;
+    };
+    updateData?: {
+      cardId: string;
+      note?: string;
+      addToCollectionIds?: string[];
+      removeFromCollectionIds?: string[];
+      addToLibrary?: boolean;
+      viaCardId?: string;
+    };
+  }) => void;
   url: string;
   cardId?: string;
   note?: string;
   cardContent?: UrlCard['cardContent'];
   viaCardId?: string;
-  analyticsContext?: CardSaveAnalyticsContext;
+  isSaving: boolean;
 }
 
 export default function AddCardToModalContent(props: Props) {
@@ -29,11 +41,6 @@ export default function AddCardToModalContent(props: Props) {
   const isMyCard = props?.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(isMyCard ? props.note : '');
   const { data, error } = useMyCollections();
-
-  const addCard = useAddCard(props.analyticsContext);
-  const updateCardAssociations = useUpdateCardAssociations(
-    props.analyticsContext,
-  );
 
   if (error) {
     return <CollectionSelectorError />;
@@ -49,11 +56,8 @@ export default function AddCardToModalContent(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState<Collection[]>(collectionsWithCard);
 
-  const isSaving = addCard.isPending || updateCardAssociations.isPending;
-
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
-    track('add or update existing card');
 
     const trimmedNote = note?.trimEnd() === '' ? undefined : note;
 
@@ -77,22 +81,15 @@ export default function AddCardToModalContent(props: Props) {
 
     // card not yet in library, add it
     if (!cardStatus.data.card) {
-      addCard.mutate(
-        {
+      props.onSubmit({
+        isAddingNewCard: true,
+        cardData: {
           url: props.url,
           note: trimmedNote,
           collectionIds: selectedCollections.map((c) => c.id),
           viaCardId: props.viaCardId,
         },
-        {
-          onError: () => {
-            notifications.show({ message: 'Could not add card.' });
-          },
-          onSettled: () => {
-            props.onClose();
-          },
-        },
-      );
+      });
       return;
     }
 
@@ -103,6 +100,7 @@ export default function AddCardToModalContent(props: Props) {
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
       addToLibrary?: boolean;
+      viaCardId?: string;
     } = { cardId: cardStatus.data.card.id };
 
     if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
@@ -115,21 +113,12 @@ export default function AddCardToModalContent(props: Props) {
 
     // Track as a card save if we're adding collections or a note (indicates user is saving/organizing the card)
     updatedCardPayload.addToLibrary = hasAdded || hasNoteChanged;
+    updatedCardPayload.viaCardId = props.viaCardId;
 
-    updateCardAssociations.mutate(
-      {
-        ...updatedCardPayload,
-        viaCardId: props.viaCardId,
-      },
-      {
-        onError: () => {
-          notifications.show({ message: 'Could not update card.' });
-        },
-        onSettled: () => {
-          props.onClose();
-        },
-      },
-    );
+    props.onSubmit({
+      isAddingNewCard: false,
+      updateData: updatedCardPayload,
+    });
   };
 
   return (
@@ -149,7 +138,7 @@ export default function AddCardToModalContent(props: Props) {
           setSelectedCollections(collectionsWithCard);
         }}
         onSave={handleUpdateCard}
-        isSaving={isSaving}
+        isSaving={props.isSaving}
         selectedCollections={selectedCollections}
         onSelectedCollectionsChange={setSelectedCollections}
       />
