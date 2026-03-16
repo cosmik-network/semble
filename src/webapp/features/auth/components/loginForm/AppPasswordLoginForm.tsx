@@ -125,11 +125,11 @@ export default function AppPasswordLoginForm(props: Props) {
               />
             </Combobox.Target>
 
-            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
+            <Combobox.Dropdown
+              hidden={debounced.trim().length === 0 || isFetching}
+            >
               <Combobox.Options>
                 <ScrollArea.Autosize type="scroll" mah={200}>
-                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
-
                   {error && (
                     <Combobox.Empty>
                       Could not search for profiles
