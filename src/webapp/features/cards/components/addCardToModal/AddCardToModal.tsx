@@ -11,7 +11,7 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { notifications } from '@mantine/notifications';
 import { track } from '@vercel/analytics';
-import { BsExclamation } from 'react-icons/bs';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -91,6 +91,7 @@ export default function AddCardToModal(props: Props) {
               message: 'Card added successfully',
               loading: false,
               autoClose: 4000,
+              icon: <BsCheck />,
             });
           },
           onError: () => {
@@ -98,7 +99,7 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'red',
               title: 'Error',
-              message: 'Could not add card.',
+              message: 'Could not add card',
               loading: false,
               autoClose: 5000,
               withCloseButton: true,
@@ -113,7 +114,7 @@ export default function AddCardToModal(props: Props) {
             notifications.show({
               color: 'red',
               title: 'Error',
-              message: 'Could not add card.',
+              message: 'Could not add card',
               loading: false,
               autoClose: 5000,
               withCloseButton: true,
@@ -149,6 +150,7 @@ export default function AddCardToModal(props: Props) {
               message: 'Card updated successfully',
               loading: false,
               autoClose: 4000,
+              icon: <BsCheck />,
             });
           },
           onError: () => {
@@ -156,7 +158,7 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'red',
               title: 'Error',
-              message: 'Could not update card.',
+              message: 'Could not update card',
               loading: false,
               autoClose: false,
               withCloseButton: true,
@@ -170,7 +172,7 @@ export default function AddCardToModal(props: Props) {
             notifications.show({
               color: 'red',
               title: 'Error',
-              message: 'Could not update card.',
+              message: 'Could not update card',
               loading: false,
               autoClose: false,
               withCloseButton: true,

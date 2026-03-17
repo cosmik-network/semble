@@ -37,7 +37,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { BsExclamation } from 'react-icons/bs';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 type ComposerMode = 'card' | 'collection';
 
@@ -165,6 +165,7 @@ export default function Composer(props: Props) {
             message: 'Card added successfully',
             loading: false,
             autoClose: 4000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
@@ -226,7 +227,7 @@ export default function Composer(props: Props) {
         },
         onError: () => {
           notifications.show({
-            message: 'Could not create collection.',
+            message: 'Could not create collection',
             color: 'red',
             title: 'Error',
             loading: false,

@@ -39,7 +39,7 @@ export default function EditNoteDrawer(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not update note.',
+            message: 'Could not update note',
             position: 'top-center',
             color: 'red',
             title: 'Error',

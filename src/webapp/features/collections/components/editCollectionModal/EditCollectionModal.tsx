@@ -64,7 +64,7 @@ export default function EditCollectionModal(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not update collection.',
+            message: 'Could not update collection',
             position: 'top-center',
             color: 'red',
             title: 'Error',

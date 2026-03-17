@@ -72,7 +72,7 @@ export default function CreateCollectionForm(props: Props) {
         },
         onError: () => {
           notifications.show({
-            message: 'Could not create collection.',
+            message: 'Could not create collection',
             color: 'red',
             title: 'Error',
             loading: false,

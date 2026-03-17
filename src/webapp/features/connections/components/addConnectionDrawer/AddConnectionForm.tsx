@@ -25,7 +25,7 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
-import { BsExclamation } from 'react-icons/bs';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -110,11 +110,12 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Connection updated successfully',
               color: 'green',
+              icon: <BsCheck />,
             });
           },
           onError: () => {
             notifications.show({
-              message: 'Could not update connection.',
+              message: 'Could not update connection',
               color: 'red',
               title: 'Error',
               loading: false,
@@ -145,11 +146,12 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Connection created successfully',
               color: 'green',
+              icon: <BsCheck />,
             });
           },
           onError: () => {
             notifications.show({
-              message: 'Could not create connection.',
+              message: 'Could not create connection',
               color: 'red',
               title: 'Error',
               loading: false,

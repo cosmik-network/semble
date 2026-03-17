@@ -20,7 +20,7 @@ export default function RemoveCardFromCollectionModal(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not remove card from this collection.',
+            message: 'Could not remove card from this collection',
             position: 'top-center',
             color: 'red',
             title: 'Error',

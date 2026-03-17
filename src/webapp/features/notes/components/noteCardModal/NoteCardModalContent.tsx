@@ -48,7 +48,7 @@ export default function NoteCardModalContent(props: Props) {
     removeNote.mutate(props.note.id, {
       onError: () => {
         notifications.show({
-          message: 'Could not delete note.',
+          message: 'Could not delete note',
           position: 'top-center',
           color: 'red',
           title: 'Error',
@@ -83,7 +83,7 @@ export default function NoteCardModalContent(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not update note.',
+            message: 'Could not update note',
             position: 'top-center',
             color: 'red',
             title: 'Error',

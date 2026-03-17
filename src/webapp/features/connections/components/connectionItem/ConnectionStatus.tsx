@@ -24,7 +24,7 @@ import { HiDotsVertical } from 'react-icons/hi';
 import { MdEdit, MdDelete } from 'react-icons/md';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
-import { BsExclamation } from 'react-icons/bs';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -50,12 +50,13 @@ export default function ConnectionStatus(props: Props) {
           notifications.show({
             message: 'Connection deleted successfully',
             color: 'green',
+            icon: <BsCheck />,
           });
           setDeleteModalOpened(false);
         },
         onError: () => {
           notifications.show({
-            message: 'Could not delete connection.',
+            message: 'Could not delete connection',
             color: 'red',
             title: 'Error',
             loading: false,

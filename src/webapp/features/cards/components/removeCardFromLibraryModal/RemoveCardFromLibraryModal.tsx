@@ -17,7 +17,7 @@ export default function RemoveCardFromLibraryModal(props: Props) {
     removeCardFromLibrary.mutate(props.cardId, {
       onError: () => {
         notifications.show({
-          message: 'Could not remove card from library.',
+          message: 'Could not remove card from library',
           position: 'top-center',
           color: 'red',
           title: 'Error',
