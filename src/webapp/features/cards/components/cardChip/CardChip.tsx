@@ -23,14 +23,14 @@ export default function CardChip(props: CardChipProps) {
         {props.imageUrl ? (
           <Image
             src={props.imageUrl}
-            alt=""
+            alt={`${props.imageUrl} social preview image`}
             w={16}
             h={16}
             fit="cover"
             radius={'sm'}
           />
         ) : (
-          <Avatar size={18} radius={'sm'} />
+          <Avatar size={16} radius={'sm'} />
         )}
         <Text size="xs" fw={600}>
           {truncateText(props.title || 'Card', 10)}
