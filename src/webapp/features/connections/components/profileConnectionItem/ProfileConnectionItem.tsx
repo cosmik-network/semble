@@ -1,15 +1,48 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
-import { Stack, Card, Group, Text, Badge, Divider, Box } from '@mantine/core';
+import {
+  Stack,
+  Card,
+  Group,
+  Text,
+  Badge,
+  Box,
+  Grid,
+  Avatar,
+  ActionIcon,
+  Menu,
+  Spoiler,
+} from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdArrowDownward } from 'react-icons/md';
-import { upperFirst } from '@mantine/hooks';
+import { MdOutlinePsychologyAlt, MdEdit, MdDelete } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
-import { ActionIcon, Menu, Spoiler } from '@mantine/core';
-import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete } from 'react-icons/md';
+import { HiDotsHorizontal } from 'react-icons/hi';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
+import {
+  BiMessageSquareDetail,
+  BiHelpCircle,
+  BiRightArrowAlt,
+  BiLink,
+  BiCheckCircle,
+  BiXCircle,
+} from 'react-icons/bi';
+import { PiNewspaperClipping } from 'react-icons/pi';
+import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
+
+const CONNECTION_TYPE_CONFIG: Record<
+  string,
+  { label: string; icon: React.ComponentType }
+> = {
+  SUPPORTS: { label: 'Supports', icon: BiCheckCircle },
+  OPPOSES: { label: 'Opposes', icon: BiXCircle },
+  ADDRESSES: { label: 'Addresses', icon: BiMessageSquareDetail },
+  HELPFUL: { label: 'Helpful', icon: BiHelpCircle },
+  LEADS_TO: { label: 'Leads to', icon: BiRightArrowAlt },
+  RELATED: { label: 'Related', icon: BiLink },
+  SUPPLEMENT: { label: 'Supplement', icon: PiNewspaperClipping },
+  EXPLAINER: { label: 'Explainer', icon: MdOutlinePsychologyAlt },
+};
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -26,14 +59,6 @@ export default function ProfileConnectionItem(props: Props) {
 
   const isOwner = user && user.id === props.curator.id;
 
-  const formatConnectionType = (type: string) => {
-    return type
-      .toLowerCase()
-      .split('_')
-      .map((word) => upperFirst(word))
-      .join(' ');
-  };
-
   const time = getRelativeTime(
     props.connection.connection.createdAt.toString(),
   );
@@ -41,30 +66,22 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Stack gap={'xs'} align="stretch">
-        {/* Source URL */}
-        <UrlCard
-          id={sourceUrlView.url}
-          url={sourceUrlView.url}
-          cardContent={sourceUrlView.metadata}
-          urlLibraryCount={sourceUrlView.urlLibraryCount}
-          urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
-          urlConnectionCount={sourceUrlView.urlConnectionCount ?? 0}
-        />
-
-        {/* Connection Metadata */}
-        <Card p={'xs'} radius={'md'} bg={'dark.6'}>
-          <Group justify="space-between" wrap="nowrap" align="start">
-            <Stack gap={4} style={{ flex: 1 }}>
-              <Group gap={'xs'} wrap="wrap">
-                <MdArrowDownward size={20} />
-                {props.connection.connection.type && (
-                  <Badge size="md" variant="light" color="blue">
-                    {formatConnectionType(props.connection.connection.type)}
-                  </Badge>
-                )}
-                <Text fz={'sm'} fw={600} c={'gray'}>
-                  {relativeCreatedDate}
+      <Card radius={'lg'} p={'xs'} bg={'gray.1'}>
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="center">
+            <Stack gap={'xs'}>
+              <Group gap={'xs'}>
+                <Avatar src={props.curator.avatarUrl} size={'sm'} />
+                <Text>
+                  <Text c={'bright'} fw={500} span>
+                    {props.curator.name}
+                  </Text>
+                  <Text c={'gray'} span>
+                    {' · '}
+                  </Text>
+                  <Text c={'gray'} span>
+                    {relativeCreatedDate}{' '}
+                  </Text>
                 </Text>
               </Group>
               {props.connection.connection.note && (
@@ -73,18 +90,19 @@ export default function ProfileConnectionItem(props: Props) {
                   hideLabel={'See less'}
                   maxHeight={60}
                 >
-                  <Text fw={500} fs={'italic'} c={'dimmed'} fz={'sm'}>
+                  <Text fs={'italic'} c={'dimmed'}>
                     {props.connection.connection.note}
                   </Text>
                 </Spoiler>
               )}
             </Stack>
+
             {isOwner && props.onEdit && (
               <Box>
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
                     <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsVertical size={18} />
+                      <HiDotsHorizontal />
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -106,18 +124,82 @@ export default function ProfileConnectionItem(props: Props) {
               </Box>
             )}
           </Group>
-        </Card>
 
-        {/* Target URL */}
-        <UrlCard
-          id={targetUrlView.url}
-          url={targetUrlView.url}
-          cardContent={targetUrlView.metadata}
-          urlLibraryCount={targetUrlView.urlLibraryCount}
-          urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
-          urlConnectionCount={targetUrlView.urlConnectionCount ?? 0}
-        />
-      </Stack>
+          <Grid gutter={'xs'} align="center">
+            {/* Source URL */}
+            <Grid.Col span={{ base: 12, sm: 5 }}>
+              <UrlCard
+                id={sourceUrlView.url}
+                url={sourceUrlView.url}
+                cardContent={sourceUrlView.metadata}
+                urlLibraryCount={sourceUrlView.urlLibraryCount}
+                urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
+                urlConnectionCount={sourceUrlView.urlConnectionCount ?? 0}
+              />
+            </Grid.Col>
+
+            {/* Connection Metadata */}
+            <Grid.Col span={{ base: 12, sm: 2 }}>
+              <Card p={0} radius={'md'} bg={'transparent'}>
+                <Group justify="center" wrap="nowrap" align="center">
+                  <Stack gap={0} align="center">
+                    {props.connection.connection.type &&
+                      (() => {
+                        const config =
+                          CONNECTION_TYPE_CONFIG[
+                            props.connection.connection.type
+                          ];
+                        const Icon = config.icon;
+                        return (
+                          <Stack align="center" gap={'xs'}>
+                            <ActionIcon
+                              color="gray"
+                              variant="light"
+                              radius={'xl'}
+                              hiddenFrom="sm"
+                            >
+                              <IoArrowDown size={18} />
+                            </ActionIcon>
+
+                            <ActionIcon
+                              color="gray"
+                              variant="light"
+                              radius={'xl'}
+                              visibleFrom="sm"
+                            >
+                              <IoArrowForward />
+                            </ActionIcon>
+
+                            <Badge
+                              size="md"
+                              color="green"
+                              variant="light"
+                              leftSection={<Icon />}
+                            >
+                              {config.label}
+                            </Badge>
+                          </Stack>
+                        );
+                      })()}
+                  </Stack>
+                </Group>
+              </Card>
+            </Grid.Col>
+
+            {/* Target URL */}
+            <Grid.Col span={{ base: 12, sm: 5 }}>
+              <UrlCard
+                id={targetUrlView.url}
+                url={targetUrlView.url}
+                cardContent={targetUrlView.metadata}
+                urlLibraryCount={targetUrlView.urlLibraryCount}
+                urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
+                urlConnectionCount={targetUrlView.urlConnectionCount ?? 0}
+              />
+            </Grid.Col>
+          </Grid>
+        </Stack>
+      </Card>
 
       <DeleteConnectionModal
         isOpen={deleteModalOpened}
