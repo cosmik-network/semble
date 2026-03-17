@@ -135,6 +135,19 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async create(collection: Collection): Promise<Result<void>> {
+    try {
+      const collectionId = collection.collectionId.getStringValue();
+      if (this.collections.has(collectionId)) {
+        return err(new Error('Collection already exists'));
+      }
+      this.collections.set(collectionId, this.clone(collection));
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async save(collection: Collection): Promise<Result<void>> {
     try {
       this.collections.set(

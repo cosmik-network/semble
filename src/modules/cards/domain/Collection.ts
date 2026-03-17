@@ -67,7 +67,6 @@ interface CollectionProps {
 
 export class Collection extends AggregateRoot<CollectionProps> {
   private pendingCommands: CollectionCommand[] = [];
-  private isFullySynced: boolean = true; // Flag to indicate if we have full data or just metadata
 
   get collectionId(): CollectionId {
     return CollectionId.create(this._id).unwrap();
@@ -501,13 +500,5 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
   public hasPendingCommands(): boolean {
     return this.pendingCommands.length > 0;
-  }
-
-  public markAsFullySynced(synced: boolean = true): void {
-    this.isFullySynced = synced;
-  }
-
-  public getIsFullySynced(): boolean {
-    return this.isFullySynced;
   }
 }

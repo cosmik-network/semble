@@ -18,7 +18,13 @@ export interface ICollectionRepository {
     cardId: CardId,
     addedBy: CuratorId,
   ): Promise<Result<Collection[]>>;
+
+  // Create a new collection (initial insert only)
+  create(collection: Collection): Promise<Result<void>>;
+
+  // Update an existing collection using pending commands
   save(collection: Collection): Promise<Result<void>>;
+
   delete(collectionId: CollectionId): Promise<Result<void>>;
 
   // Lightweight update for collection metadata only
