@@ -74,7 +74,7 @@ export default function ConnectionStatus(props: Props) {
         )
       }
     >
-      {truncateText(title || 'Card', 15)}
+      {truncateText(title || 'Card', 10)}
     </Button>
   );
 
@@ -173,13 +173,7 @@ export default function ConnectionStatus(props: Props) {
           </Group>
 
           {props.connection.type && (
-            <Badge
-              size="sm"
-              variant="light"
-              color="blue"
-              mt={'xs'}
-              style={{ textTransform: 'capitalize' }}
-            >
+            <Badge size="sm" variant="light" color="green" mt={'xs'}>
               {props.connection.type.toLowerCase().replace('_', ' ')}
             </Badge>
           )}
