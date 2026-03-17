@@ -12,6 +12,7 @@ import {
   Input,
   Loader,
   ScrollArea,
+  Skeleton,
   Stack,
   Text,
   Textarea,
@@ -83,8 +84,6 @@ export default function AddConnectionForm(props: Props) {
   const { data: recentCards } = useMyCards({ limit: 5 });
 
   const urls = searchResults?.urls ?? [];
-  const empty =
-    !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
 
   const form = useForm({
     initialValues: {
@@ -121,7 +120,7 @@ export default function AddConnectionForm(props: Props) {
     },
   });
 
-  const { data: sourceUrlMetadata } = useQuery({
+  const { data: sourceUrlMetadata, isLoading: isLoadingMetadata } = useQuery({
     queryKey: ['url metadata', form.values.sourceUrl],
     queryFn: async () => {
       const client = createSembleClient();
@@ -249,33 +248,41 @@ export default function AddConnectionForm(props: Props) {
           <Stack gap={0}>
             <Card withBorder component="article" p={'xs'} radius={'lg'}>
               <Group gap="xs" wrap="nowrap">
-                {sourceUrlMetadata?.metadata?.imageUrl && (
-                  <Image
-                    src={sourceUrlMetadata.metadata.imageUrl}
-                    alt={`${sourceUrlMetadata.metadata.title} social preview image`}
-                    radius={'md'}
-                    w={45}
-                    h={45}
-                  />
+                {isLoadingMetadata ? (
+                  <Skeleton width={45} height={45} radius={'md'} />
+                ) : (
+                  sourceUrlMetadata?.metadata?.imageUrl && (
+                    <Image
+                      src={sourceUrlMetadata.metadata.imageUrl}
+                      alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+                      radius={'md'}
+                      w={45}
+                      h={45}
+                    />
+                  )
                 )}
                 <Stack gap={0}>
-                  <Text fw={500} lineClamp={1} c={'bright'}>
-                    {sourceUrlMetadata?.metadata?.title ||
-                      form.values.sourceUrl}
-                  </Text>
-                  <Tooltip label={form.values.sourceUrl}>
-                    <Anchor
-                      component={Link}
-                      href={form.values.sourceUrl}
-                      target="_blank"
-                      c={'gray'}
-                      fz={'sm'}
-                      lineClamp={1}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {getDomain(form.values.sourceUrl)}
-                    </Anchor>
-                  </Tooltip>
+                  <Skeleton visible={isLoadingMetadata}>
+                    <Text fw={500} lineClamp={1} c={'bright'}>
+                      {sourceUrlMetadata?.metadata?.title ||
+                        form.values.sourceUrl}
+                    </Text>
+                  </Skeleton>
+                  <Skeleton visible={isLoadingMetadata} mt={4}>
+                    <Tooltip label={form.values.sourceUrl}>
+                      <Anchor
+                        component={Link}
+                        href={form.values.sourceUrl}
+                        target="_blank"
+                        c={'gray'}
+                        fz={'sm'}
+                        lineClamp={1}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {getDomain(form.values.sourceUrl)}
+                      </Anchor>
+                    </Tooltip>
+                  </Skeleton>
                 </Stack>
               </Group>
             </Card>
