@@ -1,5 +1,4 @@
 import {
-  Anchor,
   Avatar,
   Card,
   Group,
@@ -19,9 +18,10 @@ import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete } from 'react-icons/md';
+import { MdEdit } from 'react-icons/md';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import CardChip from '@/features/cards/components/cardChip/CardChip';
+import { BsTrash2Fill } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -122,7 +122,7 @@ export default function ConnectionStatus(props: Props) {
                       Edit
                     </Menu.Item>
                     <Menu.Item
-                      leftSection={<MdDelete size={16} />}
+                      leftSection={<BsTrash2Fill size={16} />}
                       color="red"
                       onClick={() => setDeleteModalOpened(true)}
                     >
