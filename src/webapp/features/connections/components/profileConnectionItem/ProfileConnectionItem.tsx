@@ -22,6 +22,7 @@ import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import styles from './ProfileConnectionItem.module.css';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
+import Link from 'next/link';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -50,9 +51,24 @@ export default function ProfileConnectionItem(props: Props) {
           <Group justify="space-between" align="center">
             <Stack gap={'xs'}>
               <Group gap={'xs'}>
-                <Avatar src={props.curator.avatarUrl} size={'sm'} />
+                <Avatar
+                  component={Link}
+                  href={`/profile/${props.curator.handle}`}
+                  src={props.curator.avatarUrl?.replace(
+                    'avatar',
+                    'avatar_thumbnail',
+                  )}
+                  alt={`${props.curator.name}'s avatar`}
+                  size={'sm'}
+                />
                 <Text>
-                  <Text c={'bright'} fw={500} span>
+                  <Text
+                    c={'bright'}
+                    fw={500}
+                    component={Link}
+                    href={`/profile/${props.curator.handle}`}
+                    span
+                  >
                     {props.curator.name}
                   </Text>
                   <Text c={'gray'} span>
