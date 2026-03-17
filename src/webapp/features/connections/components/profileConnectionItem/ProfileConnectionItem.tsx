@@ -14,7 +14,7 @@ import {
   ThemeIcon,
 } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdEdit, MdDelete } from 'react-icons/md';
+import { MdEdit } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { useState } from 'react';
@@ -24,6 +24,7 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 import styles from './ProfileConnectionItem.module.css';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
+import { BsTrash2Fill } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -109,7 +110,7 @@ export default function ProfileConnectionItem(props: Props) {
                       Edit
                     </Menu.Item>
                     <Menu.Item
-                      leftSection={<MdDelete size={16} />}
+                      leftSection={<BsTrash2Fill size={16} />}
                       color="red"
                       onClick={() => setDeleteModalOpened(true)}
                     >
