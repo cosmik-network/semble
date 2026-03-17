@@ -1,8 +1,9 @@
 import { Result } from '../../../shared/core/Result';
-import { Collection } from './Collection';
+import { Collection, CollectionAccessType } from './Collection';
 import { CollectionId } from './value-objects/CollectionId';
 import { CardId } from './value-objects/CardId';
 import { CuratorId } from './value-objects/CuratorId';
+import { PublishedRecordId } from './value-objects/PublishedRecordId';
 
 export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;
@@ -19,6 +20,17 @@ export interface ICollectionRepository {
   ): Promise<Result<Collection[]>>;
   save(collection: Collection): Promise<Result<void>>;
   delete(collectionId: CollectionId): Promise<Result<void>>;
+
+  // Lightweight update for collection metadata only
+  updateMetadata(
+    collectionId: CollectionId,
+    updates: {
+      name?: string;
+      description?: string;
+      accessType?: CollectionAccessType;
+      publishedRecordId?: PublishedRecordId;
+    },
+  ): Promise<Result<void>>;
 
   // Batch operation for efficient multi-collection updates
   addCardToMultipleCollections(

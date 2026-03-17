@@ -122,14 +122,18 @@ export class UpdateCollectionUseCase
 
       // Handle republishing - skip if publishedRecordId provided (firehose event)
       if (request.publishedRecordId) {
-        // Update published record ID with provided value
-        collection.markAsPublished(request.publishedRecordId);
-
-        // Save collection with updated published record ID
-        const saveUpdatedResult =
-          await this.collectionRepository.save(collection);
-        if (saveUpdatedResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+        // Update collection metadata with new published record ID
+        const updateMetadataResult =
+          await this.collectionRepository.updateMetadata(collectionId, {
+            name: request.name,
+            description: request.description,
+            accessType: request.accessType,
+            publishedRecordId: request.publishedRecordId,
+          });
+        if (updateMetadataResult.isErr()) {
+          return err(
+            AppError.UnexpectedError.create(updateMetadataResult.error),
+          );
         }
       } else if (collection.isPublished) {
         // Republish collection normally
@@ -147,14 +151,31 @@ export class UpdateCollectionUseCase
           );
         }
 
-        // Update published record ID
-        collection.markAsPublished(republishResult.value);
-
-        // Save collection with updated published record ID
-        const saveUpdatedResult =
-          await this.collectionRepository.save(collection);
-        if (saveUpdatedResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+        // Update collection metadata with new published record ID
+        const updateMetadataResult =
+          await this.collectionRepository.updateMetadata(collectionId, {
+            name: request.name,
+            description: request.description,
+            accessType: request.accessType,
+            publishedRecordId: republishResult.value,
+          });
+        if (updateMetadataResult.isErr()) {
+          return err(
+            AppError.UnexpectedError.create(updateMetadataResult.error),
+          );
+        }
+      } else {
+        // Not published - just update metadata
+        const updateMetadataResult =
+          await this.collectionRepository.updateMetadata(collectionId, {
+            name: request.name,
+            description: request.description,
+            accessType: request.accessType,
+          });
+        if (updateMetadataResult.isErr()) {
+          return err(
+            AppError.UnexpectedError.create(updateMetadataResult.error),
+          );
         }
       }
 

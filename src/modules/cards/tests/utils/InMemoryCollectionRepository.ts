@@ -4,6 +4,7 @@ import { Collection } from '../../domain/Collection';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 
 export class InMemoryCollectionRepository implements ICollectionRepository {
   private static instance: InMemoryCollectionRepository;
@@ -149,6 +150,53 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
   async delete(collectionId: CollectionId): Promise<Result<void>> {
     try {
       this.collections.delete(collectionId.getStringValue());
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async updateMetadata(
+    collectionId: CollectionId,
+    updates: {
+      name?: string;
+      description?: string;
+      accessType?: string;
+      publishedRecordId?: PublishedRecordId;
+    },
+  ): Promise<Result<void>> {
+    try {
+      const collection = this.collections.get(collectionId.getStringValue());
+      if (!collection) {
+        return err(new Error('Collection not found'));
+      }
+
+      // For in-memory implementation, we need to update the collection directly
+      // This is a simplified implementation that updates the internal state
+      if (updates.name !== undefined || updates.description !== undefined) {
+        const updateResult = collection.updateDetails(
+          updates.name || collection.name.value,
+          updates.description !== undefined
+            ? updates.description
+            : collection.description?.value,
+        );
+        if (updateResult.isErr()) {
+          return err(updateResult.error);
+        }
+      }
+
+      // Handle publishedRecordId update if provided
+      if (updates.publishedRecordId !== undefined) {
+        collection.markAsPublished(updates.publishedRecordId);
+      }
+
+      // Note: accessType updates would require domain methods
+      // For testing purposes, this simplified implementation is sufficient
+
+      this.collections.set(
+        collectionId.getStringValue(),
+        this.clone(collection),
+      );
       return ok(undefined);
     } catch (error) {
       return err(error as Error);

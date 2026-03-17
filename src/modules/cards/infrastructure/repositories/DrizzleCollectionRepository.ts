@@ -9,6 +9,7 @@ import {
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 import {
   collections,
   collectionCollaborators,
@@ -620,23 +621,30 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           // Handle collection published record if it exists
           let publishedRecordId: string | undefined;
           if (collection.publishedRecordId) {
-            const recordId = new UniqueEntityID().toString();
-            const recordedAt = new Date();
-            const insertResult = await tx
-              .insert(publishedRecords)
-              .values({
+            // Check if record already exists
+            const existing = await tx
+              .select({ id: publishedRecords.id })
+              .from(publishedRecords)
+              .where(
+                and(
+                  eq(publishedRecords.uri, collection.publishedRecordId.uri),
+                  eq(publishedRecords.cid, collection.publishedRecordId.cid),
+                ),
+              )
+              .limit(1);
+
+            if (existing[0]) {
+              publishedRecordId = existing[0].id;
+            } else {
+              const recordId = new UniqueEntityID().toString();
+              await tx.insert(publishedRecords).values({
                 id: recordId,
                 uri: collection.publishedRecordId.uri,
                 cid: collection.publishedRecordId.cid,
-                recordedAt: recordedAt,
-              })
-              .onConflictDoUpdate({
-                target: [publishedRecords.uri, publishedRecords.cid],
-                set: { recordedAt: recordedAt },
-              })
-              .returning({ id: publishedRecords.id });
-
-            publishedRecordId = insertResult[0]?.id || recordId;
+                recordedAt: new Date(),
+              });
+              publishedRecordId = recordId;
+            }
           }
 
           // Upsert the collection
@@ -666,26 +674,33 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
                 const link = command.payload as CardLink;
                 const cardLinkId = new UniqueEntityID().toString();
 
-                // Handle published record if present - optimized version
+                // Handle published record if present
                 let publishedRecordId: string | undefined;
                 if (link.publishedRecordId) {
-                  const recordId = new UniqueEntityID().toString();
-                  const recordedAt = new Date();
-                  const insertResult = await tx
-                    .insert(publishedRecords)
-                    .values({
+                  // Check if record already exists
+                  const existing = await tx
+                    .select({ id: publishedRecords.id })
+                    .from(publishedRecords)
+                    .where(
+                      and(
+                        eq(publishedRecords.uri, link.publishedRecordId.uri),
+                        eq(publishedRecords.cid, link.publishedRecordId.cid),
+                      ),
+                    )
+                    .limit(1);
+
+                  if (existing[0]) {
+                    publishedRecordId = existing[0].id;
+                  } else {
+                    const recordId = new UniqueEntityID().toString();
+                    await tx.insert(publishedRecords).values({
                       id: recordId,
                       uri: link.publishedRecordId.uri,
                       cid: link.publishedRecordId.cid,
-                      recordedAt: recordedAt,
-                    })
-                    .onConflictDoUpdate({
-                      target: [publishedRecords.uri, publishedRecords.cid],
-                      set: { recordedAt: recordedAt }, // Update recordedAt to avoid empty set
-                    })
-                    .returning({ id: publishedRecords.id });
-
-                  publishedRecordId = insertResult[0]?.id || recordId;
+                      recordedAt: new Date(),
+                    });
+                    publishedRecordId = recordId;
+                  }
                 }
 
                 // Insert the new card link
@@ -707,26 +722,33 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
               case CollectionCommandType.UPDATE_CARD_LINK: {
                 const { cardId, publishedRecordId } = command.payload;
 
-                // Handle published record - optimized version
+                // Handle published record
                 let recordId: string | undefined;
                 if (publishedRecordId) {
-                  const newRecordId = new UniqueEntityID().toString();
-                  const recordedAt = new Date();
-                  const insertResult = await tx
-                    .insert(publishedRecords)
-                    .values({
+                  // Check if record already exists
+                  const existing = await tx
+                    .select({ id: publishedRecords.id })
+                    .from(publishedRecords)
+                    .where(
+                      and(
+                        eq(publishedRecords.uri, publishedRecordId.uri),
+                        eq(publishedRecords.cid, publishedRecordId.cid),
+                      ),
+                    )
+                    .limit(1);
+
+                  if (existing[0]) {
+                    recordId = existing[0].id;
+                  } else {
+                    const newRecordId = new UniqueEntityID().toString();
+                    await tx.insert(publishedRecords).values({
                       id: newRecordId,
                       uri: publishedRecordId.uri,
                       cid: publishedRecordId.cid,
-                      recordedAt: recordedAt,
-                    })
-                    .onConflictDoUpdate({
-                      target: [publishedRecords.uri, publishedRecords.cid],
-                      set: { recordedAt: recordedAt }, // Update recordedAt to avoid empty set
-                    })
-                    .returning({ id: publishedRecords.id });
-
-                  recordId = insertResult[0]?.id || newRecordId;
+                      recordedAt: new Date(),
+                    });
+                    recordId = newRecordId;
+                  }
                 }
 
                 // Update the card link
@@ -896,6 +918,76 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       await this.db.delete(collections).where(eq(collections.id, id));
 
       return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async updateMetadata(
+    collectionId: CollectionId,
+    updates: {
+      name?: string;
+      description?: string;
+      accessType?: string;
+      publishedRecordId?: PublishedRecordId;
+    },
+  ): Promise<Result<void>> {
+    try {
+      const id = collectionId.getStringValue();
+
+      return await this.db.transaction(async (tx) => {
+        // Build the update object with only provided fields
+        const updateData: any = {
+          updatedAt: new Date(),
+        };
+
+        if (updates.name !== undefined) {
+          updateData.name = updates.name;
+        }
+        if (updates.description !== undefined) {
+          updateData.description = updates.description;
+        }
+        if (updates.accessType !== undefined) {
+          updateData.accessType = updates.accessType;
+        }
+
+        // Handle published record if provided
+        if (updates.publishedRecordId !== undefined) {
+          // Check if record already exists
+          const existing = await tx
+            .select({ id: publishedRecords.id })
+            .from(publishedRecords)
+            .where(
+              and(
+                eq(publishedRecords.uri, updates.publishedRecordId.uri),
+                eq(publishedRecords.cid, updates.publishedRecordId.cid),
+              ),
+            )
+            .limit(1);
+
+          let recordId: string;
+          if (existing[0]) {
+            recordId = existing[0].id;
+          } else {
+            const newRecordId = new UniqueEntityID().toString();
+            await tx.insert(publishedRecords).values({
+              id: newRecordId,
+              uri: updates.publishedRecordId.uri,
+              cid: updates.publishedRecordId.cid,
+              recordedAt: new Date(),
+            });
+            recordId = newRecordId;
+          }
+          updateData.publishedRecordId = recordId;
+        }
+
+        await tx
+          .update(collections)
+          .set(updateData)
+          .where(eq(collections.id, id));
+
+        return ok(undefined);
+      });
     } catch (error) {
       return err(error as Error);
     }

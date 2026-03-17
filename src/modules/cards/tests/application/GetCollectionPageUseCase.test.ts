@@ -711,6 +711,7 @@ describe('GetCollectionPageUseCase', () => {
         findByIds: jest.fn(),
         save: jest.fn(),
         delete: jest.fn(),
+        updateMetadata: jest.fn(),
         findByCuratorId: jest.fn(),
         findByCardId: jest.fn(),
         findByCuratorIdContainingCard: jest.fn(),
