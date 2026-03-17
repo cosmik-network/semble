@@ -10,19 +10,18 @@ import {
   ActionIcon,
   Menu,
   Box,
-  Button,
-  Image,
 } from '@mantine/core';
 import { ConnectionWithSourceAndTarget, User, UrlView } from '@semble/types';
 import Link from 'next/link';
 import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
-import { sanitizeText, truncateText } from '@/lib/utils/text';
+import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
 import { MdEdit, MdDelete } from 'react-icons/md';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
+import CardChip from '@/features/cards/components/cardChip/CardChip';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -41,43 +40,6 @@ export default function ConnectionStatus(props: Props) {
 
   const isOwner = user && user.id === props.connection.curator.id;
 
-  const CardButton = ({
-    url,
-    title,
-    imageUrl,
-  }: {
-    url: string;
-    title?: string;
-    imageUrl?: string;
-  }) => (
-    <Button
-      component={Link}
-      href={`/url?id=${encodeURIComponent(url)}`}
-      variant="outline"
-      color="gray.3"
-      bg="gray.2"
-      c={'gray.7'}
-      size="compact-sm"
-      radius={'md'}
-      leftSection={
-        imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt=""
-            w={16}
-            h={16}
-            fit="cover"
-            radius={'sm'}
-          />
-        ) : (
-          <Avatar size={18} radius={'sm'} />
-        )
-      }
-    >
-      {truncateText(title || 'Card', 10)}
-    </Button>
-  );
-
   const renderConnectionText = () => {
     const curator = props.connection.curator;
 
@@ -95,13 +57,13 @@ export default function ConnectionStatus(props: Props) {
           <Text>connected</Text>
           {props.direction === 'forward' ? (
             <>
-              <CardButton
+              <CardChip
                 url={props.source.url}
                 title={props.source.metadata.title}
                 imageUrl={props.source.metadata.imageUrl}
               />
               <Text>→</Text>
-              <CardButton
+              <CardChip
                 url={props.target.url}
                 title={props.target.metadata.title}
                 imageUrl={props.target.metadata.imageUrl}
@@ -109,13 +71,13 @@ export default function ConnectionStatus(props: Props) {
             </>
           ) : (
             <>
-              <CardButton
+              <CardChip
                 url={props.target.url}
                 title={props.target.metadata.title}
                 imageUrl={props.target.metadata.imageUrl}
               />
               <Text>→</Text>
-              <CardButton
+              <CardChip
                 url={props.source.url}
                 title={props.source.metadata.title}
                 imageUrl={props.source.metadata.imageUrl}
