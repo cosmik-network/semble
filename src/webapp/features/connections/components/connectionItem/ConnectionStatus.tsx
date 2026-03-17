@@ -122,7 +122,7 @@ export default function ConnectionStatus(props: Props) {
                       Edit
                     </Menu.Item>
                     <Menu.Item
-                      leftSection={<BsTrash2Fill size={16} />}
+                      leftSection={<BsTrash2Fill />}
                       color="red"
                       onClick={() => setDeleteModalOpened(true)}
                     >
