@@ -29,6 +29,7 @@ import {
 import { PiNewspaperClipping } from 'react-icons/pi';
 import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
+import styles from './ProfileConnectionItem.module.css';
 
 const CONNECTION_TYPE_CONFIG: Record<
   string,
@@ -66,7 +67,7 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Card radius={'lg'} p={'xs'} bg={'gray.1'}>
+      <Card radius={'lg'} p={'xs'} className={styles.root}>
         <Stack gap={'xs'}>
           <Group justify="space-between" align="center">
             <Stack gap={'xs'}>
@@ -90,7 +91,7 @@ export default function ProfileConnectionItem(props: Props) {
                   hideLabel={'See less'}
                   maxHeight={60}
                 >
-                  <Text fs={'italic'} c={'dimmed'}>
+                  <Text fw={500} fs={'italic'} c={'gray'}>
                     {props.connection.connection.note}
                   </Text>
                 </Spoiler>
