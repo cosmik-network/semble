@@ -32,7 +32,7 @@ export default function CardChip(props: CardChipProps) {
         ) : (
           <Avatar size={18} radius={'sm'} />
         )}
-        <Text size="sm" fw={500}>
+        <Text size="xs" fw={600}>
           {truncateText(props.title || 'Card', 10)}
         </Text>
       </Group>
