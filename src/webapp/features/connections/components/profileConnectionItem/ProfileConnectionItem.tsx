@@ -11,6 +11,7 @@ import {
   ActionIcon,
   Menu,
   Spoiler,
+  ThemeIcon,
 } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { MdEdit, MdDelete } from 'react-icons/md';
@@ -147,23 +148,23 @@ export default function ProfileConnectionItem(props: Props) {
                         const Icon = config.icon;
                         return (
                           <Stack align="center" gap={'xs'}>
-                            <ActionIcon
+                            <ThemeIcon
                               color="gray"
                               variant="light"
                               radius={'xl'}
                               hiddenFrom="sm"
                             >
                               <IoArrowDown size={18} />
-                            </ActionIcon>
+                            </ThemeIcon>
 
-                            <ActionIcon
+                            <ThemeIcon
                               color="gray"
                               variant="light"
                               radius={'xl'}
                               visibleFrom="sm"
                             >
                               <IoArrowForward />
-                            </ActionIcon>
+                            </ThemeIcon>
 
                             <Badge
                               size="md"
