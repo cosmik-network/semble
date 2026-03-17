@@ -4,7 +4,7 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Button, Grid, Group, Stack } from '@mantine/core';
+import { Grid, Group, Stack } from '@mantine/core';
 import SembleConnectionsContainerError from './Error.SembleConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
@@ -15,7 +15,6 @@ import { ConnectionFilters } from '@/features/connections/components/connectionF
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
-import { TbPlugConnected } from 'react-icons/tb';
 
 type Direction = 'to' | 'from' | 'all';
 
@@ -138,22 +137,13 @@ export default function SembleConnectionsContainer(props: Props) {
     <>
       <Stack gap={'md'} align="center">
         <Group justify="space-between" w={'100%'} maw={600}>
-          <Group gap={'xs'}>
-            <DirectionToggle value={direction} onChange={setDirection} />
-            <ConnectionFilters.Root
-              connectionType={connectionType}
-              onConnectionTypeChange={setConnectionType}
-            >
-              <ConnectionFilters.ConnectionTypeFilter />
-            </ConnectionFilters.Root>
-          </Group>
-          <Button
-            leftSection={<TbPlugConnected size={18} />}
-            onClick={handleOpenCreateDrawer}
-            color="green"
+          <DirectionToggle value={direction} onChange={setDirection} />
+          <ConnectionFilters.Root
+            connectionType={connectionType}
+            onConnectionTypeChange={setConnectionType}
           >
-            Connect
-          </Button>
+            <ConnectionFilters.ConnectionTypeFilter />
+          </ConnectionFilters.Root>
         </Group>
 
         {connections.length === 0 && !isPending ? (
