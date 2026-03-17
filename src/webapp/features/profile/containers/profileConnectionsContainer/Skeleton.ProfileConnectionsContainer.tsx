@@ -5,30 +5,8 @@ import {
   Group,
   Skeleton,
   Stack,
-  Card,
 } from '@mantine/core';
-import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
-
-function ProfileConnectionItemSkeleton() {
-  return (
-    <Stack gap={'xs'}>
-      {/* Source URL */}
-      <UrlCardSkeleton />
-
-      {/* Connection metadata */}
-      <Card p={'xs'} radius={'md'} bg={'dark.6'}>
-        <Group gap={'xs'}>
-          <Skeleton height={20} width={20} circle />
-          <Skeleton height={24} width={80} radius={'xl'} />
-          <Skeleton height={20} width={60} />
-        </Group>
-      </Card>
-
-      {/* Target URL */}
-      <UrlCardSkeleton />
-    </Stack>
-  );
-}
+import ProfileConnectionItemSkeleton from '@/features/connections/components/profileConnectionItem/Skeleton.ProfileConnectionItem';
 
 export default function ProfileConnectionsContainerSkeleton() {
   return (
