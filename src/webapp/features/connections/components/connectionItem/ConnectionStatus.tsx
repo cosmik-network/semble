@@ -10,12 +10,14 @@ import {
   ActionIcon,
   Menu,
   Box,
+  Button,
+  Image,
 } from '@mantine/core';
-import { ConnectionWithSourceAndTarget, User } from '@semble/types';
+import { ConnectionWithSourceAndTarget, User, UrlView } from '@semble/types';
 import Link from 'next/link';
 import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
-import { sanitizeText } from '@/lib/utils/text';
+import { sanitizeText, truncateText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { HiDotsVertical } from 'react-icons/hi';
@@ -24,6 +26,8 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
+  source: UrlView;
+  target: UrlView;
   direction: 'forward' | 'backward';
   onEdit?: () => void;
 }
@@ -37,41 +41,94 @@ export default function ConnectionStatus(props: Props) {
 
   const isOwner = user && user.id === props.connection.curator.id;
 
+  const CardButton = ({
+    url,
+    title,
+    imageUrl,
+  }: {
+    url: string;
+    title?: string;
+    imageUrl?: string;
+  }) => (
+    <Button
+      component={Link}
+      href={`/url?id=${encodeURIComponent(url)}`}
+      variant="outline"
+      color="gray.3"
+      bg="gray.2"
+      c={'gray.7'}
+      size="compact-sm"
+      radius={'md'}
+      leftSection={
+        imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt=""
+            w={16}
+            h={16}
+            fit="cover"
+            radius={'sm'}
+          />
+        ) : (
+          <Avatar size={18} radius={'sm'} />
+        )
+      }
+    >
+      {truncateText(title || 'Card', 15)}
+    </Button>
+  );
+
   const renderConnectionText = () => {
     const curator = props.connection.curator;
-    const connectionType = props.connection.type;
 
     return (
       <Text component="div" fw={500}>
-        <Text
-          component={Link}
-          href={`/profile/${curator.handle}`}
-          fw={600}
-          c={'bright'}
-        >
-          {sanitizeText(curator.name)}
-        </Text>{' '}
-        <Text span>
-          {props.direction === 'forward' ? 'connected to' : 'connected from'}
-        </Text>
-        {connectionType && (
-          <Badge
-            size="sm"
-            variant="light"
-            color="blue"
-            ml={'xs'}
-            style={{ textTransform: 'capitalize' }}
+        <Group gap={5} wrap="wrap" align="center">
+          <Text
+            component={Link}
+            href={`/profile/${curator.handle}`}
+            fw={600}
+            c={'bright'}
           >
-            {connectionType.toLowerCase().replace('_', ' ')}
-          </Badge>
-        )}
-        <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-          {relativeCreatedDate}
-        </Text>
+            {sanitizeText(curator.name)}
+          </Text>
+          <Text>connected</Text>
+          {props.direction === 'forward' ? (
+            <>
+              <CardButton
+                url={props.source.url}
+                title={props.source.metadata.title}
+                imageUrl={props.source.metadata.imageUrl}
+              />
+              <Text>→</Text>
+              <CardButton
+                url={props.target.url}
+                title={props.target.metadata.title}
+                imageUrl={props.target.metadata.imageUrl}
+              />
+            </>
+          ) : (
+            <>
+              <CardButton
+                url={props.target.url}
+                title={props.target.metadata.title}
+                imageUrl={props.target.metadata.imageUrl}
+              />
+              <Text>→</Text>
+              <CardButton
+                url={props.source.url}
+                title={props.source.metadata.title}
+                imageUrl={props.source.metadata.imageUrl}
+              />
+            </>
+          )}
+          <Text fz={'sm'} fw={600} c={'gray'} mt={4}>
+            {relativeCreatedDate}
+          </Text>
+        </Group>
       </Text>
     );
   };
-
   return (
     <>
       <Card p={0} className={styles.root} radius={'lg'}>
@@ -114,6 +171,19 @@ export default function ConnectionStatus(props: Props) {
               </Box>
             )}
           </Group>
+
+          {props.connection.type && (
+            <Badge
+              size="sm"
+              variant="light"
+              color="blue"
+              mt={'xs'}
+              style={{ textTransform: 'capitalize' }}
+            >
+              {props.connection.type.toLowerCase().replace('_', ' ')}
+            </Badge>
+          )}
+
           {props.connection.note && (
             <Spoiler
               showLabel={'Read more'}
