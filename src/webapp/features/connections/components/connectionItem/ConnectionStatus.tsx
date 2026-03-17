@@ -48,7 +48,7 @@ export default function ConnectionStatus(props: Props) {
       {
         onSuccess: () => {
           notifications.show({
-            message: 'Connection deleted successfully',
+            message: 'Connection deleted',
             color: 'green',
             icon: <BsCheck />,
           });

@@ -35,7 +35,7 @@ export default function ProfileConnectionItem(props: Props) {
       {
         onSuccess: () => {
           notifications.show({
-            message: 'Connection deleted successfully',
+            message: 'Connection deleted',
             color: 'green',
             icon: <BsCheck />,
           });

@@ -162,9 +162,9 @@ export default function Composer(props: Props) {
             id: notificationId,
             color: 'green',
             title: 'Success!',
-            message: 'Card added successfully',
+            message: 'Card added',
             loading: false,
-            autoClose: 4000,
+            autoClose: 3000,
             icon: <BsCheck />,
           });
         },

@@ -108,7 +108,7 @@ export default function AddConnectionForm(props: Props) {
           onSuccess: () => {
             props.onClose();
             notifications.show({
-              message: 'Connection updated successfully',
+              message: 'Connection updated',
               color: 'green',
               icon: <BsCheck />,
             });
@@ -144,7 +144,7 @@ export default function AddConnectionForm(props: Props) {
           onSuccess: () => {
             props.onClose();
             notifications.show({
-              message: 'Connection created successfully',
+              message: 'Connection created',
               color: 'green',
               icon: <BsCheck />,
             });

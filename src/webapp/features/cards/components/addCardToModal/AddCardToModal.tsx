@@ -88,9 +88,9 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'green',
               title: 'Success!',
-              message: 'Card added successfully',
+              message: 'Card added',
               loading: false,
-              autoClose: 4000,
+              autoClose: 3000,
               icon: <BsCheck />,
             });
           },
@@ -147,9 +147,9 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'green',
               title: 'Success!',
-              message: 'Card updated successfully',
+              message: 'Card updated',
               loading: false,
-              autoClose: 4000,
+              autoClose: 3000,
               icon: <BsCheck />,
             });
           },
