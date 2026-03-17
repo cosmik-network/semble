@@ -10,11 +10,11 @@ import ConnectionItem from '@/features/connections/components/connectionItem/Con
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
-import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 type Direction = 'to' | 'from' | 'all';
 
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function SembleConnectionsContainer(props: Props) {
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+  const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false);
 
   const [direction, setDirection] = useState<Direction>('all');
@@ -35,22 +35,17 @@ export default function SembleConnectionsContainer(props: Props) {
     targetUrl: string;
   } | null>(null);
 
-  const handleOpenCreateDrawer = () => {
-    setConnectionToEdit(null);
-    openDrawer();
-  };
-
-  const handleOpenEditDrawer = (
+  const handleOpenEditModal = (
     connection: ConnectionWithSourceAndTarget['connection'],
     targetUrl: string,
   ) => {
     setConnectionToEdit({ connection, targetUrl });
-    openDrawer();
+    openModal();
   };
 
-  const handleCloseDrawer = () => {
+  const handleCloseModal = () => {
     setConnectionToEdit(null);
-    closeDrawer();
+    closeModal();
   };
 
   const connectionTypes = connectionType ? [connectionType] : undefined;
@@ -178,7 +173,7 @@ export default function SembleConnectionsContainer(props: Props) {
                       connection={connection}
                       direction={connectionDirection}
                       onEdit={() => {
-                        handleOpenEditDrawer(connection.connection, targetUrl);
+                        handleOpenEditModal(connection.connection, targetUrl);
                       }}
                     />
                   </Grid.Col>
@@ -189,9 +184,9 @@ export default function SembleConnectionsContainer(props: Props) {
         )}
       </Stack>
 
-      <AddConnectionDrawer
-        isOpen={drawerOpened}
-        onClose={handleCloseDrawer}
+      <AddConnectionModal
+        isOpen={modalOpened}
+        onClose={handleCloseModal}
         sourceUrl={props.url}
         connectionToEdit={connectionToEdit || undefined}
       />
