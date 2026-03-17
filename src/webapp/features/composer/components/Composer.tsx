@@ -36,7 +36,6 @@ import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 type ComposerMode = 'card' | 'collection';
@@ -54,7 +53,6 @@ interface Props {
 
 export default function Composer(props: Props) {
   const pathname = usePathname();
-  const { data: featureFlags } = useFeatureFlags();
   const [mode, setMode] = useState<ComposerMode>(props.initialMode ?? 'card');
 
   // Card form state
@@ -129,8 +127,6 @@ export default function Composer(props: Props) {
     e.preventDefault();
     track('add new card');
 
-    const isOptimistic = featureFlags?.optimisticCardAdding ?? false;
-
     // Capture values before any state changes
     const cardData = {
       url: cardForm.getValues().url,
@@ -138,76 +134,51 @@ export default function Composer(props: Props) {
       collectionIds: selectedCollections.map((c) => c.id),
     };
 
-    if (isOptimistic) {
-      // Show loading toast immediately
-      const notificationId = `add-card-${Date.now()}`;
-      notifications.show({
-        id: notificationId,
-        loading: true,
-        title: 'Adding card...',
-        message: 'Please wait',
-        position: 'top-center',
-        autoClose: false,
-        withCloseButton: false,
-      });
+    // Show loading toast immediately
+    const notificationId = `add-card-${Date.now()}`;
+    notifications.show({
+      id: notificationId,
+      loading: true,
+      title: 'Adding card...',
+      message: 'Please wait',
+      position: 'top-center',
+      autoClose: false,
+      withCloseButton: false,
+    });
 
-      // Close drawer immediately
-      props.onClose();
-      setSelectedCollections(initialCollections);
-      window.history.replaceState({}, '', window.location.pathname);
-      cardForm.reset();
+    // Close drawer immediately
+    props.onClose();
+    setSelectedCollections(initialCollections);
+    window.history.replaceState({}, '', window.location.pathname);
+    cardForm.reset();
 
-      addCard.mutate(cardData, {
-        onSuccess: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'green',
-            title: 'Success!',
-            message: 'Card added',
-            position: 'top-center',
-            loading: false,
-            autoClose: 3000,
-            icon: <BsCheck />,
-          });
-        },
-        onError: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'red',
-            title: 'Error',
-            message: 'Could not add card',
-            position: 'top-center',
-            loading: false,
-            autoClose: 5000,
-            withCloseButton: true,
-            icon: <BsExclamation />,
-          });
-        },
-      });
-    } else {
-      // Original behavior: wait for response
-      addCard.mutate(cardData, {
-        onSuccess: () => {
-          setSelectedCollections(initialCollections);
-          props.onClose();
-          window.history.replaceState({}, '', window.location.pathname);
-        },
-        onError: () => {
-          notifications.update({
-            color: 'red',
-            title: 'Error',
-            message: 'Could not add card',
-            position: 'top-center',
-            autoClose: 5000,
-            withCloseButton: true,
-            icon: <BsExclamation />,
-          });
-        },
-        onSettled: () => {
-          cardForm.reset();
-        },
-      });
-    }
+    addCard.mutate(cardData, {
+      onSuccess: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'green',
+          title: 'Success!',
+          message: 'Card added',
+          position: 'top-center',
+          loading: false,
+          autoClose: 3000,
+          icon: <BsCheck />,
+        });
+      },
+      onError: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'red',
+          title: 'Error',
+          message: 'Could not add card',
+          position: 'top-center',
+          loading: false,
+          autoClose: 5000,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
+      },
+    });
   };
 
   const handleCreateCollection = (e: React.FormEvent) => {

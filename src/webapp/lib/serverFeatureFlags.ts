@@ -40,6 +40,5 @@ export async function getServerFeatureFlags() {
     following: true,
     connections: show,
     graphView: show,
-    optimisticCardAdding: showForTeam,
   };
 }
