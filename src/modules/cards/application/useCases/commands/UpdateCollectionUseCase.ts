@@ -125,9 +125,9 @@ export class UpdateCollectionUseCase
         // Update collection metadata with new published record ID
         const updateMetadataResult =
           await this.collectionRepository.updateMetadata(collectionId, {
-            name: request.name,
-            description: request.description,
-            accessType: request.accessType,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
             publishedRecordId: request.publishedRecordId,
           });
         if (updateMetadataResult.isErr()) {
@@ -154,9 +154,9 @@ export class UpdateCollectionUseCase
         // Update collection metadata with new published record ID
         const updateMetadataResult =
           await this.collectionRepository.updateMetadata(collectionId, {
-            name: request.name,
-            description: request.description,
-            accessType: request.accessType,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
             publishedRecordId: republishResult.value,
           });
         if (updateMetadataResult.isErr()) {
@@ -168,9 +168,9 @@ export class UpdateCollectionUseCase
         // Not published - just update metadata
         const updateMetadataResult =
           await this.collectionRepository.updateMetadata(collectionId, {
-            name: request.name,
-            description: request.description,
-            accessType: request.accessType,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
           });
         if (updateMetadataResult.isErr()) {
           return err(

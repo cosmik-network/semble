@@ -789,10 +789,39 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
               break;
             }
 
-            case CollectionCommandType.ADD_COLLABORATOR:
-            case CollectionCommandType.REMOVE_COLLABORATOR:
-              // Handle collaborator changes if needed
+            case CollectionCommandType.ADD_COLLABORATOR: {
+              const { collaboratorId } = command.payload;
+              const collaboratorLinkId = new UniqueEntityID().toString();
+
+              // Insert the new collaborator
+              await tx
+                .insert(collectionCollaborators)
+                .values({
+                  id: collaboratorLinkId,
+                  collectionId: collectionId,
+                  collaboratorId: collaboratorId.value,
+                })
+                .onConflictDoNothing(); // Idempotent - ignore if already exists
               break;
+            }
+
+            case CollectionCommandType.REMOVE_COLLABORATOR: {
+              const { collaboratorId } = command.payload;
+
+              // Delete the collaborator
+              await tx
+                .delete(collectionCollaborators)
+                .where(
+                  and(
+                    eq(collectionCollaborators.collectionId, collectionId),
+                    eq(
+                      collectionCollaborators.collaboratorId,
+                      collaboratorId.value,
+                    ),
+                  ),
+                );
+              break;
+            }
           }
         }
 
@@ -895,13 +924,13 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           updatedAt: new Date(),
         };
 
-        if (updates.name !== undefined) {
+        if ('name' in updates) {
           updateData.name = updates.name;
         }
-        if (updates.description !== undefined) {
+        if ('description' in updates) {
           updateData.description = updates.description;
         }
-        if (updates.accessType !== undefined) {
+        if ('accessType' in updates) {
           updateData.accessType = updates.accessType;
         }
 

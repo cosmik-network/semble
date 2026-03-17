@@ -406,6 +406,12 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.collaboratorIds.push(collaboratorId);
     this.props.updatedAt = new Date();
 
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.ADD_COLLABORATOR,
+      payload: { collaboratorId },
+    });
+
     return ok(undefined);
   }
 
@@ -423,6 +429,12 @@ export class Collection extends AggregateRoot<CollectionProps> {
       (id) => !id.equals(collaboratorId),
     );
     this.props.updatedAt = new Date();
+
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.REMOVE_COLLABORATOR,
+      payload: { collaboratorId },
+    });
 
     return ok(undefined);
   }

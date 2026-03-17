@@ -186,10 +186,10 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
 
       // For in-memory implementation, we need to update the collection directly
       // This is a simplified implementation that updates the internal state
-      if (updates.name !== undefined || updates.description !== undefined) {
+      if ('name' in updates || 'description' in updates) {
         const updateResult = collection.updateDetails(
-          updates.name || collection.name.value,
-          updates.description !== undefined
+          'name' in updates ? updates.name! : collection.name.value,
+          'description' in updates
             ? updates.description
             : collection.description?.value,
         );
