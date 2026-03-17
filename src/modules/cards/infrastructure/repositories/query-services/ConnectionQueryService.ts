@@ -94,7 +94,9 @@ export class ConnectionQueryService {
         id: connections.id,
         curatorId: connections.curatorId,
         sourceValue: connections.sourceValue,
+        sourceUrlMetadata: connections.sourceUrlMetadata,
         targetValue: connections.targetValue,
+        targetUrlMetadata: connections.targetUrlMetadata,
         connectionType: connections.connectionType,
         note: connections.note,
         createdAt: connections.createdAt,
@@ -125,7 +127,9 @@ export class ConnectionQueryService {
         curatorId: row.curatorId,
       },
       sourceUrl: row.sourceValue,
+      sourceUrlMetadata: row.sourceUrlMetadata || undefined,
       targetUrl: row.targetValue,
+      targetUrlMetadata: row.targetUrlMetadata || undefined,
     }));
 
     return {
@@ -268,7 +272,9 @@ export class ConnectionQueryService {
         id: connections.id,
         curatorId: connections.curatorId,
         sourceValue: connections.sourceValue,
+        sourceUrlMetadata: connections.sourceUrlMetadata,
         targetValue: connections.targetValue,
+        targetUrlMetadata: connections.targetUrlMetadata,
         connectionType: connections.connectionType,
         note: connections.note,
         createdAt: connections.createdAt,
@@ -299,7 +305,9 @@ export class ConnectionQueryService {
         curatorId: row.curatorId,
       },
       sourceUrl: row.sourceValue,
+      sourceUrlMetadata: row.sourceUrlMetadata || undefined,
       targetUrl: row.targetValue,
+      targetUrlMetadata: row.targetUrlMetadata || undefined,
     }));
 
     return {

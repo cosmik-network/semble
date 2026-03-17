@@ -34,6 +34,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -106,6 +107,7 @@ export default function AddCardForm(props: Props) {
         loading: true,
         title: 'Adding card...',
         message: 'Please wait',
+        position: 'top-center',
         autoClose: false,
         withCloseButton: false,
       });
@@ -122,9 +124,11 @@ export default function AddCardForm(props: Props) {
             id: notificationId,
             color: 'green',
             title: 'Success!',
-            message: 'Card added successfully',
+            message: 'Card added',
+            position: 'top-center',
             loading: false,
-            autoClose: 4000,
+            autoClose: 3000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
@@ -133,9 +137,11 @@ export default function AddCardForm(props: Props) {
             color: 'red',
             title: 'Error',
             message: 'Could not add card',
+            position: 'top-center',
             loading: false,
-            autoClose: false,
+            autoClose: 5000,
             withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
       });
@@ -149,7 +155,14 @@ export default function AddCardForm(props: Props) {
         },
         onError: () => {
           notifications.show({
-            message: 'Could not add card.',
+            color: 'red',
+            title: 'Error',
+            message: 'Could not add card',
+            loading: false,
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

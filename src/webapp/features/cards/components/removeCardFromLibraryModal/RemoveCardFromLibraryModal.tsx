@@ -2,6 +2,7 @@ import { Button, Stack, Modal } from '@mantine/core';
 import useRemoveCardFromLibrary from '../../lib/mutations/useRemoveCardFromLibrary';
 import { notifications } from '@mantine/notifications';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -16,8 +17,14 @@ export default function RemoveCardFromLibraryModal(props: Props) {
     removeCardFromLibrary.mutate(props.cardId, {
       onError: () => {
         notifications.show({
-          message: 'Could not remove card from library.',
+          message: 'Could not remove card from library',
           position: 'top-center',
+          color: 'red',
+          title: 'Error',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <BsExclamation />,
         });
       },
       onSettled: () => {

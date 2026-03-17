@@ -65,7 +65,7 @@ export default function CollectionActions(props: Props) {
                 copy();
                 notifications.show({
                   message: 'Link copied!',
-                  position: 'bottom-center',
+                  position: 'top-center',
                   id: props.collection.id,
                 });
               }}

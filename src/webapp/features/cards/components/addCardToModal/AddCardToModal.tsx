@@ -11,6 +11,7 @@ import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateC
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { notifications } from '@mantine/notifications';
 import { track } from '@vercel/analytics';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -75,6 +76,7 @@ export default function AddCardToModal(props: Props) {
           loading: true,
           title: 'Adding card...',
           message: 'Please wait',
+          position: 'top-center',
           autoClose: false,
           withCloseButton: false,
         });
@@ -87,9 +89,11 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'green',
               title: 'Success!',
-              message: 'Card added successfully',
+              message: 'Card added',
+              position: 'top-center',
               loading: false,
-              autoClose: 4000,
+              autoClose: 3000,
+              icon: <BsCheck />,
             });
           },
           onError: () => {
@@ -99,15 +103,26 @@ export default function AddCardToModal(props: Props) {
               title: 'Error',
               message: 'Could not add card',
               loading: false,
-              autoClose: false,
+              autoClose: 5000,
               withCloseButton: true,
+              position: 'top-center',
+              icon: <BsExclamation />,
             });
           },
         });
       } else {
         addCard.mutate(data.cardData, {
           onError: () => {
-            notifications.show({ message: 'Could not add card.' });
+            notifications.show({
+              color: 'red',
+              title: 'Error',
+              message: 'Could not add card',
+              loading: false,
+              autoClose: 5000,
+              withCloseButton: true,
+              position: 'top-center',
+              icon: <BsExclamation />,
+            });
           },
           onSettled: () => {
             props.onClose();
@@ -122,6 +137,7 @@ export default function AddCardToModal(props: Props) {
           loading: true,
           title: 'Updating card...',
           message: 'Please wait',
+          position: 'top-center',
           autoClose: false,
           withCloseButton: false,
         });
@@ -134,9 +150,11 @@ export default function AddCardToModal(props: Props) {
               id: notificationId,
               color: 'green',
               title: 'Success!',
-              message: 'Card updated successfully',
+              message: 'Card updated',
+              position: 'top-center',
               loading: false,
-              autoClose: 4000,
+              autoClose: 3000,
+              icon: <BsCheck />,
             });
           },
           onError: () => {
@@ -145,16 +163,27 @@ export default function AddCardToModal(props: Props) {
               color: 'red',
               title: 'Error',
               message: 'Could not update card',
+              position: 'top-center',
               loading: false,
               autoClose: false,
               withCloseButton: true,
+              icon: <BsExclamation />,
             });
           },
         });
       } else {
         updateCardAssociations.mutate(data.updateData, {
           onError: () => {
-            notifications.show({ message: 'Could not update card.' });
+            notifications.show({
+              color: 'red',
+              title: 'Error',
+              message: 'Could not update card',
+              position: 'top-center',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+              icon: <BsExclamation />,
+            });
           },
           onSettled: () => {
             props.onClose();

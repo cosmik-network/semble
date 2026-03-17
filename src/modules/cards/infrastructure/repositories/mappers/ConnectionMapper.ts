@@ -9,8 +9,25 @@ import {
 import { ConnectionNote } from '../../../domain/value-objects/ConnectionNote';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { PublishedRecordDTO, PublishedRecordRefDTO } from './DTOTypes';
 import { err, ok, Result } from '../../../../../shared/core/Result';
+
+// Metadata JSON structure from database
+interface UrlMetadataJSON {
+  url: string;
+  title?: string;
+  description?: string;
+  author?: string;
+  publishedDate?: string;
+  siteName?: string;
+  imageUrl?: string;
+  type?: string;
+  retrievedAt?: string;
+  doi?: string;
+  isbn?: string;
+}
 
 // Database representation of a connection
 export interface ConnectionDTO extends PublishedRecordRefDTO {
@@ -18,8 +35,10 @@ export interface ConnectionDTO extends PublishedRecordRefDTO {
   curatorId: string;
   sourceType: string;
   sourceValue: string;
+  sourceUrlMetadata?: UrlMetadataJSON;
   targetType: string;
   targetValue: string;
+  targetUrlMetadata?: UrlMetadataJSON;
   connectionType?: string;
   note?: string;
   createdAt: Date;
@@ -72,11 +91,51 @@ export class ConnectionMapper {
         });
       }
 
+      // Parse source URL metadata if present
+      let sourceUrlMetadata: UrlMetadata | undefined;
+      if (dto.sourceUrlMetadata) {
+        const metadataResult = UrlMetadata.create({
+          url: dto.sourceUrlMetadata.url,
+          title: dto.sourceUrlMetadata.title,
+          description: dto.sourceUrlMetadata.description,
+          author: dto.sourceUrlMetadata.author,
+          siteName: dto.sourceUrlMetadata.siteName,
+          imageUrl: dto.sourceUrlMetadata.imageUrl,
+          type: dto.sourceUrlMetadata.type as UrlType,
+          doi: dto.sourceUrlMetadata.doi,
+          isbn: dto.sourceUrlMetadata.isbn,
+        });
+        if (metadataResult.isOk()) {
+          sourceUrlMetadata = metadataResult.value;
+        }
+      }
+
+      // Parse target URL metadata if present
+      let targetUrlMetadata: UrlMetadata | undefined;
+      if (dto.targetUrlMetadata) {
+        const metadataResult = UrlMetadata.create({
+          url: dto.targetUrlMetadata.url,
+          title: dto.targetUrlMetadata.title,
+          description: dto.targetUrlMetadata.description,
+          author: dto.targetUrlMetadata.author,
+          siteName: dto.targetUrlMetadata.siteName,
+          imageUrl: dto.targetUrlMetadata.imageUrl,
+          type: dto.targetUrlMetadata.type as UrlType,
+          doi: dto.targetUrlMetadata.doi,
+          isbn: dto.targetUrlMetadata.isbn,
+        });
+        if (metadataResult.isOk()) {
+          targetUrlMetadata = metadataResult.value;
+        }
+      }
+
       // Create the connection
       const connectionOrError = Connection.create(
         {
           source: sourceOrError.value,
           target: targetOrError.value,
+          sourceUrlMetadata,
+          targetUrlMetadata,
           type,
           note,
           curatorId: curatorIdOrError.value,
@@ -101,8 +160,10 @@ export class ConnectionMapper {
       curatorId: string;
       sourceType: string;
       sourceValue: string;
+      sourceUrlMetadata?: UrlMetadataJSON;
       targetType: string;
       targetValue: string;
+      targetUrlMetadata?: UrlMetadataJSON;
       connectionType?: string;
       note?: string;
       createdAt: Date;
@@ -126,14 +187,50 @@ export class ConnectionMapper {
       publishedRecordId = recordId;
     }
 
+    // Serialize source URL metadata if present
+    let sourceUrlMetadata: UrlMetadataJSON | undefined;
+    if (connection.sourceUrlMetadata) {
+      const metadata = connection.sourceUrlMetadata;
+      sourceUrlMetadata = {
+        url: metadata.url,
+        title: metadata.title,
+        description: metadata.description,
+        author: metadata.author,
+        siteName: metadata.siteName,
+        imageUrl: metadata.imageUrl,
+        type: metadata.type,
+        doi: metadata.doi,
+        isbn: metadata.isbn,
+      };
+    }
+
+    // Serialize target URL metadata if present
+    let targetUrlMetadata: UrlMetadataJSON | undefined;
+    if (connection.targetUrlMetadata) {
+      const metadata = connection.targetUrlMetadata;
+      targetUrlMetadata = {
+        url: metadata.url,
+        title: metadata.title,
+        description: metadata.description,
+        author: metadata.author,
+        siteName: metadata.siteName,
+        imageUrl: metadata.imageUrl,
+        type: metadata.type,
+        doi: metadata.doi,
+        isbn: metadata.isbn,
+      };
+    }
+
     return {
       connection: {
         id: connection.connectionId.getStringValue(),
         curatorId: connection.curatorId.value,
         sourceType: connection.source.type,
         sourceValue: connection.source.stringValue,
+        sourceUrlMetadata,
         targetType: connection.target.type,
         targetValue: connection.target.stringValue,
+        targetUrlMetadata,
         connectionType: connection.type?.value,
         note: connection.note?.value,
         createdAt: connection.createdAt,

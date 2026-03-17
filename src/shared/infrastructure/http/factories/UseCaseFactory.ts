@@ -415,6 +415,7 @@ export class UseCaseFactory {
       createConnectionUseCase: new CreateConnectionUseCase(
         repositories.connectionRepository,
         services.connectionPublisher,
+        services.metadataService,
         services.eventPublisher,
       ),
       updateConnectionUseCase: new UpdateConnectionUseCase(
@@ -568,6 +569,7 @@ export class UseCaseFactory {
     const createConnectionUseCase = new CreateConnectionUseCase(
       repositories.connectionRepository,
       services.connectionPublisher,
+      services.metadataService,
       services.eventPublisher,
     );
 

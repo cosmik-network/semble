@@ -37,6 +37,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 type ComposerMode = 'card' | 'collection';
 
@@ -145,6 +146,7 @@ export default function Composer(props: Props) {
         loading: true,
         title: 'Adding card...',
         message: 'Please wait',
+        position: 'top-center',
         autoClose: false,
         withCloseButton: false,
       });
@@ -161,9 +163,11 @@ export default function Composer(props: Props) {
             id: notificationId,
             color: 'green',
             title: 'Success!',
-            message: 'Card added successfully',
+            message: 'Card added',
+            position: 'top-center',
             loading: false,
-            autoClose: 4000,
+            autoClose: 3000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
@@ -172,9 +176,11 @@ export default function Composer(props: Props) {
             color: 'red',
             title: 'Error',
             message: 'Could not add card',
+            position: 'top-center',
             loading: false,
-            autoClose: false,
+            autoClose: 5000,
             withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
       });
@@ -187,8 +193,14 @@ export default function Composer(props: Props) {
           window.history.replaceState({}, '', window.location.pathname);
         },
         onError: () => {
-          notifications.show({
-            message: 'Could not add card.',
+          notifications.update({
+            color: 'red',
+            title: 'Error',
+            message: 'Could not add card',
+            position: 'top-center',
+            autoClose: 5000,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {
@@ -217,7 +229,14 @@ export default function Composer(props: Props) {
         },
         onError: () => {
           notifications.show({
-            message: 'Could not create collection.',
+            message: 'Could not create collection',
+            color: 'red',
+            title: 'Error',
+            position: 'top-center',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

@@ -129,7 +129,7 @@ export default function UrlCardActions(props: Props) {
                     copy();
                     notifications.show({
                       message: 'Link copied!',
-                      position: 'bottom-center',
+                      position: 'top-center',
                     });
                   }}
                 >
@@ -149,7 +149,7 @@ export default function UrlCardActions(props: Props) {
                     copy();
                     notifications.show({
                       message: 'Semble link copied!',
-                      position: 'bottom-center',
+                      position: 'top-center',
                     });
                   }}
                 >

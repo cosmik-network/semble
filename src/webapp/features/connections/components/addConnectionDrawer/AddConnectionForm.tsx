@@ -25,6 +25,7 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
 import { IoMdLink } from 'react-icons/io';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -107,14 +108,22 @@ export default function AddConnectionForm(props: Props) {
           onSuccess: () => {
             props.onClose();
             notifications.show({
-              message: 'Connection updated successfully',
+              message: 'Connection updated',
               color: 'green',
+              position: 'top-center',
+              icon: <BsCheck />,
             });
           },
           onError: () => {
             notifications.show({
-              message: 'Could not update connection.',
+              message: 'Could not update connection',
               color: 'red',
+              title: 'Error',
+              position: 'top-center',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {
@@ -137,14 +146,22 @@ export default function AddConnectionForm(props: Props) {
           onSuccess: () => {
             props.onClose();
             notifications.show({
-              message: 'Connection created successfully',
+              message: 'Connection created',
               color: 'green',
+              position: 'top-center',
+              icon: <BsCheck />,
             });
           },
           onError: () => {
             notifications.show({
-              message: 'Could not create connection.',
+              message: 'Could not create connection',
               color: 'red',
+              title: 'Error',
+              position: 'top-center',
+              loading: false,
+              autoClose: false,
+              withCloseButton: true,
+              icon: <BsExclamation />,
             });
           },
           onSettled: () => {

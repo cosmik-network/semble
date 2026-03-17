@@ -18,7 +18,7 @@ export default function useAddCard(
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (newCard: {
+    mutationFn: async (newCard: {
       url: string;
       note?: string;
       collectionIds?: string[];

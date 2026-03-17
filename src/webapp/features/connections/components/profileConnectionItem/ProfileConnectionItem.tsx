@@ -11,6 +11,7 @@ import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -34,15 +35,23 @@ export default function ProfileConnectionItem(props: Props) {
       {
         onSuccess: () => {
           notifications.show({
-            message: 'Connection deleted successfully',
+            message: 'Connection deleted',
             color: 'green',
+            position: 'top-center',
+            icon: <BsCheck />,
           });
           setDeleteModalOpened(false);
         },
         onError: () => {
           notifications.show({
-            message: 'Could not delete connection.',
+            message: 'Could not delete connection',
             color: 'red',
+            title: 'Error',
+            position: 'top-center',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
       },

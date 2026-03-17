@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, uuid, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  index,
+  jsonb,
+} from 'drizzle-orm/pg-core';
 import { publishedRecords } from './publishedRecord.sql';
 import { cards } from './card.sql';
 
@@ -9,8 +16,10 @@ export const connections = pgTable(
     curatorId: text('curator_id').notNull(),
     sourceType: text('source_type').notNull(), // 'URL' or 'CARD'
     sourceValue: text('source_value').notNull(), // URL string or Card UUID
+    sourceUrlMetadata: jsonb('source_url_metadata'), // URL metadata when source is a URL
     targetType: text('target_type').notNull(), // 'URL' or 'CARD'
     targetValue: text('target_value').notNull(), // URL string or Card UUID
+    targetUrlMetadata: jsonb('target_url_metadata'), // URL metadata when target is a URL
     connectionType: text('connection_type'), // SUPPORTS, OPPOSES, etc.
     note: text('note'),
     publishedRecordId: uuid('published_record_id').references(

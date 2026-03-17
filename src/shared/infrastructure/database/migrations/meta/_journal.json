@@ -134,6 +134,13 @@
       "when": 1772242800899,
       "tag": "0018_classy_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1773700838261,
+      "tag": "0019_legal_fallen_one",
+      "breakpoints": true
     }
   ]
 }
