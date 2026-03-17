@@ -13,7 +13,7 @@ export default function ProfileConnectionsContainerSkeleton() {
     <Container p="xs" size="xl">
       <Stack gap={'md'} align="center">
         <Group justify="flex-start" w={'100%'} maw={600}>
-          <Skeleton w={96} h={40} radius={'md'} />
+          <Skeleton w={95} h={36} radius={'xl'} />
         </Group>
 
         <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
