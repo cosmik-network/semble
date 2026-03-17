@@ -107,6 +107,7 @@ export default function AddCardForm(props: Props) {
         loading: true,
         title: 'Adding card...',
         message: 'Please wait',
+        position: 'top-center',
         autoClose: false,
         withCloseButton: false,
       });
@@ -124,6 +125,7 @@ export default function AddCardForm(props: Props) {
             color: 'green',
             title: 'Success!',
             message: 'Card added',
+            position: 'top-center',
             loading: false,
             autoClose: 3000,
             icon: <BsCheck />,
@@ -135,10 +137,10 @@ export default function AddCardForm(props: Props) {
             color: 'red',
             title: 'Error',
             message: 'Could not add card',
+            position: 'top-center',
             loading: false,
             autoClose: 5000,
             withCloseButton: true,
-            position: 'top-center',
             icon: <BsExclamation />,
           });
         },

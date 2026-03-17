@@ -37,6 +37,7 @@ export default function ProfileConnectionItem(props: Props) {
           notifications.show({
             message: 'Connection deleted',
             color: 'green',
+            position: 'top-center',
             icon: <BsCheck />,
           });
           setDeleteModalOpened(false);
@@ -46,6 +47,7 @@ export default function ProfileConnectionItem(props: Props) {
             message: 'Could not delete connection',
             color: 'red',
             title: 'Error',
+            position: 'top-center',
             loading: false,
             autoClose: false,
             withCloseButton: true,

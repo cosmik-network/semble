@@ -49,6 +49,7 @@ export default function ConnectionStatus(props: Props) {
         onSuccess: () => {
           notifications.show({
             message: 'Connection deleted',
+            position: 'top-center',
             color: 'green',
             icon: <BsCheck />,
           });
@@ -59,6 +60,7 @@ export default function ConnectionStatus(props: Props) {
             message: 'Could not delete connection',
             color: 'red',
             title: 'Error',
+            position: 'top-center',
             loading: false,
             autoClose: false,
             withCloseButton: true,

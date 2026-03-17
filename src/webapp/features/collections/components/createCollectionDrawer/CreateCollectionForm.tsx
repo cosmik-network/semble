@@ -75,6 +75,7 @@ export default function CreateCollectionForm(props: Props) {
             message: 'Could not create collection',
             color: 'red',
             title: 'Error',
+            position: 'top-center',
             loading: false,
             autoClose: false,
             withCloseButton: true,

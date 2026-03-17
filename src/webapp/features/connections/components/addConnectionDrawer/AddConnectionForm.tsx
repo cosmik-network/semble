@@ -110,6 +110,7 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Connection updated',
               color: 'green',
+              position: 'top-center',
               icon: <BsCheck />,
             });
           },
@@ -118,6 +119,7 @@ export default function AddConnectionForm(props: Props) {
               message: 'Could not update connection',
               color: 'red',
               title: 'Error',
+              position: 'top-center',
               loading: false,
               autoClose: false,
               withCloseButton: true,
@@ -146,6 +148,7 @@ export default function AddConnectionForm(props: Props) {
             notifications.show({
               message: 'Connection created',
               color: 'green',
+              position: 'top-center',
               icon: <BsCheck />,
             });
           },
@@ -154,6 +157,7 @@ export default function AddConnectionForm(props: Props) {
               message: 'Could not create connection',
               color: 'red',
               title: 'Error',
+              position: 'top-center',
               loading: false,
               autoClose: false,
               withCloseButton: true,

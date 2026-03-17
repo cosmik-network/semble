@@ -157,6 +157,7 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'lg',
         withBorder: true,
+        withCloseButton: true,
       },
     }),
   },
