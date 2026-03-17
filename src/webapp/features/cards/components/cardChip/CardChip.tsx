@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { truncateText } from '@/lib/utils/text';
 import styles from './CardChip.module.css';
 
-interface CardChipProps {
+interface Props {
   url: string;
   title?: string;
   imageUrl?: string;
 }
 
-export default function CardChip(props: CardChipProps) {
+export default function CardChip(props: Props) {
   return (
     <Card
       component={Link}
