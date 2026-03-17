@@ -4,13 +4,12 @@ import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { MdArrowDownward } from 'react-icons/md';
 import { upperFirst } from '@mantine/hooks';
 import { useAuth } from '@/hooks/useAuth';
-import { ActionIcon, Menu, Modal, Button, Spoiler } from '@mantine/core';
+import { ActionIcon, Menu, Spoiler } from '@mantine/core';
 import { HiDotsVertical } from 'react-icons/hi';
 import { MdEdit, MdDelete } from 'react-icons/md';
-import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
-import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
+import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -20,34 +19,12 @@ interface Props {
 
 export default function ProfileConnectionItem(props: Props) {
   const { user } = useAuth();
-  const deleteConnection = useDeleteConnection();
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
 
   const sourceUrlView = props.connection.source;
   const targetUrlView = props.connection.target;
 
   const isOwner = user && user.id === props.curator.id;
-
-  const handleDelete = () => {
-    deleteConnection.mutate(
-      { connectionId: props.connection.connection.id },
-      {
-        onSuccess: () => {
-          notifications.show({
-            message: 'Connection deleted successfully',
-            color: 'green',
-          });
-          setDeleteModalOpened(false);
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not delete connection.',
-            color: 'red',
-          });
-        },
-      },
-    );
-  };
 
   const formatConnectionType = (type: string) => {
     return type
@@ -142,32 +119,11 @@ export default function ProfileConnectionItem(props: Props) {
         />
       </Stack>
 
-      <Modal
-        opened={deleteModalOpened}
+      <DeleteConnectionModal
+        isOpen={deleteModalOpened}
         onClose={() => setDeleteModalOpened(false)}
-        title="Delete Connection"
-        centered
-      >
-        <Stack gap="md">
-          <Text>Are you sure you want to delete this connection?</Text>
-          <Group justify="flex-end" gap="xs">
-            <Button
-              variant="light"
-              color="gray"
-              onClick={() => setDeleteModalOpened(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={handleDelete}
-              loading={deleteConnection.isPending}
-            >
-              Delete
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        connectionId={props.connection.connection.id}
+      />
     </>
   );
 }
