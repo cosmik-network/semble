@@ -13,37 +13,15 @@ import {
   Spoiler,
 } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdOutlinePsychologyAlt, MdEdit, MdDelete } from 'react-icons/md';
+import { MdEdit, MdDelete } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
-import {
-  BiMessageSquareDetail,
-  BiHelpCircle,
-  BiRightArrowAlt,
-  BiLink,
-  BiCheckCircle,
-  BiXCircle,
-} from 'react-icons/bi';
-import { PiNewspaperClipping } from 'react-icons/pi';
 import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import styles from './ProfileConnectionItem.module.css';
-
-const CONNECTION_TYPE_CONFIG: Record<
-  string,
-  { label: string; icon: React.ComponentType }
-> = {
-  SUPPORTS: { label: 'Supports', icon: BiCheckCircle },
-  OPPOSES: { label: 'Opposes', icon: BiXCircle },
-  ADDRESSES: { label: 'Addresses', icon: BiMessageSquareDetail },
-  HELPFUL: { label: 'Helpful', icon: BiHelpCircle },
-  LEADS_TO: { label: 'Leads to', icon: BiRightArrowAlt },
-  RELATED: { label: 'Related', icon: BiLink },
-  SUPPLEMENT: { label: 'Supplement', icon: PiNewspaperClipping },
-  EXPLAINER: { label: 'Explainer', icon: MdOutlinePsychologyAlt },
-};
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -146,10 +124,10 @@ export default function ProfileConnectionItem(props: Props) {
                   <Stack gap={0} align="center">
                     {props.connection.connection.type &&
                       (() => {
-                        const config =
-                          CONNECTION_TYPE_CONFIG[
-                            props.connection.connection.type
-                          ];
+                        const config = CONNECTION_TYPES.find(
+                          (t) => t.value === props.connection.connection.type,
+                        );
+                        if (!config) return null;
                         const Icon = config.icon;
                         return (
                           <Stack align="center" gap={'xs'}>
