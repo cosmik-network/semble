@@ -137,9 +137,9 @@ export default function ProfileConnectionItem(props: Props) {
 
             {/* Connection Metadata */}
             <Grid.Col span={{ base: 12, sm: 2 }}>
-              <Card p={0} radius={'md'} bg={'transparent'}>
-                <Group justify="center" wrap="nowrap" align="center">
-                  <Stack gap={0} align="center">
+              <Card p={0} radius={'md'} bg={'transparent'} h={'100%'}>
+                <Group justify="center" wrap="nowrap" align="center" h={'100%'}>
+                  <Stack gap={0} align="center" justify="center">
                     {props.connection.connection.type &&
                       (() => {
                         const config = CONNECTION_TYPES.find(
