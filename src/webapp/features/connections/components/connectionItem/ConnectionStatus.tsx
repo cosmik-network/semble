@@ -10,7 +10,7 @@ import {
   Menu,
   Box,
 } from '@mantine/core';
-import { ConnectionWithSourceAndTarget, User, UrlView } from '@semble/types';
+import { ConnectionWithSourceAndTarget, UrlView } from '@semble/types';
 import Link from 'next/link';
 import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -40,6 +40,10 @@ export default function ConnectionStatus(props: Props) {
 
   const isOwner = user && user.id === props.connection.curator.id;
 
+  const connectionTypeConfig = props.connection.type
+    ? (CONNECTION_TYPES.find((t) => t.value === props.connection.type) ?? null)
+    : null;
+
   const renderConnectionText = () => {
     const curator = props.connection.curator;
 
@@ -66,17 +70,16 @@ export default function ConnectionStatus(props: Props) {
             title={props.target.metadata.title}
             imageUrl={props.target.metadata.imageUrl}
           />
-          <Text fz={'sm'} fw={600} c={'gray'} mt={4}>
-            {relativeCreatedDate}
-          </Text>
         </Group>
       </Text>
     );
   };
+
   return (
     <>
       <Card p={0} className={styles.root} radius={'lg'}>
         <Stack gap={'xs'} p={'xs'}>
+          {/* Header row: avatar + connection text */}
           <Group gap={'xs'} wrap="nowrap" align="center">
             <Avatar
               component={Link}
@@ -88,14 +91,53 @@ export default function ConnectionStatus(props: Props) {
               alt={`${props.connection.curator.name}'s avatar`}
             />
             {renderConnectionText()}
-            {isOwner && props.onEdit && (
-              <Box ml="auto">
+          </Group>
+
+          {/* Note */}
+          {props.connection.note && (
+            <Spoiler
+              showLabel={'Read more'}
+              hideLabel={'See less'}
+              maxHeight={100}
+            >
+              <Text fw={500} fs={'italic'} c={'gray'}>
+                {props.connection.note}
+              </Text>
+            </Spoiler>
+          )}
+
+          {/* Bottom bar: badge left, time + actions right */}
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Box>
+              {connectionTypeConfig &&
+                (() => {
+                  const Icon = connectionTypeConfig.icon;
+                  return (
+                    <Badge
+                      size="sm"
+                      variant="light"
+                      color="green"
+                      leftSection={<Icon />}
+                    >
+                      {connectionTypeConfig.label}
+                    </Badge>
+                  );
+                })()}
+            </Box>
+
+            <Group gap={'xs'} align="center" wrap="nowrap">
+              <Text fz={'sm'} fw={600} c={'gray'}>
+                {relativeCreatedDate}
+              </Text>
+
+              {isOwner && props.onEdit && (
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
                     <ActionIcon
                       variant="light"
                       color={'gray'}
                       radius={'xl'}
+                      size={'md'}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <BsThreeDots size={18} />
@@ -117,41 +159,9 @@ export default function ConnectionStatus(props: Props) {
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
-              </Box>
-            )}
+              )}
+            </Group>
           </Group>
-
-          {props.connection.type &&
-            (() => {
-              const config = CONNECTION_TYPES.find(
-                (t) => t.value === props.connection.type,
-              );
-              if (!config) return null;
-              const Icon = config.icon;
-              return (
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color="green"
-                  mt={'xs'}
-                  leftSection={<Icon />}
-                >
-                  {config.label}
-                </Badge>
-              );
-            })()}
-
-          {props.connection.note && (
-            <Spoiler
-              showLabel={'Read more'}
-              hideLabel={'See less'}
-              maxHeight={100}
-            >
-              <Text fw={500} fs={'italic'} c={'gray'}>
-                {props.connection.note}
-              </Text>
-            </Spoiler>
-          )}
         </Stack>
       </Card>
 
