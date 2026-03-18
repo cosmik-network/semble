@@ -22,7 +22,6 @@ export default function ConnectionItem(props: Props) {
         connection={props.connection.connection}
         source={props.connection.source}
         target={props.connection.target}
-        direction={props.direction}
         onEdit={props.onEdit}
       />
       <UrlCard

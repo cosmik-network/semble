@@ -27,7 +27,6 @@ interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
   source: UrlView;
   target: UrlView;
-  direction: 'forward' | 'backward';
   onEdit?: () => void;
 }
 
@@ -55,35 +54,17 @@ export default function ConnectionStatus(props: Props) {
             {sanitizeText(curator.name)}
           </Text>
           <Text>connected</Text>
-          {props.direction === 'forward' ? (
-            <>
-              <CardChip
-                url={props.source.url}
-                title={props.source.metadata.title}
-                imageUrl={props.source.metadata.imageUrl}
-              />
-              <Text>→</Text>
-              <CardChip
-                url={props.target.url}
-                title={props.target.metadata.title}
-                imageUrl={props.target.metadata.imageUrl}
-              />
-            </>
-          ) : (
-            <>
-              <CardChip
-                url={props.target.url}
-                title={props.target.metadata.title}
-                imageUrl={props.target.metadata.imageUrl}
-              />
-              <Text>→</Text>
-              <CardChip
-                url={props.source.url}
-                title={props.source.metadata.title}
-                imageUrl={props.source.metadata.imageUrl}
-              />
-            </>
-          )}
+          <CardChip
+            url={props.source.url}
+            title={props.source.metadata.title}
+            imageUrl={props.source.metadata.imageUrl}
+          />
+          <Text>→</Text>
+          <CardChip
+            url={props.target.url}
+            title={props.target.metadata.title}
+            imageUrl={props.target.metadata.imageUrl}
+          />
           <Text fz={'sm'} fw={600} c={'gray'} mt={4}>
             {relativeCreatedDate}
           </Text>
