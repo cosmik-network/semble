@@ -122,7 +122,7 @@ export default function ProfileConnectionItem(props: Props) {
             )}
           </Group>
 
-          <Grid gutter={'xs'} align="center">
+          <Grid gutter={'xs'} align="stretch">
             {/* Source URL */}
             <Grid.Col span={{ base: 12, sm: 5 }}>
               <UrlCard
