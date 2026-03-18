@@ -22,6 +22,7 @@ import { MdEdit } from 'react-icons/md';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import CardChip from '@/features/cards/components/cardChip/CardChip';
 import { BsTrash2Fill } from 'react-icons/bs';
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -120,11 +121,25 @@ export default function ConnectionStatus(props: Props) {
             )}
           </Group>
 
-          {props.connection.type && (
-            <Badge size="sm" variant="light" color="green" mt={'xs'}>
-              {props.connection.type.toLowerCase().replace('_', ' ')}
-            </Badge>
-          )}
+          {props.connection.type &&
+            (() => {
+              const config = CONNECTION_TYPES.find(
+                (t) => t.value === props.connection.type,
+              );
+              if (!config) return null;
+              const Icon = config.icon;
+              return (
+                <Badge
+                  size="sm"
+                  variant="light"
+                  color="green"
+                  mt={'xs'}
+                  leftSection={<Icon />}
+                >
+                  {config.label}
+                </Badge>
+              );
+            })()}
 
           {props.connection.note && (
             <Spoiler
