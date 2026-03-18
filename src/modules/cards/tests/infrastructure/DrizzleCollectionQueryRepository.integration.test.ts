@@ -125,8 +125,8 @@ describe('DrizzleCollectionQueryRepository', () => {
       ).unwrap();
 
       // Save collections
-      await collectionRepository.save(collection1);
-      await collectionRepository.save(collection2);
+      await collectionRepository.create(collection1);
+      await collectionRepository.create(collection2);
 
       // Query collections
       const result = await queryRepository.findByCreator(curatorId.value, {
@@ -204,7 +204,8 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      // Add card to collection
+      // Create collection first, then add card
+      await collectionRepository.create(collection);
       collection.addCard(card.cardId, curatorId);
       await collectionRepository.save(collection);
 
@@ -221,7 +222,7 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      await collectionRepository.save(emptyCollection);
+      await collectionRepository.create(emptyCollection);
 
       // Query collections
       const result = await queryRepository.findByCreator(curatorId.value, {
@@ -289,9 +290,9 @@ describe('DrizzleCollectionQueryRepository', () => {
       ).unwrap();
 
       // Save collections
-      await collectionRepository.save(collection1);
-      await collectionRepository.save(collection2);
-      await collectionRepository.save(collection3);
+      await collectionRepository.create(collection1);
+      await collectionRepository.create(collection2);
+      await collectionRepository.create(collection3);
 
       // Create cards and add different numbers to collections for card count sorting
       const card1 = CardFactory.create({
@@ -317,6 +318,7 @@ describe('DrizzleCollectionQueryRepository', () => {
       collection3.addCard(card3.cardId, curatorId);
       collection2.addCard(card1.cardId, curatorId);
 
+      // Save to process the ADD_CARD commands
       await collectionRepository.save(collection2);
       await collectionRepository.save(collection3);
     });
@@ -463,7 +465,7 @@ describe('DrizzleCollectionQueryRepository', () => {
           new UniqueEntityID(),
         ).unwrap();
 
-        await collectionRepository.save(collection);
+        await collectionRepository.create(collection);
       }
     });
 
@@ -591,7 +593,7 @@ describe('DrizzleCollectionQueryRepository', () => {
           new UniqueEntityID(),
         ).unwrap();
 
-        await collectionRepository.save(collection);
+        await collectionRepository.create(collection);
 
         // Add cards to match expected card count
         for (let i = 0; i < collectionData.cardCount; i++) {
@@ -607,6 +609,7 @@ describe('DrizzleCollectionQueryRepository', () => {
           collection.addCard(card.cardId, curatorId);
         }
 
+        // Save to process the ADD_CARD commands
         if (collectionData.cardCount > 0) {
           await collectionRepository.save(collection);
         }
@@ -720,7 +723,7 @@ describe('DrizzleCollectionQueryRepository', () => {
           new UniqueEntityID(),
         ).unwrap();
 
-        await collectionRepository.save(collection);
+        await collectionRepository.create(collection);
       }
     });
 
@@ -887,7 +890,7 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      await collectionRepository.save(collection);
+      await collectionRepository.create(collection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -957,7 +960,7 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      await collectionRepository.save(collection);
+      await collectionRepository.create(collection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -992,7 +995,7 @@ describe('DrizzleCollectionQueryRepository', () => {
       collection.markAsPublished(publishedRecordId);
 
       // Save the collection
-      await collectionRepository.save(collection);
+      await collectionRepository.create(collection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -1034,9 +1037,9 @@ describe('DrizzleCollectionQueryRepository', () => {
       // Mark the collection as published in the domain model
       publishedCollection.markAsPublished(publishedRecordId);
 
-      // Save both collections
-      await collectionRepository.save(publishedCollection);
-      await collectionRepository.save(unpublishedCollection);
+      // Create both collections
+      await collectionRepository.create(publishedCollection);
+      await collectionRepository.create(unpublishedCollection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -1091,7 +1094,7 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      await collectionRepository.save(collection);
+      await collectionRepository.create(collection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -1117,7 +1120,7 @@ describe('DrizzleCollectionQueryRepository', () => {
         new UniqueEntityID(),
       ).unwrap();
 
-      await collectionRepository.save(collection);
+      await collectionRepository.create(collection);
 
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 999999,

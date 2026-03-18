@@ -89,9 +89,9 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
-    // Save the collection
-    const saveResult = await collectionRepository.save(collection);
-    expect(saveResult.isOk()).toBe(true);
+    // Create the collection
+    const createResult = await collectionRepository.create(collection);
+    expect(createResult.isOk()).toBe(true);
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
@@ -126,6 +126,10 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
+    // Create the empty collection first
+    const createResult = await collectionRepository.create(collection);
+    expect(createResult.isOk()).toBe(true);
+
     // Add a collaborator
     const addCollaboratorResult = collection.addCollaborator(
       collaboratorId,
@@ -133,7 +137,7 @@ describe('DrizzleCollectionRepository', () => {
     );
     expect(addCollaboratorResult.isOk()).toBe(true);
 
-    // Save the collection
+    // Save to process the ADD_COLLABORATOR command
     const saveResult = await collectionRepository.save(collection);
     expect(saveResult.isOk()).toBe(true);
 
@@ -179,11 +183,15 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
+    // Create the empty collection first
+    const createResult = await collectionRepository.create(collection);
+    expect(createResult.isOk()).toBe(true);
+
     // Add the card to the collection
     const addCardResult = collection.addCard(card.cardId, curatorId);
     expect(addCardResult.isOk()).toBe(true);
 
-    // Save the collection
+    // Save to process the ADD_CARD command
     const saveResult = await collectionRepository.save(collection);
     expect(saveResult.isOk()).toBe(true);
 
@@ -220,23 +228,16 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
-    await collectionRepository.save(collection);
+    await collectionRepository.create(collection);
 
-    // Update the collection
-    const updatedCollection = Collection.create(
+    // Update the collection metadata
+    await collectionRepository.updateMetadata(
+      CollectionId.create(collectionId).unwrap(),
       {
-        authorId: curatorId,
         name: 'Updated Name',
         description: 'Updated description',
-        accessType: CollectionAccessType.CLOSED,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
-      collectionId,
-    ).unwrap();
-
-    await collectionRepository.save(updatedCollection);
+    );
 
     // Retrieve the updated collection
     const retrievedResult = await collectionRepository.findById(
@@ -265,7 +266,7 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
-    await collectionRepository.save(collection);
+    await collectionRepository.create(collection);
 
     // Delete the collection
     const deleteResult = await collectionRepository.delete(
@@ -309,8 +310,8 @@ describe('DrizzleCollectionRepository', () => {
       collection2Id,
     ).unwrap();
 
-    await collectionRepository.save(collection1);
-    await collectionRepository.save(collection2);
+    await collectionRepository.create(collection1);
+    await collectionRepository.create(collection2);
 
     // Find collections by curator ID
     const foundCollectionsResult =
@@ -365,10 +366,15 @@ describe('DrizzleCollectionRepository', () => {
       collection2Id,
     ).unwrap();
 
+    // Create the empty collections first
+    await collectionRepository.create(collection1);
+    await collectionRepository.create(collection2);
+
     // Add card to both collections
     collection1.addCard(card.cardId, curatorId);
     collection2.addCard(card.cardId, curatorId);
 
+    // Save to process ADD_CARD commands
     await collectionRepository.save(collection1);
     await collectionRepository.save(collection2);
 
@@ -410,9 +416,9 @@ describe('DrizzleCollectionRepository', () => {
 
     collection.markAsPublished(publishedRecordId);
 
-    // Save the collection
-    const saveResult = await collectionRepository.save(collection);
-    expect(saveResult.isOk()).toBe(true);
+    // Create the collection
+    const createResult = await collectionRepository.create(collection);
+    expect(createResult.isOk()).toBe(true);
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
@@ -457,6 +463,10 @@ describe('DrizzleCollectionRepository', () => {
       collectionId,
     ).unwrap();
 
+    // Create the empty collection first
+    const createResult = await collectionRepository.create(collection);
+    expect(createResult.isOk()).toBe(true);
+
     // Add card to collection
     collection.addCard(card.cardId, curatorId);
 
@@ -468,7 +478,7 @@ describe('DrizzleCollectionRepository', () => {
 
     collection.markCardLinkAsPublished(card.cardId, linkPublishedRecord);
 
-    // Save the collection
+    // Save to process the ADD_CARD and UPDATE_CARD_LINK commands
     const saveResult = await collectionRepository.save(collection);
     expect(saveResult.isOk()).toBe(true);
 
@@ -540,11 +550,17 @@ describe('DrizzleCollectionRepository', () => {
       collection3Id,
     ).unwrap();
 
+    // Create the empty collections first
+    await collectionRepository.create(collection1);
+    await collectionRepository.create(collection2);
+    await collectionRepository.create(collection3);
+
     // Add card to all collections
     collection1.addCard(card.cardId, curatorId);
     collection2.addCard(card.cardId, curatorId);
     collection3.addCard(card.cardId, collaboratorId);
 
+    // Save to process ADD_CARD commands
     await collectionRepository.save(collection1);
     await collectionRepository.save(collection2);
     await collectionRepository.save(collection3);
@@ -598,9 +614,6 @@ describe('DrizzleCollectionRepository', () => {
       collection1Id,
     ).unwrap();
 
-    // curatorId adds card to collaborator's collection
-    collection1.addCard(card.cardId, curatorId);
-
     // Collection 2: Owned by collaboratorId, card added by collaboratorId
     const collection2Id = new UniqueEntityID();
     const collection2 = Collection.create(
@@ -614,9 +627,6 @@ describe('DrizzleCollectionRepository', () => {
       },
       collection2Id,
     ).unwrap();
-
-    // collaboratorId adds card to their own collection
-    collection2.addCard(card.cardId, collaboratorId);
 
     // Collection 3: Owned by curatorId, card added by curatorId
     const collection3Id = new UniqueEntityID();
@@ -632,9 +642,20 @@ describe('DrizzleCollectionRepository', () => {
       collection3Id,
     ).unwrap();
 
+    // Create all collections first
+    await collectionRepository.create(collection1);
+    await collectionRepository.create(collection2);
+    await collectionRepository.create(collection3);
+
+    // Then add cards (creates pending commands)
+    // curatorId adds card to collaborator's collection
+    collection1.addCard(card.cardId, curatorId);
+    // collaboratorId adds card to their own collection
+    collection2.addCard(card.cardId, collaboratorId);
     // curatorId adds card to their own collection
     collection3.addCard(card.cardId, curatorId);
 
+    // Process the commands
     await collectionRepository.save(collection1);
     await collectionRepository.save(collection2);
     await collectionRepository.save(collection3);

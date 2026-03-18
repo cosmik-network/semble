@@ -709,8 +709,10 @@ describe('GetCollectionPageUseCase', () => {
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
         findByIds: jest.fn(),
+        create: jest.fn(),
         save: jest.fn(),
         delete: jest.fn(),
+        updateMetadata: jest.fn(),
         findByCuratorId: jest.fn(),
         findByCardId: jest.fn(),
         findByCuratorIdContainingCard: jest.fn(),
