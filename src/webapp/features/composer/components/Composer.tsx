@@ -239,6 +239,9 @@ export default function Composer(props: Props) {
               value={mode}
               onChange={(value) => setMode(value as ComposerMode)}
               disabled={addCard.isPending || createCollection.isPending}
+              radius={'xl'}
+              mx="auto"
+              withItemsBorders={false}
               data={[
                 {
                   value: 'card',
@@ -268,9 +271,6 @@ export default function Composer(props: Props) {
                   ),
                 },
               ]}
-              radius={'xl'}
-              mx="auto"
-              withItemsBorders={false}
             />
           </Stack>
         </Drawer.Header>

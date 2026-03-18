@@ -12,6 +12,7 @@ export default function AppearanceContainer() {
       <Stack gap="xl">
         <SegmentedControl
           size="md"
+          withItemsBorders={false}
           value={colorScheme}
           onChange={(value) =>
             setColorScheme(value as 'light' | 'dark' | 'auto')
