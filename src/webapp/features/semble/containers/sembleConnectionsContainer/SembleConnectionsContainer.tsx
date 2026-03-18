@@ -4,30 +4,29 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Button, Grid, Group, Stack } from '@mantine/core';
+import { Grid, Group, Stack } from '@mantine/core';
 import SembleConnectionsContainerError from './Error.SembleConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
-import { IoMdAdd } from 'react-icons/io';
 import { useDisclosure } from '@mantine/hooks';
-import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
+import EditConnectionModal from '@/features/connections/components/editConnectionModal/EditConnectionModal';
 
-type Direction = 'outgoing' | 'incoming' | 'all';
+type Direction = 'to' | 'from' | 'all';
 
 interface Props {
   url: string;
 }
 
 export default function SembleConnectionsContainer(props: Props) {
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+  const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false);
 
-  const [direction, setDirection] = useState<Direction>('outgoing');
+  const [direction, setDirection] = useState<Direction>('all');
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
     null,
   );
@@ -36,22 +35,17 @@ export default function SembleConnectionsContainer(props: Props) {
     targetUrl: string;
   } | null>(null);
 
-  const handleOpenCreateDrawer = () => {
-    setConnectionToEdit(null);
-    openDrawer();
-  };
-
-  const handleOpenEditDrawer = (
+  const handleOpenEditModal = (
     connection: ConnectionWithSourceAndTarget['connection'],
     targetUrl: string,
   ) => {
     setConnectionToEdit({ connection, targetUrl });
-    openDrawer();
+    openModal();
   };
 
-  const handleCloseDrawer = () => {
+  const handleCloseModal = () => {
     setConnectionToEdit(null);
-    closeDrawer();
+    closeModal();
   };
 
   const connectionTypes = connectionType ? [connectionType] : undefined;
@@ -104,33 +98,33 @@ export default function SembleConnectionsContainer(props: Props) {
   }
 
   const connections =
-    direction === 'outgoing'
+    direction === 'to'
       ? allForwardConnections
-      : direction === 'incoming'
+      : direction === 'from'
         ? allBackwardConnections
         : allConnections;
   const fetchNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? fetchNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? fetchNextBackward
         : fetchNextAll;
   const hasNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? hasNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? hasNextBackward
         : hasNextAll;
   const isFetchingNextPage =
-    direction === 'outgoing'
+    direction === 'to'
       ? isFetchingNextForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? isFetchingNextBackward
         : isFetchingNextAll;
   const isPending =
-    direction === 'outgoing'
+    direction === 'to'
       ? isPendingForward
-      : direction === 'incoming'
+      : direction === 'from'
         ? isPendingBackward
         : isPendingAll;
 
@@ -138,22 +132,13 @@ export default function SembleConnectionsContainer(props: Props) {
     <>
       <Stack gap={'md'} align="center">
         <Group justify="space-between" w={'100%'} maw={600}>
-          <Group gap={'xs'}>
-            <DirectionToggle value={direction} onChange={setDirection} />
-            <ConnectionFilters.Root
-              connectionType={connectionType}
-              onConnectionTypeChange={setConnectionType}
-            >
-              <ConnectionFilters.ConnectionTypeFilter />
-            </ConnectionFilters.Root>
-          </Group>
-          <Button
-            leftSection={<IoMdAdd size={18} />}
-            onClick={handleOpenCreateDrawer}
-            size="sm"
+          <DirectionToggle value={direction} onChange={setDirection} />
+          <ConnectionFilters.Root
+            connectionType={connectionType}
+            onConnectionTypeChange={setConnectionType}
           >
-            Add connection
-          </Button>
+            <ConnectionFilters.ConnectionTypeFilter />
+          </ConnectionFilters.Root>
         </Group>
 
         {connections.length === 0 && !isPending ? (
@@ -169,14 +154,14 @@ export default function SembleConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+            <Grid gutter="xl" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connection, index) => {
                 // Determine the actual direction for this specific connection
                 // If direction is 'all', check if the source URL matches props.url
                 const isForward =
                   direction === 'all'
                     ? connection.source.url === props.url
-                    : direction === 'outgoing';
+                    : direction === 'to';
                 const connectionDirection = isForward ? 'forward' : 'backward';
                 const targetUrl = isForward
                   ? connection.target.url
@@ -188,7 +173,7 @@ export default function SembleConnectionsContainer(props: Props) {
                       connection={connection}
                       direction={connectionDirection}
                       onEdit={() => {
-                        handleOpenEditDrawer(connection.connection, targetUrl);
+                        handleOpenEditModal(connection.connection, targetUrl);
                       }}
                     />
                   </Grid.Col>
@@ -199,11 +184,12 @@ export default function SembleConnectionsContainer(props: Props) {
         )}
       </Stack>
 
-      <AddConnectionDrawer
-        isOpen={drawerOpened}
-        onClose={handleCloseDrawer}
+      <EditConnectionModal
+        isOpen={modalOpened}
+        onClose={handleCloseModal}
         sourceUrl={props.url}
-        connectionToEdit={connectionToEdit || undefined}
+        targetUrl={connectionToEdit?.targetUrl}
+        connection={connectionToEdit?.connection}
       />
     </>
   );

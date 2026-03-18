@@ -1,280 +1,338 @@
 'use client';
 
 import {
+  ActionIcon,
   Button,
+  Card,
   Combobox,
+  Divider,
   Group,
-  Image,
   Input,
-  Loader,
   ScrollArea,
-  Select,
   Stack,
   Text,
   Textarea,
+  ThemeIcon,
+  Tooltip,
   useCombobox,
   VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { Suspense } from 'react';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
-import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
-import { searchUrls } from '../../lib/dal';
-import { IoMdLink } from 'react-icons/io';
-import { ConnectionWithSourceAndTarget } from '@semble/types';
+import { IoIosArrowDown } from 'react-icons/io';
+import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
+import UrlSearchInput, { UrlSearchInputSkeleton } from './UrlSearchInput';
+import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
-  sourceUrl: string;
-  connectionToEdit?: {
-    connection: ConnectionWithSourceAndTarget['connection'];
-    targetUrl: string;
-  };
+  /** When provided the source is fixed (connecting from a card). When omitted both URLs are searchable. */
+  sourceUrl?: string;
 }
 
-const CONNECTION_TYPES = [
-  { value: 'SUPPORTS', label: 'Supports' },
-  { value: 'OPPOSES', label: 'Opposes' },
-  { value: 'ADDRESSES', label: 'Addresses' },
-  { value: 'HELPFUL', label: 'Helpful' },
-  { value: 'LEADS_TO', label: 'Leads to' },
-  { value: 'RELATED', label: 'Related' },
-  { value: 'SUPPLEMENT', label: 'Supplement' },
-  { value: 'EXPLAINER', label: 'Explainer' },
-];
-
 export default function AddConnectionForm(props: Props) {
+  const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
-  const updateConnection = useUpdateConnection();
-  const isEditMode = !!props.connectionToEdit;
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
+  const typeCombobox = useCombobox({
+    onDropdownClose: () => typeCombobox.resetSelectedOption(),
   });
-
-  const [inputValue, setInputValue] = useState(
-    props.connectionToEdit?.targetUrl || '',
-  );
-  const [debounced] = useDebouncedValue(inputValue, 200);
-
-  const {
-    data: searchResults,
-    isFetching,
-    error,
-  } = useQuery({
-    queryKey: ['url search', debounced],
-    queryFn: () =>
-      searchUrls({
-        searchQuery: debounced,
-        limit: 10,
-      }),
-    enabled: debounced.trim().length > 0,
-  });
-
-  const urls = searchResults?.urls ?? [];
-  const empty =
-    !error && !isFetching && debounced.trim().length > 0 && urls.length === 0;
 
   const form = useForm({
     initialValues: {
-      targetUrl: props.connectionToEdit?.targetUrl || '',
-      connectionType: props.connectionToEdit?.connection.type || '',
-      note: props.connectionToEdit?.connection.note || '',
+      sourceUrl: props.sourceUrl ?? '',
+      targetUrl: '',
+      connectionType: 'RELATED',
+      note: '',
+    },
+    validateInputOnChange: false,
+    validateInputOnBlur: true,
+    validate: {
+      sourceUrl: (value) => {
+        if (!value || value.trim() === '') {
+          return 'Source URL is required';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
+      targetUrl: (value) => {
+        if (!value || value.trim() === '') {
+          return 'Please enter a URL';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
     },
   });
 
   const MAX_NOTE_LENGTH = 500;
 
+  const handleSwapUrls = () => {
+    const currentSource = form.values.sourceUrl;
+    const currentTarget = form.values.targetUrl;
+    form.setFieldValue('sourceUrl', currentTarget);
+    form.setFieldValue('targetUrl', currentSource);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const validation = form.validate();
+    if (validation.hasErrors) {
+      return;
+    }
+
     const values = form.getValues();
 
-    if (isEditMode && props.connectionToEdit) {
-      // Update existing connection
-      updateConnection.mutate(
-        {
-          connectionId: props.connectionToEdit.connection.id,
-          connectionType: values.connectionType
-            ? (values.connectionType as any)
-            : undefined,
-          note: values.note || undefined,
-        },
-        {
-          onSuccess: () => {
-            props.onClose();
-            notifications.show({
-              message: 'Connection updated',
-              color: 'green',
-              position: 'top-center',
-              icon: <BsCheck />,
-            });
-          },
-          onError: () => {
-            notifications.show({
-              message: 'Could not update connection',
-              color: 'red',
-              title: 'Error',
-              position: 'top-center',
-              loading: false,
-              autoClose: false,
-              withCloseButton: true,
-              icon: <BsExclamation />,
-            });
-          },
-          onSettled: () => {
-            form.reset();
-          },
-        },
-      );
-    } else {
-      // Create new connection
-      createConnection.mutate(
-        {
-          sourceUrl: props.sourceUrl,
-          targetUrl: values.targetUrl,
-          connectionType: values.connectionType
-            ? (values.connectionType as any)
-            : undefined,
-          note: values.note || undefined,
-        },
-        {
-          onSuccess: () => {
-            props.onClose();
-            notifications.show({
-              message: 'Connection created',
-              color: 'green',
-              position: 'top-center',
-              icon: <BsCheck />,
-            });
-          },
-          onError: () => {
-            notifications.show({
-              message: 'Could not create connection',
-              color: 'red',
-              title: 'Error',
-              position: 'top-center',
-              loading: false,
-              autoClose: false,
-              withCloseButton: true,
-              icon: <BsExclamation />,
-            });
-          },
-          onSettled: () => {
-            form.reset();
-          },
-        },
-      );
+    if (values.sourceUrl === values.targetUrl) {
+      notifications.show({
+        id: 'same-url-error',
+        title: 'A link cannot be connected to itself',
+        message: 'Please choose a different link to connect',
+      });
+      return;
     }
+
+    createConnection.mutate(
+      {
+        sourceUrl: values.sourceUrl,
+        targetUrl: values.targetUrl,
+        connectionType: values.connectionType
+          ? (values.connectionType as any)
+          : undefined,
+        note: values.note || undefined,
+      },
+      {
+        onSuccess: () => {
+          props.onClose();
+          notifications.show({
+            color: 'green',
+            title: 'Success!',
+            message: 'Connection created',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
+          });
+        },
+        onError: () => {
+          notifications.show({
+            message: 'Could not create connection.',
+            color: 'red',
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
+          });
+        },
+        onSettled: () => {
+          form.reset();
+        },
+      },
+    );
   };
 
-  const options = urls.map((urlView) => (
-    <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} wrap="nowrap" align="flex-start">
-        {urlView.metadata.imageUrl && (
-          <Image
-            src={urlView.metadata.imageUrl}
-            alt={urlView.metadata.title || 'URL thumbnail'}
-            w={60}
-            h={60}
-            radius="sm"
-            fit="cover"
-          />
-        )}
-        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
-            {urlView.metadata.title || urlView.url}
-          </Text>
-          {urlView.metadata.description && (
-            <Text c={'dimmed'} lineClamp={2} size="xs">
-              {urlView.metadata.description}
-            </Text>
-          )}
-          <Text c={'gray'} lineClamp={1} size="xs">
-            {urlView.url}
-          </Text>
-        </Stack>
+  // ---- Source slot ----
+  const sourceSlot = hasFixedSource ? (
+    <Stack gap={0}>
+      <SourceCardPreview sourceUrl={form.values.sourceUrl} />
+      <VisuallyHidden>
+        <Input.Label htmlFor="sourceUrl">From</Input.Label>
+      </VisuallyHidden>
+    </Stack>
+  ) : (
+    <Stack gap={0}>
+      <Suspense fallback={<UrlSearchInputSkeleton />}>
+        <UrlSearchInput
+          id="sourceUrl"
+          label="From"
+          placeholder="Search cards or paste a link"
+          value={form.values.sourceUrl}
+          error={form.errors.sourceUrl}
+          onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
+        />
+      </Suspense>
+      {form.errors.sourceUrl && (
+        <Text size="sm" c="red" mt="xs">
+          {form.errors.sourceUrl}
+        </Text>
+      )}
+    </Stack>
+  );
+
+  // ---- Target slot ----
+  const targetSlot = (
+    <Stack gap={0}>
+      <Suspense fallback={<UrlSearchInputSkeleton />}>
+        <UrlSearchInput
+          id="targetUrl"
+          label="To"
+          placeholder="Search cards or paste a link"
+          value={form.values.targetUrl}
+          error={form.errors.targetUrl}
+          onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
+        />
+      </Suspense>
+      {form.errors.targetUrl && (
+        <Text size="sm" c="red" mt="xs">
+          {form.errors.targetUrl}
+        </Text>
+      )}
+    </Stack>
+  );
+
+  // ---- Connection type selector ----
+  const connectionTypeSelector = (
+    <Card
+      radius="xl"
+      bg="var(--mantine-color-default-hover)"
+      p="xs"
+      w="fit-content"
+      mx="auto"
+    >
+      <Group gap={'xs'} align="center" justify="center">
+        <Combobox
+          shadow="sm"
+          radius="md"
+          store={typeCombobox}
+          position="bottom"
+          width={320}
+          onOptionSubmit={(value) => {
+            form.setFieldValue('connectionType', value);
+            typeCombobox.closeDropdown();
+          }}
+        >
+          <Combobox.Target>
+            <Button
+              color="green"
+              size="sm"
+              onClick={() => typeCombobox.toggleDropdown()}
+              leftSection={
+                form.values.connectionType
+                  ? (() => {
+                      const selectedType = CONNECTION_TYPES.find(
+                        (t) => t.value === form.values.connectionType,
+                      );
+                      const Icon = selectedType?.icon;
+                      return Icon ? <Icon size={16} /> : null;
+                    })()
+                  : null
+              }
+              rightSection={<LuChevronsUpDown />}
+            >
+              {form.values.connectionType
+                ? CONNECTION_TYPES.find(
+                    (t) => t.value === form.values.connectionType,
+                  )?.label
+                : 'Select a relation'}
+            </Button>
+          </Combobox.Target>
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              <ScrollArea.Autosize type="scroll" mah={300}>
+                {CONNECTION_TYPES.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = form.values.connectionType === type.value;
+                  return (
+                    <Combobox.Option
+                      key={type.value}
+                      value={type.value}
+                      p={5}
+                      bg={
+                        isSelected
+                          ? 'var(--mantine-color-green-light)'
+                          : undefined
+                      }
+                    >
+                      <Group gap="sm" wrap="nowrap">
+                        {Icon && <Icon size={20} color="green" />}
+                        <Stack gap={0} style={{ flex: 1 }}>
+                          <Text
+                            size="sm"
+                            c={'bright'}
+                            fw={isSelected ? 600 : 500}
+                          >
+                            {type.label}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {type.description}
+                          </Text>
+                        </Stack>
+                      </Group>
+                    </Combobox.Option>
+                  );
+                })}
+              </ScrollArea.Autosize>
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
+
+        <Tooltip
+          label={
+            form.values.targetUrl
+              ? 'Swap'
+              : 'You need to add a link before swapping'
+          }
+          position="top"
+        >
+          <ActionIcon
+            variant="light"
+            size={'lg'}
+            color={'blue'}
+            radius={'xl'}
+            onClick={handleSwapUrls}
+            disabled={!form.values.targetUrl}
+            title={
+              form.values.targetUrl
+                ? 'Swap'
+                : 'You need to add a link before swapping'
+            }
+          >
+            <LuArrowUpDown size={16} />
+          </ActionIcon>
+        </Tooltip>
       </Group>
-    </Combobox.Option>
-  ));
+    </Card>
+  );
 
   return (
     <form onSubmit={handleSubmit}>
-      <Stack gap={'xl'}>
-        <Stack gap={4}>
-          <Input.Label size="md" htmlFor="targetUrl" required>
-            Target URL
-          </Input.Label>
-          <Combobox
-            shadow="sm"
-            radius={'md'}
-            store={combobox}
-            position="bottom-start"
-            onOptionSubmit={(url) => {
-              form.setFieldValue('targetUrl', url);
-              setInputValue(url);
-              combobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <Input
-                id="targetUrl"
-                component="input"
-                type="url"
-                placeholder="https://www.example.com or start typing to search for urls"
-                value={inputValue}
-                onChange={(e) => {
-                  const val = e.currentTarget.value;
-                  setInputValue(val);
-                  form.setFieldValue('targetUrl', val);
-                  combobox.openDropdown();
-                }}
-                onFocus={() => !isEditMode && combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
-                leftSection={<IoMdLink size={22} />}
-                rightSection={isFetching && <Loader size={18} />}
-                variant="filled"
-                size="md"
-                required
-                disabled={isEditMode}
-              />
-            </Combobox.Target>
+      <Stack gap={'lg'}>
+        {/* Source → Type selector → Target (single layout for both modes) */}
+        <Stack gap={0}>
+          {sourceSlot}
 
-            <Combobox.Dropdown hidden={debounced.trim().length === 0}>
-              <Combobox.Options>
-                <ScrollArea.Autosize type="scroll" mah={300}>
-                  {isFetching && <Combobox.Empty>Searching...</Combobox.Empty>}
-                  {error && (
-                    <Combobox.Empty>Could not search for URLs</Combobox.Empty>
-                  )}
-                  {empty && <Combobox.Empty>No URLs found</Combobox.Empty>}
-                  {options.length > 0 && options}
-                </ScrollArea.Autosize>
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+          <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
+
+          {connectionTypeSelector}
+
+          <Stack align="center" gap={0}>
+            <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
+
+            <ThemeIcon variant="light" size={'xs'} color={'gray'} radius={'xl'}>
+              <IoIosArrowDown size={12} />
+            </ThemeIcon>
+          </Stack>
+
+          {targetSlot}
         </Stack>
-
-        <Select
-          id="connectionType"
-          label="Connection Type"
-          placeholder="Select connection type (optional)"
-          variant="filled"
-          size="md"
-          data={CONNECTION_TYPES}
-          key={form.key('connectionType')}
-          {...form.getInputProps('connectionType')}
-          clearable
-        />
 
         <Stack gap={0}>
           <Group justify="space-between">
             <Input.Label size="md" htmlFor="note">
-              Note (optional)
+              Note
             </Input.Label>
             <Text c={'gray'} aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}
@@ -283,7 +341,12 @@ export default function AddConnectionForm(props: Props) {
 
           <Textarea
             id="note"
-            placeholder="Add a note about this connection"
+            placeholder={
+              CONNECTION_TYPES.find(
+                (t) => t.value === form.values.connectionType,
+              )?.notePlaceholder ??
+              'Explain the relationship between these resources...'
+            }
             variant="filled"
             size="md"
             rows={3}
@@ -306,16 +369,8 @@ export default function AddConnectionForm(props: Props) {
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            size="md"
-            loading={
-              isEditMode
-                ? updateConnection.isPending
-                : createConnection.isPending
-            }
-          >
-            {isEditMode ? 'Update connection' : 'Create connection'}
+          <Button type="submit" size="md" loading={createConnection.isPending}>
+            Create
           </Button>
         </Group>
       </Stack>

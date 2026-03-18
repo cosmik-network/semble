@@ -4,10 +4,10 @@ export default function SembleConnectionsContainerSkeleton() {
   return (
     <Stack gap={'md'} align="center">
       <Group justify="space-between" w={'100%'} maw={600}>
-        <Skeleton height={28} width={120} />
-        <Skeleton height={36} width={160} />
+        <Skeleton height={36} width={132} radius={'xl'} />
+        <Skeleton height={36} width={95} radius={'xl'} />
       </Group>
-      <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+      <Grid gutter="xl" mx={'auto'} maw={600} w={'100%'}>
         {[...Array(3)].map((_, i) => (
           <Grid.Col key={i} span={12}>
             <Stack gap={'xs'}>

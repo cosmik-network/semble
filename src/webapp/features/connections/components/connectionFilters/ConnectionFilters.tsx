@@ -1,22 +1,17 @@
 'use client';
 
 import { Group, Button, Menu } from '@mantine/core';
-import { createContext, useContext, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useOptimistic,
+  useTransition,
+} from 'react';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
-
-// Connection type enum values matching the backend
-const CONNECTION_TYPES: ConnectionType[] = [
-  'SUPPORTS',
-  'OPPOSES',
-  'ADDRESSES',
-  'HELPFUL',
-  'LEADS_TO',
-  'RELATED',
-  'SUPPLEMENT',
-  'EXPLAINER',
-];
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 // context
 interface FilterContextValue {
@@ -56,7 +51,9 @@ export function Root(props: RootProps) {
             Filters
           </Button>
         </Menu.Target>
-        <Menu.Dropdown maw={300}>{props.children}</Menu.Dropdown>
+        <Menu.Dropdown maw={300} p={'xs'}>
+          {props.children}
+        </Menu.Dropdown>
       </Menu>
     </FilterContext.Provider>
   );
@@ -65,40 +62,45 @@ export function Root(props: RootProps) {
 // connection type filter
 export function ConnectionTypeFilter() {
   const ctx = useFilterContext();
+  const [, startTransition] = useTransition();
+
+  const [optimisticConnectionType, setOptimisticConnectionType] =
+    useOptimistic<ConnectionType | null>(ctx.connectionType);
 
   const onChange = (type?: ConnectionType) => {
-    ctx.onConnectionTypeChange(type ?? null);
-  };
+    const nextType = type ?? null;
 
-  const formatConnectionType = (type: string) => {
-    return type
-      .toLowerCase()
-      .split('_')
-      .map((word) => upperFirst(word))
-      .join(' ');
+    startTransition(() => {
+      setOptimisticConnectionType(nextType);
+      ctx.onConnectionTypeChange(nextType);
+    });
   };
 
   return (
     <Group gap={6}>
       <Button
         size="xs"
-        color="blue"
-        variant={ctx.connectionType === null ? 'filled' : 'light'}
+        color="green"
+        variant={optimisticConnectionType === null ? 'filled' : 'light'}
         onClick={() => onChange()}
       >
         All Types
       </Button>
 
-      {CONNECTION_TYPES.map((type) => {
+      {CONNECTION_TYPES.map((typeConfig) => {
+        const Icon = typeConfig.icon;
         return (
           <Button
-            key={type}
+            key={typeConfig.value}
             size="xs"
-            color="blue"
-            variant={ctx.connectionType === type ? 'filled' : 'light'}
-            onClick={() => onChange(type)}
+            color="green"
+            variant={
+              optimisticConnectionType === typeConfig.value ? 'filled' : 'light'
+            }
+            onClick={() => onChange(typeConfig.value as ConnectionType)}
+            leftSection={<Icon size={16} />}
           >
-            {formatConnectionType(type)}
+            {typeConfig.label}
           </Button>
         );
       })}

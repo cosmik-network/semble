@@ -1,7 +1,6 @@
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import {
   Anchor,
-  AspectRatio,
   Avatar,
   Card,
   Group,
@@ -182,44 +181,35 @@ export default function NoteCardModalContent(props: Props) {
       {props.note && <Text fs={'italic'}>{props.note.text}</Text>}
       <Card withBorder component="article" p={'xs'} radius={'lg'}>
         <Stack>
-          <Group gap={'sm'} justify="space-between">
+          <Group gap={'sm'} wrap="nowrap">
             {props.cardContent.imageUrl && (
-              <AspectRatio ratio={1 / 1} flex={0.1}>
-                <Image
-                  src={props.cardContent.imageUrl}
-                  alt={`${props.cardContent.url} social preview image`}
-                  radius={'md'}
-                  w={45}
-                  h={45}
-                />
-              </AspectRatio>
+              <Image
+                src={props.cardContent.imageUrl}
+                alt={`${props.cardContent.url} social preview image`}
+                radius={'md'}
+                w={45}
+                h={45}
+              />
             )}
-            <Stack gap={0} flex={0.9}>
+            <Stack gap={0}>
+              {props.cardContent.title && (
+                <Text fw={500} lineClamp={1} c={'bright'}>
+                  {props.cardContent.title}
+                </Text>
+              )}
               <Tooltip label={props.cardContent.url}>
                 <Anchor
                   component={Link}
                   href={props.cardContent.url}
                   target="_blank"
                   c={'gray'}
+                  fz={'sm'}
                   lineClamp={1}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {props.domain}
                 </Anchor>
               </Tooltip>
-              {props.cardContent.title && (
-                <Anchor
-                  component={Link}
-                  href={props.cardContent.url}
-                  target="_blank"
-                  fw={500}
-                  lineClamp={1}
-                  c={'bright'}
-                  w={'fit-content'}
-                >
-                  {props.cardContent.title}
-                </Anchor>
-              )}
             </Stack>
           </Group>
         </Stack>

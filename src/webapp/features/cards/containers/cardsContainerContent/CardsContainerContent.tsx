@@ -98,6 +98,7 @@ export default function CardsContainerContent(props: Props) {
               cardAuthor={card.author}
               urlLibraryCount={card.urlLibraryCount}
               urlIsInLibrary={card.urlInLibrary}
+              urlConnectionCount={card.urlConnectionCount ?? 0}
               viaCardId={card.id}
               analyticsContext={{
                 saveSource: CardSaveSource.PROFILE,

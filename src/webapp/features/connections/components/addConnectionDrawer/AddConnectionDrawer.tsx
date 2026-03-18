@@ -3,21 +3,14 @@
 import { Container, Drawer } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from './AddConnectionForm';
-import { ConnectionWithSourceAndTarget } from '@semble/types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   sourceUrl: string;
-  connectionToEdit?: {
-    connection: ConnectionWithSourceAndTarget['connection'];
-    targetUrl: string;
-  };
 }
 
 export default function AddConnectionDrawer(props: Props) {
-  const isEditMode = !!props.connectionToEdit;
-
   return (
     <Drawer
       opened={props.isOpen}
@@ -30,14 +23,13 @@ export default function AddConnectionDrawer(props: Props) {
     >
       <Drawer.Header>
         <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
-          {isEditMode ? 'Edit Connection' : 'New Connection'}
+          New Connection
         </Drawer.Title>
       </Drawer.Header>
       <Container size={'sm'} p={0}>
         <AddConnectionForm
           onClose={props.onClose}
           sourceUrl={props.sourceUrl}
-          connectionToEdit={props.connectionToEdit}
         />
       </Container>
     </Drawer>
