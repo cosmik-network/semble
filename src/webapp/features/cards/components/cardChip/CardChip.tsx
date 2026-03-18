@@ -1,4 +1,4 @@
-import { Card, Image, Avatar, Group, Text } from '@mantine/core';
+import { Card, Image, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 import { truncateText } from '@/lib/utils/text';
 import styles from './CardChip.module.css';
@@ -20,7 +20,7 @@ export default function CardChip(props: Props) {
       className={styles.root}
     >
       <Group gap={6} wrap="nowrap">
-        {props.imageUrl ? (
+        {props.imageUrl && (
           <Image
             src={props.imageUrl}
             alt={`${props.imageUrl} social preview image`}
@@ -29,8 +29,6 @@ export default function CardChip(props: Props) {
             fit="cover"
             radius={'sm'}
           />
-        ) : (
-          <Avatar size={16} radius={'sm'} />
         )}
         <Text size="xs" fw={600}>
           {truncateText(props.title || 'Card', 18)}
