@@ -2,17 +2,13 @@
 
 import {
   ActionIcon,
-  Anchor,
   Button,
   Card,
   Combobox,
   Divider,
   Group,
-  Image,
   Input,
-  Loader,
   ScrollArea,
-  Skeleton,
   Stack,
   Text,
   Textarea,
@@ -22,62 +18,32 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { Fragment, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { Suspense } from 'react';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
-import { searchUrls } from '../../lib/dal';
-import { BiPlus } from 'react-icons/bi';
-import { createSembleClient } from '@/services/client.apiClient';
-import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import Link from 'next/link';
-import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import UrlSearchInput, { UrlSearchInputSkeleton } from './UrlSearchInput';
+import SourceCardPreview from './SourceCardPreview';
 
 interface Props {
   onClose: () => void;
-  sourceUrl: string;
+  /** When provided the source is fixed (connecting from a card). When omitted both URLs are searchable. */
+  sourceUrl?: string;
 }
 
 export default function AddConnectionForm(props: Props) {
+  const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
-
-  const urlCombobox = useCombobox({
-    onDropdownClose: () => urlCombobox.resetSelectedOption(),
-  });
 
   const typeCombobox = useCombobox({
     onDropdownClose: () => typeCombobox.resetSelectedOption(),
   });
 
-  const [inputValue, setInputValue] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const [debounced] = useDebouncedValue(inputValue, 200);
-
-  const {
-    data: searchResults,
-    isFetching,
-    error,
-  } = useQuery({
-    queryKey: ['url search', debounced],
-    queryFn: () =>
-      searchUrls({
-        searchQuery: debounced,
-        limit: 10,
-      }),
-    enabled: debounced.trim().length > 0,
-  });
-
-  const { data: recentCards } = useMyCards({ limit: 5 });
-
-  const urls = searchResults?.urls ?? [];
-
   const form = useForm({
     initialValues: {
-      sourceUrl: props.sourceUrl,
+      sourceUrl: props.sourceUrl ?? '',
       targetUrl: '',
       connectionType: 'RELATED',
       note: '',
@@ -110,15 +76,6 @@ export default function AddConnectionForm(props: Props) {
     },
   });
 
-  const { data: sourceUrlMetadata, isLoading: isLoadingMetadata } = useQuery({
-    queryKey: ['url metadata', form.values.sourceUrl],
-    queryFn: async () => {
-      const client = createSembleClient();
-      return client.getUrlMetadata({ url: form.values.sourceUrl });
-    },
-    enabled: !!form.values.sourceUrl,
-  });
-
   const MAX_NOTE_LENGTH = 500;
 
   const handleSwapUrls = () => {
@@ -126,7 +83,6 @@ export default function AddConnectionForm(props: Props) {
     const currentTarget = form.values.targetUrl;
     form.setFieldValue('sourceUrl', currentTarget);
     form.setFieldValue('targetUrl', currentSource);
-    setInputValue(currentSource);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -176,194 +132,179 @@ export default function AddConnectionForm(props: Props) {
     );
   };
 
-  const options = urls.map((urlView) => (
-    <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} align="center" wrap="nowrap">
-        {urlView.metadata.imageUrl && (
-          <Image
-            src={urlView.metadata.imageUrl}
-            alt={urlView.metadata.title || 'URL thumbnail'}
-            w={35}
-            h={35}
-            radius="sm"
-            fit="cover"
-          />
-        )}
-        <Stack gap={0}>
-          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
-            {urlView.metadata.title || urlView.url}
-          </Text>
-          <Text c={'gray'} lineClamp={1} size="xs">
-            {getDomain(urlView.url)}
-          </Text>
-        </Stack>
+  // ---- Source slot ----
+  const sourceSlot = hasFixedSource ? (
+    <Stack gap={0}>
+      <SourceCardPreview sourceUrl={form.values.sourceUrl} />
+      <VisuallyHidden>
+        <Input.Label htmlFor="sourceUrl">From</Input.Label>
+      </VisuallyHidden>
+    </Stack>
+  ) : (
+    <Stack gap={0}>
+      <Suspense fallback={<UrlSearchInputSkeleton />}>
+        <UrlSearchInput
+          id="sourceUrl"
+          label="From"
+          placeholder="Search cards or paste a link"
+          value={form.values.sourceUrl}
+          error={form.errors.sourceUrl}
+          onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
+        />
+      </Suspense>
+      {form.errors.sourceUrl && (
+        <Text size="sm" c="red" mt="xs">
+          {form.errors.sourceUrl}
+        </Text>
+      )}
+    </Stack>
+  );
+
+  // ---- Target slot ----
+  const targetSlot = (
+    <Stack gap={0}>
+      <Suspense fallback={<UrlSearchInputSkeleton />}>
+        <UrlSearchInput
+          id="targetUrl"
+          label="To"
+          placeholder="Search cards or paste a link"
+          value={form.values.targetUrl}
+          error={form.errors.targetUrl}
+          onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
+        />
+      </Suspense>
+      {form.errors.targetUrl && (
+        <Text size="sm" c="red" mt="xs">
+          {form.errors.targetUrl}
+        </Text>
+      )}
+    </Stack>
+  );
+
+  // ---- Connection type selector ----
+  const connectionTypeSelector = (
+    <Card
+      radius="xl"
+      bg="var(--mantine-color-default-hover)"
+      p="xs"
+      w="fit-content"
+      mx="auto"
+    >
+      <Group gap={'xs'} align="center" justify="center">
+        <Combobox
+          shadow="sm"
+          radius="md"
+          store={typeCombobox}
+          position="bottom"
+          width={320}
+          onOptionSubmit={(value) => {
+            form.setFieldValue('connectionType', value);
+            typeCombobox.closeDropdown();
+          }}
+        >
+          <Combobox.Target>
+            <Button
+              color="green"
+              size="sm"
+              onClick={() => typeCombobox.toggleDropdown()}
+              leftSection={
+                form.values.connectionType
+                  ? (() => {
+                      const selectedType = CONNECTION_TYPES.find(
+                        (t) => t.value === form.values.connectionType,
+                      );
+                      const Icon = selectedType?.icon;
+                      return Icon ? <Icon size={16} /> : null;
+                    })()
+                  : null
+              }
+              rightSection={<LuChevronsUpDown />}
+            >
+              {form.values.connectionType
+                ? CONNECTION_TYPES.find(
+                    (t) => t.value === form.values.connectionType,
+                  )?.label
+                : 'Select a relation'}
+            </Button>
+          </Combobox.Target>
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              <ScrollArea.Autosize type="scroll" mah={300}>
+                {CONNECTION_TYPES.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = form.values.connectionType === type.value;
+                  return (
+                    <Combobox.Option
+                      key={type.value}
+                      value={type.value}
+                      p={5}
+                      bg={
+                        isSelected
+                          ? 'var(--mantine-color-green-light)'
+                          : undefined
+                      }
+                    >
+                      <Group gap="sm" wrap="nowrap">
+                        {Icon && <Icon size={20} color="green" />}
+                        <Stack gap={0} style={{ flex: 1 }}>
+                          <Text
+                            size="sm"
+                            c={'bright'}
+                            fw={isSelected ? 600 : 500}
+                          >
+                            {type.label}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {type.description}
+                          </Text>
+                        </Stack>
+                      </Group>
+                    </Combobox.Option>
+                  );
+                })}
+              </ScrollArea.Autosize>
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
+
+        <Tooltip
+          label={
+            form.values.targetUrl
+              ? 'Swap'
+              : 'You need to add a link before swapping'
+          }
+          position="top"
+        >
+          <ActionIcon
+            variant="light"
+            size={'lg'}
+            color={'blue'}
+            radius={'xl'}
+            onClick={handleSwapUrls}
+            disabled={!form.values.targetUrl}
+            title={
+              form.values.targetUrl
+                ? 'Swap'
+                : 'You need to add a link before swapping'
+            }
+          >
+            <LuArrowUpDown size={16} />
+          </ActionIcon>
+        </Tooltip>
       </Group>
-    </Combobox.Option>
-  ));
+    </Card>
+  );
 
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={'lg'}>
+        {/* Source → Type selector → Target (single layout for both modes) */}
         <Stack gap={0}>
-          <Stack gap={0}>
-            <Card withBorder component="article" p={'xs'} radius={'lg'}>
-              <Group gap="xs" wrap="nowrap">
-                {isLoadingMetadata ? (
-                  <Skeleton width={45} height={45} radius={'md'} />
-                ) : (
-                  sourceUrlMetadata?.metadata?.imageUrl && (
-                    <Image
-                      src={sourceUrlMetadata.metadata.imageUrl}
-                      alt={`${sourceUrlMetadata.metadata.title} social preview image`}
-                      radius={'md'}
-                      w={45}
-                      h={45}
-                    />
-                  )
-                )}
-                <Stack gap={0}>
-                  <Skeleton visible={isLoadingMetadata}>
-                    <Text fw={500} lineClamp={1} c={'bright'}>
-                      {sourceUrlMetadata?.metadata?.title ||
-                        form.values.sourceUrl}
-                    </Text>
-                  </Skeleton>
-                  <Skeleton visible={isLoadingMetadata} mt={4}>
-                    <Tooltip label={form.values.sourceUrl}>
-                      <Anchor
-                        component={Link}
-                        href={form.values.sourceUrl}
-                        target="_blank"
-                        c={'gray'}
-                        fz={'sm'}
-                        lineClamp={1}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {getDomain(form.values.sourceUrl)}
-                      </Anchor>
-                    </Tooltip>
-                  </Skeleton>
-                </Stack>
-              </Group>
-            </Card>
-            <VisuallyHidden>
-              <Input.Label htmlFor="sourceUrl">From</Input.Label>
-            </VisuallyHidden>
-          </Stack>
+          {sourceSlot}
 
           <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
 
-          <Card
-            radius="xl"
-            bg="var(--mantine-color-default-hover)"
-            p="xs"
-            w="fit-content"
-            mx="auto"
-          >
-            <Group gap={'xs'} align="center" justify="center">
-              <Combobox
-                shadow="sm"
-                radius="md"
-                store={typeCombobox}
-                position="bottom"
-                width={320}
-                onOptionSubmit={(value) => {
-                  form.setFieldValue('connectionType', value);
-                  typeCombobox.closeDropdown();
-                }}
-              >
-                <Combobox.Target>
-                  <Button
-                    color="green"
-                    size="sm"
-                    onClick={() => typeCombobox.toggleDropdown()}
-                    leftSection={
-                      form.values.connectionType
-                        ? (() => {
-                            const selectedType = CONNECTION_TYPES.find(
-                              (t) => t.value === form.values.connectionType,
-                            );
-                            const Icon = selectedType?.icon;
-                            return Icon ? <Icon size={16} /> : null;
-                          })()
-                        : null
-                    }
-                    rightSection={<LuChevronsUpDown />}
-                  >
-                    {form.values.connectionType
-                      ? CONNECTION_TYPES.find(
-                          (t) => t.value === form.values.connectionType,
-                        )?.label
-                      : 'Select a relation'}
-                  </Button>
-                </Combobox.Target>
-                <Combobox.Dropdown>
-                  <Combobox.Options>
-                    <ScrollArea.Autosize type="scroll" mah={300}>
-                      {CONNECTION_TYPES.map((type) => {
-                        const Icon = type.icon;
-                        const isSelected =
-                          form.values.connectionType === type.value;
-                        return (
-                          <Combobox.Option
-                            key={type.value}
-                            value={type.value}
-                            p={5}
-                            bg={
-                              isSelected
-                                ? 'var(--mantine-color-green-light)'
-                                : undefined
-                            }
-                          >
-                            <Group gap="sm" wrap="nowrap">
-                              {Icon && <Icon size={20} color="green" />}
-                              <Stack gap={0} style={{ flex: 1 }}>
-                                <Text
-                                  size="sm"
-                                  c={'bright'}
-                                  fw={isSelected ? 600 : 500}
-                                >
-                                  {type.label}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                  {type.description}
-                                </Text>
-                              </Stack>
-                            </Group>
-                          </Combobox.Option>
-                        );
-                      })}
-                    </ScrollArea.Autosize>
-                  </Combobox.Options>
-                </Combobox.Dropdown>
-              </Combobox>
-
-              <Tooltip
-                label={
-                  form.values.targetUrl
-                    ? 'Swap'
-                    : 'You need to add a link before swapping'
-                }
-                position="top"
-              >
-                <ActionIcon
-                  variant="light"
-                  size={'lg'}
-                  color={'blue'}
-                  radius={'xl'}
-                  onClick={handleSwapUrls}
-                  disabled={!form.values.targetUrl}
-                  title={
-                    form.values.targetUrl
-                      ? 'Swap'
-                      : 'You need to add a link before swapping'
-                  }
-                >
-                  <LuArrowUpDown size={16} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          </Card>
+          {connectionTypeSelector}
 
           <Stack align="center" gap={0}>
             <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
@@ -373,170 +314,7 @@ export default function AddConnectionForm(props: Props) {
             </ThemeIcon>
           </Stack>
 
-          <Card padding="xs" radius="lg" withBorder>
-            <Stack gap={0}>
-              <Combobox
-                shadow="sm"
-                radius={'md'}
-                store={urlCombobox}
-                position="bottom-start"
-                onOptionSubmit={(url) => {
-                  form.setFieldValue('targetUrl', url);
-                  setInputValue(url);
-                  urlCombobox.closeDropdown();
-                }}
-              >
-                <Combobox.Target>
-                  <Input
-                    id="targetUrl"
-                    component="input"
-                    type="text"
-                    placeholder="Search cards or add a link"
-                    value={inputValue}
-                    onChange={(e) => {
-                      const val = e.currentTarget.value;
-                      setInputValue(val);
-                      form.setFieldValue('targetUrl', val);
-                      urlCombobox.openDropdown();
-                    }}
-                    onFocus={() => {
-                      setIsInputFocused(true);
-                      urlCombobox.openDropdown();
-                    }}
-                    onBlur={() => {
-                      setIsInputFocused(false);
-                      urlCombobox.closeDropdown();
-                    }}
-                    rightSection={isFetching && <Loader size={18} />}
-                    variant="unstyled"
-                    size="xs"
-                    required
-                    error={form.errors.targetUrl}
-                    styles={{
-                      input: {
-                        fontSize: 'var(--mantine-font-size-sm)',
-                      },
-                    }}
-                  />
-                </Combobox.Target>
-
-                <Combobox.Dropdown
-                  hidden={
-                    isFetching ||
-                    (inputValue.trim().length === 0 &&
-                      debounced.trim().length === 0 &&
-                      !(
-                        isInputFocused &&
-                        (recentCards.pages[0].cards.length ?? 0) > 0
-                      )) ||
-                    (inputValue.trim().length === 0 &&
-                      debounced.trim().length > 0)
-                  }
-                >
-                  <Combobox.Options>
-                    <ScrollArea.Autosize type="scroll" mah={300}>
-                      {debounced.trim().length === 0 ? (
-                        <Fragment>
-                          <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
-                            Recent cards
-                          </Text>
-                          {(recentCards.pages[0].cards ?? []).map((card) => (
-                            <Combobox.Option
-                              key={card.url}
-                              value={card.url}
-                              p={5}
-                            >
-                              <Group gap={'xs'} align="center" wrap="nowrap">
-                                {card.cardContent.imageUrl && (
-                                  <Image
-                                    src={card.cardContent.imageUrl}
-                                    alt={
-                                      card.cardContent.title || 'URL thumbnail'
-                                    }
-                                    w={35}
-                                    h={35}
-                                    radius="sm"
-                                    fit="cover"
-                                  />
-                                )}
-                                <Stack gap={0}>
-                                  <Text
-                                    fw={500}
-                                    c={'bright'}
-                                    lineClamp={1}
-                                    size="sm"
-                                  >
-                                    {card.cardContent.title || card.url}
-                                  </Text>
-                                  <Text c={'gray'} lineClamp={1} size="xs">
-                                    {getDomain(card.url)}
-                                  </Text>
-                                </Stack>
-                              </Group>
-                            </Combobox.Option>
-                          ))}
-                        </Fragment>
-                      ) : (
-                        <Fragment>
-                          {error && (
-                            <Combobox.Empty>
-                              Could not search for URLs
-                            </Combobox.Empty>
-                          )}
-                          {!isFetching && !error && inputValue.trim() && (
-                            <Fragment>
-                              <Combobox.Option value={inputValue}>
-                                <Group gap="xs" wrap="nowrap" p={0}>
-                                  <ThemeIcon
-                                    radius={'xl'}
-                                    size={'sm'}
-                                    variant="light"
-                                    color="gray"
-                                  >
-                                    <BiPlus />
-                                  </ThemeIcon>
-                                  <Stack gap={0} style={{ flex: 1 }}>
-                                    <Text size="sm" fw={600} c={'bright'}>
-                                      Add this link
-                                    </Text>
-                                    <Text size="xs" c="dimmed" lineClamp={1}>
-                                      {inputValue}
-                                    </Text>
-                                  </Stack>
-                                </Group>
-                              </Combobox.Option>
-                              {options.length > 0 && (
-                                <Text
-                                  size="sm"
-                                  fw={500}
-                                  c="dimmed"
-                                  py="xs"
-                                  px={5}
-                                >
-                                  Search results
-                                </Text>
-                              )}
-                            </Fragment>
-                          )}
-                          {options.length > 0 && <Fragment>{options}</Fragment>}
-                        </Fragment>
-                      )}
-                    </ScrollArea.Autosize>
-                  </Combobox.Options>
-                </Combobox.Dropdown>
-              </Combobox>
-              <VisuallyHidden>
-                <Input.Label htmlFor="targetUrl" required>
-                  To
-                </Input.Label>
-              </VisuallyHidden>
-            </Stack>
-          </Card>
-          {form.errors.targetUrl && (
-            <Text size="sm" c="red" mt="xs">
-              {form.errors.targetUrl}
-            </Text>
-          )}
+          {targetSlot}
         </Stack>
 
         <Stack gap={0}>

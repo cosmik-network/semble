@@ -38,8 +38,10 @@ import { FaSeedling } from 'react-icons/fa6';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
+import { TbPlugConnected } from 'react-icons/tb';
 
-type ComposerMode = 'card' | 'collection';
+type ComposerMode = 'card' | 'collection' | 'connection';
 
 interface Props {
   isOpen: boolean;
@@ -220,16 +222,29 @@ export default function Composer(props: Props) {
                     </Center>
                   ),
                 },
+                {
+                  value: 'connection',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <TbPlugConnected size={16} />
+                      <span>Connection</span>
+                    </Center>
+                  ),
+                },
               ]}
-              w={200}
               radius={'xl'}
               mx="auto"
+              withItemsBorders={false}
             />
           </Stack>
         </Drawer.Header>
 
         <Container size={'sm'} p={0}>
-          {mode === 'card' ? (
+          {mode === 'connection' ? (
+            <Suspense>
+              <AddConnectionForm onClose={props.onClose} />
+            </Suspense>
+          ) : mode === 'card' ? (
             <form onSubmit={handleAddCard}>
               <Stack gap={'xl'}>
                 <TextInput
