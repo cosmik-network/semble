@@ -115,17 +115,19 @@ export default function ProfileConnectionsContainer(props: Props) {
         )}
       </Stack>
 
-      {connectionToEdit && (
-        <AddConnectionModal
-          isOpen={modalOpened}
-          onClose={handleCloseModal}
-          sourceUrl={connectionToEdit.sourceUrl}
-          connectionToEdit={{
-            connection: connectionToEdit.connection,
-            targetUrl: connectionToEdit.targetUrl,
-          }}
-        />
-      )}
+      <AddConnectionModal
+        isOpen={modalOpened}
+        onClose={handleCloseModal}
+        sourceUrl={connectionToEdit?.sourceUrl ?? ''}
+        connectionToEdit={
+          connectionToEdit
+            ? {
+                connection: connectionToEdit.connection,
+                targetUrl: connectionToEdit.targetUrl,
+              }
+            : undefined
+        }
+      />
     </>
   );
 }

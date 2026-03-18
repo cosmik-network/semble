@@ -27,9 +27,7 @@ import { notifications } from '@mantine/notifications';
 import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
-import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { searchUrls } from '../../lib/dal';
-import { ConnectionForUrl } from '@semble/types';
 import { BiPlus } from 'react-icons/bi';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
@@ -42,16 +40,10 @@ import useMyCards from '@/features/cards/lib/queries/useMyCards';
 interface Props {
   onClose: () => void;
   sourceUrl: string;
-  connectionToEdit?: {
-    connection: ConnectionForUrl['connection'];
-    targetUrl: string;
-  };
 }
 
 export default function AddConnectionForm(props: Props) {
   const createConnection = useCreateConnection();
-  const updateConnection = useUpdateConnection();
-  const isEditMode = !!props.connectionToEdit;
 
   const urlCombobox = useCombobox({
     onDropdownClose: () => urlCombobox.resetSelectedOption(),
@@ -61,9 +53,7 @@ export default function AddConnectionForm(props: Props) {
     onDropdownClose: () => typeCombobox.resetSelectedOption(),
   });
 
-  const [inputValue, setInputValue] = useState(
-    props.connectionToEdit?.targetUrl || '',
-  );
+  const [inputValue, setInputValue] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
 
@@ -88,9 +78,9 @@ export default function AddConnectionForm(props: Props) {
   const form = useForm({
     initialValues: {
       sourceUrl: props.sourceUrl,
-      targetUrl: props.connectionToEdit?.targetUrl || '',
-      connectionType: props.connectionToEdit?.connection.type || 'RELATED',
-      note: props.connectionToEdit?.connection.note || '',
+      targetUrl: '',
+      connectionType: 'RELATED',
+      note: '',
     },
     validateInputOnChange: false,
     validateInputOnBlur: true,
@@ -158,62 +148,32 @@ export default function AddConnectionForm(props: Props) {
       return;
     }
 
-    if (isEditMode && props.connectionToEdit) {
-      // Update existing connection
-      updateConnection.mutate(
-        {
-          connectionId: props.connectionToEdit.connection.id,
-          connectionType: values.connectionType
-            ? (values.connectionType as any)
-            : undefined,
-          note: values.note || undefined,
+    createConnection.mutate(
+      {
+        sourceUrl: values.sourceUrl,
+        targetUrl: values.targetUrl,
+        connectionType: values.connectionType
+          ? (values.connectionType as any)
+          : undefined,
+        note: values.note || undefined,
+      },
+      {
+        onSuccess: () => {
+          props.onClose();
+          notifications.show({
+            message: 'Connection created successfully',
+          });
         },
-        {
-          onSuccess: () => {
-            props.onClose();
-            notifications.show({
-              message: 'Connection updated successfully',
-            });
-          },
-          onError: () => {
-            notifications.show({
-              message: 'Could not update connection.',
-            });
-          },
-          onSettled: () => {
-            form.reset();
-          },
+        onError: () => {
+          notifications.show({
+            message: 'Could not create connection.',
+          });
         },
-      );
-    } else {
-      // Create new connection
-      createConnection.mutate(
-        {
-          sourceUrl: values.sourceUrl,
-          targetUrl: values.targetUrl,
-          connectionType: values.connectionType
-            ? (values.connectionType as any)
-            : undefined,
-          note: values.note || undefined,
+        onSettled: () => {
+          form.reset();
         },
-        {
-          onSuccess: () => {
-            props.onClose();
-            notifications.show({
-              message: 'Connection created successfully',
-            });
-          },
-          onError: () => {
-            notifications.show({
-              message: 'Could not create connection.',
-            });
-          },
-          onSettled: () => {
-            form.reset();
-          },
-        },
-      );
-    }
+      },
+    );
   };
 
   const options = urls.map((urlView) => (
@@ -441,7 +401,7 @@ export default function AddConnectionForm(props: Props) {
                     }}
                     onFocus={() => {
                       setIsInputFocused(true);
-                      if (!isEditMode) urlCombobox.openDropdown();
+                      urlCombobox.openDropdown();
                     }}
                     onBlur={() => {
                       setIsInputFocused(false);
@@ -619,16 +579,8 @@ export default function AddConnectionForm(props: Props) {
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            size="md"
-            loading={
-              isEditMode
-                ? updateConnection.isPending
-                : createConnection.isPending
-            }
-          >
-            {isEditMode ? 'Update' : 'Create'}
+          <Button type="submit" size="md" loading={createConnection.isPending}>
+            Create
           </Button>
         </Group>
       </Stack>

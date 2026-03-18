@@ -3,6 +3,7 @@
 import { Modal } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from '../addConnectionDrawer/AddConnectionForm';
+import EditConnectionForm from '../editConnectionForm/EditConnectionForm';
 import { ConnectionForUrl } from '@semble/types';
 import { Suspense } from 'react';
 
@@ -30,11 +31,19 @@ export default function AddConnectionModal(props: Props) {
       onClick={(e) => e.stopPropagation()}
     >
       <Suspense>
-        <AddConnectionForm
-          onClose={props.onClose}
-          sourceUrl={props.sourceUrl}
-          connectionToEdit={props.connectionToEdit}
-        />
+        {isEditMode && props.connectionToEdit ? (
+          <EditConnectionForm
+            onClose={props.onClose}
+            sourceUrl={props.sourceUrl}
+            targetUrl={props.connectionToEdit.targetUrl}
+            connection={props.connectionToEdit.connection}
+          />
+        ) : (
+          <AddConnectionForm
+            onClose={props.onClose}
+            sourceUrl={props.sourceUrl}
+          />
+        )}
       </Suspense>
     </Modal>
   );
