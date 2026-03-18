@@ -189,7 +189,7 @@ export default function Composer(props: Props) {
         opened={props.isOpen}
         onClose={props.onClose}
         withCloseButton={false}
-        size={'33.4rem'}
+        size={'35rem'}
         padding={'sm'}
         position="bottom"
         overlayProps={DEFAULT_OVERLAY_PROPS}
