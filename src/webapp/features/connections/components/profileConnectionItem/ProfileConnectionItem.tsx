@@ -1,4 +1,5 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
+import Link from 'next/link';
 import {
   Stack,
   Card,
@@ -16,15 +17,13 @@ import {
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { MdEdit } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
-import { HiDotsHorizontal } from 'react-icons/hi';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
 import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import styles from './ProfileConnectionItem.module.css';
+import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import Link from 'next/link';
-import { BsTrash2Fill } from 'react-icons/bs';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -98,8 +97,13 @@ export default function ProfileConnectionItem(props: Props) {
               <Box>
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsHorizontal />
+                    <ActionIcon
+                      variant="subtle"
+                      color={'gray'}
+                      radius={'xl'}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BsThreeDots size={18} />
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>

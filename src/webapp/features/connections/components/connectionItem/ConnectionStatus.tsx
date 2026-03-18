@@ -17,7 +17,7 @@ import { getRelativeTime } from '@/lib/utils/time';
 import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
-import { HiDotsVertical } from 'react-icons/hi';
+import { BsThreeDots } from 'react-icons/bs';
 import { MdEdit } from 'react-icons/md';
 import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import CardChip from '@/features/cards/components/cardChip/CardChip';
@@ -91,8 +91,13 @@ export default function ConnectionStatus(props: Props) {
               <Box ml="auto">
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsVertical size={18} />
+                    <ActionIcon
+                      variant="light"
+                      color={'gray'}
+                      radius={'xl'}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BsThreeDots size={18} />
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
