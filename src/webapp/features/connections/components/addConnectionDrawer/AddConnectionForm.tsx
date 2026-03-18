@@ -26,6 +26,7 @@ import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import UrlSearchInput, { UrlSearchInputSkeleton } from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -117,12 +118,23 @@ export default function AddConnectionForm(props: Props) {
         onSuccess: () => {
           props.onClose();
           notifications.show({
-            message: 'Connection created successfully',
+            color: 'green',
+            title: 'Success!',
+            message: 'Connection created',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
           notifications.show({
             message: 'Could not create connection.',
+            color: 'red',
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

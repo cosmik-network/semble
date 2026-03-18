@@ -30,6 +30,7 @@ import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -117,6 +118,11 @@ export default function EditConnectionForm(props: Props) {
         id: 'same-url-error',
         title: 'A link cannot be connected to itself',
         message: 'Please choose a different link to connect',
+        color: 'red',
+        autoClose: 5000,
+        withCloseButton: true,
+        position: 'top-center',
+        icon: <BsExclamation />,
       });
       return;
     }
@@ -133,12 +139,23 @@ export default function EditConnectionForm(props: Props) {
         onSuccess: () => {
           props.onClose();
           notifications.show({
-            message: 'Connection updated successfully',
+            color: 'green',
+            title: 'Success!',
+            message: 'Connection updated',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
           notifications.show({
             message: 'Could not update connection.',
+            color: 'red',
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

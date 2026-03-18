@@ -2,6 +2,7 @@ import { Button, Stack, Modal } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -18,14 +19,23 @@ export default function DeleteConnectionModal(props: Props) {
       {
         onSuccess: () => {
           notifications.show({
-            message: 'Connection deleted successfully',
             color: 'green',
+            title: 'Success!',
+            message: 'Connection deleted',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
           });
         },
         onError: () => {
           notifications.show({
             message: 'Could not delete connection.',
             color: 'red',
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {
