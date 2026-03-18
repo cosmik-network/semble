@@ -81,7 +81,7 @@ export default function ProfileConnectionsContainer(props: Props) {
   return (
     <>
       <Stack gap={'md'} align="center">
-        <Group justify="flex-start" w={'100%'} maw={600}>
+        <Group justify="flex-start" w={'100%'} maw={700}>
           <ConnectionFilters.Root
             connectionType={connectionType}
             onConnectionTypeChange={setConnectionType}
@@ -100,7 +100,7 @@ export default function ProfileConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+            <Grid gutter="xl" mx={'auto'} maw={700} w={'100%'}>
               {allConnections.map((connection, index) => (
                 <Grid.Col key={`connection-${index}`} span={12}>
                   <ProfileConnectionItem

@@ -12,11 +12,11 @@ export default function ProfileConnectionsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack gap={'md'} align="center">
-        <Group justify="flex-start" w={'100%'} maw={600}>
+        <Group justify="flex-start" w={'100%'} maw={700}>
           <Skeleton w={95} h={36} radius={'xl'} />
         </Group>
 
-        <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+        <Grid gutter="xl" mx={'auto'} maw={700} w={'100%'}>
           {Array.from({ length: 3 }).map((_, i) => (
             <GridCol key={i} span={12}>
               <ProfileConnectionItemSkeleton />

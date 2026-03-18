@@ -151,15 +151,17 @@ export default function ProfileConnectionItem(props: Props) {
                           <Stack align="center" gap={'xs'}>
                             <ThemeIcon
                               color="gray"
+                              size={'sm'}
                               variant="light"
                               radius={'xl'}
                               hiddenFrom="sm"
                             >
-                              <IoArrowDown size={18} />
+                              <IoArrowDown />
                             </ThemeIcon>
 
                             <ThemeIcon
                               color="gray"
+                              size={'sm'}
                               variant="light"
                               radius={'xl'}
                               visibleFrom="sm"
