@@ -38,6 +38,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
 import { TbPlugConnected } from 'react-icons/tb';
 
@@ -130,57 +131,92 @@ export default function Composer(props: Props) {
     e.preventDefault();
     track('add new card');
 
-    addCard.mutate(
-      {
-        url: cardForm.getValues().url,
-        note: cardForm.getValues().note,
-        collectionIds: selectedCollections.map((c) => c.id),
+    // Capture values before any state changes
+    const cardData = {
+      url: cardForm.getValues().url,
+      note: cardForm.getValues().note,
+      collectionIds: selectedCollections.map((c) => c.id),
+    };
+
+    // Show loading toast immediately
+    const notificationId = `add-card-${Date.now()}`;
+    notifications.show({
+      id: notificationId,
+      loading: true,
+      title: 'Adding card...',
+      message: 'Please wait',
+      position: 'top-center',
+      autoClose: false,
+      withCloseButton: false,
+    });
+
+    // Close drawer immediately
+    props.onClose();
+    setSelectedCollections(initialCollections);
+    window.history.replaceState({}, '', window.location.pathname);
+    cardForm.reset();
+
+    addCard.mutate(cardData, {
+      onSuccess: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'green',
+          title: 'Success!',
+          message: 'Card added',
+          position: 'top-center',
+          loading: false,
+          autoClose: 3000,
+          icon: <BsCheck />,
+        });
       },
-      {
-        onSuccess: () => {
-          setSelectedCollections(initialCollections);
-          props.onClose();
-          window.history.replaceState({}, '', window.location.pathname);
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not add card.',
-          });
-        },
-        onSettled: () => {
-          cardForm.reset();
-        },
+      onError: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'red',
+          title: 'Error',
+          message: 'Could not add card',
+          position: 'top-center',
+          loading: false,
+          autoClose: 5000,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       },
-    );
+    });
   };
 
   const handleCreateCollection = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    createCollection.mutate(
-      {
-        name: collectionForm.getValues().name,
-        description: collectionForm.getValues().description,
-        accessType: collectionForm.getValues().accessType,
+    // Capture values before any state changes
+    const collectionData = {
+      name: collectionForm.getValues().name,
+      description: collectionForm.getValues().description,
+      accessType: collectionForm.getValues().accessType,
+    };
+
+    // Close drawer immediately
+    props.onClose();
+    if (props.onCollectionCreate) {
+      props.onCollectionCreate();
+    }
+    collectionForm.reset();
+
+    createCollection.mutate(collectionData, {
+      onError: () => {
+        notifications.show({
+          color: 'red',
+          title: 'Error',
+          message: 'Could not create collection',
+          position: 'top-center',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       },
-      {
-        onSuccess: () => {
-          props.onClose();
-          if (props.onCollectionCreate) {
-            props.onCollectionCreate();
-          }
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not create collection.',
-          });
-        },
-        onSettled: () => {
-          collectionForm.reset();
-        },
-      },
-    );
+    });
   };
 
   return (
