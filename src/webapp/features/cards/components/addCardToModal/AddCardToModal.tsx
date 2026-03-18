@@ -6,6 +6,11 @@ import CollectionSelectorSkeleton from '@/features/collections/components/collec
 import AddCardToModalContent from './AddCardToModalContent';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import useAddCard from '@/features/cards/lib/mutations/useAddCard';
+import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
+import { notifications } from '@mantine/notifications';
+import { track } from '@vercel/analytics';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -21,6 +26,11 @@ interface Props {
 }
 
 export default function AddCardToModal(props: Props) {
+  const addCard = useAddCard(props.analyticsContext);
+  const updateCardAssociations = useUpdateCardAssociations(
+    props.analyticsContext,
+  );
+
   const count = props.urlLibraryCount ?? 0;
 
   const subtitle = (() => {
@@ -34,6 +44,110 @@ export default function AddCardToModal(props: Props) {
       return `Saved by ${count} people`;
     }
   })();
+
+  const handleSubmit = (data: {
+    isAddingNewCard: boolean;
+    cardData?: {
+      url: string;
+      note?: string;
+      collectionIds: string[];
+      viaCardId?: string;
+    };
+    updateData?: {
+      cardId: string;
+      note?: string;
+      addToCollectionIds?: string[];
+      removeFromCollectionIds?: string[];
+      addToLibrary?: boolean;
+      viaCardId?: string;
+    };
+  }) => {
+    track('add or update existing card');
+
+    if (data.isAddingNewCard && data.cardData) {
+      const notificationId = `add-card-${Date.now()}`;
+      notifications.show({
+        id: notificationId,
+        loading: true,
+        title: 'Adding card...',
+        message: 'Please wait',
+        position: 'top-center',
+        autoClose: false,
+        withCloseButton: false,
+      });
+
+      props.onClose();
+
+      addCard.mutate(data.cardData, {
+        onSuccess: () => {
+          notifications.update({
+            id: notificationId,
+            color: 'green',
+            title: 'Success!',
+            message: 'Card added',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
+          });
+        },
+        onError: () => {
+          notifications.update({
+            id: notificationId,
+            color: 'red',
+            title: 'Error',
+            message: 'Could not add card',
+            loading: false,
+            autoClose: 5000,
+            withCloseButton: true,
+            position: 'top-center',
+            icon: <BsExclamation />,
+          });
+        },
+      });
+    } else if (!data.isAddingNewCard && data.updateData) {
+      const notificationId = `update-card-${Date.now()}`;
+      notifications.show({
+        id: notificationId,
+        loading: true,
+        title: 'Updating card...',
+        message: 'Please wait',
+        position: 'top-center',
+        autoClose: false,
+        withCloseButton: false,
+      });
+
+      props.onClose();
+
+      updateCardAssociations.mutate(data.updateData, {
+        onSuccess: () => {
+          notifications.update({
+            id: notificationId,
+            color: 'green',
+            title: 'Success!',
+            message: 'Card updated',
+            position: 'top-center',
+            loading: false,
+            autoClose: 3000,
+            icon: <BsCheck />,
+          });
+        },
+        onError: () => {
+          notifications.update({
+            id: notificationId,
+            color: 'red',
+            title: 'Error',
+            message: 'Could not update card',
+            position: 'top-center',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
+          });
+        },
+      });
+    }
+  };
 
   return (
     <Modal
@@ -60,12 +174,13 @@ export default function AddCardToModal(props: Props) {
         <Suspense fallback={<CollectionSelectorSkeleton />}>
           <AddCardToModalContent
             onClose={props.onClose}
+            onSubmit={handleSubmit}
             url={props.url}
             cardId={props.cardId}
             cardContent={props.cardContent}
             note={props.note}
             viaCardId={props.viaCardId}
-            analyticsContext={props.analyticsContext}
+            isSaving={addCard.isPending || updateCardAssociations.isPending}
           />
         </Suspense>
       </Stack>

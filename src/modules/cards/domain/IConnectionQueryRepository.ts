@@ -48,7 +48,9 @@ export interface ConnectionForUserDTO {
     curatorId: string;
   };
   sourceUrl: string;
+  sourceUrlMetadata?: any; // JSONB metadata from database
   targetUrl: string;
+  targetUrlMetadata?: any; // JSONB metadata from database
 }
 
 export interface IConnectionQueryRepository {

@@ -105,11 +105,10 @@ export class CreateCollectionUseCase
         collection.markAsPublished(publishResult.value);
       }
 
-      // Save updated collection with published record ID
-      const saveUpdatedResult =
-        await this.collectionRepository.save(collection);
-      if (saveUpdatedResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+      // Create the new collection
+      const createResult = await this.collectionRepository.create(collection);
+      if (createResult.isErr()) {
+        return err(AppError.UnexpectedError.create(createResult.error));
       }
 
       return ok({

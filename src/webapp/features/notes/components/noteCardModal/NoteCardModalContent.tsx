@@ -20,6 +20,7 @@ import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { notifications } from '@mantine/notifications';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -46,8 +47,14 @@ export default function NoteCardModalContent(props: Props) {
     removeNote.mutate(props.note.id, {
       onError: () => {
         notifications.show({
-          message: 'Could not delete note.',
+          message: 'Could not delete note',
           position: 'top-center',
+          color: 'red',
+          title: 'Error',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <BsExclamation />,
         });
       },
       onSettled: () => {
@@ -75,8 +82,14 @@ export default function NoteCardModalContent(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not update note.',
+            message: 'Could not update note',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

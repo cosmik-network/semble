@@ -1,10 +1,23 @@
 import { Analytics } from '@vercel/analytics/next';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import GlobalStyles from '@/styles/global.module.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
 import Providers from '@/providers';
 import { SPLASH_IMAGES } from '@/lib/consts/images';
+
+export const viewport: Viewport = {
+  themeColor: [
+    {
+      media: '(prefers-color-scheme: light)',
+      color: 'var(--mantine-color-body)',
+    },
+    {
+      media: '(prefers-color-scheme: dark)',
+      color: 'var(--mantine-color-body)',
+    },
+  ],
+};
 
 export const metadata: Metadata = {
   title: 'Semble — A social knowledge network for research',
@@ -13,9 +26,12 @@ export const metadata: Metadata = {
     title: 'Semble',
     capable: true,
     statusBarStyle: 'default',
-    startupImage: ['/semble-icon-192x192.png', ...SPLASH_IMAGES],
+    startupImage: SPLASH_IMAGES,
   },
-  other: { 'apple-mobile-web-app-capable': 'yes' },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+    'mobile-web-app-capable': 'yes',
+  },
 };
 
 const hankenGrotesk = Hanken_Grotesk({

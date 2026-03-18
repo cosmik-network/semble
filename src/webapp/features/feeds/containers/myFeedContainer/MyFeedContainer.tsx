@@ -3,7 +3,15 @@
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import useFollowingFeed from '@/features/feeds/lib/queries/useFollowingFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Stack, Text, Center, Container, Box, Loader } from '@mantine/core';
+import {
+  Stack,
+  Text,
+  Center,
+  Container,
+  Box,
+  Loader,
+  Collapse,
+} from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -11,6 +19,7 @@ import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { UrlType, ActivitySource } from '@semble/types';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
+import { useState, useEffect } from 'react';
 
 export default function MyFeedContainer() {
   const pathname = usePathname();
@@ -44,6 +53,22 @@ export default function MyFeedContainer() {
     refetch,
   } = activeFeed;
 
+  // Ensure animation is visible even for fast refetches
+  const [showRefetchLoader, setShowRefetchLoader] = useState(false);
+  const MIN_DISPLAY_TIME = 400; // milliseconds
+
+  useEffect(() => {
+    if (isRefetching) {
+      setShowRefetchLoader(true);
+    } else if (showRefetchLoader) {
+      // Keep showing the loader for minimum time to ensure animation completes
+      const timer = setTimeout(() => {
+        setShowRefetchLoader(false);
+      }, MIN_DISPLAY_TIME);
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, showRefetchLoader]);
+
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
 
@@ -57,49 +82,47 @@ export default function MyFeedContainer() {
 
   return (
     <Container p="xs" size="xl">
-      <Stack align="center">
-        {isRefetching && (
-          <Stack align="center" gap={'xs'}>
-            <Loader size={'sm'} color={'gray'} />
-            <Text fw={600} c={'gray'}>
-              Fetching the latest activities...
-            </Text>
-          </Stack>
-        )}
-        {allActivities.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              No activity to show yet
-            </Text>
-          </Center>
-        ) : (
-          <InfiniteScroll
-            dataLength={allActivities.length}
-            hasMore={!!hasNextPage}
-            isInitialLoading={isPending}
-            isLoading={isFetchingNextPage}
-            loadMore={fetchNextPage}
-          >
-            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-              <Stack gap={60}>
-                {allActivities.map((item) => (
-                  <FeedItem
-                    key={item.id}
-                    item={item}
-                    analyticsContext={{
-                      saveSource: CardSaveSource.FEED,
-                      activeFilters: {
-                        urlType: selectedUrlType,
-                      },
-                      pagePath: pathname,
-                    }}
-                  />
-                ))}
-              </Stack>
+      <Collapse in={showRefetchLoader} transitionDuration={350}>
+        <Stack align="center" gap={'xs'}>
+          <Loader size={'sm'} color={'gray'} />
+          <Text fw={600} c={'gray'} mb={'sm'}>
+            Fetching the latest activities...
+          </Text>
+        </Stack>
+      </Collapse>
+      {allActivities.length === 0 ? (
+        <Center>
+          <Text fz="h3" fw={600} c="gray">
+            No activity to show yet
+          </Text>
+        </Center>
+      ) : (
+        <InfiniteScroll
+          dataLength={allActivities.length}
+          hasMore={!!hasNextPage}
+          isInitialLoading={isPending}
+          isLoading={isFetchingNextPage}
+          loadMore={fetchNextPage}
+        >
+          <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
+            <Stack gap={60}>
+              {allActivities.map((item) => (
+                <FeedItem
+                  key={item.id}
+                  item={item}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.FEED,
+                    activeFilters: {
+                      urlType: selectedUrlType,
+                    },
+                    pagePath: pathname,
+                  }}
+                />
+              ))}
             </Stack>
-          </InfiniteScroll>
-        )}
-      </Stack>
+          </Stack>
+        </InfiniteScroll>
+      )}
 
       <Box
         pos={'fixed'}

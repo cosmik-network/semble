@@ -16,6 +16,7 @@ import { notifications } from '@mantine/notifications';
 import { FaSeedling } from 'react-icons/fa6';
 import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -71,7 +72,14 @@ export default function CreateCollectionForm(props: Props) {
         },
         onError: () => {
           notifications.show({
-            message: 'Could not create collection.',
+            message: 'Could not create collection',
+            color: 'red',
+            title: 'Error',
+            position: 'top-center',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

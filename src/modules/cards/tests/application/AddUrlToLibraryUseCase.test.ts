@@ -699,6 +699,8 @@ describe('AddUrlToLibraryUseCase', () => {
         expect(result.error.message).toContain('does not have permission');
       }
 
+      // When adding to multiple collections fails due to permissions,
+      // NO collections should be modified (all-or-nothing behavior)
       const openPublishedLinks =
         collectionPublisher.getPublishedLinksForCollection(
           openCollection.collectionId.getStringValue(),
@@ -707,7 +709,7 @@ describe('AddUrlToLibraryUseCase', () => {
         collectionPublisher.getPublishedLinksForCollection(
           closedCollection.collectionId.getStringValue(),
         );
-      expect(openPublishedLinks).toHaveLength(1);
+      expect(openPublishedLinks).toHaveLength(0);
       expect(closedPublishedLinks).toHaveLength(0);
     });
   });

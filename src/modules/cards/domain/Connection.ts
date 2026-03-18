@@ -7,6 +7,7 @@ import { UrlOrCardId } from './value-objects/UrlOrCardId';
 import { ConnectionNote } from './value-objects/ConnectionNote';
 import { CuratorId } from './value-objects/CuratorId';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
+import { UrlMetadata } from './value-objects/UrlMetadata';
 import { ConnectionCreatedEvent } from './events/ConnectionCreatedEvent';
 import { ConnectionRemovedEvent } from './events/ConnectionRemovedEvent';
 
@@ -20,6 +21,8 @@ export class ConnectionValidationError extends Error {
 interface ConnectionProps {
   source: UrlOrCardId;
   target: UrlOrCardId;
+  sourceUrlMetadata?: UrlMetadata;
+  targetUrlMetadata?: UrlMetadata;
   type?: ConnectionType;
   note?: ConnectionNote;
   curatorId: CuratorId;
@@ -39,6 +42,14 @@ export class Connection extends AggregateRoot<ConnectionProps> {
 
   get target(): UrlOrCardId {
     return this.props.target;
+  }
+
+  get sourceUrlMetadata(): UrlMetadata | undefined {
+    return this.props.sourceUrlMetadata;
+  }
+
+  get targetUrlMetadata(): UrlMetadata | undefined {
+    return this.props.targetUrlMetadata;
   }
 
   get type(): ConnectionType | undefined {

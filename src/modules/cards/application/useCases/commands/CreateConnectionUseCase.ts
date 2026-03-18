@@ -18,6 +18,9 @@ import {
   ConnectionTypeEnum,
 } from '../../../domain/value-objects/ConnectionType';
 import { ConnectionNote } from '../../../domain/value-objects/ConnectionNote';
+import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { URL } from '../../../domain/value-objects/URL';
+import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
 
 export interface CreateConnectionDTO {
   sourceType: UrlOrCardIdType;
@@ -51,6 +54,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
   constructor(
     private connectionRepository: IConnectionRepository,
     private connectionPublisher: IConnectionPublisher,
+    private metadataService: IMetadataService,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -128,11 +132,72 @@ export class CreateConnectionUseCase extends BaseUseCase<
         note = noteResult.value;
       }
 
+      // Fetch URL metadata for source and target if they are URLs
+      let sourceUrlMetadata: UrlMetadata | undefined;
+      let targetUrlMetadata: UrlMetadata | undefined;
+
+      const metadataFetches: Promise<{
+        type: 'source' | 'target';
+        metadata: UrlMetadata | undefined;
+      }>[] = [];
+
+      // Fetch source metadata if it's a URL
+      if (source.type === 'URL') {
+        const urlResult = URL.create(source.stringValue);
+        if (urlResult.isOk()) {
+          metadataFetches.push(
+            this.metadataService
+              .fetchMetadata(urlResult.value)
+              .then((result) => ({
+                type: 'source' as const,
+                metadata: result.isOk() ? result.value : undefined,
+              }))
+              .catch(() => ({
+                type: 'source' as const,
+                metadata: undefined,
+              })),
+          );
+        }
+      }
+
+      // Fetch target metadata if it's a URL
+      if (target.type === 'URL') {
+        const urlResult = URL.create(target.stringValue);
+        if (urlResult.isOk()) {
+          metadataFetches.push(
+            this.metadataService
+              .fetchMetadata(urlResult.value)
+              .then((result) => ({
+                type: 'target' as const,
+                metadata: result.isOk() ? result.value : undefined,
+              }))
+              .catch(() => ({
+                type: 'target' as const,
+                metadata: undefined,
+              })),
+          );
+        }
+      }
+
+      // Wait for all metadata fetches to complete
+      if (metadataFetches.length > 0) {
+        const metadataResults = await Promise.all(metadataFetches);
+        for (const result of metadataResults) {
+          if (result.type === 'source') {
+            sourceUrlMetadata = result.metadata;
+          } else {
+            targetUrlMetadata = result.metadata;
+          }
+        }
+      }
+
       // Create connection
       const timestamp = request.createdAt ?? new Date();
       const connectionResult = Connection.create({
         source,
         target,
+        sourceUrlMetadata,
+        targetUrlMetadata,
         type: connectionType,
         note,
         curatorId,

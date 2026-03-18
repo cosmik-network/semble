@@ -18,6 +18,7 @@ import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -63,8 +64,14 @@ export default function EditCollectionModal(props: Props) {
       {
         onError: () => {
           notifications.show({
-            message: 'Could not update collection.',
+            message: 'Could not update collection',
             position: 'top-center',
+            color: 'red',
+            title: 'Error',
+            loading: false,
+            autoClose: false,
+            withCloseButton: true,
+            icon: <BsExclamation />,
           });
         },
         onSettled: () => {

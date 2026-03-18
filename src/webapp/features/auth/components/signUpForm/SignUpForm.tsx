@@ -14,9 +14,9 @@ export default function SignUpForm() {
       >
         Sign up on Bluesky
       </Button>
-      <Text fw={500} c={'stone'}>
+      <Text fw={500} fz={'sm'} c={'gray'}>
         Already have a Bluesky account?{' '}
-        <Anchor href="/login" fw={500}>
+        <Anchor href="/login" fw={500} fz={'sm'} c={'blue'}>
           Log in
         </Anchor>
       </Text>

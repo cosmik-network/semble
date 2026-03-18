@@ -38,6 +38,20 @@ export class CollectionValidationError extends Error {
   }
 }
 
+// Command tracking for optimized persistence
+export enum CollectionCommandType {
+  ADD_CARD = 'ADD_CARD',
+  REMOVE_CARD = 'REMOVE_CARD',
+  UPDATE_CARD_LINK = 'UPDATE_CARD_LINK',
+  ADD_COLLABORATOR = 'ADD_COLLABORATOR',
+  REMOVE_COLLABORATOR = 'REMOVE_COLLABORATOR',
+}
+
+export interface CollectionCommand {
+  type: CollectionCommandType;
+  payload: any;
+}
+
 interface CollectionProps {
   authorId: CuratorId;
   name: CollectionName;
@@ -52,6 +66,8 @@ interface CollectionProps {
 }
 
 export class Collection extends AggregateRoot<CollectionProps> {
+  private pendingCommands: CollectionCommand[] = [];
+
   get collectionId(): CollectionId {
     return CollectionId.create(this._id).unwrap();
   }
@@ -263,6 +279,12 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
 
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.ADD_CARD,
+      payload: newLink,
+    });
+
     // Raise domain event
     this.addDomainEvent(
       CardAddedToCollectionEvent.create(
@@ -286,6 +308,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     if (link) {
       link.publishedRecordId = publishedRecordId;
       this.props.updatedAt = new Date();
+
+      // Track the update command for optimized persistence
+      this.pendingCommands.push({
+        type: CollectionCommandType.UPDATE_CARD_LINK,
+        payload: {
+          cardId,
+          publishedRecordId,
+        },
+      });
     }
   }
 
@@ -337,6 +368,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
 
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.REMOVE_CARD,
+      payload: {
+        cardId,
+        userId,
+      },
+    });
+
     // Raise domain event
     this.addDomainEvent(
       CardRemovedFromCollectionEvent.create(
@@ -366,6 +406,12 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.collaboratorIds.push(collaboratorId);
     this.props.updatedAt = new Date();
 
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.ADD_COLLABORATOR,
+      payload: { collaboratorId },
+    });
+
     return ok(undefined);
   }
 
@@ -383,6 +429,12 @@ export class Collection extends AggregateRoot<CollectionProps> {
       (id) => !id.equals(collaboratorId),
     );
     this.props.updatedAt = new Date();
+
+    // Track the command for optimized persistence
+    this.pendingCommands.push({
+      type: CollectionCommandType.REMOVE_COLLABORATOR,
+      payload: { collaboratorId },
+    });
 
     return ok(undefined);
   }
@@ -447,5 +499,18 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
   public getUnpublishedCardLinks(): CardLink[] {
     return this.props.cardLinks.filter((link) => !link.publishedRecordId);
+  }
+
+  // Command tracking methods for optimized persistence
+  public getPendingCommands(): CollectionCommand[] {
+    return [...this.pendingCommands];
+  }
+
+  public clearPendingCommands(): void {
+    this.pendingCommands = [];
+  }
+
+  public hasPendingCommands(): boolean {
+    return this.pendingCommands.length > 0;
   }
 }

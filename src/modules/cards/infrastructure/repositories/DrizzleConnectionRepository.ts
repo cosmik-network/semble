@@ -44,8 +44,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
         curatorId: result.connection.curatorId,
         sourceType: result.connection.sourceType,
         sourceValue: result.connection.sourceValue,
+        sourceUrlMetadata: result.connection.sourceUrlMetadata
+          ? (result.connection.sourceUrlMetadata as any)
+          : undefined,
         targetType: result.connection.targetType,
         targetValue: result.connection.targetValue,
+        targetUrlMetadata: result.connection.targetUrlMetadata
+          ? (result.connection.targetUrlMetadata as any)
+          : undefined,
         connectionType: result.connection.connectionType || undefined,
         note: result.connection.note || undefined,
         createdAt: result.connection.createdAt,
@@ -94,8 +100,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
           curatorId: result.connection.curatorId,
           sourceType: result.connection.sourceType,
           sourceValue: result.connection.sourceValue,
+          sourceUrlMetadata: result.connection.sourceUrlMetadata
+            ? (result.connection.sourceUrlMetadata as any)
+            : undefined,
           targetType: result.connection.targetType,
           targetValue: result.connection.targetValue,
+          targetUrlMetadata: result.connection.targetUrlMetadata
+            ? (result.connection.targetUrlMetadata as any)
+            : undefined,
           connectionType: result.connection.connectionType || undefined,
           note: result.connection.note || undefined,
           createdAt: result.connection.createdAt,
@@ -147,8 +159,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
           curatorId: result.connection.curatorId,
           sourceType: result.connection.sourceType,
           sourceValue: result.connection.sourceValue,
+          sourceUrlMetadata: result.connection.sourceUrlMetadata
+            ? (result.connection.sourceUrlMetadata as any)
+            : undefined,
           targetType: result.connection.targetType,
           targetValue: result.connection.targetValue,
+          targetUrlMetadata: result.connection.targetUrlMetadata
+            ? (result.connection.targetUrlMetadata as any)
+            : undefined,
           connectionType: result.connection.connectionType || undefined,
           note: result.connection.note || undefined,
           createdAt: result.connection.createdAt,
@@ -203,8 +221,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
           curatorId: result.connection.curatorId,
           sourceType: result.connection.sourceType,
           sourceValue: result.connection.sourceValue,
+          sourceUrlMetadata: result.connection.sourceUrlMetadata
+            ? (result.connection.sourceUrlMetadata as any)
+            : undefined,
           targetType: result.connection.targetType,
           targetValue: result.connection.targetValue,
+          targetUrlMetadata: result.connection.targetUrlMetadata
+            ? (result.connection.targetUrlMetadata as any)
+            : undefined,
           connectionType: result.connection.connectionType || undefined,
           note: result.connection.note || undefined,
           createdAt: result.connection.createdAt,
@@ -259,8 +283,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
           curatorId: result.connection.curatorId,
           sourceType: result.connection.sourceType,
           sourceValue: result.connection.sourceValue,
+          sourceUrlMetadata: result.connection.sourceUrlMetadata
+            ? (result.connection.sourceUrlMetadata as any)
+            : undefined,
           targetType: result.connection.targetType,
           targetValue: result.connection.targetValue,
+          targetUrlMetadata: result.connection.targetUrlMetadata
+            ? (result.connection.targetUrlMetadata as any)
+            : undefined,
           connectionType: result.connection.connectionType || undefined,
           note: result.connection.note || undefined,
           createdAt: result.connection.createdAt,
@@ -320,8 +350,14 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
           curatorId: result.connection.curatorId,
           sourceType: result.connection.sourceType,
           sourceValue: result.connection.sourceValue,
+          sourceUrlMetadata: result.connection.sourceUrlMetadata
+            ? (result.connection.sourceUrlMetadata as any)
+            : undefined,
           targetType: result.connection.targetType,
           targetValue: result.connection.targetValue,
+          targetUrlMetadata: result.connection.targetUrlMetadata
+            ? (result.connection.targetUrlMetadata as any)
+            : undefined,
           connectionType: result.connection.connectionType || undefined,
           note: result.connection.note || undefined,
           createdAt: result.connection.createdAt,
@@ -403,8 +439,10 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
               curatorId: connectionData.curatorId,
               sourceType: connectionData.sourceType,
               sourceValue: connectionData.sourceValue,
+              sourceUrlMetadata: connectionData.sourceUrlMetadata,
               targetType: connectionData.targetType,
               targetValue: connectionData.targetValue,
+              targetUrlMetadata: connectionData.targetUrlMetadata,
               connectionType: connectionData.connectionType,
               note: connectionData.note,
               updatedAt: connectionData.updatedAt,

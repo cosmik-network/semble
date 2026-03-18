@@ -33,6 +33,7 @@ import { Collection, CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -87,28 +88,57 @@ export default function AddCardForm(props: Props) {
     e.preventDefault();
     track('add new card');
 
-    addCard.mutate(
-      {
-        url: form.getValues().url,
-        note: form.getValues().note,
-        collectionIds: selectedCollections.map((c) => c.id),
+    // Capture values before any state changes
+    const cardData = {
+      url: form.getValues().url,
+      note: form.getValues().note,
+      collectionIds: selectedCollections.map((c) => c.id),
+    };
+
+    // Show loading toast immediately
+    const notificationId = `add-card-${Date.now()}`;
+    notifications.show({
+      id: notificationId,
+      loading: true,
+      title: 'Adding card...',
+      message: 'Please wait',
+      position: 'top-center',
+      autoClose: false,
+      withCloseButton: false,
+    });
+
+    // Close drawer immediately
+    props.onClose();
+    setSelectedCollections(initialCollections);
+    form.reset();
+
+    addCard.mutate(cardData, {
+      onSuccess: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'green',
+          title: 'Success!',
+          message: 'Card added',
+          position: 'top-center',
+          loading: false,
+          autoClose: 3000,
+          icon: <BsCheck />,
+        });
       },
-      {
-        onSuccess: () => {
-          setSelectedCollections(initialCollections);
-          props.onClose();
-          window.history.replaceState({}, '', window.location.pathname);
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not add card.',
-          });
-        },
-        onSettled: () => {
-          form.reset();
-        },
+      onError: () => {
+        notifications.update({
+          id: notificationId,
+          color: 'red',
+          title: 'Error',
+          message: 'Could not add card',
+          position: 'top-center',
+          loading: false,
+          autoClose: 5000,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       },
-    );
+    });
   };
 
   return (

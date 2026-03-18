@@ -57,6 +57,7 @@ import { RedisFactory } from '../../redis/RedisFactory';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
+import { CachedATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/CachedATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
 import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
@@ -349,10 +350,25 @@ export class ServiceFactory {
       repositories.notificationRepository,
     );
 
-    // Identity Resolution Service
-    const identityResolutionService = new ATProtoIdentityResolutionService(
+    // Identity Resolution Service with Redis caching
+    const baseIdentityResolutionService = new ATProtoIdentityResolutionService(
       atProtoAgentService,
     );
+
+    let identityResolutionService: IIdentityResolutionService;
+
+    // caching requires persistence
+    if (useMockPersistence) {
+      identityResolutionService = baseIdentityResolutionService;
+    } else {
+      // Create Redis connection for caching
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+      identityResolutionService = new CachedATProtoIdentityResolutionService(
+        baseIdentityResolutionService,
+        redis,
+      );
+    }
 
     // Cookie Service
     const cookieService = new CookieService(configService);

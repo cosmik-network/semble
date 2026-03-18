@@ -1,8 +1,9 @@
 import { Result } from '../../../shared/core/Result';
-import { Collection } from './Collection';
+import { Collection, CollectionAccessType } from './Collection';
 import { CollectionId } from './value-objects/CollectionId';
 import { CardId } from './value-objects/CardId';
 import { CuratorId } from './value-objects/CuratorId';
+import { PublishedRecordId } from './value-objects/PublishedRecordId';
 
 export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;
@@ -17,6 +18,32 @@ export interface ICollectionRepository {
     cardId: CardId,
     addedBy: CuratorId,
   ): Promise<Result<Collection[]>>;
+
+  // Create a new collection (initial insert only)
+  create(collection: Collection): Promise<Result<void>>;
+
+  // Update an existing collection using pending commands
   save(collection: Collection): Promise<Result<void>>;
+
   delete(collectionId: CollectionId): Promise<Result<void>>;
+
+  // Lightweight update for collection metadata only
+  updateMetadata(
+    collectionId: CollectionId,
+    updates: {
+      name?: string;
+      description?: string;
+      accessType?: CollectionAccessType;
+      publishedRecordId?: PublishedRecordId;
+    },
+  ): Promise<Result<void>>;
+
+  // Batch operation for efficient multi-collection updates
+  addCardToMultipleCollections(
+    cardId: CardId,
+    collectionIds: CollectionId[],
+    curatorId: CuratorId,
+    viaCardId?: CardId,
+    publishedRecordIds?: Map<string, string>,
+  ): Promise<Result<void>>;
 }
