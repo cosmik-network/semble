@@ -14,7 +14,7 @@ import { ConnectionFilters } from '@/features/connections/components/connectionF
 import DirectionToggle from '@/features/connections/components/connectionFilters/DirectionToggle';
 import { useState } from 'react';
 import { ConnectionType, ConnectionWithSourceAndTarget } from '@semble/types';
-import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import EditConnectionModal from '@/features/connections/components/editConnectionModal/EditConnectionModal';
 
 type Direction = 'to' | 'from' | 'all';
 
@@ -184,11 +184,12 @@ export default function SembleConnectionsContainer(props: Props) {
         )}
       </Stack>
 
-      <AddConnectionModal
+      <EditConnectionModal
         isOpen={modalOpened}
         onClose={handleCloseModal}
         sourceUrl={props.url}
-        connectionToEdit={connectionToEdit || undefined}
+        targetUrl={connectionToEdit?.targetUrl}
+        connection={connectionToEdit?.connection}
       />
     </>
   );

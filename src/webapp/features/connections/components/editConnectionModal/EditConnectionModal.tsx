@@ -2,32 +2,36 @@
 
 import { Modal } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import AddConnectionForm from '../addConnectionDrawer/AddConnectionForm';
-import { Suspense } from 'react';
+import EditConnectionForm from '../editConnectionForm/EditConnectionForm';
+import { ConnectionForUrl } from '@semble/types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   sourceUrl: string;
+  targetUrl?: string;
+  connection?: ConnectionForUrl['connection'];
 }
 
-export default function AddConnectionModal(props: Props) {
+export default function EditConnectionModal(props: Props) {
   return (
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title="New Connection"
+      title="Edit Connection"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       size="md"
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Suspense>
-        <AddConnectionForm
+      {props.connection && props.targetUrl && (
+        <EditConnectionForm
           onClose={props.onClose}
           sourceUrl={props.sourceUrl}
+          targetUrl={props.targetUrl}
+          connection={props.connection}
         />
-      </Suspense>
+      )}
     </Modal>
   );
 }
