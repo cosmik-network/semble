@@ -1,7 +1,8 @@
-import { Card, Image, Group, Text } from '@mantine/core';
+import { Card, Image, Group, Text, Tooltip } from '@mantine/core';
 import Link from 'next/link';
 import { truncateText } from '@/lib/utils/text';
 import styles from './CardChip.module.css';
+import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   url: string;
@@ -11,29 +12,31 @@ interface Props {
 
 export default function CardChip(props: Props) {
   return (
-    <Card
-      component={Link}
-      href={`/url?id=${encodeURIComponent(props.url)}`}
-      radius={'md'}
-      px={7}
-      py={5}
-      className={styles.root}
-    >
-      <Group gap={6} wrap="nowrap">
-        {props.imageUrl && (
-          <Image
-            src={props.imageUrl}
-            alt={`${props.imageUrl} social preview image`}
-            w={16}
-            h={16}
-            fit="cover"
-            radius={'sm'}
-          />
-        )}
-        <Text size="xs" fw={600}>
-          {truncateText(props.title || 'Card', 18)}
-        </Text>
-      </Group>
-    </Card>
+    <Tooltip label={getDomain(props.url)}>
+      <Card
+        component={Link}
+        href={`/url?id=${encodeURIComponent(props.url)}`}
+        radius={'md'}
+        px={7}
+        py={5}
+        className={styles.root}
+      >
+        <Group gap={6} wrap="nowrap">
+          {props.imageUrl && (
+            <Image
+              src={props.imageUrl}
+              alt={`${props.imageUrl} social preview image`}
+              w={16}
+              h={16}
+              fit="cover"
+              radius={'sm'}
+            />
+          )}
+          <Text size="xs" fw={600}>
+            {truncateText(props.title || 'Card', 18)}
+          </Text>
+        </Group>
+      </Card>
+    </Tooltip>
   );
 }
