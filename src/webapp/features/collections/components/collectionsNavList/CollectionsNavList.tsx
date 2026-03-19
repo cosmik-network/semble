@@ -10,9 +10,11 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { useNavbarContext } from '@/providers/navbar';
 import useFollowingCollections from '@/features/follows/lib/queries/useFollowingCollections';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function CollectionsNavList() {
   const { toggleMobile } = useNavbarContext();
+  const { settings, updateSetting } = useUserSettings();
   const { data, error } = useMyCollections({ limit: 30 });
   const { data: profile, error: profileError } = useMyProfile();
   const { data: followingCollections, error: errorFollowingCollections } =
@@ -52,7 +54,12 @@ export default function CollectionsNavList() {
       </Group>
 
       <Stack gap={0}>
-        <NavLink label="My Collections" c={'gray'}>
+        <NavLink
+          label="My Collections"
+          c={'gray'}
+          opened={settings.collectionsNavExpanded}
+          onChange={(opened) => updateSetting('collectionsNavExpanded', opened)}
+        >
           <Stack gap={0}>
             {collections.map((collection) => (
               <CollectionNavItem
@@ -75,7 +82,12 @@ export default function CollectionsNavList() {
           </Stack>
         </NavLink>
 
-        <NavLink label="Following" c={'gray'}>
+        <NavLink
+          label="Following"
+          c={'gray'}
+          opened={settings.followingNavExpanded}
+          onChange={(opened) => updateSetting('followingNavExpanded', opened)}
+        >
           <Stack gap={0}>
             {followedCollections.map((collection) => (
               <CollectionNavItem

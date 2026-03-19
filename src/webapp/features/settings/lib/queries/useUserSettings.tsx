@@ -3,11 +3,15 @@ import { useLocalStorage } from '@mantine/hooks';
 interface UserSettings {
   tinkerMode: boolean;
   cardView: 'grid' | 'list';
+  collectionsNavExpanded: boolean;
+  followingNavExpanded: boolean;
 }
 
 const defaultSettings: UserSettings = {
   tinkerMode: false,
   cardView: 'grid',
+  collectionsNavExpanded: false,
+  followingNavExpanded: false,
 };
 
 export function useUserSettings() {
