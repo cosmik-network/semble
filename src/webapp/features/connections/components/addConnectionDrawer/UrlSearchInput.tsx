@@ -135,14 +135,9 @@ export default function UrlSearchInput(props: UrlSearchInputProps) {
               }}
               rightSection={isFetching && <Loader size={18} />}
               variant="unstyled"
-              size="xs"
+              size="md"
               required
               error={props.error}
-              styles={{
-                input: {
-                  fontSize: 'var(--mantine-font-size-sm)',
-                },
-              }}
             />
           </Combobox.Target>
 
@@ -158,7 +153,7 @@ export default function UrlSearchInput(props: UrlSearchInputProps) {
             }
           >
             <Combobox.Options>
-              <ScrollArea.Autosize type="scroll" mah={300}>
+              <ScrollArea.Autosize type="scroll" mah={{ base: 150, xs: 300 }}>
                 {debounced.trim().length === 0 ? (
                   <Fragment>
                     <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
