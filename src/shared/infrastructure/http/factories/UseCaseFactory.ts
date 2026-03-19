@@ -490,6 +490,7 @@ export class UseCaseFactory {
         repositories.notificationRepository,
         services.profileService,
         repositories.connectionRepository,
+        repositories.cardQueryRepository,
       ),
       getUnreadNotificationCountUseCase: new GetUnreadNotificationCountUseCase(
         repositories.notificationRepository,

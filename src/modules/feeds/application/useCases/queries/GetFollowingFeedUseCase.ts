@@ -342,6 +342,15 @@ export class GetFollowingFeedUseCase
         }
       >();
       let connectionCuratorProfiles = new Map<string, any>();
+      let connectionUrlStatsMap = new Map<
+        string,
+        {
+          urlLibraryCount: number;
+          urlInLibrary?: boolean;
+          urlConnectionCount?: number;
+          urlIsConnected?: boolean;
+        }
+      >();
 
       if (connectionActivities.length > 0) {
         // Get unique connection IDs
@@ -422,6 +431,33 @@ export class GetFollowingFeedUseCase
         }
 
         connectionCuratorProfiles = connectionCuratorProfilesResult.value;
+
+        // Fetch URL library info for connection URLs
+        const connectionUrls = Array.from(
+          new Set([
+            ...Array.from(connectionDataMap.values()).map((c) => c.sourceUrl),
+            ...Array.from(connectionDataMap.values()).map((c) => c.targetUrl),
+          ]),
+        );
+
+        const connectionUrlLibraryInfoMap =
+          await this.cardQueryRepository.getBatchUrlLibraryInfo(
+            connectionUrls,
+            query.callingUserId,
+          );
+
+        // Build a map of URL to stats for easy lookup
+        connectionUrls.forEach((url) => {
+          const urlInfo = connectionUrlLibraryInfoMap.get(url);
+          if (urlInfo) {
+            connectionUrlStatsMap.set(url, {
+              urlLibraryCount: urlInfo.urlLibraryCount,
+              urlInLibrary: urlInfo.urlInLibrary,
+              urlConnectionCount: urlInfo.urlConnectionCount,
+              urlIsConnected: urlInfo.urlIsConnected,
+            });
+          }
+        });
       }
 
       // Transform activities to FeedItem in chronological order
@@ -519,16 +555,34 @@ export class GetFollowingFeedUseCase
 
           // Build UrlView for source and target
           // Extract metadata props to avoid the value object wrapper
+          const sourceUrlStats = connectionUrlStatsMap.get(
+            connectionData.sourceUrl,
+          ) || {
+            urlLibraryCount: 0,
+            urlInLibrary: undefined,
+            urlConnectionCount: undefined,
+            urlIsConnected: undefined,
+          };
+
+          const targetUrlStats = connectionUrlStatsMap.get(
+            connectionData.targetUrl,
+          ) || {
+            urlLibraryCount: 0,
+            urlInLibrary: undefined,
+            urlConnectionCount: undefined,
+            urlIsConnected: undefined,
+          };
+
           const sourceUrlView = {
             url: connectionData.sourceUrl,
             metadata: connectionData.sourceUrlMetadata?.props ||
               connectionData.sourceUrlMetadata || {
                 url: connectionData.sourceUrl,
               },
-            urlLibraryCount: 0, // TODO: Fetch from DB if needed
-            urlInLibrary: undefined,
-            urlConnectionCount: undefined,
-            urlIsConnected: undefined,
+            urlLibraryCount: sourceUrlStats.urlLibraryCount,
+            urlInLibrary: sourceUrlStats.urlInLibrary,
+            urlConnectionCount: sourceUrlStats.urlConnectionCount,
+            urlIsConnected: sourceUrlStats.urlIsConnected,
           };
 
           const targetUrlView = {
@@ -537,10 +591,10 @@ export class GetFollowingFeedUseCase
               connectionData.targetUrlMetadata || {
                 url: connectionData.targetUrl,
               },
-            urlLibraryCount: 0, // TODO: Fetch from DB if needed
-            urlInLibrary: undefined,
-            urlConnectionCount: undefined,
-            urlIsConnected: undefined,
+            urlLibraryCount: targetUrlStats.urlLibraryCount,
+            urlInLibrary: targetUrlStats.urlInLibrary,
+            urlConnectionCount: targetUrlStats.urlConnectionCount,
+            urlIsConnected: targetUrlStats.urlIsConnected,
           };
 
           feedItems.push({
