@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Skeleton,
   Avatar,
@@ -9,10 +11,14 @@ import {
   UnstyledButton,
   Stack,
 } from '@mantine/core';
+import { useMantineColorScheme } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import {
   MdOutlineBugReport,
   MdOutlineCollectionsBookmark,
+  MdDarkMode,
+  MdLightMode,
+  MdOutlineSmartphone,
 } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,12 +31,31 @@ import { BsThreeDots } from 'react-icons/bs';
 import styles from './ProfileMenu.module.css';
 import { sanitizeText } from '@/lib/utils/text';
 
+const schemes = ['light', 'dark', 'auto'] as const;
+type ColorScheme = (typeof schemes)[number];
+
+const schemeConfig: Record<
+  ColorScheme,
+  { icon: React.ReactNode; label: string; next: ColorScheme }
+> = {
+  light: { icon: <MdLightMode size={22} />, label: 'Light', next: 'dark' },
+  dark: { icon: <MdDarkMode size={22} />, label: 'Dark', next: 'auto' },
+  auto: {
+    icon: <MdOutlineSmartphone size={22} />,
+    label: 'System',
+    next: 'light',
+  },
+};
+
 export default function ProfileMenu() {
   const router = useRouter();
   const os = useOs();
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+
+  const current = schemeConfig[colorScheme as ColorScheme] ?? schemeConfig.auto;
 
   const handleLogout = async () => {
     try {
@@ -94,6 +119,15 @@ export default function ProfileMenu() {
           </Menu.Item>
 
           <Menu.Divider />
+
+          <Menu.Item
+            color="gray"
+            closeMenuOnClick={false}
+            leftSection={current.icon}
+            onClick={() => setColorScheme(current.next)}
+          >
+            Theme: {current.label}
+          </Menu.Item>
 
           <Menu.Item
             component="a"
