@@ -138,6 +138,11 @@ export default function UrlSearchInput(props: UrlSearchInputProps) {
               size="sm"
               required
               error={props.error}
+              styles={{
+                input: {
+                  fontSize: '16px',
+                },
+              }}
             />
           </Combobox.Target>
 
