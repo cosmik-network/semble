@@ -44,8 +44,15 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
-      const { page, limit, beforeActivityId, urlType } = options;
+      const { page, limit, beforeActivityId, urlType, activityTypes } = options;
       let filteredActivities = [...this.activities];
+
+      // Filter by activity types if provided
+      if (activityTypes && activityTypes.length > 0) {
+        filteredActivities = filteredActivities.filter((activity) =>
+          activityTypes.includes(activity.type.value),
+        );
+      }
 
       // Filter by URL type if provided
       if (urlType) {
@@ -96,7 +103,7 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
-      const { page, limit, beforeActivityId, urlType } = options;
+      const { page, limit, beforeActivityId, urlType, activityTypes } = options;
       const collectionIdStrings = collectionIds.map((id) =>
         id.getStringValue(),
       );
@@ -113,6 +120,13 @@ export class InMemoryFeedRepository implements IFeedRepository {
         }
         return false;
       });
+
+      // Filter by activity types if provided
+      if (activityTypes && activityTypes.length > 0) {
+        filteredActivities = filteredActivities.filter((activity) =>
+          activityTypes.includes(activity.type.value),
+        );
+      }
 
       // Filter by URL type if provided
       if (urlType) {
@@ -244,7 +258,7 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
-      const { page, limit, beforeActivityId, urlType } = options;
+      const { page, limit, beforeActivityId, urlType, activityTypes } = options;
 
       // Get activity IDs for this user's following feed
       const userActivityIds = this.followingFeedItems.get(userId) || new Set();
@@ -253,6 +267,13 @@ export class InMemoryFeedRepository implements IFeedRepository {
       let filteredActivities = this.activities.filter((activity) =>
         userActivityIds.has(activity.activityId.getStringValue()),
       );
+
+      // Filter by activity types if provided
+      if (activityTypes && activityTypes.length > 0) {
+        filteredActivities = filteredActivities.filter((activity) =>
+          activityTypes.includes(activity.type.value),
+        );
+      }
 
       // Filter by URL type if provided
       if (urlType) {
