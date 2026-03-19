@@ -43,7 +43,7 @@ export function UrlSearchInputSkeleton() {
   );
 }
 
-interface UrlSearchInputProps {
+interface Props {
   id: string;
   label: string;
   placeholder: string;
@@ -52,7 +52,7 @@ interface UrlSearchInputProps {
   onUrlSelect: (url: string) => void;
 }
 
-export default function UrlSearchInput(props: UrlSearchInputProps) {
+export default function UrlSearchInput(props: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
