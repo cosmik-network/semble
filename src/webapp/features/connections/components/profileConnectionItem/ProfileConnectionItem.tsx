@@ -73,10 +73,10 @@ export default function ProfileConnectionItem(props: Props) {
                     >
                       {props.curator.name}
                     </Text>
-                    <Text c={'gray'} span>
+                    <Text c={'gray'} fw={600} span>
                       {' · '}
                     </Text>
-                    <Text c={'gray'} span>
+                    <Text fz={'sm'} fw={600} c={'gray'} span>
                       {relativeCreatedDate}{' '}
                     </Text>
                   </Text>
