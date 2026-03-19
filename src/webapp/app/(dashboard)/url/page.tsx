@@ -51,13 +51,10 @@ export default async function Page(props: Props) {
     redirect('/');
   }
 
-  // Fetch metadata with stats for the tabs
-  const { stats } = await getUrlMetadata({ url, includeStats: true });
-
   return (
     <SemblePageClient viaCardId={viaCardId}>
       <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-        <SembleContainer url={url} viaCardId={viaCardId} stats={stats} />
+        <SembleContainer url={url} viaCardId={viaCardId} />
       </Suspense>
     </SemblePageClient>
   );
