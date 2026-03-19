@@ -42,7 +42,9 @@ export default function SembleContainer(props: Props) {
               <SembleHeader url={props.url} viaCardId={props.viaCardId} />
             </Suspense>
           )}
-          <SembleTabs url={props.url} />
+          <Suspense>
+            <SembleTabs url={props.url} />
+          </Suspense>
         </Stack>
       </Container>
     </Container>
