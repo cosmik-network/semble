@@ -21,6 +21,7 @@ import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import Link from 'next/link';
 
 interface Props {
   url: string;
@@ -73,6 +74,8 @@ export default function BlueskyPost(props: Props) {
       <Group gap="xs" justify="space-between" wrap="nowrap" w={'100%'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar
+            component={Link}
+            href={`https://bsky.app/profile/${post.author.handle}`}
             src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
             alt={`${post.author.handle} avatar`}
             size={'sm'}

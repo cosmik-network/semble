@@ -4,6 +4,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import { getDomain } from '@/lib/utils/link';
 import { AppBskyEmbedExternal } from '@atproto/api';
 import {
+  Anchor,
   AspectRatio,
   Card,
   CardSection,
@@ -12,6 +13,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
+import Link from 'next/link';
 
 interface Props {
   embed: AppBskyEmbedExternal.View;
@@ -40,9 +42,16 @@ export default function ExternalEmbed(props: Props) {
             <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>
               {props.embed.external.title}
             </Text>
-            <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1}>
+            <Anchor
+              component={Link}
+              href={props.embed.external.uri}
+              fz={'sm'}
+              fw={500}
+              c={'gray'}
+              lineClamp={1}
+            >
               {getDomain(props.embed.external.uri)}
-            </Text>
+            </Anchor>
           </Stack>
         </Group>
       </Card>
