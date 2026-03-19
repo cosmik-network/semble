@@ -28,7 +28,7 @@ import { CONNECTION_TYPES } from '../../const/connectionTypes';
 interface Props {
   connection: ConnectionWithSourceAndTarget;
   curator: User;
-  showActivityStatus?: boolean;
+  activityStatusText?: string;
   onEdit?: () => void;
 }
 
@@ -74,8 +74,8 @@ export default function ProfileConnectionItem(props: Props) {
                     >
                       {props.curator.name}
                     </Text>
-                    {props.showActivityStatus && (
-                      <Text span> made a connection</Text>
+                    {props.activityStatusText && (
+                      <Text span> {props.activityStatusText}</Text>
                     )}
                     <Text c={'gray'} fw={600} span>
                       {' · '}

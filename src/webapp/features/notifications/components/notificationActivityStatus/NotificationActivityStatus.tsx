@@ -28,7 +28,7 @@ import { getNotificationTypeIcon } from '../../lib/utils/icon';
 
 interface Props {
   user: NotificationItem['user'];
-  collections?: NotificationItem['collections'];
+  collections?: Collection[];
   createdAt: string;
   type: NotificationType;
   followButton?: React.ReactNode;

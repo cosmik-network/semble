@@ -28,7 +28,7 @@ export default function FeedItem(props: Props) {
       <ProfileConnectionItem
         connection={item.connection}
         curator={item.user}
-        showActivityStatus={true}
+        activityStatusText={'made a connection'}
       />
     );
   }
