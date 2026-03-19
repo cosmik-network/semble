@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Skeleton,
   Avatar,
@@ -7,19 +9,47 @@ import {
   Card,
   Text,
   UnstyledButton,
+  Stack,
 } from '@mantine/core';
+import { useMantineColorScheme } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
-import { MdBugReport, MdCollectionsBookmark } from 'react-icons/md';
+import {
+  MdOutlineBugReport,
+  MdOutlineCollectionsBookmark,
+  MdOutlineSmartphone,
+  MdOutlineDarkMode,
+  MdOutlineLightMode,
+} from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
-import { BiSolidUserCircle } from 'react-icons/bi';
 import { useOs } from '@mantine/hooks';
 import { BsThreeDots } from 'react-icons/bs';
 import styles from './ProfileMenu.module.css';
+import { sanitizeText } from '@/lib/utils/text';
+
+const schemes = ['light', 'dark', 'auto'] as const;
+type ColorScheme = (typeof schemes)[number];
+
+const schemeConfig: Record<
+  ColorScheme,
+  { icon: React.ReactNode; label: string; next: ColorScheme }
+> = {
+  light: {
+    icon: <MdOutlineLightMode size={22} />,
+    label: 'Light',
+    next: 'dark',
+  },
+  dark: { icon: <MdOutlineDarkMode size={22} />, label: 'Dark', next: 'auto' },
+  auto: {
+    icon: <MdOutlineSmartphone size={22} />,
+    label: 'Auto',
+    next: 'light',
+  },
+};
 
 export default function ProfileMenu() {
   const router = useRouter();
@@ -27,6 +57,9 @@ export default function ProfileMenu() {
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+
+  const current = schemeConfig[colorScheme as ColorScheme] ?? schemeConfig.auto;
 
   const handleLogout = async () => {
     try {
@@ -71,19 +104,40 @@ export default function ProfileMenu() {
             component={Link}
             href={`/profile/${data.handle}`}
             onClick={toggleMobile}
-            leftSection={<BiSolidUserCircle size={22} />}
-            color="gray"
           >
-            View profile
+            <Group gap={'xs'} wrap="nowrap">
+              <Avatar
+                src={data.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+                alt={`${data.handle}'s avatar`}
+              />
+
+              <Stack gap={0}>
+                <Text fw={600} c={'bright'} lineClamp={1}>
+                  {sanitizeText(data.name) || data.handle}
+                </Text>
+                <Text fw={600} c={'gray'} lineClamp={1}>
+                  @{data.handle}
+                </Text>
+              </Stack>
+            </Group>
           </Menu.Item>
 
           <Menu.Divider />
 
           <Menu.Item
+            color="gray"
+            closeMenuOnClick={false}
+            leftSection={current.icon}
+            onClick={() => setColorScheme(current.next)}
+          >
+            Theme: {current.label}
+          </Menu.Item>
+
+          <Menu.Item
             component="a"
             href="https://tangled.org/@cosmik.network/semble/issues"
             target="_blank"
-            leftSection={<MdBugReport size={22} />}
+            leftSection={<MdOutlineBugReport size={22} />}
             color="gray"
           >
             Submit an issue
@@ -91,7 +145,7 @@ export default function ProfileMenu() {
 
           <Menu.Item
             color="gray"
-            leftSection={<MdCollectionsBookmark size={22} />}
+            leftSection={<MdOutlineCollectionsBookmark size={22} />}
             component={Link}
             href={'/bookmarklet'}
             target="_blank"

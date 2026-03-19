@@ -2,7 +2,11 @@
 
 import { Container, Stack, SegmentedControl, Center } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
-import { MdDarkMode, MdLightMode, MdOutlineSmartphone } from 'react-icons/md';
+import {
+  MdOutlineDarkMode,
+  MdOutlineLightMode,
+  MdOutlineSmartphone,
+} from 'react-icons/md';
 
 export default function AppearanceContainer() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
@@ -21,7 +25,7 @@ export default function AppearanceContainer() {
             {
               label: (
                 <Center style={{ gap: 10 }}>
-                  <MdLightMode />
+                  <MdOutlineLightMode />
                   <span>Light</span>
                 </Center>
               ),
@@ -30,7 +34,7 @@ export default function AppearanceContainer() {
             {
               label: (
                 <Center style={{ gap: 10 }}>
-                  <MdDarkMode />
+                  <MdOutlineDarkMode />
                   <span>Dark</span>
                 </Center>
               ),
@@ -40,7 +44,7 @@ export default function AppearanceContainer() {
               label: (
                 <Center style={{ gap: 10 }}>
                   <MdOutlineSmartphone />
-                  <span>System</span>
+                  <span>Auto</span>
                 </Center>
               ),
               value: 'auto',
