@@ -197,6 +197,11 @@ export interface GenerateExtensionTokensResponse {
 }
 
 // Feed response types
+export enum ActivityType {
+  CARD_COLLECTED = 'CARD_COLLECTED',
+  CONNECTION_CREATED = 'CONNECTION_CREATED',
+}
+
 export interface BaseFeedItem {
   id: string;
   user: User;
@@ -204,13 +209,13 @@ export interface BaseFeedItem {
 }
 
 export interface CardCollectedFeedItem extends BaseFeedItem {
-  activityType: 'CARD_COLLECTED';
+  activityType: ActivityType.CARD_COLLECTED;
   card: UrlCard;
   collections: Collection[];
 }
 
 export interface ConnectionCreatedFeedItem extends BaseFeedItem {
-  activityType: 'CONNECTION_CREATED';
+  activityType: ActivityType.CONNECTION_CREATED;
   connection: ConnectionWithSourceAndTarget;
 }
 

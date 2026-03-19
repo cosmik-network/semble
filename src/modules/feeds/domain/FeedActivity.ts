@@ -2,12 +2,13 @@ import { Entity } from '../../../shared/domain/Entity';
 import { UniqueEntityID } from '../../../shared/domain/UniqueEntityID';
 import { Result, ok, err } from '../../../shared/core/Result';
 import { ActivityId } from './value-objects/ActivityId';
-import { ActivityType, ActivityTypeEnum } from './value-objects/ActivityType';
+import { ActivityType } from './value-objects/ActivityType';
 import { CuratorId } from '../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
 import { ConnectionId } from '../../cards/domain/value-objects/ConnectionId';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export class ActivityValidationError extends Error {
   constructor(message: string) {

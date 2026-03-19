@@ -29,7 +29,7 @@ import {
   CardCollectedMetadata,
   ConnectionCreatedMetadata,
 } from '../../../domain/FeedActivity';
-import { ActivityTypeEnum } from 'src/modules/feeds/domain/value-objects/ActivityType';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;

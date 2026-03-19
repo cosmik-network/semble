@@ -1,10 +1,8 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
-export enum ActivityTypeEnum {
-  CARD_COLLECTED = 'CARD_COLLECTED',
-  CONNECTION_CREATED = 'CONNECTION_CREATED',
-}
+export { ActivityTypeEnum };
 
 interface ActivityTypeProps {
   value: ActivityTypeEnum;

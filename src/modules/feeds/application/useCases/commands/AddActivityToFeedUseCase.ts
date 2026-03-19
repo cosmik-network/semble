@@ -6,7 +6,6 @@ import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
-import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 import { SourceTypeEnum } from '../../../domain/value-objects/SourceType';
@@ -17,6 +16,7 @@ import {
   FollowTargetType,
   FollowTargetTypeEnum,
 } from '../../../../user/domain/value-objects/FollowTargetType';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;

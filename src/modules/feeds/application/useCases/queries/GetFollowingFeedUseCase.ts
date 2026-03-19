@@ -4,7 +4,6 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
-import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import {
   ICardQueryRepository,
@@ -28,6 +27,7 @@ import {
   CardCollectedMetadata,
   ConnectionCreatedMetadata,
 } from '../../../domain/FeedActivity';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export interface GetFollowingFeedQuery {
   callingUserId: string;
