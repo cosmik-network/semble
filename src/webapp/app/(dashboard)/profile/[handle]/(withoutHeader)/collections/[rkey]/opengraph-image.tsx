@@ -136,7 +136,7 @@ export default async function Image(props: Props) {
           >
             {collection.author.avatarUrl && (
               <img
-                src={collection.author.avatarUrl}
+                src={collection.author.avatarUrl + '@jpeg'}
                 width={60}
                 height={60}
                 alt={`${handle}'s avatar`}

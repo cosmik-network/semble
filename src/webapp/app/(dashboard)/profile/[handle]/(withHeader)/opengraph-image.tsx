@@ -21,7 +21,7 @@ export default async function Image(props: Props) {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {profile.avatarUrl && (
           <img
-            src={profile.avatarUrl}
+            src={profile.avatarUrl + '@jpeg'}
             width={140}
             height={140}
             alt={`${handle}'s avatar`}
