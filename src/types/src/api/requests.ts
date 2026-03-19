@@ -335,18 +335,6 @@ export interface DeleteConnectionRequest {
   connectionId: string;
 }
 
-export interface GetForwardConnectionsForUrlParams
-  extends PaginatedSortedParams {
-  url: string;
-  connectionTypes?: ConnectionType[];
-}
-
-export interface GetBackwardConnectionsForUrlParams
-  extends PaginatedSortedParams {
-  url: string;
-  connectionTypes?: ConnectionType[];
-}
-
 export interface GetConnectionsForUrlParams extends PaginatedSortedParams {
   url: string;
   direction?: 'forward' | 'backward' | 'both';

@@ -439,33 +439,9 @@ export interface DeleteConnectionResponse {
   connectionId: string;
 }
 
-export interface ConnectionForUrl {
-  connection: {
-    id: string;
-    type?: string;
-    note?: string;
-    createdAt: string;
-    updatedAt: string;
-    curator: User;
-  };
-  url: UrlView;
-}
-
 export interface ConnectionSorting {
   sortBy: string;
   sortOrder: 'asc' | 'desc';
-}
-
-export interface GetForwardConnectionsForUrlResponse {
-  connections: ConnectionForUrl[];
-  pagination: Pagination;
-  sorting: ConnectionSorting;
-}
-
-export interface GetBackwardConnectionsForUrlResponse {
-  connections: ConnectionForUrl[];
-  pagination: Pagination;
-  sorting: ConnectionSorting;
 }
 
 export interface GetConnectionsForUrlResponse {
