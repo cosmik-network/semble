@@ -84,7 +84,7 @@ export default function ProfileConnectionItem(props: Props) {
                 <Spoiler
                   showLabel={'Read more'}
                   hideLabel={'See less'}
-                  maxHeight={60}
+                  maxHeight={50}
                 >
                   <Text fw={500} fs={'italic'} c={'gray'}>
                     {props.connection.connection.note}
