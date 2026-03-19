@@ -43,7 +43,7 @@ export function UrlSearchInputSkeleton() {
   );
 }
 
-interface UrlSearchInputProps {
+interface Props {
   id: string;
   label: string;
   placeholder: string;
@@ -52,7 +52,7 @@ interface UrlSearchInputProps {
   onUrlSelect: (url: string) => void;
 }
 
-export default function UrlSearchInput(props: UrlSearchInputProps) {
+export default function UrlSearchInput(props: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
@@ -153,7 +153,11 @@ export default function UrlSearchInput(props: UrlSearchInputProps) {
             }
           >
             <Combobox.Options>
-              <ScrollArea.Autosize type="scroll" mah={{ base: 150, xs: 300 }}>
+              <ScrollArea.Autosize
+                type="scroll"
+                mah={{ base: 150, xs: 300 }}
+                offsetScrollbars={'present'}
+              >
                 {debounced.trim().length === 0 ? (
                   <Fragment>
                     <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
