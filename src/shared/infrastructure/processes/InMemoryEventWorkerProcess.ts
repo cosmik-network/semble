@@ -22,6 +22,7 @@ import {
   Repositories,
 } from '../http/factories/RepositoryFactory';
 import { ConnectionCreatedEventHandler } from 'src/modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
+import { ConnectionCreatedEventHandler as NotificationConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
 
 export class InMemoryEventWorkerProcess implements IProcess {
   constructor(private configService: EnvironmentConfigService) {}
@@ -107,6 +108,13 @@ export class InMemoryEventWorkerProcess implements IProcess {
       useCases.addActivityToFeedUseCase,
     );
 
+    const notificationConnectionCreatedHandler =
+      new NotificationConnectionCreatedEventHandler(
+        services.notificationService,
+        repositories.connectionRepository,
+        repositories.cardQueryRepository,
+      );
+
     // Register feed handlers
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -161,6 +169,12 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       connectionCreatedHandler,
+    );
+
+    // Register notification handler for connections
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      notificationConnectionCreatedHandler,
     );
   }
 }

@@ -6,6 +6,7 @@ import { NotificationType } from './value-objects/NotificationType';
 import { CuratorId } from '../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../cards/domain/value-objects/ConnectionId';
 
 export interface NotificationMetadata {
   cardId: string;
@@ -15,6 +16,10 @@ export interface NotificationMetadata {
 export interface FollowNotificationMetadata {
   targetType: 'USER' | 'COLLECTION';
   targetId?: string; // Collection ID if applicable
+}
+
+export interface ConnectionNotificationMetadata {
+  connectionId: string;
 }
 
 interface NotificationProps {
@@ -221,6 +226,28 @@ export class Notification extends AggregateRoot<NotificationProps> {
       actorUserId,
       type: typeResult.value,
       metadata,
+    });
+  }
+
+  public static createUserConnectedYourUrl(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userConnectedYourUrl();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
     });
   }
 

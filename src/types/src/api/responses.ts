@@ -372,20 +372,45 @@ export enum NotificationType {
   USER_ADDED_TO_YOUR_COLLECTION = 'USER_ADDED_TO_YOUR_COLLECTION',
   USER_FOLLOWED_YOU = 'USER_FOLLOWED_YOU',
   USER_FOLLOWED_YOUR_COLLECTION = 'USER_FOLLOWED_YOUR_COLLECTION',
+  USER_CONNECTED_YOUR_URL = 'USER_CONNECTED_YOUR_URL',
 }
 
-export interface NotificationItem {
+export interface BaseNotificationItem {
   id: string;
   user: User;
-  card?: UrlCard; // Optional for follow notifications
   createdAt: string;
-  collections?: Collection[]; // Optional for follow notifications
   type: NotificationType;
   read: boolean;
-  // Follow notification specific fields
-  followTargetType?: 'USER' | 'COLLECTION';
-  followTargetId?: string; // Collection ID if following a collection
 }
+
+export interface CardCollectionNotificationItem extends BaseNotificationItem {
+  type:
+    | NotificationType.USER_ADDED_YOUR_CARD
+    | NotificationType.USER_ADDED_YOUR_BSKY_POST
+    | NotificationType.USER_ADDED_YOUR_COLLECTION
+    | NotificationType.USER_ADDED_TO_YOUR_COLLECTION;
+  card: UrlCard;
+  collections?: Collection[];
+}
+
+export interface FollowNotificationItem extends BaseNotificationItem {
+  type:
+    | NotificationType.USER_FOLLOWED_YOU
+    | NotificationType.USER_FOLLOWED_YOUR_COLLECTION;
+  followTargetType: 'USER' | 'COLLECTION';
+  followTargetId?: string; // Only present for COLLECTION follows
+}
+
+export interface ConnectionCreatedNotificationItem
+  extends BaseNotificationItem {
+  type: NotificationType.USER_CONNECTED_YOUR_URL;
+  connection: ConnectionWithSourceAndTarget;
+}
+
+export type NotificationItem =
+  | CardCollectionNotificationItem
+  | FollowNotificationItem
+  | ConnectionCreatedNotificationItem;
 
 export interface GetMyNotificationsResponse {
   notifications: NotificationItem[];

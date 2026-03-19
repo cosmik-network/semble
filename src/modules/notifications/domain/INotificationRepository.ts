@@ -80,6 +80,18 @@ export interface EnrichedNotificationResult {
     createdAt: Date;
     updatedAt: Date;
   }>;
+
+  // Connection notification specific data (optional, only for connection notifications)
+  connectionId?: string;
+  connectionType?: string;
+  connectionNote?: string;
+  connectionCreatedAt?: Date;
+  connectionUpdatedAt?: Date;
+  connectionCuratorId?: string;
+  sourceUrl?: string;
+  sourceUrlMetadata?: any;
+  targetUrl?: string;
+  targetUrlMetadata?: any;
 }
 
 export interface PaginatedEnrichedNotificationResult {

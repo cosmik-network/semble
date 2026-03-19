@@ -8,6 +8,8 @@ import { IProfileService } from '../../../../cards/domain/services/IProfileServi
 import { NotificationItem } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import { IConnectionRepository } from '../../../../cards/domain/IConnectionRepository';
+import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -49,6 +51,7 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
+    private connectionRepository: IConnectionRepository,
   ) {}
 
   async execute(
@@ -127,6 +130,135 @@ export class GetMyNotificationsUseCase
 
           if (!actorProfile) {
             // Skip notifications with missing actor profile
+            continue;
+          }
+
+          // Handle connection notifications
+          const metadata = notification as any;
+          if (
+            metadata.connectionId !== undefined &&
+            notification.type === 'USER_CONNECTED_YOUR_URL'
+          ) {
+            // Get the connection data
+            const connectionIdResult = ConnectionId.createFromString(
+              metadata.connectionId,
+            );
+            if (connectionIdResult.isErr()) {
+              continue; // Skip if invalid connection ID
+            }
+
+            const connectionResult = await this.connectionRepository.findById(
+              connectionIdResult.value,
+            );
+            if (connectionResult.isErr() || !connectionResult.value) {
+              continue; // Skip if connection not found
+            }
+
+            const connection = connectionResult.value;
+
+            // Only handle URL connections
+            if (!connection.source.url || !connection.target.url) {
+              continue; // Skip if not both URLs
+            }
+
+            // Build connection notification item
+            const connectionNotificationItem: NotificationItem = {
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                bannerUrl: actorProfile.bannerUrl,
+                description: actorProfile.description,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              connection: {
+                connection: {
+                  id: connection.connectionId.getStringValue(),
+                  type: connection.type?.value,
+                  note: connection.note?.value,
+                  createdAt: connection.createdAt.toISOString(),
+                  updatedAt: connection.updatedAt.toISOString(),
+                  curator: actorProfile,
+                },
+                source: {
+                  url: connection.source.url.value,
+                  metadata: (() => {
+                    const meta =
+                      connection.sourceUrlMetadata?.props ||
+                      connection.sourceUrlMetadata;
+                    if (!meta) {
+                      return { url: connection.source.url.value };
+                    }
+                    // Convert all dates to strings
+                    return {
+                      url: meta.url || connection.source.url.value,
+                      title: meta.title,
+                      description: meta.description,
+                      author: meta.author,
+                      publishedDate:
+                        meta.publishedDate instanceof Date
+                          ? meta.publishedDate.toISOString()
+                          : meta.publishedDate,
+                      siteName: meta.siteName,
+                      imageUrl: meta.imageUrl,
+                      type: meta.type,
+                      retrievedAt:
+                        meta.retrievedAt instanceof Date
+                          ? meta.retrievedAt.toISOString()
+                          : meta.retrievedAt,
+                      doi: meta.doi,
+                      isbn: meta.isbn,
+                    };
+                  })(),
+                  urlLibraryCount: 0, // TODO: Could fetch if needed
+                  urlInLibrary: undefined,
+                  urlConnectionCount: undefined,
+                  urlIsConnected: undefined,
+                },
+                target: {
+                  url: connection.target.url.value,
+                  metadata: (() => {
+                    const meta =
+                      connection.targetUrlMetadata?.props ||
+                      connection.targetUrlMetadata;
+                    if (!meta) {
+                      return { url: connection.target.url.value };
+                    }
+                    // Convert all dates to strings
+                    return {
+                      url: meta.url || connection.target.url.value,
+                      title: meta.title,
+                      description: meta.description,
+                      author: meta.author,
+                      publishedDate:
+                        meta.publishedDate instanceof Date
+                          ? meta.publishedDate.toISOString()
+                          : meta.publishedDate,
+                      siteName: meta.siteName,
+                      imageUrl: meta.imageUrl,
+                      type: meta.type,
+                      retrievedAt:
+                        meta.retrievedAt instanceof Date
+                          ? meta.retrievedAt.toISOString()
+                          : meta.retrievedAt,
+                      doi: meta.doi,
+                      isbn: meta.isbn,
+                    };
+                  })(),
+                  urlLibraryCount: 0, // TODO: Could fetch if needed
+                  urlInLibrary: undefined,
+                  urlConnectionCount: undefined,
+                  urlIsConnected: undefined,
+                },
+              },
+            };
+
+            notificationItems.push(connectionNotificationItem);
             continue;
           }
 
