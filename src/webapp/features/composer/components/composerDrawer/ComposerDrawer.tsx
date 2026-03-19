@@ -34,7 +34,7 @@ export default function ComposerDrawer() {
           mt={'md'}
           mx={{ base: 20, sm: 'xs' }}
           mb={{ base: 100, sm: 'md' }}
-          style={{ zIndex: 102 }}
+          style={{ zIndex: 101 }}
         >
           <ActionIcon
             size="input-xl"
