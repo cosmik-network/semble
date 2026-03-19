@@ -29,8 +29,10 @@ export default function MinimalProfileHeaderContainer(props: Props) {
         left: navbarOffset,
         width: `calc(100% - ${navbarOffset}px)`,
         zIndex: 2,
-        transform: `translateY(${yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? '0' : '-100px'})`,
-        transition: 'transform 300ms ease, left 300ms ease, width 300ms ease',
+        opacity: yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? 1 : 0,
+        pointerEvents:
+          yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? 'auto' : 'none',
+        transition: 'opacity 300ms ease, left 300ms ease, width 300ms ease',
         backgroundColor: 'var(--mantine-color-body)',
       }}
     >
