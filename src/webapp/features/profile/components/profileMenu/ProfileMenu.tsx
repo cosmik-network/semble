@@ -16,9 +16,9 @@ import useMyProfile from '../../lib/queries/useMyProfile';
 import {
   MdOutlineBugReport,
   MdOutlineCollectionsBookmark,
-  MdDarkMode,
-  MdLightMode,
   MdOutlineSmartphone,
+  MdOutlineDarkMode,
+  MdOutlineLightMode,
 } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,11 +38,15 @@ const schemeConfig: Record<
   ColorScheme,
   { icon: React.ReactNode; label: string; next: ColorScheme }
 > = {
-  light: { icon: <MdLightMode size={22} />, label: 'Light', next: 'dark' },
-  dark: { icon: <MdDarkMode size={22} />, label: 'Dark', next: 'auto' },
+  light: {
+    icon: <MdOutlineLightMode size={22} />,
+    label: 'Light',
+    next: 'dark',
+  },
+  dark: { icon: <MdOutlineDarkMode size={22} />, label: 'Dark', next: 'auto' },
   auto: {
     icon: <MdOutlineSmartphone size={22} />,
-    label: 'System',
+    label: 'Auto',
     next: 'light',
   },
 };
