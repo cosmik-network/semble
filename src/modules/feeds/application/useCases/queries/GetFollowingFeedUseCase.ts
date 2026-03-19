@@ -4,17 +4,30 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
+import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import {
   ICardQueryRepository,
   UrlCardView,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
+import { IConnectionRepository } from 'src/modules/cards/domain/IConnectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { ConnectionId } from 'src/modules/cards/domain/value-objects/ConnectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
-import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
+import {
+  GetGlobalFeedResponse,
+  FeedItem,
+  ActivitySource,
+  CardCollectedFeedItem,
+  ConnectionCreatedFeedItem,
+} from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import {
+  CardCollectedMetadata,
+  ConnectionCreatedMetadata,
+} from '../../../domain/FeedActivity';
 
 export interface GetFollowingFeedQuery {
   callingUserId: string;
@@ -23,6 +36,7 @@ export interface GetFollowingFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: string; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: string[]; // Filter by activity types
 }
 
 // Use the shared API type directly
@@ -46,6 +60,7 @@ export class GetFollowingFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
+    private connectionRepository: IConnectionRepository,
   ) {}
 
   async execute(
@@ -79,6 +94,12 @@ export class GetFollowingFeedUseCase
         urlType = query.urlType as UrlType;
       }
 
+      // Parse activityTypes if provided
+      let activityTypes: ActivityTypeEnum[] | undefined;
+      if (query.activityTypes && query.activityTypes.length > 0) {
+        activityTypes = query.activityTypes as ActivityTypeEnum[];
+      }
+
       // Fetch activities from repository for the user's following feed
       const feedResult = await this.feedRepository.getFollowingFeed(
         query.callingUserId,
@@ -88,6 +109,7 @@ export class GetFollowingFeedUseCase
           beforeActivityId,
           urlType,
           source: query.source,
+          activityTypes,
         },
       );
 
@@ -125,7 +147,9 @@ export class GetFollowingFeedUseCase
         ...new Set(
           feed.activities
             .filter((activity) => activity.cardCollected)
-            .map((activity) => activity.metadata.cardId),
+            .map(
+              (activity) => (activity.metadata as CardCollectedMetadata).cardId,
+            ),
         ),
       ];
 
@@ -166,9 +190,14 @@ export class GetFollowingFeedUseCase
           feed.activities
             .filter(
               (activity) =>
-                activity.cardCollected && activity.metadata.collectionIds,
+                activity.cardCollected &&
+                (activity.metadata as CardCollectedMetadata).collectionIds,
             )
-            .flatMap((activity) => activity.metadata.collectionIds || []),
+            .flatMap(
+              (activity) =>
+                (activity.metadata as CardCollectedMetadata).collectionIds ||
+                [],
+            ),
         ),
       ];
 
@@ -292,81 +321,247 @@ export class GetFollowingFeedUseCase
         });
       });
 
-      // Transform activities to FeedItem
+      // Batch fetch connection data for CONNECTION_CREATED activities
+      const connectionActivities = feed.activities.filter(
+        (activity) => activity.connectionCreated,
+      );
+
+      let connectionDataMap = new Map<
+        string,
+        {
+          id: string;
+          type?: string;
+          note?: string;
+          createdAt: string;
+          updatedAt: string;
+          curatorId: string;
+          sourceUrl: string;
+          sourceUrlMetadata?: any;
+          targetUrl: string;
+          targetUrlMetadata?: any;
+        }
+      >();
+      let connectionCuratorProfiles = new Map<string, any>();
+
+      if (connectionActivities.length > 0) {
+        // Get unique connection IDs
+        const connectionIds = [
+          ...new Set(
+            connectionActivities.map(
+              (activity) =>
+                (activity.metadata as ConnectionCreatedMetadata).connectionId,
+            ),
+          ),
+        ];
+
+        // Batch fetch connections
+        const connectionIdObjects: ConnectionId[] = [];
+        for (const connectionId of connectionIds) {
+          const connectionIdResult =
+            ConnectionId.createFromString(connectionId);
+          if (connectionIdResult.isOk()) {
+            connectionIdObjects.push(connectionIdResult.value);
+          }
+        }
+
+        const connectionsResult =
+          await this.connectionRepository.findByIds(connectionIdObjects);
+
+        if (connectionsResult.isErr()) {
+          return err(AppError.UnexpectedError.create(connectionsResult.error));
+        }
+
+        const connections = connectionsResult.value;
+
+        // Build connection data map
+        for (const connection of connections) {
+          const sourceUrl = connection.source.url?.value;
+          const targetUrl = connection.target.url?.value;
+
+          // Only include connections where both source and target are URLs
+          if (sourceUrl && targetUrl) {
+            connectionDataMap.set(connection.connectionId.getStringValue(), {
+              id: connection.connectionId.getStringValue(),
+              type: connection.type?.value,
+              note: connection.note?.value,
+              createdAt: connection.createdAt.toISOString(),
+              updatedAt: connection.updatedAt.toISOString(),
+              curatorId: connection.curatorId.value,
+              sourceUrl,
+              sourceUrlMetadata: connection.sourceUrlMetadata,
+              targetUrl,
+              targetUrlMetadata: connection.targetUrlMetadata,
+            });
+          }
+        }
+
+        // Get unique curator IDs for connections
+        const connectionCuratorIds = [
+          ...new Set(
+            Array.from(connectionDataMap.values()).map((c) => c.curatorId),
+          ),
+        ];
+
+        // Batch fetch curator profiles
+        const connectionCuratorProfilesResult =
+          await profileEnricher.buildProfileMap(
+            connectionCuratorIds,
+            query.callingUserId,
+            {
+              skipFailures: true,
+              mapToUser: false,
+            },
+          );
+
+        if (connectionCuratorProfilesResult.isErr()) {
+          return err(
+            AppError.UnexpectedError.create(
+              connectionCuratorProfilesResult.error,
+            ),
+          );
+        }
+
+        connectionCuratorProfiles = connectionCuratorProfilesResult.value;
+      }
+
+      // Transform activities to FeedItem in chronological order
       const feedItems: FeedItem[] = [];
       for (const activity of feed.activities) {
-        if (!activity.cardCollected) {
-          continue; // Skip non-card-collected activities
-        }
-
         const actor = actorProfiles.get(activity.actorId.value);
-        const cardView = cardDataMap.get(activity.metadata.cardId);
-
-        if (!actor || !cardView) {
-          continue; // Skip if we can't hydrate required data
+        if (!actor) {
+          continue; // Skip if we can't get actor
         }
 
-        // Get card author
-        const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
-        if (!cardAuthor) {
-          continue; // Skip if we can't get card author
+        if (activity.cardCollected) {
+          // Handle CARD_COLLECTED activity
+          const metadata = activity.metadata as CardCollectedMetadata;
+          const cardView = cardDataMap.get(metadata.cardId);
+
+          if (!cardView) {
+            continue; // Skip if we can't hydrate required data
+          }
+
+          // Get card author
+          const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
+          if (!cardAuthor) {
+            continue; // Skip if we can't get card author
+          }
+
+          // Transform UrlCardView to UrlCardDTO
+          const cardDTO = {
+            id: cardView.id,
+            type: 'URL' as const,
+            url: cardView.url,
+            uri: cardView.uri,
+            cardContent: {
+              url: cardView.cardContent.url,
+              title: cardView.cardContent.title,
+              description: cardView.cardContent.description,
+              author: cardView.cardContent.author,
+              publishedDate: cardView.cardContent.publishedDate?.toISOString(),
+              siteName: cardView.cardContent.siteName,
+              imageUrl: cardView.cardContent.imageUrl,
+              type: cardView.cardContent.type,
+              retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
+              doi: cardView.cardContent.doi,
+              isbn: cardView.cardContent.isbn,
+            },
+            libraryCount: cardView.libraryCount,
+            urlLibraryCount: cardView.urlLibraryCount,
+            urlInLibrary: cardView.urlInLibrary,
+            urlConnectionCount: cardView.urlConnectionCount,
+            urlIsConnected: cardView.urlIsConnected,
+            createdAt: cardView.createdAt.toISOString(),
+            updatedAt: cardView.updatedAt.toISOString(),
+            author: cardAuthor,
+            note: cardView.note,
+          };
+
+          const collections = (metadata.collectionIds || [])
+            .map((collectionId) => collectionDataMap.get(collectionId))
+            .filter((collection) => !!collection)
+            .filter((collection) => collection.cardIds.has(metadata.cardId))
+            .map((collection) => ({
+              id: collection.id,
+              uri: collection.uri,
+              name: collection.name,
+              description: collection.description,
+              accessType: collection.accessType,
+              author: collection.author,
+              cardCount: collection.cardCount,
+              createdAt: collection.createdAt,
+              updatedAt: collection.updatedAt,
+            }));
+
+          feedItems.push({
+            id: activity.activityId.getStringValue(),
+            activityType: 'CARD_COLLECTED' as const,
+            user: actor,
+            card: cardDTO,
+            createdAt: activity.createdAt,
+            collections,
+          } as CardCollectedFeedItem);
+        } else if (activity.connectionCreated) {
+          // Handle CONNECTION_CREATED activity
+          const metadata = activity.metadata as ConnectionCreatedMetadata;
+          const connectionData = connectionDataMap.get(metadata.connectionId);
+
+          if (!connectionData) {
+            continue; // Skip if we can't hydrate required data
+          }
+
+          const curator = connectionCuratorProfiles.get(
+            connectionData.curatorId,
+          );
+          if (!curator) {
+            continue; // Skip if we can't get curator profile
+          }
+
+          // Build UrlView for source and target
+          // Extract metadata props to avoid the value object wrapper
+          const sourceUrlView = {
+            url: connectionData.sourceUrl,
+            metadata: connectionData.sourceUrlMetadata?.props ||
+              connectionData.sourceUrlMetadata || {
+                url: connectionData.sourceUrl,
+              },
+            urlLibraryCount: 0, // TODO: Fetch from DB if needed
+            urlInLibrary: undefined,
+            urlConnectionCount: undefined,
+            urlIsConnected: undefined,
+          };
+
+          const targetUrlView = {
+            url: connectionData.targetUrl,
+            metadata: connectionData.targetUrlMetadata?.props ||
+              connectionData.targetUrlMetadata || {
+                url: connectionData.targetUrl,
+              },
+            urlLibraryCount: 0, // TODO: Fetch from DB if needed
+            urlInLibrary: undefined,
+            urlConnectionCount: undefined,
+            urlIsConnected: undefined,
+          };
+
+          feedItems.push({
+            id: activity.activityId.getStringValue(),
+            activityType: 'CONNECTION_CREATED' as const,
+            user: actor,
+            createdAt: activity.createdAt,
+            connection: {
+              connection: {
+                id: connectionData.id,
+                type: connectionData.type,
+                note: connectionData.note,
+                createdAt: connectionData.createdAt,
+                updatedAt: connectionData.updatedAt,
+                curator,
+              },
+              source: sourceUrlView,
+              target: targetUrlView,
+            },
+          } as ConnectionCreatedFeedItem);
         }
-
-        // Transform UrlCardView to UrlCardDTO
-        const cardDTO = {
-          id: cardView.id,
-          type: 'URL' as const,
-          url: cardView.url,
-          uri: cardView.uri,
-          cardContent: {
-            url: cardView.cardContent.url,
-            title: cardView.cardContent.title,
-            description: cardView.cardContent.description,
-            author: cardView.cardContent.author,
-            publishedDate: cardView.cardContent.publishedDate?.toISOString(),
-            siteName: cardView.cardContent.siteName,
-            imageUrl: cardView.cardContent.imageUrl,
-            type: cardView.cardContent.type,
-            retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
-            doi: cardView.cardContent.doi,
-            isbn: cardView.cardContent.isbn,
-          },
-          libraryCount: cardView.libraryCount,
-          urlLibraryCount: cardView.urlLibraryCount,
-          urlInLibrary: cardView.urlInLibrary,
-          urlConnectionCount: cardView.urlConnectionCount,
-          urlIsConnected: cardView.urlIsConnected,
-          createdAt: cardView.createdAt.toISOString(),
-          updatedAt: cardView.updatedAt.toISOString(),
-          author: cardAuthor,
-          note: cardView.note,
-        };
-
-        const collections = (activity.metadata.collectionIds || [])
-          .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter((collection) => !!collection)
-          .filter((collection) =>
-            collection.cardIds.has(activity.metadata.cardId),
-          )
-          .map((collection) => ({
-            id: collection.id,
-            uri: collection.uri,
-            name: collection.name,
-            description: collection.description,
-            accessType: collection.accessType,
-            author: collection.author,
-            cardCount: collection.cardCount,
-            createdAt: collection.createdAt,
-            updatedAt: collection.updatedAt,
-          }));
-
-        feedItems.push({
-          id: activity.activityId.getStringValue(),
-          user: actor,
-          card: cardDTO,
-          createdAt: activity.createdAt,
-          collections,
-        });
       }
 
       return ok({

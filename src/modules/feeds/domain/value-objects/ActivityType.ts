@@ -3,6 +3,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 
 export enum ActivityTypeEnum {
   CARD_COLLECTED = 'CARD_COLLECTED',
+  CONNECTION_CREATED = 'CONNECTION_CREATED',
 }
 
 interface ActivityTypeProps {
@@ -27,5 +28,9 @@ export class ActivityType extends ValueObject<ActivityTypeProps> {
 
   public static cardCollected(): Result<ActivityType> {
     return this.create(ActivityTypeEnum.CARD_COLLECTED);
+  }
+
+  public static connectionCreated(): Result<ActivityType> {
+    return this.create(ActivityTypeEnum.CONNECTION_CREATED);
   }
 }

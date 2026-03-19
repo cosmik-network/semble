@@ -4,6 +4,7 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
+import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import {
   ICardQueryRepository,
@@ -17,9 +18,15 @@ import {
 } from 'src/modules/cards/domain/ICollectionQueryRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
-import { GetGlobalFeedResponse, FeedItem, ActivitySource } from '@semble/types';
+import {
+  GetGlobalFeedResponse,
+  FeedItem,
+  ActivitySource,
+  CardCollectedFeedItem,
+} from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import { CardCollectedMetadata } from '../../../domain/FeedActivity';
 
 export interface GetGemActivityFeedQuery {
   callingUserId?: string;
@@ -28,6 +35,7 @@ export interface GetGemActivityFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: string; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: string[]; // Filter by activity types
 }
 
 // Use the shared API type directly
@@ -138,6 +146,12 @@ export class GetGemActivityFeedUseCase
         urlType = query.urlType as UrlType;
       }
 
+      // Parse activityTypes if provided
+      let activityTypes: ActivityTypeEnum[] | undefined;
+      if (query.activityTypes && query.activityTypes.length > 0) {
+        activityTypes = query.activityTypes as ActivityTypeEnum[];
+      }
+
       // Fetch activities from repository using gems feed
       const feedResult = await this.feedRepository.getGemsFeed(collectionIds, {
         page,
@@ -145,6 +159,7 @@ export class GetGemActivityFeedUseCase
         beforeActivityId,
         urlType,
         source: query.source,
+        activityTypes,
       });
 
       if (feedResult.isErr()) {
@@ -181,7 +196,9 @@ export class GetGemActivityFeedUseCase
         ...new Set(
           feed.activities
             .filter((activity) => activity.cardCollected)
-            .map((activity) => activity.metadata.cardId),
+            .map(
+              (activity) => (activity.metadata as CardCollectedMetadata).cardId,
+            ),
         ),
       ];
 
@@ -230,9 +247,14 @@ export class GetGemActivityFeedUseCase
           feed.activities
             .filter(
               (activity) =>
-                activity.cardCollected && activity.metadata.collectionIds,
+                activity.cardCollected &&
+                (activity.metadata as CardCollectedMetadata).collectionIds,
             )
-            .flatMap((activity) => activity.metadata.collectionIds || []),
+            .flatMap(
+              (activity) =>
+                (activity.metadata as CardCollectedMetadata).collectionIds ||
+                [],
+            ),
         ),
       ];
 
@@ -362,7 +384,8 @@ export class GetGemActivityFeedUseCase
         }
 
         const actor = actorProfiles.get(activity.actorId.value);
-        const cardView = cardDataMap.get(activity.metadata.cardId);
+        const metadata = activity.metadata as CardCollectedMetadata;
+        const cardView = cardDataMap.get(metadata.cardId);
 
         if (!actor || !cardView) {
           continue; // Skip if we can't hydrate required data
@@ -402,12 +425,10 @@ export class GetGemActivityFeedUseCase
           note: cardView.note,
         };
 
-        const collections = (activity.metadata.collectionIds || [])
+        const collections = (metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
           .filter((collection) => !!collection)
-          .filter((collection) =>
-            collection.cardIds.has(activity.metadata.cardId),
-          )
+          .filter((collection) => collection.cardIds.has(metadata.cardId))
           .map((collection) => ({
             id: collection.id,
             uri: collection.uri,
@@ -427,11 +448,12 @@ export class GetGemActivityFeedUseCase
 
         feedItems.push({
           id: activity.activityId.getStringValue(),
+          activityType: 'CARD_COLLECTED' as const,
           user: actor,
           card: cardDTO,
           createdAt: activity.createdAt,
           collections,
-        });
+        } as CardCollectedFeedItem);
       }
 
       return ok({

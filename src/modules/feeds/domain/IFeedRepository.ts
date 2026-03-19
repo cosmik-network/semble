@@ -2,6 +2,7 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { Result } from '../../../shared/core/Result';
 import { FeedActivity } from './FeedActivity';
 import { ActivityId } from './value-objects/ActivityId';
+import { ActivityTypeEnum } from './value-objects/ActivityType';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
 import { ActivitySource } from '@semble/types';
 
@@ -11,6 +12,7 @@ export interface FeedQueryOptions {
   beforeActivityId?: ActivityId; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: ActivityTypeEnum[]; // Filter by activity types
 }
 
 export interface PaginatedFeedResult {

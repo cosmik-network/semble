@@ -6,6 +6,7 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { ConnectionCreatedEventHandler } from '../../../modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -44,6 +45,9 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
     const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
       useCases.addActivityToFeedUseCase,
     );
+    const connectionCreatedHandler = new ConnectionCreatedEventHandler(
+      useCases.addActivityToFeedUseCase,
+    );
 
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -53,6 +57,11 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       cardAddedToCollectionHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      connectionCreatedHandler,
     );
   }
 }

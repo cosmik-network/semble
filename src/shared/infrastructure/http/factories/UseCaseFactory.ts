@@ -444,6 +444,7 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+        repositories.connectionRepository,
         repositories.followsRepository,
       ),
       getGemActivityFeedUseCase: new GetGemActivityFeedUseCase(
@@ -458,6 +459,7 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+        repositories.connectionRepository,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

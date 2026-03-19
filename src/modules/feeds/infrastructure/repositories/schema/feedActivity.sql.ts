@@ -12,8 +12,9 @@ export const feedActivities = pgTable(
   {
     id: uuid('id').primaryKey(),
     actorId: text('actor_id').notNull(), // The DID of the user who performed the activity
-    cardId: text('card_id'), // Extracted card ID for faster deduplication queries
-    type: text('type').notNull(), // The type of activity (e.g., 'CARD_COLLECTED')
+    cardId: text('card_id'), // Extracted card ID for faster deduplication queries (CARD_COLLECTED)
+    connectionId: text('connection_id'), // Extracted connection ID for faster queries (CONNECTION_CREATED)
+    type: text('type').notNull(), // The type of activity (e.g., 'CARD_COLLECTED', 'CONNECTION_CREATED')
     metadata: jsonb('metadata').notNull(), // Activity-specific metadata
     urlType: text('url_type'), // Optional URL type from the card
     source: text('source'), // Optional source - 'margin' for Margin content, null for Cosmik
@@ -50,6 +51,10 @@ export const feedActivities = pgTable(
     ),
     // Index for card-based queries
     cardIdIdx: index('feed_activities_card_id_idx').on(table.cardId),
+    // Index for connection-based queries
+    connectionIdIdx: index('feed_activities_connection_id_idx').on(
+      table.connectionId,
+    ),
     // Index for filtering by source (Margin content)
     sourceIdx: index('feed_activities_source_idx').on(table.source),
   }),

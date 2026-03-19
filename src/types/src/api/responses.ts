@@ -197,13 +197,24 @@ export interface GenerateExtensionTokensResponse {
 }
 
 // Feed response types
-export interface FeedItem {
+export interface BaseFeedItem {
   id: string;
   user: User;
-  card: UrlCard;
   createdAt: Date;
+}
+
+export interface CardCollectedFeedItem extends BaseFeedItem {
+  activityType: 'CARD_COLLECTED';
+  card: UrlCard;
   collections: Collection[];
 }
+
+export interface ConnectionCreatedFeedItem extends BaseFeedItem {
+  activityType: 'CONNECTION_CREATED';
+  connection: ConnectionWithSourceAndTarget;
+}
+
+export type FeedItem = CardCollectedFeedItem | ConnectionCreatedFeedItem;
 
 export interface GetGlobalFeedResponse {
   activities: FeedItem[];
