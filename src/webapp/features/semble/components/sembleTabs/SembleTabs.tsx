@@ -32,7 +32,6 @@ import SembleConnectionsContainerSkeleton from '../../containers/sembleConnectio
 
 interface Props {
   url: string;
-  stats?: UrlAggregateStats;
 }
 
 type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
@@ -43,7 +42,6 @@ export default function SembleTabs(props: Props) {
   const { data: urlMetadata } = useUrlMetadata({
     url: props.url,
     includeStats: true,
-    initialData: props.stats ? { stats: props.stats } : undefined,
   });
 
   const stats = urlMetadata?.stats;
