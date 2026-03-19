@@ -49,42 +49,76 @@ export default function ProfileConnectionItem(props: Props) {
     <>
       <Card radius={'lg'} p={'xs'} className={styles.root}>
         <Stack gap={'xs'}>
-          <Group justify="space-between" align="center">
+          <Group justify="space-between" align="center" grow>
             <Stack gap={'xs'}>
-              <Group gap={'xs'}>
-                <Avatar
-                  component={Link}
-                  href={`/profile/${props.curator.handle}`}
-                  src={props.curator.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${props.curator.name}'s avatar`}
-                  size={'sm'}
-                />
-                <Text>
-                  <Text
-                    c={'bright'}
-                    fw={500}
+              <Group justify="space-between" align="center">
+                <Group gap={'xs'}>
+                  <Avatar
                     component={Link}
                     href={`/profile/${props.curator.handle}`}
-                    span
-                  >
-                    {props.curator.name}
+                    src={props.curator.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${props.curator.name}'s avatar`}
+                    size={'sm'}
+                  />
+                  <Text>
+                    <Text
+                      c={'bright'}
+                      fw={500}
+                      component={Link}
+                      href={`/profile/${props.curator.handle}`}
+                      span
+                    >
+                      {props.curator.name}
+                    </Text>
+                    <Text c={'gray'} fw={600} span>
+                      {' · '}
+                    </Text>
+                    <Text fz={'sm'} fw={600} c={'gray'} span>
+                      {relativeCreatedDate}{' '}
+                    </Text>
                   </Text>
-                  <Text c={'gray'} span>
-                    {' · '}
-                  </Text>
-                  <Text c={'gray'} span>
-                    {relativeCreatedDate}{' '}
-                  </Text>
-                </Text>
+                </Group>
+                {isOwner && props.onEdit && (
+                  <Box>
+                    <Menu shadow="md" width={200} position="bottom-end">
+                      <Menu.Target>
+                        <ActionIcon
+                          variant="subtle"
+                          color={'gray'}
+                          radius={'xl'}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <BsThreeDots size={18} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          leftSection={<MdEdit size={16} />}
+                          onClick={props.onEdit}
+                        >
+                          Edit
+                        </Menu.Item>
+                        <Menu.Item
+                          leftSection={<BsTrash2Fill />}
+                          color="red"
+                          onClick={() => setDeleteModalOpened(true)}
+                        >
+                          Delete
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Box>
+                )}
               </Group>
+
               {props.connection.connection.note && (
                 <Spoiler
                   showLabel={'Read more'}
                   hideLabel={'See less'}
-                  maxHeight={60}
+                  maxHeight={50}
                 >
                   <Text fw={500} fs={'italic'} c={'gray'}>
                     {props.connection.connection.note}
@@ -92,38 +126,6 @@ export default function ProfileConnectionItem(props: Props) {
                 </Spoiler>
               )}
             </Stack>
-
-            {isOwner && props.onEdit && (
-              <Box>
-                <Menu shadow="md" width={200} position="bottom-end">
-                  <Menu.Target>
-                    <ActionIcon
-                      variant="subtle"
-                      color={'gray'}
-                      radius={'xl'}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <BsThreeDots size={18} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={<MdEdit size={16} />}
-                      onClick={props.onEdit}
-                    >
-                      Edit
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={<BsTrash2Fill />}
-                      color="red"
-                      onClick={() => setDeleteModalOpened(true)}
-                    >
-                      Delete
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Box>
-            )}
           </Group>
 
           <Grid gutter={'xs'} align="stretch">
