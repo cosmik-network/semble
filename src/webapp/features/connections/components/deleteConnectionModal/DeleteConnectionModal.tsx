@@ -24,7 +24,7 @@ export default function DeleteConnectionModal(props: Props) {
             message: 'Connection deleted',
             position: 'top-center',
             loading: false,
-            autoClose: 3000,
+            autoClose: 2000,
             icon: <BsCheck />,
           });
         },

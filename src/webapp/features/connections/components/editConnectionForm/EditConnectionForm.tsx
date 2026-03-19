@@ -144,7 +144,7 @@ export default function EditConnectionForm(props: Props) {
             message: 'Connection updated',
             position: 'top-center',
             loading: false,
-            autoClose: 3000,
+            autoClose: 2000,
             icon: <BsCheck />,
           });
         },

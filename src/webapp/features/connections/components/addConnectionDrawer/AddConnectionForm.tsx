@@ -123,7 +123,7 @@ export default function AddConnectionForm(props: Props) {
             message: 'Connection created',
             position: 'top-center',
             loading: false,
-            autoClose: 3000,
+            autoClose: 2000,
             icon: <BsCheck />,
           });
         },
