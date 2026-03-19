@@ -135,14 +135,9 @@ export default function UrlSearchInput(props: UrlSearchInputProps) {
               }}
               rightSection={isFetching && <Loader size={18} />}
               variant="unstyled"
-              size="sm"
+              size="md"
               required
               error={props.error}
-              styles={{
-                input: {
-                  fontSize: '16px',
-                },
-              }}
             />
           </Combobox.Target>
 
