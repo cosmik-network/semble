@@ -5,6 +5,13 @@ import { NotificationService } from '../../domain/services/NotificationService';
 import { IConnectionRepository } from '../../../cards/domain/IConnectionRepository';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
+import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
+import { IIdentityResolutionService } from '../../../atproto/domain/services/IIdentityResolutionService';
+import { DIDOrHandle } from '../../../atproto/domain/DIDOrHandle';
+import {
+  TEAM_HANDLES,
+  EARLY_TESTERS_HANDLES,
+} from '../../../../shared/constants/featureFlags';
 
 export class ConnectionCreatedEventHandler
   implements IEventHandler<ConnectionCreatedEvent>
@@ -13,6 +20,8 @@ export class ConnectionCreatedEventHandler
     private notificationService: NotificationService,
     private connectionRepository: IConnectionRepository,
     private cardQueryRepository: ICardQueryRepository,
+    private environmentConfigService: EnvironmentConfigService,
+    private identityResolutionService: IIdentityResolutionService,
   ) {}
 
   async handle(event: ConnectionCreatedEvent): Promise<Result<void>> {
@@ -84,8 +93,46 @@ export class ConnectionCreatedEventHandler
         });
       }
 
-      // Create notifications for each unique recipient
-      const notificationPromises = Array.from(recipientUserIds).map(
+      // Filter recipients based on environment
+      let filteredRecipientUserIds = Array.from(recipientUserIds);
+
+      // In production, only notify team and early testers
+      const isProduction =
+        this.environmentConfigService.get().environment === 'prod';
+      if (isProduction) {
+        const allowedHandles = new Set([
+          ...TEAM_HANDLES,
+          ...EARLY_TESTERS_HANDLES,
+        ]);
+
+        // Filter to only allowed recipients
+        const filteredRecipients = await Promise.all(
+          filteredRecipientUserIds.map(async (recipientUserId) => {
+            const didOrHandleResult = DIDOrHandle.create(recipientUserId);
+            if (didOrHandleResult.isErr()) {
+              return null;
+            }
+
+            const handleResult =
+              await this.identityResolutionService.resolveToHandle(
+                didOrHandleResult.value,
+              );
+            if (handleResult.isErr()) {
+              return null;
+            }
+
+            const handle = handleResult.value.value;
+            return allowedHandles.has(handle) ? recipientUserId : null;
+          }),
+        );
+
+        filteredRecipientUserIds = filteredRecipients.filter(
+          (id): id is string => id !== null,
+        );
+      }
+
+      // Create notifications for each filtered recipient
+      const notificationPromises = filteredRecipientUserIds.map(
         async (recipientUserId) => {
           const recipientIdResult = CuratorId.create(recipientUserId);
           if (recipientIdResult.isErr()) {

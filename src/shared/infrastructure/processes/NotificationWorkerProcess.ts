@@ -92,6 +92,8 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       services.notificationService,
       repositories.connectionRepository,
       repositories.cardQueryRepository,
+      this.configService,
+      services.identityResolutionService,
     );
 
     await subscriber.subscribe(
