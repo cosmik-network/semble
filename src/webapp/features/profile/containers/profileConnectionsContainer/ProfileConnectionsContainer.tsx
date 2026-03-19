@@ -6,7 +6,7 @@ import { Grid, Group, Stack } from '@mantine/core';
 import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
-import AddConnectionDrawer from '@/features/connections/components/addConnectionDrawer/AddConnectionDrawer';
+import EditConnectionModal from '@/features/connections/components/editConnectionModal/EditConnectionModal';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
 import { useState } from 'react';
 import {
@@ -24,7 +24,7 @@ interface Props {
 export default function ProfileConnectionsContainer(props: Props) {
   const { data: profile } = useProfile({ didOrHandle: props.identifier });
 
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+  const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false);
 
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
@@ -38,7 +38,7 @@ export default function ProfileConnectionsContainer(props: Props) {
     targetUrl: string;
   } | null>(null);
 
-  const handleOpenEditDrawer = (connection: ConnectionWithSourceAndTarget) => {
+  const handleOpenEditModal = (connection: ConnectionWithSourceAndTarget) => {
     setConnectionToEdit({
       connection: {
         ...connection.connection,
@@ -47,12 +47,12 @@ export default function ProfileConnectionsContainer(props: Props) {
       sourceUrl: connection.source.url,
       targetUrl: connection.target.url,
     });
-    openDrawer();
+    openModal();
   };
 
-  const handleCloseDrawer = () => {
+  const handleCloseModal = () => {
     setConnectionToEdit(null);
-    closeDrawer();
+    closeModal();
   };
 
   const connectionTypes = connectionType ? [connectionType] : undefined;
@@ -81,7 +81,7 @@ export default function ProfileConnectionsContainer(props: Props) {
   return (
     <>
       <Stack gap={'md'} align="center">
-        <Group justify="flex-start" w={'100%'} maw={600}>
+        <Group justify="flex-start" w={'100%'} maw={700}>
           <ConnectionFilters.Root
             connectionType={connectionType}
             onConnectionTypeChange={setConnectionType}
@@ -100,13 +100,13 @@ export default function ProfileConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+            <Grid gutter="xl" mx={'auto'} maw={700} w={'100%'}>
               {allConnections.map((connection, index) => (
                 <Grid.Col key={`connection-${index}`} span={12}>
                   <ProfileConnectionItem
                     connection={connection}
                     curator={profile}
-                    onEdit={() => handleOpenEditDrawer(connection)}
+                    onEdit={() => handleOpenEditModal(connection)}
                   />
                 </Grid.Col>
               ))}
@@ -115,17 +115,13 @@ export default function ProfileConnectionsContainer(props: Props) {
         )}
       </Stack>
 
-      {connectionToEdit && (
-        <AddConnectionDrawer
-          isOpen={drawerOpened}
-          onClose={handleCloseDrawer}
-          sourceUrl={connectionToEdit.sourceUrl}
-          connectionToEdit={{
-            connection: connectionToEdit.connection,
-            targetUrl: connectionToEdit.targetUrl,
-          }}
-        />
-      )}
+      <EditConnectionModal
+        isOpen={modalOpened}
+        onClose={handleCloseModal}
+        sourceUrl={connectionToEdit?.sourceUrl ?? ''}
+        targetUrl={connectionToEdit?.targetUrl}
+        connection={connectionToEdit?.connection}
+      />
     </>
   );
 }

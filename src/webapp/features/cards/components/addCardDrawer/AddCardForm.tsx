@@ -121,7 +121,7 @@ export default function AddCardForm(props: Props) {
           message: 'Card added',
           position: 'top-center',
           loading: false,
-          autoClose: 3000,
+          autoClose: 2000,
           icon: <BsCheck />,
         });
       },

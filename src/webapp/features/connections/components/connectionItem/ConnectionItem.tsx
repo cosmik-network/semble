@@ -20,7 +20,8 @@ export default function ConnectionItem(props: Props) {
     <Stack gap={'xs'} align="stretch" h={'100%'}>
       <ConnectionStatus
         connection={props.connection.connection}
-        direction={props.direction}
+        source={props.connection.source}
+        target={props.connection.target}
         onEdit={props.onEdit}
       />
       <UrlCard
@@ -29,6 +30,7 @@ export default function ConnectionItem(props: Props) {
         cardContent={urlView.metadata}
         urlLibraryCount={urlView.urlLibraryCount}
         urlIsInLibrary={urlView.urlInLibrary ?? false}
+        urlConnectionCount={urlView.urlConnectionCount ?? 0}
       />
     </Stack>
   );

@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Center,
   Container,
   Drawer,
   Flex,
@@ -34,11 +35,14 @@ import useMyCollections from '@/features/collections/lib/queries/useMyCollection
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
+import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
+import { TbPlugConnected } from 'react-icons/tb';
 
-type ComposerMode = 'card' | 'collection';
+type ComposerMode = 'card' | 'collection' | 'connection';
 
 interface Props {
   isOpen: boolean;
@@ -161,7 +165,7 @@ export default function Composer(props: Props) {
           message: 'Card added',
           position: 'top-center',
           loading: false,
-          autoClose: 3000,
+          autoClose: 2000,
           icon: <BsCheck />,
         });
       },
@@ -185,36 +189,34 @@ export default function Composer(props: Props) {
     e.preventDefault();
     e.stopPropagation();
 
-    createCollection.mutate(
-      {
-        name: collectionForm.getValues().name,
-        description: collectionForm.getValues().description,
-        accessType: collectionForm.getValues().accessType,
+    // Capture values before any state changes
+    const collectionData = {
+      name: collectionForm.getValues().name,
+      description: collectionForm.getValues().description,
+      accessType: collectionForm.getValues().accessType,
+    };
+
+    // Close drawer immediately
+    props.onClose();
+    if (props.onCollectionCreate) {
+      props.onCollectionCreate();
+    }
+    collectionForm.reset();
+
+    createCollection.mutate(collectionData, {
+      onError: () => {
+        notifications.show({
+          color: 'red',
+          title: 'Error',
+          message: 'Could not create collection',
+          position: 'top-center',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       },
-      {
-        onSuccess: () => {
-          props.onClose();
-          if (props.onCollectionCreate) {
-            props.onCollectionCreate();
-          }
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not create collection',
-            color: 'red',
-            title: 'Error',
-            position: 'top-center',
-            loading: false,
-            autoClose: false,
-            withCloseButton: true,
-            icon: <BsExclamation />,
-          });
-        },
-        onSettled: () => {
-          collectionForm.reset();
-        },
-      },
-    );
+    });
   };
 
   return (
@@ -223,7 +225,7 @@ export default function Composer(props: Props) {
         opened={props.isOpen}
         onClose={props.onClose}
         withCloseButton={false}
-        size={'33.4rem'}
+        size={'35rem'}
         padding={'sm'}
         position="bottom"
         overlayProps={DEFAULT_OVERLAY_PROPS}
@@ -237,19 +239,48 @@ export default function Composer(props: Props) {
               value={mode}
               onChange={(value) => setMode(value as ComposerMode)}
               disabled={addCard.isPending || createCollection.isPending}
-              data={[
-                { label: 'Card', value: 'card' },
-                { label: 'Collection', value: 'collection' },
-              ]}
-              w={200}
               radius={'xl'}
               mx="auto"
+              withItemsBorders={false}
+              data={[
+                {
+                  value: 'card',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <FaRegNoteSticky size={16} />
+                      <span>Card</span>
+                    </Center>
+                  ),
+                },
+                {
+                  value: 'collection',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <BiCollection size={16} />
+                      <span>Collection</span>
+                    </Center>
+                  ),
+                },
+                {
+                  value: 'connection',
+                  label: (
+                    <Center style={{ gap: 10 }}>
+                      <TbPlugConnected size={16} />
+                      <span>Connection</span>
+                    </Center>
+                  ),
+                },
+              ]}
             />
           </Stack>
         </Drawer.Header>
 
         <Container size={'sm'} p={0}>
-          {mode === 'card' ? (
+          {mode === 'connection' ? (
+            <Suspense>
+              <AddConnectionForm onClose={props.onClose} />
+            </Suspense>
+          ) : mode === 'card' ? (
             <form onSubmit={handleAddCard}>
               <Stack gap={'xl'}>
                 <TextInput

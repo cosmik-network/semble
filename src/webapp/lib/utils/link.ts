@@ -1,5 +1,9 @@
 export const getDomain = (url: string) => {
-  return new URL(url).hostname;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
 };
 
 export const getUrlFromSlug = (slug: string[]) => {

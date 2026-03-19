@@ -1,17 +1,29 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
-import { Stack, Card, Group, Text, Badge, Divider, Box } from '@mantine/core';
+import Link from 'next/link';
+import {
+  Stack,
+  Card,
+  Group,
+  Text,
+  Badge,
+  Box,
+  Grid,
+  Avatar,
+  ActionIcon,
+  Menu,
+  Spoiler,
+  ThemeIcon,
+} from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { MdArrowDownward } from 'react-icons/md';
-import { upperFirst } from '@mantine/hooks';
+import { MdEdit } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
-import { ActionIcon, Menu, Modal, Button, Spoiler } from '@mantine/core';
-import { HiDotsVertical } from 'react-icons/hi';
-import { MdEdit, MdDelete } from 'react-icons/md';
-import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
-import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { getRelativeTime } from '@/lib/utils/time';
-import { BsCheck, BsExclamation } from 'react-icons/bs';
+import { IoArrowDown, IoArrowForward } from 'react-icons/io5';
+import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
+import styles from './ProfileConnectionItem.module.css';
+import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -21,50 +33,12 @@ interface Props {
 
 export default function ProfileConnectionItem(props: Props) {
   const { user } = useAuth();
-  const deleteConnection = useDeleteConnection();
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
 
   const sourceUrlView = props.connection.source;
   const targetUrlView = props.connection.target;
 
   const isOwner = user && user.id === props.curator.id;
-
-  const handleDelete = () => {
-    deleteConnection.mutate(
-      { connectionId: props.connection.connection.id },
-      {
-        onSuccess: () => {
-          notifications.show({
-            message: 'Connection deleted',
-            color: 'green',
-            position: 'top-center',
-            icon: <BsCheck />,
-          });
-          setDeleteModalOpened(false);
-        },
-        onError: () => {
-          notifications.show({
-            message: 'Could not delete connection',
-            color: 'red',
-            title: 'Error',
-            position: 'top-center',
-            loading: false,
-            autoClose: false,
-            withCloseButton: true,
-            icon: <BsExclamation />,
-          });
-        },
-      },
-    );
-  };
-
-  const formatConnectionType = (type: string) => {
-    return type
-      .toLowerCase()
-      .split('_')
-      .map((word) => upperFirst(word))
-      .join(' ');
-  };
 
   const time = getRelativeTime(
     props.connection.connection.createdAt.toString(),
@@ -73,29 +47,37 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Stack gap={'xs'} align="stretch">
-        {/* Source URL */}
-        <UrlCard
-          id={sourceUrlView.url}
-          url={sourceUrlView.url}
-          cardContent={sourceUrlView.metadata}
-          urlLibraryCount={sourceUrlView.urlLibraryCount}
-          urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
-        />
-
-        {/* Connection Metadata */}
-        <Card p={'xs'} radius={'md'} bg={'dark.6'}>
-          <Group justify="space-between" wrap="nowrap" align="start">
-            <Stack gap={4} style={{ flex: 1 }}>
-              <Group gap={'xs'} wrap="wrap">
-                <MdArrowDownward size={20} />
-                {props.connection.connection.type && (
-                  <Badge size="md" variant="light" color="blue">
-                    {formatConnectionType(props.connection.connection.type)}
-                  </Badge>
-                )}
-                <Text fz={'sm'} fw={600} c={'gray'}>
-                  {relativeCreatedDate}
+      <Card radius={'lg'} p={'xs'} className={styles.root}>
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="center">
+            <Stack gap={'xs'}>
+              <Group gap={'xs'}>
+                <Avatar
+                  component={Link}
+                  href={`/profile/${props.curator.handle}`}
+                  src={props.curator.avatarUrl?.replace(
+                    'avatar',
+                    'avatar_thumbnail',
+                  )}
+                  alt={`${props.curator.name}'s avatar`}
+                  size={'sm'}
+                />
+                <Text>
+                  <Text
+                    c={'bright'}
+                    fw={500}
+                    component={Link}
+                    href={`/profile/${props.curator.handle}`}
+                    span
+                  >
+                    {props.curator.name}
+                  </Text>
+                  <Text c={'gray'} span>
+                    {' · '}
+                  </Text>
+                  <Text c={'gray'} span>
+                    {relativeCreatedDate}{' '}
+                  </Text>
                 </Text>
               </Group>
               {props.connection.connection.note && (
@@ -104,18 +86,24 @@ export default function ProfileConnectionItem(props: Props) {
                   hideLabel={'See less'}
                   maxHeight={60}
                 >
-                  <Text fw={500} fs={'italic'} c={'dimmed'} fz={'sm'}>
+                  <Text fw={500} fs={'italic'} c={'gray'}>
                     {props.connection.connection.note}
                   </Text>
                 </Spoiler>
               )}
             </Stack>
+
             {isOwner && props.onEdit && (
               <Box>
                 <Menu shadow="md" width={200} position="bottom-end">
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" size="lg">
-                      <HiDotsVertical size={18} />
+                    <ActionIcon
+                      variant="subtle"
+                      color={'gray'}
+                      radius={'xl'}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BsThreeDots size={18} />
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -126,7 +114,7 @@ export default function ProfileConnectionItem(props: Props) {
                       Edit
                     </Menu.Item>
                     <Menu.Item
-                      leftSection={<MdDelete size={16} />}
+                      leftSection={<BsTrash2Fill />}
                       color="red"
                       onClick={() => setDeleteModalOpened(true)}
                     >
@@ -137,44 +125,90 @@ export default function ProfileConnectionItem(props: Props) {
               </Box>
             )}
           </Group>
-        </Card>
 
-        {/* Target URL */}
-        <UrlCard
-          id={targetUrlView.url}
-          url={targetUrlView.url}
-          cardContent={targetUrlView.metadata}
-          urlLibraryCount={targetUrlView.urlLibraryCount}
-          urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
-        />
-      </Stack>
+          <Grid gutter={'xs'} align="stretch">
+            {/* Source URL */}
+            <Grid.Col span={{ base: 12, sm: 5 }}>
+              <UrlCard
+                id={sourceUrlView.url}
+                url={sourceUrlView.url}
+                cardContent={sourceUrlView.metadata}
+                urlLibraryCount={sourceUrlView.urlLibraryCount}
+                urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
+                urlConnectionCount={sourceUrlView.urlConnectionCount ?? 0}
+              />
+            </Grid.Col>
 
-      <Modal
-        opened={deleteModalOpened}
-        onClose={() => setDeleteModalOpened(false)}
-        title="Delete Connection"
-        centered
-      >
-        <Stack gap="md">
-          <Text>Are you sure you want to delete this connection?</Text>
-          <Group justify="flex-end" gap="xs">
-            <Button
-              variant="light"
-              color="gray"
-              onClick={() => setDeleteModalOpened(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={handleDelete}
-              loading={deleteConnection.isPending}
-            >
-              Delete
-            </Button>
-          </Group>
+            {/* Connection Metadata */}
+            <Grid.Col span={{ base: 12, sm: 2 }}>
+              <Card p={0} radius={'md'} bg={'transparent'} h={'100%'}>
+                <Group justify="center" wrap="nowrap" align="center" h={'100%'}>
+                  <Stack gap={0} align="center" justify="center">
+                    {props.connection.connection.type &&
+                      (() => {
+                        const config = CONNECTION_TYPES.find(
+                          (t) => t.value === props.connection.connection.type,
+                        );
+                        if (!config) return null;
+                        const Icon = config.icon;
+                        return (
+                          <Stack align="center" gap={'xs'}>
+                            <ThemeIcon
+                              color="gray"
+                              size={'sm'}
+                              variant="light"
+                              radius={'xl'}
+                              hiddenFrom="sm"
+                            >
+                              <IoArrowDown />
+                            </ThemeIcon>
+
+                            <ThemeIcon
+                              color="gray"
+                              size={'sm'}
+                              variant="light"
+                              radius={'xl'}
+                              visibleFrom="sm"
+                            >
+                              <IoArrowForward />
+                            </ThemeIcon>
+
+                            <Badge
+                              size="md"
+                              color="green"
+                              variant="light"
+                              leftSection={<Icon />}
+                            >
+                              {config.label}
+                            </Badge>
+                          </Stack>
+                        );
+                      })()}
+                  </Stack>
+                </Group>
+              </Card>
+            </Grid.Col>
+
+            {/* Target URL */}
+            <Grid.Col span={{ base: 12, sm: 5 }}>
+              <UrlCard
+                id={targetUrlView.url}
+                url={targetUrlView.url}
+                cardContent={targetUrlView.metadata}
+                urlLibraryCount={targetUrlView.urlLibraryCount}
+                urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
+                urlConnectionCount={targetUrlView.urlConnectionCount ?? 0}
+              />
+            </Grid.Col>
+          </Grid>
         </Stack>
-      </Modal>
+      </Card>
+
+      <DeleteConnectionModal
+        isOpen={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        connectionId={props.connection.connection.id}
+      />
     </>
   );
 }

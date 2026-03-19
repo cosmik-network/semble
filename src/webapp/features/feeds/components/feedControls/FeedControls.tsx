@@ -186,7 +186,7 @@ export default function FeedControls() {
                 </Button>
               </Popover.Target>
 
-              <Popover.Dropdown maw={300}>
+              <Popover.Dropdown maw={300} p={'xs'}>
                 <Group gap={6}>
                   <Button
                     size="xs"

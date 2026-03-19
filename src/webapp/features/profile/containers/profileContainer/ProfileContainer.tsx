@@ -83,6 +83,7 @@ export default function ProfileContainer(props: Props) {
                       authorHandle={props.handle}
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
+                      urlConnectionCount={card.urlConnectionCount ?? 0}
                       viaCardId={card.id}
                       analyticsContext={{
                         saveSource: CardSaveSource.PROFILE,

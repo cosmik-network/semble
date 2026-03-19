@@ -16,7 +16,7 @@ export const getRelativeTime = (dateString: string) => {
   const count = Math.floor(seconds / interval.seconds);
   if (count < 1) return 'now';
 
-  return `${count}${interval.label} ago`;
+  return `${count}${interval.label}`;
 };
 
 export const getFormattedDate = (date: string) => {

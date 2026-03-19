@@ -25,6 +25,7 @@ interface Props {
   currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary?: boolean;
+  urlConnectionCount: number;
   authorHandle?: string;
   cardAuthor?: User;
   viaCardId?: string;
@@ -163,6 +164,7 @@ export default function UrlCard(props: Props) {
             currentCollection={props.currentCollection}
             urlLibraryCount={props.urlLibraryCount}
             urlIsInLibrary={props.urlIsInLibrary ?? false}
+            urlConnectionCount={props.urlConnectionCount}
             viaCardId={props.viaCardId}
             analyticsContext={props.analyticsContext}
           />

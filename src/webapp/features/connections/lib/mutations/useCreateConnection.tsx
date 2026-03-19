@@ -3,6 +3,7 @@ import { createConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { ConnectionType } from '@semble/types';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
+import { profileKeys } from '@/features/profile/lib/profileKeys';
 
 export default function useCreateConnection() {
   const queryClient = useQueryClient();
@@ -29,6 +30,11 @@ export default function useCreateConnection() {
       // Invalidate backward connections for target URL
       queryClient.invalidateQueries({
         queryKey: connectionKeys.backwardForUrl(variables.targetUrl),
+      });
+
+      // Invalidate all profile queries with stats to update connectionCount in ProfileTabs
+      queryClient.invalidateQueries({
+        queryKey: profileKeys.all(),
       });
 
       // Invalidate URL metadata with stats for both source and target URLs to update tab counts

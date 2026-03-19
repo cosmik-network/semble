@@ -32,6 +32,7 @@ export default function UrlCardSkeleton() {
           <Group justify="space-between">
             <Group gap={'xs'}>
               <Skeleton w={60} h={26} radius={'xl'} />
+              <Skeleton w={54} h={26} radius={'xl'} />
             </Group>
             <Skeleton w={26} h={26} circle />
           </Group>

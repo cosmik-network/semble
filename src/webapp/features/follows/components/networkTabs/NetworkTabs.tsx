@@ -24,6 +24,7 @@ export default function NetworkTabs() {
   return (
     <SegmentedControl
       value={getCurrentValue()}
+      withItemsBorders={false}
       onChange={(value) => {
         if (value === 'followers') {
           router.push(basePath);
