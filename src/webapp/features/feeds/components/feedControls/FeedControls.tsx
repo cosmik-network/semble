@@ -12,13 +12,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
-import { FaSeedling } from 'react-icons/fa6';
+import { FaRegNoteSticky, FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
+import { BiLink } from 'react-icons/bi';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const sourceOptions = [
@@ -45,8 +46,8 @@ const feedOptions = [
 ];
 
 const activityTypeOptions = [
-  { value: ActivityType.CARD_COLLECTED, label: 'Card Collected' },
-  { value: ActivityType.CONNECTION_CREATED, label: 'Card Connected' },
+  { value: ActivityType.CARD_COLLECTED, label: 'Card saves', icon: <FaRegNoteSticky /> },
+  { value: ActivityType.CONNECTION_CREATED, label: 'Connections', icon: <BiLink /> },
 ];
 
 const activityTypeToParam = (type: ActivityType): string => type.toLowerCase();
@@ -256,7 +257,17 @@ export default function FeedControls() {
                 <Menu.Label>Activity Type</Menu.Label>
                 <Menu.Sub>
                   <Menu.Sub.Target>
-                    <Menu.Sub.Item fz="md" fw={600}>
+                    <Menu.Sub.Item
+                      fz="md"
+                      fw={600}
+                      leftSection={
+                        optimisticActivityTypes.length === 1
+                          ? activityTypeOptions.find(
+                              (o) => o.value === optimisticActivityTypes[0],
+                            )?.icon
+                          : null
+                      }
+                    >
                       {optimisticActivityTypes.length === 1
                         ? (activityTypeOptions.find(
                             (o) => o.value === optimisticActivityTypes[0],
@@ -280,6 +291,7 @@ export default function FeedControls() {
                       <Menu.Item
                         key={option.value}
                         onClick={() => handleActivityTypeClick(option.value)}
+                        leftSection={option.icon}
                         rightSection={
                           optimisticActivityTypes.length === 1 &&
                           optimisticActivityTypes[0] === option.value ? (
