@@ -71,6 +71,7 @@ export default function SembleActions(props: Props) {
           )}
         </CopyButton>
         <Button
+          variant="light"
           color="green"
           radius={'xl'}
           leftSection={<TbPlugConnected size={18} />}
