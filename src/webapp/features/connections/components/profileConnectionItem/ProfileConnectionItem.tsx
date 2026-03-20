@@ -44,8 +44,8 @@ export default function ProfileConnectionItem(props: Props) {
         <Stack gap={'xs'}>
           <Group justify="space-between" align="center" grow>
             <Stack gap={'xs'}>
-              <Group justify="space-between" align="center">
-                <Group gap={'xs'}>
+              <Group justify="space-between" align="center" wrap="nowrap">
+                <Group gap={'xs'} wrap="nowrap" style={{ minWidth: 0 }}>
                   <Avatar
                     component={Link}
                     href={`/profile/${props.curator.handle}`}
@@ -56,26 +56,35 @@ export default function ProfileConnectionItem(props: Props) {
                     alt={`${props.curator.name}'s avatar`}
                     size={'sm'}
                   />
-                  <Text fw={500}>
+                  <Group gap={5} wrap="nowrap" miw={0}>
                     <Text
                       c={'bright'}
                       fw={600}
                       component={Link}
                       href={`/profile/${props.curator.handle}`}
-                      span
+                      truncate
                     >
                       {props.curator.name}
                     </Text>
                     {props.activityStatusText && (
-                      <Text span> {props.activityStatusText}</Text>
+                      <Text fw={500} span>
+                        {' '}
+                        {props.activityStatusText}
+                      </Text>
                     )}
-                    <Text c={'gray'} fw={600} span>
+                    <Text c={'gray'} fw={600} span style={{ flexShrink: 0 }}>
                       {' · '}
                     </Text>
-                    <Text fz={'sm'} fw={600} c={'gray'} span>
-                      {relativeCreatedDate}{' '}
+                    <Text
+                      fz={'sm'}
+                      fw={600}
+                      c={'gray'}
+                      span
+                      style={{ flexShrink: 0 }}
+                    >
+                      {relativeCreatedDate}
                     </Text>
-                  </Text>
+                  </Group>
                 </Group>
                 {isOwner && props.onEdit && (
                   <Box>
