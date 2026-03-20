@@ -12,13 +12,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
-import { FaSeedling } from 'react-icons/fa6';
+import { FaRegNoteSticky, FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
+import { BiLink } from 'react-icons/bi';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const sourceOptions = [
@@ -45,9 +46,14 @@ const feedOptions = [
 ];
 
 const activityTypeOptions = [
-  { value: ActivityType.CARD_COLLECTED, label: 'Card Collected' },
-  { value: ActivityType.CONNECTION_CREATED, label: 'Card Connected' },
+  { value: ActivityType.CARD_COLLECTED, label: 'Card saves', icon: <FaRegNoteSticky /> },
+  { value: ActivityType.CONNECTION_CREATED, label: 'Connections', icon: <BiLink /> },
 ];
+
+const activityTypeToParam = (type: ActivityType): string => type.toLowerCase();
+
+const paramToActivityType = (param: string): ActivityType | undefined =>
+  Object.values(ActivityType).find((t) => t.toLowerCase() === param);
 
 export default function FeedControls() {
   const router = useRouter();
@@ -57,9 +63,10 @@ export default function FeedControls() {
   const feedFromUrl =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
   const typeFromUrl = searchParams.get('type') as UrlType | null;
-  const activityTypesFromUrl = searchParams.getAll('activityTypes') as
-    | ActivityType[]
-    | [];
+  const activityTypesFromUrl = searchParams
+    .getAll('activityTypes')
+    .map(paramToActivityType)
+    .filter((t): t is ActivityType => t !== undefined);
 
   const [optimisticSource, setOptimisticSource] =
     useOptimistic<ActivitySource | null>(sourceFromUrl);
@@ -132,19 +139,17 @@ export default function FeedControls() {
     setTypePopoverOpened(false);
   };
 
-  const handleActivityTypeToggle = (activityType: ActivityType) => {
+  const handleActivityTypeClick = (activityType: ActivityType | null) => {
     startTransition(() => {
-      const currentTypes = optimisticActivityTypes;
-      const isSelected = currentTypes.includes(activityType);
-      const nextTypes = isSelected
-        ? currentTypes.filter((t) => t !== activityType)
-        : [...currentTypes, activityType];
+      const nextTypes = activityType ? [activityType] : [];
 
       setOptimisticActivityTypes(nextTypes);
 
       const params = new URLSearchParams(searchParams.toString());
       params.delete('activityTypes');
-      nextTypes.forEach((type) => params.append('activityTypes', type));
+      nextTypes.forEach((type) =>
+        params.append('activityTypes', activityTypeToParam(type)),
+      );
 
       router.push(`?${params.toString()}`, { scroll: false });
     });
@@ -250,20 +255,55 @@ export default function FeedControls() {
             {featureFlags?.connections && (
               <>
                 <Menu.Label>Activity Type</Menu.Label>
-                {activityTypeOptions.map((option) => (
-                  <Menu.Item
-                    key={option.value}
-                    onClick={() => handleActivityTypeToggle(option.value)}
-                    rightSection={
-                      optimisticActivityTypes.includes(option.value) ? (
-                        <IoMdCheckmark />
-                      ) : null
-                    }
-                    closeMenuOnClick={false}
-                  >
-                    {option.label}
-                  </Menu.Item>
-                ))}
+                <Menu.Sub>
+                  <Menu.Sub.Target>
+                    <Menu.Sub.Item
+                      fz="md"
+                      fw={600}
+                      leftSection={
+                        optimisticActivityTypes.length === 1
+                          ? activityTypeOptions.find(
+                              (o) => o.value === optimisticActivityTypes[0],
+                            )?.icon
+                          : null
+                      }
+                    >
+                      {optimisticActivityTypes.length === 1
+                        ? (activityTypeOptions.find(
+                            (o) => o.value === optimisticActivityTypes[0],
+                          )?.label ?? 'All')
+                        : 'All'}
+                    </Menu.Sub.Item>
+                  </Menu.Sub.Target>
+
+                  <Menu.Sub.Dropdown>
+                    <Menu.Item
+                      onClick={() => handleActivityTypeClick(null)}
+                      rightSection={
+                        optimisticActivityTypes.length === 0 ? (
+                          <IoMdCheckmark />
+                        ) : null
+                      }
+                    >
+                      All
+                    </Menu.Item>
+                    {activityTypeOptions.map((option) => (
+                      <Menu.Item
+                        key={option.value}
+                        onClick={() => handleActivityTypeClick(option.value)}
+                        leftSection={option.icon}
+                        rightSection={
+                          optimisticActivityTypes.length === 1 &&
+                          optimisticActivityTypes[0] === option.value ? (
+                            <IoMdCheckmark />
+                          ) : null
+                        }
+                      >
+                        {option.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Sub.Dropdown>
+                </Menu.Sub>
               </>
             )}
           </Menu.Dropdown>
