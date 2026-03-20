@@ -6,6 +6,7 @@ import {
   Avatar,
   Button,
   CheckboxIndicator,
+  Indicator,
   MenuItem,
   Modal,
   NavLink,
@@ -150,6 +151,13 @@ export const theme = createTheme({
       defaultProps: {
         classNames: {
           option: classes.option,
+        },
+      },
+    }),
+    Indicator: Indicator.extend({
+      styles: {
+        indicator: {
+          zIndex: 1,
         },
       },
     }),
