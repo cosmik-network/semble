@@ -2,6 +2,7 @@ import { Stack, Grid, GridCol, Skeleton } from '@mantine/core';
 import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedBySummary';
 import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataHeader';
+import UrlMetadataImageSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataImage';
 
 export default function SembleHeaderSkeleton() {
   return (
@@ -12,8 +13,7 @@ export default function SembleHeaderSkeleton() {
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="center" flex={1}>
-            <Skeleton h={150} w={300} maw={'100%'} />
-
+            <UrlMetadataImageSkeleton />
             <SembleActionsContainerSkeleton />
           </Stack>
         </GridCol>
