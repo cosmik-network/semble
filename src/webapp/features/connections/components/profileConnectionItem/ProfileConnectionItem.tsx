@@ -45,7 +45,7 @@ export default function ProfileConnectionItem(props: Props) {
           <Group justify="space-between" align="center" grow>
             <Stack gap={'xs'}>
               <Group justify="space-between" align="center" wrap="nowrap">
-                <Group gap={'xs'} wrap="nowrap" style={{ minWidth: 0 }}>
+                <Group gap={'xs'} wrap="nowrap" miw={0}>
                   <Avatar
                     component={Link}
                     href={`/profile/${props.curator.handle}`}
