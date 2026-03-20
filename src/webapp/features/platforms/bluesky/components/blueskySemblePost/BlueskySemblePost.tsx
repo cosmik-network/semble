@@ -3,7 +3,11 @@ import { getBlueskyPost } from '../../lib/dal';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import { detectUrlPlatform, getDomain, SupportedPlatform } from '@/lib/utils/link';
+import {
+  detectUrlPlatform,
+  getDomain,
+  SupportedPlatform,
+} from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
 import {
   Stack,
