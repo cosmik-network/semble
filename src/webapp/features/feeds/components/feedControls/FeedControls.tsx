@@ -46,8 +46,16 @@ const feedOptions = [
 ];
 
 const activityTypeOptions = [
-  { value: ActivityType.CARD_COLLECTED, label: 'Card saves', icon: <FaRegNoteSticky /> },
-  { value: ActivityType.CONNECTION_CREATED, label: 'Connections', icon: <BiLink /> },
+  {
+    value: ActivityType.CARD_COLLECTED,
+    label: 'Card saves',
+    icon: <FaRegNoteSticky />,
+  },
+  {
+    value: ActivityType.CONNECTION_CREATED,
+    label: 'Connections',
+    icon: <BiLink />,
+  },
 ];
 
 const activityTypeToParam = (type: ActivityType): string => type.toLowerCase();
@@ -284,6 +292,7 @@ export default function FeedControls() {
                           <IoMdCheckmark />
                         ) : null
                       }
+                      closeMenuOnClick={false}
                     >
                       All
                     </Menu.Item>
@@ -298,6 +307,7 @@ export default function FeedControls() {
                             <IoMdCheckmark />
                           ) : null
                         }
+                        closeMenuOnClick={false}
                       >
                         {option.label}
                       </Menu.Item>
