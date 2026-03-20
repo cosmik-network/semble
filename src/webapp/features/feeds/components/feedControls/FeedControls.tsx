@@ -197,7 +197,7 @@ export default function FeedControls() {
               ))}
             </>
 
-            <Menu.Label>Type</Menu.Label>
+            <Menu.Label>Card Type</Menu.Label>
             <Popover
               opened={typePopoverOpened}
               onChange={setTypePopoverOpened}
