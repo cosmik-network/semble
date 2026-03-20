@@ -1,10 +1,10 @@
 # Connections (coming soon)
 
+Connections in Semble link two pieces of content with a typed semantic relationship. Each connection has a **source** (A), a **target** (B), an optional **relation type** that describes how they relate, and an optional **note** for additional context.
+
+<figure><img src="../.gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
+
 ## Semble Connection Types
-
-Connections in Semble link two pieces of content with a typed semantic relationship. Each connection has a **source** (A), a **target** (B), and a **relation type** that describes how they relate.
-
-***
 
 | Type              | Lexicon ID    | Description                                       | Example                                                             |
 | ----------------- | ------------- | ------------------------------------------------- | ------------------------------------------------------------------- |
