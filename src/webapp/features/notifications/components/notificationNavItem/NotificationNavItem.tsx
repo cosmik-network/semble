@@ -8,7 +8,7 @@ export default function NotificationNavItem() {
 
   return (
     <Indicator
-      disabled={data.unreadCount === 0}
+      disabled={!data?.unreadCount}
       position={'top-start'}
       size={8}
       offset={10}
