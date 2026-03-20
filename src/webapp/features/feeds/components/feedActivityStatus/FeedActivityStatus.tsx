@@ -13,11 +13,12 @@ import {
   Text,
 } from '@mantine/core';
 import {
-  CardCollectedFeedItem,
+  ActivityType,
   Collection,
   CollectionAccessType,
 } from '@/api-client';
-import { Fragment } from 'react';
+import { User } from '@semble/types';
+import { Fragment, ReactNode } from 'react';
 import Link from 'next/link';
 import styles from './FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -25,10 +26,12 @@ import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
 
 interface Props {
-  user: CardCollectedFeedItem['user'];
-  collections?: CardCollectedFeedItem['collections'];
+  user: User;
+  activityType: ActivityType;
+  collections?: Collection[];
   createdAt: Date;
   note?: string;
+  actions?: ReactNode;
 }
 
 export default function FeedActivityStatus(props: Props) {
@@ -37,6 +40,25 @@ export default function FeedActivityStatus(props: Props) {
   const relativeCreatedDate = time === 'now' ? `Now` : time;
 
   const renderActivityText = () => {
+    if (props.activityType === ActivityType.CONNECTION_CREATED) {
+      return (
+        <Text fw={500}>
+          <Text
+            component={Link}
+            href={`/profile/${props.user.handle}`}
+            fw={600}
+            c={'bright'}
+          >
+            {sanitizeText(props.user.name)}
+          </Text>{' '}
+          <Text span>made a connection</Text>
+          <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
+            {relativeCreatedDate}
+          </Text>
+        </Text>
+      );
+    }
+
     const collections = props.collections ?? [];
     const displayedCollections = collections.slice(0, MAX_DISPLAYED);
     const remainingCollections = collections.slice(
@@ -127,14 +149,17 @@ export default function FeedActivityStatus(props: Props) {
   return (
     <Card p={0} className={styles.root} radius={'lg'}>
       <Stack gap={'xs'} p={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="center">
-          <Avatar
-            component={Link}
-            href={`/profile/${props.user.handle}`}
-            src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-            alt={`${props.user.name}'s avatar`}
-          />
-          {renderActivityText()}
+        <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
+          <Group gap={'xs'} wrap="nowrap" align="center">
+            <Avatar
+              component={Link}
+              href={`/profile/${props.user.handle}`}
+              src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+              alt={`${props.user.name}'s avatar`}
+            />
+            {renderActivityText()}
+          </Group>
+          {props.actions}
         </Group>
         {props.note && (
           <Spoiler

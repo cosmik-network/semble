@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { DeleteConnectionRequest } from '@semble/types';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 
@@ -15,6 +16,8 @@ export default function useDeleteConnection() {
     onSuccess: () => {
       // Invalidate all connection queries to ensure deletions are reflected everywhere
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
+      // Invalidate all feed queries to remove deleted connection items from feeds
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       // Invalidate all profile queries with stats to update connectionCount in ProfileTabs
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       // Invalidate all URL metadata queries with stats to update tab counts
