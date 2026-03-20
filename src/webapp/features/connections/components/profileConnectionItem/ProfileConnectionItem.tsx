@@ -40,7 +40,7 @@ export default function ProfileConnectionItem(props: Props) {
 
   return (
     <>
-      <Card radius={'lg'} p={'xs'} className={styles.root}>
+      <Card radius={'lg'} p={'xs'} className={styles.root} withBorder>
         <Stack gap={'xs'}>
           <Group justify="space-between" align="center" grow>
             <Stack gap={'xs'}>
