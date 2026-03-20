@@ -113,6 +113,12 @@ export default function FeedControls() {
         params.set('feed', 'global');
       }
 
+      // if Margin is selected, reset activity types (not applicable to Margin)
+      if (source === ActivitySource.MARGIN && activityTypesFromUrl.length > 0) {
+        setOptimisticActivityTypes([]);
+        params.delete('activityTypes');
+      }
+
       router.push(`?${params.toString()}`, { scroll: false });
     });
   };
@@ -163,6 +169,8 @@ export default function FeedControls() {
     });
   };
 
+  const isMarginSource = optimisticSource === ActivitySource.MARGIN;
+
   const SelectedTypeIcon =
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
@@ -175,6 +183,8 @@ export default function FeedControls() {
               {selectedSource?.label}
               {` / ${selectedFeed?.label}`}
               {optimisticType && ` / ${upperFirst(optimisticType)}s`}
+              {optimisticActivityTypes.length === 1 &&
+                ` / ${activityTypeOptions.find((o) => o.value === optimisticActivityTypes[0])?.label}`}
             </Button>
           </Menu.Target>
 
@@ -268,6 +278,7 @@ export default function FeedControls() {
                     <Menu.Sub.Item
                       fz="md"
                       fw={600}
+                      disabled={isMarginSource}
                       leftSection={
                         optimisticActivityTypes.length === 1
                           ? activityTypeOptions.find(
