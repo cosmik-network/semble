@@ -8,10 +8,10 @@ import { NotificationType } from '@/api-client';
 import { Stack, Indicator, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
+import ConnectionCard from '@/features/connections/components/connectionCard/ConnectionCard';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import { useRouter } from 'next/navigation';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
-import ProfileConnectionItem from '@/features/connections/components/profileConnectionItem/ProfileConnectionItem';
 
 interface Props {
   item: NotificationItemType;
@@ -57,11 +57,14 @@ export default function NotificationItem(props: Props) {
         offset={3}
         position="top-start"
       >
-        <ProfileConnectionItem
-          connection={props.item.connection}
-          curator={props.item.user}
-          activityStatusText="connected a card in your library"
-        />
+        <Stack gap={'xs'} align="stretch" h={'100%'}>
+          <NotificationActivityStatus
+            user={props.item.user}
+            createdAt={props.item.createdAt}
+            type={props.item.type}
+          />
+          <ConnectionCard connection={props.item.connection} />
+        </Stack>
       </Indicator>
     );
   }
