@@ -14,7 +14,7 @@ interface Props {
 
 export default async function BlueskySembleHeader(props: Props) {
   return (
-    <Stack gap={'sm'} mx={'auto'} w={'100%'}>
+    <Stack gap={'sm'} mx={'auto'} w={'100%'} maw={600}>
       <Suspense fallback={<BlueskySemblePostSkeleton />}>
         <BlueskySemblePost url={props.url} />
       </Suspense>

@@ -17,13 +17,12 @@ interface PropsWithoutStats {
 type Props = PropsWithStats | PropsWithoutStats;
 
 export default function useUrlMetadata(props: Props) {
-  // Use regular useQuery when we have initialData (with stats)
-  // Use useSuspenseQuery for basic metadata queries without stats
-  if (props.includeStats && 'initialData' in props) {
+  if (props.includeStats) {
+    // Non-suspense: stats are progressive — tabs render immediately, counts fill in async
     return useQuery({
       queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
       queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
-      initialData: props.initialData,
+      initialData: 'initialData' in props ? props.initialData : undefined,
     });
   }
 
