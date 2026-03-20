@@ -1,8 +1,6 @@
 import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
-  GetForwardConnectionsForUrlParams,
-  GetBackwardConnectionsForUrlParams,
   GetConnectionsForUrlParams,
   GetConnectionsParams,
   SearchUrlsParams,
@@ -27,22 +25,6 @@ export const createConnection = cache(
       const response = await client.createConnection(params);
       return response;
     } catch (error) {}
-  },
-);
-
-export const getForwardConnectionsForUrl = cache(
-  async (params: GetForwardConnectionsForUrlParams) => {
-    const client = createSembleClient();
-    const response = await client.getForwardConnectionsForUrl(params);
-    return response;
-  },
-);
-
-export const getBackwardConnectionsForUrl = cache(
-  async (params: GetBackwardConnectionsForUrlParams) => {
-    const client = createSembleClient();
-    const response = await client.getBackwardConnectionsForUrl(params);
-    return response;
   },
 );
 

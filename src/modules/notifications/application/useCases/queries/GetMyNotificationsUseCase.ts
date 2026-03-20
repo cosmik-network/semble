@@ -8,6 +8,9 @@ import { IProfileService } from '../../../../cards/domain/services/IProfileServi
 import { NotificationItem } from '@semble/types';
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import { IConnectionRepository } from '../../../../cards/domain/IConnectionRepository';
+import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
+import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -49,6 +52,8 @@ export class GetMyNotificationsUseCase
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,
+    private connectionRepository: IConnectionRepository,
+    private cardQueryRepository: ICardQueryRepository,
   ) {}
 
   async execute(
@@ -118,6 +123,83 @@ export class GetMyNotificationsUseCase
 
       const profileMap = profileMapResult.value;
 
+      // Batch fetch all connections for connection notifications
+      const connectionNotifications = notifications.filter(
+        (n) =>
+          (n as any).connectionId !== undefined &&
+          n.type === 'USER_CONNECTED_YOUR_URL',
+      );
+
+      const connectionMap = new Map<string, any>();
+      const connectionUrlStatsMap = new Map<
+        string,
+        {
+          urlLibraryCount: number;
+          urlInLibrary?: boolean;
+          urlConnectionCount?: number;
+          urlIsConnected?: boolean;
+        }
+      >();
+
+      if (connectionNotifications.length > 0) {
+        const connectionIds: ConnectionId[] = [];
+        for (const notification of connectionNotifications) {
+          const metadata = notification as any;
+          const connectionIdResult = ConnectionId.createFromString(
+            metadata.connectionId,
+          );
+          if (connectionIdResult.isOk()) {
+            connectionIds.push(connectionIdResult.value);
+          }
+        }
+
+        if (connectionIds.length > 0) {
+          const connectionsResult =
+            await this.connectionRepository.findByIds(connectionIds);
+          if (connectionsResult.isOk()) {
+            const connections = connectionsResult.value;
+            // Build connection map
+            for (const connection of connections) {
+              connectionMap.set(
+                connection.connectionId.getStringValue(),
+                connection,
+              );
+            }
+
+            // Collect all unique URLs from connections
+            const connectionUrls = Array.from(
+              new Set(
+                connections
+                  .filter((c) => c.source.url && c.target.url)
+                  .flatMap((c) => [c.source.url!.value, c.target.url!.value]),
+              ),
+            );
+
+            // Fetch URL stats
+            if (connectionUrls.length > 0) {
+              const connectionUrlLibraryInfoMap =
+                await this.cardQueryRepository.getBatchUrlLibraryInfo(
+                  connectionUrls,
+                  request.userId,
+                );
+
+              // Build stats map
+              connectionUrls.forEach((url) => {
+                const urlInfo = connectionUrlLibraryInfoMap.get(url);
+                if (urlInfo) {
+                  connectionUrlStatsMap.set(url, {
+                    urlLibraryCount: urlInfo.urlLibraryCount,
+                    urlInLibrary: urlInfo.urlInLibrary,
+                    urlConnectionCount: urlInfo.urlConnectionCount,
+                    urlIsConnected: urlInfo.urlIsConnected,
+                  });
+                }
+              });
+            }
+          }
+        }
+      }
+
       // Transform enriched notifications to DTOs
       const notificationItems: NotificationItemDTO[] = [];
 
@@ -127,6 +209,143 @@ export class GetMyNotificationsUseCase
 
           if (!actorProfile) {
             // Skip notifications with missing actor profile
+            continue;
+          }
+
+          // Handle connection notifications
+          const metadata = notification as any;
+          if (
+            metadata.connectionId !== undefined &&
+            notification.type === 'USER_CONNECTED_YOUR_URL'
+          ) {
+            // Get the connection from the pre-fetched map
+            const connection = connectionMap.get(metadata.connectionId);
+            if (!connection) {
+              continue; // Skip if connection not found
+            }
+
+            // Only handle URL connections
+            if (!connection.source.url || !connection.target.url) {
+              continue; // Skip if not both URLs
+            }
+
+            // Get URL stats from the pre-fetched map
+            const sourceUrlStats = connectionUrlStatsMap.get(
+              connection.source.url.value,
+            ) || {
+              urlLibraryCount: 0,
+              urlInLibrary: undefined,
+              urlConnectionCount: undefined,
+              urlIsConnected: undefined,
+            };
+
+            const targetUrlStats = connectionUrlStatsMap.get(
+              connection.target.url.value,
+            ) || {
+              urlLibraryCount: 0,
+              urlInLibrary: undefined,
+              urlConnectionCount: undefined,
+              urlIsConnected: undefined,
+            };
+
+            // Build connection notification item
+            const connectionNotificationItem: NotificationItem = {
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                bannerUrl: actorProfile.bannerUrl,
+                description: actorProfile.description,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              connection: {
+                connection: {
+                  id: connection.connectionId.getStringValue(),
+                  type: connection.type?.value,
+                  note: connection.note?.value,
+                  createdAt: connection.createdAt.toISOString(),
+                  updatedAt: connection.updatedAt.toISOString(),
+                  curator: actorProfile,
+                },
+                source: {
+                  url: connection.source.url.value,
+                  metadata: (() => {
+                    const meta =
+                      connection.sourceUrlMetadata?.props ||
+                      connection.sourceUrlMetadata;
+                    if (!meta) {
+                      return { url: connection.source.url.value };
+                    }
+                    // Convert all dates to strings
+                    return {
+                      url: meta.url || connection.source.url.value,
+                      title: meta.title,
+                      description: meta.description,
+                      author: meta.author,
+                      publishedDate:
+                        meta.publishedDate instanceof Date
+                          ? meta.publishedDate.toISOString()
+                          : meta.publishedDate,
+                      siteName: meta.siteName,
+                      imageUrl: meta.imageUrl,
+                      type: meta.type,
+                      retrievedAt:
+                        meta.retrievedAt instanceof Date
+                          ? meta.retrievedAt.toISOString()
+                          : meta.retrievedAt,
+                      doi: meta.doi,
+                      isbn: meta.isbn,
+                    };
+                  })(),
+                  urlLibraryCount: sourceUrlStats.urlLibraryCount,
+                  urlInLibrary: sourceUrlStats.urlInLibrary,
+                  urlConnectionCount: sourceUrlStats.urlConnectionCount,
+                  urlIsConnected: sourceUrlStats.urlIsConnected,
+                },
+                target: {
+                  url: connection.target.url.value,
+                  metadata: (() => {
+                    const meta =
+                      connection.targetUrlMetadata?.props ||
+                      connection.targetUrlMetadata;
+                    if (!meta) {
+                      return { url: connection.target.url.value };
+                    }
+                    // Convert all dates to strings
+                    return {
+                      url: meta.url || connection.target.url.value,
+                      title: meta.title,
+                      description: meta.description,
+                      author: meta.author,
+                      publishedDate:
+                        meta.publishedDate instanceof Date
+                          ? meta.publishedDate.toISOString()
+                          : meta.publishedDate,
+                      siteName: meta.siteName,
+                      imageUrl: meta.imageUrl,
+                      type: meta.type,
+                      retrievedAt:
+                        meta.retrievedAt instanceof Date
+                          ? meta.retrievedAt.toISOString()
+                          : meta.retrievedAt,
+                      doi: meta.doi,
+                      isbn: meta.isbn,
+                    };
+                  })(),
+                  urlLibraryCount: targetUrlStats.urlLibraryCount,
+                  urlInLibrary: targetUrlStats.urlInLibrary,
+                  urlConnectionCount: targetUrlStats.urlConnectionCount,
+                  urlIsConnected: targetUrlStats.urlIsConnected,
+                },
+              },
+            };
+
+            notificationItems.push(connectionNotificationItem);
             continue;
           }
 

@@ -10,7 +10,6 @@ import {
 } from '@mantine/core';
 import TabItem from './TabItem';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import type { UrlAggregateStats } from '@semble/types';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';

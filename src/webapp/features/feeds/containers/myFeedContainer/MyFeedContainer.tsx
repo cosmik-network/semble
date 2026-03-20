@@ -16,10 +16,11 @@ import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
-import { UrlType, ActivitySource } from '@semble/types';
+import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useState, useEffect } from 'react';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function MyFeedContainer() {
   const pathname = usePathname();
@@ -29,13 +30,32 @@ export default function MyFeedContainer() {
   const selectedFeed =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
 
+  const { data: featureFlags } = useFeatureFlags();
+
+  // Parse activityTypes from URL params (can be multiple)
+  const activityTypesParam = searchParams.getAll('activityTypes');
+  const selectedActivityTypes =
+    activityTypesParam.length > 0
+      ? (activityTypesParam.filter((type) =>
+          Object.values(ActivityType).includes(type as ActivityType),
+        ) as ActivityType[])
+      : undefined;
+
+  // Hard-code to only CARD_COLLECTED when connections feature flag is false
+  const activityTypesFilter =
+    featureFlags?.connections === false
+      ? [ActivityType.CARD_COLLECTED]
+      : selectedActivityTypes;
+
   const globalFeed = useGlobalFeed({
     urlType: selectedUrlType,
     source: selectedSource,
+    activityTypes: activityTypesFilter,
   });
   const followingFeed = useFollowingFeed({
     urlType: selectedUrlType,
     source: selectedSource,
+    activityTypes: activityTypesFilter,
     enabled: selectedFeed === 'following',
   });
 

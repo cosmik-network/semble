@@ -12,6 +12,13 @@ const querySchema = z.object({
   beforeActivityId: z.string().optional(),
   urlType: z.string().optional(),
   source: z.nativeEnum(ActivitySource).optional(),
+  activityTypes: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
 });
 
 export class GetGemActivityFeedController extends Controller {
@@ -37,6 +44,7 @@ export class GetGemActivityFeedController extends Controller {
         beforeActivityId: params.beforeActivityId,
         urlType: params.urlType,
         source: params.source,
+        activityTypes: params.activityTypes,
       });
 
       if (result.isErr()) {

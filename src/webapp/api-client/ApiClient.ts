@@ -110,10 +110,6 @@ import type {
   DeleteConnectionResponse,
   GetConnectionsParams,
   GetConnectionsResponse,
-  GetForwardConnectionsForUrlParams,
-  GetForwardConnectionsForUrlResponse,
-  GetBackwardConnectionsForUrlParams,
-  GetBackwardConnectionsForUrlResponse,
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
   ConnectionType,
@@ -506,18 +502,6 @@ export class ApiClient {
     request: DeleteConnectionRequest,
   ): Promise<DeleteConnectionResponse> {
     return this.connectionClient.deleteConnection(request);
-  }
-
-  async getForwardConnectionsForUrl(
-    params: GetForwardConnectionsForUrlParams,
-  ): Promise<GetForwardConnectionsForUrlResponse> {
-    return this.queryClient.getForwardConnectionsForUrl(params);
-  }
-
-  async getBackwardConnectionsForUrl(
-    params: GetBackwardConnectionsForUrlParams,
-  ): Promise<GetBackwardConnectionsForUrlResponse> {
-    return this.queryClient.getBackwardConnectionsForUrl(params);
   }
 
   async getConnectionsForUrl(

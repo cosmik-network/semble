@@ -53,7 +53,7 @@ export default function GuestSembleActions(props: Props) {
       >
         Log in to connect
       </Button>
-      <Button size="md" component={Link} href={'/login'}>
+      <Button component={Link} href={'/login'}>
         Log in to add
       </Button>
     </Group>

@@ -3,11 +3,7 @@ import { getBlueskyPost } from '../../lib/dal';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import {
-  detectUrlPlatform,
-  getDomain,
-  SupportedPlatform,
-} from '@/lib/utils/link';
+import { detectUrlPlatform, getDomain, SupportedPlatform } from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
 import {
   Stack,
@@ -19,18 +15,15 @@ import {
   Box,
   Image,
   Text,
-  Badge,
 } from '@mantine/core';
 import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
-import { RiArrowRightUpLine } from 'react-icons/ri';
-import { UrlType } from '@semble/types';
-import { getUrlTypeIcon } from '@/lib/utils/icon';
-import { IconType } from 'react-icons/lib';
-import { getUrlMetadata } from '@/features/cards/lib/dal';
+import { Suspense } from 'react';
+import UrlTypeBadge from '@/features/semble/components/urlTypeBadge/UrlTypeBadge';
+import UrlTypeBadgeSkeleton from '@/features/semble/components/urlTypeBadge/Skeleton.UrlTypeBadge';
 
 interface Props {
   url: string;
@@ -39,9 +32,6 @@ interface Props {
 export default async function BlueskySemblePost(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
-  const { metadata } = await getUrlMetadata({ url: props.url });
-  const urlTypeIcon = getUrlTypeIcon(metadata.type as UrlType);
-  const IconComponent = urlTypeIcon as IconType;
 
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
@@ -81,26 +71,9 @@ export default async function BlueskySemblePost(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      <Group gap={'xs'}>
-        <Badge size="xs" color="lime" leftSection={<IconComponent />}>
-          {metadata.type}
-        </Badge>
-        <Tooltip label={props.url}>
-          <Anchor
-            component={Link}
-            target="_blank"
-            fw={700}
-            c="blue"
-            href={props.url}
-            style={{ display: 'inline-block' }}
-          >
-            <Group gap={0} align="center" wrap="nowrap">
-              {getDomain(props.url)}
-              <RiArrowRightUpLine />
-            </Group>
-          </Anchor>
-        </Tooltip>
-      </Group>
+      <Suspense fallback={<UrlTypeBadgeSkeleton />}>
+        <UrlTypeBadge url={props.url} />
+      </Suspense>
 
       {/* Post */}
       <Card radius={'lg'} withBorder>

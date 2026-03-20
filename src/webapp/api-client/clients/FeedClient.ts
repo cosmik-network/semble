@@ -17,6 +17,11 @@ export class FeedClient extends BaseClient {
       searchParams.set('beforeActivityId', params.beforeActivityId);
     if (params?.urlType) searchParams.set('urlType', params.urlType);
     if (params?.source) searchParams.set('source', params.source);
+    if (params?.activityTypes) {
+      params.activityTypes.forEach((type) =>
+        searchParams.append('activityTypes', type),
+      );
+    }
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -34,6 +39,11 @@ export class FeedClient extends BaseClient {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.urlType) searchParams.set('urlType', params.urlType);
     if (params?.source) searchParams.set('source', params.source);
+    if (params?.activityTypes) {
+      params.activityTypes.forEach((type) =>
+        searchParams.append('activityTypes', type),
+      );
+    }
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -53,6 +63,11 @@ export class FeedClient extends BaseClient {
       searchParams.set('beforeActivityId', params.beforeActivityId);
     if (params?.urlType) searchParams.set('urlType', params.urlType);
     if (params?.source) searchParams.set('source', params.source);
+    if (params?.activityTypes) {
+      params.activityTypes.forEach((type) =>
+        searchParams.append('activityTypes', type),
+      );
+    }
 
     const queryString = searchParams.toString();
     const endpoint = queryString

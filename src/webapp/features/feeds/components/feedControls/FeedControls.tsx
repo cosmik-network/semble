@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ActivitySource, UrlType } from '@semble/types';
+import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
@@ -19,6 +19,7 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const sourceOptions = [
   { value: null, label: 'All', icon: null },
@@ -43,13 +44,22 @@ const feedOptions = [
   { value: 'following' as const, label: 'Following' },
 ];
 
+const activityTypeOptions = [
+  { value: ActivityType.CARD_COLLECTED, label: 'Card Collected' },
+  { value: ActivityType.CONNECTION_CREATED, label: 'Card Connected' },
+];
+
 export default function FeedControls() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: featureFlags } = useFeatureFlags();
   const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
   const feedFromUrl =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
   const typeFromUrl = searchParams.get('type') as UrlType | null;
+  const activityTypesFromUrl = searchParams.getAll('activityTypes') as
+    | ActivityType[]
+    | [];
 
   const [optimisticSource, setOptimisticSource] =
     useOptimistic<ActivitySource | null>(sourceFromUrl);
@@ -59,6 +69,8 @@ export default function FeedControls() {
   const [optimisticType, setOptimisticType] = useOptimistic<UrlType | null>(
     typeFromUrl,
   );
+  const [optimisticActivityTypes, setOptimisticActivityTypes] =
+    useOptimistic<ActivityType[]>(activityTypesFromUrl);
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
@@ -118,6 +130,24 @@ export default function FeedControls() {
     });
 
     setTypePopoverOpened(false);
+  };
+
+  const handleActivityTypeToggle = (activityType: ActivityType) => {
+    startTransition(() => {
+      const currentTypes = optimisticActivityTypes;
+      const isSelected = currentTypes.includes(activityType);
+      const nextTypes = isSelected
+        ? currentTypes.filter((t) => t !== activityType)
+        : [...currentTypes, activityType];
+
+      setOptimisticActivityTypes(nextTypes);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('activityTypes');
+      nextTypes.forEach((type) => params.append('activityTypes', type));
+
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   const SelectedTypeIcon =
@@ -216,6 +246,26 @@ export default function FeedControls() {
                 </Group>
               </Popover.Dropdown>
             </Popover>
+
+            {featureFlags?.connections && (
+              <>
+                <Menu.Label>Activity Type</Menu.Label>
+                {activityTypeOptions.map((option) => (
+                  <Menu.Item
+                    key={option.value}
+                    onClick={() => handleActivityTypeToggle(option.value)}
+                    rightSection={
+                      optimisticActivityTypes.includes(option.value) ? (
+                        <IoMdCheckmark />
+                      ) : null
+                    }
+                    closeMenuOnClick={false}
+                  >
+                    {option.label}
+                  </Menu.Item>
+                ))}
+              </>
+            )}
           </Menu.Dropdown>
         </Menu>
 

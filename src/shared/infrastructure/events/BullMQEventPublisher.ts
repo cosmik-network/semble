@@ -93,6 +93,8 @@ export class BullMQEventPublisher implements IEventPublisher {
         return [QueueNames.NOTIFICATIONS];
       case EventNames.USER_UNFOLLOWED_TARGET:
         return [QueueNames.NOTIFICATIONS];
+      case EventNames.CONNECTION_CREATED:
+        return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS];
       default:
         return [QueueNames.FEEDS];
     }

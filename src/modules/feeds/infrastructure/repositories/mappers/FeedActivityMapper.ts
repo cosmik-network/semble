@@ -3,6 +3,7 @@ import {
   FeedActivity,
   ActivityMetadata,
   CardCollectedMetadata,
+  ConnectionCreatedMetadata,
 } from '../../../domain/FeedActivity';
 import {
   ActivityType,
@@ -11,6 +12,7 @@ import {
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 
@@ -19,6 +21,7 @@ export interface FeedActivityDTO {
   id: string;
   actorId: string;
   cardId?: string;
+  connectionId?: string;
   type: string;
   metadata: ActivityMetadata;
   urlType?: string;
@@ -77,6 +80,26 @@ export class FeedActivityMapper {
         return ok(activityResult.value);
       }
 
+      if (dto.type === ActivityTypeEnum.CONNECTION_CREATED) {
+        const metadata = dto.metadata as ConnectionCreatedMetadata;
+        const connectionIdResult = ConnectionId.createFromString(
+          metadata.connectionId,
+        );
+        if (connectionIdResult.isErr()) return err(connectionIdResult.error);
+
+        const activityResult = FeedActivity.createConnectionCreated(
+          actorIdResult.value,
+          connectionIdResult.value,
+          dto.source,
+          dto.createdAt,
+          new UniqueEntityID(dto.id),
+        );
+
+        if (activityResult.isErr()) return err(activityResult.error);
+
+        return ok(activityResult.value);
+      }
+
       return err(new Error(`Unsupported activity type: ${dto.type}`));
     } catch (error) {
       return err(error as Error);
@@ -85,6 +108,7 @@ export class FeedActivityMapper {
 
   public static toPersistence(activity: FeedActivity): FeedActivityDTO {
     let cardId: string | undefined;
+    let connectionId: string | undefined;
 
     // Extract cardId for CARD_COLLECTED activities
     if (activity.cardCollected) {
@@ -92,10 +116,17 @@ export class FeedActivityMapper {
       cardId = metadata.cardId;
     }
 
+    // Extract connectionId for CONNECTION_CREATED activities
+    if (activity.connectionCreated) {
+      const metadata = activity.metadata as ConnectionCreatedMetadata;
+      connectionId = metadata.connectionId;
+    }
+
     return {
       id: activity.activityId.getStringValue(),
       actorId: activity.actorId.value,
       cardId,
+      connectionId,
       type: activity.type.value,
       metadata: activity.metadata,
       urlType: activity.urlType,

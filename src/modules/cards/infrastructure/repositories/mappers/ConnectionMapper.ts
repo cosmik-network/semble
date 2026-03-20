@@ -129,8 +129,8 @@ export class ConnectionMapper {
         }
       }
 
-      // Create the connection
-      const connectionOrError = Connection.create(
+      // Reconstitute the connection from the database (doesn't raise events)
+      const connectionOrError = Connection.reconstitute(
         {
           source: sourceOrError.value,
           target: targetOrError.value,

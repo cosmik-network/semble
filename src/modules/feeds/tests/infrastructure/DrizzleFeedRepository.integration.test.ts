@@ -6,11 +6,15 @@ import postgres from 'postgres';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { DrizzleFeedRepository } from '../../infrastructure/repositories/DrizzleFeedRepository';
 import { FeedActivity } from '../../domain/FeedActivity';
+import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
+import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import { feedActivities } from '../../infrastructure/repositories/schema/feedActivity.sql';
 import { createTestSchema } from '../../../cards/tests/test-utils/createTestSchema';
+import { CardCollectedMetadata } from '../../domain/FeedActivity';
 
 describe('DrizzleFeedRepository', () => {
   let container: StartedPostgreSqlContainer;
@@ -84,10 +88,9 @@ describe('DrizzleFeedRepository', () => {
     );
     expect(retrievedActivity?.actorId.value).toBe(curatorId.value);
     expect(retrievedActivity?.cardCollected).toBe(true);
-    expect(retrievedActivity?.metadata.cardId).toBe(cardId.getStringValue());
-    expect(retrievedActivity?.metadata.collectionIds).toEqual([
-      collectionId.getStringValue(),
-    ]);
+    const metadata = retrievedActivity?.metadata as CardCollectedMetadata;
+    expect(metadata.cardId).toBe(cardId.getStringValue());
+    expect(metadata.collectionIds).toEqual([collectionId.getStringValue()]);
   });
 
   it('should add a card collected activity without collections', async () => {
@@ -105,8 +108,9 @@ describe('DrizzleFeedRepository', () => {
     const retrievedResult = await feedRepository.findById(activity.activityId);
     const retrievedActivity = retrievedResult.unwrap();
 
-    expect(retrievedActivity?.metadata.cardId).toBe(cardId.getStringValue());
-    expect(retrievedActivity?.metadata.collectionIds).toBeUndefined();
+    const metadata = retrievedActivity?.metadata as CardCollectedMetadata;
+    expect(metadata.cardId).toBe(cardId.getStringValue());
+    expect(metadata.collectionIds).toBeUndefined();
   });
 
   it('should retrieve global feed with pagination', async () => {
@@ -307,11 +311,156 @@ describe('DrizzleFeedRepository', () => {
     const retrievedResult = await feedRepository.findById(activity.activityId);
     const retrievedActivity = retrievedResult.unwrap();
 
-    expect(retrievedActivity?.metadata.cardId).toBe(cardId.getStringValue());
-    expect(retrievedActivity?.metadata.collectionIds).toEqual([
+    const metadata = retrievedActivity?.metadata as CardCollectedMetadata;
+    expect(metadata.cardId).toBe(cardId.getStringValue());
+    expect(metadata.collectionIds).toEqual([
       collectionId.getStringValue(),
       'collection-456',
     ]);
+  });
+
+  describe('activity type filtering', () => {
+    it('should filter by single activity type', async () => {
+      // Add a CARD_COLLECTED activity
+      const cardActivity = FeedActivity.createCardCollected(curatorId, cardId, [
+        collectionId,
+      ]).unwrap();
+      await feedRepository.addActivity(cardActivity);
+
+      // Add a CONNECTION_CREATED activity
+      const connectionId = ConnectionId.create(new UniqueEntityID()).unwrap();
+      const connectionActivity = FeedActivity.createConnectionCreated(
+        curatorId,
+        connectionId,
+      ).unwrap();
+      await feedRepository.addActivity(connectionActivity);
+
+      // Filter to only CARD_COLLECTED
+      const cardOnlyResult = await feedRepository.getGlobalFeed({
+        page: 1,
+        limit: 10,
+        activityTypes: [ActivityTypeEnum.CARD_COLLECTED],
+      });
+
+      const cardOnlyFeed = cardOnlyResult.unwrap();
+      expect(cardOnlyFeed.activities).toHaveLength(1);
+      expect(cardOnlyFeed.activities[0]!.cardCollected).toBe(true);
+      expect(cardOnlyFeed.activities[0]!.connectionCreated).toBe(false);
+
+      // Filter to only CONNECTION_CREATED
+      const connectionOnlyResult = await feedRepository.getGlobalFeed({
+        page: 1,
+        limit: 10,
+        activityTypes: [ActivityTypeEnum.CONNECTION_CREATED],
+      });
+
+      const connectionOnlyFeed = connectionOnlyResult.unwrap();
+      expect(connectionOnlyFeed.activities).toHaveLength(1);
+      expect(connectionOnlyFeed.activities[0]!.cardCollected).toBe(false);
+      expect(connectionOnlyFeed.activities[0]!.connectionCreated).toBe(true);
+    });
+
+    it('should filter by multiple activity types', async () => {
+      // Add a CARD_COLLECTED activity
+      const cardActivity = FeedActivity.createCardCollected(curatorId, cardId, [
+        collectionId,
+      ]).unwrap();
+      await feedRepository.addActivity(cardActivity);
+
+      // Add a CONNECTION_CREATED activity
+      const connectionId = ConnectionId.create(new UniqueEntityID()).unwrap();
+      const connectionActivity = FeedActivity.createConnectionCreated(
+        curatorId,
+        connectionId,
+      ).unwrap();
+      await feedRepository.addActivity(connectionActivity);
+
+      // Filter to both types
+      const bothTypesResult = await feedRepository.getGlobalFeed({
+        page: 1,
+        limit: 10,
+        activityTypes: [
+          ActivityTypeEnum.CARD_COLLECTED,
+          ActivityTypeEnum.CONNECTION_CREATED,
+        ],
+      });
+
+      const bothTypesFeed = bothTypesResult.unwrap();
+      expect(bothTypesFeed.activities).toHaveLength(2);
+    });
+
+    it('should return all types when no filter specified', async () => {
+      // Add a CARD_COLLECTED activity
+      const cardActivity = FeedActivity.createCardCollected(curatorId, cardId, [
+        collectionId,
+      ]).unwrap();
+      await feedRepository.addActivity(cardActivity);
+
+      // Add a CONNECTION_CREATED activity
+      const connectionId = ConnectionId.create(new UniqueEntityID()).unwrap();
+      const connectionActivity = FeedActivity.createConnectionCreated(
+        curatorId,
+        connectionId,
+      ).unwrap();
+      await feedRepository.addActivity(connectionActivity);
+
+      // No filter - should return both
+      const allTypesResult = await feedRepository.getGlobalFeed({
+        page: 1,
+        limit: 10,
+      });
+
+      const allTypesFeed = allTypesResult.unwrap();
+      expect(allTypesFeed.activities).toHaveLength(2);
+    });
+
+    it('should work correctly with pagination when filtering by type', async () => {
+      // Add 5 CARD_COLLECTED activities
+      for (let i = 0; i < 5; i++) {
+        const activity = FeedActivity.createCardCollected(
+          curatorId,
+          CardId.create(new UniqueEntityID()).unwrap(),
+          [collectionId],
+        ).unwrap();
+        await feedRepository.addActivity(activity);
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Ensure different timestamps
+      }
+
+      // Add 3 CONNECTION_CREATED activities
+      for (let i = 0; i < 3; i++) {
+        const connectionId = ConnectionId.create(new UniqueEntityID()).unwrap();
+        const activity = FeedActivity.createConnectionCreated(
+          curatorId,
+          connectionId,
+        ).unwrap();
+        await feedRepository.addActivity(activity);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+
+      // Get first page of CARD_COLLECTED only (limit 2)
+      const page1Result = await feedRepository.getGlobalFeed({
+        page: 1,
+        limit: 2,
+        activityTypes: [ActivityTypeEnum.CARD_COLLECTED],
+      });
+
+      const page1Feed = page1Result.unwrap();
+      expect(page1Feed.activities).toHaveLength(2);
+      expect(page1Feed.totalCount).toBe(5);
+      expect(page1Feed.hasMore).toBe(true);
+      expect(page1Feed.activities.every((a) => a.cardCollected)).toBe(true);
+
+      // Get second page
+      const page2Result = await feedRepository.getGlobalFeed({
+        page: 2,
+        limit: 2,
+        activityTypes: [ActivityTypeEnum.CARD_COLLECTED],
+      });
+
+      const page2Feed = page2Result.unwrap();
+      expect(page2Feed.activities).toHaveLength(2);
+      expect(page2Feed.hasMore).toBe(true);
+    });
   });
 
   describe('deduplication and merging', () => {
@@ -448,7 +597,8 @@ describe('DrizzleFeedRepository', () => {
       );
       const retrievedActivity = retrievedResult.unwrap();
 
-      expect(retrievedActivity?.metadata.collectionIds).toEqual([
+      const metadata = retrievedActivity?.metadata as CardCollectedMetadata;
+      expect(metadata.collectionIds).toEqual([
         collectionId.getStringValue(),
         newCollection.getStringValue(),
       ]);
@@ -476,10 +626,9 @@ describe('DrizzleFeedRepository', () => {
       );
       const retrievedActivity = retrievedResult.unwrap();
 
-      expect(retrievedActivity?.metadata.collectionIds).toEqual([
-        collectionId.getStringValue(),
-      ]);
-      expect(retrievedActivity?.metadata.collectionIds).toHaveLength(1);
+      const metadata = retrievedActivity?.metadata as CardCollectedMetadata;
+      expect(metadata.collectionIds).toEqual([collectionId.getStringValue()]);
+      expect(metadata.collectionIds).toHaveLength(1);
     });
 
     it('should find most recent activity when multiple exist', async () => {
