@@ -144,6 +144,23 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(matchingNotifications);
   }
 
+  async findByConnectionAndActor(
+    connectionId: string,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter((notification) => {
+      const metadata = notification.metadata as any;
+      return (
+        metadata.connectionId === connectionId &&
+        notification.actorUserId.equals(actorUserId)
+      );
+    });
+
+    return ok(matchingNotifications);
+  }
+
   async findFollowNotificationsByActorAndTarget(
     actorUserId: CuratorId,
     targetId: string,

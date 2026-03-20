@@ -297,6 +297,47 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findByConnectionAndActor(
+    connectionId: string,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>> {
+    try {
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.actorUserId, actorUserId.value));
+
+      // Filter by connectionId in metadata
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const metadata = notificationData.metadata as any;
+        if (metadata.connectionId === connectionId) {
+          const dto: NotificationDTO = {
+            id: notificationData.id,
+            recipientUserId: notificationData.recipientUserId,
+            actorUserId: notificationData.actorUserId,
+            type: notificationData.type,
+            metadata: notificationData.metadata as any,
+            read: notificationData.read,
+            createdAt: notificationData.createdAt,
+            updatedAt: notificationData.updatedAt,
+          };
+
+          const domainResult = NotificationMapper.toDomain(dto);
+          if (domainResult.isErr()) {
+            return err(domainResult.error);
+          }
+
+          matchingNotifications.push(domainResult.value);
+        }
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async findFollowNotificationsByActorAndTarget(
     actorUserId: CuratorId,
     targetId: string,
