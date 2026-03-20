@@ -3,6 +3,7 @@ import { createConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { ConnectionType } from '@semble/types';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 
 export default function useCreateConnection() {
@@ -21,6 +22,8 @@ export default function useCreateConnection() {
     onSuccess: (_data, variables) => {
       // Invalidate all connection queries
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
+      // Invalidate all feed queries so the new connection appears in feeds
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
 
       // Invalidate forward connections for source URL
       queryClient.invalidateQueries({

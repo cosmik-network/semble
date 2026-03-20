@@ -57,7 +57,7 @@ export const CONNECTION_TYPES = [
     label: 'Explainer',
     description: 'Explains or summarizes for a broader audience',
     icon: MdOutlinePsychologyAlt,
-    notePlaceholder: 'Describe what concepts this clarifies...',
+    notePlaceholder: 'Describe how this explains or clarifies...',
   },
   {
     value: 'SUPPLEMENT',
