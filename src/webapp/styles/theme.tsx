@@ -16,6 +16,7 @@ import {
   Text,
   Combobox,
   Notification,
+  Menu,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -95,6 +96,11 @@ export const theme = createTheme({
     Avatar: Avatar.extend({
       defaultProps: {
         radius: 'md',
+      },
+    }),
+    Menu: Menu.extend({
+      defaultProps: {
+        radius: 'lg',
       },
     }),
     MenuItem: MenuItem.extend({

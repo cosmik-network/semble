@@ -197,23 +197,23 @@ export default function FeedControls() {
               ))}
             </>
 
-            <Menu.Label>Type</Menu.Label>
+            <Menu.Label>Card Type</Menu.Label>
             <Popover
               opened={typePopoverOpened}
               onChange={setTypePopoverOpened}
               shadow="sm"
             >
               <Popover.Target>
-                <Button
+                <Menu.Item
                   variant="light"
-                  color="gray"
-                  radius={'md'}
                   leftSection={<SelectedTypeIcon />}
-                  onClick={() => setTypePopoverOpened((o) => !o)}
-                  fullWidth
+                  closeMenuOnClick={false}
+                  onClick={(e) => {
+                    setTypePopoverOpened((o) => !o);
+                  }}
                 >
                   {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
-                </Button>
+                </Menu.Item>
               </Popover.Target>
 
               <Popover.Dropdown maw={300} p={'xs'}>
