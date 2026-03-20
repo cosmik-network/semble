@@ -39,7 +39,7 @@ export default function CollectionHeaderSkeleton() {
                 </Group>
 
                 {/* Title */}
-                <Skeleton w={300} h={36} mt={8} />
+                <Skeleton w={300} h={42} mt={8} />
 
                 {/* Description */}
                 {/*<Skeleton w={'100%'} color="grape" h={22} mt={'lg'} />*/}
@@ -50,46 +50,18 @@ export default function CollectionHeaderSkeleton() {
               <Stack gap={'xs'}>
                 {/* "By" section */}
                 <Group gap={5}>
-                  <Skeleton w={20} h={14} />
-                  <Skeleton w={24} h={24} radius={'sm'} />
-                  <Skeleton w={120} h={20} />
+                  <Skeleton w={180} h={24} />
                 </Group>
 
                 {/* Stats section */}
-                <Group gap={'xs'}>
-                  <Group gap={5}>
-                    <Skeleton w={20} h={20} />
-                    <Skeleton w={40} h={20} />
-                  </Group>
-
-                  <Skeleton w={1} h={20} />
-
-                  <Group gap={5}>
-                    <Skeleton w={20} h={20} />
-                    <Skeleton w={60} h={20} />
-                  </Group>
-
-                  <Skeleton w={1} h={20} />
-
-                  <Group gap={5}>
-                    <Skeleton w={50} h={20} />
-                    <Skeleton w={30} h={20} />
-                  </Group>
-
-                  <Skeleton w={1} h={20} />
-
-                  <Group gap={5}>
-                    <Skeleton w={50} h={20} />
-                    <Skeleton w={30} h={20} />
-                  </Group>
-                </Group>
+                <Skeleton w={'100%'} h={20} />
               </Stack>
 
               {/* Actions */}
               <Group gap={'xs'}>
-                <Skeleton w={124} h={32} radius={'xl'} />
-                <Skeleton w={32} h={32} radius={'xl'} />
-                <Skeleton w={32} h={32} radius={'xl'} />
+                <Skeleton w={124} h={36} radius={'xl'} />
+                <Skeleton w={34} h={34} radius={'xl'} />
+                <Skeleton w={34} h={34} radius={'xl'} />
               </Group>
             </Group>
           </Stack>
