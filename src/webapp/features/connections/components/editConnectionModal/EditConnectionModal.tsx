@@ -3,14 +3,14 @@
 import { Modal } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import EditConnectionForm from '../editConnectionForm/EditConnectionForm';
-import { ConnectionForUrl } from '@semble/types';
+import { ConnectionWithSourceAndTarget } from '@semble/types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   sourceUrl: string;
   targetUrl?: string;
-  connection?: ConnectionForUrl['connection'];
+  connection?: ConnectionWithSourceAndTarget['connection'];
 }
 
 export default function EditConnectionModal(props: Props) {

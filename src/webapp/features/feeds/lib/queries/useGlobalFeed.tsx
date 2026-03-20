@@ -1,19 +1,25 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getGlobalFeed } from '../dal';
 import { feedKeys } from '../feedKeys';
-import { UrlType, ActivitySource } from '@semble/types';
+import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 
 interface Props {
   limit?: number;
   urlType?: UrlType;
   source?: ActivitySource;
+  activityTypes?: ActivityType[];
 }
 
 export default function useGlobalFeed(props?: Props) {
   const limit = props?.limit ?? 15;
 
   const query = useSuspenseInfiniteQuery({
-    queryKey: feedKeys.infinite(limit, props?.urlType, props?.source),
+    queryKey: feedKeys.infinite(
+      limit,
+      props?.urlType,
+      props?.source,
+      props?.activityTypes,
+    ),
     staleTime: 10000,
     initialPageParam: 1,
     refetchOnWindowFocus: false,
@@ -23,6 +29,7 @@ export default function useGlobalFeed(props?: Props) {
         page: pageParam,
         urlType: props?.urlType,
         source: props?.source,
+        activityTypes: props?.activityTypes,
       });
     },
     getNextPageParam: (lastPage) => {

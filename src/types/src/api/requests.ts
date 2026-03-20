@@ -128,12 +128,14 @@ export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: string[]; // Filter by activity types
 }
 
 export interface GetFollowingFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: string[]; // Filter by activity types
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -232,6 +234,7 @@ export interface GetGemActivityFeedParams extends PaginationParams {
   // Removed beforeActivityId since we're using page-based pagination
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
+  activityTypes?: string[]; // Filter by activity types
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {
@@ -333,18 +336,6 @@ export interface UpdateConnectionRequest {
 
 export interface DeleteConnectionRequest {
   connectionId: string;
-}
-
-export interface GetForwardConnectionsForUrlParams
-  extends PaginatedSortedParams {
-  url: string;
-  connectionTypes?: ConnectionType[];
-}
-
-export interface GetBackwardConnectionsForUrlParams
-  extends PaginatedSortedParams {
-  url: string;
-  connectionTypes?: ConnectionType[];
 }
 
 export interface GetConnectionsForUrlParams extends PaginatedSortedParams {

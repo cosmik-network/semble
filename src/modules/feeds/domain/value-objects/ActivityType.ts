@@ -1,9 +1,8 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
-export enum ActivityTypeEnum {
-  CARD_COLLECTED = 'CARD_COLLECTED',
-}
+export { ActivityTypeEnum };
 
 interface ActivityTypeProps {
   value: ActivityTypeEnum;
@@ -27,5 +26,9 @@ export class ActivityType extends ValueObject<ActivityTypeProps> {
 
   public static cardCollected(): Result<ActivityType> {
     return this.create(ActivityTypeEnum.CARD_COLLECTED);
+  }
+
+  public static connectionCreated(): Result<ActivityType> {
+    return this.create(ActivityTypeEnum.CONNECTION_CREATED);
   }
 }

@@ -1,5 +1,5 @@
 import { createSembleClient } from '@/services/client.apiClient';
-import { UrlType, ActivitySource } from '@semble/types';
+import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 import { cache } from 'react';
 import { verifySessionOnClient } from '@/lib/auth/dal';
 
@@ -8,6 +8,7 @@ interface PageParams {
   limit?: number;
   urlType?: UrlType;
   source?: ActivitySource;
+  activityTypes?: ActivityType[];
 }
 
 export const getGlobalFeed = cache(async (params?: PageParams) => {
@@ -17,6 +18,7 @@ export const getGlobalFeed = cache(async (params?: PageParams) => {
     limit: params?.limit,
     urlType: params?.urlType,
     source: params?.source,
+    activityTypes: params?.activityTypes,
   });
 
   return response;
@@ -29,6 +31,7 @@ export const getGemsActivityFeed = cache(async (params?: PageParams) => {
     limit: params?.limit,
     urlType: params?.urlType,
     source: params?.source,
+    activityTypes: params?.activityTypes,
   });
 
   return response;
@@ -44,6 +47,7 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
     limit: params?.limit,
     urlType: params?.urlType,
     source: params?.source,
+    activityTypes: params?.activityTypes,
   });
 
   return response;

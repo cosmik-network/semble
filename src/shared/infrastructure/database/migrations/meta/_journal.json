@@ -141,6 +141,13 @@
       "when": 1773700838261,
       "tag": "0019_legal_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1773944859810,
+      "tag": "0020_closed_supreme_intelligence",
+      "breakpoints": true
     }
   ]
 }

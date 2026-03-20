@@ -5,6 +5,7 @@ import { INotificationRepository } from '../INotificationRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
 
 export class NotificationServiceError extends Error {
   constructor(message: string) {
@@ -281,6 +282,54 @@ export class NotificationService implements DomainService {
         actorUserId,
         cardId,
         collectionIds,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async createUserConnectedYourUrlNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is connecting their own URLs
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserConnectedYourUrl(
+        recipientUserId,
+        actorUserId,
+        connectionId,
       );
 
       if (notificationResult.isErr()) {

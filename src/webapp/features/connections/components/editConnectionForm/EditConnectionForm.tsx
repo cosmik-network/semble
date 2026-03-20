@@ -23,7 +23,6 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useQuery } from '@tanstack/react-query';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
-import { ConnectionForUrl } from '@semble/types';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
@@ -31,12 +30,13 @@ import { LuChevronsUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
+import { ConnectionWithSourceAndTarget } from '@semble/types';
 
 interface Props {
   onClose: () => void;
   sourceUrl: string;
   targetUrl: string;
-  connection: ConnectionForUrl['connection'];
+  connection: ConnectionWithSourceAndTarget['connection'];
 }
 
 export default function EditConnectionForm(props: Props) {
