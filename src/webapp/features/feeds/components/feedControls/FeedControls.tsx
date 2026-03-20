@@ -18,7 +18,7 @@ import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
-import { MdFilterList } from 'react-icons/md';
+import { MdFilterList, MdFilterListOff } from 'react-icons/md';
 import { BiLink } from 'react-icons/bi';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
@@ -169,6 +169,23 @@ export default function FeedControls() {
     });
   };
 
+  const hasActiveFilters =
+    optimisticSource !== null ||
+    optimisticFeed !== 'global' ||
+    optimisticType !== null ||
+    optimisticActivityTypes.length > 0;
+
+  const handleClear = () => {
+    startTransition(() => {
+      setOptimisticSource(null);
+      setOptimisticFeed('global');
+      setOptimisticType(null);
+      setOptimisticActivityTypes([]);
+
+      router.push('?', { scroll: false });
+    });
+  };
+
   const isMarginSource = optimisticSource === ActivitySource.MARGIN;
 
   const SelectedTypeIcon =
@@ -177,7 +194,7 @@ export default function FeedControls() {
   return (
     <ScrollAreaAutosize type="scroll" offsetScrollbars={'present'}>
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
-        <Menu width={200}>
+        <Menu width={200} position="bottom-start">
           <Menu.Target>
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
               {selectedSource?.label}
@@ -325,6 +342,15 @@ export default function FeedControls() {
                     ))}
                   </Menu.Sub.Dropdown>
                 </Menu.Sub>
+              </>
+            )}
+
+            {hasActiveFilters && (
+              <>
+                <Menu.Divider />
+                <Menu.Item onClick={handleClear} color="red">
+                  Clear filters
+                </Menu.Item>
               </>
             )}
           </Menu.Dropdown>
