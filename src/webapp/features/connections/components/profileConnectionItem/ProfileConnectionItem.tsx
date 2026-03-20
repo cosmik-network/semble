@@ -124,7 +124,7 @@ export default function ProfileConnectionItem(props: Props) {
             </Stack>
           </Group>
 
-          <ConnectionCard connection={props.connection} />
+          <ConnectionCard connection={props.connection} withoutBorder />
         </Stack>
       </Card>
 
