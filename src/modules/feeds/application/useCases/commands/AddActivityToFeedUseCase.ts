@@ -5,7 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
-import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
+import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 import { ICardRepository } from '../../../../cards/domain/ICardRepository';
 import { SourceTypeEnum } from '../../../domain/value-objects/SourceType';
@@ -16,6 +16,7 @@ import {
   FollowTargetType,
   FollowTargetTypeEnum,
 } from '../../../../user/domain/value-objects/FollowTargetType';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export interface AddCardCollectedActivityDTO {
   type: ActivityTypeEnum.CARD_COLLECTED;
@@ -25,7 +26,16 @@ export interface AddCardCollectedActivityDTO {
   createdAt?: Date; // Timestamp from earliest event (for historical data)
 }
 
-export type AddActivityToFeedDTO = AddCardCollectedActivityDTO;
+export interface AddConnectionCreatedActivityDTO {
+  type: ActivityTypeEnum.CONNECTION_CREATED;
+  actorId: string;
+  connectionId: string;
+  createdAt?: Date; // Timestamp from the connection creation event
+}
+
+export type AddActivityToFeedDTO =
+  | AddCardCollectedActivityDTO
+  | AddConnectionCreatedActivityDTO;
 
 export interface AddActivityToFeedResponseDTO {
   activityId: string;
@@ -63,6 +73,92 @@ export class AddActivityToFeedUseCase
     >
   > {
     try {
+      // Handle CONNECTION_CREATED activities
+      if (request.type === ActivityTypeEnum.CONNECTION_CREATED) {
+        // Validate and create CuratorId
+        const actorIdResult = CuratorId.create(request.actorId);
+        if (actorIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid actor ID: ${actorIdResult.error.message}`,
+            ),
+          );
+        }
+        const actorId = actorIdResult.value;
+
+        // Validate and create ConnectionId
+        const connectionIdResult = ConnectionId.createFromString(
+          request.connectionId,
+        );
+        if (connectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection ID: ${connectionIdResult.error.message}`,
+            ),
+          );
+        }
+        const connectionId = connectionIdResult.value;
+
+        // Create connection activity (no source - connections are always Cosmik)
+        const activityResult =
+          await this.feedService.addConnectionCreatedActivity(
+            actorId,
+            connectionId,
+            undefined, // source
+            request.createdAt,
+          );
+
+        if (activityResult.isErr()) {
+          return err(new ValidationError(activityResult.error.message));
+        }
+
+        const activity = activityResult.value;
+
+        // Fan out to user followers only (no collection followers for connections)
+        const targetTypeResult = FollowTargetType.create(
+          FollowTargetTypeEnum.USER,
+        );
+        if (targetTypeResult.isErr()) {
+          console.error(
+            'Failed to create FollowTargetType:',
+            targetTypeResult.error,
+          );
+          return ok({
+            activityId: activity.activityId.getStringValue(),
+          });
+        }
+
+        const userFollowersResult = await this.followsRepository.getFollowers(
+          actorId.value,
+          targetTypeResult.value,
+        );
+
+        const userFollowers = userFollowersResult.isOk()
+          ? userFollowersResult.value.map((f) => f.followerId.value)
+          : [];
+
+        if (userFollowers.length > 0) {
+          const fanOutResult =
+            await this.feedRepository.fanOutActivityToFollowers(
+              activity.activityId,
+              userFollowers,
+              activity.createdAt,
+            );
+
+          if (fanOutResult.isErr()) {
+            console.error(
+              'Fan-out failed (will retry on event retry):',
+              fanOutResult.error,
+            );
+          }
+        }
+
+        return ok({
+          activityId: activity.activityId.getStringValue(),
+        });
+      }
+
+      // Handle CARD_COLLECTED activities
       // Validate and create CuratorId
       const actorIdResult = CuratorId.create(request.actorId);
       if (actorIdResult.isErr()) {

@@ -12,7 +12,11 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { FeedItem, Collection, CollectionAccessType } from '@/api-client';
+import {
+  CardCollectedFeedItem,
+  Collection,
+  CollectionAccessType,
+} from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import styles from './FeedActivityStatus.module.css';
@@ -21,8 +25,8 @@ import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
 
 interface Props {
-  user: FeedItem['user'];
-  collections?: FeedItem['collections'];
+  user: CardCollectedFeedItem['user'];
+  collections?: CardCollectedFeedItem['collections'];
   createdAt: Date;
   note?: string;
 }

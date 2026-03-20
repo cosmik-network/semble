@@ -20,11 +20,13 @@ export class InMemoryConnectionRepository implements IConnectionRepository {
   }
 
   private clone(connection: Connection): Connection {
-    const connectionResult = Connection.create(
+    const connectionResult = Connection.reconstitute(
       {
         curatorId: connection.curatorId,
         source: connection.source,
         target: connection.target,
+        sourceUrlMetadata: connection.sourceUrlMetadata,
+        targetUrlMetadata: connection.targetUrlMetadata,
         type: connection.type,
         note: connection.note,
         publishedRecordId: connection.publishedRecordId,

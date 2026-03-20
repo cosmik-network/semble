@@ -45,4 +45,8 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
   public static userFollowedYourCollection(): Result<NotificationType> {
     return this.create(NotificationTypeEnum.USER_FOLLOWED_YOUR_COLLECTION);
   }
+
+  public static userConnectedYourUrl(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_CONNECTED_YOUR_URL);
+  }
 }

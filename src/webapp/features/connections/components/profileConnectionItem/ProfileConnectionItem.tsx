@@ -28,6 +28,7 @@ import { CONNECTION_TYPES } from '../../const/connectionTypes';
 interface Props {
   connection: ConnectionWithSourceAndTarget;
   curator: User;
+  activityStatusText?: string;
   onEdit?: () => void;
 }
 
@@ -63,16 +64,19 @@ export default function ProfileConnectionItem(props: Props) {
                     alt={`${props.curator.name}'s avatar`}
                     size={'sm'}
                   />
-                  <Text>
+                  <Text fw={500}>
                     <Text
                       c={'bright'}
-                      fw={500}
+                      fw={600}
                       component={Link}
                       href={`/profile/${props.curator.handle}`}
                       span
                     >
                       {props.curator.name}
                     </Text>
+                    {props.activityStatusText && (
+                      <Text span> {props.activityStatusText}</Text>
+                    )}
                     <Text c={'gray'} fw={600} span>
                       {' · '}
                     </Text>

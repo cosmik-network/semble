@@ -1,12 +1,13 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getFollowingFeed } from '../dal';
 import { feedKeys } from '../feedKeys';
-import { UrlType, ActivitySource } from '@semble/types';
+import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 
 interface Props {
   limit?: number;
   urlType?: UrlType;
   source?: ActivitySource;
+  activityTypes?: ActivityType[];
   enabled?: boolean;
 }
 
@@ -15,7 +16,12 @@ export default function useFollowingFeed(props?: Props) {
   const enabled = props?.enabled ?? true;
 
   const query = useInfiniteQuery({
-    queryKey: feedKeys.followingInfinite(limit, props?.urlType, props?.source),
+    queryKey: feedKeys.followingInfinite(
+      limit,
+      props?.urlType,
+      props?.source,
+      props?.activityTypes,
+    ),
     staleTime: 10000,
     initialPageParam: 1,
     refetchOnWindowFocus: false,
@@ -26,6 +32,7 @@ export default function useFollowingFeed(props?: Props) {
         page: pageParam,
         urlType: props?.urlType,
         source: props?.source,
+        activityTypes: props?.activityTypes,
       });
     },
     getNextPageParam: (lastPage) => {

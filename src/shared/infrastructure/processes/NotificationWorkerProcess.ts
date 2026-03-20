@@ -17,6 +17,7 @@ import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
 import { IEventSubscriber } from '../../application/events/IEventSubscriber';
 import { Repositories } from '../http/factories/RepositoryFactory';
+import { ConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
 
 export class NotificationWorkerProcess extends BaseWorkerProcess {
   constructor(configService: EnvironmentConfigService) {
@@ -87,6 +88,14 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       repositories.notificationRepository,
     );
 
+    const connectionCreatedHandler = new ConnectionCreatedEventHandler(
+      services.notificationService,
+      repositories.connectionRepository,
+      repositories.cardQueryRepository,
+      this.configService,
+      services.identityResolutionService,
+    );
+
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
@@ -122,6 +131,11 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.USER_UNFOLLOWED_TARGET,
       userUnfollowedTargetHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      connectionCreatedHandler,
     );
   }
 }

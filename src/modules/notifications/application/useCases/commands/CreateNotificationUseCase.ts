@@ -5,6 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
 import { NotificationService } from '../../../domain/services/NotificationService';
 import { NotificationType } from '@semble/types';
 
@@ -40,11 +41,19 @@ export interface CreateUserAddedYourCollectionNotificationDTO {
   collectionIds?: string[];
 }
 
+export interface CreateUserConnectedYourUrlNotificationDTO {
+  type: NotificationType.USER_CONNECTED_YOUR_URL;
+  recipientUserId: string;
+  actorUserId: string;
+  connectionId: string;
+}
+
 export type CreateNotificationDTO =
   | CreateUserAddedYourCardNotificationDTO
   | CreateUserAddedToYourCollectionNotificationDTO
   | CreateUserAddedYourBskyPostNotificationDTO
-  | CreateUserAddedYourCollectionNotificationDTO;
+  | CreateUserAddedYourCollectionNotificationDTO
+  | CreateUserConnectedYourUrlNotificationDTO;
 
 export interface CreateNotificationResponseDTO {
   notificationId: string;
@@ -99,19 +108,21 @@ export class CreateNotificationUseCase
       }
       const actorId = actorIdResult.value;
 
-      // Validate and create CardId
-      const cardIdResult = CardId.createFromString(request.cardId);
-      if (cardIdResult.isErr()) {
-        return err(
-          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
-        );
-      }
-      const cardId = cardIdResult.value;
-
       // Handle different notification types
       let notificationResult;
 
       if (request.type === NotificationType.USER_ADDED_YOUR_CARD) {
+        // Validate and create CardId
+        const cardIdResult = CardId.createFromString(request.cardId);
+        if (cardIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid card ID: ${cardIdResult.error.message}`,
+            ),
+          );
+        }
+        const cardId = cardIdResult.value;
+
         // Validate collection IDs if provided
         let collectionIds: CollectionId[] | undefined;
         if (request.collectionIds && request.collectionIds.length > 0) {
@@ -140,6 +151,17 @@ export class CreateNotificationUseCase
       } else if (
         request.type === NotificationType.USER_ADDED_TO_YOUR_COLLECTION
       ) {
+        // Validate and create CardId
+        const cardIdResult = CardId.createFromString(request.cardId);
+        if (cardIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid card ID: ${cardIdResult.error.message}`,
+            ),
+          );
+        }
+        const cardId = cardIdResult.value;
+
         // Validate collection ID
         const collectionIdResult = CollectionId.createFromString(
           request.collectionId,
@@ -160,6 +182,17 @@ export class CreateNotificationUseCase
             collectionIdResult.value,
           );
       } else if (request.type === NotificationType.USER_ADDED_YOUR_BSKY_POST) {
+        // Validate and create CardId
+        const cardIdResult = CardId.createFromString(request.cardId);
+        if (cardIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid card ID: ${cardIdResult.error.message}`,
+            ),
+          );
+        }
+        const cardId = cardIdResult.value;
+
         // Validate collection IDs if provided
         let collectionIds: CollectionId[] | undefined;
         if (request.collectionIds && request.collectionIds.length > 0) {
@@ -186,6 +219,17 @@ export class CreateNotificationUseCase
             collectionIds,
           );
       } else if (request.type === NotificationType.USER_ADDED_YOUR_COLLECTION) {
+        // Validate and create CardId
+        const cardIdResult = CardId.createFromString(request.cardId);
+        if (cardIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid card ID: ${cardIdResult.error.message}`,
+            ),
+          );
+        }
+        const cardId = cardIdResult.value;
+
         // Validate collection IDs if provided
         let collectionIds: CollectionId[] | undefined;
         if (request.collectionIds && request.collectionIds.length > 0) {
@@ -210,6 +254,25 @@ export class CreateNotificationUseCase
             actorId,
             cardId,
             collectionIds,
+          );
+      } else if (request.type === NotificationType.USER_CONNECTED_YOUR_URL) {
+        // Validate connection ID
+        const connectionIdResult = ConnectionId.createFromString(
+          request.connectionId,
+        );
+        if (connectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection ID: ${connectionIdResult.error.message}`,
+            ),
+          );
+        }
+
+        notificationResult =
+          await this.notificationService.createUserConnectedYourUrlNotification(
+            recipientId,
+            actorId,
+            connectionIdResult.value,
           );
       } else {
         // Type exhaustiveness check

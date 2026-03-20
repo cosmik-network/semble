@@ -1,4 +1,4 @@
-import { eq, desc, lt, count, sql, and, gte } from 'drizzle-orm';
+import { eq, desc, lt, count, sql, and, gte, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   IFeedRepository,
@@ -31,6 +31,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         id: dto.id,
         actorId: dto.actorId,
         cardId: dto.cardId,
+        connectionId: dto.connectionId,
         type: dto.type,
         metadata: dto.metadata,
         urlType: dto.urlType,
@@ -56,6 +57,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         id: string;
         actorId: string;
         cardId: string | null;
+        connectionId: string | null;
         type: string;
         metadata: any;
         urlType: string | null;
@@ -65,6 +67,17 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
       // Build where conditions
       const whereConditions = [];
+      if (options.activityTypes && options.activityTypes.length > 0) {
+        if (options.activityTypes.length === 1) {
+          whereConditions.push(
+            eq(feedActivities.type, options.activityTypes[0]!),
+          );
+        } else {
+          whereConditions.push(
+            inArray(feedActivities.type, options.activityTypes),
+          );
+        }
+      }
       if (options.urlType) {
         whereConditions.push(eq(feedActivities.urlType, options.urlType));
       }
@@ -143,6 +156,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           id: activityData.id,
           actorId: activityData.actorId,
           cardId: activityData.cardId || undefined,
+          connectionId: activityData.connectionId || undefined,
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
@@ -205,6 +219,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         id: string;
         actorId: string;
         cardId: string | null;
+        connectionId: string | null;
         type: string;
         metadata: any;
         urlType: string | null;
@@ -214,6 +229,17 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
       // Build where conditions for gems feed
       const whereConditions = [];
+      if (options.activityTypes && options.activityTypes.length > 0) {
+        if (options.activityTypes.length === 1) {
+          whereConditions.push(
+            eq(feedActivities.type, options.activityTypes[0]!),
+          );
+        } else {
+          whereConditions.push(
+            inArray(feedActivities.type, options.activityTypes),
+          );
+        }
+      }
       if (options.urlType) {
         whereConditions.push(eq(feedActivities.urlType, options.urlType));
       }
@@ -290,6 +316,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           id: activityData.id,
           actorId: activityData.actorId,
           cardId: activityData.cardId || undefined,
+          connectionId: activityData.connectionId || undefined,
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,
@@ -464,6 +491,18 @@ export class DrizzleFeedRepository implements IFeedRepository {
       // Build where conditions
       const whereConditions = [eq(followingFeedItems.userId, userId)];
 
+      if (options.activityTypes && options.activityTypes.length > 0) {
+        if (options.activityTypes.length === 1) {
+          whereConditions.push(
+            eq(feedActivities.type, options.activityTypes[0]!),
+          );
+        } else {
+          whereConditions.push(
+            inArray(feedActivities.type, options.activityTypes),
+          );
+        }
+      }
+
       if (options.urlType) {
         whereConditions.push(eq(feedActivities.urlType, options.urlType));
       }
@@ -505,6 +544,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           id: feedActivities.id,
           actorId: feedActivities.actorId,
           cardId: feedActivities.cardId,
+          connectionId: feedActivities.connectionId,
           type: feedActivities.type,
           metadata: feedActivities.metadata,
           urlType: feedActivities.urlType,
@@ -543,6 +583,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
           id: activityData.id,
           actorId: activityData.actorId,
           cardId: activityData.cardId || undefined,
+          connectionId: activityData.connectionId || undefined,
           type: activityData.type,
           metadata: activityData.metadata as any,
           urlType: activityData.urlType || undefined,

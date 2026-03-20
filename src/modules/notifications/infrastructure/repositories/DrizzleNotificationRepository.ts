@@ -711,12 +711,76 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         followCollectionsResult.map((c) => [c.collectionId, c]),
       );
 
+      // Fetch connection data for CONNECTION notifications
+      const connectionIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return metadata?.connectionId !== undefined;
+        })
+        .map((n) => (n.metadata as any).connectionId)
+        .filter(Boolean);
+
+      let connectionDataMap = new Map<string, any>();
+      if (connectionIds.length > 0) {
+        const connectionQuery = this.db
+          .select({
+            id: connections.id,
+            curatorId: connections.curatorId,
+            sourceType: connections.sourceType,
+            sourceValue: connections.sourceValue,
+            sourceUrlMetadata: connections.sourceUrlMetadata,
+            targetType: connections.targetType,
+            targetValue: connections.targetValue,
+            targetUrlMetadata: connections.targetUrlMetadata,
+            connectionType: connections.connectionType,
+            note: connections.note,
+            createdAt: connections.createdAt,
+            updatedAt: connections.updatedAt,
+          })
+          .from(connections)
+          .where(inArray(connections.id, connectionIds));
+
+        const connectionsResult = await connectionQuery;
+        connectionsResult.forEach((connection) => {
+          connectionDataMap.set(connection.id, connection);
+        });
+      }
+
       // Build enriched notifications - process in original chronological order
       const enrichedNotifications: EnrichedNotificationResult[] = [];
 
       // Process all notifications in original order
       for (const notification of notificationsResult) {
         const metadata = notification.metadata as any;
+
+        // Check if this is a connection notification
+        if (metadata?.connectionId !== undefined) {
+          const connectionData = connectionDataMap.get(metadata.connectionId);
+          if (
+            connectionData &&
+            connectionData.sourceType === 'URL' &&
+            connectionData.targetType === 'URL'
+          ) {
+            enrichedNotifications.push({
+              id: notification.id,
+              type: notification.type,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId,
+              connectionId: metadata.connectionId,
+              connectionType: connectionData.connectionType,
+              connectionNote: connectionData.note,
+              connectionCreatedAt: connectionData.createdAt,
+              connectionUpdatedAt: connectionData.updatedAt,
+              connectionCuratorId: connectionData.curatorId,
+              sourceUrl: connectionData.sourceValue,
+              sourceUrlMetadata: connectionData.sourceUrlMetadata,
+              targetUrl: connectionData.targetValue,
+              targetUrlMetadata: connectionData.targetUrlMetadata,
+            });
+          }
+          continue;
+        }
 
         // Check if this is a follow notification
         if (metadata?.targetType !== undefined) {

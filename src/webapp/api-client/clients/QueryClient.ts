@@ -51,10 +51,6 @@ import {
   GetCollectionContributorsResponse,
   GetConnectionsParams,
   GetConnectionsResponse,
-  GetForwardConnectionsForUrlParams,
-  GetForwardConnectionsForUrlResponse,
-  GetBackwardConnectionsForUrlParams,
-  GetBackwardConnectionsForUrlResponse,
   SearchUrlsParams,
   SearchUrlsResponse,
   GetGraphDataParams,
@@ -500,44 +496,6 @@ export class QueryClient extends BaseClient {
       : `/api/collections/${params.collectionId}/contributors`;
 
     return this.request<GetCollectionContributorsResponse>('GET', endpoint);
-  }
-
-  async getForwardConnectionsForUrl(
-    params: GetForwardConnectionsForUrlParams,
-  ): Promise<GetForwardConnectionsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
-    return this.request<GetForwardConnectionsForUrlResponse>(
-      'GET',
-      `/api/connections/forward?${searchParams}`,
-    );
-  }
-
-  async getBackwardConnectionsForUrl(
-    params: GetBackwardConnectionsForUrlParams,
-  ): Promise<GetBackwardConnectionsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
-    return this.request<GetBackwardConnectionsForUrlResponse>(
-      'GET',
-      `/api/connections/backward?${searchParams}`,
-    );
   }
 
   async getConnectionsForUrl(

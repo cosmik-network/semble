@@ -2,11 +2,13 @@ import { Entity } from '../../../shared/domain/Entity';
 import { UniqueEntityID } from '../../../shared/domain/UniqueEntityID';
 import { Result, ok, err } from '../../../shared/core/Result';
 import { ActivityId } from './value-objects/ActivityId';
-import { ActivityType, ActivityTypeEnum } from './value-objects/ActivityType';
+import { ActivityType } from './value-objects/ActivityType';
 import { CuratorId } from '../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../cards/domain/value-objects/ConnectionId';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
+import { ActivityType as ActivityTypeEnum } from '@semble/types';
 
 export class ActivityValidationError extends Error {
   constructor(message: string) {
@@ -20,7 +22,13 @@ export interface CardCollectedMetadata {
   collectionIds?: string[];
 }
 
-export type ActivityMetadata = CardCollectedMetadata;
+export interface ConnectionCreatedMetadata {
+  connectionId: string;
+}
+
+export type ActivityMetadata =
+  | CardCollectedMetadata
+  | ConnectionCreatedMetadata;
 
 interface ActivityProps {
   actorId: CuratorId; // The user who performed the activity
@@ -63,6 +71,10 @@ export class FeedActivity extends Entity<ActivityProps> {
   // Type guards for metadata
   get cardCollected(): boolean {
     return this.props.type.value === ActivityTypeEnum.CARD_COLLECTED;
+  }
+
+  get connectionCreated(): boolean {
+    return this.props.type.value === ActivityTypeEnum.CONNECTION_CREATED;
   }
 
   // Helper method to merge collections for deduplication
@@ -109,6 +121,38 @@ export class FeedActivity extends Entity<ActivityProps> {
       type: typeResult.value,
       metadata,
       urlType,
+      source,
+      createdAt: createdAt || new Date(),
+    };
+
+    return ok(new FeedActivity(props, id));
+  }
+
+  public static createConnectionCreated(
+    actorId: CuratorId,
+    connectionId: ConnectionId,
+    source?: string,
+    createdAt?: Date,
+    id?: UniqueEntityID,
+  ): Result<FeedActivity, ActivityValidationError> {
+    if (!connectionId) {
+      return err(new ActivityValidationError('Connection ID is required'));
+    }
+
+    const typeResult = ActivityType.connectionCreated();
+    if (typeResult.isErr()) {
+      return err(new ActivityValidationError(typeResult.error.message));
+    }
+
+    const metadata: ConnectionCreatedMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    const props: ActivityProps = {
+      actorId,
+      type: typeResult.value,
+      metadata,
+      urlType: undefined, // No urlType for connection activities
       source,
       createdAt: createdAt || new Date(),
     };

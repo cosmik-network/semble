@@ -5,6 +5,7 @@ import { IFeedRepository } from '../IFeedRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
 import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 import { IDistributedLockService } from '../../../../shared/infrastructure/locking/IDistributedLockService';
 
@@ -110,6 +111,46 @@ export class FeedService implements DomainService {
       return err(
         new FeedServiceError(
           `Failed to acquire lock or process activity: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async addConnectionCreatedActivity(
+    actorId: CuratorId,
+    connectionId: ConnectionId,
+    source?: string,
+    createdAt?: Date,
+  ): Promise<Result<FeedActivity, FeedServiceError>> {
+    try {
+      // No deduplication needed for connections - each creation is a separate activity
+      const activityResult = FeedActivity.createConnectionCreated(
+        actorId,
+        connectionId,
+        source,
+        createdAt,
+      );
+
+      if (activityResult.isErr()) {
+        return err(new FeedServiceError(activityResult.error.message));
+      }
+
+      const activity = activityResult.value;
+      const saveResult = await this.feedRepository.addActivity(activity);
+
+      if (saveResult.isErr()) {
+        return err(
+          new FeedServiceError(
+            `Failed to save activity: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(activity);
+    } catch (error) {
+      return err(
+        new FeedServiceError(
+          `Failed to process activity: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }

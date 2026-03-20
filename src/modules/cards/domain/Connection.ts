@@ -112,6 +112,24 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     return ok(connection);
   }
 
+  public static reconstitute(
+    props: ConnectionProps,
+    id: UniqueEntityID,
+  ): Result<Connection, ConnectionValidationError> {
+    // Validate that source and target are not the same
+    if (props.source.equals(props.target)) {
+      return err(
+        new ConnectionValidationError(
+          'Connection source and target cannot be the same',
+        ),
+      );
+    }
+
+    // Note: No event raising for reconstituted connections
+    const connection = new Connection(props, id);
+    return ok(connection);
+  }
+
   public updateNote(
     note: ConnectionNote,
   ): Result<void, ConnectionValidationError> {

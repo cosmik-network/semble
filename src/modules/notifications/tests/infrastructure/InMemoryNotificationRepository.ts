@@ -10,17 +10,24 @@ import { NotificationId } from '../../domain/value-objects/NotificationId';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
+import { IConnectionRepository } from '../../../cards/domain/IConnectionRepository';
+import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
 
 export class InMemoryNotificationRepository implements INotificationRepository {
   private static instance: InMemoryNotificationRepository;
   private notifications: Map<string, Notification> = new Map();
   private cardQueryRepository?: ICardQueryRepository;
+  private connectionRepository?: IConnectionRepository;
 
   private constructor() {}
 
   // Method to inject dependencies after singleton creation
-  public setDependencies(cardQueryRepository: ICardQueryRepository): void {
+  public setDependencies(
+    cardQueryRepository: ICardQueryRepository,
+    connectionRepository?: IConnectionRepository,
+  ): void {
     this.cardQueryRepository = cardQueryRepository;
+    this.connectionRepository = connectionRepository;
   }
 
   public static getInstance(): InMemoryNotificationRepository {
@@ -239,6 +246,41 @@ export class InMemoryNotificationRepository implements INotificationRepository {
 
     for (const notification of paginatedNotifications) {
       const metadata = notification.metadata as any;
+
+      // Check if this is a connection notification
+      if (metadata?.connectionId !== undefined && this.connectionRepository) {
+        const connectionIdResult = ConnectionId.createFromString(
+          metadata.connectionId,
+        );
+        if (connectionIdResult.isOk()) {
+          const connectionResult = await this.connectionRepository.findById(
+            connectionIdResult.value,
+          );
+          if (connectionResult.isOk() && connectionResult.value) {
+            const connection = connectionResult.value;
+            if (connection.source.url && connection.target.url) {
+              enrichedNotifications.push({
+                id: notification.notificationId.getStringValue(),
+                type: notification.type.value,
+                read: notification.read,
+                createdAt: notification.createdAt,
+                actorUserId: notification.actorUserId.value,
+                connectionId: metadata.connectionId,
+                connectionType: connection.type?.value,
+                connectionNote: connection.note?.value,
+                connectionCreatedAt: connection.createdAt,
+                connectionUpdatedAt: connection.updatedAt,
+                connectionCuratorId: connection.curatorId.value,
+                sourceUrl: connection.source.url.value,
+                sourceUrlMetadata: connection.sourceUrlMetadata,
+                targetUrl: connection.target.url.value,
+                targetUrlMetadata: connection.targetUrlMetadata,
+              });
+              continue;
+            }
+          }
+        }
+      }
 
       // Check if this is a follow notification (has targetType)
       if (metadata?.targetType !== undefined) {
