@@ -12,11 +12,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import {
-  ActivityType,
-  Collection,
-  CollectionAccessType,
-} from '@/api-client';
+import { ActivityType, Collection, CollectionAccessType } from '@/api-client';
 import { User } from '@semble/types';
 import { Fragment, ReactNode } from 'react';
 import Link from 'next/link';
