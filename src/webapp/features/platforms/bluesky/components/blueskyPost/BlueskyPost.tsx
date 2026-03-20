@@ -80,6 +80,7 @@ export default function BlueskyPost(props: Props) {
             alt={`${post.author.handle} avatar`}
             size={'sm'}
             radius="xl"
+            onClick={(e) => e.stopPropagation()}
           />
 
           <Text c="bright" lineClamp={1} fw={500}>
