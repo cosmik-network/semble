@@ -32,10 +32,10 @@ export default function CollectionHeaderSkeleton() {
               <Stack gap={0}>
                 <Group gap={'xs'}>
                   {/* "Collection" text */}
-                  <Skeleton w={74} h={20} />
+                  <Skeleton w={120} h={20} />
 
                   {/* Open badge (optional) */}
-                  <Skeleton w={67} h={20} />
+                  {/*<Skeleton w={67} h={20} />*/}
                 </Group>
 
                 {/* Title */}
