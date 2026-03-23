@@ -18,9 +18,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id: url } = await searchParams;
 
-  if (!url) {
-    redirect('/');
-  }
+  if (!url) return {};
 
   const { metadata } = await getUrlMetadata({ url, includeStats: false });
   const domain = getDomain(url);
@@ -52,8 +50,10 @@ export default async function Page(props: Props) {
   }
 
   return (
-    <SemblePageClient viaCardId={viaCardId}>
-      <SembleContainer url={url} viaCardId={viaCardId} />
-    </SemblePageClient>
+    <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
+      <SemblePageClient viaCardId={viaCardId}>
+        <SembleContainer url={url} viaCardId={viaCardId} />
+      </SemblePageClient>
+    </Suspense>
   );
 }
