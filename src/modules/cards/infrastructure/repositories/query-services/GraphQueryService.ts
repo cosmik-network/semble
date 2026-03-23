@@ -14,7 +14,10 @@ import { users } from '../../../../user/infrastructure/repositories/schema/user.
 export class GraphQueryService {
   constructor(private db: PostgresJsDatabase) {}
 
-  async getGraphData(): Promise<GraphDataDTO> {
+  async getGraphData(
+    page: number = 1,
+    limit: number = 300,
+  ): Promise<GraphDataDTO> {
     // Fetch all data in parallel
     const [
       userNodes,
@@ -40,10 +43,24 @@ export class GraphQueryService {
       this.getUrlConnectionEdges(),
     ]);
 
-    // Combine all nodes and edges
-    const nodes = [...userNodes, ...urlNodes, ...collectionNodes, ...noteNodes];
+    // Combine all nodes
+    const allNodes = [
+      ...userNodes,
+      ...urlNodes,
+      ...collectionNodes,
+      ...noteNodes,
+    ];
+    const totalNodeCount = allNodes.length;
 
-    const edges = [
+    // Apply pagination to nodes
+    const offset = (page - 1) * limit;
+    const paginatedNodes = allNodes.slice(offset, offset + limit);
+
+    // Create a Set of loaded node IDs for efficient lookup
+    const loadedNodeIds = new Set(paginatedNodes.map((node) => node.id));
+
+    // Filter edges to only include those where BOTH source and target are in loaded nodes
+    const allEdges = [
       ...userFollowEdges,
       ...collectionFollowEdges,
       ...authorshipEdges,
@@ -52,7 +69,16 @@ export class GraphQueryService {
       ...urlConnectionEdges,
     ];
 
-    return { nodes, edges };
+    const filteredEdges = allEdges.filter(
+      (edge) =>
+        loadedNodeIds.has(edge.source) && loadedNodeIds.has(edge.target),
+    );
+
+    return {
+      nodes: paginatedNodes,
+      edges: filteredEdges,
+      totalNodeCount,
+    };
   }
 
   private async getUserNodes(): Promise<GraphNodeDTO[]> {

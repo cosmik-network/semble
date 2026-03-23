@@ -357,6 +357,6 @@ export interface GetConnectionsParams extends PaginatedSortedParams {
 }
 
 // Graph request types
-export interface GetGraphDataParams {
-  // No parameters needed for global graph in v1
+export interface GetGraphDataParams extends PaginationParams {
+  // Supports pagination for incremental graph loading
 }

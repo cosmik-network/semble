@@ -112,7 +112,18 @@ export function generateMockGraphData(
     `Generated mock graph data: ${nodes.length} nodes, ${edges.length} edges`,
   );
 
-  return { nodes, edges };
+  // Return with pagination metadata (mock assumes single page with all data)
+  return {
+    nodes,
+    edges,
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalCount: nodes.length,
+      hasMore: false,
+      limit: nodes.length,
+    },
+  };
 }
 
 /**

@@ -558,8 +558,8 @@ export class QueryClient extends BaseClient {
   ): Promise<GetGraphDataResponse> {
     // Check if mock data should be used (for performance testing)
     // Set NEXT_PUBLIC_USE_MOCK_GRAPH_DATA=true in .env.local to enable
-    const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
-    // const useMockData = true;
+    // const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
+    const useMockData = true;
 
     if (useMockData) {
       const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(
@@ -573,9 +573,43 @@ export class QueryClient extends BaseClient {
       // Simulate network delay for realistic testing
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      return mockData;
+      // Apply pagination to mock data
+      const page = params?.page || 1;
+      const limit = params?.limit || 300;
+      const offset = (page - 1) * limit;
+      const totalCount = mockData.nodes.length;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasMore = page < totalPages;
+
+      const paginatedNodes = mockData.nodes.slice(offset, offset + limit);
+      const loadedNodeIds = new Set(paginatedNodes.map((n) => n.id));
+      const filteredEdges = mockData.edges.filter(
+        (e) => loadedNodeIds.has(e.source) && loadedNodeIds.has(e.target),
+      );
+
+      return {
+        nodes: paginatedNodes,
+        edges: filteredEdges,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          hasMore,
+          limit,
+        },
+      };
     }
 
-    return this.request<GetGraphDataResponse>('GET', '/api/graph/data');
+    // Build query string with pagination parameters
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/graph/data?${queryString}`
+      : '/api/graph/data';
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
   }
 }

@@ -117,6 +117,7 @@ import type {
   SearchUrlsParams,
   SearchUrlsResponse,
   // Graph types
+  GetGraphDataParams,
   GetGraphDataResponse,
 } from '@semble/types';
 
@@ -516,8 +517,10 @@ export class ApiClient {
   }
 
   // Graph operations
-  async getGraphData(): Promise<GetGraphDataResponse> {
-    return this.queryClient.getGraphData();
+  async getGraphData(
+    params?: GetGraphDataParams,
+  ): Promise<GetGraphDataResponse> {
+    return this.queryClient.getGraphData(params);
   }
 }
 

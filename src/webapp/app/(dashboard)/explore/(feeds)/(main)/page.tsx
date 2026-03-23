@@ -9,7 +9,9 @@ interface Props {
 export default async function Page(props: Props) {
   const params = await props.searchParams;
   const key = new URLSearchParams(
-    Object.entries(params).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+    Object.entries(params).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
   ).toString();
 
   return (

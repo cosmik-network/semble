@@ -16,9 +16,10 @@ export class InMemoryGraphQueryRepository implements IGraphQueryRepository {
     return InMemoryGraphQueryRepository.instance;
   }
 
-  async getGraphData(): Promise<GraphDataDTO> {
+  async getGraphData(page?: number, limit?: number): Promise<GraphDataDTO> {
     // For in-memory implementation, return empty graph
     // In a real test scenario, you would populate this with test data
-    return { nodes: [], edges: [] };
+    // and apply pagination
+    return { nodes: [], edges: [], totalNodeCount: 0 };
   }
 }

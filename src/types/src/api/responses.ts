@@ -543,4 +543,5 @@ export interface GraphEdge {
 export interface GetGraphDataResponse {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  pagination: Pagination;
 }

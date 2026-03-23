@@ -3,7 +3,8 @@ import { UseCase } from '../../../../../shared/core/UseCase';
 import { IGraphQueryRepository } from '../../../domain/IGraphQueryRepository';
 
 export interface GetGraphDataQuery {
-  // No parameters needed for global graph
+  page?: number;
+  limit?: number;
 }
 
 export interface GraphNode {
@@ -30,6 +31,7 @@ export interface GraphEdge {
 export interface GetGraphDataResult {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  totalNodeCount: number;
 }
 
 export class GetGraphDataUseCase
@@ -39,12 +41,16 @@ export class GetGraphDataUseCase
 
   async execute(query: GetGraphDataQuery): Promise<Result<GetGraphDataResult>> {
     try {
-      // Fetch all graph data
-      const graphData = await this.graphQueryRepo.getGraphData();
+      // Fetch graph data with pagination
+      const graphData = await this.graphQueryRepo.getGraphData(
+        query.page,
+        query.limit,
+      );
 
       return ok({
         nodes: graphData.nodes,
         edges: graphData.edges,
+        totalNodeCount: graphData.totalNodeCount,
       });
     } catch (error) {
       return err(

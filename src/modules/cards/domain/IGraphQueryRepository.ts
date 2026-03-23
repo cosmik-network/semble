@@ -23,12 +23,16 @@ export interface GraphEdgeDTO {
 export interface GraphDataDTO {
   nodes: GraphNodeDTO[];
   edges: GraphEdgeDTO[];
+  totalNodeCount: number;
 }
 
 export interface IGraphQueryRepository {
   /**
-   * Get all nodes and edges for the global graph visualization
-   * Returns the complete graph structure with all relationships
+   * Get nodes and edges for the global graph visualization with pagination support
+   * Returns paginated graph data with total count for calculating pagination metadata
+   *
+   * @param page - Page number (1-indexed, defaults to 1)
+   * @param limit - Number of nodes per page (defaults to 300)
    */
-  getGraphData(): Promise<GraphDataDTO>;
+  getGraphData(page?: number, limit?: number): Promise<GraphDataDTO>;
 }
