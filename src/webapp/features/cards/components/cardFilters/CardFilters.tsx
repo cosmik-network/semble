@@ -160,16 +160,14 @@ export function TypeFilter() {
       <Menu.Label>Type</Menu.Label>
       <Popover opened={opened} onChange={setOpened} shadow="sm">
         <Popover.Target>
-          <Button
+          <Menu.Item
             variant="light"
-            color="gray"
-            radius={'md'}
             leftSection={<SelectedIcon />}
+            closeMenuOnClick={false}
             onClick={() => setOpened((o) => !o)}
-            fullWidth
           >
             {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
-          </Button>
+          </Menu.Item>
         </Popover.Target>
 
         <Popover.Dropdown maw={300} p={'xs'}>
