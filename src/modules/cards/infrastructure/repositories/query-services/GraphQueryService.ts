@@ -82,12 +82,31 @@ export class GraphQueryService {
   }
 
   private async getUserNodes(): Promise<GraphNodeDTO[]> {
-    const results = await this.db
-      .select({
-        id: users.id,
-        handle: users.handle,
-      })
-      .from(users);
+    // Query all unique DIDs from all sources in the graph
+    // Use LEFT JOIN with users table to get handles where available
+    const results = await this.db.execute<{
+      id: string;
+      handle: string | null;
+    }>(sql`
+      WITH all_dids AS (
+        SELECT DISTINCT author_id as did FROM cards
+        UNION
+        SELECT DISTINCT follower_id as did FROM follows
+        UNION
+        SELECT DISTINCT target_id as did FROM follows WHERE target_type = 'user'
+        UNION
+        SELECT DISTINCT curator_id as did FROM connections
+        UNION
+        SELECT DISTINCT added_by as did FROM collection_cards
+        UNION
+        SELECT DISTINCT author_id as did FROM collections
+      )
+      SELECT
+        all_dids.did as id,
+        users.handle as handle
+      FROM all_dids
+      LEFT JOIN users ON all_dids.did = users.id
+    `);
 
     return results.map((row) => ({
       id: `user:${row.id}`,
