@@ -1,6 +1,7 @@
 .root {
   cursor: grab;
   user-select: none;
+  overflow: hidden;
 }
 
 .root:active {

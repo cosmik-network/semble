@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Box, LoadingOverlay } from '@mantine/core';
 import useGraphData from '../../lib/queries/useGraphData';
@@ -21,6 +21,7 @@ import {
 } from '../../lib/utils/graphConfig';
 import NodePopupPreview from '../nodePopups/NodePopupPreview';
 import NodePopupDetail from '../nodePopups/NodePopupDetail';
+import GraphFilterPanel from './GraphFilterPanel';
 import { useRouter } from 'next/navigation';
 import styles from './GraphView.module.css';
 
@@ -34,6 +35,16 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ),
 });
 
+// Type definitions for filters
+type NodeType = 'USER' | 'COLLECTION' | 'URL' | 'NOTE';
+type EdgeType =
+  | 'USER_FOLLOWS_USER'
+  | 'USER_FOLLOWS_COLLECTION'
+  | 'USER_AUTHORED_URL'
+  | 'NOTE_REFERENCES_URL'
+  | 'COLLECTION_CONTAINS_URL'
+  | 'URL_CONNECTS_URL';
+
 export default function GraphView() {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,8 +56,85 @@ export default function GraphView() {
   const [previewPos, setPreviewPos] = useState<PopupPosition>({ x: 0, y: 0 });
   const [detailPos, setDetailPos] = useState<PopupPosition>({ x: 0, y: 0 });
 
+  // State for graph filters (all types visible by default)
+  const [visibleNodeTypes, setVisibleNodeTypes] = useState<Set<NodeType>>(
+    new Set(['USER', 'COLLECTION', 'URL', 'NOTE'] as NodeType[]),
+  );
+  const [visibleEdgeTypes, setVisibleEdgeTypes] = useState<Set<EdgeType>>(
+    new Set([
+      'USER_FOLLOWS_USER',
+      'USER_FOLLOWS_COLLECTION',
+      'USER_AUTHORED_URL',
+      'NOTE_REFERENCES_URL',
+      'COLLECTION_CONTAINS_URL',
+      'URL_CONNECTS_URL',
+    ] as EdgeType[]),
+  );
+
   // Fetch and process graph data
   const { data: graphData } = useGraphData();
+
+  // Filter graph data based on visible types
+  const filteredGraphData = useMemo(() => {
+    if (!graphData) return null;
+
+    // Filter nodes by visible types
+    const filteredNodes = graphData.nodes.filter((node) =>
+      visibleNodeTypes.has(node.type as NodeType),
+    );
+
+    // Create a set of visible node IDs for efficient lookup
+    const visibleNodeIds = new Set(filteredNodes.map((node) => node.id));
+
+    // Filter edges by visible edge types AND ensure both endpoints are visible
+    const filteredLinks = graphData.links.filter((edge) => {
+      // Check if edge type is visible
+      if (!visibleEdgeTypes.has(edge.type as EdgeType)) return false;
+
+      // Get source and target IDs (handles both string and object references)
+      const sourceId =
+        typeof edge.source === 'string'
+          ? edge.source
+          : (edge.source as ExtendedGraphNode).id;
+      const targetId =
+        typeof edge.target === 'string'
+          ? edge.target
+          : (edge.target as ExtendedGraphNode).id;
+
+      // Only include edge if both nodes are visible
+      return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+    });
+
+    return {
+      nodes: filteredNodes,
+      links: filteredLinks,
+    };
+  }, [graphData, visibleNodeTypes, visibleEdgeTypes]);
+
+  // Toggle handlers for filter panel
+  const handleNodeTypeToggle = useCallback((type: NodeType) => {
+    setVisibleNodeTypes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(type)) {
+        newSet.delete(type);
+      } else {
+        newSet.add(type);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleEdgeTypeToggle = useCallback((type: EdgeType) => {
+    setVisibleEdgeTypes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(type)) {
+        newSet.delete(type);
+      } else {
+        newSet.add(type);
+      }
+      return newSet;
+    });
+  }, []);
 
   // Track previous node count to detect new nodes and trigger smooth transitions
   const prevNodeCountRef = useRef(0);
@@ -54,9 +142,9 @@ export default function GraphView() {
 
   // Detect when new nodes are added and gently reheat simulation
   useEffect(() => {
-    if (!graphData || !graphRef.current) return;
+    if (!filteredGraphData || !graphRef.current) return;
 
-    const currentNodeCount = graphData.nodes.length;
+    const currentNodeCount = filteredGraphData.nodes.length;
     const hasNewNodes = currentNodeCount > prevNodeCountRef.current;
 
     if (hasNewNodes && prevNodeCountRef.current > 0) {
@@ -74,7 +162,7 @@ export default function GraphView() {
     }
 
     prevNodeCountRef.current = currentNodeCount;
-  }, [graphData]);
+  }, [filteredGraphData]);
 
   // Animation loop to continuously re-render for fade-in effect
   useEffect(() => {
@@ -188,7 +276,7 @@ export default function GraphView() {
   // Handle navigation from popups
   const handleNavigate = useCallback(
     (nodeId: string) => {
-      const node = graphData?.nodes.find((n) => n.id === nodeId);
+      const node = filteredGraphData?.nodes.find((n) => n.id === nodeId);
       if (!node) return;
 
       let route: string;
@@ -211,7 +299,7 @@ export default function GraphView() {
 
       router.push(route);
     },
-    [graphData, router],
+    [filteredGraphData, router],
   );
 
   // Close detail popup
@@ -316,7 +404,7 @@ export default function GraphView() {
     [],
   );
 
-  if (!graphData) {
+  if (!filteredGraphData) {
     return (
       <Box pos="relative" h="100vh" w="100%">
         <LoadingOverlay visible />
@@ -326,9 +414,17 @@ export default function GraphView() {
 
   return (
     <Box pos="relative" h="calc(100vh - 60px)" w="100%" className={styles.root}>
+      {/* Filter Panel */}
+      <GraphFilterPanel
+        visibleNodeTypes={visibleNodeTypes}
+        visibleEdgeTypes={visibleEdgeTypes}
+        onNodeTypeToggle={handleNodeTypeToggle}
+        onEdgeTypeToggle={handleEdgeTypeToggle}
+      />
+
       <ForceGraph2D
         ref={graphRef}
-        graphData={graphData}
+        graphData={filteredGraphData}
         nodeCanvasObject={nodeCanvasObject}
         nodePointerAreaPaint={nodePointerAreaPaint}
         onNodeHover={handleNodeHover}
