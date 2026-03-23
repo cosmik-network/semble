@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ActionIcon,
   Anchor,
   Button,
   Card,
@@ -26,7 +27,7 @@ import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { IoIosArrowDown } from 'react-icons/io';
-import { LuChevronsUpDown } from 'react-icons/lu';
+import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -52,6 +53,7 @@ export default function EditConnectionForm(props: Props) {
       targetUrl: props.targetUrl,
       connectionType: props.connection.type || 'RELATED',
       note: props.connection.note || '',
+      swapped: false,
     },
     validateInputOnChange: false,
     validateInputOnBlur: true,
@@ -103,6 +105,14 @@ export default function EditConnectionForm(props: Props) {
 
   const MAX_NOTE_LENGTH = 500;
 
+  const handleSwapUrls = () => {
+    const currentSource = form.values.sourceUrl;
+    const currentTarget = form.values.targetUrl;
+    form.setFieldValue('sourceUrl', currentTarget);
+    form.setFieldValue('targetUrl', currentSource);
+    form.setFieldValue('swapped', !form.values.swapped);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,6 +144,7 @@ export default function EditConnectionForm(props: Props) {
           ? (values.connectionType as any)
           : undefined,
         note: values.note || undefined,
+        swap: values.swapped,
       },
       {
         onSuccess: () => {
@@ -224,82 +235,97 @@ export default function EditConnectionForm(props: Props) {
             w="fit-content"
             mx="auto"
           >
-            <Combobox
-              shadow="sm"
-              radius="md"
-              store={typeCombobox}
-              position="bottom"
-              width={320}
-              onOptionSubmit={(value) => {
-                form.setFieldValue('connectionType', value);
-                typeCombobox.closeDropdown();
-              }}
-            >
-              <Combobox.Target>
-                <Button
-                  color="green"
-                  size="sm"
-                  onClick={() => typeCombobox.toggleDropdown()}
-                  leftSection={
-                    form.values.connectionType
-                      ? (() => {
-                          const selectedType = CONNECTION_TYPES.find(
-                            (t) => t.value === form.values.connectionType,
-                          );
-                          const Icon = selectedType?.icon;
-                          return Icon ? <Icon size={16} /> : null;
-                        })()
-                      : null
-                  }
-                  rightSection={<LuChevronsUpDown />}
+            <Group gap={'xs'} align="center" justify="center">
+              <Combobox
+                shadow="sm"
+                radius="md"
+                store={typeCombobox}
+                position="bottom"
+                width={320}
+                onOptionSubmit={(value) => {
+                  form.setFieldValue('connectionType', value);
+                  typeCombobox.closeDropdown();
+                }}
+              >
+                <Combobox.Target>
+                  <Button
+                    color="green"
+                    size="sm"
+                    onClick={() => typeCombobox.toggleDropdown()}
+                    leftSection={
+                      form.values.connectionType
+                        ? (() => {
+                            const selectedType = CONNECTION_TYPES.find(
+                              (t) => t.value === form.values.connectionType,
+                            );
+                            const Icon = selectedType?.icon;
+                            return Icon ? <Icon size={16} /> : null;
+                          })()
+                        : null
+                    }
+                    rightSection={<LuChevronsUpDown />}
+                  >
+                    {form.values.connectionType
+                      ? CONNECTION_TYPES.find(
+                          (t) => t.value === form.values.connectionType,
+                        )?.label
+                      : 'Select a relation'}
+                  </Button>
+                </Combobox.Target>
+                <Combobox.Dropdown>
+                  <Combobox.Options>
+                    <ScrollArea.Autosize type="scroll" mah={300}>
+                      {CONNECTION_TYPES.map((type) => {
+                        const Icon = type.icon;
+                        const isSelected =
+                          form.values.connectionType === type.value;
+                        return (
+                          <Combobox.Option
+                            key={type.value}
+                            value={type.value}
+                            p={5}
+                            bg={
+                              isSelected
+                                ? 'var(--mantine-color-green-light)'
+                                : undefined
+                            }
+                          >
+                            <Group gap="sm" wrap="nowrap">
+                              {Icon && <Icon size={20} color="green" />}
+                              <Stack gap={0} style={{ flex: 1 }}>
+                                <Text
+                                  size="sm"
+                                  c={'bright'}
+                                  fw={isSelected ? 600 : 500}
+                                >
+                                  {type.label}
+                                </Text>
+                                <Text size="xs" c="dimmed">
+                                  {type.description}
+                                </Text>
+                              </Stack>
+                            </Group>
+                          </Combobox.Option>
+                        );
+                      })}
+                    </ScrollArea.Autosize>
+                  </Combobox.Options>
+                </Combobox.Dropdown>
+              </Combobox>
+
+              <Tooltip label="Swap" position="top">
+                <ActionIcon
+                  variant="light"
+                  size={'lg'}
+                  color={'blue'}
+                  radius={'xl'}
+                  onClick={handleSwapUrls}
+                  title="Swap"
                 >
-                  {form.values.connectionType
-                    ? CONNECTION_TYPES.find(
-                        (t) => t.value === form.values.connectionType,
-                      )?.label
-                    : 'Select a relation'}
-                </Button>
-              </Combobox.Target>
-              <Combobox.Dropdown>
-                <Combobox.Options>
-                  <ScrollArea.Autosize type="scroll" mah={300}>
-                    {CONNECTION_TYPES.map((type) => {
-                      const Icon = type.icon;
-                      const isSelected =
-                        form.values.connectionType === type.value;
-                      return (
-                        <Combobox.Option
-                          key={type.value}
-                          value={type.value}
-                          p={5}
-                          bg={
-                            isSelected
-                              ? 'var(--mantine-color-green-light)'
-                              : undefined
-                          }
-                        >
-                          <Group gap="sm" wrap="nowrap">
-                            {Icon && <Icon size={20} color="green" />}
-                            <Stack gap={0} style={{ flex: 1 }}>
-                              <Text
-                                size="sm"
-                                c={'bright'}
-                                fw={isSelected ? 600 : 500}
-                              >
-                                {type.label}
-                              </Text>
-                              <Text size="xs" c="dimmed">
-                                {type.description}
-                              </Text>
-                            </Stack>
-                          </Group>
-                        </Combobox.Option>
-                      );
-                    })}
-                  </ScrollArea.Autosize>
-                </Combobox.Options>
-              </Combobox.Dropdown>
-            </Combobox>
+                  <LuArrowUpDown size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
           </Card>
 
           <Stack align="center" gap={0}>
