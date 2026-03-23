@@ -89,12 +89,14 @@ export default function useGraphData() {
       // Add new nodes to map (preserving existing node references)
       newNodes.forEach((node) => {
         if (!nodeMapRef.current.has(node.id)) {
-          // Create new extended node
+          // Create new extended node with timestamp for fade-in animation
           const extendedNode: ExtendedGraphNode = {
             ...node,
             connectionCount: 0,
             val: 0,
             color: getNodeColor(node.type),
+            // Track when node was added for smooth fade-in
+            __addedAt: Date.now(),
           };
           nodeMapRef.current.set(node.id, extendedNode);
         }

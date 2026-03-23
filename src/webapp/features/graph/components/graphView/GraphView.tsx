@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Box, LoadingOverlay } from '@mantine/core';
 import useGraphData from '../../lib/queries/useGraphData';
@@ -47,6 +47,75 @@ export default function GraphView() {
 
   // Fetch and process graph data
   const { data: graphData } = useGraphData();
+
+  // Track previous node count to detect new nodes and trigger smooth transitions
+  const prevNodeCountRef = useRef(0);
+  const animationFrameRef = useRef<number | null>(null);
+
+  // Detect when new nodes are added and gently reheat simulation
+  useEffect(() => {
+    if (!graphData || !graphRef.current) return;
+
+    const currentNodeCount = graphData.nodes.length;
+    const hasNewNodes = currentNodeCount > prevNodeCountRef.current;
+
+    if (hasNewNodes && prevNodeCountRef.current > 0) {
+      // Gently reheat the simulation for smooth repositioning
+      // Lower alpha = gentler movement
+      graphRef.current.d3ReheatSimulation();
+      graphRef.current.d3Force('charge')?.strength(-30); // Softer repulsion during transition
+
+      // Restore normal force after animation completes
+      setTimeout(() => {
+        if (graphRef.current?.d3Force) {
+          graphRef.current.d3Force('charge')?.strength(-60);
+        }
+      }, 1000);
+    }
+
+    prevNodeCountRef.current = currentNodeCount;
+  }, [graphData]);
+
+  // Animation loop to continuously re-render for fade-in effect
+  useEffect(() => {
+    if (!graphData) return;
+
+    const animate = () => {
+      // Check if any nodes are still fading in (added within last 800ms)
+      const now = Date.now();
+      const hasFadingNodes = graphData.nodes.some(
+        (node) => node.__addedAt && now - node.__addedAt < 800,
+      );
+
+      if (hasFadingNodes && graphRef.current) {
+        // Trigger a re-render by calling refresh
+        graphRef.current._destructor?.(); // Force canvas redraw
+      }
+
+      if (hasFadingNodes) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        animationFrameRef.current = null;
+      }
+    };
+
+    // Start animation if we have new nodes
+    if (!animationFrameRef.current) {
+      const now = Date.now();
+      const hasNewNodes = graphData.nodes.some(
+        (node) => node.__addedAt && now - node.__addedAt < 800,
+      );
+      if (hasNewNodes) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    }
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [graphData]);
 
   // Handle node hover (preview popup)
   const handleNodeHover = useCallback(
@@ -160,6 +229,23 @@ export default function GraphView() {
         (node.val || NODE_SIZE.DEFAULT) * (1 / Math.sqrt(globalScale));
       const isSelected = node === pinnedNode || node === hoverNode;
 
+      // Calculate opacity for fade-in animation (800ms duration)
+      let opacity = 1;
+      if (node.__addedAt) {
+        const age = Date.now() - node.__addedAt;
+        const fadeDuration = 800; // ms
+        if (age < fadeDuration) {
+          // Ease-in opacity from 0 to 1
+          opacity = Math.min(1, age / fadeDuration);
+          // Ease-out cubic for smoother animation
+          opacity = 1 - Math.pow(1 - opacity, 3);
+        }
+      }
+
+      // Save context state for opacity
+      ctx.save();
+      ctx.globalAlpha = opacity;
+
       // Create gradient for node fill
       const gradient = ctx.createRadialGradient(
         node.x,
@@ -222,6 +308,9 @@ export default function GraphView() {
         ctx.fillStyle = VISUAL_CONFIG.node.shadowColor;
         ctx.fill();
       }
+
+      // Restore context state (opacity)
+      ctx.restore();
     },
     [pinnedNode, hoverNode],
   );
