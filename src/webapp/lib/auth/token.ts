@@ -1,4 +1,4 @@
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 export const isTokenExpiringSoon = (
   token: string | null | undefined,

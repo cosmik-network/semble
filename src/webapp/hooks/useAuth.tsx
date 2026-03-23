@@ -17,8 +17,7 @@ import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
-
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 interface AuthContextType {
   user: GetProfileResponse | null;
