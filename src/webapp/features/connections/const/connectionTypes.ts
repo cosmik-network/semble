@@ -8,8 +8,18 @@ import {
 } from 'react-icons/bi';
 import { BsPaperclip } from 'react-icons/bs';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
+import { ConnectionType } from '@semble/types';
+import { IconType } from 'react-icons';
 
-export const CONNECTION_TYPES = [
+export interface ConnectionTypeConfig {
+  value: ConnectionType;
+  label: string;
+  description: string;
+  icon: IconType;
+  notePlaceholder: string;
+}
+
+export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
   {
     value: 'RELATED',
     label: 'Related',
@@ -68,5 +78,3 @@ export const CONNECTION_TYPES = [
     notePlaceholder: 'Explain what additional information this adds...',
   },
 ] as const;
-
-export type ConnectionTypeConfig = (typeof CONNECTION_TYPES)[number];
