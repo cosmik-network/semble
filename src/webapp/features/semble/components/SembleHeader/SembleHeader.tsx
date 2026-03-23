@@ -30,7 +30,7 @@ export default function SembleHeader(props: Props) {
             </Suspense>
             <Suspense
               fallback={<SembleActionsContainerSkeleton />}
-              key={props.url}
+              key={props.url + 'semble actions container'}
             >
               <SembleActionsContainer
                 url={props.url}
