@@ -53,9 +53,7 @@ export default async function Page(props: Props) {
 
   return (
     <SemblePageClient viaCardId={viaCardId}>
-      <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-        <SembleContainer url={url} viaCardId={viaCardId} />
-      </Suspense>
+      <SembleContainer url={url} viaCardId={viaCardId} />
     </SemblePageClient>
   );
 }
