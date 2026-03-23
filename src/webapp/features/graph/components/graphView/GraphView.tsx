@@ -285,21 +285,6 @@ export default function GraphView() {
       // Reset shadow
       ctx.shadowBlur = VISUAL_CONFIG.node.shadowBlur;
 
-      // Draw label (only when zoomed in or for highly connected nodes)
-      const shouldShowLabel =
-        globalScale > VISUAL_CONFIG.label.minZoomToShow ||
-        (node.connectionCount &&
-          node.connectionCount >=
-            VISUAL_CONFIG.label.minConnectionsToAlwaysShow);
-
-      if (shouldShowLabel) {
-        ctx.font = `${VISUAL_CONFIG.label.fontSize / globalScale}px ${VISUAL_CONFIG.label.fontFamily}`;
-        ctx.fillStyle = VISUAL_CONFIG.label.color;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(node.label, node.x, node.y + size + 10 / globalScale);
-      }
-
       // Draw connection count badge for highly connected nodes
       if (node.connectionCount && node.connectionCount >= 5) {
         const badgeSize = 4 / globalScale;
