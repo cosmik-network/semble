@@ -30,7 +30,7 @@ export default function BottomBar() {
           title="Notifications"
           icon={
             <Indicator
-              disabled={notificationData.unreadCount === 0}
+              disabled={!notificationData?.unreadCount}
               position={'top-start'}
               size={8}
               offset={0}

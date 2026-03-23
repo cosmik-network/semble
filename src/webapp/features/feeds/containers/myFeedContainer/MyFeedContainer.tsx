@@ -32,13 +32,17 @@ export default function MyFeedContainer() {
 
   const { data: featureFlags } = useFeatureFlags();
 
-  // Parse activityTypes from URL params (can be multiple)
+  // Parse activityTypes from URL params (lowercase) and convert to enum values
   const activityTypesParam = searchParams.getAll('activityTypes');
   const selectedActivityTypes =
     activityTypesParam.length > 0
-      ? (activityTypesParam.filter((type) =>
-          Object.values(ActivityType).includes(type as ActivityType),
-        ) as ActivityType[])
+      ? activityTypesParam
+          .map((param) =>
+            Object.values(ActivityType).find(
+              (t) => t.toLowerCase() === param.toLowerCase(),
+            ),
+          )
+          .filter((t): t is ActivityType => t !== undefined)
       : undefined;
 
   // Hard-code to only CARD_COLLECTED when connections feature flag is false

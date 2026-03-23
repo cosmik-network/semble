@@ -49,6 +49,7 @@ export default function ExternalEmbed(props: Props) {
               fw={500}
               c={'gray'}
               lineClamp={1}
+              onClick={(e) => e.stopPropagation()}
             >
               {getDomain(props.embed.external.uri)}
             </Anchor>

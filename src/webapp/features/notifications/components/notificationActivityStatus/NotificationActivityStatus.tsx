@@ -156,6 +156,12 @@ export default function NotificationActivityStatus(props: Props) {
             )}
           </Fragment>
         );
+      case NotificationType.USER_CONNECTED_YOUR_URL:
+        return (
+          <Fragment>
+            {userName} <Text span>connected a card in your library</Text>
+          </Fragment>
+        );
       default:
         return (
           <Fragment>
@@ -229,12 +235,7 @@ export default function NotificationActivityStatus(props: Props) {
         <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
           <Group gap={'xs'} wrap="nowrap" align="center">
             {TypeIcon && (
-              <ThemeIcon
-                size={'sm'}
-                variant="transparent"
-                c={'tangerine'}
-                radius={'xl'}
-              >
+              <ThemeIcon size={'sm'} variant="light" radius={'xl'}>
                 <TypeIcon />
               </ThemeIcon>
             )}

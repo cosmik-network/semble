@@ -1,6 +1,7 @@
 import { NotificationType } from '@semble/types';
 import { FaUserPlus } from 'react-icons/fa6';
 import { FiPlus } from 'react-icons/fi';
+import { BiLink } from 'react-icons/bi';
 import { IconType } from 'react-icons/lib';
 
 export const getNotificationTypeIcon = (
@@ -21,6 +22,8 @@ export const getNotificationTypeIcon = (
       return FaUserPlus;
     case NotificationType.USER_FOLLOWED_YOUR_COLLECTION:
       return FaUserPlus;
+    case NotificationType.USER_CONNECTED_YOUR_URL:
+      return BiLink;
     default:
       return null;
   }

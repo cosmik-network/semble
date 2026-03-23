@@ -1,11 +1,9 @@
-import type {
-  FeedItem as FeedItemType,
-  ConnectionCreatedFeedItem,
-} from '@/api-client';
+import type { FeedItem as FeedItemType } from '@/api-client';
+import { ActivityType } from '@/api-client';
 import { Stack } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import FeedActivityStatus from '../feedActivityStatus/FeedActivityStatus';
-import ProfileConnectionItem from '@/features/connections/components/profileConnectionItem/ProfileConnectionItem';
+import ConnectionFeedItem from '../connectionFeedItem/ConnectionFeedItem';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
@@ -13,47 +11,32 @@ interface Props {
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
-function isConnectionCreatedItem(
-  item: FeedItemType,
-): item is ConnectionCreatedFeedItem {
-  return item.activityType === 'CONNECTION_CREATED';
-}
-
 export default function FeedItem(props: Props) {
-  const { item } = props;
-
-  if (isConnectionCreatedItem(item)) {
-    // CONNECTION_CREATED activity type
-    return (
-      <ProfileConnectionItem
-        connection={item.connection}
-        curator={item.user}
-        activityStatusText={'made a connection'}
-      />
-    );
+  if (props.item.activityType === ActivityType.CONNECTION_CREATED) {
+    return <ConnectionFeedItem item={props.item} />;
   }
 
-  // CARD_COLLECTED activity type
   return (
     <Stack gap={'xs'} align="stretch" h={'100%'}>
       <FeedActivityStatus
-        user={item.user}
-        collections={item.collections}
-        createdAt={item.createdAt}
-        note={item.card.note?.text}
+        user={props.item.user}
+        activityType={ActivityType.CARD_COLLECTED}
+        collections={props.item.collections}
+        createdAt={props.item.createdAt}
+        note={props.item.card.note?.text}
       />
       <UrlCard
-        id={item.card.id}
-        url={item.card.url}
-        uri={item.card.uri}
-        note={item.card.note}
-        cardAuthor={item.card.author}
-        cardContent={item.card.cardContent}
-        urlLibraryCount={item.card.urlLibraryCount}
-        urlIsInLibrary={item.card.urlInLibrary}
-        urlConnectionCount={item.card.urlConnectionCount ?? 0}
-        authorHandle={item.user.handle}
-        viaCardId={item.card.id}
+        id={props.item.card.id}
+        url={props.item.card.url}
+        uri={props.item.card.uri}
+        note={props.item.card.note}
+        cardAuthor={props.item.card.author}
+        cardContent={props.item.card.cardContent}
+        urlLibraryCount={props.item.card.urlLibraryCount}
+        urlIsInLibrary={props.item.card.urlInLibrary}
+        urlConnectionCount={props.item.card.urlConnectionCount ?? 0}
+        authorHandle={props.item.user.handle}
+        viaCardId={props.item.card.id}
         analyticsContext={props.analyticsContext}
       />
     </Stack>

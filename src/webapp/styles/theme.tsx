@@ -6,6 +6,7 @@ import {
   Avatar,
   Button,
   CheckboxIndicator,
+  Indicator,
   MenuItem,
   Modal,
   NavLink,
@@ -15,6 +16,7 @@ import {
   Text,
   Combobox,
   Notification,
+  Menu,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -96,6 +98,11 @@ export const theme = createTheme({
         radius: 'md',
       },
     }),
+    Menu: Menu.extend({
+      defaultProps: {
+        radius: 'lg',
+      },
+    }),
     MenuItem: MenuItem.extend({
       defaultProps: {
         fz: 'md',
@@ -150,6 +157,13 @@ export const theme = createTheme({
       defaultProps: {
         classNames: {
           option: classes.option,
+        },
+      },
+    }),
+    Indicator: Indicator.extend({
+      styles: {
+        indicator: {
+          zIndex: 1,
         },
       },
     }),

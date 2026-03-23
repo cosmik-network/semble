@@ -59,9 +59,7 @@ export default async function Layout(props: Props) {
       </Suspense>
 
       <Container size={'xl'} p={'xs'}>
-        <Suspense>
-          <CollectionTabs handle={handle} rkey={rkey} />
-        </Suspense>
+        <CollectionTabs handle={handle} rkey={rkey} />
       </Container>
       {props.children}
     </Fragment>
