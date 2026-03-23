@@ -117,6 +117,10 @@ export interface INotificationRepository {
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
   findByCard(cardId: string): Promise<Result<Notification[]>>;
+  findByConnectionAndActor(
+    connectionId: string,
+    actorUserId: CuratorId,
+  ): Promise<Result<Notification[]>>;
   findFollowNotificationsByActorAndTarget(
     actorUserId: CuratorId,
     targetId: string,
