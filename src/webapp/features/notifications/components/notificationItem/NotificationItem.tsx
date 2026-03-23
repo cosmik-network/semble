@@ -63,7 +63,7 @@ export default function NotificationItem(props: Props) {
           <Stack gap={'xs'} align="stretch" h={'100%'}>
             <NotificationActivityStatus
               user={notification.item.user}
-              collections={undefined}
+              collections={notification.item.collections}
               createdAt={notification.item.createdAt}
               type={notification.item.type}
               followButton={

@@ -57,6 +57,7 @@ export class ConnectionClient extends BaseClient {
         connectionType: request.connectionType,
         note: request.note,
         removeNote: request.removeNote,
+        swap: request.swap,
       },
     );
   }

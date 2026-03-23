@@ -152,6 +152,19 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     return ok(undefined);
   }
 
+  public swap(): Result<void, ConnectionValidationError> {
+    const tempSource = this.props.source;
+    const tempSourceMetadata = this.props.sourceUrlMetadata;
+
+    this.props.source = this.props.target;
+    this.props.sourceUrlMetadata = this.props.targetUrlMetadata;
+    this.props.target = tempSource;
+    this.props.targetUrlMetadata = tempSourceMetadata;
+    this.props.updatedAt = new Date();
+
+    return ok(undefined);
+  }
+
   private raiseCreatedEvent(): Result<void> {
     const event = ConnectionCreatedEvent.create(
       this.connectionId,
