@@ -22,7 +22,7 @@ export async function generateMetadata({
     redirect('/');
   }
 
-  const { metadata } = await getUrlMetadata({ url, includeStats: true });
+  const { metadata } = await getUrlMetadata({ url, includeStats: false });
   const domain = getDomain(url);
   const title = metadata.title ? `${metadata.title} (${domain})` : url;
 
