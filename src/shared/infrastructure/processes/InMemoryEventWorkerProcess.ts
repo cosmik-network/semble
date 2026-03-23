@@ -23,6 +23,7 @@ import {
 } from '../http/factories/RepositoryFactory';
 import { ConnectionCreatedEventHandler } from 'src/modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionCreatedEventHandler as NotificationConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
+import { ConnectionRemovedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionRemovedEventHandler';
 
 export class InMemoryEventWorkerProcess implements IProcess {
   constructor(private configService: EnvironmentConfigService) {}
@@ -117,6 +118,10 @@ export class InMemoryEventWorkerProcess implements IProcess {
         services.identityResolutionService,
       );
 
+    const connectionRemovedHandler = new ConnectionRemovedEventHandler(
+      repositories.notificationRepository,
+    );
+
     // Register feed handlers
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
@@ -177,6 +182,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       notificationConnectionCreatedHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_REMOVED,
+      connectionRemovedHandler,
     );
   }
 }
