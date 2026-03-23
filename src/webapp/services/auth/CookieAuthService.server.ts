@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 export interface AuthTokens {
   accessToken: string | null;

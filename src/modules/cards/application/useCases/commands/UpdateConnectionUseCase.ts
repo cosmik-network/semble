@@ -16,6 +16,7 @@ export interface UpdateConnectionDTO {
   connectionType?: string;
   note?: string;
   removeNote?: boolean;
+  swap?: boolean;
   curatorId: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip republishing if provided
 }
@@ -101,6 +102,14 @@ export class UpdateConnectionUseCase
         );
       }
 
+      // Handle swap
+      if (request.swap) {
+        const swapResult = connection.swap();
+        if (swapResult.isErr()) {
+          return err(new ValidationError(swapResult.error.message));
+        }
+      }
+
       // Handle connection type update
       if (request.connectionType !== undefined) {
         const typeResult = ConnectionType.createFromString(
@@ -173,6 +182,12 @@ export class UpdateConnectionUseCase
           await this.connectionRepository.save(connection);
         if (saveUpdatedResult.isErr()) {
           return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+        }
+      } else {
+        // Not published - just save the changes
+        const saveResult = await this.connectionRepository.save(connection);
+        if (saveResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveResult.error));
         }
       }
 

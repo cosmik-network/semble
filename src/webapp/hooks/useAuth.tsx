@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  ReactNode,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
@@ -10,8 +17,7 @@ import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
-
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 interface AuthContextType {
   user: GetProfileResponse | null;
@@ -28,11 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const pathname = usePathname(); // to prevent redirecting to login on landing page
 
-  const refreshAuth = async () => {
-    await query.refetch();
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (ENABLE_AUTH_LOGGING) {
       console.log('[useAuth] Initiating logout process');
     }
@@ -48,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await ClientCookieAuthService.clearTokens();
     queryClient.clear();
     router.push('/login');
-  };
+  }, [queryClient, router]);
 
   const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
@@ -61,10 +63,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     retry: false,
   });
 
+  const refreshAuth = useCallback(async () => {
+    await query.refetch();
+  }, [query.refetch]);
+
   useEffect(() => {
     // Handle other auth errors
     if (query.isError && !query.isLoading && pathname !== '/') logout();
-  }, [query.data, query.isError, query.isLoading, pathname, router, logout]);
+  }, [query.isError, query.isLoading, pathname, logout]);
 
   // Set super properties for anonymous tracking (no PII)
   useEffect(() => {
@@ -80,13 +86,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [query.data]);
 
-  const contextValue: AuthContextType = {
-    user: query.data ?? null,
-    isAuthenticated: !!query.data,
-    isLoading: query.isLoading,
-    refreshAuth,
-    logout,
-  };
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user: query.data ?? null,
+      isAuthenticated: !!query.data,
+      isLoading: query.isLoading,
+      refreshAuth,
+      logout,
+    }),
+    [query.data, query.isLoading, refreshAuth, logout],
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

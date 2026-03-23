@@ -332,6 +332,7 @@ export interface UpdateConnectionRequest {
   connectionType?: ConnectionType;
   note?: string;
   removeNote?: boolean;
+  swap?: boolean;
 }
 
 export interface DeleteConnectionRequest {

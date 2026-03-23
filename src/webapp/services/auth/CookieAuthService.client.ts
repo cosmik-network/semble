@@ -1,6 +1,6 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 export class ClientCookieAuthService {
   // Note: With HttpOnly cookies, we cannot read tokens from document.cookie

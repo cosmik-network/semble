@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
-
-const ENABLE_AUTH_LOGGING = true;
+import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 const backendUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
