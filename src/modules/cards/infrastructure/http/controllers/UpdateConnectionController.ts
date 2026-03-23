@@ -12,7 +12,7 @@ export class UpdateConnectionController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { connectionId } = req.params;
-      const { note, removeNote, connectionType } = req.body;
+      const { note, removeNote, connectionType, swap } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -26,11 +26,12 @@ export class UpdateConnectionController extends Controller {
       if (
         note === undefined &&
         removeNote === undefined &&
-        connectionType === undefined
+        connectionType === undefined &&
+        swap === undefined
       ) {
         return this.badRequest(
           res,
-          'At least one of note, removeNote, or connectionType must be provided',
+          'At least one of note, removeNote, connectionType, or swap must be provided',
         );
       }
 
@@ -39,6 +40,7 @@ export class UpdateConnectionController extends Controller {
         note,
         removeNote,
         connectionType,
+        swap,
         curatorId,
       });
 

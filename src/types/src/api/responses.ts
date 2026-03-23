@@ -398,7 +398,8 @@ export interface FollowNotificationItem extends BaseNotificationItem {
     | NotificationType.USER_FOLLOWED_YOU
     | NotificationType.USER_FOLLOWED_YOUR_COLLECTION;
   followTargetType: 'USER' | 'COLLECTION';
-  followTargetId?: string; // Only present for COLLECTION follows
+  followTargetId?: string;
+  collections?: Collection[];
 }
 
 export interface ConnectionCreatedNotificationItem
