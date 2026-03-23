@@ -106,24 +106,45 @@ export default async function Image(props: Props) {
             </p>
           )}
 
-          {collection.cardCount > 0 && (
-            <p
-              style={{
-                fontSize: 30,
-                lineHeight: 1,
-                color: '#495057',
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                maxWidth: '900',
-                wordBreak: 'break-word',
-              }}
-            >
-              {collection.cardCount}{' '}
-              {collection.cardCount > 1 ? 'cards' : 'card'}
-            </p>
-          )}
+          <div style={{ display: 'flex', gap: 25 }}>
+            {collection.cardCount > 0 && (
+              <p
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  color: '#495057',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  maxWidth: '900',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {collection.cardCount}{' '}
+                {collection.cardCount > 1 ? 'cards' : 'card'}
+              </p>
+            )}
+
+            {collection.followerCount && collection.followerCount > 0 ? (
+              <p
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  color: '#495057',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  maxWidth: '900',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {collection.followerCount}{' '}
+                {collection.followerCount > 1 ? 'followers' : 'follower'}
+              </p>
+            ) : null}
+          </div>
 
           {/* Author Info */}
           <div
