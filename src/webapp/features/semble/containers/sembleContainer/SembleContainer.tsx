@@ -45,7 +45,7 @@ export default function SembleContainer(props: Props) {
       <SembleHeaderBackground />
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
-          <Suspense fallback={<SkeletonComponent />} key={props.url + 'header'}>
+          <Suspense fallback={<SkeletonComponent />} key={props.url}>
             <HeaderComponent url={props.url} viaCardId={props.viaCardId} />
           </Suspense>
 

@@ -15,17 +15,17 @@ interface Props {
 export default async function BlueskySembleHeader(props: Props) {
   return (
     <Stack gap={'sm'} mx={'auto'} w={'100%'} maw={600}>
-      <Suspense fallback={<BlueskySemblePostSkeleton />}>
+      <Suspense fallback={<BlueskySemblePostSkeleton />} key={props.url}>
         <BlueskySemblePost url={props.url} />
       </Suspense>
 
       <Stack align="center">
-        <Suspense fallback={<SembleActionsContainerSkeleton />}>
+        <Suspense fallback={<SembleActionsContainerSkeleton />} key={props.url}>
           <SembleActionsContainer url={props.url} viaCardId={props.viaCardId} />
         </Suspense>
       </Stack>
 
-      <Suspense fallback={<UrlAddedBySummarySkeleton />}>
+      <Suspense fallback={<UrlAddedBySummarySkeleton />} key={props.url}>
         <UrlAddedBySummary url={props.url} />
       </Suspense>
     </Stack>

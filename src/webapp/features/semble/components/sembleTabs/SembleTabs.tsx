@@ -74,39 +74,54 @@ export default function SembleTabs(props: Props) {
 
       <Box mt="md">
         <TabsPanel value="notes">
-          <Suspense fallback={<SembleNotesContainerSkeleton />}>
+          <Suspense fallback={<SembleNotesContainerSkeleton />} key={props.url}>
             <SembleNotesContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="collections">
-          <Suspense fallback={<SembleCollectionsContainerSkeleton />}>
+          <Suspense
+            fallback={<SembleCollectionsContainerSkeleton />}
+            key={props.url}
+          >
             <SembleCollectionsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="addedBy">
-          <Suspense fallback={<SembleLibrariesContainerSkeleton />}>
+          <Suspense
+            fallback={<SembleLibrariesContainerSkeleton />}
+            key={props.url}
+          >
             <SembleLibrariesContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="similar">
-          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
+          <Suspense
+            fallback={<SembleSimilarCardsContainerSkeleton />}
+            key={props.url}
+          >
             <SembleSimilarCardsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 
         {featureFlags?.connections && (
           <TabsPanel value="connections">
-            <Suspense fallback={<SembleConnectionsContainerSkeleton />}>
+            <Suspense
+              fallback={<SembleConnectionsContainerSkeleton />}
+              key={props.url}
+            >
               <SembleConnectionsContainer url={props.url} />
             </Suspense>
           </TabsPanel>
         )}
 
         <TabsPanel value="mentions">
-          <Suspense fallback={<SembleMentionsContainerSkeleton />}>
+          <Suspense
+            fallback={<SembleMentionsContainerSkeleton />}
+            key={props.url}
+          >
             <SembleMentionsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
