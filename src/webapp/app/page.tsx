@@ -11,9 +11,8 @@ import {
   Center,
   Group,
   Badge,
-  Grid,
-  GridCol,
 } from '@mantine/core';
+import Link from 'next/link';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
@@ -24,15 +23,18 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
 import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcutButton';
 import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
+import RecentActivitySkeleton from '@/components/landing/recentActivity/Skeleton.RecentActivity';
 import Footer from '@/components/landing/footer/Footer';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
+import { IoArrowForward } from 'react-icons/io5';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 
 export default async function Page() {
   const fadeStyle = {
     inset: 0,
-    WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
-    maskImage: 'linear-gradient(to top, transparent 0%, black 35%)',
+    WebkitMaskImage: 'linear-gradient(to bottom, transparent 10%, black 35%)',
+    maskImage: 'linear-gradient(to bottom, transparent 10%, black 35%)',
     zIndex: 0,
   };
 
@@ -70,18 +72,30 @@ function Content() {
       <Container size="xl" p="md" my="auto">
         <Group justify="space-between">
           <Stack gap={6} align="center">
-            <Image src={SembleLogo.src} alt="Semble logo" w={30} h="auto" />
-            <Badge size="sm">Alpha</Badge>
+            <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
+            <Badge size="xs">Alpha</Badge>
           </Stack>
           <Group gap={'sm'}>
             <IosShortcutButton />
+            <Button
+              component="a"
+              href="https://docs.cosmik.network/semble"
+              target="_blank"
+              variant="light"
+              color="gray"
+              size="xs"
+              rightSection={<RiArrowRightUpLine />}
+            >
+              Semble Docs
+            </Button>
             <Button
               data-tally-open="31a9Ng"
               data-tally-hide-title="1"
               data-tally-layout="modal"
               data-tally-emoji-animation="none"
-              variant="default"
-              size="sm"
+              variant="light"
+              color="gray"
+              size="xs"
             >
               Stay in the loop
             </Button>
@@ -91,31 +105,58 @@ function Content() {
 
       <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="md" my="auto">
-          <Stack gap="5rem">
-            <Grid gutter="xl" align="center">
-              <GridCol span={{ sm: 5, md: 6 }}>
-                <Stack gap="xs" maw={550}>
-                  <AnimatedTitle />
+          <Stack gap="5rem" align="center">
+            <Stack gap="xs" align="center" maw={700}>
+              <Button
+                component={Link}
+                href={'https://atmosphereconf.org/event/OD6Gd0A'}
+                size="compact-sm"
+                leftSection={'🪿'}
+                variant="default"
+                rightSection={<IoArrowForward />}
+                c="#4098FF"
+                bg={'blue.0'}
+              >
+                We&apos;re heading to ATmosphereConf!
+              </Button>
+              <AnimatedTitle />
 
-                  {/* light mode subtitle */}
-                  <Title order={2} fw={600} fz="xl" c="#1F6144" darkHidden>
-                    Follow your peers’ research trails. Surface and discover new
-                    connections. Built on ATProto so you own your data.
-                  </Title>
+              {/* light mode subtitle */}
+              <Title
+                order={2}
+                fw={600}
+                fz="xl"
+                c="#1F6144"
+                ta={'center'}
+                maw={450}
+                darkHidden
+              >
+                Follow your peers&apos; research trails. Surface and discover
+                new connections. Built on ATProto so you own your data.
+              </Title>
 
-                  {/* dark mode subtitle */}
-                  <Title order={2} fw={600} fz="xl" c="#1e4dd9" lightHidden>
-                    Follow your peers’ research trails. Surface and discover new
-                    connections. Built on ATProto so you own your data.
-                  </Title>
+              {/* dark mode subtitle */}
+              <Title
+                order={2}
+                fw={600}
+                fz="xl"
+                c="#1e4dd9"
+                ta={'center'}
+                maw={450}
+                lightHidden
+              >
+                Follow your peers&apos; research trails. Surface and discover
+                new connections. Built on ATProto so you own your data.
+              </Title>
 
-                  <AuthButtons />
-                </Stack>
-              </GridCol>
-              <GridCol span={{ sm: 7, md: 6 }}>
+              <AuthButtons />
+            </Stack>
+
+            <Box maw={750} w="100%">
+              <Suspense fallback={<RecentActivitySkeleton />}>
                 <RecentActivity />
-              </GridCol>
-            </Grid>
+              </Suspense>
+            </Box>
 
             <SimpleGrid
               cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
