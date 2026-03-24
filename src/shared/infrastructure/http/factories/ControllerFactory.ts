@@ -63,6 +63,7 @@ import { GetConnectionsForUrlController } from '../../../../modules/cards/infras
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
 import { GetGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetGraphDataController';
 import { GetUserGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUserGraphDataController';
+import { GetUrlGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlGraphDataController';
 import { CookieService } from '../services/CookieService';
 import { Services } from './ServiceFactory';
 
@@ -122,6 +123,7 @@ export interface Controllers {
   // Graph controllers
   getGraphDataController: GetGraphDataController;
   getUserGraphDataController: GetUserGraphDataController;
+  getUrlGraphDataController: GetUrlGraphDataController;
   // Search controllers
   searchUrlsController: SearchUrlsController;
   // Feed controllers
@@ -319,6 +321,9 @@ export class ControllerFactory {
       ),
       getUserGraphDataController: new GetUserGraphDataController(
         useCases.getGraphDataUseCase,
+      ),
+      getUrlGraphDataController: new GetUrlGraphDataController(
+        useCases.getUrlSubGraphUseCase,
       ),
 
       // Search controllers

@@ -40,4 +40,13 @@ export interface IGraphQueryRepository {
     limit?: number,
     userId?: string,
   ): Promise<GraphDataDTO>;
+
+  /**
+   * Get a sub-graph centered around a specific URL with depth-based traversal
+   * Returns all nodes and edges within N hops of the target URL
+   *
+   * @param url - Target URL to center the sub-graph around
+   * @param depth - Number of edge hops to traverse (1-5, defaults to 1)
+   */
+  getUrlSubGraph(url: string, depth: number): Promise<GraphDataDTO>;
 }

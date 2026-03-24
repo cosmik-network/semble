@@ -57,6 +57,7 @@ import {
   GetGraphDataResponse,
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
+  GetUrlGraphDataParams,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -567,6 +568,19 @@ export class QueryClient extends BaseClient {
     const endpoint = queryString
       ? `/api/graph/user/${params.identifier}?${queryString}`
       : `/api/graph/user/${params.identifier}`;
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
+  }
+
+  async getUrlGraphData(
+    params: GetUrlGraphDataParams,
+  ): Promise<GetGraphDataResponse> {
+    // Build query string with url and depth parameters
+    const searchParams = new URLSearchParams();
+    searchParams.set('url', params.url);
+    if (params.depth) searchParams.set('depth', params.depth.toString());
+
+    const endpoint = `/api/graph/url?${searchParams.toString()}`;
 
     return this.request<GetGraphDataResponse>('GET', endpoint);
   }

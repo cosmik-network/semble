@@ -73,6 +73,7 @@ import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/app
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
 import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
 import { GetGraphDataUseCase } from '../../../../modules/cards/application/useCases/queries/GetGraphDataUseCase';
+import { GetUrlSubGraphUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlSubGraphUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -149,6 +150,7 @@ export interface UseCases {
   deleteConnectionUseCase: DeleteConnectionUseCase;
   // Graph use cases
   getGraphDataUseCase: GetGraphDataUseCase;
+  getUrlSubGraphUseCase: GetUrlSubGraphUseCase;
   // Search use cases
   searchUrlsUseCase: SearchUrlsUseCase;
   // Feed use cases
@@ -432,6 +434,9 @@ export class UseCaseFactory {
       getGraphDataUseCase: new GetGraphDataUseCase(
         repositories.graphQueryRepository,
         services.identityResolutionService,
+      ),
+      getUrlSubGraphUseCase: new GetUrlSubGraphUseCase(
+        repositories.graphQueryRepository,
       ),
 
       // Search use cases

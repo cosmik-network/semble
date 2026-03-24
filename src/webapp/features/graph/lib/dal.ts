@@ -32,3 +32,21 @@ export const getGraphData = cache(async () => {
   // For backward compatibility, fetch page 1 with a large limit
   return getGraphDataPage(1, 10000);
 });
+
+/**
+ * Fetch URL-centric sub-graph with depth-based traversal
+ * Returns all nodes and edges within N hops of the target URL
+ *
+ * @param url - Target URL to center the sub-graph around
+ * @param depth - Number of edge hops to traverse (1-5, defaults to 1)
+ */
+export const getUrlGraphData = cache(async (url: string, depth: number = 1) => {
+  // Verify authentication - graph data is personalized
+  const session = await verifySessionOnClient({ redirectOnFail: true });
+  if (!session) throw new Error('No session found');
+
+  const client = createSembleClient();
+  const response = await client.getUrlGraphData({ url, depth });
+
+  return response;
+});

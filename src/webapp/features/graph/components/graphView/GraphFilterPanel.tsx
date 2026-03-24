@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Switch, Stack, Text, ActionIcon, Group } from '@mantine/core';
+import {
+  Box,
+  Switch,
+  Stack,
+  Text,
+  ActionIcon,
+  Group,
+  Slider,
+} from '@mantine/core';
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 import styles from './GraphFilterPanel.module.css';
 
@@ -25,6 +33,12 @@ interface GraphFilterPanelProps {
   onNodeTypeToggle: (type: NodeType) => void;
   onEdgeTypeToggle: (type: EdgeType) => void;
   hiddenNodeTypeControls?: Set<NodeType>;
+  // Optional depth control (for URL sub-graph view)
+  depth?: number;
+  onDepthChange?: (depth: number) => void;
+  showDepthControl?: boolean;
+  // Optional control for initial collapsed state
+  defaultCollapsed?: boolean;
 }
 
 // Human-readable labels for types
@@ -50,8 +64,12 @@ export default function GraphFilterPanel({
   onNodeTypeToggle,
   onEdgeTypeToggle,
   hiddenNodeTypeControls = new Set(),
+  depth,
+  onDepthChange,
+  showDepthControl = false,
+  defaultCollapsed = true,
 }: GraphFilterPanelProps) {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
     <Box className={`${styles.panel} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -76,6 +94,35 @@ export default function GraphFilterPanel({
           <Text size="sm" fw={600} c="dimmed">
             Graph Filters
           </Text>
+
+          {/* Depth Control (only shown for URL sub-graph view) */}
+          {showDepthControl && depth !== undefined && onDepthChange && (
+            <Stack gap="xs">
+              <Group justify="space-between">
+                <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+                  Depth
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {depth} {depth === 1 ? 'hop' : 'hops'}
+                </Text>
+              </Group>
+              <Slider
+                value={depth}
+                onChange={onDepthChange}
+                min={1}
+                max={5}
+                step={1}
+                marks={[
+                  { value: 1, label: '1' },
+                  { value: 2, label: '2' },
+                  { value: 3, label: '3' },
+                  { value: 4, label: '4' },
+                  { value: 5, label: '5' },
+                ]}
+                size="sm"
+              />
+            </Stack>
+          )}
 
           {/* Node Type Filters */}
           <Stack gap="xs">

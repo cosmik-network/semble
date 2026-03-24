@@ -147,6 +147,7 @@ export const createExpressApp = (
     services.authMiddleware,
     controllers.getGraphDataController,
     controllers.getUserGraphDataController,
+    controllers.getUrlGraphDataController,
   );
 
   const feedRouter = createFeedRoutes(

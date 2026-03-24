@@ -364,3 +364,8 @@ export interface GetGraphDataParams extends PaginationParams {
 export interface GetUserGraphDataParams extends GetGraphDataParams {
   identifier: string; // Can be DID or handle
 }
+
+export interface GetUrlGraphDataParams {
+  url: string; // Target URL to center the sub-graph around
+  depth?: number; // Number of edge hops to traverse (1-5, defaults to 1)
+}
