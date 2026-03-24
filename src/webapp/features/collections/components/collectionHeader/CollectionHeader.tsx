@@ -146,28 +146,41 @@ export default function CollectionHeader(props: Props) {
                   </Group>
                 </Group>
                 <Group gap={'xs'}>
-                  <Group gap={5}>
-                    <Text fw={500} fz={'sm'} c={'bright'}>
-                      {collection.cardCount}
-                    </Text>
-                    <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      {collection.cardCount === 1 ? 'Card' : 'Cards'}
-                    </Text>
-                  </Group>
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${collection.author.handle}/collections/${collection.id}`}
+                    underline="never"
+                  >
+                    <Group gap={5}>
+                      <Text fw={500} fz={'sm'} c={'bright'}>
+                        {collection.cardCount}
+                      </Text>
+                      <Text fw={500} fz={'sm'} c={'dimmed'}>
+                        {collection.cardCount === 1 ? 'Card' : 'Cards'}
+                      </Text>
+                    </Group>
+                  </Anchor>
 
                   <Divider orientation="vertical" />
 
                   <>
-                    <Group gap={5}>
-                      <Text fw={500} fz={'sm'} c={'bright'}>
-                        {collection.followerCount}
-                      </Text>
-                      <Text fw={500} fz={'sm'} c={'dimmed'}>
-                        {collection.followerCount === 1
-                          ? 'Follower'
-                          : 'Followers'}
-                      </Text>
-                    </Group>
+                    <Anchor
+                      component={Link}
+                      href={`/profile/${collection.author.handle}/collections/${collection.id}/followers`}
+                      underline="never"
+                    >
+                      <Group gap={5}>
+                        <Text fw={500} fz={'sm'} c={'bright'}>
+                          {collection.followerCount}
+                        </Text>
+                        <Text fw={500} fz={'sm'} c={'dimmed'}>
+                          {collection.followerCount === 1
+                            ? 'Follower'
+                            : 'Followers'}
+                        </Text>
+                      </Group>
+                    </Anchor>
+
                     <Divider orientation="vertical" />
                   </>
 

@@ -19,6 +19,7 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
   const searchedCollections = useSearchCollections({
     searchText: search,
     accessType: CollectionAccessType.OPEN,
+    limit: 100,
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
