@@ -22,6 +22,9 @@ export interface ExtendedGraphNode extends APIGraphNode {
   vy?: number;
   fx?: number;
   fy?: number;
+
+  // Animation properties
+  __addedAt?: number; // Timestamp when node was added (for fade-in animation)
 }
 
 /**

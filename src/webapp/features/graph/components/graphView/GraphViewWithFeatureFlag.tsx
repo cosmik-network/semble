@@ -29,6 +29,7 @@ export default function GraphViewWithFeatureFlag() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
         <Stack align="center" gap="md">

@@ -57,6 +57,7 @@ import {
   GetGraphDataResponse,
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
+  GetUrlGraphDataParams,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -553,6 +554,37 @@ export class QueryClient extends BaseClient {
     );
   }
 
+  async getUserGraphData(params: {
+    identifier: string;
+    page?: number;
+    limit?: number;
+  }): Promise<GetGraphDataResponse> {
+    // Build query string with pagination parameters
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/graph/user/${params.identifier}?${queryString}`
+      : `/api/graph/user/${params.identifier}`;
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
+  }
+
+  async getUrlGraphData(
+    params: GetUrlGraphDataParams,
+  ): Promise<GetGraphDataResponse> {
+    // Build query string with url and depth parameters
+    const searchParams = new URLSearchParams();
+    searchParams.set('url', params.url);
+    if (params.depth) searchParams.set('depth', params.depth.toString());
+
+    const endpoint = `/api/graph/url?${searchParams.toString()}`;
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
+  }
+
   async getGraphData(
     params?: GetGraphDataParams,
   ): Promise<GetGraphDataResponse> {
@@ -573,9 +605,43 @@ export class QueryClient extends BaseClient {
       // Simulate network delay for realistic testing
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      return mockData;
+      // Apply pagination to mock data
+      const page = params?.page || 1;
+      const limit = params?.limit || 300;
+      const offset = (page - 1) * limit;
+      const totalCount = mockData.nodes.length;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasMore = page < totalPages;
+
+      const paginatedNodes = mockData.nodes.slice(offset, offset + limit);
+      const loadedNodeIds = new Set(paginatedNodes.map((n) => n.id));
+      const filteredEdges = mockData.edges.filter(
+        (e) => loadedNodeIds.has(e.source) && loadedNodeIds.has(e.target),
+      );
+
+      return {
+        nodes: paginatedNodes,
+        edges: filteredEdges,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          hasMore,
+          limit,
+        },
+      };
     }
 
-    return this.request<GetGraphDataResponse>('GET', '/api/graph/data');
+    // Build query string with pagination parameters
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/graph/data?${queryString}`
+      : '/api/graph/data';
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
   }
 }

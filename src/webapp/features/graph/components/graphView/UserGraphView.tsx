@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Box, LoadingOverlay } from '@mantine/core';
-import useGraphData from '../../lib/queries/useGraphData';
+import useUserGraphData from '../../lib/queries/useUserGraphData';
 import type {
   ExtendedGraphNode,
   ExtendedGraphEdge,
@@ -45,7 +45,11 @@ type EdgeType =
   | 'COLLECTION_CONTAINS_URL'
   | 'URL_CONNECTS_URL';
 
-export default function GraphView() {
+interface UserGraphViewProps {
+  identifier: string;
+}
+
+export default function UserGraphView({ identifier }: UserGraphViewProps) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(undefined);
@@ -56,9 +60,9 @@ export default function GraphView() {
   const [previewPos, setPreviewPos] = useState<PopupPosition>({ x: 0, y: 0 });
   const [detailPos, setDetailPos] = useState<PopupPosition>({ x: 0, y: 0 });
 
-  // State for graph filters (all types visible by default)
+  // State for graph filters (USER hidden by default in user graph view)
   const [visibleNodeTypes, setVisibleNodeTypes] = useState<Set<NodeType>>(
-    new Set(['USER', 'COLLECTION', 'URL', 'NOTE'] as NodeType[]),
+    new Set(['COLLECTION', 'URL', 'NOTE'] as NodeType[]),
   );
   const [visibleEdgeTypes, setVisibleEdgeTypes] = useState<Set<EdgeType>>(
     new Set([
@@ -71,8 +75,8 @@ export default function GraphView() {
     ] as EdgeType[]),
   );
 
-  // Fetch and process graph data
-  const { data: graphData } = useGraphData();
+  // Fetch and process graph data for the specific user
+  const { data: graphData } = useUserGraphData(identifier);
 
   // Filter graph data based on visible types
   const filteredGraphData = useMemo(() => {
@@ -420,6 +424,7 @@ export default function GraphView() {
         visibleEdgeTypes={visibleEdgeTypes}
         onNodeTypeToggle={handleNodeTypeToggle}
         onEdgeTypeToggle={handleEdgeTypeToggle}
+        hiddenNodeTypeControls={new Set(['USER'] as NodeType[])}
       />
 
       <ForceGraph2D
