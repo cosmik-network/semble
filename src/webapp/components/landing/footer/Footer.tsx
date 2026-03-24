@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Anchor,
+  BackgroundImage,
   Box,
   Button,
   Group,
@@ -13,11 +14,35 @@ import { RiArrowRightUpLine } from 'react-icons/ri';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
+import BG from '@/assets/semble-bg.webp';
+import DarkBG from '@/assets/semble-bg-dark.png';
+
+const bgStyle = {
+  position: 'absolute' as const,
+  top: 0,
+  left: '50%',
+  marginLeft: '-50vw',
+  marginRight: '-50vw',
+  width: '100vw',
+  height: '250px',
+  transform: 'rotate(180deg)',
+  opacity: 0.7,
+  filter: 'grayscale(100%)',
+  WebkitMaskImage: 'linear-gradient(to top, transparent 5%, black 35%)',
+  maskImage: 'linear-gradient(to top, transparent 5%, black 35%)',
+  zIndex: 0,
+};
 
 export default function Footer() {
   return (
     <Box component="footer" px="md" py="xs" mt="xl" pos="relative">
-      <Stack align="center" gap="xs">
+      {/* light mode bg */}
+      <BackgroundImage src={BG.src} darkHidden style={bgStyle} />
+
+      {/* dark mode bg */}
+      <BackgroundImage src={DarkBG.src} lightHidden style={bgStyle} />
+
+      <Stack align="center" gap="xs" pos="relative" style={{ zIndex: 1 }}>
         <Group gap="0">
           <ActionIcon
             component="a"
