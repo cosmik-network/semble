@@ -69,13 +69,13 @@ function Content() {
   return (
     <Fragment>
       <script async src="https://tally.so/widgets/embed.js" />
-      <Container size="xl" p="md" my="auto">
+      <Container size="xl" p="sm" my="auto">
         <Group justify="space-between">
           <Stack gap={6} align="center">
             <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
             <Badge size="xs">Alpha</Badge>
           </Stack>
-          <Group gap={'sm'}>
+          <Group gap={'xs'}>
             <IosShortcutButton />
             <Button
               component="a"
@@ -104,7 +104,7 @@ function Content() {
       </Container>
 
       <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
-        <Container size="xl" p="md" my="auto">
+        <Container size="xl" p="sm" my="auto">
           <Stack gap="5rem" align="center">
             <Stack gap="xs" align="center" maw={700}>
               <Button
