@@ -60,9 +60,9 @@ export default function UserGraphView({ identifier }: UserGraphViewProps) {
   const [previewPos, setPreviewPos] = useState<PopupPosition>({ x: 0, y: 0 });
   const [detailPos, setDetailPos] = useState<PopupPosition>({ x: 0, y: 0 });
 
-  // State for graph filters (all types visible by default)
+  // State for graph filters (USER hidden by default in user graph view)
   const [visibleNodeTypes, setVisibleNodeTypes] = useState<Set<NodeType>>(
-    new Set(['USER', 'COLLECTION', 'URL', 'NOTE'] as NodeType[]),
+    new Set(['COLLECTION', 'URL', 'NOTE'] as NodeType[]),
   );
   const [visibleEdgeTypes, setVisibleEdgeTypes] = useState<Set<EdgeType>>(
     new Set([
@@ -424,6 +424,7 @@ export default function UserGraphView({ identifier }: UserGraphViewProps) {
         visibleEdgeTypes={visibleEdgeTypes}
         onNodeTypeToggle={handleNodeTypeToggle}
         onEdgeTypeToggle={handleEdgeTypeToggle}
+        hiddenNodeTypeControls={new Set(['USER'])}
       />
 
       <ForceGraph2D

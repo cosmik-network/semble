@@ -24,6 +24,7 @@ interface GraphFilterPanelProps {
   visibleEdgeTypes: Set<EdgeType>;
   onNodeTypeToggle: (type: NodeType) => void;
   onEdgeTypeToggle: (type: EdgeType) => void;
+  hiddenNodeTypeControls?: Set<NodeType>;
 }
 
 // Human-readable labels for types
@@ -48,8 +49,9 @@ export default function GraphFilterPanel({
   visibleEdgeTypes,
   onNodeTypeToggle,
   onEdgeTypeToggle,
+  hiddenNodeTypeControls = new Set(),
 }: GraphFilterPanelProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <Box className={`${styles.panel} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -80,16 +82,18 @@ export default function GraphFilterPanel({
             <Text size="xs" fw={600} c="dimmed" tt="uppercase">
               Node Types
             </Text>
-            {NODE_TYPES.map((type) => (
-              <Group key={type} justify="space-between" gap="xs">
-                <Text size="sm">{NODE_TYPE_LABELS[type]}</Text>
-                <Switch
-                  checked={visibleNodeTypes.has(type)}
-                  onChange={() => onNodeTypeToggle(type)}
-                  size="sm"
-                />
-              </Group>
-            ))}
+            {NODE_TYPES.filter((type) => !hiddenNodeTypeControls.has(type)).map(
+              (type) => (
+                <Group key={type} justify="space-between" gap="xs">
+                  <Text size="sm">{NODE_TYPE_LABELS[type]}</Text>
+                  <Switch
+                    checked={visibleNodeTypes.has(type)}
+                    onChange={() => onNodeTypeToggle(type)}
+                    size="sm"
+                  />
+                </Group>
+              ),
+            )}
           </Stack>
 
           {/* Edge Type Filters */}
