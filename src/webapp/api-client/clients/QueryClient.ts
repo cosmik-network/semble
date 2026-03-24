@@ -553,13 +553,31 @@ export class QueryClient extends BaseClient {
     );
   }
 
+  async getUserGraphData(params: {
+    identifier: string;
+    page?: number;
+    limit?: number;
+  }): Promise<GetGraphDataResponse> {
+    // Build query string with pagination parameters
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/graph/user/${params.identifier}?${queryString}`
+      : `/api/graph/user/${params.identifier}`;
+
+    return this.request<GetGraphDataResponse>('GET', endpoint);
+  }
+
   async getGraphData(
     params?: GetGraphDataParams,
   ): Promise<GetGraphDataResponse> {
     // Check if mock data should be used (for performance testing)
     // Set NEXT_PUBLIC_USE_MOCK_GRAPH_DATA=true in .env.local to enable
-    // const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
-    const useMockData = true;
+    const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
+    // const useMockData = true;
 
     if (useMockData) {
       const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(

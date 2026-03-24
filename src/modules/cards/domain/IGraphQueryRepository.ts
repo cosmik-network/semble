@@ -28,11 +28,16 @@ export interface GraphDataDTO {
 
 export interface IGraphQueryRepository {
   /**
-   * Get nodes and edges for the global graph visualization with pagination support
+   * Get nodes and edges for graph visualization with pagination support
    * Returns paginated graph data with total count for calculating pagination metadata
    *
    * @param page - Page number (1-indexed, defaults to 1)
    * @param limit - Number of nodes per page (defaults to 300)
+   * @param userId - Optional user DID to scope the graph to a specific user's data
    */
-  getGraphData(page?: number, limit?: number): Promise<GraphDataDTO>;
+  getGraphData(
+    page?: number,
+    limit?: number,
+    userId?: string,
+  ): Promise<GraphDataDTO>;
 }

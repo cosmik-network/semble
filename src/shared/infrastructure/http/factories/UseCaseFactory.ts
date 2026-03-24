@@ -431,6 +431,7 @@ export class UseCaseFactory {
       // Graph use cases
       getGraphDataUseCase: new GetGraphDataUseCase(
         repositories.graphQueryRepository,
+        services.identityResolutionService,
       ),
 
       // Search use cases

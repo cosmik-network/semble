@@ -12,7 +12,11 @@ export class DrizzleGraphQueryRepository implements IGraphQueryRepository {
     this.graphQueryService = new GraphQueryService(db);
   }
 
-  async getGraphData(page?: number, limit?: number): Promise<GraphDataDTO> {
-    return this.graphQueryService.getGraphData(page, limit);
+  async getGraphData(
+    page?: number,
+    limit?: number,
+    userId?: string,
+  ): Promise<GraphDataDTO> {
+    return this.graphQueryService.getGraphData(page, limit, userId);
   }
 }

@@ -62,7 +62,9 @@ import { GetConnectionsController } from '../../../../modules/cards/infrastructu
 import { GetConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsForUrlController';
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
 import { GetGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetGraphDataController';
+import { GetUserGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUserGraphDataController';
 import { CookieService } from '../services/CookieService';
+import { Services } from './ServiceFactory';
 
 export interface Controllers {
   // User controllers
@@ -119,6 +121,7 @@ export interface Controllers {
   getConnectionsForUrlController: GetConnectionsForUrlController;
   // Graph controllers
   getGraphDataController: GetGraphDataController;
+  getUserGraphDataController: GetUserGraphDataController;
   // Search controllers
   searchUrlsController: SearchUrlsController;
   // Feed controllers
@@ -139,7 +142,11 @@ export interface Controllers {
 }
 
 export class ControllerFactory {
-  static create(useCases: UseCases, cookieService: CookieService): Controllers {
+  static create(
+    useCases: UseCases,
+    cookieService: CookieService,
+    services: Services,
+  ): Controllers {
     return {
       // User controllers
       loginWithAppPasswordController: new LoginWithAppPasswordController(
@@ -308,6 +315,9 @@ export class ControllerFactory {
 
       // Graph controllers
       getGraphDataController: new GetGraphDataController(
+        useCases.getGraphDataUseCase,
+      ),
+      getUserGraphDataController: new GetUserGraphDataController(
         useCases.getGraphDataUseCase,
       ),
 

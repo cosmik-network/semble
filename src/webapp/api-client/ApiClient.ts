@@ -522,6 +522,14 @@ export class ApiClient {
   ): Promise<GetGraphDataResponse> {
     return this.queryClient.getGraphData(params);
   }
+
+  async getUserGraphData(params: {
+    identifier: string;
+    page?: number;
+    limit?: number;
+  }): Promise<GetGraphDataResponse> {
+    return this.queryClient.getUserGraphData(params);
+  }
 }
 
 // Re-export types for convenience

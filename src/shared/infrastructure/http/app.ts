@@ -69,6 +69,7 @@ export const createExpressApp = (
   const controllers = ControllerFactory.create(
     useCases,
     services.cookieService,
+    services,
   );
 
   // Routes
@@ -145,6 +146,7 @@ export const createExpressApp = (
   const graphRouter = createGraphRoutes(
     services.authMiddleware,
     controllers.getGraphDataController,
+    controllers.getUserGraphDataController,
   );
 
   const feedRouter = createFeedRoutes(

@@ -360,3 +360,7 @@ export interface GetConnectionsParams extends PaginatedSortedParams {
 export interface GetGraphDataParams extends PaginationParams {
   // Supports pagination for incremental graph loading
 }
+
+export interface GetUserGraphDataParams extends GetGraphDataParams {
+  identifier: string; // Can be DID or handle
+}
