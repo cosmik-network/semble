@@ -1,12 +1,21 @@
 'use client';
 
 import { Suspense } from 'react';
-import { Stack, Button, Group, FocusTrap, Tabs } from '@mantine/core';
+import {
+  Stack,
+  Button,
+  Group,
+  FocusTrap,
+  Tabs,
+  ThemeIcon,
+  ScrollAreaAutosize,
+} from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
 import CollectionSelectorAtmosphereConf from '../collectionSelectorAtmosphereConf/CollectionSelectorAtmosphereConf';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   isOpen: boolean;
@@ -23,17 +32,46 @@ export default function CollectionSelector(props: Props) {
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'}>
-        <Tabs.List grow mb={'xs'}>
-          <Tabs.Tab classNames={classes} value="myCollections">
-            My Collections
-          </Tabs.Tab>
-          <Tabs.Tab classNames={classes} value="openCollections">
-            Open Collections
-          </Tabs.Tab>
-          <Tabs.Tab classNames={classes} value="atmosphereConf">
-            AtmosphereConf 🪿
-          </Tabs.Tab>
-        </Tabs.List>
+        <ScrollAreaAutosize type="scroll">
+          <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
+            <Tabs.Tab classNames={classes} value="myCollections">
+              My Collections
+            </Tabs.Tab>
+            <Tabs.Tab
+              classNames={classes}
+              leftSection={
+                <ThemeIcon
+                  variant="light"
+                  radius={'xl'}
+                  size={'xs'}
+                  color="green"
+                >
+                  <FaSeedling size={8} />
+                </ThemeIcon>
+              }
+              value="openCollections"
+            >
+              Open Collections
+            </Tabs.Tab>
+            <Tabs.Tab
+              classNames={classes}
+              value="atmosphereConf"
+              leftSection={
+                <ThemeIcon
+                  variant="light"
+                  radius={'xl'}
+                  size={'xs'}
+                  color="blue"
+                  fz={'xs'}
+                >
+                  🪿
+                </ThemeIcon>
+              }
+            >
+              AtmosphereConf
+            </Tabs.Tab>
+          </Tabs.List>
+        </ScrollAreaAutosize>
         <Tabs.Panel value="myCollections">
           <Suspense>
             <CollectionSelectorMyCollections
