@@ -20,7 +20,6 @@ import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useState, useEffect } from 'react';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function MyFeedContainer() {
   const pathname = usePathname();
@@ -29,8 +28,6 @@ export default function MyFeedContainer() {
   const selectedSource = searchParams.get('source') as ActivitySource;
   const selectedFeed =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
-
-  const { data: featureFlags } = useFeatureFlags();
 
   // Parse activityTypes from URL params (lowercase) and convert to enum values
   const activityTypesParam = searchParams.getAll('activityTypes');
@@ -45,11 +42,7 @@ export default function MyFeedContainer() {
           .filter((t): t is ActivityType => t !== undefined)
       : undefined;
 
-  // Hard-code to only CARD_COLLECTED when connections feature flag is false
-  const activityTypesFilter =
-    featureFlags?.connections === false
-      ? [ActivityType.CARD_COLLECTED]
-      : selectedActivityTypes;
+  const activityTypesFilter = selectedActivityTypes;
 
   const globalFeed = useGlobalFeed({
     urlType: selectedUrlType,

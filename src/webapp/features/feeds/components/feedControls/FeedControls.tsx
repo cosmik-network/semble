@@ -287,63 +287,61 @@ export default function FeedControls() {
               </Popover.Dropdown>
             </Popover>
 
-            {featureFlags?.connections && (
-              <>
-                <Menu.Label>Activity Type</Menu.Label>
-                <Menu.Sub>
-                  <Menu.Sub.Target>
-                    <Menu.Sub.Item
-                      fz="md"
-                      fw={600}
-                      disabled={isMarginSource}
-                      leftSection={
-                        optimisticActivityTypes.length === 1
-                          ? activityTypeOptions.find(
-                              (o) => o.value === optimisticActivityTypes[0],
-                            )?.icon
-                          : null
-                      }
-                    >
-                      {optimisticActivityTypes.length === 1
-                        ? (activityTypeOptions.find(
+            <>
+              <Menu.Label>Activity Type</Menu.Label>
+              <Menu.Sub>
+                <Menu.Sub.Target>
+                  <Menu.Sub.Item
+                    fz="md"
+                    fw={600}
+                    disabled={isMarginSource}
+                    leftSection={
+                      optimisticActivityTypes.length === 1
+                        ? activityTypeOptions.find(
                             (o) => o.value === optimisticActivityTypes[0],
-                          )?.label ?? 'All')
-                        : 'All'}
-                    </Menu.Sub.Item>
-                  </Menu.Sub.Target>
+                          )?.icon
+                        : null
+                    }
+                  >
+                    {optimisticActivityTypes.length === 1
+                      ? (activityTypeOptions.find(
+                          (o) => o.value === optimisticActivityTypes[0],
+                        )?.label ?? 'All')
+                      : 'All'}
+                  </Menu.Sub.Item>
+                </Menu.Sub.Target>
 
-                  <Menu.Sub.Dropdown>
+                <Menu.Sub.Dropdown>
+                  <Menu.Item
+                    onClick={() => handleActivityTypeClick(null)}
+                    rightSection={
+                      optimisticActivityTypes.length === 0 ? (
+                        <IoMdCheckmark />
+                      ) : null
+                    }
+                    closeMenuOnClick={false}
+                  >
+                    All
+                  </Menu.Item>
+                  {activityTypeOptions.map((option) => (
                     <Menu.Item
-                      onClick={() => handleActivityTypeClick(null)}
+                      key={option.value}
+                      onClick={() => handleActivityTypeClick(option.value)}
+                      leftSection={option.icon}
                       rightSection={
-                        optimisticActivityTypes.length === 0 ? (
+                        optimisticActivityTypes.length === 1 &&
+                        optimisticActivityTypes[0] === option.value ? (
                           <IoMdCheckmark />
                         ) : null
                       }
                       closeMenuOnClick={false}
                     >
-                      All
+                      {option.label}
                     </Menu.Item>
-                    {activityTypeOptions.map((option) => (
-                      <Menu.Item
-                        key={option.value}
-                        onClick={() => handleActivityTypeClick(option.value)}
-                        leftSection={option.icon}
-                        rightSection={
-                          optimisticActivityTypes.length === 1 &&
-                          optimisticActivityTypes[0] === option.value ? (
-                            <IoMdCheckmark />
-                          ) : null
-                        }
-                        closeMenuOnClick={false}
-                      >
-                        {option.label}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Sub.Dropdown>
-                </Menu.Sub>
-              </>
-            )}
+                  ))}
+                </Menu.Sub.Dropdown>
+              </Menu.Sub>
+            </>
 
             {hasActiveFilters && (
               <>

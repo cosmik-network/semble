@@ -93,8 +93,6 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       services.notificationService,
       repositories.connectionRepository,
       repositories.cardQueryRepository,
-      this.configService,
-      services.identityResolutionService,
     );
 
     const connectionRemovedHandler = new ConnectionRemovedEventHandler(
