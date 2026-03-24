@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function CollectionSelectorAtmosphereConf(props: Props) {
-  const [search, setSearch] = useState('#AtmosphereConf');
+  const [search, setSearch] = useState('atmosphereConf');
 
   // note: this returns all open collections by default
   const searchedCollections = useSearchCollections({

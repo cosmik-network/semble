@@ -24,7 +24,7 @@ export async function getServerFeatureFlags() {
     animatedLandingTitle: show,
     openCollections: true,
     following: true,
-    connections: show,
+    connections: true,
     graphView: show,
   };
 }

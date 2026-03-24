@@ -43,13 +43,16 @@ export default function ProfileTabs(props: Props) {
             >
               Collections
             </TabItem>
-            {featureFlags?.connections && (
-              <TabItem
-                value="connections"
-                href={`${basePath}/connections`}
-                count={profile.connectionCount}
-              >
-                Connections
+            <TabItem
+              value="connections"
+              href={`${basePath}/connections`}
+              count={profile.connectionCount}
+            >
+              Connections
+            </TabItem>
+            {featureFlags?.graphView && (
+              <TabItem value="graph" href={`${basePath}/graph`}>
+                Graph
               </TabItem>
             )}
             <TabItem value="network" href={`${basePath}/network`}>
