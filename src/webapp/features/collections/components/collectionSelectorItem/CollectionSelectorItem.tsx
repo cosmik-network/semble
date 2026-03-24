@@ -44,7 +44,7 @@ export default function CollectionSelectorItem(props: Props) {
           {isMarginUri(props.collection.uri) && (
             <MarginLogo size={12} marginUrl={marginUrl} />
           )}
-          <Text fw={500} lineClamp={1}>
+          <Text fw={500} lineClamp={2}>
             {props.collection.name}
           </Text>
         </Group>
