@@ -6,6 +6,7 @@ import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
+import CollectionSelectorAtmosphereConf from '../collectionSelectorAtmosphereConf/CollectionSelectorAtmosphereConf';
 
 interface Props {
   isOpen: boolean;
@@ -29,6 +30,9 @@ export default function CollectionSelector(props: Props) {
           <Tabs.Tab classNames={classes} value="openCollections">
             Open Collections
           </Tabs.Tab>
+          <Tabs.Tab classNames={classes} value="atmosphereConf">
+            AtmosphereConf 🪿
+          </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="myCollections">
           <Suspense>
@@ -42,6 +46,15 @@ export default function CollectionSelector(props: Props) {
         <Tabs.Panel value="openCollections">
           <Suspense>
             <CollectionSelectorOpenCollections
+              selectedCollections={props.selectedCollections}
+              onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+            />
+          </Suspense>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="atmosphereConf">
+          <Suspense>
+            <CollectionSelectorAtmosphereConf
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
             />
