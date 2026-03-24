@@ -7,6 +7,7 @@ import {
   Menu,
   Image,
   Popover,
+  Text,
 } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -356,15 +357,25 @@ export default function FeedControls() {
           </Menu.Dropdown>
         </Menu>
 
-        <Button
-          component={Link}
-          href={'/explore/open-collections'}
-          color="green"
-          variant="light"
-          leftSection={<FaSeedling />}
-        >
-          Open Collections
-        </Button>
+        <Group gap={'xs'}>
+          <Button
+            component={Link}
+            href={'/explore/open-collections'}
+            color="green"
+            variant="light"
+          >
+            <FaSeedling />
+          </Button>
+          <Button
+            component={Link}
+            href={'/explore/atmosphereConf-collections'}
+            color="#4098FF"
+            variant="light"
+            fz={'md'}
+          >
+            🪿
+          </Button>
+        </Group>
       </Group>
     </ScrollAreaAutosize>
   );
