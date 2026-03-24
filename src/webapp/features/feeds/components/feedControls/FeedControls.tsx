@@ -21,7 +21,6 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList, MdFilterListOff } from 'react-icons/md';
 import { BiLink } from 'react-icons/bi';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 const sourceOptions = [
   { value: null, label: 'All', icon: null },
@@ -67,7 +66,6 @@ const paramToActivityType = (param: string): ActivityType | undefined =>
 export default function FeedControls() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: featureFlags } = useFeatureFlags();
   const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
   const feedFromUrl =
     (searchParams.get('feed') as 'global' | 'following') || 'global';

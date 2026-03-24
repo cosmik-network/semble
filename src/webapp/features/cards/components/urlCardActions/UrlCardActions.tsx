@@ -23,7 +23,6 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   id: string;
@@ -42,7 +41,6 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
-  const { data: featureFlags } = useFeatureFlags();
 
   const userId = user?.id;
   const userHandle = user?.handle;
