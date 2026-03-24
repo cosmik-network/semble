@@ -16,6 +16,7 @@ export default function IosShortcutButton() {
       target="_blank"
       variant="light"
       color="grape"
+      size="xs"
     >
       iOS shortcut
     </Button>
