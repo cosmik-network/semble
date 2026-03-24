@@ -36,7 +36,7 @@ export default function AtmosphereConfBanner() {
           </Stack>
           <Button
             component={Link}
-            href="/explore"
+            href="/explore/atmosphereConf-collections"
             size="md"
             variant="white"
             color={'blue.8'}
