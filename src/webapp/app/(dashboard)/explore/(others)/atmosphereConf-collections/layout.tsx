@@ -22,11 +22,19 @@ export default function Layout(props: Props) {
 
       <Container p={'xs'} size={'xl'}>
         <Group gap={'xs'}>
-          <ThemeIcon size={'md'} variant="light" color={'blue'} radius={'xl'}>
+          <ThemeIcon
+            size={'md'}
+            variant="light"
+            color={'blue'}
+            fz={'sm'}
+            radius={'xl'}
+          >
             🪿
           </ThemeIcon>
 
-          <Title order={2}>AtmosphereConf Collections</Title>
+          <Title order={2} c={'#4098FF'}>
+            AtmosphereConf Collections
+          </Title>
         </Group>
       </Container>
 

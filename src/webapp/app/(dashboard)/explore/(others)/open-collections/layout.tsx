@@ -42,7 +42,9 @@ export default function Layout(props: Props) {
             </ThemeIcon>
           </Tooltip>
 
-          <Title order={2}>Open Collections</Title>
+          <Title order={2} c={'green'}>
+            Open Collections
+          </Title>
         </Group>
       </Container>
 
