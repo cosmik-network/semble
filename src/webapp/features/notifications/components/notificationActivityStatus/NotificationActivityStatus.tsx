@@ -236,7 +236,7 @@ export default function NotificationActivityStatus(props: Props) {
           <Group gap={'xs'} wrap="nowrap" align="center">
             {TypeIcon && (
               <ThemeIcon size={'sm'} variant="light" radius={'xl'}>
-                <TypeIcon />
+                <TypeIcon size={12} />
               </ThemeIcon>
             )}
             <Avatar
