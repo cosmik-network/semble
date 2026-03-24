@@ -148,7 +148,7 @@ export default function CollectionHeader(props: Props) {
                 <Group gap={'xs'}>
                   <Anchor
                     component={Link}
-                    href={`/profile/${collection.author.handle}/collections/${collection.id}`}
+                    href={`/profile/${collection.author.handle}/collections/${props.rkey}`}
                     underline="never"
                   >
                     <Group gap={5}>
@@ -166,7 +166,7 @@ export default function CollectionHeader(props: Props) {
                   <>
                     <Anchor
                       component={Link}
-                      href={`/profile/${collection.author.handle}/collections/${collection.id}/followers`}
+                      href={`/profile/${collection.author.handle}/collections/${props.rkey}/followers`}
                       underline="never"
                     >
                       <Group gap={5}>
