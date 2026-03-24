@@ -44,7 +44,7 @@ export default function Footer() {
           </ActionIcon>
           <ActionIcon
             component="a"
-            href="https://github.com/cosmik-network"
+            href="https://github.com/cosmik-network/semble"
             target="_blank"
             variant="subtle"
             color="dark.2"
