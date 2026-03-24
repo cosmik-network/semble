@@ -107,29 +107,27 @@ export default function UrlCardActions(props: Props) {
               <FiPlus size={18} />
             )}
           </Button>
-          {featureFlags?.connections && (
-            <Button
-              variant="light"
-              color={'gray'}
-              size="xs"
-              radius={'xl'}
-              leftSection={
-                props.urlConnectionCount > 0 ? (
-                  <TbPlugConnected size={15} />
-                ) : undefined
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAddConnectionModal(true);
-              }}
-            >
-              {props.urlConnectionCount ? (
-                props.urlConnectionCount
-              ) : (
+          <Button
+            variant="light"
+            color={'gray'}
+            size="xs"
+            radius={'xl'}
+            leftSection={
+              props.urlConnectionCount > 0 ? (
                 <TbPlugConnected size={15} />
-              )}
-            </Button>
-          )}
+              ) : undefined
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAddConnectionModal(true);
+            }}
+          >
+            {props.urlConnectionCount ? (
+              props.urlConnectionCount
+            ) : (
+              <TbPlugConnected size={15} />
+            )}
+          </Button>
 
           {props.note && (
             <ActionIcon
