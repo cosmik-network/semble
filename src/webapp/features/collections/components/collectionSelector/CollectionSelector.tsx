@@ -62,7 +62,7 @@ export default function CollectionSelector(props: Props) {
                   radius={'xl'}
                   size={'xs'}
                   color="blue"
-                  fz={'xs'}
+                  fz={10}
                 >
                   🪿
                 </ThemeIcon>
