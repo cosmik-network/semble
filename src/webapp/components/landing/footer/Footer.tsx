@@ -77,17 +77,6 @@ export default function Footer() {
           >
             Follow our blog for updates
           </Button>
-          <Button
-            component="a"
-            href="https://docs.cosmik.network/semble"
-            target="_blank"
-            variant="light"
-            color="dark.1"
-            fw={600}
-            rightSection={<RiArrowRightUpLine />}
-          >
-            Semble Docs
-          </Button>
         </Group>
         <Stack align="center" gap="0">
           <Text c="dark.1" fw={600} ta="center">

@@ -15,7 +15,7 @@ const words = [
 export default function AnimatedTitle() {
   const [index, setIndex] = useState(0);
   const [opened, setOpened] = useState(true);
-  const CHANGE_EVERY_MS = 3000;
+  const CHANGE_EVERY_MS = 2600;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,14 +33,14 @@ export default function AnimatedTitle() {
   }, []);
 
   return (
-    <Title order={1} fw={600} fz="2.7rem">
+    <Title order={1} fw={700} fz="2.6rem" ta={'center'}>
       A social knowledge network for{' '}
       <Box
         component="span"
         style={{
           display: 'inline-block',
           minWidth: '250px',
-          textAlign: 'left',
+          textAlign: 'center',
         }}
       >
         <Transition
@@ -51,12 +51,12 @@ export default function AnimatedTitle() {
         >
           {(styles) => (
             <Text
-              fw={600}
-              fz="2.7rem"
+              fw={700}
+              fz="2.6rem"
               style={{
                 ...styles,
               }}
-              c={'grape'}
+              ta={'center'}
               span
             >
               {words[index]}
