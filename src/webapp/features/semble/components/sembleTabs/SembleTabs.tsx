@@ -29,11 +29,19 @@ import SembleMentionsContainerSkeleton from '../../containers/sembleMentionsCont
 import SembleConnectionsContainer from '../../containers/sembleConnectionsContainer/SembleConnectionsContainer';
 import SembleConnectionsContainerSkeleton from '../../containers/sembleConnectionsContainer/Skeleton.SembleConnectionsContainer';
 
+import UrlGraphView from '@/features/graph/components/graphView/UrlGraphView';
+
 interface Props {
   url: string;
 }
 
-type TabValue = 'notes' | 'collections' | 'addedBy' | 'similar' | 'connections';
+type TabValue =
+  | 'notes'
+  | 'collections'
+  | 'addedBy'
+  | 'similar'
+  | 'connections'
+  | 'graph';
 
 export default function SembleTabs(props: Props) {
   const [activeTab, setActiveTab] = useState<TabValue>('similar');
@@ -59,6 +67,7 @@ export default function SembleTabs(props: Props) {
               Connections
             </TabItem>
           )}
+          {featureFlags?.graphView && <TabItem value="graph">Graph</TabItem>}
           <TabItem value="notes" count={stats?.noteCount}>
             Notes
           </TabItem>
@@ -114,6 +123,12 @@ export default function SembleTabs(props: Props) {
             >
               <SembleConnectionsContainer url={props.url} />
             </Suspense>
+          </TabsPanel>
+        )}
+
+        {featureFlags?.graphView && (
+          <TabsPanel value="graph">
+            <UrlGraphView url={props.url} />
           </TabsPanel>
         )}
 

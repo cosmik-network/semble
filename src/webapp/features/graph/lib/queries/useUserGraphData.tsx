@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import { graphKeys } from '../graphKeys';
-import { getGraphDataPage } from '../dal';
+import { apiClient } from '@/api-client/ApiClient';
 import type {
   ProcessedGraphData,
   ExtendedGraphNode,
@@ -11,11 +11,11 @@ import { calculateNodeSize, getNodeColor } from '../utils/nodeStyles';
 import type { GetGraphDataResponse } from '@semble/types';
 
 /**
- * Hook to fetch and process graph data with incremental loading
+ * Hook to fetch and process user-scoped graph data with incremental loading
  * Automatically loads data in pages and progressively renders
  * Calculates connection counts, node sizes, and colors for all loaded data
  */
-export default function useGraphData() {
+export default function useUserGraphData(identifier: string) {
   const [pagesToLoad, setPagesToLoad] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number | null>(null);
 
@@ -34,8 +34,8 @@ export default function useGraphData() {
   // Fetch pages in parallel (React Query will dedupe and cache)
   const queries = useQueries({
     queries: pagesToLoad.map((page) => ({
-      queryKey: graphKeys.page(page),
-      queryFn: () => getGraphDataPage(page),
+      queryKey: graphKeys.userPage(identifier, page),
+      queryFn: () => apiClient.getUserGraphData({ identifier, page }),
       staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
     })),
