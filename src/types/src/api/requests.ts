@@ -358,6 +358,15 @@ export interface GetConnectionsParams extends PaginatedSortedParams {
 }
 
 // Graph request types
-export interface GetGraphDataParams {
-  // No parameters needed for global graph in v1
+export interface GetGraphDataParams extends PaginationParams {
+  // Supports pagination for incremental graph loading
+}
+
+export interface GetUserGraphDataParams extends GetGraphDataParams {
+  identifier: string; // Can be DID or handle
+}
+
+export interface GetUrlGraphDataParams {
+  url: string; // Target URL to center the sub-graph around
+  depth?: number; // Number of edge hops to traverse (1-5, defaults to 1)
 }

@@ -1,0 +1,50 @@
+.panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  z-index: 10;
+  min-width: 240px;
+  max-width: 280px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.panel.collapsed {
+  min-width: auto;
+  padding: 8px;
+  width: 40px;
+}
+
+.toggleButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s ease;
+}
+
+.toggleButton:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.panel.collapsed .toggleButton {
+  position: static;
+  margin: 0 auto;
+  display: block;
+}
+
+.content {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  padding-right: 24px;
+}
+
+.panel.collapsed .content {
+  opacity: 0;
+  pointer-events: none;
+}

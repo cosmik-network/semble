@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Box, LoadingOverlay } from '@mantine/core';
-import useGraphData from '../../lib/queries/useGraphData';
+import useUrlGraphData from '../../lib/queries/useUrlGraphData';
 import type {
   ExtendedGraphNode,
   ExtendedGraphEdge,
@@ -45,10 +45,17 @@ type EdgeType =
   | 'COLLECTION_CONTAINS_URL'
   | 'URL_CONNECTS_URL';
 
-export default function GraphView() {
+interface UrlGraphViewProps {
+  url: string;
+}
+
+export default function UrlGraphView({ url }: UrlGraphViewProps) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(undefined);
+
+  // State for depth control (default 1 hop)
+  const [depth, setDepth] = useState<number>(1);
 
   // State for dual popup system
   const [hoverNode, setHoverNode] = useState<ExtendedGraphNode | null>(null);
@@ -71,8 +78,8 @@ export default function GraphView() {
     ] as EdgeType[]),
   );
 
-  // Fetch and process graph data
-  const { data: graphData } = useGraphData();
+  // Fetch and process graph data for the URL with current depth
+  const { data: graphData, isLoading } = useUrlGraphData(url, depth);
 
   // Filter graph data based on visible types
   const filteredGraphData = useMemo(() => {
@@ -136,74 +143,10 @@ export default function GraphView() {
     });
   }, []);
 
-  // Track previous node count to detect new nodes and trigger smooth transitions
-  const prevNodeCountRef = useRef(0);
-  const animationFrameRef = useRef<number | null>(null);
-
-  // Detect when new nodes are added and gently reheat simulation
-  useEffect(() => {
-    if (!filteredGraphData || !graphRef.current) return;
-
-    const currentNodeCount = filteredGraphData.nodes.length;
-    const hasNewNodes = currentNodeCount > prevNodeCountRef.current;
-
-    if (hasNewNodes && prevNodeCountRef.current > 0) {
-      // Gently reheat the simulation for smooth repositioning
-      // Lower alpha = gentler movement
-      graphRef.current.d3ReheatSimulation();
-      graphRef.current.d3Force('charge')?.strength(-30); // Softer repulsion during transition
-
-      // Restore normal force after animation completes
-      setTimeout(() => {
-        if (graphRef.current?.d3Force) {
-          graphRef.current.d3Force('charge')?.strength(-60);
-        }
-      }, 1000);
-    }
-
-    prevNodeCountRef.current = currentNodeCount;
-  }, [filteredGraphData]);
-
-  // Animation loop to continuously re-render for fade-in effect
-  useEffect(() => {
-    if (!graphData) return;
-
-    const animate = () => {
-      // Check if any nodes are still fading in (added within last 800ms)
-      const now = Date.now();
-      const hasFadingNodes = graphData.nodes.some(
-        (node) => node.__addedAt && now - node.__addedAt < 800,
-      );
-
-      if (hasFadingNodes && graphRef.current) {
-        // Trigger a re-render by calling refresh
-        graphRef.current._destructor?.(); // Force canvas redraw
-      }
-
-      if (hasFadingNodes) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      } else {
-        animationFrameRef.current = null;
-      }
-    };
-
-    // Start animation if we have new nodes
-    if (!animationFrameRef.current) {
-      const now = Date.now();
-      const hasNewNodes = graphData.nodes.some(
-        (node) => node.__addedAt && now - node.__addedAt < 800,
-      );
-      if (hasNewNodes) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      }
-    }
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [graphData]);
+  // Handle depth change
+  const handleDepthChange = useCallback((newDepth: number) => {
+    setDepth(newDepth);
+  }, []);
 
   // Handle node hover (preview popup)
   const handleNodeHover = useCallback(
@@ -404,7 +347,7 @@ export default function GraphView() {
     [],
   );
 
-  if (!filteredGraphData) {
+  if (isLoading || !filteredGraphData) {
     return (
       <Box pos="relative" h="100vh" w="100%">
         <LoadingOverlay visible />
@@ -414,12 +357,16 @@ export default function GraphView() {
 
   return (
     <Box pos="relative" h="calc(100vh - 60px)" w="100%" className={styles.root}>
-      {/* Filter Panel */}
+      {/* Filter Panel with Depth Slider */}
       <GraphFilterPanel
         visibleNodeTypes={visibleNodeTypes}
         visibleEdgeTypes={visibleEdgeTypes}
         onNodeTypeToggle={handleNodeTypeToggle}
         onEdgeTypeToggle={handleEdgeTypeToggle}
+        depth={depth}
+        onDepthChange={handleDepthChange}
+        showDepthControl={true}
+        defaultCollapsed={false}
       />
 
       <ForceGraph2D

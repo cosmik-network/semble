@@ -23,12 +23,30 @@ export interface GraphEdgeDTO {
 export interface GraphDataDTO {
   nodes: GraphNodeDTO[];
   edges: GraphEdgeDTO[];
+  totalNodeCount: number;
 }
 
 export interface IGraphQueryRepository {
   /**
-   * Get all nodes and edges for the global graph visualization
-   * Returns the complete graph structure with all relationships
+   * Get nodes and edges for graph visualization with pagination support
+   * Returns paginated graph data with total count for calculating pagination metadata
+   *
+   * @param page - Page number (1-indexed, defaults to 1)
+   * @param limit - Number of nodes per page (defaults to 300)
+   * @param userId - Optional user DID to scope the graph to a specific user's data
    */
-  getGraphData(): Promise<GraphDataDTO>;
+  getGraphData(
+    page?: number,
+    limit?: number,
+    userId?: string,
+  ): Promise<GraphDataDTO>;
+
+  /**
+   * Get a sub-graph centered around a specific URL with depth-based traversal
+   * Returns all nodes and edges within N hops of the target URL
+   *
+   * @param url - Target URL to center the sub-graph around
+   * @param depth - Number of edge hops to traverse (1-5, defaults to 1)
+   */
+  getUrlSubGraph(url: string, depth: number): Promise<GraphDataDTO>;
 }
