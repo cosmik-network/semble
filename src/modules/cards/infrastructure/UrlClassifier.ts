@@ -38,6 +38,11 @@ export class UrlClassifier {
       type: UrlType.ARTICLE,
       description: 'Leaflet article',
     },
+    {
+      regex: /^https:\/\/atmo\.rsvp\/p\/[^/]+\/e\/[^/?#]+$/,
+      type: UrlType.EVENT,
+      description: 'Atmo RSVP event',
+    },
   ];
 
   /**
