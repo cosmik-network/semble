@@ -21,15 +21,11 @@ export class UrlGraphTraversalService {
     const edges: GraphEdgeDTO[] = [];
     const urlsToFetch = new Set<string>([targetUrl]);
     const collectionsToFetch = new Set<string>();
-    const usersToFetch = new Set<string>();
-    const notesToFetch = new Set<string>();
 
     // Traverse graph level by level (BFS approach)
     for (let currentDepth = 0; currentDepth < validDepth; currentDepth++) {
       const newUrlsToFetch = new Set<string>();
       const newCollectionsToFetch = new Set<string>();
-      const newUsersToFetch = new Set<string>();
-      const newNotesToFetch = new Set<string>();
 
       // Fetch edges for current level
       const currentLevelEdges = await this.getEdgesForUrls(
@@ -56,8 +52,6 @@ export class UrlGraphTraversalService {
               sourceId,
               newUrlsToFetch,
               newCollectionsToFetch,
-              newUsersToFetch,
-              newNotesToFetch,
             );
           }
         }
@@ -70,36 +64,44 @@ export class UrlGraphTraversalService {
               targetId,
               newUrlsToFetch,
               newCollectionsToFetch,
-              newUsersToFetch,
-              newNotesToFetch,
             );
           }
         }
       }
 
-      // Add current URLs to collections/users for fetching their edges
+      // Get collections containing current URLs
       for (const url of urlsToFetch) {
-        // Get cards, collections, and notes for these URLs
         const relatedData = await this.getRelatedNodesForUrl(url);
-        relatedData.collections.forEach((c) => collectionsToFetch.add(c));
-        relatedData.users.forEach((u) => usersToFetch.add(u));
-        relatedData.notes.forEach((n) => notesToFetch.add(n));
+        relatedData.collections.forEach((c) => {
+          // Only add if not already discovered
+          if (!collectionsToFetch.has(c) && !newCollectionsToFetch.has(c)) {
+            newCollectionsToFetch.add(c);
+          }
+        });
+      }
+
+      // For each newly discovered collection, fetch all URLs it contains
+      // and add them to the queue for the next depth level
+      for (const collectionId of newCollectionsToFetch) {
+        if (currentDepth < validDepth - 1) {
+          const urlsInCollection = await this.getUrlsInCollection(collectionId);
+          for (const url of urlsInCollection) {
+            const urlNodeId = `url:${url}`;
+            if (!visitedNodeIds.has(urlNodeId)) {
+              visitedNodeIds.add(urlNodeId);
+              newUrlsToFetch.add(url);
+            }
+          }
+        }
       }
 
       // Update for next iteration
       urlsToFetch.clear();
       newUrlsToFetch.forEach((u) => urlsToFetch.add(u));
       newCollectionsToFetch.forEach((c) => collectionsToFetch.add(c));
-      newUsersToFetch.forEach((u) => usersToFetch.add(u));
-      newNotesToFetch.forEach((n) => notesToFetch.add(n));
 
       // If no new nodes to explore, break early
-      if (
-        urlsToFetch.size === 0 &&
-        collectionsToFetch.size === 0 &&
-        usersToFetch.size === 0 &&
-        notesToFetch.size === 0
-      ) {
+      if (urlsToFetch.size === 0 && collectionsToFetch.size === 0) {
         break;
       }
     }
@@ -109,8 +111,6 @@ export class UrlGraphTraversalService {
       targetUrl,
       Array.from(visitedNodeIds),
       Array.from(collectionsToFetch),
-      Array.from(usersToFetch),
-      Array.from(notesToFetch),
     );
 
     return {
@@ -130,8 +130,6 @@ export class UrlGraphTraversalService {
     nodeId: string,
     urls: Set<string>,
     collections: Set<string>,
-    users: Set<string>,
-    notes: Set<string>,
   ): void {
     switch (nodeType) {
       case 'url':
@@ -139,12 +137,6 @@ export class UrlGraphTraversalService {
         break;
       case 'collection':
         collections.add(nodeId);
-        break;
-      case 'user':
-        users.add(nodeId);
-        break;
-      case 'note':
-        notes.add(nodeId);
         break;
     }
   }
@@ -194,30 +186,6 @@ export class UrlGraphTraversalService {
       })),
     );
 
-    // Fetch authorship edges (user -> URL)
-    const authorshipEdges = await this.db.execute<{
-      author_id: string;
-      url: string;
-    }>(sql`
-      SELECT DISTINCT
-        author_id,
-        url
-      FROM cards
-      WHERE type = 'URL'
-        AND url IS NOT NULL
-        AND url = ANY(${urlArrayLiteral})
-    `);
-
-    edges.push(
-      ...authorshipEdges.map((row) => ({
-        id: `authorship:${row.author_id}:${row.url}`,
-        source: `user:${row.author_id}`,
-        target: `url:${row.url}`,
-        type: 'USER_AUTHORED_URL' as const,
-        metadata: {},
-      })),
-    );
-
     // Fetch collection contains URL edges
     const collectionUrlEdges = await this.db.execute<{
       collection_id: string;
@@ -247,40 +215,11 @@ export class UrlGraphTraversalService {
       })),
     );
 
-    // Fetch note references URL edges
-    const noteUrlEdges = await this.db.execute<{
-      note_id: string;
-      parent_url: string;
-    }>(sql`
-      SELECT
-        note_cards.id as note_id,
-        parent_cards.url as parent_url
-      FROM cards as note_cards
-      INNER JOIN cards as parent_cards
-        ON note_cards.parent_card_id = parent_cards.id
-        AND parent_cards.type = 'URL'
-      WHERE note_cards.type = 'NOTE'
-        AND parent_cards.url IS NOT NULL
-        AND parent_cards.url = ANY(${urlArrayLiteral})
-    `);
-
-    edges.push(
-      ...noteUrlEdges.map((row) => ({
-        id: `note-url:${row.note_id}:${row.parent_url}`,
-        source: `note:${row.note_id}`,
-        target: `url:${row.parent_url}`,
-        type: 'NOTE_REFERENCES_URL' as const,
-        metadata: {},
-      })),
-    );
-
     return edges;
   }
 
   private async getRelatedNodesForUrl(url: string): Promise<{
     collections: string[];
-    users: string[];
-    notes: string[];
   }> {
     // Get collections containing this URL
     const collections = await this.db.execute<{ collection_id: string }>(sql`
@@ -290,37 +229,29 @@ export class UrlGraphTraversalService {
       WHERE c.type = 'URL' AND c.url = ${url}
     `);
 
-    // Get users who authored this URL
-    const users = await this.db.execute<{ author_id: string }>(sql`
-      SELECT DISTINCT author_id
-      FROM cards
-      WHERE type = 'URL' AND url = ${url}
-    `);
-
-    // Get notes for this URL
-    const notes = await this.db.execute<{ note_id: string }>(sql`
-      SELECT DISTINCT note_cards.id as note_id
-      FROM cards as note_cards
-      INNER JOIN cards as parent_cards
-        ON note_cards.parent_card_id = parent_cards.id
-      WHERE note_cards.type = 'NOTE'
-        AND parent_cards.type = 'URL'
-        AND parent_cards.url = ${url}
-    `);
-
     return {
       collections: collections.map((r) => r.collection_id),
-      users: users.map((r) => r.author_id),
-      notes: notes.map((r) => r.note_id),
     };
+  }
+
+  private async getUrlsInCollection(collectionId: string): Promise<string[]> {
+    // Get all URLs contained in this collection
+    const results = await this.db.execute<{ url: string }>(sql`
+      SELECT DISTINCT c.url
+      FROM collection_cards cc
+      INNER JOIN cards c ON cc.card_id = c.id
+      WHERE cc.collection_id = ${collectionId}
+        AND c.type = 'URL'
+        AND c.url IS NOT NULL
+    `);
+
+    return results.map((r) => r.url);
   }
 
   private async fetchNodes(
     targetUrl: string,
     visitedNodeIds: string[],
     collectionIds: string[],
-    userIds: string[],
-    noteIds: string[],
   ): Promise<GraphNodeDTO[]> {
     const nodes: GraphNodeDTO[] = [];
 
@@ -434,77 +365,6 @@ export class UrlGraphTraversalService {
             cardCount: row.card_count,
           },
         })),
-      );
-    }
-
-    // Fetch user nodes
-    if (userIds.length > 0) {
-      const userArrayLiteral = sql.raw(
-        `ARRAY[${userIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]::text[]`,
-      );
-
-      const userResults = await this.db.execute<{
-        id: string;
-        handle: string | null;
-      }>(sql`
-        SELECT
-          all_dids.did as id,
-          users.handle as handle
-        FROM (SELECT unnest(${userArrayLiteral}) as did) all_dids
-        LEFT JOIN users ON all_dids.did = users.id
-      `);
-
-      nodes.push(
-        ...userResults.map((row) => ({
-          id: `user:${row.id}`,
-          type: 'USER' as const,
-          label: row.handle || row.id,
-          metadata: {
-            did: row.id,
-            handle: row.handle,
-          },
-        })),
-      );
-    }
-
-    // Fetch note nodes
-    if (noteIds.length > 0) {
-      const noteArrayLiteral = sql.raw(
-        `ARRAY[${noteIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]::uuid[]`,
-      );
-
-      const noteResults = await this.db.execute<{
-        id: string;
-        content_data: any;
-        author_id: string;
-      }>(sql`
-        SELECT
-          id,
-          content_data,
-          author_id
-        FROM cards
-        WHERE type = 'NOTE'
-          AND id = ANY(${noteArrayLiteral})
-      `);
-
-      nodes.push(
-        ...noteResults.map((row) => {
-          const contentData = row.content_data as any;
-          const noteText = contentData?.note || '';
-          const preview =
-            noteText.substring(0, 50) + (noteText.length > 50 ? '...' : '');
-
-          return {
-            id: `note:${row.id}`,
-            type: 'NOTE' as const,
-            label: preview || 'Note',
-            metadata: {
-              cardId: row.id,
-              note: noteText,
-              authorId: row.author_id,
-            },
-          };
-        }),
       );
     }
 
