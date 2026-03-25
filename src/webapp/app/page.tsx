@@ -21,14 +21,13 @@ import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
-import IosShortcutButton from '@/components/landing/iosShortcutButton/IosShortcutButton';
 import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
 import RecentActivitySkeleton from '@/components/landing/recentActivity/Skeleton.RecentActivity';
 import Footer from '@/components/landing/footer/Footer';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
-import { RiArrowRightUpLine } from 'react-icons/ri';
+import NavMenu from '@/components/landing/navMenu/NavMenu';
 
 export default async function Page() {
   const fadeStyle = {
@@ -75,31 +74,7 @@ function Content() {
             <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
             <Badge size="xs">Alpha</Badge>
           </Stack>
-          <Group gap={'xs'}>
-            <IosShortcutButton />
-            <Button
-              component="a"
-              href="https://docs.cosmik.network/semble"
-              target="_blank"
-              variant="light"
-              color="gray"
-              size="xs"
-              rightSection={<RiArrowRightUpLine />}
-            >
-              Semble Docs
-            </Button>
-            <Button
-              data-tally-open="31a9Ng"
-              data-tally-hide-title="1"
-              data-tally-layout="modal"
-              data-tally-emoji-animation="none"
-              variant="light"
-              color="gray"
-              size="xs"
-            >
-              Stay in the loop
-            </Button>
-          </Group>
+          <NavMenu />
         </Group>
       </Container>
 

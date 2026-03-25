@@ -96,11 +96,22 @@ export default function Footer() {
             href="https://blog.cosmik.network"
             target="_blank"
             variant="light"
-            color="dark.1"
+            color="gray"
             fw={600}
             rightSection={<RiArrowRightUpLine />}
           >
             Follow our blog for updates
+          </Button>
+          <Button
+            component="a"
+            href="https://docs.cosmik.network/semble"
+            target="_blank"
+            variant="light"
+            color="gray"
+            fw={600}
+            rightSection={<RiArrowRightUpLine />}
+          >
+            Semble Docs
           </Button>
         </Group>
         <Stack align="center" gap="0">
