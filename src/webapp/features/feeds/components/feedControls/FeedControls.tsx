@@ -7,7 +7,6 @@ import {
   Menu,
   Image,
   Popover,
-  Text,
 } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -19,7 +18,7 @@ import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
-import { MdFilterList, MdFilterListOff } from 'react-icons/md';
+import { MdFilterList } from 'react-icons/md';
 import { BiLink } from 'react-icons/bi';
 
 const sourceOptions = [
@@ -198,7 +197,7 @@ export default function FeedControls() {
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
               {selectedSource?.label}
               {` / ${selectedFeed?.label}`}
-              {optimisticType && ` / ${upperFirst(optimisticType)}s`}
+              {optimisticType && ` / ${upperFirst(optimisticType)}`}
               {optimisticActivityTypes.length === 1 &&
                 ` / ${activityTypeOptions.find((o) => o.value === optimisticActivityTypes[0])?.label}`}
             </Button>

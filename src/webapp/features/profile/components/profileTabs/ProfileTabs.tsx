@@ -50,14 +50,14 @@ export default function ProfileTabs(props: Props) {
             >
               Connections
             </TabItem>
+            <TabItem value="network" href={`${basePath}/network`}>
+              Network
+            </TabItem>
             {featureFlags?.graphView && (
               <TabItem value="graph" href={`${basePath}/graph`}>
                 Graph
               </TabItem>
             )}
-            <TabItem value="network" href={`${basePath}/network`}>
-              Network
-            </TabItem>
           </Tabs.List>
         </ScrollAreaAutosize>
       </Paper>
