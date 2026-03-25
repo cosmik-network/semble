@@ -69,11 +69,30 @@ export class UrlGraphTraversalService {
         }
       }
 
-      // Add current URLs to collections for fetching their edges
+      // Get collections containing current URLs
       for (const url of urlsToFetch) {
-        // Get collections for these URLs
         const relatedData = await this.getRelatedNodesForUrl(url);
-        relatedData.collections.forEach((c) => collectionsToFetch.add(c));
+        relatedData.collections.forEach((c) => {
+          // Only add if not already discovered
+          if (!collectionsToFetch.has(c) && !newCollectionsToFetch.has(c)) {
+            newCollectionsToFetch.add(c);
+          }
+        });
+      }
+
+      // For each newly discovered collection, fetch all URLs it contains
+      // and add them to the queue for the next depth level
+      for (const collectionId of newCollectionsToFetch) {
+        if (currentDepth < validDepth - 1) {
+          const urlsInCollection = await this.getUrlsInCollection(collectionId);
+          for (const url of urlsInCollection) {
+            const urlNodeId = `url:${url}`;
+            if (!visitedNodeIds.has(urlNodeId)) {
+              visitedNodeIds.add(urlNodeId);
+              newUrlsToFetch.add(url);
+            }
+          }
+        }
       }
 
       // Update for next iteration
@@ -213,6 +232,20 @@ export class UrlGraphTraversalService {
     return {
       collections: collections.map((r) => r.collection_id),
     };
+  }
+
+  private async getUrlsInCollection(collectionId: string): Promise<string[]> {
+    // Get all URLs contained in this collection
+    const results = await this.db.execute<{ url: string }>(sql`
+      SELECT DISTINCT c.url
+      FROM collection_cards cc
+      INNER JOIN cards c ON cc.card_id = c.id
+      WHERE cc.collection_id = ${collectionId}
+        AND c.type = 'URL'
+        AND c.url IS NOT NULL
+    `);
+
+    return results.map((r) => r.url);
   }
 
   private async fetchNodes(
