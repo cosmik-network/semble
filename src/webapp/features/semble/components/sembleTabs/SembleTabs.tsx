@@ -62,20 +62,20 @@ export default function SembleTabs(props: Props) {
       <ScrollAreaAutosize type="scroll">
         <TabsList style={{ flexWrap: 'nowrap' }}>
           <TabItem value="similar">Similar cards</TabItem>
+          <TabItem value="collections" count={stats?.collectionCount}>
+            Collections
+          </TabItem>
+          <TabItem value="mentions">Mentions</TabItem>
           <TabItem value="connections" count={stats?.connections.all.total}>
             Connections
           </TabItem>
-          {featureFlags?.graphView && <TabItem value="graph">Graph</TabItem>}
           <TabItem value="notes" count={stats?.noteCount}>
             Notes
-          </TabItem>
-          <TabItem value="collections" count={stats?.collectionCount}>
-            Collections
           </TabItem>
           <TabItem value="addedBy" count={stats?.libraryCount}>
             Added by
           </TabItem>
-          <TabItem value="mentions">Mentions</TabItem>
+          {featureFlags?.graphView && <TabItem value="graph">Graph</TabItem>}
         </TabsList>
       </ScrollAreaAutosize>
 
