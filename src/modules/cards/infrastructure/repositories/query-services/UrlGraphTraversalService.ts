@@ -70,7 +70,8 @@ export class UrlGraphTraversalService {
       }
 
       // Get collections containing current URLs
-      for (const url of urlsToFetch) {
+      const urlsArray = Array.from(urlsToFetch);
+      for (const url of urlsArray) {
         const relatedData = await this.getRelatedNodesForUrl(url);
         relatedData.collections.forEach((c) => {
           // Only add if not already discovered
@@ -82,7 +83,8 @@ export class UrlGraphTraversalService {
 
       // For each newly discovered collection, fetch all URLs it contains
       // and add them to the queue for the next depth level
-      for (const collectionId of newCollectionsToFetch) {
+      const newCollectionsArray = Array.from(newCollectionsToFetch);
+      for (const collectionId of newCollectionsArray) {
         if (currentDepth < validDepth - 1) {
           const urlsInCollection = await this.getUrlsInCollection(collectionId);
           for (const url of urlsInCollection) {
@@ -253,7 +255,7 @@ export class UrlGraphTraversalService {
     visitedNodeIds: string[],
     collectionIds: string[],
   ): Promise<GraphNodeDTO[]> {
-    const nodes: GraphNodeDTO[] = [];
+    const nodeMap = new Map<string, GraphNodeDTO>();
 
     // Extract URLs from visited node IDs
     const urlNodeIds = visitedNodeIds
@@ -288,16 +290,15 @@ export class UrlGraphTraversalService {
           AND url = ANY(${urlArrayLiteral})
       `);
 
-      const fetchedUrls = new Set(urlResults.map((r) => r.url));
-
-      // Add fetched URL nodes
-      nodes.push(
-        ...urlResults.map((row) => {
+      // Deduplicate URL nodes - keep first occurrence per URL
+      for (const row of urlResults) {
+        const nodeId = `url:${row.url}`;
+        if (!nodeMap.has(nodeId)) {
           const contentData = row.content_data as any;
           const title = contentData?.title || row.url || 'Untitled URL';
 
-          return {
-            id: `url:${row.url}`,
+          nodeMap.set(nodeId, {
+            id: nodeId,
             type: 'URL' as const,
             label: title,
             metadata: {
@@ -308,15 +309,16 @@ export class UrlGraphTraversalService {
               description: contentData?.description,
               imageUrl: contentData?.imageUrl,
             },
-          };
-        }),
-      );
+          });
+        }
+      }
 
       // Add synthetic nodes for URLs not in database
       for (const url of urlNodeIds) {
-        if (!fetchedUrls.has(url)) {
-          nodes.push({
-            id: `url:${url}`,
+        const nodeId = `url:${url}`;
+        if (!nodeMap.has(nodeId)) {
+          nodeMap.set(nodeId, {
+            id: nodeId,
             type: 'URL' as const,
             label: url,
             metadata: {
@@ -352,9 +354,10 @@ export class UrlGraphTraversalService {
         WHERE id = ANY(${collectionArrayLiteral})
       `);
 
-      nodes.push(
-        ...collectionResults.map((row) => ({
-          id: `collection:${row.id}`,
+      for (const row of collectionResults) {
+        const nodeId = `collection:${row.id}`;
+        nodeMap.set(nodeId, {
+          id: nodeId,
           type: 'COLLECTION' as const,
           label: row.name,
           metadata: {
@@ -364,10 +367,10 @@ export class UrlGraphTraversalService {
             authorId: row.author_id,
             cardCount: row.card_count,
           },
-        })),
-      );
+        });
+      }
     }
 
-    return nodes;
+    return Array.from(nodeMap.values());
   }
 }
