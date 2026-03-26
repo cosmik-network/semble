@@ -373,15 +373,6 @@ export default function GraphView() {
       // Reset shadow
       ctx.shadowBlur = VISUAL_CONFIG.node.shadowBlur;
 
-      // Draw connection count badge for highly connected nodes
-      if (node.connectionCount && node.connectionCount >= 5) {
-        const badgeSize = 4 / globalScale;
-        ctx.beginPath();
-        ctx.arc(node.x + size, node.y - size, badgeSize, 0, 2 * Math.PI);
-        ctx.fillStyle = VISUAL_CONFIG.node.shadowColor;
-        ctx.fill();
-      }
-
       // Restore context state (opacity)
       ctx.restore();
     },
