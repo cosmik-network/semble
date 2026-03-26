@@ -32,6 +32,9 @@ export default function useUrlGraphData(url: string, depth: number = 1) {
 
     const { nodes, edges } = query.data;
 
+    // Deduplicate nodes by ID (defensive - server should already dedupe)
+    const nodeMap = new Map<string, ExtendedGraphNode>();
+
     // Calculate connection counts for all nodes
     const connectionCounts: Record<string, number> = {};
     edges.forEach((edge) => {
@@ -39,19 +42,23 @@ export default function useUrlGraphData(url: string, depth: number = 1) {
       connectionCounts[edge.target] = (connectionCounts[edge.target] || 0) + 1;
     });
 
-    // Process nodes: add connection count, size, and color
-    const processedNodes: ExtendedGraphNode[] = nodes.map((node) => {
-      const connectionCount = connectionCounts[node.id] || 0;
+    // Process nodes: deduplicate, add connection count, size, and color
+    nodes.forEach((node) => {
+      if (!nodeMap.has(node.id)) {
+        const connectionCount = connectionCounts[node.id] || 0;
 
-      return {
-        ...node,
-        connectionCount,
-        val: calculateNodeSize(connectionCount),
-        color: getNodeColor(node.type),
-        // Track when node was added for smooth fade-in animation
-        __addedAt: Date.now(),
-      };
+        nodeMap.set(node.id, {
+          ...node,
+          connectionCount,
+          val: calculateNodeSize(connectionCount),
+          color: getNodeColor(node.type),
+          // Track when node was added for smooth fade-in animation
+          __addedAt: Date.now(),
+        });
+      }
     });
+
+    const processedNodes = Array.from(nodeMap.values());
 
     // Create a set of valid node IDs for edge validation
     const validNodeIds = new Set(processedNodes.map((n) => n.id));

@@ -8,8 +8,6 @@ import {
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
 import { connections } from '../schema/connection.sql';
-import { follows } from '../../../../user/infrastructure/repositories/schema/follows.sql';
-import { users } from '../../../../user/infrastructure/repositories/schema/user.sql';
 
 export class GraphQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -20,37 +18,16 @@ export class GraphQueryService {
     userId?: string,
   ): Promise<GraphDataDTO> {
     // Fetch all data in parallel
-    const [
-      userNodes,
-      urlNodes,
-      collectionNodes,
-      noteNodes,
-      userFollowEdges,
-      collectionFollowEdges,
-      authorshipEdges,
-      noteUrlEdges,
-      collectionUrlEdges,
-      urlConnectionEdges,
-    ] = await Promise.all([
-      this.getUserNodes(userId),
-      this.getUrlNodes(userId),
-      this.getCollectionNodes(userId),
-      this.getNoteNodes(userId),
-      this.getUserFollowEdges(userId),
-      this.getCollectionFollowEdges(userId),
-      this.getAuthorshipEdges(userId),
-      this.getNoteUrlEdges(userId),
-      this.getCollectionUrlEdges(userId),
-      this.getUrlConnectionEdges(userId),
-    ]);
+    const [urlNodes, collectionNodes, collectionUrlEdges, urlConnectionEdges] =
+      await Promise.all([
+        this.getUrlNodes(userId),
+        this.getCollectionNodes(userId),
+        this.getCollectionUrlEdges(userId),
+        this.getUrlConnectionEdges(userId),
+      ]);
 
     // Combine all nodes
-    const allNodes = [
-      ...userNodes,
-      ...urlNodes,
-      ...collectionNodes,
-      ...noteNodes,
-    ];
+    const allNodes = [...urlNodes, ...collectionNodes];
     const totalNodeCount = allNodes.length;
 
     // Apply pagination to nodes
@@ -61,14 +38,7 @@ export class GraphQueryService {
     const loadedNodeIds = new Set(paginatedNodes.map((node) => node.id));
 
     // Filter edges to only include those where BOTH source and target are in loaded nodes
-    const allEdges = [
-      ...userFollowEdges,
-      ...collectionFollowEdges,
-      ...authorshipEdges,
-      ...noteUrlEdges,
-      ...collectionUrlEdges,
-      ...urlConnectionEdges,
-    ];
+    const allEdges = [...collectionUrlEdges, ...urlConnectionEdges];
 
     const filteredEdges = allEdges.filter(
       (edge) =>
@@ -82,85 +52,10 @@ export class GraphQueryService {
     };
   }
 
-  private async getUserNodes(userId?: string): Promise<GraphNodeDTO[]> {
-    // Query all unique DIDs from all sources in the graph
-    // Use LEFT JOIN with users table to get handles where available
-    // If userId is provided, filter to only include relevant DIDs
-    const results = await this.db.execute<{
-      id: string;
-      handle: string | null;
-    }>(
-      userId
-        ? sql`
-      WITH all_dids AS (
-        -- The target user themselves
-        SELECT ${userId} as did
-        UNION
-        -- Users the target user authored cards with
-        SELECT DISTINCT author_id as did FROM cards WHERE author_id = ${userId}
-        UNION
-        -- Users the target user follows
-        SELECT DISTINCT target_id as did FROM follows
-        WHERE follower_id = ${userId} AND target_type = 'user'
-        UNION
-        -- Users who follow the target user (for bidirectional context)
-        SELECT DISTINCT follower_id as did FROM follows
-        WHERE target_id = ${userId} AND target_type = 'user'
-        UNION
-        -- Curators of connections the target user created
-        SELECT DISTINCT curator_id as did FROM connections WHERE curator_id = ${userId}
-        UNION
-        -- Users who contributed to the target user's collections
-        SELECT DISTINCT added_by as did FROM collection_cards
-        WHERE collection_id IN (SELECT id FROM collections WHERE author_id = ${userId})
-        UNION
-        -- Authors of collections the target user follows
-        SELECT DISTINCT author_id as did FROM collections
-        WHERE id::text IN (SELECT target_id FROM follows WHERE follower_id = ${userId} AND target_type = 'collection')
-      )
-      SELECT
-        all_dids.did as id,
-        users.handle as handle
-      FROM all_dids
-      LEFT JOIN users ON all_dids.did = users.id
-    `
-        : sql`
-      WITH all_dids AS (
-        SELECT DISTINCT author_id as did FROM cards
-        UNION
-        SELECT DISTINCT follower_id as did FROM follows
-        UNION
-        SELECT DISTINCT target_id as did FROM follows WHERE target_type = 'user'
-        UNION
-        SELECT DISTINCT curator_id as did FROM connections
-        UNION
-        SELECT DISTINCT added_by as did FROM collection_cards
-        UNION
-        SELECT DISTINCT author_id as did FROM collections
-      )
-      SELECT
-        all_dids.did as id,
-        users.handle as handle
-      FROM all_dids
-      LEFT JOIN users ON all_dids.did = users.id
-    `,
-    );
-
-    return results.map((row) => ({
-      id: `user:${row.id}`,
-      type: 'USER' as const,
-      label: row.handle || row.id,
-      metadata: {
-        did: row.id,
-        handle: row.handle,
-      },
-    }));
-  }
-
   private async getUrlNodes(userId?: string): Promise<GraphNodeDTO[]> {
     if (userId) {
       // For user-scoped graph: include URLs authored by user OR in their connections
-      const results = await this.db.execute<{
+      const urlCards = await this.db.execute<{
         id: string;
         url: string;
         content_data: any;
@@ -186,24 +81,61 @@ export class GraphQueryService {
           )
       `);
 
-      return results.map((row) => {
-        const contentData = row.content_data as any;
-        const title = contentData?.title || row.url || 'Untitled URL';
+      // Fetch all URLs from user's connections
+      const connectionUrls = await this.db.execute<{ url: string }>(sql`
+        SELECT DISTINCT source_value as url
+        FROM connections
+        WHERE curator_id = ${userId} AND source_type = 'URL'
+        UNION
+        SELECT DISTINCT target_value as url
+        FROM connections
+        WHERE curator_id = ${userId} AND target_type = 'URL'
+      `);
 
-        return {
-          id: `url:${row.url}`,
-          type: 'URL' as const,
-          label: title,
-          metadata: {
-            cardId: row.id,
-            url: row.url,
-            urlType: row.url_type,
-            title,
-            description: contentData?.description,
-            imageUrl: contentData?.imageUrl,
-          },
-        };
-      });
+      // Deduplicate URL cards - keep first occurrence per URL
+      const urlNodeMap = new Map<string, GraphNodeDTO>();
+
+      // Add nodes for URL cards (deduplicated by URL)
+      for (const row of urlCards) {
+        const nodeId = `url:${row.url}`;
+        if (!urlNodeMap.has(nodeId)) {
+          const contentData = row.content_data as any;
+          const title = contentData?.title || row.url || 'Untitled URL';
+
+          urlNodeMap.set(nodeId, {
+            id: nodeId,
+            type: 'URL' as const,
+            label: title,
+            metadata: {
+              cardId: row.id,
+              url: row.url,
+              urlType: row.url_type,
+              title,
+              description: contentData?.description,
+              imageUrl: contentData?.imageUrl,
+            },
+          });
+        }
+      }
+
+      // Add synthetic nodes for URLs from connections that don't have cards
+      for (const row of connectionUrls) {
+        const nodeId = `url:${row.url}`;
+        if (!urlNodeMap.has(nodeId)) {
+          urlNodeMap.set(nodeId, {
+            id: nodeId,
+            type: 'URL' as const,
+            label: row.url,
+            metadata: {
+              url: row.url,
+              title: row.url,
+              synthetic: true, // Mark as not in database
+            },
+          });
+        }
+      }
+
+      return Array.from(urlNodeMap.values());
     }
 
     // Global graph: all URLs
@@ -217,24 +149,32 @@ export class GraphQueryService {
       .from(cards)
       .where(and(eq(cards.type, 'URL'), sql`${cards.url} IS NOT NULL`));
 
-    return results.map((row) => {
-      const contentData = row.contentData as any;
-      const title = contentData?.title || row.url || 'Untitled URL';
+    // Deduplicate by URL - keep first occurrence
+    const urlNodeMap = new Map<string, GraphNodeDTO>();
 
-      return {
-        id: `url:${row.url}`,
-        type: 'URL' as const,
-        label: title,
-        metadata: {
-          cardId: row.id,
-          url: row.url,
-          urlType: row.urlType,
-          title,
-          description: contentData?.description,
-          imageUrl: contentData?.imageUrl,
-        },
-      };
-    });
+    for (const row of results) {
+      const nodeId = `url:${row.url}`;
+      if (!urlNodeMap.has(nodeId)) {
+        const contentData = row.contentData as any;
+        const title = contentData?.title || row.url || 'Untitled URL';
+
+        urlNodeMap.set(nodeId, {
+          id: nodeId,
+          type: 'URL' as const,
+          label: title,
+          metadata: {
+            cardId: row.id,
+            url: row.url,
+            urlType: row.urlType,
+            title,
+            description: contentData?.description,
+            imageUrl: contentData?.imageUrl,
+          },
+        });
+      }
+    }
+
+    return Array.from(urlNodeMap.values());
   }
 
   private async getCollectionNodes(userId?: string): Promise<GraphNodeDTO[]> {
@@ -297,159 +237,6 @@ export class GraphQueryService {
         authorId: row.authorId,
         cardCount: row.cardCount,
       },
-    }));
-  }
-
-  private async getNoteNodes(userId?: string): Promise<GraphNodeDTO[]> {
-    const whereConditions = [eq(cards.type, 'NOTE')];
-    if (userId) {
-      whereConditions.push(eq(cards.authorId, userId));
-    }
-
-    const results = await this.db
-      .select({
-        id: cards.id,
-        contentData: cards.contentData,
-        authorId: cards.authorId,
-      })
-      .from(cards)
-      .where(and(...whereConditions));
-
-    return results.map((row) => {
-      const contentData = row.contentData as any;
-      const noteText = contentData?.note || '';
-      const preview =
-        noteText.substring(0, 50) + (noteText.length > 50 ? '...' : '');
-
-      return {
-        id: `note:${row.id}`,
-        type: 'NOTE' as const,
-        label: preview || 'Note',
-        metadata: {
-          cardId: row.id,
-          note: noteText,
-          authorId: row.authorId,
-        },
-      };
-    });
-  }
-
-  private async getUserFollowEdges(userId?: string): Promise<GraphEdgeDTO[]> {
-    const whereConditions = [eq(follows.targetType, 'user')];
-    if (userId) {
-      // Include follows where user is follower OR target (bidirectional)
-      whereConditions.push(
-        sql`(${follows.followerId} = ${userId} OR ${follows.targetId} = ${userId})`,
-      );
-    }
-
-    const results = await this.db
-      .select({
-        followerId: follows.followerId,
-        targetId: follows.targetId,
-      })
-      .from(follows)
-      .where(and(...whereConditions));
-
-    return results.map((row) => ({
-      id: `follow-user:${row.followerId}:${row.targetId}`,
-      source: `user:${row.followerId}`,
-      target: `user:${row.targetId}`,
-      type: 'USER_FOLLOWS_USER' as const,
-      metadata: {},
-    }));
-  }
-
-  private async getCollectionFollowEdges(
-    userId?: string,
-  ): Promise<GraphEdgeDTO[]> {
-    const whereConditions = [eq(follows.targetType, 'collection')];
-    if (userId) {
-      // Only include follows by the target user
-      whereConditions.push(eq(follows.followerId, userId));
-    }
-
-    const results = await this.db
-      .select({
-        followerId: follows.followerId,
-        targetId: follows.targetId,
-      })
-      .from(follows)
-      .where(and(...whereConditions));
-
-    return results.map((row) => ({
-      id: `follow-collection:${row.followerId}:${row.targetId}`,
-      source: `user:${row.followerId}`,
-      target: `collection:${row.targetId}`,
-      type: 'USER_FOLLOWS_COLLECTION' as const,
-      metadata: {},
-    }));
-  }
-
-  private async getAuthorshipEdges(userId?: string): Promise<GraphEdgeDTO[]> {
-    const whereConditions = [
-      eq(cards.type, 'URL'),
-      sql`${cards.url} IS NOT NULL`,
-    ];
-    if (userId) {
-      whereConditions.push(eq(cards.authorId, userId));
-    }
-
-    const results = await this.db
-      .select({
-        authorId: cards.authorId,
-        url: cards.url,
-      })
-      .from(cards)
-      .where(and(...whereConditions));
-
-    return results.map((row) => ({
-      id: `authorship:${row.authorId}:${row.url}`,
-      source: `user:${row.authorId}`,
-      target: `url:${row.url}`,
-      type: 'USER_AUTHORED_URL' as const,
-      metadata: {},
-    }));
-  }
-
-  private async getNoteUrlEdges(userId?: string): Promise<GraphEdgeDTO[]> {
-    // Join notes with their parent URL cards using raw SQL for self-join
-    const results = await this.db.execute<{
-      note_id: string;
-      parent_url: string;
-    }>(
-      userId
-        ? sql`
-      SELECT
-        note_cards.id as note_id,
-        parent_cards.url as parent_url
-      FROM cards as note_cards
-      INNER JOIN cards as parent_cards
-        ON note_cards.parent_card_id = parent_cards.id
-        AND parent_cards.type = 'URL'
-      WHERE note_cards.type = 'NOTE'
-        AND note_cards.author_id = ${userId}
-        AND parent_cards.url IS NOT NULL
-    `
-        : sql`
-      SELECT
-        note_cards.id as note_id,
-        parent_cards.url as parent_url
-      FROM cards as note_cards
-      INNER JOIN cards as parent_cards
-        ON note_cards.parent_card_id = parent_cards.id
-        AND parent_cards.type = 'URL'
-      WHERE note_cards.type = 'NOTE'
-        AND parent_cards.url IS NOT NULL
-    `,
-    );
-
-    return results.map((row) => ({
-      id: `note-url:${row.note_id}:${row.parent_url}`,
-      source: `note:${row.note_id}`,
-      target: `url:${row.parent_url}`,
-      type: 'NOTE_REFERENCES_URL' as const,
-      metadata: {},
     }));
   }
 
