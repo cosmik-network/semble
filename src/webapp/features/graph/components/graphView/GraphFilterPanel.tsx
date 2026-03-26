@@ -9,6 +9,7 @@ import {
   ActionIcon,
   Group,
   Slider,
+  Paper,
 } from '@mantine/core';
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 import styles from './GraphFilterPanel.module.css';
@@ -72,12 +73,19 @@ export default function GraphFilterPanel({
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
-    <Box className={`${styles.panel} ${isCollapsed ? styles.collapsed : ''}`}>
+    <Paper
+      className={`${styles.panel} ${isCollapsed ? styles.collapsed : ''}`}
+      radius={'lg'}
+      shadow="lg"
+      p={'sm'}
+      withBorder
+    >
       {/* Collapse/Expand Button */}
       <ActionIcon
         className={styles.toggleButton}
         onClick={() => setIsCollapsed(!isCollapsed)}
-        variant="subtle"
+        variant="filled"
+        radius={'xl'}
         size="sm"
         aria-label={isCollapsed ? 'Expand panel' : 'Collapse panel'}
       >
@@ -91,7 +99,7 @@ export default function GraphFilterPanel({
       {/* Panel Content */}
       {!isCollapsed && (
         <Stack gap="md" className={styles.content}>
-          <Text size="sm" fw={600} c="dimmed">
+          <Text size="sm" fw={600}>
             Graph Filters
           </Text>
 
@@ -125,14 +133,16 @@ export default function GraphFilterPanel({
           )}
 
           {/* Node Type Filters */}
-          <Stack gap="xs">
-            <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+          <Stack gap="xs" mt={'lg'}>
+            <Text size="xs" fw={600} tt="uppercase">
               Node Types
             </Text>
             {NODE_TYPES.filter((type) => !hiddenNodeTypeControls.has(type)).map(
               (type) => (
                 <Group key={type} justify="space-between" gap="xs">
-                  <Text size="sm">{NODE_TYPE_LABELS[type]}</Text>
+                  <Text size="sm" c={'dimmed'}>
+                    {NODE_TYPE_LABELS[type]}
+                  </Text>
                   <Switch
                     checked={visibleNodeTypes.has(type)}
                     onChange={() => onNodeTypeToggle(type)}
@@ -145,12 +155,14 @@ export default function GraphFilterPanel({
 
           {/* Edge Type Filters */}
           <Stack gap="xs">
-            <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+            <Text size="xs" fw={600} tt="uppercase">
               Edge Types
             </Text>
             {EDGE_TYPES.map((type) => (
               <Group key={type} justify="space-between" gap="xs">
-                <Text size="sm">{EDGE_TYPE_LABELS[type]}</Text>
+                <Text size="sm" c={'dimmed'}>
+                  {EDGE_TYPE_LABELS[type]}
+                </Text>
                 <Switch
                   checked={visibleEdgeTypes.has(type)}
                   onChange={() => onEdgeTypeToggle(type)}
@@ -161,6 +173,6 @@ export default function GraphFilterPanel({
           </Stack>
         </Stack>
       )}
-    </Box>
+    </Paper>
   );
 }
