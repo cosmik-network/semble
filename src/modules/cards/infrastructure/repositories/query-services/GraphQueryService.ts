@@ -92,18 +92,18 @@ export class GraphQueryService {
         WHERE curator_id = ${userId} AND target_type = 'URL'
       `);
 
-      // Track which URLs we've created nodes for
-      const fetchedUrls = new Set(urlCards.map((r) => r.url));
-      const nodes: GraphNodeDTO[] = [];
+      // Deduplicate URL cards - keep first occurrence per URL
+      const urlNodeMap = new Map<string, GraphNodeDTO>();
 
-      // Add nodes for URL cards
-      nodes.push(
-        ...urlCards.map((row) => {
+      // Add nodes for URL cards (deduplicated by URL)
+      for (const row of urlCards) {
+        const nodeId = `url:${row.url}`;
+        if (!urlNodeMap.has(nodeId)) {
           const contentData = row.content_data as any;
           const title = contentData?.title || row.url || 'Untitled URL';
 
-          return {
-            id: `url:${row.url}`,
+          urlNodeMap.set(nodeId, {
+            id: nodeId,
             type: 'URL' as const,
             label: title,
             metadata: {
@@ -114,15 +114,16 @@ export class GraphQueryService {
               description: contentData?.description,
               imageUrl: contentData?.imageUrl,
             },
-          };
-        }),
-      );
+          });
+        }
+      }
 
       // Add synthetic nodes for URLs from connections that don't have cards
       for (const row of connectionUrls) {
-        if (!fetchedUrls.has(row.url)) {
-          nodes.push({
-            id: `url:${row.url}`,
+        const nodeId = `url:${row.url}`;
+        if (!urlNodeMap.has(nodeId)) {
+          urlNodeMap.set(nodeId, {
+            id: nodeId,
             type: 'URL' as const,
             label: row.url,
             metadata: {
@@ -134,7 +135,7 @@ export class GraphQueryService {
         }
       }
 
-      return nodes;
+      return Array.from(urlNodeMap.values());
     }
 
     // Global graph: all URLs
@@ -148,24 +149,32 @@ export class GraphQueryService {
       .from(cards)
       .where(and(eq(cards.type, 'URL'), sql`${cards.url} IS NOT NULL`));
 
-    return results.map((row) => {
-      const contentData = row.contentData as any;
-      const title = contentData?.title || row.url || 'Untitled URL';
+    // Deduplicate by URL - keep first occurrence
+    const urlNodeMap = new Map<string, GraphNodeDTO>();
 
-      return {
-        id: `url:${row.url}`,
-        type: 'URL' as const,
-        label: title,
-        metadata: {
-          cardId: row.id,
-          url: row.url,
-          urlType: row.urlType,
-          title,
-          description: contentData?.description,
-          imageUrl: contentData?.imageUrl,
-        },
-      };
-    });
+    for (const row of results) {
+      const nodeId = `url:${row.url}`;
+      if (!urlNodeMap.has(nodeId)) {
+        const contentData = row.contentData as any;
+        const title = contentData?.title || row.url || 'Untitled URL';
+
+        urlNodeMap.set(nodeId, {
+          id: nodeId,
+          type: 'URL' as const,
+          label: title,
+          metadata: {
+            cardId: row.id,
+            url: row.url,
+            urlType: row.urlType,
+            title,
+            description: contentData?.description,
+            imageUrl: contentData?.imageUrl,
+          },
+        });
+      }
+    }
+
+    return Array.from(urlNodeMap.values());
   }
 
   private async getCollectionNodes(userId?: string): Promise<GraphNodeDTO[]> {
