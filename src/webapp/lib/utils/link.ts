@@ -18,26 +18,52 @@ export const getUrlFromSlug = (slug: string[]) => {
   return normalizedUrl;
 };
 
-export const isCollectionPage = (url: string = window.location.pathname) => {
+const getAppOrigin = () => {
+  // Use the configured app URL if available, otherwise fall back to current origin
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    try {
+      return new URL(appUrl).origin;
+    } catch {
+      // invalid app URL, fall back to current origin
+    }
+  }
+  return window.location.origin;
+};
+
+const isSembleUrl = (url: string): boolean => {
   try {
-    const { pathname } = new URL(url);
+    const parsedUrl = new URL(url, window.location.origin);
+    return parsedUrl.origin === getAppOrigin();
+  } catch {
+    return false;
+  }
+};
+
+export const isCollectionPage = (url: string) => {
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    // Must be a relative path or our own domain
+    if (!isSembleUrl(parsedUrl.href)) return false;
     // expect /profile/:handle/collections/:id
     const pattern = /^\/profile\/[^/]+\/collections\/[^/]+\/?$/;
-    return pattern.test(pathname);
+    return pattern.test(parsedUrl.pathname);
   } catch {
     // invalid URL
     return false;
   }
 };
 
-export const isProfilePage = (url: string = window.location.pathname) => {
+export const isProfilePage = (url: string) => {
   try {
-    const { pathname } = new URL(url, window.location.origin);
+    const parsedUrl = new URL(url, window.location.origin);
+    // Must be a relative path or our own domain
+    if (!isSembleUrl(parsedUrl.href)) return false;
     // matches:
     // /profile/:handle
     // /profile/:handle/:subroute
     const pattern = /^\/profile\/[^/]+(?:\/[^/]+)?\/?$/;
-    return pattern.test(pathname);
+    return pattern.test(parsedUrl.pathname);
   } catch {
     // invalid URL
     return false;
