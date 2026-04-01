@@ -37,7 +37,7 @@ export default function RecentCollections() {
       </Group>
 
       {collections.length > 0 ? (
-        <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
+        <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
           {collections.map((collection) => (
             <CollectionCard key={collection.id} collection={collection} />
           ))}

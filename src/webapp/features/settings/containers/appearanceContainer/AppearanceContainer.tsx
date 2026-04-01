@@ -105,6 +105,41 @@ export default function AppearanceContainer() {
             ]}
           />
         </Stack>
+
+        <Stack gap="xs">
+          <Text fw={500}>Collection View</Text>
+          <SegmentedControl
+            size="md"
+            withItemsBorders={false}
+            value={settings.collectionView}
+            onChange={(value) =>
+              updateSetting(
+                'collectionView',
+                value as 'grid' | 'compact',
+              )
+            }
+            data={[
+              {
+                label: (
+                  <Center style={{ gap: 10 }}>
+                    <BsGrid />
+                    <span>Grid</span>
+                  </Center>
+                ),
+                value: 'grid',
+              },
+              {
+                label: (
+                  <Center style={{ gap: 10 }}>
+                    <CiGrid2H />
+                    <span>Compact</span>
+                  </Center>
+                ),
+                value: 'compact',
+              },
+            ]}
+          />
+        </Stack>
       </Stack>
     </Container>
   );

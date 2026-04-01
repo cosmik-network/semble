@@ -8,17 +8,22 @@ import { BiCollection } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { CollectionSortField } from '@semble/types';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSearchParams } from 'next/navigation';
 
 interface Props {
   handle: string;
-  sortBy?: CollectionSortField;
 }
 
 export default function CollectionsContainerContent(props: Props) {
+  const searchParams = useSearchParams();
+  const sortBy =
+    (searchParams.get('collectionSort') as CollectionSortField) ??
+    CollectionSortField.UPDATED_AT;
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useCollections({
       didOrHandle: props.handle,
-      sortBy: props.sortBy,
+      sortBy,
     });
 
   const { settings } = useUserSettings();
@@ -45,7 +50,7 @@ export default function CollectionsContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
+          <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
             ))}

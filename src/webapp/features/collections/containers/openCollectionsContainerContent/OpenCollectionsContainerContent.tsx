@@ -10,12 +10,14 @@ import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSearchParams } from 'next/navigation';
 
-interface Props {
-  sortBy?: CollectionSortField;
-}
+export default function OpenCollectionsContainerContent() {
+  const searchParams = useSearchParams();
+  const sortBy =
+    (searchParams.get('collectionSort') as CollectionSortField) ??
+    CollectionSortField.UPDATED_AT;
 
-export default function OpenCollectionsContainerContent(props: Props) {
   const {
     data,
     isLoading,
@@ -27,7 +29,7 @@ export default function OpenCollectionsContainerContent(props: Props) {
   } = useSearchCollections({
     searchText: '',
     accessType: CollectionAccessType.OPEN,
-    sortBy: props.sortBy,
+    sortBy,
   });
 
   const { settings } = useUserSettings();
@@ -59,7 +61,7 @@ export default function OpenCollectionsContainerContent(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
+      <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((collection) => (
           <CollectionCard
             key={collection.id}

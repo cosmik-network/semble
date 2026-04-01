@@ -103,7 +103,7 @@ export default function CollectionCard(props: Props) {
             )}
           </Stack>
 
-          {settings.cardView === 'grid' && (
+          {settings.collectionView === 'grid' && (
             <Suspense fallback={<CollectionCardPreviewSkeleton />}>
               <CollectionCardPreview
                 rkey={rkey}
