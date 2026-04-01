@@ -1,5 +1,7 @@
 import { CardTypeEnum } from './value-objects/CardType';
 import { UrlType } from './value-objects/UrlType';
+import { DID } from '../../atproto/domain/DID';
+import { CollectionId } from './value-objects/CollectionId';
 
 export interface CardQueryOptions {
   page: number;
@@ -16,6 +18,8 @@ export interface SearchUrlsOptions {
   sortBy: CardSortField;
   sortOrder: SortOrder;
   urlType?: UrlType;
+  authorDid?: DID;
+  collectionId?: CollectionId;
 }
 
 // Raw result from URL search - will be enriched with library info in use case
