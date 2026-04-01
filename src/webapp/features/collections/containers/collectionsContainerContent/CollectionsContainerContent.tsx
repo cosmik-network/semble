@@ -1,3 +1,5 @@
+'use client';
+
 import { Container, Stack, SimpleGrid } from '@mantine/core';
 import useCollections from '../../lib/queries/useCollections';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
@@ -50,7 +52,14 @@ export default function CollectionsContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
+          <SimpleGrid
+            cols={
+              settings.collectionView !== 'grid'
+                ? { base: 1 }
+                : { base: 1, sm: 2, lg: 4 }
+            }
+            spacing="xs"
+          >
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
             ))}

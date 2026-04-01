@@ -29,13 +29,13 @@ const useFilterContext = () => {
   const ctx = useContext(FilterContext);
   if (!ctx)
     throw new Error(
-      'CollectionFilter components must be wrapped in CollectionFilters.Root',
+      'CollectionFilter components must be wrapped in CollectionFiltersRoot',
     );
   return ctx;
 };
 
 // root
-export function Root(props: { children: ReactNode }) {
+export function CollectionFiltersRoot(props: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -54,7 +54,7 @@ export function Root(props: { children: ReactNode }) {
 }
 
 // sort select
-export function SortSelect() {
+export function CollectionFiltersSortSelect() {
   const ctx = useFilterContext();
   const [, startTransition] = useTransition();
 
@@ -82,9 +82,7 @@ export function SortSelect() {
       <Menu.Item
         onClick={() => onChange(CollectionSortField.UPDATED_AT)}
         rightSection={
-          optimisticSort === CollectionSortField.UPDATED_AT && (
-            <IoMdCheckmark />
-          )
+          optimisticSort === CollectionSortField.UPDATED_AT && <IoMdCheckmark />
         }
         closeMenuOnClick={false}
       >
@@ -93,9 +91,7 @@ export function SortSelect() {
       <Menu.Item
         onClick={() => onChange(CollectionSortField.CARD_COUNT)}
         rightSection={
-          optimisticSort === CollectionSortField.CARD_COUNT && (
-            <IoMdCheckmark />
-          )
+          optimisticSort === CollectionSortField.CARD_COUNT && <IoMdCheckmark />
         }
         closeMenuOnClick={false}
       >
@@ -106,7 +102,7 @@ export function SortSelect() {
 }
 
 // view toggle
-export function ViewToggle() {
+export function CollectionFiltersViewToggle() {
   const { settings, updateSetting } = useUserSettings();
 
   return (
@@ -114,9 +110,7 @@ export function ViewToggle() {
       <Menu.Label>Collection View</Menu.Label>
       <Menu.Item
         leftSection={<BsGrid />}
-        rightSection={
-          settings.collectionView === 'grid' && <IoMdCheckmark />
-        }
+        rightSection={settings.collectionView === 'grid' && <IoMdCheckmark />}
         onClick={() => updateSetting('collectionView', 'grid')}
         closeMenuOnClick={false}
       >
@@ -137,7 +131,7 @@ export function ViewToggle() {
 }
 
 export const CollectionFilters = {
-  Root,
-  SortSelect,
-  ViewToggle,
+  Root: CollectionFiltersRoot,
+  SortSelect: CollectionFiltersSortSelect,
+  ViewToggle: CollectionFiltersViewToggle,
 };
