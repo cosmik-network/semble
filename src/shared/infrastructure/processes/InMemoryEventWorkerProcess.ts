@@ -114,8 +114,6 @@ export class InMemoryEventWorkerProcess implements IProcess {
         services.notificationService,
         repositories.connectionRepository,
         repositories.cardQueryRepository,
-        this.configService,
-        services.identityResolutionService,
       );
 
     const connectionRemovedHandler = new ConnectionRemovedEventHandler(
