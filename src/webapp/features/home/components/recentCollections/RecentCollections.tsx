@@ -9,8 +9,10 @@ import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function RecentCollections() {
+  const { settings } = useUserSettings();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const { data: profile } = useMyProfile();
   const { data: collectionsData } = useMyCollections({ limit: 4 });
@@ -35,7 +37,7 @@ export default function RecentCollections() {
       </Group>
 
       {collections.length > 0 ? (
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+        <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
           {collections.map((collection) => (
             <CollectionCard key={collection.id} collection={collection} />
           ))}

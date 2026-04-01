@@ -3,15 +3,7 @@
 import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import {
-  Avatar,
-  Card,
-  Group,
-  Stack,
-  Text,
-  ThemeIcon,
-  Tooltip,
-} from '@mantine/core';
+import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import styles from './CollectionCard.module.css';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
@@ -111,12 +103,14 @@ export default function CollectionCard(props: Props) {
             )}
           </Stack>
 
-          <Suspense fallback={<CollectionCardPreviewSkeleton />}>
-            <CollectionCardPreview
-              rkey={rkey}
-              handle={props.collection.author.handle}
-            />
-          </Suspense>
+          {settings.cardView === 'grid' && (
+            <Suspense fallback={<CollectionCardPreviewSkeleton />}>
+              <CollectionCardPreview
+                rkey={rkey}
+                handle={props.collection.author.handle}
+              />
+            </Suspense>
+          )}
 
           {settings.tinkerMode && (
             <CollectionCardDebugView collection={props.collection} />

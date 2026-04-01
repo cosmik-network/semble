@@ -9,6 +9,7 @@ import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/Profi
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   sortBy?: CollectionSortField;
@@ -29,6 +30,7 @@ export default function OpenCollectionsContainerContent(props: Props) {
     sortBy: props.sortBy,
   });
 
+  const { settings } = useUserSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -57,7 +59,7 @@ export default function OpenCollectionsContainerContent(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+      <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((collection) => (
           <CollectionCard
             key={collection.id}

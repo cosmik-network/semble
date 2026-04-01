@@ -8,6 +8,7 @@ import { BiCollection } from 'react-icons/bi';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function AtmosphereConfCollectionsContainerContent() {
   const {
@@ -22,6 +23,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
     searchText: 'atmosphereConf',
   });
 
+  const { settings } = useUserSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -50,7 +52,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+      <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((collection) => (
           <CollectionCard
             key={collection.id}

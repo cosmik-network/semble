@@ -7,6 +7,7 @@ import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiCollection } from 'react-icons/bi';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   url: string;
@@ -22,6 +23,7 @@ export default function SembleCollectionsContainer(props: Props) {
     isPending,
   } = useSembleCollections({ url: props.url });
 
+  const { settings } = useUserSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -41,7 +43,7 @@ export default function SembleCollectionsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+      <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((col) => (
           <CollectionCard key={col.uri} collection={col} showAuthor />
         ))}

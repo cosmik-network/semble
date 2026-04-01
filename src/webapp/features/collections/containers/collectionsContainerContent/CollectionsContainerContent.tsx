@@ -7,6 +7,7 @@ import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/Profi
 import { BiCollection } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { CollectionSortField } from '@semble/types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 interface Props {
   handle: string;
@@ -20,6 +21,7 @@ export default function CollectionsContainerContent(props: Props) {
       sortBy: props.sortBy,
     });
 
+  const { settings } = useUserSettings();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const collections =
@@ -43,7 +45,7 @@ export default function CollectionsContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+          <SimpleGrid cols={settings.cardView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
             ))}
