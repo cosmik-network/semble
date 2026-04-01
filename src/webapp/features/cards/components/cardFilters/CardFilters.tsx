@@ -31,14 +31,12 @@ const FilterContext = createContext<FilterContextValue | null>(null);
 const useFilterContext = () => {
   const ctx = useContext(FilterContext);
   if (!ctx)
-    throw new Error(
-      'CardFilter components must be wrapped in CardFilters.Root',
-    );
+    throw new Error('CardFilter components must be wrapped in CardFiltersRoot');
   return ctx;
 };
 
 // root
-export function Root(props: { children: ReactNode }) {
+export function CardFiltersRoot(props: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -63,7 +61,7 @@ export function Root(props: { children: ReactNode }) {
 
 // sort select
 // sort select (menu-style)
-export function SortSelect() {
+export function CardFiltersSortSelect() {
   const ctx = useFilterContext();
   const [, startTransition] = useTransition();
 
@@ -122,7 +120,7 @@ export function SortSelect() {
 }
 
 // type filter
-export function TypeFilter() {
+export function CardFiltersTypeFilter() {
   const ctx = useFilterContext();
   const [, startTransition] = useTransition();
 
@@ -206,7 +204,7 @@ export function TypeFilter() {
 }
 
 // view toggle
-export function ViewToggle() {
+export function CardFiltersViewToggle() {
   const { settings, updateSetting } = useUserSettings();
 
   return (
@@ -241,8 +239,8 @@ export function ViewToggle() {
 }
 
 export const CardFilters = {
-  Root,
-  SortSelect,
-  TypeFilter,
-  ViewToggle,
+  Root: CardFiltersRoot,
+  SortSelect: CardFiltersSortSelect,
+  TypeFilter: CardFiltersTypeFilter,
+  ViewToggle: CardFiltersViewToggle,
 };
