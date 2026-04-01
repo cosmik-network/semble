@@ -1,7 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
 import { SearchUrlsUseCase } from '../../../../cards/application/useCases/queries/SearchUrlsUseCase';
-import { GetUrlCardsUseCase } from '../../../../cards/application/useCases/queries/GetUrlCardsUseCase';
 import { SearchCollectionsUseCase } from '../../../../cards/application/useCases/queries/SearchCollectionsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import {
@@ -69,7 +68,6 @@ export class XrpcMentionSearchController extends Controller {
 
   constructor(
     private searchUrlsUseCase: SearchUrlsUseCase,
-    private getUrlCardsUseCase: GetUrlCardsUseCase,
     private searchCollectionsUseCase: SearchCollectionsUseCase,
     private atUriResolutionService: IAtUriResolutionService,
     private appUrl: string,
@@ -252,59 +250,9 @@ export class XrpcMentionSearchController extends Controller {
         }
       }
 
-      // If search query is empty
-      if (!search || search.trim() === '') {
-        // If not authenticated, return empty results
-        if (!callingUserId) {
-          const emptyResponse: XrpcMentionSearchResponse = { results: [] };
-          return this.ok(res, emptyResponse);
-        }
-
-        // Fetch user's recent cards
-        const result = await this.getUrlCardsUseCase.execute({
-          userId: callingUserId,
-          callingUserId,
-          page: 1,
-          limit,
-          sortBy: CardSortField.UPDATED_AT,
-          sortOrder: SortOrder.DESC,
-        });
-
-        if (result.isErr()) {
-          return this.fail(res, result.error);
-        }
-
-        const mappedResults: XrpcMentionSearchResult[] = result.value.cards.map(
-          (card) => ({
-            uri: card.url,
-            name: card.cardContent.title || card.url,
-            description: card.cardContent.description,
-            href: `${this.appUrl}/url?id=${encodeURIComponent(card.url)}`,
-            icon: card.cardContent.imageUrl,
-            labels: [
-              {
-                text:
-                  card.libraryCount > 0
-                    ? `Library count: ${card.libraryCount}`
-                    : '',
-              },
-              {
-                text:
-                  card.urlConnectionCount && card.urlConnectionCount > 0
-                    ? `Connections: ${card.urlConnectionCount}`
-                    : '',
-              },
-            ],
-          }),
-        );
-
-        const response: XrpcMentionSearchResponse = { results: mappedResults };
-        return this.ok(res, response);
-      }
-
-      // Perform search with query string
+      // Perform search with query string (empty string is allowed)
       const result = await this.searchUrlsUseCase.execute({
-        searchQuery: search,
+        searchQuery: search || '',
         callingUserId,
         page: 1,
         limit,

@@ -44,11 +44,6 @@ export class SearchUrlsUseCase
   constructor(private cardQueryRepo: ICardQueryRepository) {}
 
   async execute(query: SearchUrlsQuery): Promise<Result<SearchUrlsResult>> {
-    // Validate search query
-    if (!query.searchQuery || query.searchQuery.trim().length === 0) {
-      return err(new ValidationError('Search query is required'));
-    }
-
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
@@ -61,9 +56,9 @@ export class SearchUrlsUseCase
     }
 
     try {
-      // Execute search query
+      // Execute search query (empty string means no text filtering)
       const result = await this.cardQueryRepo.searchUrls({
-        searchQuery: query.searchQuery.trim(),
+        searchQuery: query.searchQuery?.trim() || '',
         page,
         limit,
         sortBy,
