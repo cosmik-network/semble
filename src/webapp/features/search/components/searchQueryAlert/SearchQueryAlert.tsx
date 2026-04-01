@@ -2,16 +2,17 @@ import { Alert, Text } from '@mantine/core';
 
 interface Props {
   query: string;
+  count?: number;
   handle?: string;
 }
 
 export default function SearchQueryAlert(props: Props) {
   return (
     <Alert
-      p={'xs'}
+      p={0}
       radius={'lg'}
-      color="gray"
       variant="transparent"
+      color="gray"
       w={'100%'}
       title={
         props.query ? (
