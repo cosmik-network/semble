@@ -12,6 +12,8 @@ import {
 import { UrlType } from '../../../domain/value-objects/UrlType';
 import { UrlCardView } from '../../../domain/ICardQueryRepository';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DID } from '../../../../atproto/domain/DID';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import {
   CardQueryOptions,
   PaginatedQueryResult,
@@ -1673,7 +1675,16 @@ export class UrlCardQueryService {
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
     try {
-      const { searchQuery, page, limit, sortBy, sortOrder, urlType } = options;
+      const {
+        searchQuery,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        authorDid,
+        collectionId,
+      } = options;
       const offset = (page - 1) * limit;
 
       // Tokenize search query into words
@@ -1700,20 +1711,48 @@ export class UrlCardQueryService {
         whereConditions.push(eq(cards.urlType, urlType));
       }
 
+      // Add authorDid filter if provided
+      if (authorDid) {
+        whereConditions.push(eq(cards.authorId, authorDid.value));
+      }
+
+      // Add collectionId filter if provided
+      if (collectionId) {
+        whereConditions.push(
+          eq(collectionCards.collectionId, collectionId.getStringValue()),
+        );
+      }
+
       const whereClause = and(...whereConditions);
 
       // For LIBRARY_COUNT sorting, we need special handling
       if (sortBy === CardSortField.LIBRARY_COUNT) {
         // First, get all matching URL cards
-        const allMatchingCardsQuery = this.db
-          .select({
-            url: cards.url,
-            contentData: cards.contentData,
-            updatedAt: cards.updatedAt,
-          })
-          .from(cards)
-          .where(whereClause)
-          .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
+        let allMatchingCardsQuery;
+
+        if (collectionId) {
+          // Join collection_cards when filtering by collection
+          allMatchingCardsQuery = this.db
+            .select({
+              url: cards.url,
+              contentData: cards.contentData,
+              updatedAt: cards.updatedAt,
+            })
+            .from(cards)
+            .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
+            .where(whereClause)
+            .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
+        } else {
+          allMatchingCardsQuery = this.db
+            .select({
+              url: cards.url,
+              contentData: cards.contentData,
+              updatedAt: cards.updatedAt,
+            })
+            .from(cards)
+            .where(whereClause)
+            .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
+        }
 
         const allMatchingCards = await allMatchingCardsQuery;
 
@@ -1807,15 +1846,31 @@ export class UrlCardQueryService {
 
       // Get distinct URLs with most recent card data using a subquery approach
       // First, get all matching cards ordered by updatedAt
-      const matchingCardsQuery = this.db
-        .select({
-          url: cards.url,
-          contentData: cards.contentData,
-          updatedAt: cards.updatedAt,
-        })
-        .from(cards)
-        .where(whereClause)
-        .orderBy(orderDirection(sortColumn));
+      let matchingCardsQuery;
+
+      if (collectionId) {
+        // Join collection_cards when filtering by collection
+        matchingCardsQuery = this.db
+          .select({
+            url: cards.url,
+            contentData: cards.contentData,
+            updatedAt: cards.updatedAt,
+          })
+          .from(cards)
+          .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
+          .where(whereClause)
+          .orderBy(orderDirection(sortColumn));
+      } else {
+        matchingCardsQuery = this.db
+          .select({
+            url: cards.url,
+            contentData: cards.contentData,
+            updatedAt: cards.updatedAt,
+          })
+          .from(cards)
+          .where(whereClause)
+          .orderBy(orderDirection(sortColumn));
+      }
 
       const matchingCards = await matchingCardsQuery;
 
