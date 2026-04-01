@@ -61,6 +61,7 @@ export class XrpcMentionSearchController extends Controller {
         (urlView) => ({
           uri: urlView.url,
           name: urlView.metadata.title || urlView.url,
+          description: urlView.metadata.description,
           href: `${this.appUrl}/url?id=${encodeURIComponent(urlView.url)}`,
           icon: urlView.metadata.imageUrl,
           embed: undefined,
