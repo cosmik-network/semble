@@ -36,7 +36,11 @@ export default function CollectionSearchResultsContainer(props: Props) {
   return (
     <Stack gap="md">
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
-        <SearchQueryAlert query={props.query} handle={props.handle} />
+        <SearchQueryAlert
+          query={props.query}
+          handle={props.handle}
+          count={allCollections.length}
+        />
         <SearchFilters.Root>
           <SearchFilters.ProfileFilter />
           <SearchFilters.AccessTypeFilter />

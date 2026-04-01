@@ -39,7 +39,11 @@ export default function CardSearchResultsContainer(props: Props) {
   return (
     <Stack gap="md">
       <Group gap={'xs'} justify="space-between" wrap="nowrap">
-        <SearchQueryAlert query={props.query} handle={props.handle} />
+        <SearchQueryAlert
+          query={props.query}
+          handle={props.handle}
+          count={allUrls.length}
+        />
         <SearchFilters.Root>
           <SearchFilters.ProfileFilter />
           <SearchFilters.UrlTypeFilter />
