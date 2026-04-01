@@ -221,11 +221,11 @@ export function ViewToggle() {
       </Menu.Item>
       <Menu.Item
         leftSection={<BsListTask />}
-        rightSection={settings.cardView === 'list' && <IoMdCheckmark />}
-        onClick={() => updateSetting('cardView', 'list')}
+        rightSection={settings.cardView === 'compact' && <IoMdCheckmark />}
+        onClick={() => updateSetting('cardView', 'compact')}
         closeMenuOnClick={false}
       >
-        List{' '}
+        Compact{' '}
       </Menu.Item>
     </Fragment>
   );
