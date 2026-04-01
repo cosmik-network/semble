@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ReactElement, isValidElement } from 'react';
 import { usePathname } from 'next/navigation';
 import { useNavbarContext } from '@/providers/navbar';
+import { useWebHaptics } from 'web-haptics/react';
 
 interface Props {
   href: string;
@@ -17,6 +18,7 @@ export default function BottomBarItem(props: Props) {
   const pathname = usePathname();
   const isActive = pathname === props.href;
   const { toggleMobile, mobileOpened } = useNavbarContext();
+  const { trigger } = useWebHaptics();
 
   const renderIcon = () => {
     // If the icon is already a React element, just return it
@@ -28,17 +30,22 @@ export default function BottomBarItem(props: Props) {
   };
 
   return (
-    <Anchor component={Link} href={props.href} underline="never">
+    <Anchor
+      component={Link}
+      href={props.href}
+      underline="never"
+      onClick={() => {
+        trigger();
+        if (mobileOpened) {
+          toggleMobile();
+        }
+      }}
+    >
       <Stack gap={0} align="center">
         <ActionIcon
           variant={isActive ? 'light' : 'transparent'}
           size={'lg'}
           color="gray"
-          onClick={() => {
-            if (mobileOpened) {
-              toggleMobile();
-            }
-          }}
         >
           {renderIcon()}
         </ActionIcon>
