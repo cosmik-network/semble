@@ -30,18 +30,22 @@ export default function BottomBarItem(props: Props) {
   };
 
   return (
-    <Anchor component={Link} href={props.href} underline="never">
+    <Anchor
+      component={Link}
+      href={props.href}
+      underline="never"
+      onClick={() => {
+        trigger();
+        if (mobileOpened) {
+          toggleMobile();
+        }
+      }}
+    >
       <Stack gap={0} align="center">
         <ActionIcon
           variant={isActive ? 'light' : 'transparent'}
           size={'lg'}
           color="gray"
-          onClick={() => {
-            trigger();
-            if (mobileOpened) {
-              toggleMobile();
-            }
-          }}
         >
           {renderIcon()}
         </ActionIcon>
