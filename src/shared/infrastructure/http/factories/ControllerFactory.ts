@@ -67,6 +67,7 @@ import { GetUserGraphDataController } from '../../../../modules/cards/infrastruc
 import { GetUrlGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlGraphDataController';
 import { CookieService } from '../services/CookieService';
 import { Services } from './ServiceFactory';
+import { Repositories } from './RepositoryFactory';
 
 export interface Controllers {
   // User controllers
@@ -150,6 +151,7 @@ export class ControllerFactory {
     useCases: UseCases,
     cookieService: CookieService,
     services: Services,
+    repositories: Repositories,
     appUrl: string,
     serviceDid: string,
   ): Controllers {
@@ -365,6 +367,7 @@ export class ControllerFactory {
         useCases.searchUrlsUseCase,
         useCases.getMyUrlCardsUseCase,
         useCases.searchCollectionsUseCase,
+        repositories.atUriResolutionService,
         appUrl,
         serviceDid,
       ),

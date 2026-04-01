@@ -75,6 +75,7 @@ export const createExpressApp = (
     useCases,
     services.cookieService,
     services,
+    repositories,
     configService.getAppConfig().appUrl,
     serviceDid,
   );

@@ -16,6 +16,9 @@ import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
 import { IdResolver } from '@atproto/identity';
 import { ATUri } from '../../../../atproto/domain/ATUri';
 import { DIDOrATUri } from '../../../../atproto/domain/DIDOrATUri';
+import { IAtUriResolutionService } from '../../../../cards/domain/services/IAtUriResolutionService';
+import { DID } from '../../../../atproto/domain/DID';
+import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 
 // XRPC parts.page.mention.search types based on lexicon
 interface XrpcMentionSearchParams {
@@ -68,6 +71,7 @@ export class XrpcMentionSearchController extends Controller {
     private searchUrlsUseCase: SearchUrlsUseCase,
     private getUrlCardsUseCase: GetUrlCardsUseCase,
     private searchCollectionsUseCase: SearchCollectionsUseCase,
+    private atUriResolutionService: IAtUriResolutionService,
     private appUrl: string,
     private serviceDid: string,
   ) {
@@ -200,6 +204,42 @@ export class XrpcMentionSearchController extends Controller {
       }
 
       // Card search service
+      // Handle scope parameter for card search
+      let authorDidForSearch: DID | undefined = undefined;
+      let collectionIdForSearch: CollectionId | undefined = undefined;
+
+      if (scope) {
+        const scopeResult = DIDOrATUri.create(scope);
+        if (scopeResult.isErr()) {
+          return this.badRequest(
+            res,
+            `Invalid scope parameter: ${scopeResult.error.message}`,
+          );
+        }
+
+        const parsedScope = scopeResult.value;
+
+        if (parsedScope.isDID) {
+          // Scope is a DID - use as authorDid filter
+          authorDidForSearch = parsedScope.getDID();
+        } else {
+          // Scope is an AT URI - resolve to CollectionId
+          const atUri = parsedScope.getATUri();
+          if (atUri) {
+            const collectionIdResult =
+              await this.atUriResolutionService.resolveCollectionId(
+                atUri.toString(),
+              );
+            if (collectionIdResult.isErr()) {
+              return this.fail(res, collectionIdResult.error);
+            }
+            if (collectionIdResult.value) {
+              collectionIdForSearch = collectionIdResult.value;
+            }
+          }
+        }
+      }
+
       // If search query is empty
       if (!search || search.trim() === '') {
         // If not authenticated, return empty results
@@ -244,6 +284,8 @@ export class XrpcMentionSearchController extends Controller {
         limit,
         sortBy: CardSortField.UPDATED_AT,
         sortOrder: SortOrder.DESC,
+        authorDid: authorDidForSearch,
+        collectionId: collectionIdForSearch,
       });
 
       if (result.isErr()) {
