@@ -67,7 +67,7 @@ export class XrpcMentionSearchController extends Controller {
         }),
       );
 
-      return this.ok(res, mappedResults);
+      return this.ok(res, { results: mappedResults });
     } catch (error: any) {
       return this.handleError(res, error);
     }
