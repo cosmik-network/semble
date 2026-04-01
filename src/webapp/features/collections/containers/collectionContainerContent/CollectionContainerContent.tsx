@@ -3,9 +3,10 @@
 import { useNavbarContext } from '@/providers/navbar';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
-import { Anchor, Box, Button, Grid, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Divider, Grid, Group, Stack, Text } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
@@ -30,6 +31,7 @@ const sortOrderMap: Record<CardSortField, SortOrder> = {
 export default function CollectionContainerContent(props: Props) {
   const pathname = usePathname();
   const { desktopOpened } = useNavbarContext();
+  const { settings } = useUserSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { user } = useAuth();
 
@@ -61,18 +63,23 @@ export default function CollectionContainerContent(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Grid gutter="xs">
-            {allCards.map((card) => (
-              <Grid.Col
-                key={card.id}
-                span={{
-                  base: 12,
-                  xs: desktopOpened ? 12 : 6,
-                  sm: desktopOpened ? 6 : 4,
-                  md: 4,
-                  lg: 3,
-                }}
-              >
+          <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
+            {allCards.map((card, index) => (
+              <Fragment key={card.id}>
+                {settings.cardView === 'list' && index > 0 && (
+                  <Grid.Col span={12}>
+                    <Divider />
+                  </Grid.Col>
+                )}
+                <Grid.Col
+                  span={{
+                    base: 12,
+                    xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                    sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+                    md: settings.cardView !== 'grid' ? 12 : 4,
+                    lg: settings.cardView !== 'grid' ? 12 : 3,
+                  }}
+                >
                 <UrlCard
                   id={card.id}
                   url={card.url}
@@ -97,6 +104,7 @@ export default function CollectionContainerContent(props: Props) {
                   }}
                 />
               </Grid.Col>
+              </Fragment>
             ))}
           </Grid>
         </InfiniteScroll>

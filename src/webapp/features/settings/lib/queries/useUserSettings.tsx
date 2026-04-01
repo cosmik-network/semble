@@ -2,7 +2,7 @@ import { useLocalStorage } from '@mantine/hooks';
 
 interface UserSettings {
   tinkerMode: boolean;
-  cardView: 'grid' | 'compact';
+  cardView: 'grid' | 'compact' | 'list';
   collectionsNavExpanded: boolean;
   followingNavExpanded: boolean;
 }

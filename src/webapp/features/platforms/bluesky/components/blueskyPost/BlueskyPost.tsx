@@ -32,7 +32,7 @@ export default function BlueskyPost(props: Props) {
   const { settings } = useUserSettings();
   const uri = getPostUriFromUrl(props.url);
   const { data, error } = useGetBlueskyPost({ uri });
-  const showEmbed = settings.cardView !== 'compact';
+  const showEmbed = settings.cardView === 'grid';
   const platform = detectUrlPlatform(props.url);
   const platformIcon =
     platform.type === SupportedPlatform.BLUESKY_POST ? (
@@ -103,7 +103,7 @@ export default function BlueskyPost(props: Props) {
         <Box>
           <RichTextRenderer
             text={record.text}
-            textProps={{ lineClamp: settings.cardView === 'compact' ? 1 : 3 }}
+            textProps={{ lineClamp: settings.cardView === 'grid' ? 3 : 1 }}
           />
         </Box>
         {post.embed && showEmbed && <PostEmbed embed={post.embed} />}
