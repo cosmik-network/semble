@@ -364,6 +364,7 @@ export class ControllerFactory {
       xrpcMentionSearchController: new XrpcMentionSearchController(
         useCases.searchUrlsUseCase,
         useCases.getMyUrlCardsUseCase,
+        useCases.searchCollectionsUseCase,
         appUrl,
         serviceDid,
       ),
