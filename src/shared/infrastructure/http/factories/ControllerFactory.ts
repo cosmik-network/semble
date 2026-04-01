@@ -26,6 +26,7 @@ import { SemanticSearchUrlsController } from '../../../../modules/search/infrast
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
+import { XrpcMentionSearchController } from '../../../../modules/search/infrastructure/http/controllers/XrpcMentionSearchController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -136,6 +137,7 @@ export interface Controllers {
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   searchAtProtoAccountsController: SearchAtProtoAccountsController;
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController;
+  xrpcMentionSearchController: XrpcMentionSearchController;
   // Notification controllers
   getMyNotificationsController: GetMyNotificationsController;
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
@@ -148,6 +150,7 @@ export class ControllerFactory {
     useCases: UseCases,
     cookieService: CookieService,
     services: Services,
+    appUrl: string,
   ): Controllers {
     return {
       // User controllers
@@ -356,6 +359,10 @@ export class ControllerFactory {
       ),
       searchLeafletDocsForUrlController: new SearchLeafletDocsForUrlController(
         useCases.searchLeafletDocsForUrlUseCase,
+      ),
+      xrpcMentionSearchController: new XrpcMentionSearchController(
+        useCases.searchUrlsUseCase,
+        appUrl,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(
