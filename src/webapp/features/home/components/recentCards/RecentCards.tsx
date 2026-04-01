@@ -26,7 +26,7 @@ export default function RecentCards() {
   const { settings } = useUserSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
-  const { data: myCardsData } = useMyCards({ limit: 10 });
+  const { data: myCardsData } = useMyCards({ limit: 4 });
   const cards = myCardsData.pages.flatMap((page) => page.cards) ?? [];
 
   return (
