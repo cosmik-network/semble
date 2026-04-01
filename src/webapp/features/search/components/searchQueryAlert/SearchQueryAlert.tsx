@@ -17,7 +17,7 @@ export default function SearchQueryAlert(props: Props) {
       title={
         props.query ? (
           <Text fz={'sm'} fw={500} c={'dimmed'} lineClamp={1}>
-            {props.count} result{props.count && props.count > 1 ? 's' : ''} for{' '}
+            Showing results for{' '}
             <Text fz={'sm'} fw={600} c={'bright'} span>
               {props.query}
             </Text>
