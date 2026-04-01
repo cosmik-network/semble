@@ -151,6 +151,7 @@ export class ControllerFactory {
     cookieService: CookieService,
     services: Services,
     appUrl: string,
+    serviceDid: string,
   ): Controllers {
     return {
       // User controllers
@@ -362,7 +363,9 @@ export class ControllerFactory {
       ),
       xrpcMentionSearchController: new XrpcMentionSearchController(
         useCases.searchUrlsUseCase,
+        useCases.getMyUrlCardsUseCase,
         appUrl,
+        serviceDid,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(

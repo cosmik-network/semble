@@ -66,11 +66,17 @@ export const createExpressApp = (
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWebApp(configService, repositories);
   const useCases = UseCaseFactory.createForWebApp(repositories, services);
+
+  // Construct serviceDid for XRPC
+  const baseUrl = configService.getAtProtoConfig().baseUrl;
+  const serviceDid = `did:web:${baseUrl.replace(/^https?:\/\//, '')}`;
+
   const controllers = ControllerFactory.create(
     useCases,
     services.cookieService,
     services,
     configService.getAppConfig().appUrl,
+    serviceDid,
   );
 
   // Routes
@@ -179,9 +185,6 @@ export const createExpressApp = (
   createTestRoutes(testRouter);
 
   // DID Web endpoint
-  const baseUrl = configService.getAtProtoConfig().baseUrl;
-  const serviceDid = `did:web:${baseUrl.replace(/^https?:\/\//, '')}`;
-
   app.get('/.well-known/did.json', (req, res) => {
     return res.json({
       '@context': ['https://www.w3.org/ns/did/v1'],
