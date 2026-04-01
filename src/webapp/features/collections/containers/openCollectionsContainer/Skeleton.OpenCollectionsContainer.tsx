@@ -1,11 +1,11 @@
-import { Group, Select, SimpleGrid, Stack } from '@mantine/core';
+import { Group, Select, SimpleGrid, Skeleton, Stack } from '@mantine/core';
 import CollectionCardSkeleton from '../../components/collectionCard/Skeleton.CollectionCard';
 
 export default function OpenCollectionsContainerSkeleton() {
   return (
     <Stack>
-      <Group justify="space-between" gap={'xs'}>
-        <Select disabled w={140} mr={'auto'} variant="filled" size="sm" />
+      <Group gap={'xs'}>
+        <Skeleton w={96} h={36} radius={'xl'} />
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">

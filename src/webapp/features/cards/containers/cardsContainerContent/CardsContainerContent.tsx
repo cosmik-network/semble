@@ -1,3 +1,5 @@
+'use client';
+
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';

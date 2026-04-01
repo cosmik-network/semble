@@ -7,6 +7,7 @@ import { SimpleGrid } from '@mantine/core';
 import GemsCollectionsContainerError from './Error.GemsCollectionsContainerContent';
 import { BiCollection } from 'react-icons/bi';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function GemsCollectionsContainerContent() {
   const {
@@ -20,6 +21,7 @@ export default function GemsCollectionsContainerContent() {
     searchText: '💎 2025',
   });
 
+  const { settings } = useUserSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -41,7 +43,7 @@ export default function GemsCollectionsContainerContent() {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+      <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
         {allCollections.map((collection) => (
           <CollectionCard
             key={collection.id}
