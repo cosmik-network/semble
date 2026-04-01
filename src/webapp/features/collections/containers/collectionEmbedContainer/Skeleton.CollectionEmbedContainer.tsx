@@ -1,12 +1,4 @@
-import {
-  Container,
-  Group,
-  Select,
-  Skeleton,
-  Stack,
-  Image,
-  Text,
-} from '@mantine/core';
+import { Container, Group, Skeleton, Stack, Image } from '@mantine/core';
 import CollectionContainerContentSkeleton from '../collectionContainerContent/Skeleton.CollectionContainerContent';
 import SembleLogo from '@/assets/semble-logo.svg';
 
@@ -18,10 +10,8 @@ export default function CollectionEmbedContainerSkeleton() {
           <Stack gap={'xs'} align="flex-start">
             <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={30} />
 
-            <Stack gap={0}>
-              <Text fw={700} c="grape">
-                Collection
-              </Text>
+            <Stack gap={5}>
+              <Skeleton w={120} h={20} />
               {/* Title */}
               <Skeleton w={300} h={27} />
             </Stack>
