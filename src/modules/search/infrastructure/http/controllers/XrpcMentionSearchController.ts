@@ -10,16 +10,42 @@ import {
 import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
 import { IdResolver } from '@atproto/identity';
 
+// XRPC parts.page.mention.search types based on lexicon
+interface XrpcMentionSearchParams {
+  service: string; // AT URI of the mention service
+  search: string; // Search query string
+  scope?: string; // Optional scope identifier
+  limit?: number; // Max 50, default 20
+}
+
+interface XrpcMentionLabel {
+  text: string;
+}
+
+interface XrpcEmbedInfo {
+  src: string; // iframe source URL
+  width?: number; // 16-3200 pixels
+  height?: number; // 16-3200 pixels
+}
+
+interface XrpcSubscopeInfo {
+  scope: string; // Scope identifier for subsequent queries
+  label: string; // Display label (max 100 chars)
+}
+
 interface XrpcMentionSearchResult {
-  uri: string;
-  name: string;
-  href: string;
-  icon?: string;
-  embed?: {
-    src: string;
-    width: number;
-    height: number;
-  };
+  uri: string; // Identifier for the mentioned entity
+  name: string; // Display name
+  description?: string; // Description
+  labels?: XrpcMentionLabel[]; // Labels to render with entity
+  href?: string; // Optional web URL
+  icon?: string; // Optional icon URL
+  embed?: XrpcEmbedInfo; // Optional embed info
+  subscope?: XrpcSubscopeInfo; // Optional subscope info
+}
+
+interface XrpcMentionSearchResponse {
+  results: XrpcMentionSearchResult[]; // Max 50 results
 }
 
 export class XrpcMentionSearchController extends Controller {
@@ -85,7 +111,8 @@ export class XrpcMentionSearchController extends Controller {
       if (!search || search.trim() === '') {
         // If not authenticated, return empty results
         if (!callingUserId) {
-          return this.ok(res, { results: [] });
+          const emptyResponse: XrpcMentionSearchResponse = { results: [] };
+          return this.ok(res, emptyResponse);
         }
 
         // Fetch user's recent cards
@@ -109,11 +136,11 @@ export class XrpcMentionSearchController extends Controller {
             description: card.cardContent.description,
             href: `${this.appUrl}/url?id=${encodeURIComponent(card.url)}`,
             icon: card.cardContent.imageUrl,
-            embed: undefined,
           }),
         );
 
-        return this.ok(res, { results: mappedResults });
+        const response: XrpcMentionSearchResponse = { results: mappedResults };
+        return this.ok(res, response);
       }
 
       // Perform search with query string
@@ -137,11 +164,11 @@ export class XrpcMentionSearchController extends Controller {
           description: urlView.metadata.description,
           href: `${this.appUrl}/url?id=${encodeURIComponent(urlView.url)}`,
           icon: urlView.metadata.imageUrl,
-          embed: undefined,
         }),
       );
 
-      return this.ok(res, { results: mappedResults });
+      const response: XrpcMentionSearchResponse = { results: mappedResults };
+      return this.ok(res, response);
     } catch (error: any) {
       return this.handleError(res, error);
     }
