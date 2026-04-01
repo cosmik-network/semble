@@ -127,7 +127,7 @@ export class XrpcMentionSearchController extends Controller {
 
       // Validate and parse scope if provided
       let scopeIdentifier: string | undefined;
-      let scopeIsDID = false;
+      let parsedScope: DIDOrATUri | undefined = undefined;
       if (scope) {
         const scopeResult = DIDOrATUri.create(scope);
         if (scopeResult.isErr()) {
@@ -137,11 +137,10 @@ export class XrpcMentionSearchController extends Controller {
           );
         }
 
-        const parsedScope = scopeResult.value;
+        parsedScope = scopeResult.value;
         // Extract the identifier (DID) from the scope
         if (parsedScope.isDID) {
           scopeIdentifier = parsedScope.getDID()?.value;
-          scopeIsDID = true;
         } else {
           // If it's an AT URI, extract the DID from it
           scopeIdentifier = parsedScope.getATUri()?.did.value;
@@ -149,12 +148,12 @@ export class XrpcMentionSearchController extends Controller {
       }
 
       // Branch based on service type
-      if (serviceUri === COLLECTION_SEARCH_SERVICE) {
+      if (serviceUri === COLLECTION_SEARCH_SERVICE && !parsedScope?.isATUri) {
         // Collection search
         const result = await this.searchCollectionsUseCase.execute({
           searchText: search || '',
           callingUserId,
-          identifier: scopeIsDID ? scopeIdentifier : undefined, // Pass the scope identifier
+          identifier: parsedScope?.isDID ? scopeIdentifier : undefined, // Pass the scope identifier
           page: 1,
           limit,
           sortBy: CollectionSortField.UPDATED_AT,
@@ -189,6 +188,10 @@ export class XrpcMentionSearchController extends Controller {
             name: collection.name,
             description: collection.description,
             href: `${this.appUrl}/profile/${handle}/collections/${atUri.rkey}`,
+            subscope: {
+              scope: collection.uri, // Use the collection AT URI as the subscope
+              label: 'Cards',
+            },
           });
         }
 
@@ -196,7 +199,10 @@ export class XrpcMentionSearchController extends Controller {
         return this.ok(res, response);
       }
 
-      if (serviceUri !== CARD_SEARCH_SERVICE) {
+      if (
+        serviceUri !== CARD_SEARCH_SERVICE &&
+        serviceUri !== COLLECTION_SEARCH_SERVICE
+      ) {
         return this.badRequest(
           res,
           `Unknown service URI: ${serviceUri}. Expected ${CARD_SEARCH_SERVICE} or ${COLLECTION_SEARCH_SERVICE}`,
