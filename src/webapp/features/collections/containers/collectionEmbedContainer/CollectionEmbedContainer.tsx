@@ -12,6 +12,8 @@ import {
   Image,
   Button,
   Card,
+  Tooltip,
+  Badge,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
@@ -22,6 +24,8 @@ import useCollection from '../../lib/queries/useCollection';
 import { Fragment } from 'react';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { useRouter } from 'next/navigation';
+import { CollectionAccessType } from '@semble/types';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   rkey: string;
@@ -49,9 +53,29 @@ export default function CollectionEmbedContainer(props: Props) {
               <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={30} />
             </Anchor>
             <Stack gap={0}>
-              <Text fw={700} c="grape">
-                Collection
-              </Text>
+              <Group gap={'xs'}>
+                <Text
+                  fw={700}
+                  c={
+                    firstPage.accessType === CollectionAccessType.OPEN
+                      ? 'green'
+                      : 'grape'
+                  }
+                >
+                  Collection
+                </Text>
+                {firstPage.accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <Badge
+                      color="green"
+                      leftSection={<FaSeedling />}
+                      variant="light"
+                    >
+                      Open
+                    </Badge>
+                  </Tooltip>
+                )}
+              </Group>
               <Title order={1} fz={'xl'}>
                 {firstPage.name}
               </Title>
