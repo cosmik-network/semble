@@ -33,7 +33,7 @@ export function useUserSettings() {
   }
 
   return {
-    settings,
+    settings: settings ?? defaultSettings,
     setSettings,
     updateSetting,
   };
