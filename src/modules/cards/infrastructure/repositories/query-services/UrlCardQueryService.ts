@@ -1687,18 +1687,24 @@ export class UrlCardQueryService {
       } = options;
       const offset = (page - 1) * limit;
 
-      // Tokenize search query into words
-      const searchWords = searchQuery.trim().split(/\s+/);
+      // Build search conditions only if search query is provided
+      const searchConditions = [];
+      if (searchQuery && searchQuery.trim().length > 0) {
+        // Tokenize search query into words
+        const searchWords = searchQuery.trim().split(/\s+/);
 
-      // Build WHERE conditions for tokenized substring search
-      const searchConditions = searchWords.map((word) => {
-        const pattern = `%${word}%`;
-        return or(
-          sql`${cards.contentData}->'metadata'->>'title' ILIKE ${pattern}`,
-          sql`${cards.contentData}->'metadata'->>'description' ILIKE ${pattern}`,
-          sql`${cards.url} ILIKE ${pattern}`,
-        )!;
-      });
+        // Build WHERE conditions for tokenized substring search
+        searchConditions.push(
+          ...searchWords.map((word) => {
+            const pattern = `%${word}%`;
+            return or(
+              sql`${cards.contentData}->'metadata'->>'title' ILIKE ${pattern}`,
+              sql`${cards.contentData}->'metadata'->>'description' ILIKE ${pattern}`,
+              sql`${cards.url} ILIKE ${pattern}`,
+            )!;
+          }),
+        );
+      }
 
       // Base WHERE conditions
       const whereConditions = [
