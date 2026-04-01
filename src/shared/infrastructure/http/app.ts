@@ -70,6 +70,7 @@ export const createExpressApp = (
     useCases,
     services.cookieService,
     services,
+    configService.getAppConfig().appUrl,
   );
 
   // Routes
@@ -176,6 +177,29 @@ export const createExpressApp = (
 
   const testRouter = Router();
   createTestRoutes(testRouter);
+
+  // DID Web endpoint
+  const baseUrl = configService.getAtProtoConfig().baseUrl;
+  const serviceDid = `did:web:${baseUrl.replace(/^https?:\/\//, '')}`;
+
+  app.get('/.well-known/did.json', (req, res) => {
+    return res.json({
+      '@context': ['https://www.w3.org/ns/did/v1'],
+      id: serviceDid,
+      service: [
+        {
+          id: '#mention_search',
+          type: 'MentionSearchService',
+          serviceEndpoint: `https://${baseUrl.replace(/^https?:\/\//, '')}`,
+        },
+      ],
+    });
+  });
+
+  // XRPC mention search endpoint
+  app.get('/xrpc/parts.page.mention.search', (req, res) =>
+    controllers.xrpcMentionSearchController.execute(req, res),
+  );
 
   // Register routes
   app.use('/api/users', userRouter);
