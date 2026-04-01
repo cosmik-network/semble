@@ -113,10 +113,7 @@ export default function AppearanceContainer() {
             withItemsBorders={false}
             value={settings.collectionView}
             onChange={(value) =>
-              updateSetting(
-                'collectionView',
-                value as 'grid' | 'compact',
-              )
+              updateSetting('collectionView', value as 'grid' | 'compact')
             }
             data={[
               {

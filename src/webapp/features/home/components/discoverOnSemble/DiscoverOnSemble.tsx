@@ -5,7 +5,15 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import useSembleSimilarCards from '@/features/semble/lib/queries/useSembleSimilarCards';
 import { useNavbarContext } from '@/providers/navbar';
-import { Button, Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import {
+  Button,
+  Divider,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import Link from 'next/link';
 import { Fragment } from 'react';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -54,7 +62,8 @@ export default function DiscoverOnSemble() {
               <Grid.Col
                 span={{
                   base: 12,
-                  xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                  xs:
+                    settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
                   sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
                   md: settings.cardView !== 'grid' ? 12 : 4,
                 }}

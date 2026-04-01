@@ -6,7 +6,16 @@ import { Fragment, useState } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
-import { Anchor, Box, Button, Divider, Grid, Group, Stack, Text } from '@mantine/core';
+import {
+  Anchor,
+  Box,
+  Button,
+  Divider,
+  Grid,
+  Group,
+  Stack,
+  Text,
+} from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
@@ -74,36 +83,42 @@ export default function CollectionContainerContent(props: Props) {
                 <Grid.Col
                   span={{
                     base: 12,
-                    xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
-                    sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+                    xs:
+                      settings.cardView !== 'grid'
+                        ? 12
+                        : desktopOpened
+                          ? 12
+                          : 6,
+                    sm:
+                      settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
                     md: settings.cardView !== 'grid' ? 12 : 4,
                     lg: settings.cardView !== 'grid' ? 12 : 3,
                   }}
                 >
-                <UrlCard
-                  id={card.id}
-                  url={card.url}
-                  uri={card.uri}
-                  cardContent={card.cardContent}
-                  authorHandle={card.author.handle}
-                  cardAuthor={card.author}
-                  note={card.note}
-                  urlLibraryCount={card.urlLibraryCount}
-                  urlIsInLibrary={card.urlInLibrary}
-                  urlConnectionCount={card.urlConnectionCount ?? 0}
-                  currentCollection={firstPage}
-                  viaCardId={card.id}
-                  showAuthor={props.handle !== card.author.handle}
-                  analyticsContext={{
-                    saveSource: CardSaveSource.COLLECTION,
-                    activeFilters: {
-                      urlType: selectedUrlType,
-                      sort: sortBy,
-                    },
-                    pagePath: pathname,
-                  }}
-                />
-              </Grid.Col>
+                  <UrlCard
+                    id={card.id}
+                    url={card.url}
+                    uri={card.uri}
+                    cardContent={card.cardContent}
+                    authorHandle={card.author.handle}
+                    cardAuthor={card.author}
+                    note={card.note}
+                    urlLibraryCount={card.urlLibraryCount}
+                    urlIsInLibrary={card.urlInLibrary}
+                    urlConnectionCount={card.urlConnectionCount ?? 0}
+                    currentCollection={firstPage}
+                    viaCardId={card.id}
+                    showAuthor={props.handle !== card.author.handle}
+                    analyticsContext={{
+                      saveSource: CardSaveSource.COLLECTION,
+                      activeFilters: {
+                        urlType: selectedUrlType,
+                        sort: sortBy,
+                      },
+                      pagePath: pathname,
+                    }}
+                  />
+                </Grid.Col>
               </Fragment>
             ))}
           </Grid>

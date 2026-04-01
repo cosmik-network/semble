@@ -1,30 +1,111 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
 import { SearchUrlsUseCase } from '../../../../cards/application/useCases/queries/SearchUrlsUseCase';
+import { GetUrlCardsUseCase } from '../../../../cards/application/useCases/queries/GetUrlCardsUseCase';
+import { SearchCollectionsUseCase } from '../../../../cards/application/useCases/queries/SearchCollectionsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import {
   CardSortField,
   SortOrder,
 } from '../../../../cards/domain/ICardQueryRepository';
+import {
+  CollectionSortField,
+  SortOrder as CollectionSortOrder,
+} from '../../../../cards/domain/ICollectionQueryRepository';
+import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
+import { IdResolver } from '@atproto/identity';
+import { ATUri } from '../../../../atproto/domain/ATUri';
+import { DIDOrATUri } from '../../../../atproto/domain/DIDOrATUri';
+import { IAtUriResolutionService } from '../../../../cards/domain/services/IAtUriResolutionService';
+import { DID } from '../../../../atproto/domain/DID';
+import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 
-interface XrpcMentionSearchResult {
-  uri: string;
-  name: string;
-  href: string;
-  icon?: string;
-  embed?: {
-    src: string;
-    width: number;
-    height: number;
-  };
+// XRPC parts.page.mention.search types based on lexicon
+interface XrpcMentionSearchParams {
+  service: string; // AT URI of the mention service
+  search: string; // Search query string
+  scope?: string; // Optional scope identifier
+  limit?: number; // Max 50, default 20
 }
 
+interface XrpcMentionLabel {
+  text: string;
+}
+
+interface XrpcEmbedInfo {
+  src: string; // iframe source URL
+  width?: number; // 16-3200 pixels
+  height?: number; // 16-3200 pixels
+}
+
+interface XrpcSubscopeInfo {
+  scope: string; // Scope identifier for subsequent queries
+  label: string; // Display label (max 100 chars)
+}
+
+interface XrpcMentionSearchResult {
+  uri: string; // Identifier for the mentioned entity
+  name: string; // Display name
+  description?: string; // Description
+  labels?: XrpcMentionLabel[]; // Labels to render with entity
+  href?: string; // Optional web URL
+  icon?: string; // Optional icon URL
+  embed?: XrpcEmbedInfo; // Optional embed info
+  subscope?: XrpcSubscopeInfo; // Optional subscope info
+}
+
+interface XrpcMentionSearchResponse {
+  results: XrpcMentionSearchResult[]; // Max 50 results
+}
+
+// Service AT URIs for different search types
+const COLLECTION_SEARCH_SERVICE =
+  'at://did:plc:b2p6rujcgpenbtcjposmjuc3/parts.page.mention.service/3miho3xyx3c26';
+const CARD_SEARCH_SERVICE =
+  'at://did:plc:b2p6rujcgpenbtcjposmjuc3/parts.page.mention.service/3mihdrfdo5p23';
+
 export class XrpcMentionSearchController extends Controller {
+  private idResolver: IdResolver;
+
   constructor(
     private searchUrlsUseCase: SearchUrlsUseCase,
+    private getUrlCardsUseCase: GetUrlCardsUseCase,
+    private searchCollectionsUseCase: SearchCollectionsUseCase,
+    private atUriResolutionService: IAtUriResolutionService,
     private appUrl: string,
+    private serviceDid: string,
   ) {
     super();
+    this.idResolver = new IdResolver();
+  }
+
+  private async validateAuth(req: any): Promise<string | undefined> {
+    const authorization = req.headers?.authorization;
+    if (!authorization?.startsWith('Bearer ')) {
+      return undefined;
+    }
+
+    try {
+      const jwt = authorization.replace('Bearer ', '').trim();
+      const nsid = parseReqNsid(req);
+      const parsed = await verifyJwt(
+        jwt,
+        this.serviceDid,
+        nsid,
+        async (did: string) => {
+          const didDoc = await this.idResolver.did.resolve(did);
+          if (!didDoc) {
+            throw new Error('Could not resolve DID');
+          }
+          return await this.idResolver.did.resolveAtprotoKey(did);
+        },
+      );
+      return parsed.iss;
+    } catch (error) {
+      // Authentication failed, but we allow unauthenticated requests
+      console.error('JWT verification failed:', error);
+      return undefined;
+    }
   }
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
@@ -37,20 +118,200 @@ export class XrpcMentionSearchController extends Controller {
         50,
       );
 
-      if (!serviceUri || !search) {
+      if (!serviceUri) {
+        return this.badRequest(res, 'missing required parameter: service');
+      }
+
+      // Validate JWT and extract DID (optional)
+      const callingUserId = await this.validateAuth(req);
+
+      // Validate and parse scope if provided
+      let scopeIdentifier: string | undefined;
+      let parsedScope: DIDOrATUri | undefined = undefined;
+      if (scope) {
+        const scopeResult = DIDOrATUri.create(scope);
+        if (scopeResult.isErr()) {
+          return this.badRequest(
+            res,
+            `Invalid scope parameter: ${scopeResult.error.message}`,
+          );
+        }
+
+        parsedScope = scopeResult.value;
+        // Extract the identifier (DID) from the scope
+        if (parsedScope.isDID) {
+          scopeIdentifier = parsedScope.getDID()?.value;
+        } else {
+          // If it's an AT URI, extract the DID from it
+          scopeIdentifier = parsedScope.getATUri()?.did.value;
+        }
+      }
+
+      // Branch based on service type
+      if (serviceUri === COLLECTION_SEARCH_SERVICE && !parsedScope?.isATUri) {
+        // Collection search
+        const result = await this.searchCollectionsUseCase.execute({
+          searchText: search || '',
+          callingUserId,
+          identifier: parsedScope?.isDID ? scopeIdentifier : undefined, // Pass the scope identifier
+          page: 1,
+          limit,
+          sortBy: CollectionSortField.UPDATED_AT,
+          sortOrder: CollectionSortOrder.DESC,
+        });
+
+        if (result.isErr()) {
+          return this.fail(res, result.error);
+        }
+
+        const mappedResults: XrpcMentionSearchResult[] = [];
+
+        for (const collection of result.value.collections) {
+          // Parse the collection AT URI to get the rkey
+          if (!collection.uri) {
+            continue; // Skip collections without AT URIs
+          }
+
+          const atUriResult = ATUri.create(collection.uri);
+          if (atUriResult.isErr()) {
+            console.error(
+              `Failed to parse collection AT URI: ${collection.uri}`,
+            );
+            continue;
+          }
+
+          const atUri = atUriResult.value;
+          const handle = collection.author.handle;
+
+          mappedResults.push({
+            uri: collection.uri,
+            name: collection.name,
+            description: collection.description,
+            href: `${this.appUrl}/profile/${handle}/collections/${atUri.rkey}`,
+            subscope: {
+              scope: collection.uri, // Use the collection AT URI as the subscope
+              label: 'Cards',
+            },
+            labels: [
+              {
+                text: `by ${handle}`,
+              },
+              { text: `${collection.cardCount} cards` },
+            ],
+          });
+        }
+
+        const response: XrpcMentionSearchResponse = { results: mappedResults };
+        return this.ok(res, response);
+      }
+
+      if (
+        serviceUri !== CARD_SEARCH_SERVICE &&
+        serviceUri !== COLLECTION_SEARCH_SERVICE
+      ) {
         return this.badRequest(
           res,
-          'missing required parameters: service, search',
+          `Unknown service URI: ${serviceUri}. Expected ${CARD_SEARCH_SERVICE} or ${COLLECTION_SEARCH_SERVICE}`,
         );
       }
 
+      // Card search service
+      // Handle scope parameter for card search
+      let authorDidForSearch: DID | undefined = undefined;
+      let collectionIdForSearch: CollectionId | undefined = undefined;
+
+      if (scope) {
+        const scopeResult = DIDOrATUri.create(scope);
+        if (scopeResult.isErr()) {
+          return this.badRequest(
+            res,
+            `Invalid scope parameter: ${scopeResult.error.message}`,
+          );
+        }
+
+        const parsedScope = scopeResult.value;
+
+        if (parsedScope.isDID) {
+          // Scope is a DID - use as authorDid filter
+          authorDidForSearch = parsedScope.getDID();
+        } else {
+          // Scope is an AT URI - resolve to CollectionId
+          const atUri = parsedScope.getATUri();
+          if (atUri) {
+            const collectionIdResult =
+              await this.atUriResolutionService.resolveCollectionId(
+                atUri.toString(),
+              );
+            if (collectionIdResult.isErr()) {
+              return this.fail(res, collectionIdResult.error);
+            }
+            if (collectionIdResult.value) {
+              collectionIdForSearch = collectionIdResult.value;
+            }
+          }
+        }
+      }
+
+      // If search query is empty
+      if (!search || search.trim() === '') {
+        // If not authenticated, return empty results
+        if (!callingUserId) {
+          const emptyResponse: XrpcMentionSearchResponse = { results: [] };
+          return this.ok(res, emptyResponse);
+        }
+
+        // Fetch user's recent cards
+        const result = await this.getUrlCardsUseCase.execute({
+          userId: callingUserId,
+          callingUserId,
+          page: 1,
+          limit,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        });
+
+        if (result.isErr()) {
+          return this.fail(res, result.error);
+        }
+
+        const mappedResults: XrpcMentionSearchResult[] = result.value.cards.map(
+          (card) => ({
+            uri: card.url,
+            name: card.cardContent.title || card.url,
+            description: card.cardContent.description,
+            href: `${this.appUrl}/url?id=${encodeURIComponent(card.url)}`,
+            icon: card.cardContent.imageUrl,
+            labels: [
+              {
+                text:
+                  card.libraryCount > 0
+                    ? `Library count: ${card.libraryCount}`
+                    : '',
+              },
+              {
+                text:
+                  card.urlConnectionCount && card.urlConnectionCount > 0
+                    ? `Connections: ${card.urlConnectionCount}`
+                    : '',
+              },
+            ],
+          }),
+        );
+
+        const response: XrpcMentionSearchResponse = { results: mappedResults };
+        return this.ok(res, response);
+      }
+
+      // Perform search with query string
       const result = await this.searchUrlsUseCase.execute({
         searchQuery: search,
-        callingUserId: undefined,
+        callingUserId,
         page: 1,
         limit,
         sortBy: CardSortField.UPDATED_AT,
         sortOrder: SortOrder.DESC,
+        authorDid: authorDidForSearch,
+        collectionId: collectionIdForSearch,
       });
 
       if (result.isErr()) {
@@ -61,13 +322,14 @@ export class XrpcMentionSearchController extends Controller {
         (urlView) => ({
           uri: urlView.url,
           name: urlView.metadata.title || urlView.url,
+          description: urlView.metadata.description,
           href: `${this.appUrl}/url?id=${encodeURIComponent(urlView.url)}`,
           icon: urlView.metadata.imageUrl,
-          embed: undefined,
         }),
       );
 
-      return this.ok(res, { results: mappedResults });
+      const response: XrpcMentionSearchResponse = { results: mappedResults };
+      return this.ok(res, response);
     } catch (error: any) {
       return this.handleError(res, error);
     }

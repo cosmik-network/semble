@@ -67,6 +67,7 @@ import { GetUserGraphDataController } from '../../../../modules/cards/infrastruc
 import { GetUrlGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlGraphDataController';
 import { CookieService } from '../services/CookieService';
 import { Services } from './ServiceFactory';
+import { Repositories } from './RepositoryFactory';
 
 export interface Controllers {
   // User controllers
@@ -150,7 +151,9 @@ export class ControllerFactory {
     useCases: UseCases,
     cookieService: CookieService,
     services: Services,
+    repositories: Repositories,
     appUrl: string,
+    serviceDid: string,
   ): Controllers {
     return {
       // User controllers
@@ -362,7 +365,11 @@ export class ControllerFactory {
       ),
       xrpcMentionSearchController: new XrpcMentionSearchController(
         useCases.searchUrlsUseCase,
+        useCases.getMyUrlCardsUseCase,
+        useCases.searchCollectionsUseCase,
+        repositories.atUriResolutionService,
         appUrl,
+        serviceDid,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(
