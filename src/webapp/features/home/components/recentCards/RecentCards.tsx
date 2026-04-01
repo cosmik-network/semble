@@ -5,7 +5,16 @@ import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
-import { Anchor, Button, Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import {
+  Anchor,
+  Button,
+  Divider,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -17,7 +26,7 @@ export default function RecentCards() {
   const { settings } = useUserSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
-  const { data: myCardsData } = useMyCards({ limit: 10 });
+  const { data: myCardsData } = useMyCards({ limit: 4 });
   const cards = myCardsData.pages.flatMap((page) => page.cards) ?? [];
 
   return (
@@ -49,7 +58,8 @@ export default function RecentCards() {
               <Grid.Col
                 span={{
                   base: 12,
-                  xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                  xs:
+                    settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
                   sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
                   md: settings.cardView !== 'grid' ? 12 : 4,
                   lg: settings.cardView !== 'grid' ? 12 : 3,
