@@ -7,6 +7,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useNavbarContext } from '@/providers/navbar';
 import { useSearchParams } from 'next/navigation';
 import Composer from '../Composer';
+import { useWebHaptics } from 'web-haptics/react';
 
 export default function ComposerDrawer() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
@@ -14,6 +15,7 @@ export default function ComposerDrawer() {
   const isNavOpen = isDesktop ? desktopOpened : mobileOpened;
   const shouldShowFab = !isNavOpen;
   const [opened, setOpened] = useState(false);
+  const { trigger } = useWebHaptics();
 
   // share_target support. on android could be any of these.
   const shareUrl = useSearchParams().get('addUrl');
@@ -40,7 +42,10 @@ export default function ComposerDrawer() {
             size="input-xl"
             radius="xl"
             variant="filled"
-            onClick={() => setOpened((prev) => !prev)}
+            onClick={() => {
+              trigger();
+              setOpened((prev) => !prev);
+            }}
           >
             <FiPlus size={30} />
           </ActionIcon>
