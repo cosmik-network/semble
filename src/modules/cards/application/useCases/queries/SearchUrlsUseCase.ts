@@ -7,6 +7,8 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { UrlView, UrlMetadata, PaginationDTO } from '@semble/types';
 import { UrlType } from '../../../domain/value-objects/UrlType';
+import { DID } from '../../../../atproto/domain/DID';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
 
 export interface SearchUrlsQuery {
   searchQuery: string;
@@ -16,6 +18,8 @@ export interface SearchUrlsQuery {
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
   urlType?: UrlType;
+  authorDid?: DID;
+  collectionId?: CollectionId;
 }
 
 export interface SearchUrlsResult {
@@ -65,6 +69,8 @@ export class SearchUrlsUseCase
         sortBy,
         sortOrder,
         urlType: query.urlType,
+        authorDid: query.authorDid,
+        collectionId: query.collectionId,
       });
 
       // Extract unique URLs from results
