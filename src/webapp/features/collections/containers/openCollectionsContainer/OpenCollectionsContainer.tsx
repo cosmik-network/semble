@@ -8,7 +8,7 @@ export default function OpenCollectionsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Group align="end" gap={'xs'} ml={'auto'}>
+        <Group gap={'xs'}>
           <CollectionFilters.Root>
             <CollectionFilters.SortSelect />
             <CollectionFilters.ViewToggle />
