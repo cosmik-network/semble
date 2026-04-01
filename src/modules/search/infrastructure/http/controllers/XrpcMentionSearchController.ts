@@ -192,6 +192,12 @@ export class XrpcMentionSearchController extends Controller {
               scope: collection.uri, // Use the collection AT URI as the subscope
               label: 'Cards',
             },
+            labels: [
+              {
+                text: `by ${handle}`,
+              },
+              { text: `${collection.cardCount} cards` },
+            ],
           });
         }
 
@@ -275,6 +281,20 @@ export class XrpcMentionSearchController extends Controller {
             description: card.cardContent.description,
             href: `${this.appUrl}/url?id=${encodeURIComponent(card.url)}`,
             icon: card.cardContent.imageUrl,
+            labels: [
+              {
+                text:
+                  card.libraryCount > 0
+                    ? `Library count: ${card.libraryCount}`
+                    : '',
+              },
+              {
+                text:
+                  card.urlConnectionCount && card.urlConnectionCount > 0
+                    ? `Connections: ${card.urlConnectionCount}`
+                    : '',
+              },
+            ],
           }),
         );
 
