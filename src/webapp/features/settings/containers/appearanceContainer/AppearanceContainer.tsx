@@ -27,7 +27,6 @@ export default function AppearanceContainer() {
         <Stack gap="xs">
           <Text fw={500}>Theme</Text>
           <SegmentedControl
-            size="md"
             withItemsBorders={false}
             value={colorScheme}
             onChange={(value) =>
@@ -68,7 +67,6 @@ export default function AppearanceContainer() {
         <Stack gap="xs">
           <Text fw={500}>Card View</Text>
           <SegmentedControl
-            size="md"
             withItemsBorders={false}
             value={settings.cardView}
             onChange={(value) =>
@@ -109,7 +107,6 @@ export default function AppearanceContainer() {
         <Stack gap="xs">
           <Text fw={500}>Collection View</Text>
           <SegmentedControl
-            size="md"
             withItemsBorders={false}
             value={settings.collectionView}
             onChange={(value) =>
