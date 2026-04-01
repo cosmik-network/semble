@@ -13,7 +13,7 @@ import { MdOutlinePeopleAlt } from 'react-icons/md';
 import SearchBar from '../searchBar/SearchBar';
 import SearchTabItem from '../searchTabItem/SearchTabItem';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { useOptimistic, useTransition } from 'react';
+import { useState } from 'react';
 
 export default function SearchTabs() {
   const searchParams = useSearchParams();
@@ -28,8 +28,7 @@ export default function SearchTabs() {
       ? 'profiles'
       : 'cards';
 
-  const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
-  const [_, startTransition] = useTransition();
+  const [optimisticTab, setOptimisticTab] = useState(activeTab);
 
   const buildTabHref = (tabValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -43,10 +42,8 @@ export default function SearchTabs() {
       onChange={(value) => {
         if (!value || value === activeTab) return;
 
-        startTransition(() => {
-          setOptimisticTab(value);
-          router.replace(buildTabHref(value));
-        });
+        setOptimisticTab(value);
+        router.push(buildTabHref(value));
       }}
     >
       <Stack gap="xs">

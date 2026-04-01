@@ -1,13 +1,16 @@
+'use client';
+
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';
-import { Container, Grid } from '@mantine/core';
+import { Container, Divider, Grid, Stack } from '@mantine/core';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '../../components/urlCard/UrlCard';
 import useCards from '../../lib/queries/useCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { Fragment } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
@@ -76,40 +79,46 @@ export default function CardsContainerContent(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="xs">
-        {allCards.map((card) => (
-          <Grid.Col
-            key={card.id}
-            span={{
-              base: 12,
-              xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
-              sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
-              md: settings.cardView !== 'grid' ? 12 : 4,
-              lg: settings.cardView !== 'grid' ? 12 : 3,
-            }}
-          >
-            <UrlCard
-              id={card.id}
-              url={card.url}
-              uri={card.uri}
-              cardContent={card.cardContent}
-              note={card.note}
-              authorHandle={props.handle}
-              cardAuthor={card.author}
-              urlLibraryCount={card.urlLibraryCount}
-              urlIsInLibrary={card.urlInLibrary}
-              urlConnectionCount={card.urlConnectionCount ?? 0}
-              viaCardId={card.id}
-              analyticsContext={{
-                saveSource: CardSaveSource.PROFILE,
-                activeFilters: {
-                  urlType: selectedUrlType,
-                  sort: sortBy,
-                },
-                pagePath: pathname,
+      <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
+        {allCards.map((card, index) => (
+          <Fragment key={card.id}>
+            {settings.cardView === 'list' && index > 0 && (
+              <Grid.Col span={12}>
+                <Divider />
+              </Grid.Col>
+            )}
+            <Grid.Col
+              span={{
+                base: 12,
+                xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+                md: settings.cardView !== 'grid' ? 12 : 4,
+                lg: settings.cardView !== 'grid' ? 12 : 3,
               }}
-            />
-          </Grid.Col>
+            >
+              <UrlCard
+                id={card.id}
+                url={card.url}
+                uri={card.uri}
+                cardContent={card.cardContent}
+                note={card.note}
+                authorHandle={props.handle}
+                cardAuthor={card.author}
+                urlLibraryCount={card.urlLibraryCount}
+                urlIsInLibrary={card.urlInLibrary}
+                urlConnectionCount={card.urlConnectionCount ?? 0}
+                viaCardId={card.id}
+                analyticsContext={{
+                  saveSource: CardSaveSource.PROFILE,
+                  activeFilters: {
+                    urlType: selectedUrlType,
+                    sort: sortBy,
+                  },
+                  pagePath: pathname,
+                }}
+              />
+            </Grid.Col>
+          </Fragment>
         ))}
       </Grid>
     </InfiniteScroll>

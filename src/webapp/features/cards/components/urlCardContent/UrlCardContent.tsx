@@ -85,7 +85,7 @@ export default function UrlCardContent(props: Props) {
 
   if (
     platform.type === SupportedPlatform.YOUTUBE_VIDEO &&
-    settings.cardView !== 'list'
+    settings.cardView === 'grid'
   ) {
     return (
       <IframeEmbed
@@ -98,7 +98,7 @@ export default function UrlCardContent(props: Props) {
 
   if (
     platform.type === SupportedPlatform.SPOTIFY &&
-    settings.cardView !== 'list'
+    settings.cardView === 'grid'
   ) {
     return (
       <IframeEmbed
@@ -112,7 +112,7 @@ export default function UrlCardContent(props: Props) {
 
   if (
     platform.type === SupportedPlatform.PLYRFM_TRACK &&
-    settings.cardView !== 'list'
+    settings.cardView === 'grid'
   ) {
     return (
       <IframeEmbed
@@ -126,7 +126,7 @@ export default function UrlCardContent(props: Props) {
   if (
     (platform.type === SupportedPlatform.BANDCAMP_ALBUM ||
       platform.type === SupportedPlatform.BANDCAMP_TRACK) &&
-    settings.cardView !== 'list'
+    settings.cardView === 'grid'
   ) {
     return (
       <IframeEmbed

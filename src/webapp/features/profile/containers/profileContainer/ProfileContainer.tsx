@@ -19,6 +19,7 @@ import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useNavbarContext } from '@/providers/navbar';
 import { CardSaveSource } from '@/features/analytics/types';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { usePathname } from 'next/navigation';
 
 interface Props {
@@ -38,6 +39,7 @@ export default function ProfileContainer(props: Props) {
 
   const cards = cardsData?.pages.flatMap((page) => page.cards) ?? [];
 
+  const { settings } = useUserSettings();
   const { desktopOpened } = useNavbarContext();
 
   return (
@@ -115,7 +117,7 @@ export default function ProfileContainer(props: Props) {
             </Group>
 
             {collections.length > 0 ? (
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
+              <SimpleGrid cols={settings.collectionView !== 'grid' ? { base: 1 } : { base: 1, sm: 2, lg: 4 }} spacing="xs">
                 {collections.map((collection) => (
                   <CollectionCard key={collection.id} collection={collection} />
                 ))}

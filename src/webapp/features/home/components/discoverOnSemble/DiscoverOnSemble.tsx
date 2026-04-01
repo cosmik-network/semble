@@ -5,12 +5,15 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import useSembleSimilarCards from '@/features/semble/lib/queries/useSembleSimilarCards';
 import { useNavbarContext } from '@/providers/navbar';
-import { Button, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import { Button, Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import Link from 'next/link';
+import { Fragment } from 'react';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function DiscoverOnSemble() {
   const { desktopOpened } = useNavbarContext();
+  const { settings } = useUserSettings();
   const { data: profile } = useMyProfile();
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: similarCardsData } = useSembleSimilarCards({
@@ -40,19 +43,25 @@ export default function DiscoverOnSemble() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid gutter={'xs'}>
+        <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
           {cards.slice(0, 3).map((item, i) => (
-            <Grid.Col
-              key={i}
-              span={{
-                base: 12,
-                xs: desktopOpened ? 12 : 6,
-                sm: desktopOpened ? 6 : 4,
-                md: 4,
-              }}
-            >
-              <SimilarUrlCard urlView={item} />
-            </Grid.Col>
+            <Fragment key={i}>
+              {settings.cardView === 'list' && i > 0 && (
+                <Grid.Col span={12}>
+                  <Divider />
+                </Grid.Col>
+              )}
+              <Grid.Col
+                span={{
+                  base: 12,
+                  xs: settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                  sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+                  md: settings.cardView !== 'grid' ? 12 : 4,
+                }}
+              >
+                <SimilarUrlCard urlView={item} />
+              </Grid.Col>
+            </Fragment>
           ))}
         </Grid>
       ) : (

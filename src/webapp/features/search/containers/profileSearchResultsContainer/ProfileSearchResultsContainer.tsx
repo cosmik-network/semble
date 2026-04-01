@@ -30,7 +30,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
 
   return (
     <Stack gap="md">
-      <SearchQueryAlert query={props.query} />
+      <SearchQueryAlert query={props.query} count={allProfiles.length} />
 
       {error ? (
         <ProfileSearchResultsContainerError />

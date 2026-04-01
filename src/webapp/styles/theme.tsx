@@ -163,7 +163,7 @@ export const theme = createTheme({
     Indicator: Indicator.extend({
       styles: {
         indicator: {
-          zIndex: 1,
+          zIndex: 0,
         },
       },
     }),

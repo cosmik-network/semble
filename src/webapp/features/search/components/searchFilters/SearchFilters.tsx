@@ -96,14 +96,8 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
 
   const defaultTrigger = (
     <Indicator offset={4} disabled={!hasFilters} zIndex={0}>
-      <ActionIcon
-        variant="light"
-        color="gray"
-        size="xl"
-        radius="lg"
-        onClick={handleOpen}
-      >
-        <TbAdjustmentsHorizontal size={20} />
+      <ActionIcon variant="light" color="gray" size="lg" onClick={handleOpen}>
+        <TbAdjustmentsHorizontal size={18} />
       </ActionIcon>
     </Indicator>
   );
