@@ -7,6 +7,8 @@ export default function AppearanceContainerSkeleton() {
     <Container p="xs" size="xs">
       <Stack gap="xl">
         <Skeleton w={'100%'} h={42} />
+        <Skeleton w={'100%'} h={42} />
+        <Skeleton w={'100%'} h={42} />
       </Stack>
     </Container>
   );
