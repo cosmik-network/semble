@@ -56,7 +56,7 @@ export default function LinkCardContent(props: Props) {
             {props.cardContent.title}
           </Text>
         )}
-        {props.cardContent.description && settings.cardView !== 'list' && (
+        {props.cardContent.description && settings.cardView !== 'compact' && (
           <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
             {props.cardContent.description}
           </Text>
@@ -68,8 +68,8 @@ export default function LinkCardContent(props: Props) {
             src={props.cardContent.imageUrl}
             alt={`${props.cardContent.url} social preview image`}
             radius={'md'}
-            w={settings.cardView === 'list' ? 45 : 75}
-            h={settings.cardView === 'list' ? 45 : 75}
+            w={settings.cardView === 'compact' ? 45 : 75}
+            h={settings.cardView === 'compact' ? 45 : 75}
             onError={() => setImageError(true)}
           />
         </AspectRatio>
