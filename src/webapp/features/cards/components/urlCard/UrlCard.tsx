@@ -96,11 +96,11 @@ export default function UrlCard(props: Props) {
   return (
     <Card
       component="article"
-      radius={'lg'}
-      p={'sm'}
+      radius={settings.cardView === 'list' ? 0 : 'lg'}
+      p={settings.cardView === 'list' ? 'xs' : 'sm'}
       flex={1}
       h={'100%'}
-      withBorder
+      withBorder={settings.cardView !== 'list'}
       className={styles.root}
       onClick={handleNavigateToSemblePage}
       onAuxClick={handleAuxClick}

@@ -15,7 +15,8 @@ import { upperFirst } from '@mantine/hooks';
 import { CardSortField, UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
-import { BsGrid, BsListTask } from 'react-icons/bs';
+import { BsGrid, BsListUl } from 'react-icons/bs';
+import { CiGrid2H } from 'react-icons/ci';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { IoMdCheckmark } from 'react-icons/io';
 
@@ -220,12 +221,20 @@ export function ViewToggle() {
         Grid
       </Menu.Item>
       <Menu.Item
-        leftSection={<BsListTask />}
+        leftSection={<CiGrid2H />}
         rightSection={settings.cardView === 'compact' && <IoMdCheckmark />}
         onClick={() => updateSetting('cardView', 'compact')}
         closeMenuOnClick={false}
       >
-        Compact{' '}
+        Compact
+      </Menu.Item>
+      <Menu.Item
+        leftSection={<BsListUl />}
+        rightSection={settings.cardView === 'list' && <IoMdCheckmark />}
+        onClick={() => updateSetting('cardView', 'list')}
+        closeMenuOnClick={false}
+      >
+        List
       </Menu.Item>
     </Fragment>
   );
