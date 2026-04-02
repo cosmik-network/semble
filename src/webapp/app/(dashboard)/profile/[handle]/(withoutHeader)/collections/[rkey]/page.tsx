@@ -1,5 +1,5 @@
 import CollectionContainer from '@/features/collections/containers/collectionContainer/CollectionContainer';
-import { Group } from '@mantine/core';
+import { Container, Group } from '@mantine/core';
 import {
   CardFiltersRoot,
   CardFiltersSortSelect,
@@ -27,13 +27,15 @@ export default async function Page(props: Props) {
 
   return (
     <Fragment>
-      <Group justify="space-between" gap="xs" px="xs" pt="xs">
-        <CardFiltersRoot>
-          <CardFiltersSortSelect />
-          <CardFiltersViewToggle />
-          <CardFiltersTypeFilter />
-        </CardFiltersRoot>
-      </Group>
+      <Container p={0} size="xl">
+        <Group justify="space-between" gap="xs" px="xs" pt="xs">
+          <CardFiltersRoot>
+            <CardFiltersSortSelect />
+            <CardFiltersViewToggle />
+            <CardFiltersTypeFilter />
+          </CardFiltersRoot>
+        </Group>
+      </Container>
       <CollectionContainer handle={handle} rkey={rkey} key={suspenseKey} />
     </Fragment>
   );
