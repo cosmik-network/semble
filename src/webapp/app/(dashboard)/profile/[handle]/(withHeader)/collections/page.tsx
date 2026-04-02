@@ -1,5 +1,5 @@
 import CollectionsContainer from '@/features/collections/containers/collectionsContainer/CollectionsContainer';
-import { Group, Button } from '@mantine/core';
+import { Group, Button, Container } from '@mantine/core';
 import Link from 'next/link';
 import { IoSearch } from 'react-icons/io5';
 import {
@@ -26,21 +26,23 @@ export default async function Page(props: Props) {
 
   return (
     <Fragment>
-      <Group justify="space-between" gap="xs" px="xs" pt="xs">
-        <CollectionFiltersRoot>
-          <CollectionFiltersSortSelect />
-          <CollectionFiltersViewToggle />
-        </CollectionFiltersRoot>
-        <Button
-          component={Link}
-          href={`/search/collections?handle=${handle}`}
-          variant="light"
-          color="gray"
-          rightSection={<IoSearch />}
-        >
-          Search
-        </Button>
-      </Group>
+      <Container p={0} size="xl">
+        <Group justify="space-between" gap="xs" px="xs" pt="xs">
+          <CollectionFiltersRoot>
+            <CollectionFiltersSortSelect />
+            <CollectionFiltersViewToggle />
+          </CollectionFiltersRoot>
+          <Button
+            component={Link}
+            href={`/search/collections?handle=${handle}`}
+            variant="light"
+            color="gray"
+            rightSection={<IoSearch />}
+          >
+            Search
+          </Button>
+        </Group>
+      </Container>
       <CollectionsContainer handle={handle} key={sort} />
     </Fragment>
   );
