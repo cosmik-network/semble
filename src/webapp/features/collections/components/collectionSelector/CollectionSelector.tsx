@@ -31,7 +31,7 @@ export default function CollectionSelector(props: Props) {
   return (
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
-      <Tabs defaultValue={'myCollections'}>
+      <Tabs defaultValue={'myCollections'} keepMounted={false}>
         <ScrollAreaAutosize type="scroll">
           <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
             <Tabs.Tab classNames={classes} value="myCollections">
