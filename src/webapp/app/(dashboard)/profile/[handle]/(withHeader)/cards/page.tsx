@@ -1,5 +1,5 @@
 import CardsContainer from '@/features/cards/containers/cardsContainer/CardsContainer';
-import { Group, Button } from '@mantine/core';
+import { Group, Button, Container } from '@mantine/core';
 import Link from 'next/link';
 import { IoSearch } from 'react-icons/io5';
 import {
@@ -9,6 +9,7 @@ import {
   CardFiltersTypeFilter,
 } from '@/features/cards/components/cardFilters/CardFilters';
 import { CardSortField, UrlType } from '@semble/types';
+import { Fragment } from 'react';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -27,24 +28,26 @@ export default async function Page(props: Props) {
   const suspenseKey = `${resolvedSort}-${resolvedType}`;
 
   return (
-    <>
-      <Group justify="space-between" gap="xs" px="xs" pt="xs">
-        <CardFiltersRoot>
-          <CardFiltersSortSelect />
-          <CardFiltersViewToggle />
-          <CardFiltersTypeFilter />
-        </CardFiltersRoot>
-        <Button
-          component={Link}
-          href={`/search/cards?handle=${handle}`}
-          variant="light"
-          color="gray"
-          rightSection={<IoSearch />}
-        >
-          Search
-        </Button>
-      </Group>
+    <Fragment>
+      <Container p={0} size="xl">
+        <Group justify="space-between" gap="xs" px="xs" pt="xs">
+          <CardFiltersRoot>
+            <CardFiltersSortSelect />
+            <CardFiltersViewToggle />
+            <CardFiltersTypeFilter />
+          </CardFiltersRoot>
+          <Button
+            component={Link}
+            href={`/search/cards?handle=${handle}`}
+            variant="light"
+            color="gray"
+            rightSection={<IoSearch />}
+          >
+            Search
+          </Button>
+        </Group>
+      </Container>
       <CardsContainer handle={handle} key={suspenseKey} />
-    </>
+    </Fragment>
   );
 }
