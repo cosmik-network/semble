@@ -35,6 +35,10 @@ interface XrpcEmbedInfo {
   src: string; // iframe source URL
   width?: number; // 16-3200 pixels
   height?: number; // 16-3200 pixels
+  aspectRatio?: {
+    height: number; // Aspect ratio height (e.g. 9 for 16:9)
+    width: number; // Aspect ratio width (e.g. 16 for 16:9)
+  };
 }
 
 interface XrpcSubscopeInfo {
@@ -205,6 +209,13 @@ export class XrpcMentionSearchController extends Controller {
               },
               { text: `${collection.cardCount} cards` },
             ],
+            embed: {
+              src: `${this.appUrl}/profile/${handle}/collections/${atUri.rkey}/page-parts-embed`,
+              aspectRatio: {
+                height: 9,
+                width: 21,
+              },
+            },
           });
         }
 
