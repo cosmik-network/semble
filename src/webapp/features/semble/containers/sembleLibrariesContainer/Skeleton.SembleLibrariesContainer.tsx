@@ -1,19 +1,12 @@
-import { Grid, GridCol } from '@mantine/core';
+import { Grid, GridCol, Stack } from '@mantine/core';
 import ProfileCardSkeleton from '@/features/profile/components/profileCard/Skeleton.ProfileCard';
 
 export default function SembleLibrariesContainerSkeleton() {
   return (
-    <Grid gutter="xs">
-      <GridCol
-        span={{
-          base: 12,
-        }}
-      >
-        <ProfileCardSkeleton />
-        <ProfileCardSkeleton />
-        <ProfileCardSkeleton />
-        <ProfileCardSkeleton />
-      </GridCol>
-    </Grid>
+    <Stack gap={'xs'}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <ProfileCardSkeleton key={i} />
+      ))}
+    </Stack>
   );
 }
