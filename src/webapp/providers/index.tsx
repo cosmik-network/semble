@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import MantineProvider from './mantine';
 import TanStackQueryProvider from './tanstack';
 import { NavbarProvider } from './navbar';
+import { NavHistoryProvider } from './navHistory';
 import { SettingsProvider } from './settings';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
@@ -41,7 +42,9 @@ export default function Providers(props: Props) {
         <AuthProvider>
           <MantineProvider>
             <SettingsProvider>
-              <NavbarProvider>{props.children}</NavbarProvider>
+              <NavbarProvider>
+                <NavHistoryProvider>{props.children}</NavHistoryProvider>
+              </NavbarProvider>
             </SettingsProvider>
           </MantineProvider>
         </AuthProvider>

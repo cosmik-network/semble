@@ -16,7 +16,7 @@ export default function Layout(props: Props) {
   return (
     <Box pos={'relative'}>
       <Header title="Search">
-        <BackButton href="/home">Home</BackButton>
+        <BackButton />
       </Header>
 
       {props.children}

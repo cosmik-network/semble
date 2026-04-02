@@ -26,7 +26,7 @@ export default function Layout(props: Props) {
   return (
     <Fragment>
       <Header>
-        <BackButton href="/explore">Explore</BackButton>
+        <BackButton />
       </Header>
 
       <Container p={'xs'} size={'xl'}>

@@ -16,7 +16,7 @@ export default function Layout(props: Props) {
   return (
     <Fragment>
       <Header title="Help">
-        <BackButton href="/settings">Settings</BackButton>
+        <BackButton />
       </Header>
       {props.children}
     </Fragment>

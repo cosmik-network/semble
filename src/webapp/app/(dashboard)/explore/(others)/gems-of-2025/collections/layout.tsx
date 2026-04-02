@@ -16,7 +16,7 @@ export default function Layout(props: Props) {
   return (
     <Fragment>
       <Header title="Gem Collections">
-        <BackButton href="/explore/gems-of-2025">Gems of 2025</BackButton>
+        <BackButton />
       </Header>
       {props.children}
     </Fragment>

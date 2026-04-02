@@ -1,23 +1,26 @@
-import { Button } from '@mantine/core';
+'use client';
+
+import { ActionIcon } from '@mantine/core';
 import { BiSolidLeftArrowAlt } from 'react-icons/bi';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useNavHistory } from '@/providers/navHistory';
 
-interface Props {
-  href: string;
-  children: string;
-}
+export default function BackButton() {
+  const { canGoBack } = useNavHistory();
+  const router = useRouter();
 
-export default function BackButton(props: Props) {
+  if (!canGoBack) return null;
+
   return (
-    <Button
-      component={Link}
-      href={props.href}
+    <ActionIcon
+      onClick={() => router.back()}
       variant="light"
-      size="xs"
+      size="md"
       color="gray"
-      leftSection={<BiSolidLeftArrowAlt />}
+      radius={'xl'}
+      aria-label="Go back"
     >
-      {props.children}
-    </Button>
+      <BiSolidLeftArrowAlt />
+    </ActionIcon>
   );
 }

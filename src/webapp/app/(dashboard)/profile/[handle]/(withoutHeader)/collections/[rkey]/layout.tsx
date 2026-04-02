@@ -1,7 +1,6 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
-import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
 import { Fragment, Suspense } from 'react';
 import CollectionHeader from '@/features/collections/components/collectionHeader/CollectionHeader';
@@ -50,9 +49,7 @@ export default async function Layout(props: Props) {
   return (
     <Fragment>
       <Header>
-        <BackButton href={`/profile/${handle}/collections`}>
-          {`@${truncateText(handle, 20)}`}
-        </BackButton>
+        <BackButton />
       </Header>
       <Suspense fallback={<CollectionHeaderSkeleton />}>
         <CollectionHeader handle={handle} rkey={rkey} />

@@ -10,7 +10,7 @@ export default async function Layout(props: Props) {
   return (
     <Fragment>
       <Header>
-        <BackButton href={'/explore'}>Explore</BackButton>
+        <BackButton />
       </Header>
       {props.children}
     </Fragment>

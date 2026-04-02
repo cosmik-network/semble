@@ -16,7 +16,7 @@ export default function Layout(props: Props) {
   return (
     <Fragment>
       <Header title="Notifications">
-        <BackButton href="/home">Home</BackButton>
+        <BackButton />
       </Header>
       {props.children}
     </Fragment>
