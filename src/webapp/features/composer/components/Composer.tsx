@@ -241,7 +241,6 @@ export default function Composer(props: Props) {
               disabled={addCard.isPending || createCollection.isPending}
               radius={'xl'}
               mx="auto"
-              withItemsBorders={false}
               data={[
                 {
                   value: 'card',

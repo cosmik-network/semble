@@ -19,7 +19,6 @@ export default function DirectionToggle(props: Props) {
       value={props.value}
       onChange={handleChange}
       radius={'xl'}
-      withItemsBorders={false}
       data={[
         { label: 'All', value: 'all' },
         { label: 'To', value: 'to' },
