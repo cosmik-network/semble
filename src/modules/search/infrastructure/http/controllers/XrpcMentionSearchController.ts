@@ -124,7 +124,7 @@ export class XrpcMentionSearchController extends Controller {
       const callingUserId = await this.validateAuth(req);
 
       // Validate and parse scope if provided
-      let scopeIdentifier: string | undefined;
+      let scopeIdentifier: string | undefined = undefined;
       let parsedScope: DIDOrATUri | undefined = undefined;
       if (scope) {
         const scopeResult = DIDOrATUri.create(scope);
@@ -145,13 +145,22 @@ export class XrpcMentionSearchController extends Controller {
         }
       }
 
+      // if a did scope is passed for collection search, use that as the identifier in the search
+      // if no scope is passed and the search is empty, use the calling user's did as the identifier in the search (to search their own collections)
+      // otherwise, don't pass an identifier to search across all collections
+      const identifierForCollectionSearch = parsedScope?.isDID
+        ? scopeIdentifier
+        : !search
+          ? callingUserId
+          : undefined;
+
       // Branch based on service type
       if (serviceUri === COLLECTION_SEARCH_SERVICE && !parsedScope?.isATUri) {
         // Collection search
         const result = await this.searchCollectionsUseCase.execute({
           searchText: search || '',
           callingUserId,
-          identifier: parsedScope?.isDID ? scopeIdentifier : undefined, // Pass the scope identifier
+          identifier: identifierForCollectionSearch, // Pass the scope identifier
           page: 1,
           limit,
           sortBy: CollectionSortField.UPDATED_AT,
@@ -216,6 +225,11 @@ export class XrpcMentionSearchController extends Controller {
       // Card search service
       // Handle scope parameter for card search
       let authorDidForSearch: DID | undefined = undefined;
+      const callingUserDidResult = DID.create(callingUserId || '');
+      if (callingUserDidResult.isOk()) {
+        authorDidForSearch = callingUserDidResult.value;
+      }
+
       let collectionIdForSearch: CollectionId | undefined = undefined;
 
       if (scope) {
