@@ -21,7 +21,7 @@ export default function CollectionCardPreview(props: Props) {
   if (cards.length === 0) return null;
 
   return (
-    <Grid gutter={'xs'} grow>
+    <Grid gutter={'xs'}>
       {cards.map((c) => (
         <Grid.Col key={c.id} span={3}>
           {c.cardContent.imageUrl && !imageError ? (
@@ -31,6 +31,7 @@ export default function CollectionCardPreview(props: Props) {
                 alt={`${c.cardContent.url} social preview image`}
                 radius={'md'}
                 mih={45}
+                mah={60}
                 w={'100%'}
                 onError={() => setImageError(true)}
               />
