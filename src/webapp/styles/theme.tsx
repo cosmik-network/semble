@@ -17,6 +17,7 @@ import {
   Combobox,
   Notification,
   Menu,
+  SegmentedControl,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -172,6 +173,16 @@ export const theme = createTheme({
         radius: 'lg',
         withBorder: true,
         withCloseButton: true,
+      },
+    }),
+    SegmentedControl: SegmentedControl.extend({
+      defaultProps: {
+        withItemsBorders: false,
+      },
+      styles: {
+        root: {
+          zIndex: 0,
+        },
       },
     }),
   },
