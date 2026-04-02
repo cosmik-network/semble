@@ -1,6 +1,6 @@
 import { Alert, Button, Container } from '@mantine/core';
 import Link from 'next/link';
-import { BiSolidLeftArrowAlt } from 'react-icons/bi';
+import { IoArrowBack } from 'react-icons/io5';
 
 export default function SearchContainerError() {
   return (
@@ -10,7 +10,7 @@ export default function SearchContainerError() {
           color="red"
           component={Link}
           href={'/search'}
-          leftSection={<BiSolidLeftArrowAlt />}
+          leftSection={<IoArrowBack />}
         >
           Go to search
         </Button>

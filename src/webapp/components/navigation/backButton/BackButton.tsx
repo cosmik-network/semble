@@ -1,9 +1,9 @@
 'use client';
 
 import { ActionIcon } from '@mantine/core';
-import { BiSolidLeftArrowAlt } from 'react-icons/bi';
 import { useRouter } from 'next/navigation';
 import { useNavHistory } from '@/providers/navHistory';
+import { IoArrowBack } from 'react-icons/io5';
 
 export default function BackButton() {
   const { canGoBack } = useNavHistory();
@@ -15,12 +15,12 @@ export default function BackButton() {
     <ActionIcon
       onClick={() => router.back()}
       variant="light"
-      size="md"
+      size="lg"
       color="gray"
       radius={'xl'}
       aria-label="Go back"
     >
-      <BiSolidLeftArrowAlt />
+      <IoArrowBack />
     </ActionIcon>
   );
 }
