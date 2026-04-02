@@ -236,11 +236,6 @@ export class XrpcMentionSearchController extends Controller {
       // Card search service
       // Handle scope parameter for card search
       let authorDidForSearch: DID | undefined = undefined;
-      const callingUserDidResult = DID.create(callingUserId || '');
-      if (callingUserDidResult.isOk()) {
-        authorDidForSearch = callingUserDidResult.value;
-      }
-
       let collectionIdForSearch: CollectionId | undefined = undefined;
 
       if (scope) {
@@ -272,6 +267,12 @@ export class XrpcMentionSearchController extends Controller {
               collectionIdForSearch = collectionIdResult.value;
             }
           }
+        }
+      } else if (!search && callingUserId) {
+        // No scope provided and empty search - scope to calling user's cards
+        const callingUserDidResult = DID.create(callingUserId);
+        if (callingUserDidResult.isOk()) {
+          authorDidForSearch = callingUserDidResult.value;
         }
       }
 
