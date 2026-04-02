@@ -21,7 +21,7 @@ export default function CollectionCardPreview(props: Props) {
   if (cards.length === 0) return null;
 
   return (
-    <Grid gutter={'xs'}>
+    <Grid gutter={'xs'} grow>
       {cards.map((c) => (
         <Grid.Col key={c.id} span={3}>
           {c.cardContent.imageUrl && !imageError ? (

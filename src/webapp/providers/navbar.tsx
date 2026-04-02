@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import { useDisclosure } from '@mantine/hooks';
+import { useLocalStorage } from '@mantine/hooks';
 
 interface NavbarContext {
   mobileOpened: boolean;
@@ -22,8 +22,18 @@ interface Props {
 }
 
 export function NavbarProvider(props: Props) {
-  const [mobileOpened, { toggle: toggleMobile }] = useDisclosure(false);
-  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+  const [mobileOpened, setMobileOpened] = useLocalStorage({
+    key: 'navbar-mobile-opened',
+    defaultValue: false,
+  });
+
+  const [desktopOpened, setDesktopOpened] = useLocalStorage({
+    key: 'navbar-desktop-opened',
+    defaultValue: true,
+  });
+
+  const toggleMobile = () => setMobileOpened((o) => !o);
+  const toggleDesktop = () => setDesktopOpened((o) => !o);
 
   return (
     <NavbarContext.Provider
