@@ -7,6 +7,7 @@ import Providers from '@/providers';
 import { SPLASH_IMAGES } from '@/lib/consts/images';
 
 export const viewport: Viewport = {
+  interactiveWidget: 'resizes-visual',
   themeColor: [
     {
       media: '(prefers-color-scheme: light)',
