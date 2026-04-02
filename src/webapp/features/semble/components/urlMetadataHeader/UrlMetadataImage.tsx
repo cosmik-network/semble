@@ -25,7 +25,7 @@ export default async function UrlMetadataImage(props: Props) {
         alt={`${props.url} social preview image`}
         mah={150}
         w={'auto'}
-        maw={'100%'}
+        maw={280}
         fit="contain"
       />
     </Card>
