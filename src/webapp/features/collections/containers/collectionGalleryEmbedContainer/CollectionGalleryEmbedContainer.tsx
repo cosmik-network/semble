@@ -16,7 +16,32 @@ import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardCo
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+function usePartsPageChannel(onMessage?: (data: any) => void) {
+  const portRef = useRef<MessagePort | null>(null);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.type !== 'parts.page.connect') return;
+      let port = event.ports[0];
+      if (!port) return;
+      portRef.current = port;
+      if (onMessage) port.onmessage = (e) => onMessage(e.data);
+    }
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      portRef.current?.close();
+    };
+  }, [onMessage]);
+
+  function send(data: { command: string; [key: string]: any }) {
+    portRef.current?.postMessage(data);
+  }
+
+  return { send };
+}
 
 interface Props {
   rkey: string;
@@ -34,6 +59,7 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
   const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
   const router = useRouter();
+  const { send } = usePartsPageChannel();
 
   const currentCard = allCards[currentIndex];
   const hasPrev = currentIndex > 0;
@@ -164,7 +190,30 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
           </Stack>
         )}
 
-        <Group justify="center">
+        <Group justify="center" gap={8}>
+          <button
+            onClick={() =>
+              send({
+                command: 'open',
+                url: `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
+              })
+            }
+            style={{
+              background: 'none',
+              border: 'none',
+              textDecoration: 'none',
+              color: 'inherit',
+              fontSize: '11px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            View Collection
+          </button>
+          <Text c="gray" fz="11px">
+            |
+          </Text>
           <Link
             href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
             target="_blank"
