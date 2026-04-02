@@ -18,23 +18,26 @@ import useCollection from '../../lib/queries/useCollection';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
-function usePartsPageChannel(onMessage?: (data: any) => void) {
+function usePartsPageChannel() {
   const portRef = useRef<MessagePort | null>(null);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.data?.type !== 'parts.page.connect') return;
+      if (event.data?.type !== 'parts.page.channel') return;
       let port = event.ports[0];
       if (!port) return;
       portRef.current = port;
-      if (onMessage) port.onmessage = (e) => onMessage(e.data);
     }
     window.addEventListener('message', handleMessage);
+
+    // Request channel from parent
+    window.parent.postMessage({ type: 'parts.page.connect' }, '*');
+
     return () => {
       window.removeEventListener('message', handleMessage);
       portRef.current?.close();
     };
-  }, [onMessage]);
+  }, []);
 
   function send(data: { command: string; [key: string]: any }) {
     portRef.current?.postMessage(data);
