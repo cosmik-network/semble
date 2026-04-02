@@ -22,18 +22,21 @@ export function useUserSettings() {
     defaultValue: defaultSettings,
   });
 
+  const mergedSettings: UserSettings = { ...defaultSettings, ...settings };
+
   function updateSetting<K extends keyof UserSettings>(
     key: K,
     value: UserSettings[K],
   ) {
     setSettings((prev) => ({
+      ...defaultSettings,
       ...prev,
       [key]: value,
     }));
   }
 
   return {
-    settings: settings ?? defaultSettings,
+    settings: mergedSettings,
     setSettings,
     updateSetting,
   };
