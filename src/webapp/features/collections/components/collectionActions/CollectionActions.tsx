@@ -10,6 +10,7 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import { notifications } from '@mantine/notifications';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
+import { useWebHaptics } from 'web-haptics/react';
 
 interface Props {
   collection: Collection & {
@@ -22,6 +23,7 @@ export default function CollectionActions(props: Props) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const { trigger } = useWebHaptics();
 
   const isAuthor = user?.handle === props.collection.author?.handle;
   const shareLink =
@@ -38,7 +40,10 @@ export default function CollectionActions(props: Props) {
             <Button
               size="sm"
               leftSection={<FiPlus size={22} />}
-              onClick={() => setShowAddDrawer(true)}
+              onClick={() => {
+                trigger();
+                setShowAddDrawer(true);
+              }}
             >
               Add Card
             </Button>
