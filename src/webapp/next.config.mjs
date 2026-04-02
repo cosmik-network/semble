@@ -7,6 +7,21 @@ const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below
+
+  experimental: {
+    optimizePackageImports: [
+      '@mantine/core',
+      '@mantine/hooks',
+      'react-icons',
+      'react-icons/md',
+      'react-icons/fi',
+      'react-icons/fa6',
+      'react-icons/bi',
+      'react-icons/lu',
+      'react-icons/tb',
+      'react-icons/io5',
+    ],
+  },
 };
 
 const withMDX = createMDX({
