@@ -1,3 +1,4 @@
+import NavbarToggle from '@/components/navigation/NavbarToggle';
 import {
   Group,
   Avatar,
@@ -37,16 +38,19 @@ export default function MinimalProfileHeader(props: Props) {
           </Stack>
         </Group>
 
-        <ActionIcon
-          component={Link}
-          href={`/search/cards?handle=${props.handle}`}
-          variant="light"
-          color="gray"
-          size={'lg'}
-          radius={'xl'}
-        >
-          <IoSearch />
-        </ActionIcon>
+        <Group gap={'xs'}>
+          <ActionIcon
+            component={Link}
+            href={`/search/cards?handle=${props.handle}`}
+            variant="light"
+            color="gray"
+            size={'lg'}
+            radius={'xl'}
+          >
+            <IoSearch />
+          </ActionIcon>
+          <NavbarToggle />
+        </Group>
       </Group>
     </Container>
   );
