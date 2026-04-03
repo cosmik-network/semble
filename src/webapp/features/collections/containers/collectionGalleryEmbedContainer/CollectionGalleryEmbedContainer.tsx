@@ -5,10 +5,13 @@ import {
   Group,
   Stack,
   Text,
-  Title,
   Avatar,
   Card,
   ActionIcon,
+  Image,
+  Anchor,
+  Button,
+  Divider,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
@@ -17,6 +20,7 @@ import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { CollectionAccessType } from '@semble/types';
 
 function usePartsPageChannel() {
   const portRef = useRef<MessagePort | null>(null);
@@ -82,24 +86,33 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
 
   return (
     <Container p={4} fluid h="100vh" style={{ overflow: 'hidden' }}>
-      <Stack justify="space-between" h="100%" gap={4}>
+      <Stack justify="space-between" h="100%">
         <Group justify="space-between" align="center" wrap="nowrap">
-          <Group gap={4} align="center">
+          <Group gap={'xs'} align="center">
             <Link href={appUrl} target="_blank">
-              <img
+              <Image
                 src={SembleLogo.src}
                 alt="Semble logo"
-                style={{ height: 20, width: 'auto' }}
+                height={20}
+                w={'auto'}
               />
             </Link>
-            <Text fw={700} c="grape" fz="xs">
+            <Text
+              fw={700}
+              c={
+                firstPage.accessType === CollectionAccessType.OPEN
+                  ? 'green'
+                  : 'bright'
+              }
+              fz="xs"
+            >
               {firstPage.name}
             </Text>
           </Group>
 
-          <Group gap={4} wrap="nowrap">
+          <Group gap={'xs'} wrap="nowrap">
             <Avatar
-              size={16}
+              size={20}
               component={Link}
               href={`/profile/${firstPage.author.handle}`}
               target="_blank"
@@ -108,28 +121,27 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
                 'avatar_thumbnail',
               )}
               alt={`${firstPage.author.name}'s avatar`}
+              radius={'sm'}
             />
-            <Link
+            <Anchor
+              component={Link}
               href={`/profile/${firstPage.author.handle}`}
               target="_blank"
-              style={{
-                fontWeight: 500,
-                color: 'inherit',
-                textDecoration: 'none',
-                fontSize: '12px',
-              }}
+              fw={600}
+              fz={'sm'}
+              c="bright"
             >
               {firstPage.author.name}
-            </Link>
+            </Anchor>
           </Group>
         </Group>
 
         {allCards.length > 0 && currentCard ? (
-          <Stack gap={4} flex={1} style={{ overflow: 'hidden' }}>
+          <Stack gap={'xs'} flex={1} style={{ overflow: 'hidden' }}>
             <Group justify="center" align="center" flex={1}>
               <Card
                 component="article"
-                radius={'md'}
+                radius={'lg'}
                 p={'xs'}
                 withBorder
                 style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
@@ -157,11 +169,12 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
               </Card>
             </Group>
 
-            <Group justify="center" align="center" gap={8}>
+            <Group justify="center" align="center" gap={'xs'}>
               <ActionIcon
-                size="sm"
-                variant="subtle"
+                size="md"
+                variant="light"
                 color="grape"
+                radius={'xl'}
                 onClick={goToPrev}
                 disabled={!hasPrev}
                 style={{ visibility: hasPrev ? 'visible' : 'hidden' }}
@@ -169,13 +182,14 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
                 ←
               </ActionIcon>
 
-              <Text ta="center" c="gray" fz="xs">
+              <Text ta="center" c="gray" fz="xs" fw={600}>
                 {currentIndex + 1} / {allCards.length}
               </Text>
 
               <ActionIcon
-                size="sm"
-                variant="subtle"
+                size="md"
+                variant="light"
+                radius={'xl'}
                 color="grape"
                 onClick={goToNext}
                 disabled={!hasNext}
@@ -193,42 +207,31 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
           </Stack>
         )}
 
-        <Group justify="center" gap={8}>
-          <button
+        <Group justify="center" align="center" gap={'xs'}>
+          <Button
+            size="compact-xs"
+            variant="transparent"
+            color="gray"
             onClick={() =>
               send({
                 command: 'open',
                 url: `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
               })
             }
-            style={{
-              background: 'none',
-              border: 'none',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontSize: '11px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              padding: 0,
-            }}
           >
             View Collection
-          </button>
-          <Text c="gray" fz="11px">
-            |
-          </Text>
-          <Link
+          </Button>
+          <Divider h={15} my={'auto'} orientation="vertical" />
+          <Button
+            size="compact-xs"
+            variant="transparent"
+            color="gray"
+            component={Link}
             href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
             target="_blank"
-            style={{
-              textDecoration: 'none',
-              color: 'inherit',
-              fontSize: '11px',
-              fontWeight: 500,
-            }}
           >
-            View on Semble →
-          </Link>
+            View on Semble
+          </Button>
         </Group>
       </Stack>
     </Container>
