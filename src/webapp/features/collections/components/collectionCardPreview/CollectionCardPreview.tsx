@@ -31,7 +31,6 @@ export default function CollectionCardPreview(props: Props) {
                 alt={`${c.cardContent.url} social preview image`}
                 radius={'md'}
                 mih={45}
-                mah={60}
                 w={'100%'}
                 onError={() => setImageError(true)}
               />
