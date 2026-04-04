@@ -92,7 +92,7 @@ function Content() {
                 c="#4098FF"
                 bg={'blue.0'}
               >
-                We&apos;re heading to ATmosphereConf!
+                Watch our talk at ATmosphereConf!
               </Button>
               <AnimatedTitle />
 
