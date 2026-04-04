@@ -1,3 +1,4 @@
+import BackButton from '@/components/navigation/backButton/BackButton';
 import NavbarToggle from '@/components/navigation/NavbarToggle';
 import {
   Group,
@@ -20,8 +21,9 @@ interface Props {
 export default function MinimalProfileHeader(props: Props) {
   return (
     <Container p={'xs'} size={'xl'} mx={0}>
-      <Group justify="space-between" wrap="nowrap">
+      <Group justify="space-between" align="center" wrap="nowrap">
         <Group gap={'sm'} wrap="nowrap">
+          <BackButton />
           <Avatar
             src={props.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${props.name}'s avatar`}
@@ -38,7 +40,7 @@ export default function MinimalProfileHeader(props: Props) {
           </Stack>
         </Group>
 
-        <Group gap={'xs'}>
+        <Group gap={'xs'} wrap="nowrap">
           <ActionIcon
             component={Link}
             href={`/search/cards?handle=${props.handle}`}
