@@ -17,7 +17,7 @@ export default function ConnectionCard(props: Props) {
   const content = (
     <Grid gutter={'xs'} align="stretch">
       {/* Source URL */}
-      <Grid.Col span={{ base: 12, sm: 5 }}>
+      <Grid.Col span={{ base: 12, sm: 'auto' }}>
         <UrlCard
           id={sourceUrlView.url}
           url={sourceUrlView.url}
@@ -29,7 +29,7 @@ export default function ConnectionCard(props: Props) {
       </Grid.Col>
 
       {/* Connection Metadata */}
-      <Grid.Col span={{ base: 12, sm: 2 }}>
+      <Grid.Col span={{ base: 12, sm: 2.5 }}>
         <Card p={0} radius={'md'} bg={'transparent'} h={'100%'}>
           <Group justify="center" wrap="nowrap" align="center" h={'100%'}>
             <Stack gap={0} align="center" justify="center">
@@ -79,7 +79,7 @@ export default function ConnectionCard(props: Props) {
       </Grid.Col>
 
       {/* Target URL */}
-      <Grid.Col span={{ base: 12, sm: 5 }}>
+      <Grid.Col span={{ base: 12, sm: 'auto' }}>
         <UrlCard
           id={targetUrlView.url}
           url={targetUrlView.url}
