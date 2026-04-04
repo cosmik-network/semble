@@ -93,6 +93,11 @@ export default function SembleConnectionsContainer(props: Props) {
   const allConnections =
     allData?.pages.flatMap((page) => page.connections ?? []) ?? [];
 
+  const emptyMessage =
+    direction === 'all'
+      ? 'No connections found'
+      : `No connections found ${direction} this link`;
+
   if (forwardError || backwardError || allError) {
     return <SembleConnectionsContainerError />;
   }
@@ -142,10 +147,7 @@ export default function SembleConnectionsContainer(props: Props) {
         </Group>
 
         {connections.length === 0 && !isPending ? (
-          <SembleEmptyTab
-            message={`No ${direction} connections found`}
-            icon={BiLink}
-          />
+          <SembleEmptyTab message={emptyMessage} icon={BiLink} />
         ) : (
           <InfiniteScroll
             dataLength={connections.length}
