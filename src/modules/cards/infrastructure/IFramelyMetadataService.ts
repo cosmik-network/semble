@@ -37,16 +37,24 @@ interface IFramelyResponse {
 
 export class IFramelyMetadataService implements IMetadataService {
   private readonly baseUrl = 'https://iframe.ly/api/iframely';
-  private readonly apiKey: string;
+  private readonly apiKey: string | null;
 
   constructor(apiKey: string) {
     if (!apiKey || apiKey.trim().length === 0) {
-      throw new Error('Iframely API key is required');
+      console.warn(
+        'IFramelyMetadataService: No API key provided. Metadata fetching will be unavailable.',
+      );
+      this.apiKey = null;
+    } else {
+      this.apiKey = apiKey;
     }
-    this.apiKey = apiKey;
   }
 
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
+    if (!this.apiKey) {
+      return err(new Error('Iframely API key not configured'));
+    }
+
     try {
       const encodedUrl = encodeURIComponent(url.value);
       const fullUrl = `${this.baseUrl}?url=${encodedUrl}&api_key=${this.apiKey}`;
@@ -108,6 +116,10 @@ export class IFramelyMetadataService implements IMetadataService {
   }
 
   async isAvailable(): Promise<boolean> {
+    if (!this.apiKey) {
+      return false;
+    }
+
     try {
       // Test with a simple URL to check if the service is available
       const testUrl = `${this.baseUrl}?url=${encodeURIComponent('https://example.com')}&api_key=${this.apiKey}`;

@@ -11,6 +11,8 @@ import {
   CardSaveEventProperties,
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
+import { notifications } from '@mantine/notifications';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 export default function useAddCard(
   analyticsContext?: CardSaveAnalyticsContext,
@@ -23,6 +25,7 @@ export default function useAddCard(
       note?: string;
       collectionIds?: string[];
       viaCardId?: string;
+      notificationId?: string;
     }) => {
       return addUrlToLibrary(newCard.url, {
         note: newCard.note,
@@ -31,10 +34,25 @@ export default function useAddCard(
       });
     },
 
-    // Do things that are absolutely necessary and logic related (like query invalidation) in the useMutation callbacks
-    // Do UI related things like redirects or showing toast notifications in mutate callbacks. If the user navigated away from the current screen before the mutation finished, those will purposefully not fire
+    // Generally, do UI things (redirects, toasts) in mutate-level callbacks so they
+    // don't fire if the user navigated away. But loading toasts that need .update()
+    // must be handled here — Suspense re-renders can unmount the caller and drop
+    // mutate-level callbacks, leaving the loading toast stuck forever.
     // https://tkdodo.eu/blog/mastering-mutations-in-react-query#some-callbacks-might-not-fire
     onSuccess: (_data, variables) => {
+      if (variables.notificationId) {
+        notifications.update({
+          id: variables.notificationId,
+          color: 'green',
+          title: 'Success!',
+          message: 'Card added',
+          position: 'top-center',
+          loading: false,
+          autoClose: 2000,
+          icon: <BsCheck />,
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
@@ -84,6 +102,22 @@ export default function useAddCard(
         // Clear super properties after capture
         posthog.unregister('original_save_source');
         posthog.unregister('original_active_filters');
+      }
+    },
+
+    onError: (_error, variables) => {
+      if (variables.notificationId) {
+        notifications.update({
+          id: variables.notificationId,
+          color: 'red',
+          title: 'Error',
+          message: 'Could not add card',
+          position: 'top-center',
+          loading: false,
+          autoClose: 5000,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       }
     },
   });

@@ -11,6 +11,8 @@ import {
   CardSaveEventProperties,
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
+import { notifications } from '@mantine/notifications';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 export default function useUpdateCardAssociations(
   analyticsContext?: CardSaveAnalyticsContext,
@@ -27,6 +29,7 @@ export default function useUpdateCardAssociations(
       removeFromCollectionIds?: string[];
       viaCardId?: string;
       addToLibrary?: boolean;
+      notificationId?: string;
     }) => {
       return client.updateUrlCardAssociations({
         cardId: updatedCard.cardId,
@@ -38,6 +41,19 @@ export default function useUpdateCardAssociations(
     },
 
     onSuccess: (_data, variables) => {
+      if (variables.notificationId) {
+        notifications.update({
+          id: variables.notificationId,
+          color: 'green',
+          title: 'Success!',
+          message: 'Card updated',
+          position: 'top-center',
+          loading: false,
+          autoClose: 2000,
+          icon: <BsCheck />,
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
@@ -99,6 +115,22 @@ export default function useUpdateCardAssociations(
         // Clear super properties after capture
         posthog.unregister('original_save_source');
         posthog.unregister('original_active_filters');
+      }
+    },
+
+    onError: (_error, variables) => {
+      if (variables.notificationId) {
+        notifications.update({
+          id: variables.notificationId,
+          color: 'red',
+          title: 'Error',
+          message: 'Could not update card',
+          position: 'top-center',
+          loading: false,
+          autoClose: false,
+          withCloseButton: true,
+          icon: <BsExclamation />,
+        });
       }
     },
   });
