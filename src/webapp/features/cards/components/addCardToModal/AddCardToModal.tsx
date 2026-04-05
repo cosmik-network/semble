@@ -10,7 +10,6 @@ import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
 import { notifications } from '@mantine/notifications';
 import { track } from '@vercel/analytics';
-import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   isOpen: boolean;
@@ -78,33 +77,7 @@ export default function AddCardToModal(props: Props) {
 
       props.onClose();
 
-      addCard.mutate(data.cardData, {
-        onSuccess: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'green',
-            title: 'Success!',
-            message: 'Card added',
-            position: 'top-center',
-            loading: false,
-            autoClose: 2000,
-            icon: <BsCheck />,
-          });
-        },
-        onError: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'red',
-            title: 'Error',
-            message: 'Could not add card',
-            loading: false,
-            autoClose: 5000,
-            withCloseButton: true,
-            position: 'top-center',
-            icon: <BsExclamation />,
-          });
-        },
-      });
+      addCard.mutate({ ...data.cardData, notificationId });
     } else if (!data.isAddingNewCard && data.updateData) {
       const notificationId = `update-card-${Date.now()}`;
       notifications.show({
@@ -119,33 +92,7 @@ export default function AddCardToModal(props: Props) {
 
       props.onClose();
 
-      updateCardAssociations.mutate(data.updateData, {
-        onSuccess: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'green',
-            title: 'Success!',
-            message: 'Card updated',
-            position: 'top-center',
-            loading: false,
-            autoClose: 2000,
-            icon: <BsCheck />,
-          });
-        },
-        onError: () => {
-          notifications.update({
-            id: notificationId,
-            color: 'red',
-            title: 'Error',
-            message: 'Could not update card',
-            position: 'top-center',
-            loading: false,
-            autoClose: false,
-            withCloseButton: true,
-            icon: <BsExclamation />,
-          });
-        },
-      });
+      updateCardAssociations.mutate({ ...data.updateData, notificationId });
     }
   };
 

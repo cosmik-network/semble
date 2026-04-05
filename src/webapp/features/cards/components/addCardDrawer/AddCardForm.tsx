@@ -33,7 +33,6 @@ import { Collection, CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
-import { BsCheck, BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -112,33 +111,7 @@ export default function AddCardForm(props: Props) {
     setSelectedCollections(initialCollections);
     form.reset();
 
-    addCard.mutate(cardData, {
-      onSuccess: () => {
-        notifications.update({
-          id: notificationId,
-          color: 'green',
-          title: 'Success!',
-          message: 'Card added',
-          position: 'top-center',
-          loading: false,
-          autoClose: 2000,
-          icon: <BsCheck />,
-        });
-      },
-      onError: () => {
-        notifications.update({
-          id: notificationId,
-          color: 'red',
-          title: 'Error',
-          message: 'Could not add card',
-          position: 'top-center',
-          loading: false,
-          autoClose: 5000,
-          withCloseButton: true,
-          icon: <BsExclamation />,
-        });
-      },
-    });
+    addCard.mutate({ ...cardData, notificationId });
   };
 
   return (
