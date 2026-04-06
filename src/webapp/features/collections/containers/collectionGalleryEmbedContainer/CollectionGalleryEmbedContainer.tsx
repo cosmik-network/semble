@@ -19,43 +19,19 @@ import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardCo
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { CollectionAccessType } from '@semble/types';
-
-function usePartsPageChannel() {
-  const portRef = useRef<MessagePort | null>(null);
-
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.type !== 'parts.page.channel') return;
-      let port = event.ports[0];
-      if (!port) return;
-      portRef.current = port;
-    }
-    window.addEventListener('message', handleMessage);
-
-    // Request channel from parent
-    window.parent.postMessage({ type: 'parts.page.connect' }, '*');
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      portRef.current?.close();
-    };
-  }, []);
-
-  function send(data: { command: string; [key: string]: any }) {
-    portRef.current?.postMessage(data);
-  }
-
-  return { send };
-}
+import {
+  RpcSessionProvider,
+  useRpcSession,
+} from '@/lib/embed/rpcSessionProvider';
 
 interface Props {
   rkey: string;
   handle: string;
 }
 
-export default function CollectionGalleryEmbedContainer(props: Props) {
+function CollectionGalleryContent(props: Props) {
   const { data, isPending } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
@@ -66,7 +42,7 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
   const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
   const router = useRouter();
-  const { send } = usePartsPageChannel();
+  const session = useRpcSession();
 
   const currentCard = allCards[currentIndex];
   const hasPrev = currentIndex > 0;
@@ -212,12 +188,12 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
             size="compact-xs"
             variant="transparent"
             color="gray"
-            onClick={() =>
-              send({
-                command: 'open',
-                url: `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
-              })
-            }
+            onClick={async () => {
+              if (!session) return;
+              await session.open(
+                `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
+              );
+            }}
           >
             View Collection
           </Button>
@@ -235,5 +211,13 @@ export default function CollectionGalleryEmbedContainer(props: Props) {
         </Group>
       </Stack>
     </Container>
+  );
+}
+
+export default function CollectionGalleryEmbedContainer(props: Props) {
+  return (
+    <RpcSessionProvider>
+      <CollectionGalleryContent {...props} />
+    </RpcSessionProvider>
   );
 }

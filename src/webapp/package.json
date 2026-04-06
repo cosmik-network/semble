@@ -51,6 +51,7 @@
     "react-force-graph-2d": "^1.29.1",
     "react-icons": "^5.5.0",
     "shiki": "^3.20.0",
+    "capnweb": "^0.6.1",
     "web-haptics": "^0.0.6"
   },
   "devDependencies": {
