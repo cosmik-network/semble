@@ -202,6 +202,24 @@ function CollectionGalleryContent(props: Props) {
             size="compact-xs"
             variant="transparent"
             color="gray"
+            onClick={async () => {
+              if (!session || !currentCard) return;
+              await session.replaceWith({
+                type: 'embed',
+                url: `${appUrl}/embed/url?id=${encodeURIComponent(
+                  currentCard.cardContent.url || currentCard.url,
+                )}`,
+                aspectRatio: '16:9',
+              });
+            }}
+          >
+            Replace with
+          </Button>
+          <Divider h={15} my={'auto'} orientation="vertical" />
+          <Button
+            size="compact-xs"
+            variant="transparent"
+            color="gray"
             component={Link}
             href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
             target="_blank"

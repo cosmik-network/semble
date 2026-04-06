@@ -3,9 +3,20 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { newMessagePortRpcSession, type RpcStub } from 'capnweb';
 
+type EmbedBlockData =
+  | { type: 'text'; content: string }
+  | {
+      type: 'embed';
+      url: string;
+      height?: number;
+      aspectRatio?: string;
+    };
+
 // Define the interface the *host* exposes (methods you can call)
 export type HostMethods = {
   open(url: string): void;
+  replaceWith(block: EmbedBlockData): void;
+  addBelow(block: EmbedBlockData): void;
 };
 
 export type HostSession = RpcStub<HostMethods>;
