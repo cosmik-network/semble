@@ -29,6 +29,7 @@ import {
 interface Props {
   rkey: string;
   handle: string;
+  mode?: 'edit' | 'view';
 }
 
 function CollectionGalleryContent(props: Props) {
@@ -184,48 +185,52 @@ function CollectionGalleryContent(props: Props) {
         )}
 
         <Group justify="center" align="center" gap={'xs'}>
-          <Button
-            size="compact-xs"
-            variant="transparent"
-            color="gray"
-            onClick={async () => {
-              if (!session) return;
-              await session.open(
-                `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
-              );
-            }}
-          >
-            View Collection
-          </Button>
-          <Divider h={15} my={'auto'} orientation="vertical" />
-          <Button
-            size="compact-xs"
-            variant="transparent"
-            color="gray"
-            onClick={async () => {
-              if (!session || !currentCard) return;
-              await session.replaceWith({
-                type: 'embed',
-                url: `${appUrl}/embed/url?id=${encodeURIComponent(
-                  currentCard.cardContent.url || currentCard.url,
-                )}`,
-                aspectRatio: '16:9',
-              });
-            }}
-          >
-            Replace with
-          </Button>
-          <Divider h={15} my={'auto'} orientation="vertical" />
-          <Button
-            size="compact-xs"
-            variant="transparent"
-            color="gray"
-            component={Link}
-            href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
-            target="_blank"
-          >
-            View on Semble
-          </Button>
+          {props.mode === 'edit' ? (
+            <Button
+              size="compact-xs"
+              variant="transparent"
+              color="gray"
+              onClick={async () => {
+                if (!session || !currentCard) return;
+                await session.replaceWith({
+                  type: 'embed',
+                  url: `${appUrl}/embed/url?id=${encodeURIComponent(
+                    currentCard.cardContent.url || currentCard.url,
+                  )}`,
+                  aspectRatio: '16:9',
+                });
+              }}
+            >
+              Replace with
+            </Button>
+          ) : (
+            <>
+              <Button
+                size="compact-xs"
+                variant="transparent"
+                color="gray"
+                onClick={async () => {
+                  if (!session) return;
+                  await session.open(
+                    `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
+                  );
+                }}
+              >
+                View Collection
+              </Button>
+              <Divider h={15} my={'auto'} orientation="vertical" />
+              <Button
+                size="compact-xs"
+                variant="transparent"
+                color="gray"
+                component={Link}
+                href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
+                target="_blank"
+              >
+                View on Semble
+              </Button>
+            </>
+          )}
         </Group>
       </Stack>
     </Container>
