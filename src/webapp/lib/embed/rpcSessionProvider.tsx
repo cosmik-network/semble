@@ -49,7 +49,7 @@ export function RpcSessionProvider({
     if (connectingRef.current) return;
     connectingRef.current = true;
 
-    connectToHost().then(setSession);
+    connectToHost().then((session) => setSession(() => session));
 
     return () => {
       // Cleanup on unmount
