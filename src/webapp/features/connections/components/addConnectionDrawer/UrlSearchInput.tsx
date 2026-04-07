@@ -214,10 +214,16 @@ export default function UrlSearchInput(props: Props) {
                       Recent cards
                     </Text>
                     {isLoadingRecentCards ? (
-                      <Stack gap={5}>
-                        <Skeleton height={35} radius="sm" />
-                        <Skeleton height={35} radius="sm" />
-                        <Skeleton height={35} radius="sm" />
+                      <Stack gap={5} p={5}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Group key={i} gap="xs" align="center" wrap="nowrap">
+                            <Skeleton height={35} width={35} radius="sm" />
+                            <Stack gap={4} style={{ flex: 1 }}>
+                              <Skeleton height={12} width="70%" radius="xl" />
+                              <Skeleton height={10} width="40%" radius="xl" />
+                            </Stack>
+                          </Group>
+                        ))}
                       </Stack>
                     ) : (
                       recentCardsList.map((card) => (
