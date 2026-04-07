@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  ActionIcon,
   Anchor,
   Card,
   CloseButton,
@@ -14,7 +13,6 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/client.apiClient';
-import { LuX } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
 import Link from 'next/link';
 
@@ -32,20 +30,19 @@ function SourceCardPreviewSkeleton() {
   );
 }
 
-export default function SourceCardPreview({
-  sourceUrl,
-  onRemove,
-}: {
+interface Props {
   sourceUrl: string;
   onRemove?: () => void;
-}) {
-  const { data: sourceUrlMetadata, isLoading: isLoadingMetadata } = useQuery({
-    queryKey: ['url metadata', sourceUrl],
+}
+
+export default function SourceCardPreview(props: Props) {
+  const { data, isLoading: isLoadingMetadata } = useQuery({
+    queryKey: ['url metadata', props.sourceUrl],
     queryFn: async () => {
       const client = createSembleClient();
-      return client.getUrlMetadata({ url: sourceUrl });
+      return client.getUrlMetadata({ url: props.sourceUrl });
     },
-    enabled: !!sourceUrl,
+    enabled: !!props.sourceUrl,
   });
 
   if (isLoadingMetadata) {
@@ -55,10 +52,10 @@ export default function SourceCardPreview({
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Group gap="xs" wrap="nowrap">
-        {sourceUrlMetadata?.metadata?.imageUrl && (
+        {data?.metadata?.imageUrl && (
           <Image
-            src={sourceUrlMetadata.metadata.imageUrl}
-            alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+            src={data.metadata.imageUrl}
+            alt={`${data.metadata.title} social preview image`}
             radius={'md'}
             w={45}
             h={45}
@@ -67,12 +64,12 @@ export default function SourceCardPreview({
         )}
         <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
           <Text fw={500} lineClamp={1} c={'bright'}>
-            {sourceUrlMetadata?.metadata?.title || sourceUrl}
+            {data?.metadata?.title || props.sourceUrl}
           </Text>
-          <Tooltip label={sourceUrl}>
+          <Tooltip label={props.sourceUrl}>
             <Anchor
               component={Link}
-              href={sourceUrl}
+              href={props.sourceUrl}
               target="_blank"
               c={'gray'}
               fz={'sm'}
@@ -80,15 +77,15 @@ export default function SourceCardPreview({
               w="fit-content"
               onClick={(e) => e.stopPropagation()}
             >
-              {getDomain(sourceUrl)}
+              {getDomain(props.sourceUrl)}
             </Anchor>
           </Tooltip>
         </Stack>
-        {onRemove && (
+        {props.onRemove && (
           <CloseButton
             radius="xl"
             size="md"
-            onClick={onRemove}
+            onClick={props.onRemove}
             aria-label="Remove URL"
           />
         )}

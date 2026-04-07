@@ -22,6 +22,7 @@ import { searchUrls } from '../../lib/dal';
 import { BiPlus } from 'react-icons/bi';
 import { getDomain } from '@/lib/utils/link';
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import type { UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
 
 function isValidUrl(value: string): boolean {
@@ -72,6 +73,9 @@ export default function UrlSearchInput(props: Props) {
   const [confirmedUrl, setConfirmedUrl] = useState<string | null>(
     isValidUrl(props.value) ? props.value : null,
   );
+  const [confirmedMetadata, setConfirmedMetadata] = useState<
+    UrlMetadata | undefined
+  >(undefined);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
 
@@ -90,10 +94,12 @@ export default function UrlSearchInput(props: Props) {
     } else {
       setConfirmedUrl(null);
     }
+    setConfirmedMetadata(undefined);
   }
 
   const handleClear = () => {
     setConfirmedUrl(null);
+    setConfirmedMetadata(undefined);
     setInputValue('');
     props.onUrlSelect('');
     props.onUrlClear?.();
@@ -102,7 +108,11 @@ export default function UrlSearchInput(props: Props) {
   if (confirmedUrl) {
     return (
       <>
-        <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
+        <SourceCardPreview
+          sourceUrl={confirmedUrl}
+          metadata={confirmedMetadata}
+          onRemove={handleClear}
+        />
         <VisuallyHidden>
           <Input.Label htmlFor={props.id} required>
             {props.label}
@@ -150,6 +160,14 @@ export default function UrlSearchInput(props: Props) {
             setInputValue(url);
             if (isValidUrl(url)) {
               setConfirmedUrl(url);
+              // Look up metadata from search results or recent cards
+              const searchMatch = urls.find((u) => u.url === url);
+              const recentMatch = recentCards?.pages[0]?.cards?.find(
+                (c) => c.url === url,
+              );
+              setConfirmedMetadata(
+                searchMatch?.metadata ?? recentMatch?.cardContent,
+              );
             }
             combobox.closeDropdown();
           }}
