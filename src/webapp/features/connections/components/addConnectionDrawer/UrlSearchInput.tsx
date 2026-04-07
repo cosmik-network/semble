@@ -22,6 +22,16 @@ import { searchUrls } from '../../lib/dal';
 import { BiPlus } from 'react-icons/bi';
 import { getDomain } from '@/lib/utils/link';
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import SourceCardPreview from './SourceCardPreview';
+
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function useUrlSearch(debounced: string) {
   return useQuery({
@@ -50,6 +60,7 @@ interface Props {
   value: string;
   error?: React.ReactNode;
   onUrlSelect: (url: string) => void;
+  onUrlClear?: () => void;
 }
 
 export default function UrlSearchInput(props: Props) {
@@ -58,6 +69,9 @@ export default function UrlSearchInput(props: Props) {
   });
 
   const [inputValue, setInputValue] = useState(props.value);
+  const [confirmedUrl, setConfirmedUrl] = useState<string | null>(
+    isValidUrl(props.value) ? props.value : null,
+  );
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
 
@@ -71,6 +85,31 @@ export default function UrlSearchInput(props: Props) {
   if (props.value !== prevValue) {
     setInputValue(props.value);
     setPrevValue(props.value);
+    if (isValidUrl(props.value)) {
+      setConfirmedUrl(props.value);
+    } else {
+      setConfirmedUrl(null);
+    }
+  }
+
+  const handleClear = () => {
+    setConfirmedUrl(null);
+    setInputValue('');
+    props.onUrlSelect('');
+    props.onUrlClear?.();
+  };
+
+  if (confirmedUrl) {
+    return (
+      <>
+        <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
+        <VisuallyHidden>
+          <Input.Label htmlFor={props.id} required>
+            {props.label}
+          </Input.Label>
+        </VisuallyHidden>
+      </>
+    );
   }
 
   const options = urls.map((urlView) => (
@@ -109,6 +148,9 @@ export default function UrlSearchInput(props: Props) {
           onOptionSubmit={(url) => {
             props.onUrlSelect(url);
             setInputValue(url);
+            if (isValidUrl(url)) {
+              setConfirmedUrl(url);
+            }
             combobox.closeDropdown();
           }}
         >
@@ -122,7 +164,6 @@ export default function UrlSearchInput(props: Props) {
               onChange={(e) => {
                 const val = e.currentTarget.value;
                 setInputValue(val);
-                props.onUrlSelect(val);
                 combobox.openDropdown();
               }}
               onFocus={() => {

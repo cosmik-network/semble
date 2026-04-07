@@ -1,8 +1,10 @@
 'use client';
 
 import {
+  ActionIcon,
   Anchor,
   Card,
+  CloseButton,
   Group,
   Image,
   Skeleton,
@@ -12,6 +14,7 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/client.apiClient';
+import { LuX } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
 import Link from 'next/link';
 
@@ -31,8 +34,10 @@ function SourceCardPreviewSkeleton() {
 
 export default function SourceCardPreview({
   sourceUrl,
+  onRemove,
 }: {
   sourceUrl: string;
+  onRemove?: () => void;
 }) {
   const { data: sourceUrlMetadata, isLoading: isLoadingMetadata } = useQuery({
     queryKey: ['url metadata', sourceUrl],
@@ -57,9 +62,10 @@ export default function SourceCardPreview({
             radius={'md'}
             w={45}
             h={45}
+            style={{ flexShrink: 0 }}
           />
         )}
-        <Stack gap={0}>
+        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
           <Text fw={500} lineClamp={1} c={'bright'}>
             {sourceUrlMetadata?.metadata?.title || sourceUrl}
           </Text>
@@ -71,12 +77,21 @@ export default function SourceCardPreview({
               c={'gray'}
               fz={'sm'}
               lineClamp={1}
+              w="fit-content"
               onClick={(e) => e.stopPropagation()}
             >
               {getDomain(sourceUrl)}
             </Anchor>
           </Tooltip>
         </Stack>
+        {onRemove && (
+          <CloseButton
+            radius="xl"
+            size="md"
+            onClick={onRemove}
+            aria-label="Remove URL"
+          />
+        )}
       </Group>
     </Card>
   );
