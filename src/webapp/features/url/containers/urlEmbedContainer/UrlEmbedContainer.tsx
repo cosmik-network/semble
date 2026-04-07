@@ -10,13 +10,18 @@ import {
   Anchor,
   Paper,
   Divider,
+  Button,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { notifications } from '@mantine/notifications';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   url: string;
@@ -32,6 +37,13 @@ export default function UrlEmbedContainer(props: Props) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
   const stats = data?.stats;
   const metadata = (data as any)?.metadata;
+  const [hasStorageAccess, setHasStorageAccess] = useState(false);
+  const [isRequestingAccess, setIsRequestingAccess] = useState(false);
+
+  const addCardMutation = useAddCard({
+    saveSource: CardSaveSource.SEMBLE_PAGE,
+    pagePath: '/embed/url',
+  });
 
   const handleCardClick = () => {
     if (isCollectionPage(props.url) || isProfilePage(props.url)) {
@@ -39,6 +51,72 @@ export default function UrlEmbedContainer(props: Props) {
       return;
     }
     router.push(`/url?id=${encodeURIComponent(props.url)}`);
+  };
+
+  const requestStorageAccess = async () => {
+    if (!document.requestStorageAccess) {
+      // Storage Access API not supported
+      notifications.show({
+        title: 'Browser not supported',
+        message: 'Your browser does not support the Storage Access API',
+        color: 'red',
+      });
+      return false;
+    }
+
+    try {
+      setIsRequestingAccess(true);
+
+      // Check if we already have storage access
+      const hasAccess = await document.hasStorageAccess();
+      if (hasAccess) {
+        setHasStorageAccess(true);
+        return true;
+      }
+
+      // Request storage access
+      await document.requestStorageAccess();
+      setHasStorageAccess(true);
+      return true;
+    } catch (error) {
+      console.error('Storage access denied:', error);
+      notifications.show({
+        title: 'Access denied',
+        message: 'Please allow cookies for this site to save to library',
+        color: 'red',
+      });
+      return false;
+    } finally {
+      setIsRequestingAccess(false);
+    }
+  };
+
+  const handleSaveToLibrary = async () => {
+    // First ensure we have storage access
+    const hasAccess = hasStorageAccess || (await requestStorageAccess());
+
+    if (!hasAccess) {
+      return;
+    }
+
+    try {
+      await addCardMutation.mutateAsync({
+        url: props.url,
+      });
+
+      notifications.show({
+        title: 'Success',
+        message: 'URL saved to library',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Failed to save to library:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to save to library. Please try again.',
+        color: 'red',
+      });
+    }
   };
 
   if (isPending) {
@@ -74,15 +152,26 @@ export default function UrlEmbedContainer(props: Props) {
               w={'auto'}
             />
           </Link>
-          <Anchor
-            component={Link}
-            href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
-            target="_blank"
-            fz="xs"
-            c="bright"
-          >
-            View on Semble
-          </Anchor>
+          <Group gap="xs">
+            <Button
+              size="compact-xs"
+              variant="light"
+              onClick={handleSaveToLibrary}
+              loading={addCardMutation.isPending || isRequestingAccess}
+              disabled={addCardMutation.isPending || isRequestingAccess}
+            >
+              Save to Library
+            </Button>
+            <Anchor
+              component={Link}
+              href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
+              target="_blank"
+              fz="xs"
+              c="bright"
+            >
+              View on Semble
+            </Anchor>
+          </Group>
         </Group>
 
         {/* Main Content */}
