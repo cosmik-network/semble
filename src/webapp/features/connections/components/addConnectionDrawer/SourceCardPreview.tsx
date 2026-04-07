@@ -22,8 +22,8 @@ function SourceCardPreviewSkeleton() {
       <Group gap="xs" wrap="nowrap">
         <Skeleton width={45} height={45} radius={'md'} />
         <Stack gap={0} style={{ flex: 1 }}>
-          <Skeleton height={14} width="80%" radius="sm" />
-          <Skeleton height={12} width="60%" radius="sm" mt={4} />
+          <Skeleton height={21.5} width="80%" radius="sm" />
+          <Skeleton height={18.5} width="60%" radius="sm" mt={4} />
         </Stack>
       </Group>
     </Card>
