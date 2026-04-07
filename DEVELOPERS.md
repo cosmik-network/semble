@@ -14,3 +14,10 @@
 - `fly logs --app annos`
 - `fly secrets set SUPER_SECRET_KEY=password1234`
 - make sure that new environment vars are added as secrets with the above command
+
+## local development with mocked backend
+
+- `npm install`
+- in one terminal: `npm run dev:mock`
+- another terminal: `npm run webapp:dev`
+- ui is available on `localhost:4000`

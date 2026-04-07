@@ -38,7 +38,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
-import { BsCheck, BsExclamation } from 'react-icons/bs';
+import { BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
 import { TbPlugConnected } from 'react-icons/tb';
 
@@ -156,33 +156,7 @@ export default function Composer(props: Props) {
     window.history.replaceState({}, '', window.location.pathname);
     cardForm.reset();
 
-    addCard.mutate(cardData, {
-      onSuccess: () => {
-        notifications.update({
-          id: notificationId,
-          color: 'green',
-          title: 'Success!',
-          message: 'Card added',
-          position: 'top-center',
-          loading: false,
-          autoClose: 2000,
-          icon: <BsCheck />,
-        });
-      },
-      onError: () => {
-        notifications.update({
-          id: notificationId,
-          color: 'red',
-          title: 'Error',
-          message: 'Could not add card',
-          position: 'top-center',
-          loading: false,
-          autoClose: 5000,
-          withCloseButton: true,
-          icon: <BsExclamation />,
-        });
-      },
-    });
+    addCard.mutate({ ...cardData, notificationId });
   };
 
   const handleCreateCollection = (e: React.FormEvent) => {
