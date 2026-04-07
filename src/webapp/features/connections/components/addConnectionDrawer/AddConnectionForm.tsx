@@ -19,12 +19,11 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { Suspense } from 'react';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import UrlSearchInput, { UrlSearchInputSkeleton } from './UrlSearchInput';
+import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 
@@ -154,16 +153,14 @@ export default function AddConnectionForm(props: Props) {
     </Stack>
   ) : (
     <Stack gap={0}>
-      <Suspense fallback={<UrlSearchInputSkeleton />}>
-        <UrlSearchInput
-          id="sourceUrl"
-          label="From"
-          placeholder="Search cards or paste a link"
-          value={form.values.sourceUrl}
-          error={form.errors.sourceUrl}
-          onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
-        />
-      </Suspense>
+      <UrlSearchInput
+        id="sourceUrl"
+        label="From"
+        placeholder="Search cards or paste a link"
+        value={form.values.sourceUrl}
+        error={form.errors.sourceUrl}
+        onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
+      />
       {form.errors.sourceUrl && (
         <Text size="sm" c="red" mt="xs">
           {form.errors.sourceUrl}
@@ -175,16 +172,14 @@ export default function AddConnectionForm(props: Props) {
   // ---- Target slot ----
   const targetSlot = (
     <Stack gap={0}>
-      <Suspense fallback={<UrlSearchInputSkeleton />}>
-        <UrlSearchInput
-          id="targetUrl"
-          label="To"
-          placeholder="Search cards or paste a link"
-          value={form.values.targetUrl}
-          error={form.errors.targetUrl}
-          onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
-        />
-      </Suspense>
+      <UrlSearchInput
+        id="targetUrl"
+        label="To"
+        placeholder="Search cards or paste a link"
+        value={form.values.targetUrl}
+        error={form.errors.targetUrl}
+        onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
+      />
       {form.errors.targetUrl && (
         <Text size="sm" c="red" mt="xs">
           {form.errors.targetUrl}
