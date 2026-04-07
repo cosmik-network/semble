@@ -21,7 +21,18 @@ import { useQuery } from '@tanstack/react-query';
 import { searchUrls } from '../../lib/dal';
 import { BiPlus } from 'react-icons/bi';
 import { getDomain } from '@/lib/utils/link';
-import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import { useMyCardsInfinite } from '@/features/cards/lib/queries/useMyCards';
+import type { UrlMetadata } from '@semble/types';
+import SourceCardPreview from './SourceCardPreview';
+
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function useUrlSearch(debounced: string) {
   return useQuery({
@@ -35,14 +46,6 @@ function useUrlSearch(debounced: string) {
   });
 }
 
-export function UrlSearchInputSkeleton() {
-  return (
-    <Card padding="xs" radius="lg" withBorder>
-      <Skeleton height={30} radius="sm" />
-    </Card>
-  );
-}
-
 interface Props {
   id: string;
   label: string;
@@ -50,6 +53,7 @@ interface Props {
   value: string;
   error?: React.ReactNode;
   onUrlSelect: (url: string) => void;
+  onUrlClear?: () => void;
 }
 
 export default function UrlSearchInput(props: Props) {
@@ -58,11 +62,20 @@ export default function UrlSearchInput(props: Props) {
   });
 
   const [inputValue, setInputValue] = useState(props.value);
+  const [confirmedUrl, setConfirmedUrl] = useState<string | null>(
+    isValidUrl(props.value) ? props.value : null,
+  );
+  const [confirmedMetadata, setConfirmedMetadata] = useState<
+    UrlMetadata | undefined
+  >(undefined);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
 
   const { data: searchResults, isFetching, error } = useUrlSearch(debounced);
-  const { data: recentCards } = useMyCards({ limit: 5 });
+  const { data: recentCards, isLoading: isLoadingRecentCards } =
+    useMyCardsInfinite({ limit: 5 });
+
+  const recentCardsList = recentCards?.pages[0]?.cards ?? [];
 
   const urls = searchResults?.urls ?? [];
 
@@ -71,6 +84,33 @@ export default function UrlSearchInput(props: Props) {
   if (props.value !== prevValue) {
     setInputValue(props.value);
     setPrevValue(props.value);
+    if (isValidUrl(props.value)) {
+      setConfirmedUrl(props.value);
+    } else {
+      setConfirmedUrl(null);
+    }
+    setConfirmedMetadata(undefined);
+  }
+
+  const handleClear = () => {
+    setConfirmedUrl(null);
+    setConfirmedMetadata(undefined);
+    setInputValue('');
+    props.onUrlSelect('');
+    props.onUrlClear?.();
+  };
+
+  if (confirmedUrl) {
+    return (
+      <Fragment>
+        <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
+        <VisuallyHidden>
+          <Input.Label htmlFor={props.id} required>
+            {props.label}
+          </Input.Label>
+        </VisuallyHidden>
+      </Fragment>
+    );
   }
 
   const options = urls.map((urlView) => (
@@ -109,6 +149,15 @@ export default function UrlSearchInput(props: Props) {
           onOptionSubmit={(url) => {
             props.onUrlSelect(url);
             setInputValue(url);
+            if (isValidUrl(url)) {
+              setConfirmedUrl(url);
+              // Look up metadata from search results or recent cards
+              const searchMatch = urls.find((u) => u.url === url);
+              const recentMatch = recentCardsList.find((c) => c.url === url);
+              setConfirmedMetadata(
+                searchMatch?.metadata ?? recentMatch?.cardContent,
+              );
+            }
             combobox.closeDropdown();
           }}
         >
@@ -117,12 +166,12 @@ export default function UrlSearchInput(props: Props) {
               id={props.id}
               component="input"
               type="text"
+              py={2.5}
               placeholder={props.placeholder}
               value={inputValue}
               onChange={(e) => {
                 const val = e.currentTarget.value;
                 setInputValue(val);
-                props.onUrlSelect(val);
                 combobox.openDropdown();
               }}
               onFocus={() => {
@@ -147,7 +196,8 @@ export default function UrlSearchInput(props: Props) {
               (inputValue.trim().length === 0 &&
                 debounced.trim().length === 0 &&
                 !(
-                  isInputFocused && (recentCards.pages[0].cards.length ?? 0) > 0
+                  isInputFocused &&
+                  (isLoadingRecentCards || recentCardsList.length > 0)
                 )) ||
               (inputValue.trim().length === 0 && debounced.trim().length > 0)
             }
@@ -163,30 +213,49 @@ export default function UrlSearchInput(props: Props) {
                     <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
                       Recent cards
                     </Text>
-                    {(recentCards.pages[0].cards ?? []).map((card) => (
-                      <Combobox.Option key={card.url} value={card.url} p={5}>
-                        <Group gap={'xs'} align="center" wrap="nowrap">
-                          {card.cardContent.imageUrl && (
-                            <Image
-                              src={card.cardContent.imageUrl}
-                              alt={card.cardContent.title || 'URL thumbnail'}
-                              w={35}
-                              h={35}
-                              radius="sm"
-                              fit="cover"
-                            />
-                          )}
-                          <Stack gap={0}>
-                            <Text fw={500} c={'bright'} lineClamp={1} size="sm">
-                              {card.cardContent.title || card.url}
-                            </Text>
-                            <Text c={'gray'} lineClamp={1} size="xs">
-                              {getDomain(card.url)}
-                            </Text>
-                          </Stack>
-                        </Group>
-                      </Combobox.Option>
-                    ))}
+                    {isLoadingRecentCards ? (
+                      <Stack gap={5} p={5}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Group key={i} gap="xs" align="center" wrap="nowrap">
+                            <Skeleton height={35} width={35} radius="sm" />
+                            <Stack gap={4} style={{ flex: 1 }}>
+                              <Skeleton height={12} width="70%" radius="xl" />
+                              <Skeleton height={10} width="40%" radius="xl" />
+                            </Stack>
+                          </Group>
+                        ))}
+                      </Stack>
+                    ) : (
+                      recentCardsList.map((card) => (
+                        <Combobox.Option key={card.url} value={card.url} p={5}>
+                          <Group gap={'xs'} align="center" wrap="nowrap">
+                            {card.cardContent.imageUrl && (
+                              <Image
+                                src={card.cardContent.imageUrl}
+                                alt={card.cardContent.title || 'URL thumbnail'}
+                                w={35}
+                                h={35}
+                                radius="sm"
+                                fit="cover"
+                              />
+                            )}
+                            <Stack gap={0}>
+                              <Text
+                                fw={500}
+                                c={'bright'}
+                                lineClamp={1}
+                                size="sm"
+                              >
+                                {card.cardContent.title || card.url}
+                              </Text>
+                              <Text c={'gray'} lineClamp={1} size="xs">
+                                {getDomain(card.url)}
+                              </Text>
+                            </Stack>
+                          </Group>
+                        </Combobox.Option>
+                      ))
+                    )}
                   </Fragment>
                 ) : (
                   <Fragment>

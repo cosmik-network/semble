@@ -26,12 +26,12 @@ import { useQuery } from '@tanstack/react-query';
 import useUpdateConnection from '../../lib/mutations/useUpdateConnection';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
-import { IoIosArrowDown } from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import Link from 'next/link';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
+import { BiSolidChevronDown } from 'react-icons/bi';
 
 interface Props {
   onClose: () => void;
@@ -331,8 +331,13 @@ export default function EditConnectionForm(props: Props) {
           <Stack align="center" gap={0}>
             <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
 
-            <ThemeIcon variant="light" size={'xs'} color={'gray'} radius={'xl'}>
-              <IoIosArrowDown size={12} />
+            <ThemeIcon
+              size={'xs'}
+              color={'var(--mantine-color-disabled-border)'}
+              c={'gray'}
+              radius={'xl'}
+            >
+              <BiSolidChevronDown size={12} />
             </ThemeIcon>
           </Stack>
 

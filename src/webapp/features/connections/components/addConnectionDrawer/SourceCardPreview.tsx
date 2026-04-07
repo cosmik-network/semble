@@ -3,6 +3,7 @@
 import {
   Anchor,
   Card,
+  CloseButton,
   Group,
   Image,
   Skeleton,
@@ -21,26 +22,27 @@ function SourceCardPreviewSkeleton() {
       <Group gap="xs" wrap="nowrap">
         <Skeleton width={45} height={45} radius={'md'} />
         <Stack gap={0} style={{ flex: 1 }}>
-          <Skeleton height={14} width="80%" radius="sm" />
-          <Skeleton height={12} width="60%" radius="sm" mt={4} />
+          <Skeleton height={21.5} width="80%" radius="sm" />
+          <Skeleton height={18.5} width="60%" radius="sm" mt={4} />
         </Stack>
       </Group>
     </Card>
   );
 }
 
-export default function SourceCardPreview({
-  sourceUrl,
-}: {
+interface Props {
   sourceUrl: string;
-}) {
-  const { data: sourceUrlMetadata, isLoading: isLoadingMetadata } = useQuery({
-    queryKey: ['url metadata', sourceUrl],
+  onRemove?: () => void;
+}
+
+export default function SourceCardPreview(props: Props) {
+  const { data, isLoading: isLoadingMetadata } = useQuery({
+    queryKey: ['url metadata', props.sourceUrl],
     queryFn: async () => {
       const client = createSembleClient();
-      return client.getUrlMetadata({ url: sourceUrl });
+      return client.getUrlMetadata({ url: props.sourceUrl });
     },
-    enabled: !!sourceUrl,
+    enabled: !!props.sourceUrl,
   });
 
   if (isLoadingMetadata) {
@@ -50,33 +52,43 @@ export default function SourceCardPreview({
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Group gap="xs" wrap="nowrap">
-        {sourceUrlMetadata?.metadata?.imageUrl && (
+        {data?.metadata?.imageUrl && (
           <Image
-            src={sourceUrlMetadata.metadata.imageUrl}
-            alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+            src={data.metadata.imageUrl}
+            alt={`${data.metadata.title} social preview image`}
             radius={'md'}
             w={45}
             h={45}
+            style={{ flexShrink: 0 }}
           />
         )}
-        <Stack gap={0}>
+        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
           <Text fw={500} lineClamp={1} c={'bright'}>
-            {sourceUrlMetadata?.metadata?.title || sourceUrl}
+            {data?.metadata?.title || props.sourceUrl}
           </Text>
-          <Tooltip label={sourceUrl}>
+          <Tooltip label={props.sourceUrl}>
             <Anchor
               component={Link}
-              href={sourceUrl}
+              href={props.sourceUrl}
               target="_blank"
               c={'gray'}
               fz={'sm'}
               lineClamp={1}
+              w="fit-content"
               onClick={(e) => e.stopPropagation()}
             >
-              {getDomain(sourceUrl)}
+              {getDomain(props.sourceUrl)}
             </Anchor>
           </Tooltip>
         </Stack>
+        {props.onRemove && (
+          <CloseButton
+            radius="xl"
+            size="md"
+            onClick={props.onRemove}
+            aria-label="Remove URL"
+          />
+        )}
       </Group>
     </Card>
   );
