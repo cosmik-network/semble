@@ -49,7 +49,7 @@ function useUrlSearch(debounced: string) {
 export function UrlSearchInputSkeleton() {
   return (
     <Card padding="xs" radius="lg" withBorder>
-      <Skeleton height={30} radius="sm" />
+      <Skeleton height={47} radius="sm" />
     </Card>
   );
 }
@@ -107,18 +107,14 @@ export default function UrlSearchInput(props: Props) {
 
   if (confirmedUrl) {
     return (
-      <>
-        <SourceCardPreview
-          sourceUrl={confirmedUrl}
-          metadata={confirmedMetadata}
-          onRemove={handleClear}
-        />
+      <Fragment>
+        <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
         <VisuallyHidden>
           <Input.Label htmlFor={props.id} required>
             {props.label}
           </Input.Label>
         </VisuallyHidden>
-      </>
+      </Fragment>
     );
   }
 
@@ -177,6 +173,7 @@ export default function UrlSearchInput(props: Props) {
               id={props.id}
               component="input"
               type="text"
+              py={2.5}
               placeholder={props.placeholder}
               value={inputValue}
               onChange={(e) => {
