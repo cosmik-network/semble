@@ -20,12 +20,13 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
-import { IoIosArrowDown } from 'react-icons/io';
+import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
+import { BiSolidChevronDown } from 'react-icons/bi';
 
 interface Props {
   onClose: () => void;
@@ -316,8 +317,13 @@ export default function AddConnectionForm(props: Props) {
           <Stack align="center" gap={0}>
             <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
 
-            <ThemeIcon variant="light" size={'xs'} color={'gray'} radius={'xl'}>
-              <IoIosArrowDown size={12} />
+            <ThemeIcon
+              size={'xs'}
+              color={'var(--mantine-color-disabled-border)'}
+              c={'gray'}
+              radius={'xl'}
+            >
+              <BiSolidChevronDown size={12} />
             </ThemeIcon>
           </Stack>
 
