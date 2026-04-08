@@ -67,7 +67,7 @@ function CollectionGalleryContent(props: Props) {
   return (
     <Container p={'xs'} fluid h="100vh" style={{ overflow: 'hidden' }}>
       <Stack justify="space-between" h="100%">
-        <Group justify="space-between" align="center" wrap="nowrap">
+        <Group justify="space-between" align="start" wrap="nowrap">
           <Stack gap={0}>
             <Group gap={'xs'}>
               <Text
