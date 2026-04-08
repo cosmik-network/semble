@@ -10,6 +10,7 @@ import {
   Button,
   Badge,
   Skeleton,
+  Box,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
@@ -20,6 +21,7 @@ import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardCo
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import SembleHeaderBackground from '@/features/semble/containers/sembleContainer/SembleHeaderBackground';
 
 interface Props {
   url: string;
@@ -47,7 +49,10 @@ export default function UrlEmbedContainer(props: Props) {
   if (isPending) {
     return (
       <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
-        <Skeleton w={'100%'} h={'100%'} radius={'lg'} />
+        <Stack h={'100%'} gap={'xs'} align="center">
+          <Skeleton w={'100%'} h={'78%'} radius={'lg'} />
+          <Skeleton w={'118px'} h={'22px'} />
+        </Stack>
       </Container>
     );
   }
@@ -64,6 +69,7 @@ export default function UrlEmbedContainer(props: Props) {
 
   return (
     <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
+      <SembleHeaderBackground height={40} />
       <Stack justify="space-between" h="100%">
         {/* Center: card + stats */}
         <Stack gap="xs" align="center">
@@ -71,40 +77,43 @@ export default function UrlEmbedContainer(props: Props) {
             component="article"
             radius="lg"
             p="xs"
-            withBorder
             style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
-            onClick={handleCardClick}
           >
-            <Stack justify="space-between" gap="xs" flex={1}>
-              <UrlCardContent
-                url={props.url}
-                uri={undefined}
-                cardContent={{ ...metadata, url: metadata.url || props.url }}
-              />
+            <Stack justify="space-between" flex={1}>
+              <Box onClick={handleCardClick}>
+                <UrlCardContent
+                  url={props.url}
+                  uri={undefined}
+                  cardContent={{ ...metadata, url: metadata.url || props.url }}
+                />
+              </Box>
               {stats && (
-                <Group gap="xs" justify="center">
+                <Group gap="xs">
                   <Badge
-                    variant="light"
+                    variant="transparent"
                     color="orange"
                     size="sm"
+                    px={0}
                     leftSection={<LuLibrary />}
                   >
                     {stats.libraryCount}{' '}
                     {stats.libraryCount === 1 ? 'save' : 'saves'}
                   </Badge>
                   <Badge
-                    variant="light"
+                    variant="transparent"
                     color="grape"
                     size="sm"
+                    px={0}
                     leftSection={<BiCollection />}
                   >
                     {stats.collectionCount}{' '}
                     {stats.collectionCount === 1 ? 'collection' : 'collections'}
                   </Badge>
                   <Badge
-                    variant="light"
+                    variant="transparent"
                     color="green"
                     size="sm"
+                    px={0}
                     leftSection={<BiLink />}
                   >
                     {stats.connections?.all?.total ?? 0}{' '}
@@ -113,9 +122,10 @@ export default function UrlEmbedContainer(props: Props) {
                       : 'connections'}
                   </Badge>
                   <Badge
-                    variant="light"
-                    color="gray"
+                    variant="transparent"
+                    color="violet"
                     size="sm"
+                    px={0}
                     leftSection={<MdOutlineStickyNote2 />}
                   >
                     {stats.noteCount} {stats.noteCount === 1 ? 'note' : 'notes'}

@@ -2,7 +2,13 @@ import BG from '@/assets/semble-header-bg.webp';
 import DarkBG from '@/assets/semble-header-bg-dark.webp';
 import { Box, Image } from '@mantine/core';
 
-export default function SembleHeaderBackground() {
+interface Props {
+  height?: number;
+}
+
+export default function SembleHeaderBackground(props: Props) {
+  const height = props.height ?? 60;
+
   return (
     <Box style={{ position: 'relative', width: '100%' }}>
       <Image
@@ -10,11 +16,11 @@ export default function SembleHeaderBackground() {
         alt="bg"
         fit="cover"
         w="100%"
-        h={60}
+        h={height}
         lightHidden
       />
 
-      <Image src={BG.src} alt="bg" fit="cover" w="100%" h={60} darkHidden />
+      <Image src={BG.src} alt="bg" fit="cover" w="100%" h={height} darkHidden />
 
       {/* White gradient overlay */}
       <Box
