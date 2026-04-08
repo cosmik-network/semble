@@ -7,12 +7,15 @@ import {
   Text,
   Image,
   Card,
-  Anchor,
-  Paper,
-  Divider,
+  Button,
+  Badge,
+  Skeleton,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
+import { LuLibrary } from 'react-icons/lu';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
+import { BiCollection, BiLink } from 'react-icons/bi';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 import { useRouter } from 'next/navigation';
@@ -43,17 +46,15 @@ export default function UrlEmbedContainer(props: Props) {
 
   if (isPending) {
     return (
-      <Container p={4} fluid h="100vh">
-        <Stack justify="center" align="center" h="100%">
-          <Text c="dimmed">Loading...</Text>
-        </Stack>
+      <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
+        <Skeleton w={'100%'} h={'100%'} radius={'lg'} />
       </Container>
     );
   }
 
   if (!data || !metadata) {
     return (
-      <Container p={4} fluid h="100vh">
+      <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
         <Stack justify="center" align="center" h="100%">
           <Text c="dimmed">URL not found</Text>
         </Stack>
@@ -62,109 +63,82 @@ export default function UrlEmbedContainer(props: Props) {
   }
 
   return (
-    <Container p={4} fluid h="100vh" style={{ overflow: 'hidden' }}>
-      <Stack gap="md" h="100%">
-        {/* Header */}
-        <Group justify="space-between" align="center" wrap="nowrap">
-          <Link href={appUrl} target="_blank">
-            <Image
-              src={SembleLogo.src}
-              alt="Semble logo"
-              height={20}
-              w={'auto'}
-            />
-          </Link>
-
-          <Anchor
-            component={Link}
-            href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
-            target="_blank"
-            fz="xs"
-            c="bright"
-          >
-            View on Semble
-          </Anchor>
-        </Group>
-
-        {/* Main Content */}
-        <Group align="stretch" gap="md" flex={1} style={{ overflow: 'hidden' }}>
-          {/* URL Card */}
+    <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
+      <Stack justify="space-between" h="100%">
+        {/* Center: card + stats */}
+        <Stack gap="xs" align="center">
           <Card
             component="article"
-            radius={'lg'}
-            p={'xs'}
+            radius="lg"
+            p="xs"
             withBorder
-            flex={1}
-            style={{
-              cursor: 'pointer',
-              maxWidth: '600px',
-              margin: '0 auto',
-            }}
+            style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
             onClick={handleCardClick}
           >
-            <UrlCardContent
-              url={props.url}
-              uri={undefined}
-              cardContent={{ ...metadata, url: metadata.url || props.url }}
-            />
+            <Stack justify="space-between" gap="xs" flex={1}>
+              <UrlCardContent
+                url={props.url}
+                uri={undefined}
+                cardContent={{ ...metadata, url: metadata.url || props.url }}
+              />
+              {stats && (
+                <Group gap="xs" justify="center">
+                  <Badge
+                    variant="light"
+                    color="orange"
+                    size="sm"
+                    leftSection={<LuLibrary />}
+                  >
+                    {stats.libraryCount}{' '}
+                    {stats.libraryCount === 1 ? 'save' : 'saves'}
+                  </Badge>
+                  <Badge
+                    variant="light"
+                    color="grape"
+                    size="sm"
+                    leftSection={<BiCollection />}
+                  >
+                    {stats.collectionCount}{' '}
+                    {stats.collectionCount === 1 ? 'collection' : 'collections'}
+                  </Badge>
+                  <Badge
+                    variant="light"
+                    color="green"
+                    size="sm"
+                    leftSection={<BiLink />}
+                  >
+                    {stats.connections?.all?.total ?? 0}{' '}
+                    {stats.connections?.all?.total === 1
+                      ? 'connection'
+                      : 'connections'}
+                  </Badge>
+                  <Badge
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    leftSection={<MdOutlineStickyNote2 />}
+                  >
+                    {stats.noteCount} {stats.noteCount === 1 ? 'note' : 'notes'}
+                  </Badge>
+                </Group>
+              )}
+            </Stack>
           </Card>
 
-          {/* Stats Panel */}
-          <Paper
-            radius="lg"
-            p="md"
-            withBorder
-            w={200}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--mantine-spacing-xs)',
-            }}
-          >
-            <Text fz="sm" fw={600} c="bright" mb="xs">
-              Activity
-            </Text>
-            <Divider />
-
-            <Stack gap="xs" mt="xs">
-              <Group justify="space-between" wrap="nowrap">
-                <Text fz="xs" c="dimmed">
-                  Libraries
-                </Text>
-                <Text fz="xs" fw={600}>
-                  {stats?.libraryCount || 0}
-                </Text>
-              </Group>
-
-              <Group justify="space-between" wrap="nowrap">
-                <Text fz="xs" c="dimmed">
-                  Collections
-                </Text>
-                <Text fz="xs" fw={600}>
-                  {stats?.collectionCount || 0}
-                </Text>
-              </Group>
-
-              <Group justify="space-between" wrap="nowrap">
-                <Text fz="xs" c="dimmed">
-                  Connections
-                </Text>
-                <Text fz="xs" fw={600}>
-                  {stats?.connections?.all?.total || 0}
-                </Text>
-              </Group>
-
-              <Group justify="space-between" wrap="nowrap">
-                <Text fz="xs" c="dimmed">
-                  Notes
-                </Text>
-                <Text fz="xs" fw={600}>
-                  {stats?.noteCount || 0}
-                </Text>
-              </Group>
-            </Stack>
-          </Paper>
-        </Group>
+          <Stack>
+            <Button
+              size="compact-xs"
+              variant="transparent"
+              pr={0}
+              leftSection={<Image src={SembleLogo.src} h={20} />}
+              component={Link}
+              href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
+              target="_blank"
+            >
+              View on Semble
+            </Button>
+          </Stack>
+        </Stack>
       </Stack>
     </Container>
   );
