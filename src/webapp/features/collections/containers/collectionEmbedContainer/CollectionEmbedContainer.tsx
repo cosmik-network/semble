@@ -70,6 +70,7 @@ export default function CollectionEmbedContainer(props: Props) {
                       color="green"
                       leftSection={<FaSeedling />}
                       variant="light"
+                      size="sm"
                     >
                       Open
                     </Badge>
@@ -87,13 +88,14 @@ export default function CollectionEmbedContainer(props: Props) {
             </Stack>
           </Stack>
 
-          <Group gap={'xs'}>
-            <Text fw={600} c="gray">
+          <Group gap={5}>
+            <Text fw={600} fz={'sm'} c={'dimmed'} span>
               By
             </Text>
-            <Group gap={5}>
+            <Group gap={5} wrap="nowrap">
               <Avatar
-                size={'sm'}
+                size={'xs'}
+                radius={'sm'}
                 component={Link}
                 href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
@@ -108,7 +110,9 @@ export default function CollectionEmbedContainer(props: Props) {
                 href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
                 fw={600}
+                fz={'sm'}
                 c="bright"
+                lineClamp={1}
               >
                 {firstPage.author.name}
               </Anchor>
@@ -187,7 +191,6 @@ export default function CollectionEmbedContainer(props: Props) {
             variant="light"
             color="grape"
             rightSection={<RiArrowRightUpLine />}
-            size="md"
           >
             View on Semble
           </Button>
