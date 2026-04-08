@@ -11,7 +11,6 @@ import {
   Image,
   Anchor,
   Button,
-  Divider,
   Tooltip,
   Badge,
 } from '@mantine/core';
@@ -36,7 +35,7 @@ interface Props {
 }
 
 function CollectionGalleryContent(props: Props) {
-  const { data, isPending } = useCollection({
+  const { data } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
   });
@@ -65,8 +64,8 @@ function CollectionGalleryContent(props: Props) {
   };
 
   return (
-    <Container p={'xs'} fluid h="100vh" style={{ overflow: 'hidden' }}>
-      <Stack justify="space-between" h="100%">
+    <Container p={'xs'} fluid h="100svh" style={{ overflow: 'hidden' }}>
+      <Stack justify="space-between" gap={'xs'} h="100%">
         <Group justify="space-between" align="start" wrap="nowrap">
           <Stack gap={0}>
             <Group gap={'xs'}>
