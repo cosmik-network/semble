@@ -7,10 +7,10 @@ import {
   Text,
   Image,
   Card,
-  Button,
   Badge,
   Skeleton,
   Box,
+  ActionIcon,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
@@ -50,8 +50,7 @@ export default function UrlEmbedContainer(props: Props) {
     return (
       <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
         <Stack h={'100%'} gap={'xs'} align="center">
-          <Skeleton w={'100%'} h={'78%'} radius={'lg'} />
-          <Skeleton w={'118px'} h={'22px'} />
+          <Skeleton w={'100%'} h={'100%'} radius={0} />
         </Stack>
       </Container>
     );
@@ -68,17 +67,31 @@ export default function UrlEmbedContainer(props: Props) {
   }
 
   return (
-    <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
-      <SembleHeaderBackground height={40} />
+    <Container p={0} fluid h="100%" style={{ overflow: 'hidden' }}>
+      <SembleHeaderBackground height={40}>
+        <Box mx={'xs'} my={6}>
+          <ActionIcon
+            size="compact-xs"
+            variant="transparent"
+            radius={'xs'}
+            component={Link}
+            href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
+            target="_blank"
+          >
+            <Image src={SembleLogo.src} h={24} />
+          </ActionIcon>
+        </Box>
+      </SembleHeaderBackground>
       <Stack justify="space-between" h="100%">
         {/* Center: card + stats */}
         <Stack gap="xs" align="center">
           <Card
             component="article"
             radius="lg"
-            p="xs"
+            px="xs"
+            py={0}
             bg={'transparent'}
-            style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
+            style={{ cursor: 'pointer', width: '100%' }}
           >
             <Stack justify="space-between" flex={1}>
               <Box onClick={handleCardClick}>
@@ -135,20 +148,6 @@ export default function UrlEmbedContainer(props: Props) {
               )}
             </Stack>
           </Card>
-
-          <Stack>
-            <Button
-              size="compact-xs"
-              variant="transparent"
-              pr={0}
-              leftSection={<Image src={SembleLogo.src} h={20} />}
-              component={Link}
-              href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
-              target="_blank"
-            >
-              View on Semble
-            </Button>
-          </Stack>
         </Stack>
       </Stack>
     </Container>
