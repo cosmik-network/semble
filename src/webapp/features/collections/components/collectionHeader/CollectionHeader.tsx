@@ -113,38 +113,33 @@ export default function CollectionHeader(props: Props) {
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
                 <Group gap={5}>
-                  <Text fw={600} fz={'sm'} c={'dimmed'} span>
-                    By
-                  </Text>
-                  <Group gap={5}>
-                    <Avatar
-                      size={'xs'}
-                      radius={'sm'}
-                      component={Link}
-                      href={`/profile/${collection.author.handle}`}
-                      src={collection.author.avatarUrl?.replace(
-                        'avatar',
-                        'avatar_thumbnail',
-                      )}
-                      alt={`${collection.author.name}'s avatar`}
+                  <Avatar
+                    size={'xs'}
+                    radius={'sm'}
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${collection.author.name}'s avatar`}
+                  />
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    fw={600}
+                    fz={'sm'}
+                    c="bright"
+                  >
+                    {collection.author.name}
+                  </Anchor>
+                  <Suspense>
+                    <CollectionContributorsSummary
+                      collectionId={collection.id}
+                      handle={props.handle}
+                      rkey={props.rkey}
                     />
-                    <Anchor
-                      component={Link}
-                      href={`/profile/${collection.author.handle}`}
-                      fw={600}
-                      fz={'sm'}
-                      c="bright"
-                    >
-                      {collection.author.name}
-                    </Anchor>
-                    <Suspense>
-                      <CollectionContributorsSummary
-                        collectionId={collection.id}
-                        handle={props.handle}
-                        rkey={props.rkey}
-                      />
-                    </Suspense>
-                  </Group>
+                  </Suspense>
                 </Group>
                 <Group gap={'xs'}>
                   <Anchor

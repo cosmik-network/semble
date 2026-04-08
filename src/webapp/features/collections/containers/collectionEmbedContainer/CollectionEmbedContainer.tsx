@@ -88,35 +88,30 @@ export default function CollectionEmbedContainer(props: Props) {
             </Stack>
           </Stack>
 
-          <Group gap={5}>
-            <Text fw={600} fz={'sm'} c={'dimmed'} span>
-              By
-            </Text>
-            <Group gap={5} wrap="nowrap">
-              <Avatar
-                size={'xs'}
-                radius={'sm'}
-                component={Link}
-                href={`/profile/${firstPage.author.handle}`}
-                target="_blank"
-                src={firstPage.author.avatarUrl?.replace(
-                  'avatar',
-                  'avatar_thumbnail',
-                )}
-                alt={`${firstPage.author.name}'s avatar`}
-              />
-              <Anchor
-                component={Link}
-                href={`/profile/${firstPage.author.handle}`}
-                target="_blank"
-                fw={600}
-                fz={'sm'}
-                c="bright"
-                lineClamp={1}
-              >
-                {firstPage.author.name}
-              </Anchor>
-            </Group>
+          <Group gap={5} wrap="nowrap">
+            <Avatar
+              size={'xs'}
+              radius={'sm'}
+              component={Link}
+              href={`/profile/${firstPage.author.handle}`}
+              target="_blank"
+              src={firstPage.author.avatarUrl?.replace(
+                'avatar',
+                'avatar_thumbnail',
+              )}
+              alt={`${firstPage.author.name}'s avatar`}
+            />
+            <Anchor
+              component={Link}
+              href={`/profile/${firstPage.author.handle}`}
+              target="_blank"
+              fw={600}
+              fz={'sm'}
+              c="bright"
+              lineClamp={1}
+            >
+              {firstPage.author.name}
+            </Anchor>
           </Group>
         </Group>
 

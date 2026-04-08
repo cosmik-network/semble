@@ -48,7 +48,7 @@ export default function CollectionHeaderSkeleton() {
 
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
-                {/* "By" section */}
+                {/* Author + collaborators */}
                 <Group gap={5}>
                   <Skeleton w={180} h={24} />
                 </Group>

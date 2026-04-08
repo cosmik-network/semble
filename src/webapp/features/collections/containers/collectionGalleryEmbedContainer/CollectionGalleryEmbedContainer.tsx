@@ -138,9 +138,6 @@ function CollectionGalleryContent(props: Props) {
             </Stack>
 
             <Group gap={5} wrap="nowrap">
-              <Text fw={600} fz={'sm'} c={'dimmed'} span>
-                By
-              </Text>
               <Avatar
                 size={'xs'}
                 radius={'sm'}

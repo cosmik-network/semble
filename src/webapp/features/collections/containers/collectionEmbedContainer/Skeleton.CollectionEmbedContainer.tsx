@@ -18,7 +18,7 @@ export default function CollectionEmbedContainerSkeleton() {
           </Stack>
 
           <Stack>
-            {/* By */}
+            {/* Author + collaborators */}
             <Skeleton w={100} h={24} />
           </Stack>
         </Group>
