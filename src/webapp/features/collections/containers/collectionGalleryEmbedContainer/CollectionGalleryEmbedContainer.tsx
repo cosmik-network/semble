@@ -222,6 +222,7 @@ function CollectionGalleryContent(props: Props) {
                 size="compact-xs"
                 variant="transparent"
                 color="gray"
+                px={0}
                 onClick={async () => {
                   if (!session) return;
                   await session.open(
@@ -235,6 +236,7 @@ function CollectionGalleryContent(props: Props) {
               <Button
                 size="compact-xs"
                 variant="transparent"
+                pr={0}
                 leftSection={<Image src={SembleLogo.src} h={20} />}
                 component={Link}
                 href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
