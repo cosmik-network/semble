@@ -12,6 +12,8 @@ import {
   Anchor,
   Button,
   Divider,
+  Tooltip,
+  Badge,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
@@ -25,6 +27,7 @@ import {
   RpcSessionProvider,
   useRpcSession,
 } from '@/lib/embed/rpcSessionProvider';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   rkey: string;
@@ -62,34 +65,45 @@ function CollectionGalleryContent(props: Props) {
   };
 
   return (
-    <Container p={4} fluid h="100vh" style={{ overflow: 'hidden' }}>
+    <Container p={'xs'} fluid h="100vh" style={{ overflow: 'hidden' }}>
       <Stack justify="space-between" h="100%">
         <Group justify="space-between" align="center" wrap="nowrap">
-          <Group gap={'xs'} align="center">
-            <Link href={appUrl} target="_blank">
-              <Image
-                src={SembleLogo.src}
-                alt="Semble logo"
-                height={20}
-                w={'auto'}
-              />
-            </Link>
-            <Text
-              fw={700}
-              c={
-                firstPage.accessType === CollectionAccessType.OPEN
-                  ? 'green'
-                  : 'bright'
-              }
-              fz="xs"
-            >
-              {firstPage.name}
-            </Text>
-          </Group>
+          <Stack gap={0}>
+            <Group gap={'xs'}>
+              <Text
+                fw={700}
+                c={
+                  firstPage.accessType === CollectionAccessType.OPEN
+                    ? 'green'
+                    : 'bright'
+                }
+                fz="sm"
+              >
+                Collection
+              </Text>
+              {firstPage.accessType === CollectionAccessType.OPEN && (
+                <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                  <Badge
+                    color="green"
+                    leftSection={<FaSeedling />}
+                    variant="light"
+                    size="xs"
+                  >
+                    Open
+                  </Badge>
+                </Tooltip>
+              )}
+            </Group>
+            <Text fw={700}>{firstPage.name}</Text>
+          </Stack>
 
-          <Group gap={'xs'} wrap="nowrap">
+          <Group gap={5} wrap="nowrap">
+            <Text fw={600} fz={'sm'} c={'dimmed'} span>
+              By
+            </Text>
             <Avatar
-              size={20}
+              size={'xs'}
+              radius={'sm'}
               component={Link}
               href={`/profile/${firstPage.author.handle}`}
               target="_blank"
@@ -98,7 +112,6 @@ function CollectionGalleryContent(props: Props) {
                 'avatar_thumbnail',
               )}
               alt={`${firstPage.author.name}'s avatar`}
-              radius={'sm'}
             />
             <Anchor
               component={Link}
@@ -150,7 +163,7 @@ function CollectionGalleryContent(props: Props) {
               <ActionIcon
                 size="md"
                 variant="light"
-                color="grape"
+                color="gray"
                 radius={'xl'}
                 onClick={goToPrev}
                 disabled={!hasPrev}
@@ -167,7 +180,7 @@ function CollectionGalleryContent(props: Props) {
                 size="md"
                 variant="light"
                 radius={'xl'}
-                color="grape"
+                color="gray"
                 onClick={goToNext}
                 disabled={!hasNext}
                 style={{ visibility: hasNext ? 'visible' : 'hidden' }}
@@ -184,7 +197,7 @@ function CollectionGalleryContent(props: Props) {
           </Stack>
         )}
 
-        <Group justify="center" align="center" gap={'xs'}>
+        <Group justify="space-between" align="center" gap={'xs'}>
           {props.mode === 'edit' ? (
             <Button
               size="compact-xs"
@@ -218,11 +231,11 @@ function CollectionGalleryContent(props: Props) {
               >
                 View Collection
               </Button>
-              <Divider h={15} my={'auto'} orientation="vertical" />
+
               <Button
                 size="compact-xs"
                 variant="transparent"
-                color="gray"
+                leftSection={<Image src={SembleLogo.src} h={20} />}
                 component={Link}
                 href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
                 target="_blank"
