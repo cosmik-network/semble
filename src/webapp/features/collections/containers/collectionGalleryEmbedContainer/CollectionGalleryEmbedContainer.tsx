@@ -277,17 +277,16 @@ function CollectionGalleryContent(props: Props) {
                   View Collection
                 </Button>
 
-                <Button
+                <ActionIcon
                   size="compact-xs"
                   variant="transparent"
-                  pr={0}
-                  leftSection={<Image src={SembleLogo.src} h={20} />}
+                  radius={'xs'}
                   component={Link}
                   href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
                   target="_blank"
                 >
-                  View on Semble
-                </Button>
+                  <Image src={SembleLogo.src} h={20} />
+                </ActionIcon>
               </>
             )}
           </Group>
