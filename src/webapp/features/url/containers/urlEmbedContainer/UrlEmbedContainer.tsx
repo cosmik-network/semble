@@ -8,7 +8,6 @@ import {
   Image,
   Card,
   Badge,
-  Skeleton,
   Box,
   ActionIcon,
 } from '@mantine/core';
@@ -22,6 +21,7 @@ import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import SembleHeaderBackground from '@/features/semble/containers/sembleContainer/SembleHeaderBackground';
+import UrlEmbedContainerSkeleton from './skeleton.UrlEmbedContainer';
 
 interface Props {
   url: string;
@@ -47,13 +47,7 @@ export default function UrlEmbedContainer(props: Props) {
   };
 
   if (isPending) {
-    return (
-      <Container p={0} fluid h="100svh" style={{ overflow: 'hidden' }}>
-        <Stack h={'100%'} gap={'xs'} align="center">
-          <Skeleton w={'100%'} h={'100%'} radius={0} />
-        </Stack>
-      </Container>
-    );
+    return <UrlEmbedContainerSkeleton />;
   }
 
   if (!data || !metadata) {
