@@ -132,6 +132,7 @@ export default function CollectionHeader(props: Props) {
                       component={Link}
                       href={`/profile/${collection.author.handle}`}
                       fw={600}
+                      fz={'sm'}
                       c="bright"
                     >
                       {collection.author.name}
