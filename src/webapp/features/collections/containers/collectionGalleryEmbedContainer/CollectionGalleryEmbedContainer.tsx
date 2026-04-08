@@ -75,7 +75,7 @@ function CollectionGalleryContent(props: Props) {
                 c={
                   firstPage.accessType === CollectionAccessType.OPEN
                     ? 'green'
-                    : 'bright'
+                    : 'grape'
                 }
                 fz="sm"
               >
