@@ -77,6 +77,7 @@ export default function UrlEmbedContainer(props: Props) {
             component="article"
             radius="lg"
             p="xs"
+            bg={'transparent'}
             style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
           >
             <Stack justify="space-between" flex={1}>
