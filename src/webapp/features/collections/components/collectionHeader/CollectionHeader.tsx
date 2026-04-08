@@ -49,8 +49,8 @@ export default function CollectionHeader(props: Props) {
           height: '40px',
           background:
             accessType === CollectionAccessType.OPEN
-              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-9))'
-              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-9))',
+              ? 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-green-9) 30%, transparent))'
+              : 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-grape-9) 30%, transparent))',
           pointerEvents: 'none',
         }}
       />
@@ -62,8 +62,8 @@ export default function CollectionHeader(props: Props) {
           height: '40px',
           background:
             accessType === CollectionAccessType.OPEN
-              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-1))'
-              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-1))',
+              ? 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-green-1) 40%, transparent))'
+              : 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-grape-1) 40%, transparent))',
           pointerEvents: 'none',
         }}
       />

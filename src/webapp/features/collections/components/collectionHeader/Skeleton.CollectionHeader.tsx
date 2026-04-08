@@ -10,7 +10,7 @@ export default function CollectionHeaderSkeleton() {
           width: '100%',
           height: '40px',
           background:
-            'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-gray-8))',
+            'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-gray-8) 40%, transparent))',
           pointerEvents: 'none',
         }}
       />
@@ -21,7 +21,7 @@ export default function CollectionHeaderSkeleton() {
           width: '100%',
           height: '40px',
           background:
-            'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-gray-1))',
+            'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-gray-1) 40%, transparent))',
           pointerEvents: 'none',
         }}
       />
