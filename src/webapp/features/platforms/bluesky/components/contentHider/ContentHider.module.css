@@ -1,0 +1,3 @@
+.alert:hover {
+  background-color: var(--mantine-color-gray-light-hover);
+}
