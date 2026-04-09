@@ -12,6 +12,7 @@ import UrlMetadataImageSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataI
 interface Props {
   url: string;
   viaCardId?: string;
+  hideActions?: boolean;
 }
 
 export default function SembleHeader(props: Props) {
@@ -28,15 +29,17 @@ export default function SembleHeader(props: Props) {
             <Suspense fallback={<UrlMetadataImageSkeleton />} key={props.url}>
               <UrlMetadataImage url={props.url} />
             </Suspense>
-            <Suspense
-              fallback={<SembleActionsContainerSkeleton />}
-              key={props.url + 'semble actions container'}
-            >
-              <SembleActionsContainer
-                url={props.url}
-                viaCardId={props.viaCardId}
-              />
-            </Suspense>
+            {!props.hideActions && (
+              <Suspense
+                fallback={<SembleActionsContainerSkeleton />}
+                key={props.url + 'semble actions container'}
+              >
+                <SembleActionsContainer
+                  url={props.url}
+                  viaCardId={props.viaCardId}
+                />
+              </Suspense>
+            )}
           </Stack>
         </GridCol>
       </Grid>

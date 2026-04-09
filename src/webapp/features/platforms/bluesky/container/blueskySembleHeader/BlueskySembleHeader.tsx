@@ -10,6 +10,7 @@ import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySu
 interface Props {
   url: string;
   viaCardId?: string;
+  hideActions?: boolean;
 }
 
 export default async function BlueskySembleHeader(props: Props) {
@@ -22,14 +23,19 @@ export default async function BlueskySembleHeader(props: Props) {
         <BlueskySemblePost url={props.url} />
       </Suspense>
 
-      <Stack align="center">
-        <Suspense
-          fallback={<SembleActionsContainerSkeleton />}
-          key={props.url + 'semble actions'}
-        >
-          <SembleActionsContainer url={props.url} viaCardId={props.viaCardId} />
-        </Suspense>
-      </Stack>
+      {!props.hideActions && (
+        <Stack align="center">
+          <Suspense
+            fallback={<SembleActionsContainerSkeleton />}
+            key={props.url + 'semble actions'}
+          >
+            <SembleActionsContainer
+              url={props.url}
+              viaCardId={props.viaCardId}
+            />
+          </Suspense>
+        </Stack>
+      )}
 
       <Suspense
         fallback={<UrlAddedBySummarySkeleton />}

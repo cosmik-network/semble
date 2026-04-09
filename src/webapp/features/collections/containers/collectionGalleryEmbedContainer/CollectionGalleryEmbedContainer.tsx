@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Box,
   Container,
   Group,
   Stack,
@@ -11,7 +12,6 @@ import {
   Image,
   Anchor,
   Button,
-  Divider,
   Tooltip,
   Badge,
 } from '@mantine/core';
@@ -36,7 +36,7 @@ interface Props {
 }
 
 function CollectionGalleryContent(props: Props) {
-  const { data, isPending } = useCollection({
+  const { data } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
   });
@@ -64,191 +64,232 @@ function CollectionGalleryContent(props: Props) {
     }
   };
 
+  const isOpen = firstPage.accessType === CollectionAccessType.OPEN;
+  const darkColor = isOpen
+    ? 'var(--mantine-color-green-9)'
+    : 'var(--mantine-color-grape-9)';
+  const lightColor = isOpen
+    ? 'var(--mantine-color-green-1)'
+    : 'var(--mantine-color-grape-1)';
+
   return (
-    <Container p={'xs'} fluid h="100vh" style={{ overflow: 'hidden' }}>
-      <Stack justify="space-between" h="100%">
-        <Group justify="space-between" align="start" wrap="nowrap">
-          <Stack gap={0}>
-            <Group gap={'xs'}>
-              <Text
-                fw={700}
-                c={
-                  firstPage.accessType === CollectionAccessType.OPEN
-                    ? 'green'
-                    : 'grape'
-                }
-                fz="sm"
-              >
-                Collection
-              </Text>
-              {firstPage.accessType === CollectionAccessType.OPEN && (
-                <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                  <Badge
-                    color="green"
-                    leftSection={<FaSeedling />}
-                    variant="light"
-                    size="xs"
-                  >
-                    Open
-                  </Badge>
-                </Tooltip>
-              )}
-            </Group>
-            <Text fw={700}>{firstPage.name}</Text>
-          </Stack>
+    <Box style={{ position: 'relative', width: '100%', height: '100svh' }}>
+      {/* Dark mode gradient – all sides */}
+      <Box
+        lightHidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: `
+            linear-gradient(to bottom, ${darkColor} 0%, color-mix(in srgb, ${darkColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to top, ${darkColor} 0%, color-mix(in srgb, ${darkColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to right, ${darkColor} 0%, color-mix(in srgb, ${darkColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to left, ${darkColor} 0%, color-mix(in srgb, ${darkColor} 30%, transparent) 0%, transparent 6%)
+          `,
+        }}
+      />
+      {/* Light mode gradient – all sides */}
+      <Box
+        darkHidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: `
+            linear-gradient(to bottom, ${lightColor} 0%, color-mix(in srgb, ${lightColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to top, ${lightColor} 0%, color-mix(in srgb, ${lightColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to right, ${lightColor} 0%, color-mix(in srgb, ${lightColor} 30%, transparent) 0%, transparent 6%),
+            linear-gradient(to left, ${lightColor} 0%, color-mix(in srgb, ${lightColor} 30%, transparent) 0%, transparent 6%)
+          `,
+        }}
+      />
 
-          <Group gap={5} wrap="nowrap">
-            <Text fw={600} fz={'sm'} c={'dimmed'} span>
-              By
-            </Text>
-            <Avatar
-              size={'xs'}
-              radius={'sm'}
-              component={Link}
-              href={`/profile/${firstPage.author.handle}`}
-              target="_blank"
-              src={firstPage.author.avatarUrl?.replace(
-                'avatar',
-                'avatar_thumbnail',
-              )}
-              alt={`${firstPage.author.name}'s avatar`}
-            />
-            <Anchor
-              component={Link}
-              href={`/profile/${firstPage.author.handle}`}
-              target="_blank"
-              fw={600}
-              fz={'sm'}
-              c="bright"
-            >
-              {firstPage.author.name}
-            </Anchor>
-          </Group>
-        </Group>
+      <Container
+        p={'xs'}
+        fluid
+        h="100%"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <Stack justify="space-between" gap={'xs'} h="100%">
+          <Group justify="space-between" align="start" wrap="nowrap">
+            <Stack gap={0}>
+              <Group gap={'xs'}>
+                <Text fw={700} c={isOpen ? 'green' : 'grape'} fz="sm">
+                  Collection
+                </Text>
+                {isOpen && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <Badge
+                      color="green"
+                      leftSection={<FaSeedling />}
+                      variant="light"
+                      size="xs"
+                    >
+                      Open
+                    </Badge>
+                  </Tooltip>
+                )}
+              </Group>
+              <Text fw={700}>{firstPage.name}</Text>
+            </Stack>
 
-        {allCards.length > 0 && currentCard ? (
-          <Stack gap={'xs'} flex={1} style={{ overflow: 'hidden' }}>
-            <Group justify="center" align="center" flex={1}>
-              <Card
-                component="article"
-                radius={'lg'}
-                p={'xs'}
-                withBorder
-                style={{ cursor: 'pointer', maxWidth: '600px', width: '100%' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  if (
-                    isCollectionPage(currentCard.url) ||
-                    isProfilePage(currentCard.url)
-                  ) {
-                    router.push(currentCard.url);
-                    return;
-                  }
-
-                  router.push(`/url?id=${currentCard.cardContent.url}`);
-                }}
-              >
-                <Stack justify="space-between" gap={'xs'} flex={1}>
-                  <UrlCardContent
-                    url={currentCard.url}
-                    uri={currentCard.uri}
-                    cardContent={currentCard.cardContent}
-                  />
-                </Stack>
-              </Card>
-            </Group>
-
-            <Group justify="center" align="center" gap={'xs'}>
-              <ActionIcon
-                size="md"
-                variant="light"
-                color="gray"
-                radius={'xl'}
-                onClick={goToPrev}
-                disabled={!hasPrev}
-                style={{ visibility: hasPrev ? 'visible' : 'hidden' }}
-              >
-                ←
-              </ActionIcon>
-
-              <Text ta="center" c="gray" fz="xs" fw={600}>
-                {currentIndex + 1} / {allCards.length}
-              </Text>
-
-              <ActionIcon
-                size="md"
-                variant="light"
-                radius={'xl'}
-                color="gray"
-                onClick={goToNext}
-                disabled={!hasNext}
-                style={{ visibility: hasNext ? 'visible' : 'hidden' }}
-              >
-                →
-              </ActionIcon>
-            </Group>
-          </Stack>
-        ) : (
-          <Stack align="center" gap="xs" flex={1} justify="center">
-            <Text fz="sm" fw={600} c="gray">
-              No cards
-            </Text>
-          </Stack>
-        )}
-
-        <Group justify="space-between" align="center" gap={'xs'}>
-          {props.mode === 'edit' ? (
-            <Button
-              size="compact-xs"
-              variant="transparent"
-              color="gray"
-              onClick={async () => {
-                if (!session || !currentCard) return;
-                await session.replaceWith({
-                  type: 'embed',
-                  url: `${appUrl}/embed/url?id=${encodeURIComponent(
-                    currentCard.cardContent.url || currentCard.url,
-                  )}`,
-                  aspectRatio: '16:9',
-                });
-              }}
-            >
-              Replace with
-            </Button>
-          ) : (
-            <>
-              <Button
-                size="compact-xs"
-                variant="transparent"
-                color="gray"
-                px={0}
-                onClick={async () => {
-                  if (!session) return;
-                  await session.open(
-                    `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
-                  );
-                }}
-              >
-                View Collection
-              </Button>
-
-              <Button
-                size="compact-xs"
-                variant="transparent"
-                pr={0}
-                leftSection={<Image src={SembleLogo.src} h={20} />}
+            <Group gap={5} wrap="nowrap">
+              <Avatar
+                size={'xs'}
+                radius={'sm'}
                 component={Link}
-                href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
+                href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
+                src={firstPage.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${firstPage.author.name}'s avatar`}
+              />
+              <Anchor
+                component={Link}
+                href={`/profile/${firstPage.author.handle}`}
+                target="_blank"
+                fw={600}
+                fz={'sm'}
+                c="bright"
               >
-                View on Semble
-              </Button>
-            </>
+                {firstPage.author.name}
+              </Anchor>
+            </Group>
+          </Group>
+
+          {allCards.length > 0 && currentCard ? (
+            <Stack gap={'xs'} flex={1} style={{ overflow: 'hidden' }}>
+              <Group justify="center" align="center" flex={1}>
+                <Card
+                  component="article"
+                  radius={'lg'}
+                  p={'xs'}
+                  withBorder
+                  style={{
+                    cursor: 'pointer',
+                    maxWidth: '600px',
+                    width: '100%',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    if (
+                      isCollectionPage(currentCard.url) ||
+                      isProfilePage(currentCard.url)
+                    ) {
+                      router.push(currentCard.url);
+                      return;
+                    }
+
+                    router.push(`/url?id=${currentCard.cardContent.url}`);
+                  }}
+                >
+                  <Stack justify="space-between" gap={'xs'} flex={1}>
+                    <UrlCardContent
+                      url={currentCard.url}
+                      uri={currentCard.uri}
+                      cardContent={currentCard.cardContent}
+                    />
+                  </Stack>
+                </Card>
+              </Group>
+
+              <Group justify="center" align="center" gap={'xs'}>
+                <ActionIcon
+                  size="md"
+                  variant="light"
+                  color="gray"
+                  radius={'xl'}
+                  onClick={goToPrev}
+                  disabled={!hasPrev}
+                  style={{ visibility: hasPrev ? 'visible' : 'hidden' }}
+                >
+                  ←
+                </ActionIcon>
+
+                <Text ta="center" c="gray" fz="xs" fw={600}>
+                  {currentIndex + 1} / {allCards.length}
+                </Text>
+
+                <ActionIcon
+                  size="md"
+                  variant="light"
+                  radius={'xl'}
+                  color="gray"
+                  onClick={goToNext}
+                  disabled={!hasNext}
+                  style={{ visibility: hasNext ? 'visible' : 'hidden' }}
+                >
+                  →
+                </ActionIcon>
+              </Group>
+            </Stack>
+          ) : (
+            <Stack align="center" gap="xs" flex={1} justify="center">
+              <Text fz="sm" fw={600} c="gray">
+                No cards
+              </Text>
+            </Stack>
           )}
-        </Group>
-      </Stack>
-    </Container>
+
+          <Group justify="space-between" align="center" gap={'xs'}>
+            {props.mode === 'edit' ? (
+              <Button
+                size="compact-xs"
+                variant="transparent"
+                color="gray"
+                onClick={async () => {
+                  if (!session || !currentCard) return;
+                  await session.replaceWith({
+                    type: 'embed',
+                    url: `${appUrl}/embed/url?id=${encodeURIComponent(
+                      currentCard.cardContent.url || currentCard.url,
+                    )}`,
+                    aspectRatio: '16:9',
+                  });
+                }}
+              >
+                Replace with
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="compact-xs"
+                  variant="transparent"
+                  color="gray"
+                  px={0}
+                  onClick={async () => {
+                    if (!session) return;
+                    await session.open(
+                      `${appUrl}/profile/${props.handle}/collections/${props.rkey}/embed`,
+                    );
+                  }}
+                >
+                  View Collection
+                </Button>
+
+                <ActionIcon
+                  size="compact-xs"
+                  variant="transparent"
+                  radius={'xs'}
+                  component={Link}
+                  href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
+                  target="_blank"
+                >
+                  <Image src={SembleLogo.src} h={20} />
+                </ActionIcon>
+              </>
+            )}
+          </Group>
+        </Stack>
+      </Container>
+    </Box>
   );
 }
 

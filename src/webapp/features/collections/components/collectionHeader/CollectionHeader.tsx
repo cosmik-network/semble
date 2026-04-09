@@ -49,8 +49,8 @@ export default function CollectionHeader(props: Props) {
           height: '40px',
           background:
             accessType === CollectionAccessType.OPEN
-              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-9))'
-              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-9))',
+              ? 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-green-9) 30%, transparent))'
+              : 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-grape-9) 30%, transparent))',
           pointerEvents: 'none',
         }}
       />
@@ -62,8 +62,8 @@ export default function CollectionHeader(props: Props) {
           height: '40px',
           background:
             accessType === CollectionAccessType.OPEN
-              ? 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-green-1))'
-              : 'linear-gradient(to top, var(--mantine-color-body), var(--mantine-color-grape-1))',
+              ? 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-green-1) 40%, transparent))'
+              : 'linear-gradient(to top, var(--mantine-color-body), color-mix(in srgb, var(--mantine-color-grape-1) 40%, transparent))',
           pointerEvents: 'none',
         }}
       />
@@ -113,38 +113,33 @@ export default function CollectionHeader(props: Props) {
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
                 <Group gap={5}>
-                  <Text fw={600} fz={'sm'} c={'dimmed'} span>
-                    By
-                  </Text>
-                  <Group gap={5}>
-                    <Avatar
-                      size={'xs'}
-                      radius={'sm'}
-                      component={Link}
-                      href={`/profile/${collection.author.handle}`}
-                      src={collection.author.avatarUrl?.replace(
-                        'avatar',
-                        'avatar_thumbnail',
-                      )}
-                      alt={`${collection.author.name}'s avatar`}
+                  <Avatar
+                    size={'xs'}
+                    radius={'sm'}
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    src={collection.author.avatarUrl?.replace(
+                      'avatar',
+                      'avatar_thumbnail',
+                    )}
+                    alt={`${collection.author.name}'s avatar`}
+                  />
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${collection.author.handle}`}
+                    fw={600}
+                    fz={'sm'}
+                    c="bright"
+                  >
+                    {collection.author.name}
+                  </Anchor>
+                  <Suspense>
+                    <CollectionContributorsSummary
+                      collectionId={collection.id}
+                      handle={props.handle}
+                      rkey={props.rkey}
                     />
-                    <Anchor
-                      component={Link}
-                      href={`/profile/${collection.author.handle}`}
-                      fw={600}
-                      fz={'sm'}
-                      c="bright"
-                    >
-                      {collection.author.name}
-                    </Anchor>
-                    <Suspense>
-                      <CollectionContributorsSummary
-                        collectionId={collection.id}
-                        handle={props.handle}
-                        rkey={props.rkey}
-                      />
-                    </Suspense>
-                  </Group>
+                  </Suspense>
                 </Group>
                 <Group gap={'xs'}>
                   <Anchor

@@ -12,10 +12,15 @@ import React from 'react';
 interface Props {
   url: string;
   viaCardId?: string;
+  hideActions?: boolean;
 }
 
 type PlatformEntry = {
-  component: React.ComponentType<{ url: string; viaCardId?: string }>;
+  component: React.ComponentType<{
+    url: string;
+    viaCardId?: string;
+    hideActions?: boolean;
+  }>;
   skeleton: React.ComponentType;
 };
 
@@ -46,7 +51,11 @@ export default function SembleContainer(props: Props) {
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
           <Suspense fallback={<SkeletonComponent />} key={props.url}>
-            <HeaderComponent url={props.url} viaCardId={props.viaCardId} />
+            <HeaderComponent
+              url={props.url}
+              viaCardId={props.viaCardId}
+              hideActions={props.hideActions}
+            />
           </Suspense>
 
           <SembleTabs url={props.url} />
