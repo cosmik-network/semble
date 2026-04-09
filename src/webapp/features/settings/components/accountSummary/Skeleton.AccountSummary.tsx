@@ -5,8 +5,8 @@ export default function AccountSummarySkeleton() {
     <Stack align="center">
       <Avatar size={'xl'} radius={'lg'} />
       <Stack gap={'xs'} align="center">
-        <Skeleton w={100} h={18} />
-        <Skeleton w={80} h={16} />
+        <Skeleton w={100} h={28} />
+        <Skeleton w={80} h={18} />
       </Stack>
     </Stack>
   );
