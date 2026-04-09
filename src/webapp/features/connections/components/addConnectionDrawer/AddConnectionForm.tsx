@@ -333,8 +333,11 @@ export default function AddConnectionForm(props: Props) {
   );
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Stack gap={'lg'}>
+    <form
+      onSubmit={handleSubmit}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+    >
+      <Stack gap={'lg'} style={{ flex: 1 }}>
         {/* Source → Type selector → Target (single layout for both modes) */}
         <Stack gap={0}>
           {sourceSlot}
@@ -390,7 +393,7 @@ export default function AddConnectionForm(props: Props) {
           </VisuallyHidden>
         </Stack>
 
-        <Group justify="space-between" gap={'xs'} grow>
+        <Group justify="space-between" gap={'xs'} grow mt="auto">
           <Button
             variant="light"
             size="md"

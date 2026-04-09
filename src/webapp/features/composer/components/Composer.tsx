@@ -203,6 +203,10 @@ export default function Composer(props: Props) {
         padding={'sm'}
         position="bottom"
         overlayProps={DEFAULT_OVERLAY_PROPS}
+        styles={{
+          body: { flex: 1, display: 'flex', flexDirection: 'column' },
+          content: { display: 'flex', flexDirection: 'column' },
+        }}
       >
         <Drawer.Header>
           <Stack gap="md" w="100%">
@@ -248,7 +252,12 @@ export default function Composer(props: Props) {
           </Stack>
         </Drawer.Header>
 
-        <Container size={'sm'} p={0}>
+        <Container
+          size={'sm'}
+          p={0}
+          w="100%"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+        >
           {mode === 'connection' ? (
             <Suspense>
               <AddConnectionForm onClose={props.onClose} />
@@ -393,8 +402,11 @@ export default function Composer(props: Props) {
               </Stack>
             </form>
           ) : (
-            <form onSubmit={handleCreateCollection}>
-              <Stack gap={'xl'}>
+            <form
+              onSubmit={handleCreateCollection}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            >
+              <Stack gap={'xl'} style={{ flex: 1 }}>
                 <TextInput
                   id="name"
                   label="Name"
@@ -453,7 +465,7 @@ export default function Composer(props: Props) {
                   {...collectionForm.getInputProps('accessType')}
                 />
 
-                <Group justify="space-between" gap={'xs'} grow>
+                <Group justify="space-between" gap={'xs'} grow mt="auto">
                   <Button
                     variant="light"
                     size="md"
