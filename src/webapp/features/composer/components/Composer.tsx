@@ -199,7 +199,7 @@ export default function Composer(props: Props) {
         opened={props.isOpen}
         onClose={props.onClose}
         withCloseButton={false}
-        size={'36rem'}
+        size={'37rem'}
         padding={'sm'}
         position="bottom"
         overlayProps={DEFAULT_OVERLAY_PROPS}
@@ -263,8 +263,11 @@ export default function Composer(props: Props) {
               <AddConnectionForm onClose={props.onClose} />
             </Suspense>
           ) : mode === 'card' ? (
-            <form onSubmit={handleAddCard}>
-              <Stack gap={'xl'}>
+            <form
+              onSubmit={handleAddCard}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            >
+              <Stack gap={'xl'} style={{ flex: 1 }}>
                 <TextInput
                   id="url"
                   label="URL"
@@ -383,7 +386,13 @@ export default function Composer(props: Props) {
                   </ScrollArea.Autosize>
                 </Stack>
 
-                <Group justify="space-between" gap={'xs'} grow>
+                <Group
+                  justify="space-between"
+                  gap={'xs'}
+                  grow
+                  mt="auto"
+                  mb="md"
+                >
                   <Button
                     variant="light"
                     size="md"
@@ -465,7 +474,13 @@ export default function Composer(props: Props) {
                   {...collectionForm.getInputProps('accessType')}
                 />
 
-                <Group justify="space-between" gap={'xs'} grow mt="auto">
+                <Group
+                  justify="space-between"
+                  gap={'xs'}
+                  grow
+                  mt="auto"
+                  mb="md"
+                >
                   <Button
                     variant="light"
                     size="md"

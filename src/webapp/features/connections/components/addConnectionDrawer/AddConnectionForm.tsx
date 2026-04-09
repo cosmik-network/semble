@@ -393,7 +393,7 @@ export default function AddConnectionForm(props: Props) {
           </VisuallyHidden>
         </Stack>
 
-        <Group justify="space-between" gap={'xs'} grow mt="auto">
+        <Group justify="space-between" gap={'xs'} grow mt="auto" mb="md">
           <Button
             variant="light"
             size="md"
