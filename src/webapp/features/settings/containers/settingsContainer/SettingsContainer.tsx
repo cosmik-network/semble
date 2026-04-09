@@ -10,7 +10,6 @@ import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutI
 import { MdScience } from 'react-icons/md';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
-import SettingItemSkeleton from '../../components/settingItem/Skeleton.SettingItem';
 
 export default async function SettingsContainer() {
   return (
