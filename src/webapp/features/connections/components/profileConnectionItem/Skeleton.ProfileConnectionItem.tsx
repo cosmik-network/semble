@@ -29,12 +29,12 @@ export default function ProfileConnectionItemSkeleton() {
 
         <Grid gutter={'xs'} align="center">
           {/* Source URL */}
-          <GridCol span={{ base: 12, sm: 5 }}>
+          <GridCol span={{ base: 12, sm: 4.75 }}>
             <UrlCardSkeleton />
           </GridCol>
 
           {/* Connection Metadata */}
-          <GridCol span={{ base: 12, sm: 2 }}>
+          <GridCol span={{ base: 12, sm: 2.5 }}>
             <Card p={0} radius={'md'} bg={'transparent'}>
               <Group justify="center" wrap="nowrap" align="center">
                 <Stack gap={0} align="center">
@@ -65,7 +65,7 @@ export default function ProfileConnectionItemSkeleton() {
           </GridCol>
 
           {/* Target URL */}
-          <GridCol span={{ base: 12, sm: 5 }}>
+          <GridCol span={{ base: 12, sm: 4.75 }}>
             <UrlCardSkeleton />
           </GridCol>
         </Grid>
