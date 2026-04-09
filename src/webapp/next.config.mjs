@@ -8,6 +8,8 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below
 
+  serverExternalPackages: ['@takumi-rs/core'],
+
   experimental: {
     optimizePackageImports: [
       '@mantine/core',
@@ -20,6 +22,7 @@ const nextConfig = {
       'react-icons/lu',
       'react-icons/tb',
       'react-icons/io5',
+      'takumi-js',
     ],
   },
 };
