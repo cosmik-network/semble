@@ -22,7 +22,7 @@ export default async function Page(props: Props) {
   return (
     <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
       <SemblePageClient viaCardId={viaCardId}>
-        <SembleContainer url={url} viaCardId={viaCardId} />
+        <SembleContainer url={url} viaCardId={viaCardId} hideActions />
       </SemblePageClient>
     </Suspense>
   );
