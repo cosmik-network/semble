@@ -47,6 +47,8 @@ export default function GuestSembleActions(props: Props) {
         )}
       </CopyButton>
       <Button
+        component={Link}
+        href={'/login'}
         variant="light"
         color="green"
         radius={'xl'}
