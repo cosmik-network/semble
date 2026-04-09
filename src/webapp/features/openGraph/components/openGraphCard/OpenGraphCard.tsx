@@ -1,5 +1,5 @@
 import { BG_IMAGE_BASE_64, loadGoogleFont } from '../../lib/utils';
-import { ImageResponse } from 'takumi-js/response';
+import { ImageResponse } from 'next/og';
 
 interface Props {
   children: React.ReactElement;
@@ -10,7 +10,7 @@ export const size = {
   height: 630,
 };
 
-export const contentType = 'image/webp';
+export const contentType = 'image/png';
 
 export default async function OpenGraphCard(props: Props) {
   return new ImageResponse(
@@ -77,13 +77,10 @@ export default async function OpenGraphCard(props: Props) {
       </div>
     ),
     {
-      format: 'webp',
-      width: size.width,
-      height: size.height,
       fonts: [
         {
           name: 'Hanken Grotesk',
-          data: async () => await loadGoogleFont('Hanken Grotesk'),
+          data: await loadGoogleFont('Hanken Grotesk'),
           style: 'normal',
         },
       ],

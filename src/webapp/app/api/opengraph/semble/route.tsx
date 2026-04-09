@@ -5,6 +5,8 @@ import { truncateText } from '@/lib/utils/text';
 import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 import { getLibrariesForUrl } from '@/features/semble/lib/dal';
 
+export const runtime = 'edge';
+
 interface Metadata {
   title?: string;
   url?: string;

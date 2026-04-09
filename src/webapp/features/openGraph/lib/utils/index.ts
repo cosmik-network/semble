@@ -1,5 +1,5 @@
-export const loadGoogleFont = async (font = 'Hanken Grotesk', weight = 700) => {
-  const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}:wght@${weight}`;
+export const loadGoogleFont = async (font = 'Hanken Grotesk') => {
+  const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}:wght@700`;
   const css = await (await fetch(url)).text();
   const resource = css.match(
     /src: url\((.+)\) format\('(opentype|truetype)'\)/,

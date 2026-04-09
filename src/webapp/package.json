@@ -26,7 +26,6 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@fontsource/noto-color-emoji": "^5.2.12",
     "@mantine/code-highlight": "8.3.1",
     "@mantine/core": "8.3.1",
     "@mantine/dates": "8.3.1",
@@ -42,7 +41,6 @@
     "@tanstack/react-query": "^5.85.5",
     "@types/mdx": "^2.0.13",
     "@vercel/analytics": "^1.5.0",
-    "capnweb": "^0.6.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "next": "^15.4.10",
@@ -53,7 +51,7 @@
     "react-force-graph-2d": "^1.29.1",
     "react-icons": "^5.5.0",
     "shiki": "^3.20.0",
-    "takumi-js": "1.0.0-rc.17",
+    "capnweb": "^0.6.1",
     "web-haptics": "^0.0.6"
   },
   "devDependencies": {

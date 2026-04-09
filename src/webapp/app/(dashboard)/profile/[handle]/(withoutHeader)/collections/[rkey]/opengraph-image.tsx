@@ -7,7 +7,7 @@ interface Props {
   params: Promise<{ rkey: string; handle: string }>;
 }
 
-export const contentType = 'image/webp';
+export const contentType = 'image/png';
 export const size = {
   width: 1200,
   height: 630,
@@ -157,7 +157,7 @@ export default async function Image(props: Props) {
           >
             {collection.author.avatarUrl && (
               <img
-                src={collection.author.avatarUrl}
+                src={collection.author.avatarUrl + '@jpeg'}
                 width={60}
                 height={60}
                 alt={`${handle}'s avatar`}
