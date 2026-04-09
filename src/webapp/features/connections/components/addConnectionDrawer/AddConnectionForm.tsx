@@ -19,6 +19,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import { useRef } from 'react';
 import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
@@ -37,6 +38,10 @@ interface Props {
 export default function AddConnectionForm(props: Props) {
   const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
+
+  // Track the raw input values so we can auto-confirm valid URLs on submit
+  const rawSourceInput = useRef(props.sourceUrl ?? '');
+  const rawTargetInput = useRef('');
 
   const typeCombobox = useCombobox({
     onDropdownClose: () => typeCombobox.resetSelectedOption(),
@@ -88,6 +93,24 @@ export default function AddConnectionForm(props: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Auto-confirm valid URLs that were typed/pasted but not explicitly selected
+    if (!form.values.sourceUrl && rawSourceInput.current) {
+      try {
+        new URL(rawSourceInput.current);
+        form.setFieldValue('sourceUrl', rawSourceInput.current);
+      } catch {
+        // not a valid URL, let validation handle it
+      }
+    }
+    if (!form.values.targetUrl && rawTargetInput.current) {
+      try {
+        new URL(rawTargetInput.current);
+        form.setFieldValue('targetUrl', rawTargetInput.current);
+      } catch {
+        // not a valid URL, let validation handle it
+      }
+    }
 
     const validation = form.validate();
     if (validation.hasErrors) {
@@ -161,6 +184,9 @@ export default function AddConnectionForm(props: Props) {
         value={form.values.sourceUrl}
         error={form.errors.sourceUrl}
         onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
+        onInputChange={(raw) => {
+          rawSourceInput.current = raw;
+        }}
       />
       {form.errors.sourceUrl && (
         <Text size="sm" c="red" mt="xs">
@@ -180,6 +206,9 @@ export default function AddConnectionForm(props: Props) {
         value={form.values.targetUrl}
         error={form.errors.targetUrl}
         onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
+        onInputChange={(raw) => {
+          rawTargetInput.current = raw;
+        }}
       />
       {form.errors.targetUrl && (
         <Text size="sm" c="red" mt="xs">

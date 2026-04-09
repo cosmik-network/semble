@@ -54,6 +54,7 @@ interface Props {
   error?: React.ReactNode;
   onUrlSelect: (url: string) => void;
   onUrlClear?: () => void;
+  onInputChange?: (rawValue: string) => void;
 }
 
 export default function UrlSearchInput(props: Props) {
@@ -172,6 +173,7 @@ export default function UrlSearchInput(props: Props) {
               onChange={(e) => {
                 const val = e.currentTarget.value;
                 setInputValue(val);
+                props.onInputChange?.(val);
                 combobox.openDropdown();
               }}
               onFocus={() => {
