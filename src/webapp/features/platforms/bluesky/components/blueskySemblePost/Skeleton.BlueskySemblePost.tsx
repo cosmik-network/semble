@@ -7,7 +7,7 @@ export default function BlueskySemblePostSkeleton() {
       <Skeleton w={100} h={20} />
 
       {/* Post */}
-      <Card radius={'lg'} withBorder>
+      <Card p={'xs'} radius={'lg'} withBorder>
         <Stack gap="xs" w={'100%'}>
           {/* Author row */}
           <Group gap="xs" justify="space-between" wrap="nowrap">

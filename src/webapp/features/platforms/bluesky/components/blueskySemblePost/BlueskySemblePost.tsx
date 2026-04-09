@@ -3,11 +3,7 @@ import { getBlueskyPost } from '../../lib/dal';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import {
-  detectUrlPlatform,
-  getDomain,
-  SupportedPlatform,
-} from '@/lib/utils/link';
+import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
 import {
   Stack,
@@ -23,6 +19,11 @@ import {
 import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
+import ContentHider from '../contentHider/ContentHider';
+import {
+  getPostModerationUI,
+  getModerationReasonText,
+} from '../../lib/moderation';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { Suspense } from 'react';
@@ -72,6 +73,11 @@ export default async function BlueskySemblePost(props: Props) {
 
   const post = data.thread.post;
   const record = post.record as AppBskyFeedPost.Record;
+  const moderation = getPostModerationUI(post);
+
+  if (moderation.filter) {
+    return <SembleHeader url={props.url} />;
+  }
 
   return (
     <Stack gap={'xs'}>
@@ -80,7 +86,7 @@ export default async function BlueskySemblePost(props: Props) {
       </Suspense>
 
       {/* Post */}
-      <Card radius={'lg'} withBorder>
+      <Card p={'xs'} radius={'lg'} withBorder>
         <Stack gap={'xs'}>
           <Group gap="xs" justify="space-between" wrap="nowrap">
             <Group gap={'xs'} wrap="nowrap">
@@ -108,15 +114,21 @@ export default async function BlueskySemblePost(props: Props) {
               </Anchor>
             </Tooltip>
           </Group>
-          <Stack gap={'xs'} w={'100%'}>
-            <Box>
-              <RichTextRenderer
-                text={record.text}
-                textProps={{ c: 'bright' }}
-              />
-            </Box>
-            {post.embed && <PostEmbed embed={post.embed} />}
-          </Stack>
+          <ContentHider
+            blur={moderation.blur}
+            noOverride={moderation.noOverride}
+            reason={getModerationReasonText(moderation)}
+          >
+            <Stack gap={'xs'} w={'100%'}>
+              <Box>
+                <RichTextRenderer
+                  text={record.text}
+                  textProps={{ c: 'bright' }}
+                />
+              </Box>
+              {post.embed && <PostEmbed embed={post.embed} />}
+            </Stack>
+          </ContentHider>
           <Text c={'gray'} fz={'sm'} fw={500}>
             {getFormattedDate(post.indexedAt)}
           </Text>
