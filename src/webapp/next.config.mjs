@@ -22,6 +22,7 @@ const nextConfig = {
       'react-icons/lu',
       'react-icons/tb',
       'react-icons/io5',
+      'takumi-js',
     ],
   },
 };
