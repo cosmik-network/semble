@@ -1,4 +1,4 @@
-import { getProfile } from '@/features/profile/lib/dal.server';
+import { getProfile } from '@/features/profile/lib/dal';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 

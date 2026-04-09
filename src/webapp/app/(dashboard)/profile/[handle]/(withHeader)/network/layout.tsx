@@ -1,5 +1,5 @@
 import NetworkTabs from '@/features/follows/components/networkTabs/NetworkTabs';
-import { getProfile } from '@/features/profile/lib/dal.server';
+import { getProfile } from '@/features/profile/lib/dal';
 import { Container } from '@mantine/core';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
