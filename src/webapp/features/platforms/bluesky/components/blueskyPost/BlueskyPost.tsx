@@ -15,6 +15,11 @@ import {
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
+import ContentHider from '../contentHider/ContentHider';
+import {
+  getPostModerationUI,
+  getModerationReasonText,
+} from '../../lib/moderation';
 import { FaBluesky } from 'react-icons/fa6';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
@@ -68,6 +73,11 @@ export default function BlueskyPost(props: Props) {
 
   const post = data.thread.post;
   const record = post.record as AppBskyFeedPost.Record;
+  const moderation = getPostModerationUI(post);
+
+  if (moderation.filter) {
+    return props.fallbackCardContent;
+  }
 
   return (
     <Stack justify="space-between" gap="xs">
@@ -99,15 +109,21 @@ export default function BlueskyPost(props: Props) {
           </Anchor>
         </Tooltip>
       </Group>
-      <Stack gap={'xs'} w={'100%'}>
-        <Box>
-          <RichTextRenderer
-            text={record.text}
-            textProps={{ lineClamp: settings.cardView === 'grid' ? 3 : 1 }}
-          />
-        </Box>
-        {post.embed && showEmbed && <PostEmbed embed={post.embed} />}
-      </Stack>
+      <ContentHider
+        blur={moderation.blur}
+        noOverride={moderation.noOverride}
+        reason={getModerationReasonText(moderation)}
+      >
+        <Stack gap={'xs'} w={'100%'}>
+          <Box>
+            <RichTextRenderer
+              text={record.text}
+              textProps={{ lineClamp: settings.cardView === 'grid' ? 3 : 1 }}
+            />
+          </Box>
+          {post.embed && showEmbed && <PostEmbed embed={post.embed} />}
+        </Stack>
+      </ContentHider>
     </Stack>
   );
 }
