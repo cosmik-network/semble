@@ -14,7 +14,7 @@ export class GetUserStatsController extends Controller {
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
       // Extract query parameters
-      const { type, interval, limit } = req.query;
+      const { type, interval, limit, includeTimeSeries } = req.query;
 
       // Validate required parameter
       if (!type) {
@@ -27,11 +27,15 @@ export class GetUserStatsController extends Controller {
         return this.fail(res, 'Limit must be a valid number');
       }
 
+      // Parse includeTimeSeries boolean
+      const includeTimeSeriesFlag = includeTimeSeries === 'true';
+
       // Execute the use case
       const result = await this.getUserStatsUseCase.execute({
         statType: type as UserStatType,
         interval: interval as TimeInterval | undefined,
         limit: parsedLimit,
+        includeTimeSeries: includeTimeSeriesFlag,
       });
 
       if (result.isErr()) {

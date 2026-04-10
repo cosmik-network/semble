@@ -20,6 +20,42 @@ export interface UserGrowthStatsOptions {
   limit: number; // Number of intervals to return
 }
 
+// User Engagement Statistics DTOs
+
+export interface UserEngagementDataPoint {
+  date: string;
+  activeUsers: number; // Users who created content in this period
+  newlyActivatedUsers: number; // Previously inactive users who became active
+  cumulativeActiveUsers: number; // Total active users up to this date
+}
+
+export interface UserEngagementStatsDTO {
+  // Snapshot data
+  totalUsers: number;
+  activeUsers: number; // Created any content
+  inactiveUsers: number; // Signed in, no content
+
+  // Activity breakdown
+  usersWithCards: number;
+  usersWithCollections: number;
+  usersWithConnections: number;
+  usersWithFollows: number;
+  usersWithContributions: number; // Added cards to others' collections
+
+  // Engagement metrics
+  activationRate: number; // activeUsers / totalUsers
+  avgActionsPerActiveUser: number;
+
+  // Optional: Time series for trends
+  dataPoints?: UserEngagementDataPoint[];
+}
+
+export interface UserEngagementStatsOptions {
+  interval?: TimeInterval; // For time series
+  limit?: number; // For time series
+  includeTimeSeries?: boolean;
+}
+
 // Future stat types can be added here
 export type UserStatType = 'growth' | 'activity' | 'engagement';
 
@@ -36,7 +72,14 @@ export interface IUserStatsRepository {
     options: UserGrowthStatsOptions,
   ): Promise<UserGrowthStatsDTO>;
 
+  /**
+   * Get user engagement statistics
+   * Returns active vs inactive users with content breakdown
+   */
+  getUserEngagementStats(
+    options: UserEngagementStatsOptions,
+  ): Promise<UserEngagementStatsDTO>;
+
   // Future methods can be added here:
   // getUserActivityStats(options: UserActivityStatsOptions): Promise<UserActivityStatsDTO>;
-  // getUserEngagementStats(options: UserEngagementStatsOptions): Promise<UserEngagementStatsDTO>;
 }
