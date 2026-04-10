@@ -8,7 +8,7 @@ import {
   FocusTrap,
   Tabs,
   ThemeIcon,
-  ScrollAreaAutosize,
+  Scroller,
 } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
@@ -32,8 +32,8 @@ export default function CollectionSelector(props: Props) {
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'} keepMounted={false}>
-        <ScrollAreaAutosize type="scroll">
-          <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
+        <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
+          <Scroller>
             <Tabs.Tab classNames={classes} value="myCollections">
               My Collections
             </Tabs.Tab>
@@ -70,8 +70,9 @@ export default function CollectionSelector(props: Props) {
             >
               AtmosphereConf
             </Tabs.Tab>
-          </Tabs.List>
-        </ScrollAreaAutosize>
+          </Scroller>
+        </Tabs.List>
+
         <Tabs.Panel value="myCollections">
           <Suspense>
             <CollectionSelectorMyCollections

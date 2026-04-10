@@ -1,19 +1,18 @@
 'use client';
 
-import { Group, Button, ScrollAreaAutosize } from '@mantine/core';
-import { useDisclosure, useOs } from '@mantine/hooks';
+import { Group, Button, Scroller } from '@mantine/core';
+import { useOs } from '@mantine/hooks';
 import { LinkButton } from '@/components/link/MantineLink';
 
 const IOS_SHORTCUT_HREF =
   'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6';
 
 export default function NavMenu() {
-  const [opened, { toggle }] = useDisclosure(false);
   const os = useOs();
   const isIos = os === 'ios';
 
   return (
-    <ScrollAreaAutosize>
+    <Scroller>
       <Group gap="xs">
         <Button
           data-tally-open="31a9Ng"
@@ -39,6 +38,6 @@ export default function NavMenu() {
           </LinkButton>
         )}
       </Group>
-    </ScrollAreaAutosize>
+    </Scroller>
   );
 }

@@ -6,7 +6,6 @@ import {
   Flex,
   Group,
   Input,
-  ScrollArea,
   Stack,
   Text,
   Textarea,
@@ -14,6 +13,7 @@ import {
   ThemeIcon,
   VisuallyHidden,
   Container,
+  Scroller,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -163,11 +163,7 @@ export default function AddCardForm(props: Props) {
               {selectedCollections.length > 0 &&
                 `(${selectedCollections.length})`}
             </Text>
-            <ScrollArea.Autosize
-              type="hover"
-              scrollbars="x"
-              offsetScrollbars={true}
-            >
+            <Scroller>
               <Group gap={'xs'} wrap="nowrap">
                 <Button
                   disabled={addCard.isPending}
@@ -228,7 +224,7 @@ export default function AddCardForm(props: Props) {
                   );
                 })}
               </Group>
-            </ScrollArea.Autosize>
+            </Scroller>
           </Stack>
 
           <Group justify="space-between" gap={'xs'} grow>

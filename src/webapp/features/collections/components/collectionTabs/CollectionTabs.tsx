@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Paper, ScrollAreaAutosize, Tabs } from '@mantine/core';
+import { Group, Paper, Scroller, Tabs } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import TabItem from './TabItem';
 import ContributorTab from './ContributorTab';
@@ -19,8 +19,8 @@ export default function CollectionTabs(props: Props) {
   return (
     <Tabs value={currentTab}>
       <Paper radius={0}>
-        <ScrollAreaAutosize type="scroll">
-          <Tabs.List>
+        <Tabs.List>
+          <Scroller>
             <Group wrap="nowrap">
               <TabItem value="cards" href={basePath}>
                 Cards
@@ -34,8 +34,8 @@ export default function CollectionTabs(props: Props) {
                 basePath={basePath}
               />
             </Group>
-          </Tabs.List>
-        </ScrollAreaAutosize>
+          </Scroller>
+        </Tabs.List>
       </Paper>
     </Tabs>
   );
