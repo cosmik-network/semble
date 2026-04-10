@@ -16,7 +16,7 @@
 
 * [Semble page](basic-concepts/semble-page.md)
 * [You control your data](basic-concepts/you-control-your-data.md)
-* [Connections (coming soon)](basic-concepts/connections-coming-soon.md)
+* [Connections](basic-concepts/connections.md)
 
 ## Developer Guide
 
