@@ -343,7 +343,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
         CROSS JOIN LATERAL (
           SELECT * FROM ${cards}
           WHERE type = 'URL'
-            AND created_at <= p.period + interval '1 ${interval}'
+            AND created_at <= p.period + ('1 ' || ${interval})::interval
         ) c
         GROUP BY p.period, c.url_type
       ),
@@ -375,7 +375,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
         FROM periods p
         CROSS JOIN LATERAL (
           SELECT * FROM ${collections}
-          WHERE created_at <= p.period + interval '1 ${interval}'
+          WHERE created_at <= p.period + ('1 ' || ${interval})::interval
         ) col
         GROUP BY p.period, col.access_type
       ),
@@ -407,7 +407,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
         FROM periods p
         CROSS JOIN LATERAL (
           SELECT * FROM ${connections}
-          WHERE created_at <= p.period + interval '1 ${interval}'
+          WHERE created_at <= p.period + ('1 ' || ${interval})::interval
         ) con
         GROUP BY p.period, con.connection_type
       ),
