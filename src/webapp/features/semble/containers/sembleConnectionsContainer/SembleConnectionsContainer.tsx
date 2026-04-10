@@ -156,7 +156,7 @@ export default function SembleConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="xl" mx={'auto'} maw={600} w={'100%'}>
+            <Grid gap="xl" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connection, index) => {
                 // Determine the actual direction for this specific connection
                 // If direction is 'all', check if the source URL matches props.url

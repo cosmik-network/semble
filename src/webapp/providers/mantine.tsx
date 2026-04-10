@@ -4,7 +4,10 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/code-highlight/styles.css';
 import { theme } from '@/styles/theme';
-import { MantineProvider as BaseProvider } from '@mantine/core';
+import {
+  MantineProvider as BaseProvider,
+  v8CssVariablesResolver,
+} from '@mantine/core';
 import {
   CodeHighlightAdapterProvider,
   createShikiAdapter,
@@ -31,9 +34,16 @@ const shikiAdapter = createShikiAdapter(loadShiki);
 
 export default function MantineProvider(props: Props) {
   return (
-    <BaseProvider theme={theme} defaultColorScheme="auto">
+    <BaseProvider
+      theme={theme}
+      defaultColorScheme="auto"
+      cssVariablesResolver={v8CssVariablesResolver}
+    >
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
-        <Notifications position="bottom-right" />
+        <Notifications
+          position="bottom-right"
+          pauseResetOnHover="notification"
+        />
         {props.children}
       </CodeHighlightAdapterProvider>
     </BaseProvider>

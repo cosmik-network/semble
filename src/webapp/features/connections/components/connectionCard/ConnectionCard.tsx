@@ -15,7 +15,7 @@ export default function ConnectionCard(props: Props) {
   const targetUrlView = props.connection.target;
 
   const content = (
-    <Grid gutter={'xs'} align="stretch">
+    <Grid gap={'xs'} align="stretch">
       {/* Source URL */}
       <Grid.Col span={{ base: 12, sm: 4.75 }}>
         <UrlCard

@@ -99,7 +99,7 @@ export default function MyFeedContainer() {
 
   return (
     <Container p="xs" size="xl">
-      <Collapse in={showRefetchLoader} transitionDuration={350}>
+      <Collapse expanded={showRefetchLoader} transitionDuration={350}>
         <Stack align="center" gap={'xs'}>
           <Loader size={'sm'} color={'gray'} />
           <Text fw={600} c={'gray'} mb={'sm'}>

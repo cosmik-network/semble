@@ -46,7 +46,7 @@ export default function RecentCards() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
+        <Grid gap={settings.cardView === 'list' ? 0 : 'xs'}>
           {cards.map((card, index) => (
             <Fragment key={card.id}>
               {settings.cardView === 'list' && index > 0 && (

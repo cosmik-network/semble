@@ -7,7 +7,7 @@ import UrlMetadataImageSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataI
 export default function SembleHeaderSkeleton() {
   return (
     <Stack gap={'xl'}>
-      <Grid gutter={'lg'} justify="space-between">
+      <Grid gap={'lg'} justify="space-between">
         <GridCol span={{ base: 'auto' }}>
           <UrlMetadataHeaderSkeleton />
         </GridCol>

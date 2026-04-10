@@ -43,7 +43,7 @@ export default function DiscoverOnSemble() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
+        <Grid gap={settings.cardView === 'list' ? 0 : 'xs'}>
           {cards.slice(0, 3).map((item, i) => (
             <Fragment key={i}>
               {settings.cardView === 'list' && i > 0 && (

@@ -3,7 +3,7 @@ import SearchProfileCardSkeleton from '../../components/profileCard/Skeleton.Sea
 
 export default function ProfileSearchResultsContainerSkeleton() {
   return (
-    <Grid gutter="xs">
+    <Grid gap="xs">
       {Array.from({ length: 4 }).map((_, i) => (
         <GridCol key={i} span={12}>
           <SearchProfileCardSkeleton />

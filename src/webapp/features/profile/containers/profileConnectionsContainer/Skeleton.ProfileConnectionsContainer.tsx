@@ -16,7 +16,7 @@ export default function ProfileConnectionsContainerSkeleton() {
           <Skeleton w={95} h={36} radius={'xl'} />
         </Group>
 
-        <Grid gutter="xl" mx={'auto'} maw={700} w={'100%'}>
+        <Grid gap="xl" mx={'auto'} maw={700} w={'100%'}>
           {Array.from({ length: 3 }).map((_, i) => (
             <GridCol key={i} span={12}>
               <ProfileConnectionItemSkeleton />
