@@ -56,6 +56,35 @@ export interface UserEngagementStatsOptions {
   includeTimeSeries?: boolean;
 }
 
+// Daily Activity Statistics DTOs
+
+export interface DailyActivityDataPoint {
+  date: string; // ISO date string
+  cardsCreated: number;
+  collectionsCreated: number;
+  connectionsCreated: number;
+  followsCreated: number;
+  totalActions: number; // Sum of all above
+}
+
+export interface DailyActivityStatsDTO {
+  dataPoints: DailyActivityDataPoint[];
+  totals: {
+    cardsCreated: number;
+    collectionsCreated: number;
+    connectionsCreated: number;
+    followsCreated: number;
+    totalActions: number;
+  };
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface DailyActivityStatsOptions {
+  interval: TimeInterval; // day, week, month
+  limit: number; // Number of intervals to return
+}
+
 // Future stat types can be added here
 export type UserStatType = 'growth' | 'activity' | 'engagement';
 
@@ -80,6 +109,11 @@ export interface IUserStatsRepository {
     options: UserEngagementStatsOptions,
   ): Promise<UserEngagementStatsDTO>;
 
-  // Future methods can be added here:
-  // getUserActivityStats(options: UserActivityStatsOptions): Promise<UserActivityStatsDTO>;
+  /**
+   * Get daily activity statistics
+   * Returns content creation volume over time periods
+   */
+  getDailyActivityStats(
+    options: DailyActivityStatsOptions,
+  ): Promise<DailyActivityStatsDTO>;
 }

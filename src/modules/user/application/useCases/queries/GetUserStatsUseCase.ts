@@ -4,6 +4,7 @@ import {
   IUserStatsRepository,
   UserGrowthStatsDTO,
   UserEngagementStatsDTO,
+  DailyActivityStatsDTO,
   UserStatType,
   TimeInterval,
 } from '../../../domain/IUserStatsRepository';
@@ -16,7 +17,10 @@ export interface GetUserStatsQuery {
   // Future parameters can be added here for other stat types
 }
 
-export type GetUserStatsResult = UserGrowthStatsDTO | UserEngagementStatsDTO; // Union type for different stat types
+export type GetUserStatsResult =
+  | UserGrowthStatsDTO
+  | UserEngagementStatsDTO
+  | DailyActivityStatsDTO; // Union type for different stat types
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -45,9 +49,8 @@ export class GetUserStatsUseCase
         case 'engagement':
           return await this.handleEngagementStats(query);
 
-        // Future stat types can be added here
-        // case 'activity':
-        //   return await this.handleActivityStats(query);
+        case 'activity':
+          return await this.handleActivityStats(query);
 
         default:
           return err(
@@ -129,6 +132,35 @@ export class GetUserStatsUseCase
     }
   }
 
-  // Future handler methods can be added here
-  // private async handleActivityStats(query: GetUserStatsQuery): Promise<Result<UserActivityStatsDTO>> { ... }
+  private async handleActivityStats(
+    query: GetUserStatsQuery,
+  ): Promise<Result<DailyActivityStatsDTO>> {
+    // Apply defaults
+    const interval = query.interval || 'day';
+    const limit = query.limit || 30;
+
+    // Validate parameters
+    if (!['day', 'week', 'month'].includes(interval)) {
+      return err(new ValidationError(`Invalid interval: ${interval}`));
+    }
+
+    if (limit < 1 || limit > 365) {
+      return err(new ValidationError('Limit must be between 1 and 365'));
+    }
+
+    try {
+      const stats = await this.userStatsRepository.getDailyActivityStats({
+        interval,
+        limit,
+      });
+
+      return ok(stats);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to retrieve activity stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
 }

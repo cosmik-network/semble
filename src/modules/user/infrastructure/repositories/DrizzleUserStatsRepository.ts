@@ -8,6 +8,9 @@ import {
   UserEngagementStatsDTO,
   UserEngagementStatsOptions,
   UserEngagementDataPoint,
+  DailyActivityStatsDTO,
+  DailyActivityStatsOptions,
+  DailyActivityDataPoint,
 } from '../../domain/IUserStatsRepository';
 import { users } from './schema/user.sql';
 import { cards } from '../../../cards/infrastructure/repositories/schema/card.sql';
@@ -93,13 +96,13 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       WITH user_activity AS (
         SELECT
           u.id AS user_id,
-          EXISTS(SELECT 1 FROM ${cards} WHERE author_id = u.id) AS has_cards,
+          EXISTS(SELECT 1 FROM ${cards} WHERE author_id = u.id AND type = 'URL') AS has_cards,
           EXISTS(SELECT 1 FROM ${collections} WHERE author_id = u.id) AS has_collections,
           EXISTS(SELECT 1 FROM ${connections} WHERE curator_id = u.id) AS has_connections,
           EXISTS(SELECT 1 FROM ${follows} WHERE follower_id = u.id) AS has_follows,
           EXISTS(SELECT 1 FROM ${collectionCards} WHERE added_by = u.id) AS has_contributions,
           (
-            (SELECT COUNT(*) FROM ${cards} WHERE author_id = u.id) +
+            (SELECT COUNT(*) FROM ${cards} WHERE author_id = u.id AND type = 'URL') +
             (SELECT COUNT(*) FROM ${collections} WHERE author_id = u.id) +
             (SELECT COUNT(*) FROM ${connections} WHERE curator_id = u.id) +
             (SELECT COUNT(*) FROM ${follows} WHERE follower_id = u.id)
@@ -175,7 +178,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
           u.id AS user_id,
           u.linked_at,
           LEAST(
-            COALESCE((SELECT MIN(created_at) FROM ${cards} WHERE author_id = u.id), '9999-12-31'::timestamp),
+            COALESCE((SELECT MIN(created_at) FROM ${cards} WHERE author_id = u.id AND type = 'URL'), '9999-12-31'::timestamp),
             COALESCE((SELECT MIN(created_at) FROM ${collections} WHERE author_id = u.id), '9999-12-31'::timestamp),
             COALESCE((SELECT MIN(created_at) FROM ${connections} WHERE curator_id = u.id), '9999-12-31'::timestamp),
             COALESCE((SELECT MIN(created_at) FROM ${follows} WHERE follower_id = u.id), '9999-12-31'::timestamp),
@@ -218,6 +221,101 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       .reverse(); // Reverse to get chronological order
   }
 
-  // Future stat methods can be added here
-  // async getUserActivityStats(options: UserActivityStatsOptions): Promise<UserActivityStatsDTO> { ... }
+  async getDailyActivityStats(
+    options: DailyActivityStatsOptions,
+  ): Promise<DailyActivityStatsDTO> {
+    const { interval, limit } = options;
+
+    // Query for content creation over time
+    const activityQuery = sql`
+      WITH date_periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM (
+          SELECT created_at FROM ${cards} WHERE type = 'URL'
+          UNION ALL
+          SELECT created_at FROM ${collections}
+          UNION ALL
+          SELECT created_at FROM ${connections}
+          UNION ALL
+          SELECT created_at FROM ${follows}
+        ) all_dates
+        WHERE created_at IS NOT NULL
+      ),
+      activity_counts AS (
+        SELECT
+          dp.period,
+          COALESCE(COUNT(DISTINCT c.id), 0)::int AS cards_created,
+          COALESCE(COUNT(DISTINCT col.id), 0)::int AS collections_created,
+          COALESCE(COUNT(DISTINCT con.id), 0)::int AS connections_created,
+          COALESCE(COUNT(DISTINCT f.follower_id || '-' || f.target_id || '-' || f.target_type), 0)::int AS follows_created
+        FROM date_periods dp
+        LEFT JOIN ${cards} c ON date_trunc(${interval}, c.created_at) = dp.period AND c.type = 'URL'
+        LEFT JOIN ${collections} col ON date_trunc(${interval}, col.created_at) = dp.period
+        LEFT JOIN ${connections} con ON date_trunc(${interval}, con.created_at) = dp.period
+        LEFT JOIN ${follows} f ON date_trunc(${interval}, f.created_at) = dp.period
+        GROUP BY dp.period
+      )
+      SELECT
+        period::text AS date,
+        cards_created,
+        collections_created,
+        connections_created,
+        follows_created,
+        (cards_created + collections_created + connections_created + follows_created) AS total_actions
+      FROM activity_counts
+      ORDER BY period DESC
+      LIMIT ${limit}
+    `;
+
+    const result = await this.db.execute(activityQuery);
+
+    // Calculate totals
+    let totals = {
+      cardsCreated: 0,
+      collectionsCreated: 0,
+      connectionsCreated: 0,
+      followsCreated: 0,
+      totalActions: 0,
+    };
+
+    const dataPoints: DailyActivityDataPoint[] = result
+      .map((row: any) => {
+        const point = {
+          date: row.date,
+          cardsCreated: row.cards_created || 0,
+          collectionsCreated: row.collections_created || 0,
+          connectionsCreated: row.connections_created || 0,
+          followsCreated: row.follows_created || 0,
+          totalActions: row.total_actions || 0,
+        };
+
+        // Accumulate totals
+        totals.cardsCreated += point.cardsCreated;
+        totals.collectionsCreated += point.collectionsCreated;
+        totals.connectionsCreated += point.connectionsCreated;
+        totals.followsCreated += point.followsCreated;
+        totals.totalActions += point.totalActions;
+
+        return point;
+      })
+      .reverse(); // Reverse to get chronological order
+
+    // Determine the period range
+    const periodStart =
+      dataPoints.length > 0 && dataPoints[0]
+        ? dataPoints[0].date
+        : new Date().toISOString();
+    const lastDataPoint =
+      dataPoints.length > 0 ? dataPoints[dataPoints.length - 1] : undefined;
+    const periodEnd = lastDataPoint
+      ? lastDataPoint.date
+      : new Date().toISOString();
+
+    return {
+      dataPoints,
+      totals,
+      periodStart,
+      periodEnd,
+    };
+  }
 }
