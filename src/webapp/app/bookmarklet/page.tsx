@@ -17,7 +17,6 @@ import {
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 
-
 export default function BookmarkletPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 

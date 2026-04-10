@@ -24,7 +24,6 @@ import { FiPlus } from 'react-icons/fi';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 
-
 interface Props {
   rkey: string;
   handle: string;

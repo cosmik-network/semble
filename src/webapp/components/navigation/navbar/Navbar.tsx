@@ -32,7 +32,6 @@ import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
 import Composer from '@/features/composer/components/Composer';
 
-
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();

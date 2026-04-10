@@ -3,7 +3,6 @@ import { Stack, Anchor, Title, Text, Spoiler } from '@mantine/core';
 
 import UrlTypeBadge from '../urlTypeBadge/UrlTypeBadge';
 
-
 interface Props {
   url: string;
 }

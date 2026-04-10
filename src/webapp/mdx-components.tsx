@@ -1,7 +1,6 @@
 import { Title, Text, List, ListItem, Anchor } from '@mantine/core';
 import type { MDXComponents } from 'mdx/types';
 
-
 const components: MDXComponents = {
   h1: ({ children }) => <Title order={1}>{children}</Title>,
   h2: ({ children }) => <Title order={2}>{children}</Title>,

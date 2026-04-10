@@ -14,7 +14,6 @@ import {
   Text,
 } from '@mantine/core';
 
-
 interface Props {
   embed: AppBskyEmbedExternal.View;
 }

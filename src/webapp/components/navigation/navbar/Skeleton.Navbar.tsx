@@ -15,7 +15,6 @@ import {
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 
-
 export default function NavbarSkeleton() {
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>

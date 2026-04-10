@@ -6,7 +6,6 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { profileKeys } from '../../lib/profileKeys';
 import { getProfile } from '../../lib/dal';
 
-
 interface Props {
   handle: string;
   initialFollowerCount: number;
@@ -27,10 +26,7 @@ export default function ProfileFollowStats(props: Props) {
 
   return (
     <Group gap="sm">
-      <Anchor
-        href={`/profile/${props.handle}/network`}
-        underline="never"
-      >
+      <Anchor href={`/profile/${props.handle}/network`} underline="never">
         <Text fw={500} c={'bright'} span>
           {followerCount}
         </Text>

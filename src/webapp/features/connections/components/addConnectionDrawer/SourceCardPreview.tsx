@@ -15,7 +15,6 @@ import { useQuery } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 
-
 function SourceCardPreviewSkeleton() {
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>

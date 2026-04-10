@@ -5,7 +5,6 @@ import { RiArrowRightUpLine } from 'react-icons/ri';
 import { Suspense } from 'react';
 import UrlTypeBadgeContent from './UrlTypeBadgeContent';
 
-
 interface Props {
   url: string;
 }

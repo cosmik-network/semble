@@ -10,7 +10,6 @@ import {
 
 import { getDomain } from '@/lib/utils/link';
 
-
 interface Props {
   url: string;
   imageUrl?: string;

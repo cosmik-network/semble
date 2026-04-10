@@ -17,7 +17,6 @@ import { useState } from 'react';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 
-
 interface Props {
   cardContent: UrlCard['cardContent'];
   uri?: string;

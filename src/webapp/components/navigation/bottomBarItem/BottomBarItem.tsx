@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import { useNavbarContext } from '@/providers/navbar';
 import { useWebHaptics } from 'web-haptics/react';
 
-
 interface Props {
   href: string;
   title?: string;

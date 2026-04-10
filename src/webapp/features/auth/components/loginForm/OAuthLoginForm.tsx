@@ -23,7 +23,6 @@ import { useQuery } from '@tanstack/react-query';
 import { UseFormReturnType } from '@mantine/form';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 
-
 interface LoginFormValues {
   handle: string;
   appPassword: string;
@@ -169,12 +168,7 @@ export default function OAuthLoginForm(props: Props) {
 
             <Text fw={500} fz={'sm'} c={'gray'}>
               {"Don't have an account? "}
-              <Anchor
-                href="/signup"
-                fw={500}
-                fz={'sm'}
-                c={'blue'}
-              >
+              <Anchor href="/signup" fw={500} fz={'sm'} c={'blue'}>
                 Sign up
               </Anchor>
             </Text>

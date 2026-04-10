@@ -12,7 +12,6 @@ import { UrlCard } from '@semble/types';
 
 import { Fragment } from 'react';
 
-
 interface IframeEmbedProps {
   url: string;
   cardContent: UrlCard['cardContent'];

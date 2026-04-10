@@ -17,7 +17,6 @@ import { Metadata } from 'next';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
 
-
 export const metadata: Metadata = {
   title: 'Log in — Semble',
   description: 'Welcome back',

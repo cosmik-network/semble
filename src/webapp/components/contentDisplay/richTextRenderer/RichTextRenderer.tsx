@@ -5,7 +5,6 @@ import { RichText } from '@atproto/api';
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
 import { getDomain } from '@/lib/utils/link';
 
-
 interface Props {
   text: string;
   linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags

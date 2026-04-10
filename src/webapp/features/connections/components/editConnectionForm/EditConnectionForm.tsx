@@ -33,7 +33,6 @@ import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
 import { BiSolidChevronDown } from 'react-icons/bi';
 
-
 interface Props {
   onClose: () => void;
   sourceUrl: string;
