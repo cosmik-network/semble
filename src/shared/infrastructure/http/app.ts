@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { Router } from 'express';
 import * as Sentry from '@sentry/node';
 import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
+import { createStatsRoutes } from '../../../modules/user/infrastructure/http/routes/statsRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
@@ -185,6 +186,13 @@ export const createExpressApp = (
   const testRouter = Router();
   createTestRoutes(testRouter);
 
+  const statsRouter = Router();
+  createStatsRoutes(
+    statsRouter,
+    services.statsApiKeyMiddleware,
+    controllers.getUserStatsController,
+  );
+
   // DID Web endpoint
   app.get('/.well-known/did.json', (req, res) => {
     return res.json({
@@ -216,6 +224,7 @@ export const createExpressApp = (
   app.use('/api/search', searchRouter);
   app.use('/api/notifications', notificationRouter);
   app.use('/api/test', testRouter);
+  app.use('/api/stats', statsRouter);
 
   // Sentry error handler - must be after all routes and before other error middleware
   Sentry.setupExpressErrorHandler(app);

@@ -1,6 +1,7 @@
 // Repositories
 export * from './repositories/DrizzleUserRepository';
 export * from './repositories/DrizzleFollowsRepository';
+export * from './repositories/DrizzleUserStatsRepository';
 
 // Services
 export * from '../../atproto/infrastructure/services/AtProtoOAuthProcessor';

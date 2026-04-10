@@ -24,6 +24,7 @@ import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { StatsApiKeyMiddleware } from '../../../../modules/user/infrastructure/http/middleware/StatsApiKeyMiddleware';
 import { Repositories } from './RepositoryFactory';
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { AppPasswordSessionService } from 'src/modules/atproto/infrastructure/services/AppPasswordSessionService';
@@ -107,6 +108,7 @@ export interface WebAppServices extends SharedServices {
   appPasswordProcessor: IAppPasswordProcessor;
   cardPublisher: ICardPublisher;
   authMiddleware: AuthMiddleware;
+  statsApiKeyMiddleware: StatsApiKeyMiddleware;
 }
 
 // Worker specific services (includes subscribers)
@@ -170,12 +172,17 @@ export class ServiceFactory {
       sharedServices.cookieService,
     );
 
+    const statsApiKeyMiddleware = new StatsApiKeyMiddleware(
+      configService.getStatsConfig().apiKey,
+    );
+
     return {
       ...sharedServices,
       oauthProcessor,
       appPasswordProcessor,
       cardPublisher,
       authMiddleware,
+      statsApiKeyMiddleware,
     };
   }
 

@@ -7,6 +7,14 @@ export async function createTestSchema(db: PostgresJsDatabase) {
 
   // Create tables in dependency order using raw SQL with proper column names
   const tableCreationQueries = [
+    // Users table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      handle TEXT,
+      linked_at TIMESTAMP WITH TIME ZONE NOT NULL,
+      last_login_at TIMESTAMP WITH TIME ZONE NOT NULL
+    )`,
+
     // Published records table (no dependencies)
     sql`CREATE TABLE IF NOT EXISTS published_records (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

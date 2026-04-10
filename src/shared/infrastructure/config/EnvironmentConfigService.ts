@@ -71,6 +71,9 @@ export interface EnvironmentConfig {
     dsn: string;
     environment: string;
   };
+  stats: {
+    apiKey: string | undefined;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -179,6 +182,9 @@ export class EnvironmentConfigService {
         dsn: process.env.SENTRY_DSN || '',
         environment: environment,
       },
+      stats: {
+        apiKey: process.env.STATS_API_KEY,
+      },
     };
 
     this.applyEnvironmentSpecificConfig();
@@ -257,6 +263,10 @@ export class EnvironmentConfigService {
 
   public getSentryConfig() {
     return this.config.sentry;
+  }
+
+  public getStatsConfig() {
+    return this.config.stats;
   }
 
   public getRuntimeConfig() {

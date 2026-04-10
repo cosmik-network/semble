@@ -51,12 +51,15 @@ import { InMemorySyncStatusRepository } from '../../../../modules/sync/tests/inf
 import { IFollowsRepository } from '../../../../modules/user/domain/repositories/IFollowsRepository';
 import { DrizzleFollowsRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleFollowsRepository';
 import { InMemoryFollowsRepository } from '../../../../modules/user/tests/infrastructure/InMemoryFollowsRepository';
+import { IUserStatsRepository } from '../../../../modules/user/domain/IUserStatsRepository';
+import { DrizzleUserStatsRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserStatsRepository';
 import { IGraphQueryRepository } from '../../../../modules/cards/domain/IGraphQueryRepository';
 import { DrizzleGraphQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleGraphQueryRepository';
 import { InMemoryGraphQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryGraphQueryRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
+  userStatsRepository: IUserStatsRepository;
   tokenRepository: ITokenRepository;
   cardRepository: ICardRepository;
   cardQueryRepository: ICardQueryRepository;
@@ -119,8 +122,16 @@ export class RepositoryFactory {
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
 
+      // For mock repos, we'll use a basic implementation of stats repository
+      // Since it's read-only stats, we can create a simple instance
+      const db = DatabaseFactory.createConnection(
+        configService.getDatabaseConfig(),
+      );
+      const userStatsRepository = new DrizzleUserStatsRepository(db);
+
       return {
         userRepository,
+        userStatsRepository,
         tokenRepository,
         cardRepository,
         cardQueryRepository,
@@ -149,6 +160,7 @@ export class RepositoryFactory {
 
     return {
       userRepository: new DrizzleUserRepository(db),
+      userStatsRepository: new DrizzleUserStatsRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
       cardRepository: new DrizzleCardRepository(db),
       cardQueryRepository: new DrizzleCardQueryRepository(db),
