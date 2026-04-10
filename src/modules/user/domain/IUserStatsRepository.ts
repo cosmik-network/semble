@@ -85,8 +85,60 @@ export interface DailyActivityStatsOptions {
   limit: number; // Number of intervals to return
 }
 
+// Content Breakdown Statistics DTOs
+
+export interface ContentBreakdownDataPoint {
+  date: string; // ISO date string
+
+  // URL Cards breakdown
+  urlCards: {
+    total: number;
+    byType: Record<string, number>; // e.g., { "article": 50, "video": 30, "tool": 20 }
+  };
+
+  // Collections breakdown
+  collections: {
+    total: number;
+    byAccessType: Record<string, number>; // e.g., { "OPEN": 80, "CLOSED": 45 }
+  };
+
+  // Connections breakdown
+  connections: {
+    total: number;
+    byType: Record<string, number>; // e.g., { "SUPPORTS": 30, "OPPOSES": 20, null: 15 }
+  };
+}
+
+export interface ContentBreakdownStatsDTO {
+  dataPoints: ContentBreakdownDataPoint[];
+
+  // Current totals (latest snapshot)
+  currentTotals: {
+    urlCards: {
+      total: number;
+      byType: Record<string, number>;
+    };
+    collections: {
+      total: number;
+      byAccessType: Record<string, number>;
+    };
+    connections: {
+      total: number;
+      byType: Record<string, number>;
+    };
+  };
+
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface ContentBreakdownStatsOptions {
+  interval: TimeInterval; // day, week, month
+  limit: number; // Number of intervals to return
+}
+
 // Future stat types can be added here
-export type UserStatType = 'growth' | 'activity' | 'engagement';
+export type UserStatType = 'growth' | 'activity' | 'engagement' | 'breakdown';
 
 /**
  * Repository interface for user statistics and analytics queries
@@ -116,4 +168,12 @@ export interface IUserStatsRepository {
   getDailyActivityStats(
     options: DailyActivityStatsOptions,
   ): Promise<DailyActivityStatsDTO>;
+
+  /**
+   * Get content breakdown statistics
+   * Returns cumulative content totals broken down by subtypes over time
+   */
+  getContentBreakdownStats(
+    options: ContentBreakdownStatsOptions,
+  ): Promise<ContentBreakdownStatsDTO>;
 }

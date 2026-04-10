@@ -11,6 +11,9 @@ import {
   DailyActivityStatsDTO,
   DailyActivityStatsOptions,
   DailyActivityDataPoint,
+  ContentBreakdownStatsDTO,
+  ContentBreakdownStatsOptions,
+  ContentBreakdownDataPoint,
 } from '../../domain/IUserStatsRepository';
 import { users } from './schema/user.sql';
 import { cards } from '../../../cards/infrastructure/repositories/schema/card.sql';
@@ -314,6 +317,191 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
     return {
       dataPoints,
       totals,
+      periodStart,
+      periodEnd,
+    };
+  }
+
+  async getContentBreakdownStats(
+    options: ContentBreakdownStatsOptions,
+  ): Promise<ContentBreakdownStatsDTO> {
+    const { interval, limit } = options;
+
+    // Query for URL cards breakdown by type over time
+    const urlCardsQuery = sql`
+      WITH periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM ${cards}
+        WHERE type = 'URL' AND created_at IS NOT NULL
+      ),
+      url_card_counts AS (
+        SELECT
+          p.period,
+          COALESCE(c.url_type, 'unspecified') AS url_type,
+          COUNT(c.id) AS count
+        FROM periods p
+        CROSS JOIN LATERAL (
+          SELECT * FROM ${cards}
+          WHERE type = 'URL'
+            AND created_at <= p.period + interval '1 ${interval}'
+        ) c
+        GROUP BY p.period, c.url_type
+      ),
+      url_card_aggregated AS (
+        SELECT
+          period::text AS date,
+          jsonb_object_agg(url_type, count) AS by_type,
+          SUM(count)::int AS total
+        FROM url_card_counts
+        GROUP BY period
+        ORDER BY period DESC
+        LIMIT ${limit}
+      )
+      SELECT * FROM url_card_aggregated
+    `;
+
+    // Query for collections breakdown by access type over time
+    const collectionsQuery = sql`
+      WITH periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM ${collections}
+        WHERE created_at IS NOT NULL
+      ),
+      collection_counts AS (
+        SELECT
+          p.period,
+          col.access_type,
+          COUNT(col.id) AS count
+        FROM periods p
+        CROSS JOIN LATERAL (
+          SELECT * FROM ${collections}
+          WHERE created_at <= p.period + interval '1 ${interval}'
+        ) col
+        GROUP BY p.period, col.access_type
+      ),
+      collection_aggregated AS (
+        SELECT
+          period::text AS date,
+          jsonb_object_agg(access_type, count) AS by_access_type,
+          SUM(count)::int AS total
+        FROM collection_counts
+        GROUP BY period
+        ORDER BY period DESC
+        LIMIT ${limit}
+      )
+      SELECT * FROM collection_aggregated
+    `;
+
+    // Query for connections breakdown by type over time
+    const connectionsQuery = sql`
+      WITH periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM ${connections}
+        WHERE created_at IS NOT NULL
+      ),
+      connection_counts AS (
+        SELECT
+          p.period,
+          COALESCE(con.connection_type, 'unspecified') AS connection_type,
+          COUNT(con.id) AS count
+        FROM periods p
+        CROSS JOIN LATERAL (
+          SELECT * FROM ${connections}
+          WHERE created_at <= p.period + interval '1 ${interval}'
+        ) con
+        GROUP BY p.period, con.connection_type
+      ),
+      connection_aggregated AS (
+        SELECT
+          period::text AS date,
+          jsonb_object_agg(connection_type, count) AS by_type,
+          SUM(count)::int AS total
+        FROM connection_counts
+        GROUP BY period
+        ORDER BY period DESC
+        LIMIT ${limit}
+      )
+      SELECT * FROM connection_aggregated
+    `;
+
+    // Execute all queries in parallel
+    const [urlCardsResult, collectionsResult, connectionsResult] =
+      await Promise.all([
+        this.db.execute(urlCardsQuery),
+        this.db.execute(collectionsQuery),
+        this.db.execute(connectionsQuery),
+      ]);
+
+    // Create maps for easy lookup
+    const urlCardsMap = new Map(
+      urlCardsResult.map((row: any) => [row.date, row]),
+    );
+    const collectionsMap = new Map(
+      collectionsResult.map((row: any) => [row.date, row]),
+    );
+    const connectionsMap = new Map(
+      connectionsResult.map((row: any) => [row.date, row]),
+    );
+
+    // Get all unique dates and sort them
+    const allDates = new Set([
+      ...urlCardsMap.keys(),
+      ...collectionsMap.keys(),
+      ...connectionsMap.keys(),
+    ]);
+    const sortedDates = Array.from(allDates).sort();
+
+    // Build data points
+    const dataPoints: ContentBreakdownDataPoint[] = sortedDates.map((date) => {
+      const urlCardData = urlCardsMap.get(date);
+      const collectionData = collectionsMap.get(date);
+      const connectionData = connectionsMap.get(date);
+
+      return {
+        date,
+        urlCards: {
+          total: urlCardData?.total || 0,
+          byType: urlCardData?.by_type || {},
+        },
+        collections: {
+          total: collectionData?.total || 0,
+          byAccessType: collectionData?.by_access_type || {},
+        },
+        connections: {
+          total: connectionData?.total || 0,
+          byType: connectionData?.by_type || {},
+        },
+      };
+    });
+
+    // Get current totals (the most recent data point or fetch separately if needed)
+    const currentUrlCards = urlCardsResult[0] as any;
+    const currentCollections = collectionsResult[0] as any;
+    const currentConnections = connectionsResult[0] as any;
+
+    const currentTotals = {
+      urlCards: {
+        total: currentUrlCards?.total || 0,
+        byType: currentUrlCards?.by_type || {},
+      },
+      collections: {
+        total: currentCollections?.total || 0,
+        byAccessType: currentCollections?.by_access_type || {},
+      },
+      connections: {
+        total: currentConnections?.total || 0,
+        byType: currentConnections?.by_type || {},
+      },
+    };
+
+    // Determine period range
+    const periodStart = sortedDates[0] || new Date().toISOString();
+    const periodEnd =
+      sortedDates[sortedDates.length - 1] || new Date().toISOString();
+
+    return {
+      dataPoints,
+      currentTotals,
       periodStart,
       periodEnd,
     };

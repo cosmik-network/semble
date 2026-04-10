@@ -5,6 +5,7 @@ import {
   UserGrowthStatsDTO,
   UserEngagementStatsDTO,
   DailyActivityStatsDTO,
+  ContentBreakdownStatsDTO,
   UserStatType,
   TimeInterval,
 } from '../../../domain/IUserStatsRepository';
@@ -20,7 +21,8 @@ export interface GetUserStatsQuery {
 export type GetUserStatsResult =
   | UserGrowthStatsDTO
   | UserEngagementStatsDTO
-  | DailyActivityStatsDTO; // Union type for different stat types
+  | DailyActivityStatsDTO
+  | ContentBreakdownStatsDTO; // Union type for different stat types
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -51,6 +53,9 @@ export class GetUserStatsUseCase
 
         case 'activity':
           return await this.handleActivityStats(query);
+
+        case 'breakdown':
+          return await this.handleBreakdownStats(query);
 
         default:
           return err(
@@ -159,6 +164,38 @@ export class GetUserStatsUseCase
       return err(
         new Error(
           `Failed to retrieve activity stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  private async handleBreakdownStats(
+    query: GetUserStatsQuery,
+  ): Promise<Result<ContentBreakdownStatsDTO>> {
+    // Apply defaults
+    const interval = query.interval || 'day';
+    const limit = query.limit || 30;
+
+    // Validate parameters
+    if (!['day', 'week', 'month'].includes(interval)) {
+      return err(new ValidationError(`Invalid interval: ${interval}`));
+    }
+
+    if (limit < 1 || limit > 365) {
+      return err(new ValidationError('Limit must be between 1 and 365'));
+    }
+
+    try {
+      const stats = await this.userStatsRepository.getContentBreakdownStats({
+        interval,
+        limit,
+      });
+
+      return ok(stats);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to retrieve breakdown stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }
