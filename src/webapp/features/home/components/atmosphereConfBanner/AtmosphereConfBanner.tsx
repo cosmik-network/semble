@@ -1,7 +1,7 @@
-import { Button, Card, Group, Text, Stack, Image } from '@mantine/core';
+import { Card, Group, Text, Stack, Image } from '@mantine/core';
 import AtmosphereConfBannerImage from '@/assets/atmosphereConf-banner.webp';
 import Goosetopher from '@/assets/goosetopher.webp';
-import Link from 'next/link';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function AtmosphereConfBanner() {
   return (
@@ -34,15 +34,14 @@ export default function AtmosphereConfBanner() {
               collection's name or description
             </Text>
           </Stack>
-          <Button
-            component={Link}
+          <LinkButton
             href="/explore/atmosphereConf-collections"
             size="md"
             variant="white"
             color={'blue.8'}
           >
             View Collections
-          </Button>
+          </LinkButton>
         </Stack>
         <Image
           src={Goosetopher.src}

@@ -16,7 +16,7 @@ import {
   CopyButton,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
+
 
 export default function BookmarkletPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
@@ -39,7 +39,7 @@ export default function BookmarkletPage() {
       <Stack gap="xl">
         <Stack gap="xs" align="center">
           <Stack align="center" gap={'xs'}>
-            <Anchor component={Link} href={'/'}>
+            <Anchor href={'/'}>
               <Image
                 src={SembleLogo.src}
                 alt="Semble logo"

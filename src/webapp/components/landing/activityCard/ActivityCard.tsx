@@ -2,14 +2,14 @@
 
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Card, Group, Stack, Text } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
 import { MouseEvent, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { sanitizeText } from '@/lib/utils/text';
 import { getRelativeTime } from '@/lib/utils/time';
 import UrlCardContentSkeleton from '@/features/cards/components/urlCardContent/Skeleton.UrlCardContent';
+import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
 
 interface Props {
   id: string;
@@ -50,8 +50,7 @@ export default function ActivityCard(props: Props) {
             align="center"
           >
             <Group gap={'xs'}>
-              <Avatar
-                component={Link}
+              <LinkAvatar
                 href={`/profile/${props.cardAuthor.handle}`}
                 src={props.cardAuthor.avatarUrl?.replace(
                   'avatar',
@@ -60,14 +59,13 @@ export default function ActivityCard(props: Props) {
                 alt={`${props.cardAuthor.name}'s avatar`}
                 size={'sm'}
               />
-              <Text
-                component={Link}
+              <LinkText
                 href={`/profile/${props.cardAuthor.handle}`}
                 fw={600}
                 c={'bright'}
               >
                 {sanitizeText(props.cardAuthor.name)}
-              </Text>
+              </LinkText>
             </Group>
             <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
               {time}

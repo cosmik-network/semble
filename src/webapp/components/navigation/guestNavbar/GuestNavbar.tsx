@@ -9,20 +9,19 @@ import {
   Image,
   Box,
   Badge,
-  Button,
   Text,
 } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 import { BiRightArrowAlt, BiSearch } from 'react-icons/bi';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function GuestNavbar() {
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
-        <Anchor component={Link} href={'/home'} mx={2}>
+        <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
             <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
             <Badge size="xs">Alpha</Badge>
@@ -40,17 +39,14 @@ export default function GuestNavbar() {
               A social knowledge network for research
             </Text>
             <Group grow>
-              <Button component={Link} href="/signup">
-                Sign up
-              </Button>
-              <Button
-                component={Link}
+              <LinkButton href="/signup">Sign up</LinkButton>
+              <LinkButton
                 href="/login"
                 color="var(--mantine-color-dark-filled)"
                 rightSection={<BiRightArrowAlt size={22} />}
               >
                 Log in
-              </Button>
+              </LinkButton>
             </Group>
 
             <Stack gap={5}>

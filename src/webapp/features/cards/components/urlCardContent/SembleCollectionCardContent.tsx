@@ -3,11 +3,10 @@
 import CollectionCardPreview from '@/features/collections/components/collectionCardPreview/CollectionCardPreview';
 import CollectionCardPreviewSkeleton from '@/features/collections/components/collectionCardPreview/Skeleton.CollectionCardPreview';
 import useCollection from '@/features/collections/lib/queries/useCollection';
-import { Avatar, Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
+import { Group, Stack, Text } from '@mantine/core';
 import { CollectionAccessType } from '@semble/types';
-import Link from 'next/link';
 import { Suspense } from 'react';
-import { FaSeedling } from 'react-icons/fa6';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   rkey: string;
@@ -41,8 +40,7 @@ export default function SembleCollectionCardContent(props: Props) {
             )}
           </Group>
 
-          <Avatar
-            component={Link}
+          <LinkAvatar
             href={`/profile/${collection.author.handle}`}
             src={collection.author.avatarUrl?.replace(
               'avatar',

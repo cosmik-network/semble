@@ -1,5 +1,4 @@
-import { Container, Group, Stack, Title, Text, Button } from '@mantine/core';
-import Link from 'next/link';
+import { Container, Group, Stack, Title, Text } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import DiscoverOnSemble from '../../components/discoverOnSemble/DiscoverOnSemble';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -10,6 +9,7 @@ import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton
 import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
 import AtmosphereConfBanner from '../../components/atmosphereConfBanner/AtmosphereConfBanner';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function HomeContainer() {
   return (
@@ -28,14 +28,9 @@ export default function HomeContainer() {
                       <MdOutlineEmojiNature size={22} />
                       <Title order={2}>Discover on Semble</Title>
                     </Group>
-                    <Button
-                      variant="light"
-                      component={Link}
-                      color="blue"
-                      href={'/explore'}
-                    >
+                    <LinkButton variant="light" color="blue" href={'/explore'}>
                       View all
-                    </Button>
+                    </LinkButton>
                   </Group>
                   <Stack align="center" gap="xs">
                     <Text fz="h3" fw={600} c="gray">

@@ -1,7 +1,7 @@
-import { Avatar, AvatarGroup, Group, Text, Anchor } from '@mantine/core';
-import Link from 'next/link';
+import { AvatarGroup, Group, Text, Anchor } from '@mantine/core';
 import { getLibrariesForUrl } from '../../lib/dal';
 import { sanitizeText } from '@/lib/utils/text';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   url: string;
@@ -22,9 +22,8 @@ export default async function UrlAddedBySummary(props: Props) {
     <Group gap={'xs'}>
       <AvatarGroup>
         {shownUsers.map((p, i) => (
-          <Avatar
+          <LinkAvatar
             key={i}
-            component={Link}
             href={`/profile/${p.user.handle}`}
             src={p.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={p.user.handle}
@@ -39,7 +38,6 @@ export default async function UrlAddedBySummary(props: Props) {
         {shownUsers.map((p, i) => (
           <Anchor
             key={p.user.handle}
-            component={Link}
             href={`/profile/${p.user.handle}`}
             fz={'sm'}
             fw={600}

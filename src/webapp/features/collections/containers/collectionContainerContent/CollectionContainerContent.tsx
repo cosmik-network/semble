@@ -19,10 +19,11 @@ import {
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
-import Link from 'next/link';
+
 import { FiPlus } from 'react-icons/fi';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
+
 
 interface Props {
   rkey: string;
@@ -141,7 +142,7 @@ export default function CollectionContainerContent(props: Props) {
               </Button>
               <Text ta={'center'} fw={500} c={'gray'}>
                 Need inspiration?{' '}
-                <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
+                <Anchor href={'/explore'} fw={500} c={'grape'}>
                   Explore cards from the community
                 </Anchor>
               </Text>

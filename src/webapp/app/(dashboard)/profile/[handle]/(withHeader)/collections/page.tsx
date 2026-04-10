@@ -1,6 +1,5 @@
 import CollectionsContainer from '@/features/collections/containers/collectionsContainer/CollectionsContainer';
-import { Group, Button, Container } from '@mantine/core';
-import Link from 'next/link';
+import { Group, Container } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import {
   CollectionFiltersRoot,
@@ -9,6 +8,7 @@ import {
 } from '@/features/collections/components/collectionFilters/CollectionFilters';
 import { Fragment } from 'react';
 import { CollectionSortField } from '@semble/types';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -32,15 +32,14 @@ export default async function Page(props: Props) {
             <CollectionFiltersSortSelect />
             <CollectionFiltersViewToggle />
           </CollectionFiltersRoot>
-          <Button
-            component={Link}
+          <LinkButton
             href={`/search/collections?handle=${handle}`}
             variant="light"
             color="gray"
             rightSection={<IoSearch />}
           >
             Search
-          </Button>
+          </LinkButton>
         </Group>
       </Container>
       <CollectionsContainer handle={handle} key={sort} />

@@ -13,9 +13,10 @@ import {
   PopoverDropdown,
 } from '@mantine/core';
 import { Metadata } from 'next';
-import Link from 'next/link';
+
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
+
 
 export const metadata: Metadata = {
   title: 'Log in — Semble',
@@ -82,7 +83,6 @@ export default async function Layout(props: Props) {
             <Text fw={500} fz={'sm'} ta={'center'} c={'dark.1'}>
               By continuing, you agree to our{' '}
               <Anchor
-                component={Link}
                 href={'/privacy-policy'}
                 c="dark.1"
                 fw={600}

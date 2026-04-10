@@ -21,8 +21,8 @@ import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
-import Link from 'next/link';
 import { IoSearch } from 'react-icons/io5';
+import { LinkActionIcon } from '@/components/link/MantineLink';
 
 interface Props {
   handle: string;
@@ -69,8 +69,7 @@ export default async function ProfileHeader(props: Props) {
                     initialIsFollowing={profile.isFollowing}
                   />
                 )}
-                <ActionIcon
-                  component={Link}
+                <LinkActionIcon
                   href={`/search/cards?handle=${props.handle}`}
                   variant="light"
                   color="gray"
@@ -78,7 +77,7 @@ export default async function ProfileHeader(props: Props) {
                   radius={'xl'}
                 >
                   <IoSearch />
-                </ActionIcon>
+                </LinkActionIcon>
               </Group>
             </Group>
 

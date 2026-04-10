@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import classes from './global.module.css';
 
 import {
@@ -18,6 +19,7 @@ import {
   Notification,
   Menu,
   SegmentedControl,
+  Anchor,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -108,6 +110,11 @@ export const theme = createTheme({
       defaultProps: {
         fz: 'md',
         fw: 600,
+      },
+    }),
+    Anchor: Anchor.extend({
+      defaultProps: {
+        component: Link,
       },
     }),
     CheckboxIndicator: CheckboxIndicator.extend({

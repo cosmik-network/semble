@@ -1,9 +1,8 @@
 'use client';
 
 import { useNavbarContext } from '@/providers/navbar';
-import { NavLink } from '@mantine/core';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LinkNavLink } from '@/components/link/MantineLink';
 
 interface Props {
   href: string;
@@ -17,8 +16,7 @@ export default function NavItem(props: Props) {
   const isActive = pathname === props.href;
 
   return (
-    <NavLink
-      component={Link}
+    <LinkNavLink
       href={props.href}
       color="gray"
       c={'gray'}

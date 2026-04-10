@@ -15,11 +15,11 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { FiPlus } from 'react-icons/fi';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function RecentCards() {
   const { desktopOpened } = useNavbarContext();
@@ -36,14 +36,13 @@ export default function RecentCards() {
           <FaRegNoteSticky size={22} />
           <Title order={2}>Cards</Title>
         </Group>
-        <Button
+        <LinkButton
           variant="light"
-          component={Link}
           color="blue"
           href={`/profile/${profile.handle}/cards`}
         >
           View all
-        </Button>
+        </LinkButton>
       </Group>
 
       {cards.length > 0 ? (
@@ -99,7 +98,7 @@ export default function RecentCards() {
 
             <Text ta={'center'} fw={500} c={'gray'}>
               Need inspiration?{' '}
-              <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
+              <Anchor href={'/explore'} fw={500} c={'grape'}>
                 Explore cards from the community
               </Anchor>
             </Text>

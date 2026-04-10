@@ -8,7 +8,6 @@ import {
   Image,
   Popover,
 } from '@mantine/core';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
@@ -20,6 +19,7 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { BiLink } from 'react-icons/bi';
+import { LinkButton } from '@/components/link/MantineLink';
 
 const sourceOptions = [
   { value: null, label: 'All', icon: null },
@@ -353,23 +353,21 @@ export default function FeedControls() {
         </Menu>
 
         <Group gap={'xs'}>
-          <Button
-            component={Link}
+          <LinkButton
             href={'/explore/open-collections'}
             color="green"
             variant="light"
           >
             <FaSeedling />
-          </Button>
-          <Button
-            component={Link}
+          </LinkButton>
+          <LinkButton
             href={'/explore/atmosphereConf-collections'}
             color="#4098FF"
             variant="light"
             fz={'md'}
           >
             🪿
-          </Button>
+          </LinkButton>
         </Group>
       </Group>
     </ScrollAreaAutosize>

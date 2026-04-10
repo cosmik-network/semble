@@ -9,10 +9,7 @@ import {
   Card,
   Badge,
   Box,
-  ActionIcon,
 } from '@mantine/core';
-import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 import { BiCollection, BiLink } from 'react-icons/bi';
@@ -22,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import SembleHeaderBackground from '@/features/semble/containers/sembleContainer/SembleHeaderBackground';
 import UrlEmbedContainerSkeleton from './skeleton.UrlEmbedContainer';
+import { LinkActionIcon } from '@/components/link/MantineLink';
+import SembleLogo from '@/assets/semble-logo.svg';
 
 interface Props {
   url: string;
@@ -64,16 +63,15 @@ export default function UrlEmbedContainer(props: Props) {
     <Container p={0} fluid h="100%" style={{ overflow: 'hidden' }}>
       <SembleHeaderBackground height={40}>
         <Box mx={'xs'} my={6}>
-          <ActionIcon
+          <LinkActionIcon
             size="compact-xs"
             variant="transparent"
             radius={'xs'}
-            component={Link}
             href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
             target="_blank"
           >
             <Image src={SembleLogo.src} h={24} />
-          </ActionIcon>
+          </LinkActionIcon>
         </Box>
       </SembleHeaderBackground>
       <Stack justify="space-between" h="100%">

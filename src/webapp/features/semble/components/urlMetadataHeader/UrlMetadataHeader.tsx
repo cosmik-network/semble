@@ -1,7 +1,8 @@
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { Stack, Anchor, Title, Text, Spoiler } from '@mantine/core';
-import Link from 'next/link';
+
 import UrlTypeBadge from '../urlTypeBadge/UrlTypeBadge';
+
 
 interface Props {
   url: string;
@@ -16,7 +17,6 @@ export default async function UrlMetadataHeader(props: Props) {
         <UrlTypeBadge url={props.url} />
         {metadata.title && (
           <Anchor
-            component={Link}
             href={metadata.url}
             target="_blank"
             c={'inherit'}

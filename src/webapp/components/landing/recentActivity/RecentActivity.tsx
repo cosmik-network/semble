@@ -1,18 +1,11 @@
 import { getUrlCards } from '@/features/cards/lib/dal';
-import {
-  Button,
-  Card,
-  Group,
-  ScrollAreaAutosize,
-  Stack,
-  Text,
-} from '@mantine/core';
-import Link from 'next/link';
+import { Card, Group, ScrollAreaAutosize, Stack, Text } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import ActivityCard from '../activityCard/ActivityCard';
 import ActivityCardSkeleton from '../activityCard/Skeleton.ActivityCard';
 import { Suspense } from 'react';
 import { unstable_cache } from 'next/cache';
+import { LinkButton } from '@/components/link/MantineLink';
 
 const getRecentActivity = unstable_cache(
   async () => {
@@ -57,15 +50,14 @@ export default async function RecentActivity() {
           <Text fz="xl" fw={600}>
             Highlights from our community
           </Text>
-          <Button
-            component={Link}
+          <LinkButton
             href="/explore"
             variant="light"
             color="gray"
             rightSection={<BiRightArrowAlt size={20} />}
           >
             Explore
-          </Button>
+          </LinkButton>
         </Group>
 
         <ScrollAreaAutosize type="auto" mah={{ base: 250, xs: 400 }}>

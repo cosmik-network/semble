@@ -1,12 +1,11 @@
 import type { ConnectionWithSourceAndTarget, User } from '@semble/types';
-import Link from 'next/link';
+
 import {
   Stack,
   Card,
   Group,
   Text,
   Box,
-  Avatar,
   ActionIcon,
   Menu,
   Spoiler,
@@ -19,6 +18,7 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 import ConnectionCard from '../connectionCard/ConnectionCard';
 import styles from './ProfileConnectionItem.module.css';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
+import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -46,8 +46,7 @@ export default function ProfileConnectionItem(props: Props) {
             <Stack gap={'xs'}>
               <Group justify="space-between" align="center" wrap="nowrap">
                 <Group gap={'xs'} wrap="nowrap" miw={0}>
-                  <Avatar
-                    component={Link}
+                  <LinkAvatar
                     href={`/profile/${props.curator.handle}`}
                     src={props.curator.avatarUrl?.replace(
                       'avatar',
@@ -57,15 +56,14 @@ export default function ProfileConnectionItem(props: Props) {
                     size={'sm'}
                   />
                   <Group gap={5} wrap="nowrap" miw={0}>
-                    <Text
+                    <LinkText
                       c={'bright'}
                       fw={600}
-                      component={Link}
                       href={`/profile/${props.curator.handle}`}
                       truncate
                     >
                       {props.curator.name}
-                    </Text>
+                    </LinkText>
                     {props.activityStatusText && (
                       <Text fw={500} span>
                         {' '}

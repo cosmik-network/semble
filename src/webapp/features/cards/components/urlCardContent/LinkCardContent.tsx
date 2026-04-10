@@ -12,10 +12,11 @@ import {
   Image,
 } from '@mantine/core';
 import { UrlCard } from '@semble/types';
-import Link from 'next/link';
+
 import { useState } from 'react';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+
 
 interface Props {
   cardContent: UrlCard['cardContent'];
@@ -36,7 +37,6 @@ export default function LinkCardContent(props: Props) {
           <Tooltip label={props.cardContent.url}>
             <Anchor
               onClick={(e) => e.stopPropagation()}
-              component={Link}
               href={props.cardContent.url}
               target="_blank"
               c={'gray'}

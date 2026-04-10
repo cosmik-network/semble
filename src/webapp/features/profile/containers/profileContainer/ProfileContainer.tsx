@@ -11,9 +11,7 @@ import {
   Stack,
   Title,
   Grid,
-  Button,
 } from '@mantine/core';
-import Link from 'next/link';
 import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -21,6 +19,7 @@ import { useNavbarContext } from '@/providers/navbar';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { usePathname } from 'next/navigation';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   handle: string;
@@ -52,14 +51,13 @@ export default function ProfileContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Cards
               </Title>
-              <Button
+              <LinkButton
                 variant="light"
-                component={Link}
                 color="blue"
                 href={`/profile/${props.handle}/cards`}
               >
                 View all
-              </Button>
+              </LinkButton>
             </Group>
 
             {cards.length > 0 ? (
@@ -106,14 +104,13 @@ export default function ProfileContainer(props: Props) {
               <Title order={2} fz={'h3'}>
                 Collections
               </Title>
-              <Button
+              <LinkButton
                 variant="light"
-                component={Link}
                 color="blue"
                 href={`/profile/${props.handle}/collections`}
               >
                 View all
-              </Button>
+              </LinkButton>
             </Group>
 
             {collections.length > 0 ? (

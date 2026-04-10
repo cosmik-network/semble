@@ -8,14 +8,13 @@ import {
   Badge,
   Text,
   Group,
-  Button,
   Container,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
-import Link from 'next/link';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function Error() {
   return (
@@ -80,19 +79,18 @@ function Content() {
           </Stack>
 
           <Group justify="center" gap="md" mt={'lg'}>
-            <Button component={Link} href="/signup" size="lg">
+            <LinkButton href="/signup" size="lg">
               Sign up
-            </Button>
+            </LinkButton>
 
-            <Button
-              component={Link}
+            <LinkButton
               href="/login"
               size="lg"
               color="var(--mantine-color-dark-filled)"
               rightSection={<BiRightArrowAlt size={22} />}
             >
               Log in
-            </Button>
+            </LinkButton>
           </Group>
         </Stack>
       </Container>

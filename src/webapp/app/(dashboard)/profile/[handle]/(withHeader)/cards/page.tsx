@@ -1,6 +1,5 @@
 import CardsContainer from '@/features/cards/containers/cardsContainer/CardsContainer';
-import { Group, Button, Container } from '@mantine/core';
-import Link from 'next/link';
+import { Group, Container } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import {
   CardFiltersRoot,
@@ -10,6 +9,7 @@ import {
 } from '@/features/cards/components/cardFilters/CardFilters';
 import { CardSortField, UrlType } from '@semble/types';
 import { Fragment } from 'react';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -36,15 +36,14 @@ export default async function Page(props: Props) {
             <CardFiltersViewToggle />
             <CardFiltersTypeFilter />
           </CardFiltersRoot>
-          <Button
-            component={Link}
+          <LinkButton
             href={`/search/cards?handle=${handle}`}
             variant="light"
             color="gray"
             rightSection={<IoSearch />}
           >
             Search
-          </Button>
+          </LinkButton>
         </Group>
       </Container>
       <CardsContainer handle={handle} key={suspenseKey} />

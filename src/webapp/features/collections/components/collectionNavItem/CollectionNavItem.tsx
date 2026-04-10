@@ -1,12 +1,12 @@
 import { useNavbarContext } from '@/providers/navbar';
-import { Badge, NavLink } from '@mantine/core';
-import Link from 'next/link';
+import { Badge } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import styles from './CollectionNavItem.module.css';
 import { isMarginUri } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { CollectionAccessType } from '@semble/types';
 import { abbreviateNumber } from '@/lib/utils/text';
+import { LinkNavLink } from '@/components/link/MantineLink';
 
 interface Props {
   name: string;
@@ -24,8 +24,7 @@ export default function CollectionNavItem(props: Props) {
   const isOpenCollection = props.accessType === CollectionAccessType.OPEN;
 
   return (
-    <NavLink
-      component={Link}
+    <LinkNavLink
       href={props.url}
       label={props.name}
       active={isActive}

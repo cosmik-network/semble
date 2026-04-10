@@ -5,14 +5,12 @@ import {
   BackgroundImage,
   Title,
   Stack,
-  Button,
   Container,
   Box,
   Center,
   Group,
   Badge,
 } from '@mantine/core';
-import Link from 'next/link';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
@@ -28,6 +26,7 @@ import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
 import NavMenu from '@/components/landing/navMenu/NavMenu';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default async function Page() {
   const fadeStyle = {
@@ -82,8 +81,7 @@ function Content() {
         <Container size="xl" p="sm" my="auto">
           <Stack gap="5rem" align="center">
             <Stack gap="xs" align="center" maw={700}>
-              <Button
-                component={Link}
+              <LinkButton
                 href={'https://atmosphereconf.org/event/OD6Gd0A'}
                 size="compact-sm"
                 leftSection={'🪿'}
@@ -93,7 +91,7 @@ function Content() {
                 bg={'blue.0'}
               >
                 Watch our talk at ATmosphereConf!
-              </Button>
+              </LinkButton>
               <AnimatedTitle />
 
               {/* light mode subtitle */}

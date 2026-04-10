@@ -1,11 +1,9 @@
 import {
   Anchor,
-  Avatar,
   Card,
   Group,
   Menu,
   MenuDropdown,
-  MenuItem,
   MenuTarget,
   ScrollArea,
   Spoiler,
@@ -15,11 +13,15 @@ import {
 import { ActivityType, Collection, CollectionAccessType } from '@/api-client';
 import { User } from '@semble/types';
 import { Fragment, ReactNode } from 'react';
-import Link from 'next/link';
 import styles from './FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
+import {
+  LinkAvatar,
+  LinkMenuItem,
+  LinkText,
+} from '@/components/link/MantineLink';
 
 interface Props {
   user: User;
@@ -39,14 +41,13 @@ export default function FeedActivityStatus(props: Props) {
     if (props.activityType === ActivityType.CONNECTION_CREATED) {
       return (
         <Text fw={500}>
-          <Text
-            component={Link}
+          <LinkText
             href={`/profile/${props.user.handle}`}
             fw={600}
             c={'bright'}
           >
             {sanitizeText(props.user.name)}
-          </Text>{' '}
+          </LinkText>{' '}
           <Text span>made a connection</Text>
           <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
             {relativeCreatedDate}
@@ -65,14 +66,9 @@ export default function FeedActivityStatus(props: Props) {
 
     return (
       <Text fw={500}>
-        <Text
-          component={Link}
-          href={`/profile/${props.user.handle}`}
-          fw={600}
-          c={'bright'}
-        >
+        <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
           {sanitizeText(props.user.name)}
-        </Text>{' '}
+        </LinkText>{' '}
         {collections.length === 0 ? (
           <Text span>added to library</Text>
         ) : (
@@ -82,7 +78,6 @@ export default function FeedActivityStatus(props: Props) {
               (collection: Collection, index: number) => (
                 <span key={collection.id}>
                   <Anchor
-                    component={Link}
                     href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
                     c={
                       collection.accessType === CollectionAccessType.OPEN
@@ -114,9 +109,8 @@ export default function FeedActivityStatus(props: Props) {
                 <MenuDropdown maw={380}>
                   <ScrollArea.Autosize mah={150} type="auto">
                     {remainingCollections.map((c) => (
-                      <MenuItem
+                      <LinkMenuItem
                         key={c.id}
-                        component={Link}
                         href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                         target="_blank"
                         c={
@@ -127,7 +121,7 @@ export default function FeedActivityStatus(props: Props) {
                         fw={600}
                       >
                         {c.name}
-                      </MenuItem>
+                      </LinkMenuItem>
                     ))}
                   </ScrollArea.Autosize>
                 </MenuDropdown>
@@ -147,8 +141,7 @@ export default function FeedActivityStatus(props: Props) {
       <Stack gap={'xs'} p={'xs'}>
         <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
           <Group gap={'xs'} wrap="nowrap" align="center">
-            <Avatar
-              component={Link}
+            <LinkAvatar
               href={`/profile/${props.user.handle}`}
               src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
               alt={`${props.user.name}'s avatar`}

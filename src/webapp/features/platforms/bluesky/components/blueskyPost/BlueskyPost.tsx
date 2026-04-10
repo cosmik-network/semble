@@ -2,16 +2,7 @@
 
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import {
-  Group,
-  Stack,
-  Text,
-  Avatar,
-  Box,
-  Image,
-  Anchor,
-  Tooltip,
-} from '@mantine/core';
+import { Group, Stack, Text, Box, Image, Anchor, Tooltip } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
@@ -28,7 +19,7 @@ import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import Link from 'next/link';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   url: string;
@@ -85,8 +76,7 @@ export default function BlueskyPost(props: Props) {
     <Stack justify="space-between" gap="xs">
       <Group gap="xs" justify="space-between" wrap="nowrap" w={'100%'}>
         <Group gap={'xs'} wrap="nowrap">
-          <Avatar
-            component={Link}
+          <LinkAvatar
             href={`https://bsky.app/profile/${post.author.handle}`}
             src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
             alt={`${post.author.handle} avatar`}

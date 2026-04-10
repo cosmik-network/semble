@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Card,
   Group,
   Spoiler,
@@ -11,8 +10,6 @@ import {
   Box,
 } from '@mantine/core';
 import { ConnectionWithSourceAndTarget, UrlView } from '@semble/types';
-import Link from 'next/link';
-import styles from './ConnectionStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
 import { sanitizeText } from '@/lib/utils/text';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +20,8 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 import CardChip from '@/features/cards/components/cardChip/CardChip';
 import { BsTrash2Fill } from 'react-icons/bs';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
+import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
+import styles from './ConnectionStatus.module.css';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget['connection'];
@@ -50,14 +49,9 @@ export default function ConnectionStatus(props: Props) {
     return (
       <Text component="div" fw={500}>
         <Group gap={5} wrap="wrap" align="center">
-          <Text
-            component={Link}
-            href={`/profile/${curator.handle}`}
-            fw={600}
-            c={'bright'}
-          >
+          <LinkText href={`/profile/${curator.handle}`} fw={600} c={'bright'}>
             {sanitizeText(curator.name)}
-          </Text>
+          </LinkText>
           <Text>connected</Text>
           <CardChip
             url={props.source.url}
@@ -81,8 +75,7 @@ export default function ConnectionStatus(props: Props) {
         <Stack gap={'xs'} p={'xs'}>
           {/* Header row: avatar + connection text */}
           <Group gap={'xs'} wrap="nowrap" align="center">
-            <Avatar
-              component={Link}
+            <LinkAvatar
               href={`/profile/${props.connection.curator.handle}`}
               src={props.connection.curator.avatarUrl?.replace(
                 'avatar',

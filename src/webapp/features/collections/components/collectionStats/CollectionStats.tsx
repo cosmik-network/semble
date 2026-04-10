@@ -1,9 +1,9 @@
 'use client';
 
-import { Badge, Skeleton } from '@mantine/core';
+import { Skeleton } from '@mantine/core';
 import { Suspense } from 'react';
 import useCollectionFollowersCount from '@/features/follows/lib/queries/useCollectionFollowersCount';
-import Link from 'next/link';
+import { LinkBadge } from '@/components/link/MantineLink';
 
 interface Props {
   collectionId: string;
@@ -17,8 +17,7 @@ function CollectionStatsContent({ collectionId, handle, rkey }: Props) {
   });
 
   return (
-    <Badge
-      component={Link}
+    <LinkBadge
       href={`/profile/${handle}/collections/${rkey}/followers`}
       variant="light"
       color="gray"
@@ -26,7 +25,7 @@ function CollectionStatsContent({ collectionId, handle, rkey }: Props) {
       style={{ cursor: 'pointer' }}
     >
       {followersCount.count} Follower{followersCount.count !== 1 ? 's' : ''}
-    </Badge>
+    </LinkBadge>
   );
 }
 

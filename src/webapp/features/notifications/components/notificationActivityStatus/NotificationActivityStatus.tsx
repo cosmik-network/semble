@@ -1,11 +1,9 @@
 import {
   Anchor,
-  Avatar,
   Card,
   Group,
   Menu,
   MenuDropdown,
-  MenuItem,
   MenuTarget,
   ScrollArea,
   Stack,
@@ -19,12 +17,16 @@ import {
   CollectionAccessType,
 } from '@/api-client';
 import { Fragment } from 'react';
-import Link from 'next/link';
 import styles from '../../../feeds/components/feedActivityStatus/FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
 import { getNotificationTypeIcon } from '../../lib/utils/icon';
+import {
+  LinkAvatar,
+  LinkMenuItem,
+  LinkText,
+} from '@/components/link/MantineLink';
 
 interface Props {
   user: NotificationItem['user'];
@@ -49,14 +51,9 @@ export default function NotificationActivityStatus(props: Props) {
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     const userName = (
-      <Text
-        component={Link}
-        href={`/profile/${props.user.handle}`}
-        fw={600}
-        c={'bright'}
-      >
+      <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
         {sanitizeText(props.user.name)}
-      </Text>
+      </LinkText>
     );
 
     switch (props.type) {
@@ -180,7 +177,6 @@ export default function NotificationActivityStatus(props: Props) {
       {displayedCollections.map((collection: Collection, index: number) => (
         <span key={collection.id}>
           <Anchor
-            component={Link}
             href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
             c={
               collection.accessType === CollectionAccessType.OPEN
@@ -211,16 +207,15 @@ export default function NotificationActivityStatus(props: Props) {
           <MenuDropdown maw={380}>
             <ScrollArea.Autosize mah={150} type="auto">
               {remainingCollections.map((c) => (
-                <MenuItem
+                <LinkMenuItem
                   key={c.id}
-                  component={Link}
                   href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                   target="_blank"
                   c="grape"
                   fw={600}
                 >
                   {c.name}
-                </MenuItem>
+                </LinkMenuItem>
               ))}
             </ScrollArea.Autosize>
           </MenuDropdown>
@@ -239,8 +234,7 @@ export default function NotificationActivityStatus(props: Props) {
                 <TypeIcon size={12} />
               </ThemeIcon>
             )}
-            <Avatar
-              component={Link}
+            <LinkAvatar
               href={`/profile/${props.user.handle}`}
               src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
               alt={`${props.user.name}'s' avatar`}
