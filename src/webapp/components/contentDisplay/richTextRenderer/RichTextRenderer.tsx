@@ -1,7 +1,7 @@
 'use client';
 
 import { RichText } from '@atproto/api';
-import Link from 'next/link';
+
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
 import { getDomain } from '@/lib/utils/link';
 
@@ -34,7 +34,6 @@ export default function RichTextRenderer({
           return (
             <Anchor
               key={`mention-${i}`}
-              component={Link}
               href={`/profile/${segment.text.slice(1)}`}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
@@ -69,7 +68,6 @@ export default function RichTextRenderer({
           return (
             <Anchor
               key={`tag-${i}`}
-              component={Link}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
               href={`https://bsky.app/hashtag/${encodedTag}`}

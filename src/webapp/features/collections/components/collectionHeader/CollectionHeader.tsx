@@ -7,14 +7,12 @@ import {
   Stack,
   Text,
   Title,
-  Avatar,
   Tooltip,
   Badge,
   Box,
   Divider,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
-import Link from 'next/link';
 import { Fragment, Suspense } from 'react';
 import CollectionContributorsSummary from '../collectionContributorsSummary/CollectionContributorsSummary';
 import CollectionActions from '../collectionActions/CollectionActions';
@@ -23,6 +21,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   rkey: string;
@@ -113,10 +112,9 @@ export default function CollectionHeader(props: Props) {
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
                 <Group gap={5}>
-                  <Avatar
+                  <LinkAvatar
                     size={'xs'}
                     radius={'sm'}
-                    component={Link}
                     href={`/profile/${collection.author.handle}`}
                     src={collection.author.avatarUrl?.replace(
                       'avatar',
@@ -125,7 +123,6 @@ export default function CollectionHeader(props: Props) {
                     alt={`${collection.author.name}'s avatar`}
                   />
                   <Anchor
-                    component={Link}
                     href={`/profile/${collection.author.handle}`}
                     fw={600}
                     fz={'sm'}
@@ -143,7 +140,6 @@ export default function CollectionHeader(props: Props) {
                 </Group>
                 <Group gap={'xs'}>
                   <Anchor
-                    component={Link}
                     href={`/profile/${collection.author.handle}/collections/${props.rkey}`}
                     underline="never"
                   >
@@ -161,7 +157,6 @@ export default function CollectionHeader(props: Props) {
 
                   <>
                     <Anchor
-                      component={Link}
                       href={`/profile/${collection.author.handle}/collections/${props.rkey}/followers`}
                       underline="never"
                     >

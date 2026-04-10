@@ -1,7 +1,6 @@
 import type { IconType } from 'react-icons/lib';
-import { Button } from '@mantine/core';
-import Link from 'next/link';
 import { isValidElement } from 'react';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   href: string;
@@ -18,8 +17,7 @@ export default function SettingItem(props: Props) {
   };
 
   return (
-    <Button
-      component={Link}
+    <LinkButton
       href={props.href}
       target={props.openInNewTab ? '_blank' : '_self'}
       variant="light"
@@ -31,6 +29,6 @@ export default function SettingItem(props: Props) {
       my={1}
     >
       {props.children}
-    </Button>
+    </LinkButton>
   );
 }

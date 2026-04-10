@@ -1,9 +1,9 @@
 'use client';
 
-import { Anchor, Avatar, AvatarGroup, Text } from '@mantine/core';
-import Link from 'next/link';
+import { Anchor, AvatarGroup, Text } from '@mantine/core';
 import useCollectionContributors from '../../lib/queries/useCollectionContributors';
 import { Fragment } from 'react';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   collectionId: string;
@@ -30,9 +30,8 @@ export default function CollectionContributorsShortcut({
       </Text>
       <AvatarGroup>
         {data.pages[0].users.slice(0, 3).map((u) => (
-          <Avatar
+          <LinkAvatar
             key={u.id}
-            component={Link}
             href={`/profile/${handle}/collections/${rkey}/contributors`}
             src={u.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${u.handle}'s avatar`}
@@ -42,7 +41,6 @@ export default function CollectionContributorsShortcut({
         ))}
       </AvatarGroup>
       <Anchor
-        component={Link}
         href={`/profile/${handle}/collections/${rkey}/contributors`}
         fz="sm"
         fw={600}

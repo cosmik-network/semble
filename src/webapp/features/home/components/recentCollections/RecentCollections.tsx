@@ -5,11 +5,11 @@ import CreateCollectionDrawer from '@/features/collections/components/createColl
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { Stack, Button, Text, SimpleGrid, Group, Title } from '@mantine/core';
-import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function RecentCollections() {
   const { settings } = useUserSettings();
@@ -26,14 +26,13 @@ export default function RecentCollections() {
           <BiCollection size={22} />
           <Title order={2}>Collections</Title>
         </Group>
-        <Button
+        <LinkButton
           variant="light"
-          component={Link}
           color="blue"
           href={`/profile/${profile.handle}/collections`}
         >
           View all
-        </Button>
+        </LinkButton>
       </Group>
 
       {collections.length > 0 ? (

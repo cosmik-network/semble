@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { Button, Group, NavLink, Stack, Text } from '@mantine/core';
+import { Group, NavLink, Stack, Text } from '@mantine/core';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useMyCollections from '../../lib/queries/useMyCollections';
 import CollectionsNavListError from './Error.CollectionsNavList';
@@ -11,6 +10,7 @@ import { getRecordKey } from '@/lib/utils/atproto';
 import { useNavbarContext } from '@/providers/navbar';
 import useFollowingCollections from '@/features/follows/lib/queries/useFollowingCollections';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { LinkButton, LinkNavLink } from '@/components/link/MantineLink';
 
 export default function CollectionsNavList() {
   const { toggleMobile } = useNavbarContext();
@@ -38,8 +38,7 @@ export default function CollectionsNavList() {
         </Text>
 
         <Group gap={'xs'}>
-          <Button
-            component={Link}
+          <LinkButton
             href={`/profile/${profile.handle}/collections`}
             variant="light"
             radius={'xl'}
@@ -48,7 +47,7 @@ export default function CollectionsNavList() {
             onClick={toggleMobile}
           >
             View all
-          </Button>
+          </LinkButton>
           <CreateCollectionShortcut />
         </Group>
       </Group>
@@ -71,8 +70,7 @@ export default function CollectionsNavList() {
                 uri={collection.uri}
               />
             ))}
-            <NavLink
-              component={Link}
+            <LinkNavLink
               href={`/profile/${profile.handle}/collections`}
               label="View all"
               variant="subtle"
@@ -99,8 +97,7 @@ export default function CollectionsNavList() {
                 uri={collection.uri}
               />
             ))}
-            <NavLink
-              component={Link}
+            <LinkNavLink
               href={`/profile/${profile.handle}/network/collections-following`}
               label="View all"
               variant="subtle"

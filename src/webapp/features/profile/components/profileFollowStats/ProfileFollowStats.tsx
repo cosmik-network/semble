@@ -1,7 +1,7 @@
 'use client';
 
 import { Group, Anchor, Text } from '@mantine/core';
-import Link from 'next/link';
+
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { profileKeys } from '../../lib/profileKeys';
 import { getProfile } from '../../lib/dal';
@@ -26,11 +26,7 @@ export default function ProfileFollowStats(props: Props) {
 
   return (
     <Group gap="sm">
-      <Anchor
-        component={Link}
-        href={`/profile/${props.handle}/network`}
-        underline="never"
-      >
+      <Anchor href={`/profile/${props.handle}/network`} underline="never">
         <Text fw={500} c={'bright'} span>
           {followerCount}
         </Text>
@@ -41,7 +37,6 @@ export default function ProfileFollowStats(props: Props) {
       </Anchor>
 
       <Anchor
-        component={Link}
         href={`/profile/${props.handle}/network/following`}
         underline="never"
       >
@@ -54,7 +49,6 @@ export default function ProfileFollowStats(props: Props) {
       </Anchor>
 
       <Anchor
-        component={Link}
         href={`/profile/${props.handle}/network/collections-following`}
         underline="never"
       >

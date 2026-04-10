@@ -1,7 +1,7 @@
-import { Avatar, Stack, Text } from '@mantine/core';
-import Link from 'next/link';
+import { Stack, Text } from '@mantine/core';
 import { createServerSembleClient } from '@/services/server.apiClient';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 export default async function AccountSummary() {
   await verifySessionOnServer({ redirectOnFail: true });
@@ -11,8 +11,7 @@ export default async function AccountSummary() {
 
   return (
     <Stack gap={'xs'} align="center">
-      <Avatar
-        component={Link}
+      <LinkAvatar
         href={`/profile/${profile.handle}`}
         src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
         alt={`${profile.name}'s avatar`}

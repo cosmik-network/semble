@@ -1,16 +1,8 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import NavbarToggle from '@/components/navigation/NavbarToggle';
-import {
-  Group,
-  Avatar,
-  Stack,
-  Title,
-  Text,
-  Container,
-  ActionIcon,
-} from '@mantine/core';
-import Link from 'next/link';
+import { Group, Avatar, Stack, Title, Text, Container } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
+import { LinkActionIcon } from '@/components/link/MantineLink';
 
 interface Props {
   avatarUrl?: string;
@@ -41,8 +33,7 @@ export default function MinimalProfileHeader(props: Props) {
         </Group>
 
         <Group gap={'xs'} wrap="nowrap">
-          <ActionIcon
-            component={Link}
+          <LinkActionIcon
             href={`/search/cards?handle=${props.handle}`}
             variant="light"
             color="gray"
@@ -50,7 +41,7 @@ export default function MinimalProfileHeader(props: Props) {
             radius={'xl'}
           >
             <IoSearch />
-          </ActionIcon>
+          </LinkActionIcon>
           <NavbarToggle />
         </Group>
       </Group>

@@ -2,7 +2,7 @@
 
 import { IconType } from 'react-icons/lib';
 import { ActionIcon, Anchor, Stack, Text } from '@mantine/core';
-import Link from 'next/link';
+
 import { ReactElement, isValidElement } from 'react';
 import { usePathname } from 'next/navigation';
 import { useNavbarContext } from '@/providers/navbar';
@@ -31,7 +31,6 @@ export default function BottomBarItem(props: Props) {
 
   return (
     <Anchor
-      component={Link}
       href={props.href}
       underline="never"
       onClick={() => {

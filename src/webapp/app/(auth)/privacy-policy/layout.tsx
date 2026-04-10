@@ -1,15 +1,7 @@
-import {
-  Container,
-  Stack,
-  Image,
-  Anchor,
-  Box,
-  Button,
-  Badge,
-} from '@mantine/core';
+import { Container, Stack, Image, Anchor, Box, Badge } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Semble',
@@ -24,7 +16,7 @@ export default function Layout(props: Props) {
   return (
     <Container p="md" size="sm">
       <Stack align="start">
-        <Anchor component={Link} href={'/'}>
+        <Anchor href={'/'}>
           <Stack align="center" gap={'xs'}>
             <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={50} />
             <Badge size="sm">Alpha</Badge>
@@ -33,15 +25,9 @@ export default function Layout(props: Props) {
 
         <Stack>{props.children}</Stack>
         <Box component="footer" px={'md'} py={'xs'} mt={'xl'} mx={'auto'}>
-          <Button
-            component={Link}
-            href="/"
-            variant="light"
-            color="dark.1"
-            fw={600}
-          >
+          <LinkButton href="/" variant="light" color="dark.1" fw={600}>
             Back to home
-          </Button>
+          </LinkButton>
         </Box>
       </Stack>
     </Container>

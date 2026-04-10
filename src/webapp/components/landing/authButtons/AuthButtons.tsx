@@ -1,9 +1,9 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar, Box, Button, Group } from '@mantine/core';
-import Link from 'next/link';
+import { Avatar, Box, Group } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function AuthButtons() {
   const { user, isLoading } = useAuth();
@@ -11,8 +11,7 @@ export default function AuthButtons() {
   return (
     <Box mt={'lg'}>
       {!isLoading && user ? (
-        <Button
-          component={Link}
+        <LinkButton
           href="/home"
           size="lg"
           color="var(--mantine-color-dark-filled)"
@@ -26,7 +25,7 @@ export default function AuthButtons() {
           rightSection={<BiRightArrowAlt size={22} />}
         >
           @{user?.handle}
-        </Button>
+        </LinkButton>
       ) : (
         <UnauthenticatedButtons />
       )}
@@ -37,19 +36,18 @@ export default function AuthButtons() {
 function UnauthenticatedButtons() {
   return (
     <Group gap="md">
-      <Button component={Link} href="/signup" size="lg">
+      <LinkButton href="/signup" size="lg">
         Sign up
-      </Button>
+      </LinkButton>
 
-      <Button
-        component={Link}
+      <LinkButton
         href="/login"
         size="lg"
         color="var(--mantine-color-dark-filled)"
         rightSection={<BiRightArrowAlt size={22} />}
       >
         Log in
-      </Button>
+      </LinkButton>
     </Group>
   );
 }

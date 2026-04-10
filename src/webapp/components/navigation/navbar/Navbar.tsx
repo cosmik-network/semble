@@ -20,7 +20,7 @@ import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
 import { BiSearch } from 'react-icons/bi';
-import Link from 'next/link';
+
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
 import { Suspense, useState } from 'react';
@@ -39,7 +39,7 @@ export default function Navbar() {
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
-        <Anchor component={Link} href={'/home'} mx={2}>
+        <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
             <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
             <Badge size="xs" style={{ cursor: 'pointer' }}>

@@ -1,6 +1,6 @@
 import { ProfileView } from '@/api-client';
-import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
-import Link from 'next/link';
+import { Avatar, Badge, Group, Stack, Text } from '@mantine/core';
+import { LinkCard } from '@/components/link/MantineLink';
 
 interface Props {
   profile: ProfileView;
@@ -8,11 +8,10 @@ interface Props {
 
 export default function SearchProfileCard(props: Props) {
   return (
-    <Card
+    <LinkCard
       withBorder
       radius={'lg'}
       p={'sm'}
-      component={Link}
       href={`/profile/${props.profile.handle}`}
       h={'100%'}
     >
@@ -45,6 +44,6 @@ export default function SearchProfileCard(props: Props) {
           </Text>
         )}
       </Stack>
-    </Card>
+    </LinkCard>
   );
 }

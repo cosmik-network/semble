@@ -1,15 +1,7 @@
-import {
-  Button,
-  Grid,
-  GridCol,
-  Group,
-  Stack,
-  Title,
-  Text,
-} from '@mantine/core';
+import { Grid, GridCol, Group, Stack, Title, Text } from '@mantine/core';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
-import Link from 'next/link';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function DiscoverOnSembleSkeleton() {
   return (
@@ -24,9 +16,9 @@ export default function DiscoverOnSembleSkeleton() {
             Recommendations based on your activity
           </Text>
         </Stack>
-        <Button variant="light" component={Link} color="blue" href={'/explore'}>
+        <LinkButton variant="light" color="blue" href={'/explore'}>
           Explore
-        </Button>
+        </LinkButton>
       </Group>
 
       <Grid gutter="xs">

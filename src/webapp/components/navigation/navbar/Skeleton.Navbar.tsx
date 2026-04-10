@@ -11,7 +11,7 @@ import {
   Badge,
   Skeleton,
 } from '@mantine/core';
-import Link from 'next/link';
+
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 
@@ -19,7 +19,7 @@ export default function NavbarSkeleton() {
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
-        <Anchor component={Link} href={'/home'} mx={2}>
+        <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
             <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
             <Badge size="xs" style={{ cursor: 'pointer' }}>

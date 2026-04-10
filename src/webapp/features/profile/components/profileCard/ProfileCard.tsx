@@ -1,8 +1,8 @@
-import { Avatar, Badge, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Badge, Group, Stack, Text } from '@mantine/core';
 import { User } from '@semble/types';
-import Link from 'next/link';
 import { sanitizeText } from '@/lib/utils/text';
 import { ReactNode } from 'react';
+import { LinkCard } from '@/components/link/MantineLink';
 
 interface Props {
   profile: User;
@@ -11,11 +11,10 @@ interface Props {
 
 export default function ProfileCard(props: Props) {
   return (
-    <Card
+    <LinkCard
       withBorder
       radius={'lg'}
       p={'sm'}
-      component={Link}
       href={`/profile/${props.profile.handle}`}
       h={'100%'}
     >
@@ -51,6 +50,6 @@ export default function ProfileCard(props: Props) {
           </Text>
         )}
       </Stack>
-    </Card>
+    </LinkCard>
   );
 }

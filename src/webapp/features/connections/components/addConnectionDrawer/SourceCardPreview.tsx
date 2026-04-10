@@ -14,7 +14,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
-import Link from 'next/link';
 
 function SourceCardPreviewSkeleton() {
   return (
@@ -68,7 +67,6 @@ export default function SourceCardPreview(props: Props) {
           </Text>
           <Tooltip label={props.sourceUrl}>
             <Anchor
-              component={Link}
               href={props.sourceUrl}
               target="_blank"
               c={'gray'}

@@ -3,18 +3,18 @@
 import { CollectionAccessType, type Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
-import styles from './CollectionCard.module.css';
+import { Card, Group, Stack, Text } from '@mantine/core';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
-import Link from 'next/link';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import { LinkAvatar } from '@/components/link/MantineLink';
+import styles from './CollectionCard.module.css';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -84,8 +84,7 @@ export default function CollectionCard(props: Props) {
               </Group>
 
               {props.showAuthor && (
-                <Avatar
-                  component={Link}
+                <LinkAvatar
                   href={`/profile/${collection.author.handle}`}
                   src={collection.author.avatarUrl?.replace(
                     'avatar',

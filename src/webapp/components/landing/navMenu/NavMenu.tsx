@@ -1,9 +1,8 @@
 'use client';
 
-import { Box, Group, Button, ScrollAreaAutosize } from '@mantine/core';
+import { Group, Button, ScrollAreaAutosize } from '@mantine/core';
 import { useDisclosure, useOs } from '@mantine/hooks';
-import Link from 'next/link';
-import { RiArrowRightUpLine } from 'react-icons/ri';
+import { LinkButton } from '@/components/link/MantineLink';
 
 const IOS_SHORTCUT_HREF =
   'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6';
@@ -29,8 +28,7 @@ export default function NavMenu() {
         </Button>
 
         {isIos && (
-          <Button
-            component={Link}
+          <LinkButton
             href={IOS_SHORTCUT_HREF}
             target="_blank"
             variant="light"
@@ -38,7 +36,7 @@ export default function NavMenu() {
             size="xs"
           >
             iOS shortcut
-          </Button>
+          </LinkButton>
         )}
       </Group>
     </ScrollAreaAutosize>

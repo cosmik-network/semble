@@ -1,7 +1,7 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import { Anchor, Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { MouseEvent, Suspense } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
@@ -10,11 +10,11 @@ import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
-import Link from 'next/link';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   id: string;
@@ -128,8 +128,7 @@ export default function UrlCard(props: Props) {
                 Added by{' '}
               </Text>
               <Group gap={'5'}>
-                <Avatar
-                  component={Link}
+                <LinkAvatar
                   href={`/profile/${props.cardAuthor?.handle}`}
                   src={props.cardAuthor?.avatarUrl?.replace(
                     'avatar',
@@ -140,7 +139,6 @@ export default function UrlCard(props: Props) {
                   radius={'sm'}
                 />
                 <Anchor
-                  component={Link}
                   href={`/profile/${props.cardAuthor.handle}`}
                   fz={'xs'}
                   fw={600}

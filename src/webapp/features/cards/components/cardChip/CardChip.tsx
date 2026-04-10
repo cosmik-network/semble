@@ -1,8 +1,8 @@
-import { Card, Image, Group, Text, Tooltip } from '@mantine/core';
-import Link from 'next/link';
+import { Image, Group, Text, Tooltip } from '@mantine/core';
 import { truncateText } from '@/lib/utils/text';
-import styles from './CardChip.module.css';
 import { getDomain } from '@/lib/utils/link';
+import { LinkCard } from '@/components/link/MantineLink';
+import styles from './CardChip.module.css';
 
 interface Props {
   url: string;
@@ -13,8 +13,7 @@ interface Props {
 export default function CardChip(props: Props) {
   return (
     <Tooltip label={getDomain(props.url)}>
-      <Card
-        component={Link}
+      <LinkCard
         href={`/url?id=${encodeURIComponent(props.url)}`}
         radius={'md'}
         px={7}
@@ -36,7 +35,7 @@ export default function CardChip(props: Props) {
             {truncateText(props.title || 'Card', 18)}
           </Text>
         </Group>
-      </Card>
+      </LinkCard>
     </Tooltip>
   );
 }

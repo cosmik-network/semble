@@ -9,7 +9,7 @@ import {
   MantineRadius,
 } from '@mantine/core';
 import { UrlCard } from '@semble/types';
-import Link from 'next/link';
+
 import { Fragment } from 'react';
 
 interface IframeEmbedProps {
@@ -41,7 +41,6 @@ export default function IframeEmbed(props: IframeEmbedProps) {
         <Tooltip label={props.cardContent.url}>
           <Anchor
             onClick={(e) => e.stopPropagation()}
-            component={Link}
             href={props.cardContent.url}
             target="_blank"
             c={'gray'}

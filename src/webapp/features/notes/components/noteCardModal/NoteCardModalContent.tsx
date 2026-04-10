@@ -1,7 +1,6 @@
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import {
   Anchor,
-  Avatar,
   Card,
   Group,
   Stack,
@@ -15,12 +14,12 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
-import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { notifications } from '@mantine/notifications';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
 import { BsExclamation } from 'react-icons/bs';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   onClose: () => void;
@@ -155,9 +154,8 @@ export default function NoteCardModalContent(props: Props) {
     <Stack gap={'xs'}>
       {props.cardAuthor && (
         <Group gap={5}>
-          <Avatar
+          <LinkAvatar
             size={'sm'}
-            component={Link}
             href={`/profile/${props.cardAuthor.handle}`}
             target="_blank"
             src={props.cardAuthor.avatarUrl?.replace(
@@ -167,7 +165,6 @@ export default function NoteCardModalContent(props: Props) {
             alt={`${props.cardAuthor.name}'s avatar`}
           />
           <Anchor
-            component={Link}
             href={`/profile/${props.cardAuthor.handle}`}
             target="_blank"
             fw={700}
@@ -199,7 +196,6 @@ export default function NoteCardModalContent(props: Props) {
               )}
               <Tooltip label={props.cardContent.url}>
                 <Anchor
-                  component={Link}
                   href={props.cardContent.url}
                   target="_blank"
                   c={'gray'}

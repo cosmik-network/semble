@@ -1,6 +1,6 @@
 import { getDomain } from '@/lib/utils/link';
 import { Tooltip, Anchor, Group, Skeleton } from '@mantine/core';
-import Link from 'next/link';
+
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import { Suspense } from 'react';
 import UrlTypeBadgeContent from './UrlTypeBadgeContent';
@@ -17,7 +17,6 @@ export default function UrlTypeBadge({ url }: Props) {
       </Suspense>
       <Tooltip label={url}>
         <Anchor
-          component={Link}
           target="_blank"
           fw={700}
           c="blue"

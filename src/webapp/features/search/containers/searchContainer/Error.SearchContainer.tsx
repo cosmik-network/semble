@@ -1,19 +1,14 @@
-import { Alert, Button, Container } from '@mantine/core';
-import Link from 'next/link';
+import { Alert, Container } from '@mantine/core';
 import { IoArrowBack } from 'react-icons/io5';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function SearchContainerError() {
   return (
     <Container p="xs" size="xl">
       <Alert color="red" title="Could not load search page">
-        <Button
-          color="red"
-          component={Link}
-          href={'/search'}
-          leftSection={<IoArrowBack />}
-        >
+        <LinkButton color="red" href={'/search'} leftSection={<IoArrowBack />}>
           Go to search
-        </Button>
+        </LinkButton>
       </Alert>
     </Container>
   );

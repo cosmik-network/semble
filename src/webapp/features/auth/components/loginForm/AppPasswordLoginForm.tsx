@@ -23,7 +23,6 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { UseFormReturnType } from '@mantine/form';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
-import Link from 'next/link';
 
 interface LoginFormValues {
   handle: string;
@@ -183,13 +182,7 @@ export default function AppPasswordLoginForm(props: Props) {
             </UnstyledButton>
             <Text fw={500} fz={'sm'} c={'gray'}>
               {"Don't have an account? "}
-              <Anchor
-                component={Link}
-                href="/signup"
-                fw={500}
-                fz={'sm'}
-                c={'blue'}
-              >
+              <Anchor href="/signup" fw={500} fz={'sm'} c={'blue'}>
                 Sign up
               </Anchor>
             </Text>

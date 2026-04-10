@@ -7,16 +7,13 @@ import {
   Stack,
   Text,
   Title,
-  Avatar,
   Grid,
   Image,
-  Button,
   Card,
   Tooltip,
   Badge,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
@@ -26,6 +23,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { useRouter } from 'next/navigation';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
+import { LinkAvatar, LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   rkey: string;
@@ -49,7 +47,7 @@ export default function CollectionEmbedContainer(props: Props) {
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
           <Stack gap={'xs'} align="flex-start">
-            <Anchor component={Link} href={appUrl} target="_blank">
+            <Anchor href={appUrl} target="_blank">
               <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={30} />
             </Anchor>
             <Stack gap={0}>
@@ -89,10 +87,9 @@ export default function CollectionEmbedContainer(props: Props) {
           </Stack>
 
           <Group gap={5} wrap="nowrap">
-            <Avatar
+            <LinkAvatar
               size={'xs'}
               radius={'sm'}
-              component={Link}
               href={`/profile/${firstPage.author.handle}`}
               target="_blank"
               src={firstPage.author.avatarUrl?.replace(
@@ -102,7 +99,6 @@ export default function CollectionEmbedContainer(props: Props) {
               alt={`${firstPage.author.name}'s avatar`}
             />
             <Anchor
-              component={Link}
               href={`/profile/${firstPage.author.handle}`}
               target="_blank"
               fw={600}
@@ -179,8 +175,7 @@ export default function CollectionEmbedContainer(props: Props) {
         </Fragment>
 
         <Stack align="center" mt={'md'}>
-          <Button
-            component={Link}
+          <LinkButton
             href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
             target="_blank"
             variant="light"
@@ -188,7 +183,7 @@ export default function CollectionEmbedContainer(props: Props) {
             rightSection={<RiArrowRightUpLine />}
           >
             View on Semble
-          </Button>
+          </LinkButton>
         </Stack>
       </Stack>
     </Container>

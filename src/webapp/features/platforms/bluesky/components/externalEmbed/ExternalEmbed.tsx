@@ -13,7 +13,6 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import Link from 'next/link';
 
 interface Props {
   embed: AppBskyEmbedExternal.View;
@@ -43,7 +42,6 @@ export default function ExternalEmbed(props: Props) {
               {props.embed.external.title}
             </Text>
             <Anchor
-              component={Link}
               href={props.embed.external.uri}
               fz={'sm'}
               fw={500}

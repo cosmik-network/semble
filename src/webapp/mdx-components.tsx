@@ -1,6 +1,5 @@
 import { Title, Text, List, ListItem, Anchor } from '@mantine/core';
 import type { MDXComponents } from 'mdx/types';
-import Link from 'next/link';
 
 const components: MDXComponents = {
   h1: ({ children }) => <Title order={1}>{children}</Title>,
@@ -9,7 +8,7 @@ const components: MDXComponents = {
   h4: ({ children }) => <Title order={4}>{children}</Title>,
   p: ({ children }) => <Text fw={500}>{children}</Text>,
   a: ({ children, href }) => (
-    <Anchor component={Link} href={href} c="blue" fw={600}>
+    <Anchor href={href} c="blue" fw={600}>
       {children}
     </Anchor>
   ),

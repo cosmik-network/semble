@@ -7,7 +7,7 @@ import {
   Anchor,
   Tooltip,
 } from '@mantine/core';
-import Link from 'next/link';
+
 import { getDomain } from '@/lib/utils/link';
 
 interface Props {
@@ -40,7 +40,6 @@ export default function CardToBeAddedPreview(props: Props) {
             )}
             <Tooltip label={props.url}>
               <Anchor
-                component={Link}
                 href={props.url}
                 target="_blank"
                 c={'gray'}

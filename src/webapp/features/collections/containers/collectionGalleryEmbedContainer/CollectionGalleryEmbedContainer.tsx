@@ -6,7 +6,6 @@ import {
   Group,
   Stack,
   Text,
-  Avatar,
   Card,
   ActionIcon,
   Image,
@@ -16,7 +15,6 @@ import {
   Badge,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
@@ -28,6 +26,7 @@ import {
   useRpcSession,
 } from '@/lib/embed/rpcSessionProvider';
 import { FaSeedling } from 'react-icons/fa6';
+import { LinkActionIcon, LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   rkey: string;
@@ -138,10 +137,9 @@ function CollectionGalleryContent(props: Props) {
             </Stack>
 
             <Group gap={5} wrap="nowrap">
-              <Avatar
+              <LinkAvatar
                 size={'xs'}
                 radius={'sm'}
-                component={Link}
                 href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
                 src={firstPage.author.avatarUrl?.replace(
@@ -151,7 +149,6 @@ function CollectionGalleryContent(props: Props) {
                 alt={`${firstPage.author.name}'s avatar`}
               />
               <Anchor
-                component={Link}
                 href={`/profile/${firstPage.author.handle}`}
                 target="_blank"
                 fw={600}
@@ -274,16 +271,15 @@ function CollectionGalleryContent(props: Props) {
                   View Collection
                 </Button>
 
-                <ActionIcon
+                <LinkActionIcon
                   size="compact-xs"
                   variant="transparent"
                   radius={'xs'}
-                  component={Link}
                   href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
                   target="_blank"
                 >
                   <Image src={SembleLogo.src} h={20} />
-                </ActionIcon>
+                </LinkActionIcon>
               </>
             )}
           </Group>

@@ -28,7 +28,7 @@ import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import Link from 'next/link';
+
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
 import { BiSolidChevronDown } from 'react-icons/bi';
@@ -206,7 +206,6 @@ export default function EditConnectionForm(props: Props) {
                   <Skeleton visible={isLoadingSourceMetadata} mt={4}>
                     <Tooltip label={form.values.sourceUrl}>
                       <Anchor
-                        component={Link}
                         href={form.values.sourceUrl}
                         target="_blank"
                         c={'gray'}
@@ -366,7 +365,6 @@ export default function EditConnectionForm(props: Props) {
                 <Skeleton visible={isLoadingTargetMetadata} mt={4}>
                   <Tooltip label={form.values.targetUrl}>
                     <Anchor
-                      component={Link}
                       href={form.values.targetUrl}
                       target="_blank"
                       c={'gray'}

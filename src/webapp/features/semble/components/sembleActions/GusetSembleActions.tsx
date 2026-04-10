@@ -1,10 +1,10 @@
 'use client';
 
-import { ActionIcon, Button, CopyButton, Group, Tooltip } from '@mantine/core';
-import Link from 'next/link';
+import { ActionIcon, CopyButton, Group, Tooltip } from '@mantine/core';
 import { MdIosShare } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import { TbPlugConnected } from 'react-icons/tb';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   url: string;
@@ -46,8 +46,7 @@ export default function GuestSembleActions(props: Props) {
           </Tooltip>
         )}
       </CopyButton>
-      <Button
-        component={Link}
+      <LinkButton
         href={'/login'}
         variant="light"
         color="green"
@@ -55,10 +54,8 @@ export default function GuestSembleActions(props: Props) {
         leftSection={<TbPlugConnected size={18} />}
       >
         Log in to connect
-      </Button>
-      <Button component={Link} href={'/login'}>
-        Log in to add
-      </Button>
+      </LinkButton>
+      <LinkButton href={'/login'}>Log in to add</LinkButton>
     </Group>
   );
 }

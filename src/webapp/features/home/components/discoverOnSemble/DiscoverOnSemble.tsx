@@ -5,19 +5,11 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import useSembleSimilarCards from '@/features/semble/lib/queries/useSembleSimilarCards';
 import { useNavbarContext } from '@/providers/navbar';
-import {
-  Button,
-  Divider,
-  Grid,
-  Group,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
-import Link from 'next/link';
+import { Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import { Fragment } from 'react';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { LinkButton } from '@/components/link/MantineLink';
 
 export default function DiscoverOnSemble() {
   const { desktopOpened } = useNavbarContext();
@@ -45,9 +37,9 @@ export default function DiscoverOnSemble() {
             }`}
           </Text>
         </Stack>
-        <Button variant="light" component={Link} color="blue" href={'/explore'}>
+        <LinkButton variant="light" color="blue" href={'/explore'}>
           Explore
-        </Button>
+        </LinkButton>
       </Group>
 
       {cards.length > 0 ? (

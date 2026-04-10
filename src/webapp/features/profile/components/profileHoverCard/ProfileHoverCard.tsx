@@ -1,7 +1,6 @@
 import {
   Anchor,
   Avatar,
-  Button,
   Group,
   HoverCard,
   HoverCardDropdown,
@@ -13,8 +12,8 @@ import {
 import useProfile from '../../lib/queries/useProfile';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import Link from 'next/link';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
+import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
   children: React.ReactNode;
@@ -62,7 +61,6 @@ export default function ProfileHoverCard(props: Props) {
             {/* Follow stats */}
             <Group gap="xs">
               <Anchor
-                component={Link}
                 href={`/profile/${profile.handle}/network`}
                 underline="never"
               >
@@ -76,7 +74,6 @@ export default function ProfileHoverCard(props: Props) {
               </Anchor>
 
               <Anchor
-                component={Link}
                 href={`/profile/${profile.handle}/network/following`}
                 underline="never"
               >
@@ -92,24 +89,22 @@ export default function ProfileHoverCard(props: Props) {
               <RichTextRenderer text={profile.description} />
             )}
             <Group gap={'xs'} grow>
-              <Button
-                component={Link}
+              <LinkButton
                 href={`/profile/${profile.handle}/cards`}
                 variant="light"
                 color="gray"
                 leftSection={<FaRegNoteSticky />}
               >
                 Cards
-              </Button>
-              <Button
-                component={Link}
+              </LinkButton>
+              <LinkButton
                 href={`/profile/${profile.handle}/collections`}
                 variant="light"
                 color={'grape'}
                 leftSection={<BiCollection />}
               >
                 Collections
-              </Button>
+              </LinkButton>
             </Group>
           </Stack>
         )}

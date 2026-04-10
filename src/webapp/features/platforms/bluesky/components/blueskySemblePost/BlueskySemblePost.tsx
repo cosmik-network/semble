@@ -11,12 +11,10 @@ import {
   Anchor,
   Card,
   Group,
-  Avatar,
   Box,
   Image,
   Text,
 } from '@mantine/core';
-import Link from 'next/link';
 import { FaBluesky } from 'react-icons/fa6';
 import PostEmbed from '../postEmbed/PostEmbed';
 import ContentHider from '../contentHider/ContentHider';
@@ -31,6 +29,7 @@ import UrlTypeBadge from '@/features/semble/components/urlTypeBadge/UrlTypeBadge
 import UrlTypeBadgeSkeleton from '@/features/semble/components/urlTypeBadge/Skeleton.UrlTypeBadge';
 import { isBotAccount } from '../../lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
   url: string;
@@ -92,8 +91,7 @@ export default async function BlueskySemblePost(props: Props) {
         <Stack gap={'xs'}>
           <Group gap="xs" justify="space-between" wrap="nowrap">
             <Group gap={'xs'} wrap="nowrap">
-              <Avatar
-                component={Link}
+              <LinkAvatar
                 href={`https://bsky.app/profile/${post.author.handle}`}
                 src={post.author.avatar?.replace('avatar', 'avatar_thumbnail')}
                 alt={`${post.author.handle} social preview image`}
