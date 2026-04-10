@@ -29,6 +29,8 @@ import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import { Suspense } from 'react';
 import UrlTypeBadge from '@/features/semble/components/urlTypeBadge/UrlTypeBadge';
 import UrlTypeBadgeSkeleton from '@/features/semble/components/urlTypeBadge/Skeleton.UrlTypeBadge';
+import { isBotAccount } from '../../lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   url: string;
@@ -98,9 +100,13 @@ export default async function BlueskySemblePost(props: Props) {
                 radius="xl"
               />
               <Stack gap={0} flex={1}>
-                <Text c="bright" lineClamp={1} fw={500} w="fit-content">
-                  {post.author.displayName || post.author.handle}
-                </Text>
+                <Group gap={'xs'}>
+                  <Text c="bright" lineClamp={1} fw={500} w="fit-content">
+                    {post.author.displayName || post.author.handle}
+                  </Text>
+                  {isBotAccount(post.author) && <BotLabel />}
+                </Group>
+
                 <Text c="gray" lineClamp={1} w="fit-content">
                   @{post.author.handle}
                 </Text>

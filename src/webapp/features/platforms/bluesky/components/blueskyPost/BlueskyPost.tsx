@@ -21,6 +21,8 @@ import {
   getModerationReasonText,
 } from '../../lib/moderation';
 import { FaBluesky } from 'react-icons/fa6';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import { isBotAccount } from '../../lib/utils/account';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
@@ -96,6 +98,7 @@ export default function BlueskyPost(props: Props) {
           <Text c="bright" lineClamp={1} fw={500}>
             {post.author.displayName || post.author.handle}
           </Text>
+          {isBotAccount(post.author) && <BotLabel />}
         </Group>
         <Tooltip
           label={`View on ${platform.type === SupportedPlatform.BLUESKY_POST ? 'Bluesky' : 'Blacksky'}`}
