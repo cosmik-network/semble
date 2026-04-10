@@ -53,6 +53,7 @@ import { GetFollowingCollectionsController } from '../../../../modules/user/infr
 import { GetFollowingCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCountController';
 import { GetFollowersCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowersCountController';
 import { GetFollowingCollectionsCountController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCollectionsCountController';
+import { GetUserStatsController } from '../../../../modules/user/infrastructure/http/controllers/GetUserStatsController';
 import { GetCollectionFollowersController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionContributorsController';
@@ -87,6 +88,7 @@ export interface Controllers {
   getFollowingCountController: GetFollowingCountController;
   getFollowersCountController: GetFollowersCountController;
   getFollowingCollectionsCountController: GetFollowingCollectionsCountController;
+  getUserStatsController: GetUserStatsController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
   addCardToLibraryController: AddCardToLibraryController;
@@ -210,6 +212,9 @@ export class ControllerFactory {
         new GetFollowingCollectionsCountController(
           useCases.getFollowingCollectionsCountUseCase,
         ),
+      getUserStatsController: new GetUserStatsController(
+        useCases.getUserStatsUseCase,
+      ),
 
       // Card controllers
       addUrlToLibraryController: new AddUrlToLibraryController(

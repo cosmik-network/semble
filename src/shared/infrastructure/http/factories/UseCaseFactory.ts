@@ -70,6 +70,7 @@ import { GetFollowingCountUseCase } from '../../../../modules/user/application/u
 import { GetFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersCountUseCase';
 import { GetFollowingCollectionsCountUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsCountUseCase';
 import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/application/useCases/queries/GetCollectionFollowersCountUseCase';
+import { GetUserStatsUseCase } from '../../../../modules/user/application/useCases/queries/GetUserStatsUseCase';
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
 import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
 import { GetGraphDataUseCase } from '../../../../modules/cards/application/useCases/queries/GetGraphDataUseCase';
@@ -118,6 +119,7 @@ export interface UseCases {
   getFollowingCollectionsCountUseCase: GetFollowingCollectionsCountUseCase;
   getCollectionFollowersCountUseCase: GetCollectionFollowersCountUseCase;
   getCollectionContributorsUseCase: GetCollectionContributorsUseCase;
+  getUserStatsUseCase: GetUserStatsUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
@@ -277,6 +279,9 @@ export class UseCaseFactory {
         repositories.collectionQueryRepository,
         services.profileService,
         repositories.collectionRepository,
+      ),
+      getUserStatsUseCase: new GetUserStatsUseCase(
+        repositories.userStatsRepository,
       ),
 
       // Card use cases
