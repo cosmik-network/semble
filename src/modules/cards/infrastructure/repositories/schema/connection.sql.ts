@@ -55,6 +55,10 @@ export const connections = pgTable(
         table.curatorId,
         table.createdAt.desc(),
       ),
+      // Composite index for getContentBreakdownStats optimization
+      createdAtConnectionTypeIdx: index(
+        'idx_connections_created_at_connection_type',
+      ).on(table.createdAt, table.connectionType),
     };
   },
 );

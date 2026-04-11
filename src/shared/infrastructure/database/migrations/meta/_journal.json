@@ -148,6 +148,13 @@
       "when": 1773944859810,
       "tag": "0020_closed_supreme_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1775867436251,
+      "tag": "0021_volatile_loki",
+      "breakpoints": true
     }
   ]
 }
