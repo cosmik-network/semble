@@ -270,6 +270,16 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS cards_author_id_idx ON cards(author_id);
   `);
+  // New indexes for stats query optimization
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_author_created_at ON cards(author_id, created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_created_at_url_type ON cards(created_at, url_type);
+  `);
 
   // Collections table indexes
   await db.execute(sql`
@@ -277,6 +287,16 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS collections_author_updated_at_idx ON collections(author_id, updated_at);
+  `);
+  // New indexes for stats query optimization
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collections_created_at ON collections(created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collections_author_created_at ON collections(author_id, created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collections_created_at_access_type ON collections(created_at, access_type);
   `);
 
   // Collection cards table indexes
@@ -294,6 +314,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
   `);
+  // New indexes for stats query optimization
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_created_at ON follows(created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_follower_created_at ON follows(follower_id, created_at);
+  `);
 
   // Connections table indexes
   await db.execute(sql`
@@ -310,6 +337,10 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS connections_curator_created_at_idx ON connections(curator_id, created_at DESC);
+  `);
+  // New indexes for stats query optimization
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_connections_created_at_connection_type ON connections(created_at, connection_type);
   `);
 
   // Following feed items indexes

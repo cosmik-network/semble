@@ -25,5 +25,12 @@ export const follows = pgTable(
     }),
     followerIdx: index('idx_follows_follower').on(table.followerId),
     targetIdx: index('idx_follows_target').on(table.targetId, table.targetType),
+    // Index for time-series queries on created_at
+    createdAtIdx: index('idx_follows_created_at').on(table.createdAt),
+    // Composite index for getUserEngagementStats optimization
+    followerCreatedAtIdx: index('idx_follows_follower_created_at').on(
+      table.followerId,
+      table.createdAt,
+    ),
   }),
 );

@@ -51,6 +51,18 @@ export const cards: PgTableWithColumns<any> = pgTable(
       parentTypeIdx: index('idx_cards_parent_type')
         .on(table.parentCardId, table.type)
         .where(sql`type = 'NOTE'`),
+      // Index for time-series queries on created_at
+      createdAtIdx: index('idx_cards_created_at').on(table.createdAt),
+      // Composite index for getUserEngagementStats optimization
+      authorCreatedAtIdx: index('idx_cards_author_created_at').on(
+        table.authorId,
+        table.createdAt,
+      ),
+      // Composite index for getContentBreakdownStats optimization
+      createdAtUrlTypeIdx: index('idx_cards_created_at_url_type').on(
+        table.createdAt,
+        table.urlType,
+      ),
     };
   },
 );
