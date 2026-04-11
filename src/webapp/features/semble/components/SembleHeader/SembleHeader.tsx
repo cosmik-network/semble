@@ -18,7 +18,7 @@ interface Props {
 export default function SembleHeader(props: Props) {
   return (
     <Stack gap={'xl'}>
-      <Grid gutter="lg" justify="space-between">
+      <Grid gap="lg" justify="space-between">
         <GridCol span={{ base: 'auto' }}>
           <Suspense fallback={<UrlMetadataHeaderSkeleton />} key={props.url}>
             <UrlMetadataHeader url={props.url} />

@@ -18,7 +18,7 @@ export default function CollectionCardSkeleton() {
           <Stack gap={5}>
             <Skeleton w={'100%'} h={14} />
           </Stack>
-          <Grid gutter={'xs'}>
+          <Grid gap={'xs'}>
             {Array.from({ length: 4 }).map((_, i) => (
               <GridCol key={i} span={3}>
                 <AspectRatio ratio={16 / 9}>

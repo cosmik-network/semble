@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  ScrollAreaAutosize,
-  Button,
-  Group,
-  Menu,
-  Image,
-  Popover,
-} from '@mantine/core';
+import { Button, Group, Menu, Image, Popover, Scroller } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { useOptimistic, useState, useTransition } from 'react';
@@ -190,8 +183,8 @@ export default function FeedControls() {
     optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
   return (
-    <ScrollAreaAutosize type="scroll" offsetScrollbars={'present'}>
-      <Group gap={'xs'} justify="space-between" wrap="nowrap">
+    <Group gap={'xs'} justify="space-between" wrap="nowrap">
+      <Scroller>
         <Menu width={200} position="bottom-start">
           <Menu.Target>
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
@@ -351,25 +344,25 @@ export default function FeedControls() {
             )}
           </Menu.Dropdown>
         </Menu>
+      </Scroller>
 
-        <Group gap={'xs'}>
-          <LinkButton
-            href={'/explore/open-collections'}
-            color="green"
-            variant="light"
-          >
-            <FaSeedling />
-          </LinkButton>
-          <LinkButton
-            href={'/explore/atmosphereConf-collections'}
-            color="#4098FF"
-            variant="light"
-            fz={'md'}
-          >
-            🪿
-          </LinkButton>
-        </Group>
+      <Group gap={'xs'} wrap="nowrap">
+        <LinkButton
+          href={'/explore/open-collections'}
+          color="green"
+          variant="light"
+        >
+          <FaSeedling />
+        </LinkButton>
+        <LinkButton
+          href={'/explore/atmosphereConf-collections'}
+          color="blue"
+          variant="light"
+          fz={'md'}
+        >
+          🪿
+        </LinkButton>
       </Group>
-    </ScrollAreaAutosize>
+    </Group>
   );
 }

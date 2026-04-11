@@ -43,7 +43,7 @@ export default function LeafletMentionsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="sm" mx={'auto'} maw={600}>
+      <Grid gap="sm" mx={'auto'} maw={600}>
         {allUrls.map((urlView) => (
           <Grid.Col key={urlView.url} span={12}>
             <SimilarUrlCard urlView={urlView} />

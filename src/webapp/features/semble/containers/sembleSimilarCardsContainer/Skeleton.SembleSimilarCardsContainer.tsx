@@ -10,7 +10,7 @@ export default function SembleSimilarCardsContainerSkeleton() {
           <Skeleton w={84} h={36} radius={'xl'} />
         </Group>
       </Group>
-      <Grid gutter="sm" mx={'auto'} maw={600}>
+      <Grid gap="sm" mx={'auto'} maw={600}>
         {/* not necessary to check if navbar is open */}
         {Array.from({ length: 8 }).map((_, i) => (
           <GridCol key={i} span={12}>

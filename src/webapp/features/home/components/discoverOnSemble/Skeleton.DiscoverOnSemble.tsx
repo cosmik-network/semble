@@ -21,7 +21,7 @@ export default function DiscoverOnSembleSkeleton() {
         </LinkButton>
       </Group>
 
-      <Grid gutter="xs">
+      <Grid gap="xs">
         {Array.from({ length: 3 }).map((_, i) => (
           <GridCol key={i} span={{ base: 12, sm: 4 }}>
             <UrlCardSkeleton />

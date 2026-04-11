@@ -2,7 +2,7 @@ import { AspectRatio, Grid, GridCol, Skeleton } from '@mantine/core';
 
 export default function CollectionCardPreviewSkeleton() {
   return (
-    <Grid gutter={'xs'}>
+    <Grid gap={'xs'}>
       {Array.from({ length: 4 }).map((_, i) => (
         <GridCol key={i} span={3}>
           <AspectRatio ratio={16 / 9}>

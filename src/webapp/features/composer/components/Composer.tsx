@@ -8,7 +8,6 @@ import {
   Flex,
   Group,
   Input,
-  ScrollArea,
   Select,
   Stack,
   SegmentedControl,
@@ -17,6 +16,7 @@ import {
   TextInput,
   ThemeIcon,
   VisuallyHidden,
+  Scroller,
 } from '@mantine/core';
 import { useState, useEffect, Suspense } from 'react';
 import { Collection, CollectionAccessType } from '@semble/types';
@@ -314,11 +314,7 @@ export default function Composer(props: Props) {
                     {selectedCollections.length > 0 &&
                       `(${selectedCollections.length})`}
                   </Text>
-                  <ScrollArea.Autosize
-                    type="hover"
-                    scrollbars="x"
-                    offsetScrollbars={true}
-                  >
+                  <Scroller>
                     <Group gap={'xs'} wrap="nowrap">
                       <Button
                         onClick={toggleCollectionSelector}
@@ -383,7 +379,7 @@ export default function Composer(props: Props) {
                         );
                       })}
                     </Group>
-                  </ScrollArea.Autosize>
+                  </Scroller>
                 </Stack>
 
                 <Group

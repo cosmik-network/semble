@@ -63,7 +63,7 @@ export default function CardSearchResultsContainer(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Grid gutter="xs">
+          <Grid gap="xs">
             {allUrls.map((urlView) => (
               <Grid.Col key={urlView.url} span={12}>
                 <SimilarUrlCard

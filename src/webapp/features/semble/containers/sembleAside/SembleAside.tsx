@@ -79,7 +79,7 @@ export default function SembleAside(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Grid gutter="xs" mx={'auto'} maw={'100%'}>
+          <Grid gap="xs" mx={'auto'} maw={'100%'}>
             {allSimilarUrls.map((urlView) => (
               <Grid.Col key={urlView.url} span={12}>
                 <SimilarUrlCard urlView={urlView} />

@@ -27,7 +27,7 @@ export default function ProfileConnectionItemSkeleton() {
           </Stack>
         </Group>
 
-        <Grid gutter={'xs'} align="center">
+        <Grid gap={'xs'} align="center">
           {/* Source URL */}
           <GridCol span={{ base: 12, sm: 4.75 }}>
             <UrlCardSkeleton />

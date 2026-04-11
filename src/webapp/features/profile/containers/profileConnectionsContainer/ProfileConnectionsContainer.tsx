@@ -100,7 +100,7 @@ export default function ProfileConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gutter="xl" mx={'auto'} maw={700} w={'100%'}>
+            <Grid gap="xl" mx={'auto'} maw={700} w={'100%'}>
               {allConnections.map((connection, index) => (
                 <Grid.Col key={`connection-${index}`} span={12}>
                   <ProfileConnectionItem

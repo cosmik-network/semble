@@ -111,7 +111,7 @@ export default function NotificationsContainer() {
           </Button>
         </Group>
       )}
-      <Collapse in={showRefetchLoader} transitionDuration={400}>
+      <Collapse expanded={showRefetchLoader} transitionDuration={400}>
         <Stack align="center" gap={'xs'}>
           <Loader size={'sm'} color={'gray'} />
           <Text fw={600} c={'gray'} mb={'sm'}>
