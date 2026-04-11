@@ -94,54 +94,75 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   async getUserEngagementStats(
     options: UserEngagementStatsOptions,
   ): Promise<UserEngagementStatsDTO> {
-    // Main snapshot query
+    // Main snapshot query - optimized to use CTEs and LEFT JOINs instead of correlated subqueries
     const snapshotQuery = sql`
-      WITH user_activity AS (
+      WITH user_cards AS (
+        SELECT author_id, COUNT(*) as card_count
+        FROM ${cards}
+        WHERE type = 'URL'
+        GROUP BY author_id
+      ),
+      user_collections AS (
+        SELECT author_id, COUNT(*) as collection_count
+        FROM ${collections}
+        GROUP BY author_id
+      ),
+      user_connections AS (
+        SELECT curator_id, COUNT(*) as connection_count
+        FROM ${connections}
+        GROUP BY curator_id
+      ),
+      user_follows AS (
+        SELECT follower_id, COUNT(*) as follow_count
+        FROM ${follows}
+        GROUP BY follower_id
+      ),
+      user_contributions AS (
+        SELECT added_by, COUNT(*) as contribution_count
+        FROM ${collectionCards}
+        GROUP BY added_by
+      ),
+      user_activity AS (
         SELECT
           u.id AS user_id,
-          EXISTS(SELECT 1 FROM ${cards} WHERE author_id = u.id AND type = 'URL') AS has_cards,
-          EXISTS(SELECT 1 FROM ${collections} WHERE author_id = u.id) AS has_collections,
-          EXISTS(SELECT 1 FROM ${connections} WHERE curator_id = u.id) AS has_connections,
-          EXISTS(SELECT 1 FROM ${follows} WHERE follower_id = u.id) AS has_follows,
-          EXISTS(SELECT 1 FROM ${collectionCards} WHERE added_by = u.id) AS has_contributions,
-          (
-            (SELECT COUNT(*) FROM ${cards} WHERE author_id = u.id AND type = 'URL') +
-            (SELECT COUNT(*) FROM ${collections} WHERE author_id = u.id) +
-            (SELECT COUNT(*) FROM ${connections} WHERE curator_id = u.id) +
-            (SELECT COUNT(*) FROM ${follows} WHERE follower_id = u.id)
-          ) AS total_actions
+          COALESCE(uc.card_count, 0) > 0 AS has_cards,
+          COALESCE(ucol.collection_count, 0) > 0 AS has_collections,
+          COALESCE(ucon.connection_count, 0) > 0 AS has_connections,
+          COALESCE(uf.follow_count, 0) > 0 AS has_follows,
+          COALESCE(ucontr.contribution_count, 0) > 0 AS has_contributions,
+          COALESCE(uc.card_count, 0) + COALESCE(ucol.collection_count, 0) +
+          COALESCE(ucon.connection_count, 0) + COALESCE(uf.follow_count, 0) AS total_actions
         FROM ${users} u
-      ),
-      aggregated AS (
-        SELECT
-          COUNT(*)::int AS total_users,
-          COUNT(*) FILTER (
-            WHERE has_cards OR has_collections OR has_connections
-                  OR has_follows OR has_contributions
-          )::int AS active_users,
-          COUNT(*) FILTER (WHERE has_cards)::int AS users_with_cards,
-          COUNT(*) FILTER (WHERE has_collections)::int AS users_with_collections,
-          COUNT(*) FILTER (WHERE has_connections)::int AS users_with_connections,
-          COUNT(*) FILTER (WHERE has_follows)::int AS users_with_follows,
-          COUNT(*) FILTER (WHERE has_contributions)::int AS users_with_contributions,
-          COALESCE(AVG(total_actions) FILTER (WHERE total_actions > 0), 0)::numeric AS avg_actions
-        FROM user_activity
+        LEFT JOIN user_cards uc ON u.id = uc.author_id
+        LEFT JOIN user_collections ucol ON u.id = ucol.author_id
+        LEFT JOIN user_connections ucon ON u.id = ucon.curator_id
+        LEFT JOIN user_follows uf ON u.id = uf.follower_id
+        LEFT JOIN user_contributions ucontr ON u.id = ucontr.added_by
       )
       SELECT
-        total_users,
-        active_users,
-        (total_users - active_users) AS inactive_users,
-        users_with_cards,
-        users_with_collections,
-        users_with_connections,
-        users_with_follows,
-        users_with_contributions,
+        COUNT(*)::int AS total_users,
+        COUNT(*) FILTER (
+          WHERE has_cards OR has_collections OR has_connections
+                OR has_follows OR has_contributions
+        )::int AS active_users,
+        COUNT(*) FILTER (WHERE has_cards)::int AS users_with_cards,
+        COUNT(*) FILTER (WHERE has_collections)::int AS users_with_collections,
+        COUNT(*) FILTER (WHERE has_connections)::int AS users_with_connections,
+        COUNT(*) FILTER (WHERE has_follows)::int AS users_with_follows,
+        COUNT(*) FILTER (WHERE has_contributions)::int AS users_with_contributions,
+        COALESCE(AVG(total_actions) FILTER (WHERE total_actions > 0), 0)::numeric AS avg_actions_per_active_user,
         CASE
-          WHEN total_users > 0 THEN (active_users::numeric / total_users::numeric)
+          WHEN COUNT(*) > 0 THEN (COUNT(*) FILTER (
+            WHERE has_cards OR has_collections OR has_connections
+                  OR has_follows OR has_contributions
+          )::numeric / COUNT(*)::numeric)
           ELSE 0
         END AS activation_rate,
-        avg_actions AS avg_actions_per_active_user
-      FROM aggregated
+        COUNT(*)::int - COUNT(*) FILTER (
+          WHERE has_cards OR has_collections OR has_connections
+                OR has_follows OR has_contributions
+        )::int AS inactive_users
+      FROM user_activity
     `;
 
     const result = await this.db.execute(snapshotQuery);
@@ -175,26 +196,40 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   ): Promise<UserEngagementDataPoint[]> {
     const { interval = 'day', limit = 30 } = options;
 
+    // Optimized version using UNION ALL instead of multiple MIN subqueries
     const timeSeriesQuery = sql`
-      WITH user_first_activity AS (
+      WITH all_user_actions AS (
+        SELECT author_id as user_id, created_at
+        FROM ${cards}
+        WHERE type = 'URL'
+        UNION ALL
+        SELECT author_id as user_id, created_at
+        FROM ${collections}
+        UNION ALL
+        SELECT curator_id as user_id, created_at
+        FROM ${connections}
+        UNION ALL
+        SELECT follower_id as user_id, created_at
+        FROM ${follows}
+        UNION ALL
+        SELECT added_by as user_id, added_at as created_at
+        FROM ${collectionCards}
+      ),
+      user_first_activity AS (
         SELECT
           u.id AS user_id,
           u.linked_at,
-          LEAST(
-            COALESCE((SELECT MIN(created_at) FROM ${cards} WHERE author_id = u.id AND type = 'URL'), '9999-12-31'::timestamp),
-            COALESCE((SELECT MIN(created_at) FROM ${collections} WHERE author_id = u.id), '9999-12-31'::timestamp),
-            COALESCE((SELECT MIN(created_at) FROM ${connections} WHERE curator_id = u.id), '9999-12-31'::timestamp),
-            COALESCE((SELECT MIN(created_at) FROM ${follows} WHERE follower_id = u.id), '9999-12-31'::timestamp),
-            COALESCE((SELECT MIN(added_at) FROM ${collectionCards} WHERE added_by = u.id), '9999-12-31'::timestamp)
-          ) AS first_action_at
+          MIN(aua.created_at) AS first_action_at
         FROM ${users} u
+        LEFT JOIN all_user_actions aua ON u.id = aua.user_id
+        GROUP BY u.id, u.linked_at
       ),
       period_stats AS (
         SELECT
           date_trunc(${interval}, first_action_at) AS period,
-          COUNT(*) FILTER (WHERE first_action_at < '9999-12-31'::timestamp) AS newly_activated
+          COUNT(*) as newly_activated
         FROM user_first_activity
-        WHERE first_action_at < '9999-12-31'::timestamp
+        WHERE first_action_at IS NOT NULL
         GROUP BY period
       ),
       cumulative AS (
@@ -229,44 +264,63 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   ): Promise<DailyActivityStatsDTO> {
     const { interval, limit } = options;
 
-    // Query for content creation over time
+    // Optimized query: pre-aggregate each table before joining
     const activityQuery = sql`
-      WITH date_periods AS (
-        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
-        FROM (
-          SELECT created_at FROM ${cards} WHERE type = 'URL'
-          UNION ALL
-          SELECT created_at FROM ${collections}
-          UNION ALL
-          SELECT created_at FROM ${connections}
-          UNION ALL
-          SELECT created_at FROM ${follows}
-        ) all_dates
-        WHERE created_at IS NOT NULL
-      ),
-      activity_counts AS (
+      WITH card_counts AS (
         SELECT
-          dp.period,
-          COALESCE(COUNT(DISTINCT c.id), 0)::int AS cards_created,
-          COALESCE(COUNT(DISTINCT col.id), 0)::int AS collections_created,
-          COALESCE(COUNT(DISTINCT con.id), 0)::int AS connections_created,
-          COALESCE(COUNT(DISTINCT f.follower_id || '-' || f.target_id || '-' || f.target_type), 0)::int AS follows_created
-        FROM date_periods dp
-        LEFT JOIN ${cards} c ON date_trunc(${interval}, c.created_at) = dp.period AND c.type = 'URL'
-        LEFT JOIN ${collections} col ON date_trunc(${interval}, col.created_at) = dp.period
-        LEFT JOIN ${connections} con ON date_trunc(${interval}, con.created_at) = dp.period
-        LEFT JOIN ${follows} f ON date_trunc(${interval}, f.created_at) = dp.period
-        GROUP BY dp.period
+          date_trunc(${interval}, created_at) AS period,
+          COUNT(*)::int AS count
+        FROM ${cards}
+        WHERE type = 'URL' AND created_at IS NOT NULL
+        GROUP BY period
+      ),
+      collection_counts AS (
+        SELECT
+          date_trunc(${interval}, created_at) AS period,
+          COUNT(*)::int AS count
+        FROM ${collections}
+        WHERE created_at IS NOT NULL
+        GROUP BY period
+      ),
+      connection_counts AS (
+        SELECT
+          date_trunc(${interval}, created_at) AS period,
+          COUNT(*)::int AS count
+        FROM ${connections}
+        WHERE created_at IS NOT NULL
+        GROUP BY period
+      ),
+      follow_counts AS (
+        SELECT
+          date_trunc(${interval}, created_at) AS period,
+          COUNT(*)::int AS count
+        FROM ${follows}
+        WHERE created_at IS NOT NULL
+        GROUP BY period
+      ),
+      all_periods AS (
+        SELECT period FROM card_counts
+        UNION
+        SELECT period FROM collection_counts
+        UNION
+        SELECT period FROM connection_counts
+        UNION
+        SELECT period FROM follow_counts
       )
       SELECT
-        period::text AS date,
-        cards_created,
-        collections_created,
-        connections_created,
-        follows_created,
-        (cards_created + collections_created + connections_created + follows_created) AS total_actions
-      FROM activity_counts
-      ORDER BY period DESC
+        ap.period::text AS date,
+        COALESCE(cc.count, 0) AS cards_created,
+        COALESCE(col.count, 0) AS collections_created,
+        COALESCE(con.count, 0) AS connections_created,
+        COALESCE(fc.count, 0) AS follows_created,
+        COALESCE(cc.count, 0) + COALESCE(col.count, 0) +
+        COALESCE(con.count, 0) + COALESCE(fc.count, 0) AS total_actions
+      FROM all_periods ap
+      LEFT JOIN card_counts cc ON ap.period = cc.period
+      LEFT JOIN collection_counts col ON ap.period = col.period
+      LEFT JOIN connection_counts con ON ap.period = con.period
+      LEFT JOIN follow_counts fc ON ap.period = fc.period
+      ORDER BY ap.period DESC
       LIMIT ${limit}
     `;
 
@@ -327,32 +381,53 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   ): Promise<ContentBreakdownStatsDTO> {
     const { interval, limit } = options;
 
-    // Query for URL cards breakdown by type over time
+    // Optimized query for URL cards: use incremental aggregation with window functions
     const urlCardsQuery = sql`
-      WITH periods AS (
-        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+      WITH all_cards AS (
+        SELECT
+          COALESCE(url_type, 'unspecified') AS url_type,
+          created_at
         FROM ${cards}
         WHERE type = 'URL' AND created_at IS NOT NULL
       ),
-      url_card_counts AS (
+      all_periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM all_cards
+      ),
+      all_types AS (
+        SELECT DISTINCT url_type
+        FROM all_cards
+      ),
+      period_type_grid AS (
+        SELECT p.period, t.url_type
+        FROM all_periods p
+        CROSS JOIN all_types t
+      ),
+      period_counts AS (
         SELECT
-          p.period,
-          COALESCE(c.url_type, 'unspecified') AS url_type,
-          COUNT(c.id) AS count
-        FROM periods p
-        CROSS JOIN LATERAL (
-          SELECT * FROM ${cards}
-          WHERE type = 'URL'
-            AND created_at <= p.period + ('1 ' || ${interval})::interval
-        ) c
-        GROUP BY p.period, c.url_type
+          date_trunc(${interval}, created_at) AS period,
+          url_type,
+          COUNT(*)::int AS period_count
+        FROM all_cards
+        GROUP BY 1, 2
+      ),
+      cumulative_counts AS (
+        SELECT
+          ptg.period,
+          ptg.url_type,
+          SUM(COALESCE(pc.period_count, 0)) OVER (
+            PARTITION BY ptg.url_type
+            ORDER BY ptg.period
+          ) AS cumulative_count
+        FROM period_type_grid ptg
+        LEFT JOIN period_counts pc ON ptg.period = pc.period AND ptg.url_type = pc.url_type
       ),
       url_card_aggregated AS (
         SELECT
           period::text AS date,
-          jsonb_object_agg(url_type, count) AS by_type,
-          SUM(count)::int AS total
-        FROM url_card_counts
+          jsonb_object_agg(url_type, cumulative_count) AS by_type,
+          SUM(cumulative_count)::int AS total
+        FROM cumulative_counts
         GROUP BY period
         ORDER BY period DESC
         LIMIT ${limit}
@@ -360,31 +435,32 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       SELECT * FROM url_card_aggregated
     `;
 
-    // Query for collections breakdown by access type over time
+    // Optimized query for collections: use incremental aggregation with window functions
     const collectionsQuery = sql`
-      WITH periods AS (
-        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+      WITH period_collection_counts AS (
+        SELECT
+          date_trunc(${interval}, created_at) AS period,
+          access_type,
+          COUNT(*)::int AS period_count
         FROM ${collections}
         WHERE created_at IS NOT NULL
-      ),
-      collection_counts AS (
-        SELECT
-          p.period,
-          col.access_type,
-          COUNT(col.id) AS count
-        FROM periods p
-        CROSS JOIN LATERAL (
-          SELECT * FROM ${collections}
-          WHERE created_at <= p.period + ('1 ' || ${interval})::interval
-        ) col
-        GROUP BY p.period, col.access_type
+        GROUP BY 1, 2
       ),
       collection_aggregated AS (
         SELECT
           period::text AS date,
-          jsonb_object_agg(access_type, count) AS by_access_type,
-          SUM(count)::int AS total
-        FROM collection_counts
+          jsonb_object_agg(access_type, cumulative_count) AS by_access_type,
+          SUM(cumulative_count)::int AS total
+        FROM (
+          SELECT
+            period,
+            access_type,
+            SUM(period_count) OVER (
+              PARTITION BY access_type
+              ORDER BY period
+            ) AS cumulative_count
+          FROM period_collection_counts
+        ) cumulative_data
         GROUP BY period
         ORDER BY period DESC
         LIMIT ${limit}
@@ -392,31 +468,53 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       SELECT * FROM collection_aggregated
     `;
 
-    // Query for connections breakdown by type over time
+    // Optimized query for connections: use incremental aggregation with window functions
     const connectionsQuery = sql`
-      WITH periods AS (
-        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+      WITH all_connections AS (
+        SELECT
+          COALESCE(connection_type, 'unspecified') AS connection_type,
+          created_at
         FROM ${connections}
         WHERE created_at IS NOT NULL
       ),
-      connection_counts AS (
+      all_periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM all_connections
+      ),
+      all_types AS (
+        SELECT DISTINCT connection_type
+        FROM all_connections
+      ),
+      period_type_grid AS (
+        SELECT p.period, t.connection_type
+        FROM all_periods p
+        CROSS JOIN all_types t
+      ),
+      period_counts AS (
         SELECT
-          p.period,
-          COALESCE(con.connection_type, 'unspecified') AS connection_type,
-          COUNT(con.id) AS count
-        FROM periods p
-        CROSS JOIN LATERAL (
-          SELECT * FROM ${connections}
-          WHERE created_at <= p.period + ('1 ' || ${interval})::interval
-        ) con
-        GROUP BY p.period, con.connection_type
+          date_trunc(${interval}, created_at) AS period,
+          connection_type,
+          COUNT(*)::int AS period_count
+        FROM all_connections
+        GROUP BY 1, 2
+      ),
+      cumulative_counts AS (
+        SELECT
+          ptg.period,
+          ptg.connection_type,
+          SUM(COALESCE(pc.period_count, 0)) OVER (
+            PARTITION BY ptg.connection_type
+            ORDER BY ptg.period
+          ) AS cumulative_count
+        FROM period_type_grid ptg
+        LEFT JOIN period_counts pc ON ptg.period = pc.period AND ptg.connection_type = pc.connection_type
       ),
       connection_aggregated AS (
         SELECT
           period::text AS date,
-          jsonb_object_agg(connection_type, count) AS by_type,
-          SUM(count)::int AS total
-        FROM connection_counts
+          jsonb_object_agg(connection_type, cumulative_count) AS by_type,
+          SUM(cumulative_count)::int AS total
+        FROM cumulative_counts
         GROUP BY period
         ORDER BY period DESC
         LIMIT ${limit}

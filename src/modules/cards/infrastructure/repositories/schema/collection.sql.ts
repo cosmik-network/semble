@@ -35,6 +35,17 @@ export const collections = pgTable(
         table.authorId,
         table.updatedAt,
       ),
+      // Index for time-series queries on created_at
+      createdAtIdx: index('idx_collections_created_at').on(table.createdAt),
+      // Composite index for getUserEngagementStats optimization
+      authorCreatedAtIdx: index('idx_collections_author_created_at').on(
+        table.authorId,
+        table.createdAt,
+      ),
+      // Composite index for getContentBreakdownStats optimization
+      createdAtAccessTypeIdx: index(
+        'idx_collections_created_at_access_type',
+      ).on(table.createdAt, table.accessType),
     };
   },
 );
