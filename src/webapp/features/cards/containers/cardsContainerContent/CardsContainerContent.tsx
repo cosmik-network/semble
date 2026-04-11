@@ -79,7 +79,7 @@ export default function CardsContainerContent(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter={settings.cardView === 'list' ? 0 : 'xs'}>
+      <Grid gap={settings.cardView === 'list' ? 0 : 'xs'}>
         {allCards.map((card, index) => (
           <Fragment key={card.id}>
             {settings.cardView === 'list' && index > 0 && (

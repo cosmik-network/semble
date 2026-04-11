@@ -53,7 +53,7 @@ export default function ContentHider(props: Props) {
           )}
         </Group>
       </Alert>
-      <Collapse in={show}>{children}</Collapse>
+      <Collapse expanded={show}>{children}</Collapse>
     </Fragment>
   );
 }

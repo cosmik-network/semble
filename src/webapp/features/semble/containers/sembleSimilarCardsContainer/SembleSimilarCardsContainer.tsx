@@ -57,7 +57,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
             icon={BiLink}
           />
         ) : (
-          <Grid gutter="sm" mx={'auto'} maw={600} w={'100%'}>
+          <Grid gap="sm" mx={'auto'} maw={600} w={'100%'}>
             {allSimilarUrls.map((urlView) => (
               <Grid.Col key={urlView.url} span={12}>
                 <SimilarUrlCard

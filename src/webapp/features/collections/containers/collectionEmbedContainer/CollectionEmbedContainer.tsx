@@ -120,7 +120,7 @@ export default function CollectionEmbedContainer(props: Props) {
               isLoading={isFetchingNextPage}
               loadMore={fetchNextPage}
             >
-              <Grid gutter="xs">
+              <Grid gap="xs">
                 {allCards.map((card) => (
                   <Grid.Col
                     key={card.id}

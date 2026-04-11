@@ -3,7 +3,7 @@ import { Grid, GridCol } from '@mantine/core';
 
 export default function CardSearchResultsContainerSkeleton() {
   return (
-    <Grid gutter="xs">
+    <Grid gap="xs">
       {Array.from({ length: 4 }).map((_, i) => (
         <GridCol key={i} span={12}>
           <UrlCardSkeleton />

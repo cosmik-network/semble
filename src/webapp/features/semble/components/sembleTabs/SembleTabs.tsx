@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import {
-  Box,
-  ScrollAreaAutosize,
-  Tabs,
-  TabsList,
-  TabsPanel,
-} from '@mantine/core';
+import { Box, Scroller, Tabs, TabsList, TabsPanel } from '@mantine/core';
 import TabItem from './TabItem';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
@@ -59,8 +53,8 @@ export default function SembleTabs(props: Props) {
       value={activeTab}
       onChange={(val) => setActiveTab(val as TabValue)}
     >
-      <ScrollAreaAutosize type="scroll">
-        <TabsList style={{ flexWrap: 'nowrap' }}>
+      <TabsList style={{ flexWrap: 'nowrap' }}>
+        <Scroller>
           <TabItem value="similar">Similar cards</TabItem>
           <TabItem value="collections" count={stats?.collectionCount}>
             Collections
@@ -76,8 +70,8 @@ export default function SembleTabs(props: Props) {
             Added by
           </TabItem>
           {featureFlags?.graphView && <TabItem value="graph">Graph</TabItem>}
-        </TabsList>
-      </ScrollAreaAutosize>
+        </Scroller>
+      </TabsList>
 
       <Box mt="md">
         <TabsPanel value="notes">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Paper, ScrollAreaAutosize, Tabs } from '@mantine/core';
+import { Paper, Scroller, Tabs } from '@mantine/core';
 import TabItem from './TabItem';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
@@ -24,8 +24,8 @@ export default function ProfileTabs(props: Props) {
   return (
     <Tabs value={currentTab}>
       <Paper radius={0}>
-        <ScrollAreaAutosize type="scroll">
-          <Tabs.List style={{ flexWrap: 'nowrap' }}>
+        <Tabs.List style={{ flexWrap: 'nowrap' }}>
+          <Scroller>
             <TabItem value="profile" href={basePath}>
               Profile
             </TabItem>
@@ -58,8 +58,8 @@ export default function ProfileTabs(props: Props) {
                 Graph
               </TabItem>
             )}
-          </Tabs.List>
-        </ScrollAreaAutosize>
+          </Scroller>
+        </Tabs.List>
       </Paper>
     </Tabs>
   );

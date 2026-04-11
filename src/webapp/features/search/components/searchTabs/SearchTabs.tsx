@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Tabs,
-  Stack,
-  ScrollAreaAutosize,
-  TabsList,
-  Group,
-} from '@mantine/core';
+import { Tabs, Stack, Scroller, TabsList, Group } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
@@ -49,8 +43,8 @@ export default function SearchTabs() {
       <Stack gap="xs">
         <SearchBar query={query} />
 
-        <ScrollAreaAutosize type="scroll">
-          <TabsList>
+        <TabsList>
+          <Scroller>
             <Group gap={0} wrap="nowrap">
               <SearchTabItem
                 value="cards"
@@ -68,8 +62,8 @@ export default function SearchTabs() {
                 icon={<MdOutlinePeopleAlt />}
               />
             </Group>
-          </TabsList>
-        </ScrollAreaAutosize>
+          </Scroller>
+        </TabsList>
       </Stack>
     </Tabs>
   );

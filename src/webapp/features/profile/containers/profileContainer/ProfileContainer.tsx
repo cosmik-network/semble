@@ -61,7 +61,7 @@ export default function ProfileContainer(props: Props) {
             </Group>
 
             {cards.length > 0 ? (
-              <Grid gutter="xs">
+              <Grid gap="xs">
                 {cards.map((card) => (
                   <Grid.Col
                     key={card.id}

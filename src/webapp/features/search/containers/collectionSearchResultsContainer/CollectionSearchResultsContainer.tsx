@@ -60,7 +60,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Grid gutter="xs">
+          <Grid gap="xs">
             {allCollections.map((collection) => (
               <Grid.Col key={collection.id} span={12}>
                 <CollectionCard collection={collection} showAuthor />
