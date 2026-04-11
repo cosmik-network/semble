@@ -437,30 +437,51 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
 
     // Optimized query for collections: use incremental aggregation with window functions
     const collectionsQuery = sql`
-      WITH period_collection_counts AS (
+      WITH all_collections AS (
+        SELECT
+          access_type,
+          created_at
+        FROM ${collections}
+        WHERE created_at IS NOT NULL
+      ),
+      all_periods AS (
+        SELECT DISTINCT date_trunc(${interval}, created_at) AS period
+        FROM all_collections
+      ),
+      all_access_types AS (
+        SELECT DISTINCT access_type
+        FROM all_collections
+      ),
+      period_type_grid AS (
+        SELECT p.period, t.access_type
+        FROM all_periods p
+        CROSS JOIN all_access_types t
+      ),
+      period_counts AS (
         SELECT
           date_trunc(${interval}, created_at) AS period,
           access_type,
           COUNT(*)::int AS period_count
-        FROM ${collections}
-        WHERE created_at IS NOT NULL
+        FROM all_collections
         GROUP BY 1, 2
+      ),
+      cumulative_counts AS (
+        SELECT
+          ptg.period,
+          ptg.access_type,
+          SUM(COALESCE(pc.period_count, 0)) OVER (
+            PARTITION BY ptg.access_type
+            ORDER BY ptg.period
+          ) AS cumulative_count
+        FROM period_type_grid ptg
+        LEFT JOIN period_counts pc ON ptg.period = pc.period AND ptg.access_type = pc.access_type
       ),
       collection_aggregated AS (
         SELECT
           period::text AS date,
           jsonb_object_agg(access_type, cumulative_count) AS by_access_type,
           SUM(cumulative_count)::int AS total
-        FROM (
-          SELECT
-            period,
-            access_type,
-            SUM(period_count) OVER (
-              PARTITION BY access_type
-              ORDER BY period
-            ) AS cumulative_count
-          FROM period_collection_counts
-        ) cumulative_data
+        FROM cumulative_counts
         GROUP BY period
         ORDER BY period DESC
         LIMIT ${limit}
