@@ -61,8 +61,7 @@ export const isProfilePage = (url: string) => {
     if (!isSembleUrl(parsedUrl.href)) return false;
     // matches:
     // /profile/:handle
-    // /profile/:handle/:subroute
-    const pattern = /^\/profile\/[^/]+(?:\/[^/]+)?\/?$/;
+    const pattern = /^\/profile/;
     return pattern.test(parsedUrl.pathname);
   } catch {
     // invalid URL
@@ -74,6 +73,7 @@ export enum SupportedPlatform {
   BLUESKY_POST = 'bluesky post',
   BLACKSKY_POST = 'blacksky post',
   SEMBLE_COLLECTION = 'semble collection',
+  SEMBLE_PROFILE = 'semble profile',
   SPOTIFY = 'spotify',
   PLYRFM_TRACK = 'plyr.fm',
   YOUTUBE_VIDEO = 'youtube video',
@@ -90,7 +90,15 @@ type PlatformData =
       rkey: string;
     }
   | {
-      type: Exclude<SupportedPlatform, SupportedPlatform.SEMBLE_COLLECTION>;
+      type: SupportedPlatform.SEMBLE_PROFILE;
+      url: string;
+      handle: string;
+    }
+  | {
+      type: Exclude<
+        SupportedPlatform,
+        SupportedPlatform.SEMBLE_COLLECTION | SupportedPlatform.SEMBLE_PROFILE
+      >;
       url: string;
     };
 
@@ -110,6 +118,18 @@ export const detectUrlPlatform = (url: string): PlatformData => {
         handle: '',
         rkey: '',
       };
+    }
+  }
+
+  if (isProfilePage(url)) {
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      // expected format: profile/:handle or profile/:handle/:subroute
+      const handle = pathParts[1];
+      return { type: SupportedPlatform.SEMBLE_PROFILE, url, handle };
+    } catch {
+      return { type: SupportedPlatform.DEFAULT, url };
     }
   }
 

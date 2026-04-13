@@ -3,6 +3,7 @@
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { UrlCard } from '@semble/types';
 import SembleCollectionCardContent from './SembleCollectionCardContent';
+import SembleProfileCardContent from './SembleProfileCardContent';
 import LinkCardContent from './LinkCardContent';
 import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/BlueskyPost';
 import { Suspense } from 'react';
@@ -48,6 +49,33 @@ export default function UrlCardContent(props: Props) {
             rkey={platform.rkey}
             handle={platform.handle}
           />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (platform.type === SupportedPlatform.SEMBLE_PROFILE) {
+    if (!platform.handle) {
+      return (
+        <LinkCardContent
+          cardContent={props.cardContent}
+          uri={props.uri}
+          authorHandle={props.authorHandle}
+        />
+      );
+    }
+    return (
+      <ErrorBoundary
+        fallback={
+          <LinkCardContent
+            cardContent={props.cardContent}
+            uri={props.uri}
+            authorHandle={props.authorHandle}
+          />
+        }
+      >
+        <Suspense fallback={<UrlCardContentSkeleton />}>
+          <SembleProfileCardContent handle={platform.handle} />
         </Suspense>
       </ErrorBoundary>
     );
