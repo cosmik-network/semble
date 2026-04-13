@@ -10,7 +10,7 @@ interface Props {
   urlType?: UrlType;
 }
 
-export default function useSembleSimilarCards(props: Props) {
+export default function useSimilarCards(props: Props) {
   const limit = props?.limit ?? 16;
 
   const similarCards = useSuspenseInfiniteQuery({

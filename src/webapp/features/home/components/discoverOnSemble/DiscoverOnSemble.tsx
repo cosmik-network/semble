@@ -3,7 +3,7 @@
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
-import useSembleSimilarCards from '@/features/semble/lib/queries/useSembleSimilarCards';
+import useSimilarCards from '@/features/semble/lib/queries/useSimilarCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import { Fragment } from 'react';
@@ -16,7 +16,7 @@ export default function DiscoverOnSemble() {
   const { settings } = useUserSettings();
   const { data: profile } = useMyProfile();
   const { data: myCardsData } = useMyCards({ limit: 8 });
-  const { data: similarCardsData } = useSembleSimilarCards({
+  const { data: similarCardsData } = useSimilarCards({
     url:
       myCardsData.pages[0].cards[0]?.url ??
       `https://bsky.app/profile/${profile?.handle}`,

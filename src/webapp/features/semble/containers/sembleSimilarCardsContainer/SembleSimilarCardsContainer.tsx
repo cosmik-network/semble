@@ -1,6 +1,6 @@
 'use client';
 
-import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
+import useSimilarCards from '../../lib/queries/useSimilarCards';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Group, Stack } from '@mantine/core';
 import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContainer';
@@ -28,7 +28,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSembleSimilarCards({ url: props.url, urlType: selectedUrlType });
+  } = useSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 

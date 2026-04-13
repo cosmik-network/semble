@@ -1,7 +1,7 @@
 'use client';
 
 import { AppShellAside, Grid, Group, Stack, Text } from '@mantine/core';
-import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
+import useSimilarCards from '../../lib/queries/useSimilarCards';
 import SembleSimilarCardsContainerError from '../sembleSimilarCardsContainer/Error.SembleSimilarCardsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
@@ -24,7 +24,7 @@ export default function SembleAside(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useSembleSimilarCards({ url: props.url, urlType: selectedUrlType });
+  } = useSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
 
