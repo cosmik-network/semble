@@ -1,3 +1,5 @@
+'use client';
+
 import NavItem from '../navItem/NavItem';
 import {
   AppShellSection,
