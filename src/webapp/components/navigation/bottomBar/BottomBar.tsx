@@ -46,6 +46,7 @@ export default function BottomBar() {
           title={'Me'}
           icon={
             <Avatar
+              size={'sm'}
               src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             />
           }
