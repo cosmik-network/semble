@@ -53,7 +53,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
       >
         {allSimilarUrls.length === 0 ? (
           <SembleEmptyTab
-            message={`No similar  ${selectedUrlType} cards found`}
+            message={`No similar ${selectedUrlType ? `${selectedUrlType} ` : ''}cards found`}
             icon={BiLink}
           />
         ) : (
