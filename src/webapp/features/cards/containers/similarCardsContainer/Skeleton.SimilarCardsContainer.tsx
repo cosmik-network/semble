@@ -1,13 +1,12 @@
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import { Grid, GridCol, Group, Skeleton, Stack } from '@mantine/core';
 
-export default function SembleSimilarCardsContainerSkeleton() {
+export default function SimilarCardsContainerSkeleton() {
   return (
     <Stack align="center">
       <Group justify="space-between" w={'100%'} maw={600}>
         <Group gap={'xs'} justify="space-between">
-          <Skeleton w={113} h={36} radius={'xl'} />
-          <Skeleton w={84} h={36} radius={'xl'} />
+          <Skeleton w={95} h={36} radius={'xl'} />
         </Group>
       </Group>
       <Grid gap="sm" mx={'auto'} maw={600}>

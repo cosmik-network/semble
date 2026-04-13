@@ -2,7 +2,7 @@
 
 import { AppShellAside, Grid, Group, Stack, Text } from '@mantine/core';
 import useSimilarCards from '../../lib/queries/useSimilarCards';
-import SembleSimilarCardsContainerError from '../sembleSimilarCardsContainer/Error.SembleSimilarCardsContainer';
+import SimilarCardsContainerError from '@/features/cards/containers/similarCardsContainer/Error.SimilarCardsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import { useSearchParams } from 'next/navigation';
@@ -35,7 +35,7 @@ export default function SembleAside(props: Props) {
           <Text fz={'xl'} fw={600}>
             Similar cards
           </Text>
-          <SembleSimilarCardsContainerError />
+          <SimilarCardsContainerError />
         </Stack>
       </AppShellAside>
     );

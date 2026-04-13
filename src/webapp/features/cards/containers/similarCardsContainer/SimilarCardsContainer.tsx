@@ -1,11 +1,10 @@
 'use client';
 
-import useSimilarCards from '../../lib/queries/useSimilarCards';
+import useSimilarCards from '@/features/semble/lib/queries/useSimilarCards';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Group, Stack } from '@mantine/core';
-import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContainer';
-import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
+import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { useSearchParams, usePathname } from 'next/navigation';
@@ -16,25 +15,15 @@ interface Props {
   url: string;
 }
 
-export default function SembleSimilarCardsContainer(props: Props) {
+export default function SimilarCardsContainer(props: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-  } = useSimilarCards({ url: props.url, urlType: selectedUrlType });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    useSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
-
-  if (error) {
-    return <SembleSimilarCardsContainerError />;
-  }
 
   return (
     <Stack gap={'xs'} align="center">
