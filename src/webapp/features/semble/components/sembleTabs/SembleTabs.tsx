@@ -15,8 +15,8 @@ import SembleCollectionsContainerSkeleton from '../../containers/sembleCollectio
 import SembleLibrariesContainer from '../../containers/sembleLibrariesContainer/SembleLibrariesContainer';
 import SembleLibrariesContainerSkeleton from '../../containers/sembleLibrariesContainer/Skeleton.SembleLibrariesContainer';
 
-import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
-import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarCardsContainer/Skeleton.SembleSimilarCardsContainer';
+import SimilarCardsContainer from '@/features/cards/containers/similarCardsContainer/SimilarCardsContainer';
+import SimilarCardsContainerSkeleton from '@/features/cards/containers/similarCardsContainer/Skeleton.SimilarCardsContainer';
 import SembleMentionsContainer from '../../containers/sembleMentionsContainer/SembleMentionsContainer';
 import SembleMentionsContainerSkeleton from '../../containers/sembleMentionsContainer/Skeleton.SembleMentionsContainer';
 
@@ -100,10 +100,10 @@ export default function SembleTabs(props: Props) {
 
         <TabsPanel value="similar">
           <Suspense
-            fallback={<SembleSimilarCardsContainerSkeleton />}
+            fallback={<SimilarCardsContainerSkeleton />}
             key={props.url}
           >
-            <SembleSimilarCardsContainer url={props.url} />
+            <SimilarCardsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 

@@ -25,6 +25,9 @@ export default function CollectionTabs(props: Props) {
               <TabItem value="cards" href={basePath}>
                 Cards
               </TabItem>
+              <TabItem value="similar-cards" href={`${basePath}/similar-cards`}>
+                Similar cards
+              </TabItem>
               <TabItem value="followers" href={`${basePath}/followers`}>
                 Followers
               </TabItem>
