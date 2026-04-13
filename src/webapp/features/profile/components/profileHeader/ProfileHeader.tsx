@@ -29,8 +29,10 @@ interface Props {
 }
 
 export default async function ProfileHeader(props: Props) {
-  const session = await verifySessionOnServer();
-  const profile = await getProfile(props.handle);
+  const [session, profile] = await Promise.all([
+    verifySessionOnServer(),
+    getProfile(props.handle),
+  ]);
 
   return (
     <Fragment>
