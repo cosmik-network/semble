@@ -18,7 +18,7 @@ export default function ProfileCard(props: Props) {
       href={`/profile/${props.profile.handle}`}
       h={'100%'}
     >
-      <Stack gap={'xs'}>
+      <Stack gap={'xxs'}>
         <Group gap={'xs'} wrap="nowrap">
           <Avatar
             src={props.profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}

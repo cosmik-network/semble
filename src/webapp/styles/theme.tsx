@@ -81,6 +81,9 @@ export const theme = createTheme({
   fontFamily:
     'Hanken Grotesk, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',
   defaultRadius: 'md',
+  spacing: {
+    xxs: '5px',
+  },
   components: {
     Button: Button.extend({
       defaultProps: {
