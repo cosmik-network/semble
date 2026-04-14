@@ -251,6 +251,50 @@ export class Notification extends AggregateRoot<NotificationProps> {
     });
   }
 
+  public static createUserConnectedYourPost(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userConnectedYourPost();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
+  public static createUserConnectedYourCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userConnectedYourCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
   public markAsRead(): void {
     this.props.read = true;
     this.props.updatedAt = new Date();

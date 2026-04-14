@@ -48,12 +48,28 @@ export interface CreateUserConnectedYourUrlNotificationDTO {
   connectionId: string;
 }
 
+export interface CreateUserConnectedYourPostNotificationDTO {
+  type: NotificationType.USER_CONNECTED_YOUR_POST;
+  recipientUserId: string;
+  actorUserId: string;
+  connectionId: string;
+}
+
+export interface CreateUserConnectedYourCollectionNotificationDTO {
+  type: NotificationType.USER_CONNECTED_YOUR_COLLECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  connectionId: string;
+}
+
 export type CreateNotificationDTO =
   | CreateUserAddedYourCardNotificationDTO
   | CreateUserAddedToYourCollectionNotificationDTO
   | CreateUserAddedYourBskyPostNotificationDTO
   | CreateUserAddedYourCollectionNotificationDTO
-  | CreateUserConnectedYourUrlNotificationDTO;
+  | CreateUserConnectedYourUrlNotificationDTO
+  | CreateUserConnectedYourPostNotificationDTO
+  | CreateUserConnectedYourCollectionNotificationDTO;
 
 export interface CreateNotificationResponseDTO {
   notificationId: string;
@@ -270,6 +286,46 @@ export class CreateNotificationUseCase
 
         notificationResult =
           await this.notificationService.createUserConnectedYourUrlNotification(
+            recipientId,
+            actorId,
+            connectionIdResult.value,
+          );
+      } else if (request.type === NotificationType.USER_CONNECTED_YOUR_POST) {
+        // Validate connection ID
+        const connectionIdResult = ConnectionId.createFromString(
+          request.connectionId,
+        );
+        if (connectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection ID: ${connectionIdResult.error.message}`,
+            ),
+          );
+        }
+
+        notificationResult =
+          await this.notificationService.createUserConnectedYourPostNotification(
+            recipientId,
+            actorId,
+            connectionIdResult.value,
+          );
+      } else if (
+        request.type === NotificationType.USER_CONNECTED_YOUR_COLLECTION
+      ) {
+        // Validate connection ID
+        const connectionIdResult = ConnectionId.createFromString(
+          request.connectionId,
+        );
+        if (connectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection ID: ${connectionIdResult.error.message}`,
+            ),
+          );
+        }
+
+        notificationResult =
+          await this.notificationService.createUserConnectedYourCollectionNotification(
             recipientId,
             actorId,
             connectionIdResult.value,

@@ -127,7 +127,9 @@ export class GetMyNotificationsUseCase
       const connectionNotifications = notifications.filter(
         (n) =>
           (n as any).connectionId !== undefined &&
-          n.type === 'USER_CONNECTED_YOUR_URL',
+          (n.type === 'USER_CONNECTED_YOUR_URL' ||
+            n.type === 'USER_CONNECTED_YOUR_POST' ||
+            n.type === 'USER_CONNECTED_YOUR_COLLECTION'),
       );
 
       const connectionMap = new Map<string, any>();
@@ -216,7 +218,9 @@ export class GetMyNotificationsUseCase
           const metadata = notification as any;
           if (
             metadata.connectionId !== undefined &&
-            notification.type === 'USER_CONNECTED_YOUR_URL'
+            (notification.type === 'USER_CONNECTED_YOUR_URL' ||
+              notification.type === 'USER_CONNECTED_YOUR_POST' ||
+              notification.type === 'USER_CONNECTED_YOUR_COLLECTION')
           ) {
             // Get the connection from the pre-fetched map
             const connection = connectionMap.get(metadata.connectionId);
