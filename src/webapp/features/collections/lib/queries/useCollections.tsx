@@ -2,6 +2,7 @@ import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import { CollectionSortField } from '@semble/types';
+import { getCollectionsSortParams } from '../utils';
 
 interface Props {
   didOrHandle: string;
@@ -18,7 +19,9 @@ export default function useCollections(props: Props) {
       props.didOrHandle,
       props.limit,
       props?.sortBy,
-      undefined, // sortOrder
+      props.sortBy
+        ? getCollectionsSortParams(props.sortBy).sortOrder
+        : undefined,
       props.query,
     ),
     initialPageParam: 1,
@@ -27,6 +30,9 @@ export default function useCollections(props: Props) {
         limit,
         page: pageParam,
         collectionSortBy: props.sortBy,
+        sortOrder: props.sortBy
+          ? getCollectionsSortParams(props.sortBy).sortOrder
+          : undefined,
         searchText: props?.query,
       }),
     getNextPageParam: (lastPage) => {

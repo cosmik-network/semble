@@ -49,6 +49,7 @@ export const getCollections = cache(
       limit: params?.limit,
       page: params?.page,
       sortBy: params?.collectionSortBy,
+      sortOrder: params?.sortOrder,
       searchText: params?.searchText,
     });
 

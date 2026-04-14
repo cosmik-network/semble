@@ -106,7 +106,7 @@ export function CollectionFiltersSortSelect() {
       >
         Card Count
       </Menu.Item>
-      {/*<Menu.Item
+      <Menu.Item
         onClick={() => onChange(CollectionSortField.NAME)}
         rightSection={
           optimisticSort === CollectionSortField.NAME && <IoMdCheckmark />
@@ -114,7 +114,7 @@ export function CollectionFiltersSortSelect() {
         closeMenuOnClick={false}
       >
         Name
-      </Menu.Item>*/}
+      </Menu.Item>
     </Fragment>
   );
 }

@@ -21,8 +21,9 @@ export default function useSembleCollections(props: Props) {
         page: pageParam,
         limit,
         collectionSortBy: props.sortBy,
-        sortOrder:
-          props.sortBy && getCollectionsSortParams(props.sortBy).sortOrder,
+        sortOrder: props.sortBy
+          ? getCollectionsSortParams(props.sortBy).sortOrder
+          : undefined,
       });
     },
     getNextPageParam: (lastPage) => {

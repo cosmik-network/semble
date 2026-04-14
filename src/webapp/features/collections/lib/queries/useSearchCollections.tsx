@@ -37,8 +37,9 @@ export default function useSearchCollections(props: Props) {
         limit,
         page: pageParam as number,
         collectionSortBy: props.sortBy,
-        sortOrder:
-          props.sortBy && getCollectionsSortParams(props.sortBy).sortOrder,
+        sortOrder: props.sortBy
+          ? getCollectionsSortParams(props.sortBy).sortOrder
+          : undefined,
         accessType: props.accessType,
         identifier: props.identifier,
       }),
