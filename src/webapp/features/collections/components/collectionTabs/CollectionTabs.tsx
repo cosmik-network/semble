@@ -31,6 +31,9 @@ export default function CollectionTabs(props: Props) {
               <TabItem value="mentions" href={`${basePath}/mentions`}>
                 Mentions
               </TabItem>
+              <TabItem value="connections" href={`${basePath}/connections`}>
+                Connections
+              </TabItem>
               <TabItem value="followers" href={`${basePath}/followers`}>
                 Followers
               </TabItem>

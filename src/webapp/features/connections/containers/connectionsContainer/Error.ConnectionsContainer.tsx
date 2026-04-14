@@ -1,11 +1,9 @@
-import { Stack, Text } from '@mantine/core';
+import { Alert, Container } from '@mantine/core';
 
 export default function ConnectionsContainerError() {
   return (
-    <Stack align="center" justify="center" py={'xl'}>
-      <Text c={'red'} fw={600}>
-        Failed to load connections
-      </Text>
-    </Stack>
+    <Container p="xs" size="xl">
+      <Alert color="red" title="Could not load connections" />
+    </Container>
   );
 }
