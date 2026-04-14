@@ -35,12 +35,12 @@ export default function GuestNavbar() {
       </Group>
 
       <AppShellSection grow component={ScrollArea}>
-        <Stack mt={'xl'}>
+        <Stack mt={'md'}>
           <Stack>
             <Text fw={600} fz={'xl'}>
               A social knowledge network for research
             </Text>
-            <Group grow>
+            <Group gap={'xs'}>
               <LinkButton href="/signup">Sign up</LinkButton>
               <LinkButton
                 href="/login"
@@ -51,7 +51,7 @@ export default function GuestNavbar() {
               </LinkButton>
             </Group>
 
-            <Stack gap={5}>
+            <Stack gap={5} mt={'md'}>
               <NavItem
                 href="/explore"
                 label="Explore"
