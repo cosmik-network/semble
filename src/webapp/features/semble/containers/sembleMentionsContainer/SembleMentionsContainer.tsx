@@ -1,3 +1,5 @@
+'use client';
+
 import BlueskyMentionsContainer from '@/features/platforms/bluesky/container/blueskyMentionsContainer/BlueskyMentionsContainer';
 import LeafletMentionsContainer from '@/features/platforms/leaflet/container/leafletMentionsContainer/LeafletMentionsContainer';
 import { BlueskySearchSortOptions } from '@/features/platforms/bluesky/lib/types';
