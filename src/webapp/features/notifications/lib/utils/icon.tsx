@@ -24,6 +24,10 @@ export const getNotificationTypeIcon = (
       return FaUserPlus;
     case NotificationType.USER_CONNECTED_YOUR_URL:
       return BiLink;
+    case NotificationType.USER_CONNECTED_YOUR_POST:
+      return BiLink;
+    case NotificationType.USER_CONNECTED_YOUR_COLLECTION:
+      return BiLink;
     default:
       return null;
   }

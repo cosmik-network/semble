@@ -358,4 +358,100 @@ export class NotificationService implements DomainService {
       );
     }
   }
+
+  async createUserConnectedYourPostNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is connecting their own post
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserConnectedYourPost(
+        recipientUserId,
+        actorUserId,
+        connectionId,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async createUserConnectedYourCollectionNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is connecting their own collection
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserConnectedYourCollection(
+        recipientUserId,
+        actorUserId,
+        connectionId,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
 }

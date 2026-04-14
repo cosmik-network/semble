@@ -373,6 +373,8 @@ export enum NotificationType {
   USER_FOLLOWED_YOU = 'USER_FOLLOWED_YOU',
   USER_FOLLOWED_YOUR_COLLECTION = 'USER_FOLLOWED_YOUR_COLLECTION',
   USER_CONNECTED_YOUR_URL = 'USER_CONNECTED_YOUR_URL',
+  USER_CONNECTED_YOUR_POST = 'USER_CONNECTED_YOUR_POST',
+  USER_CONNECTED_YOUR_COLLECTION = 'USER_CONNECTED_YOUR_COLLECTION',
 }
 
 export interface BaseNotificationItem {
@@ -404,7 +406,10 @@ export interface FollowNotificationItem extends BaseNotificationItem {
 
 export interface ConnectionCreatedNotificationItem
   extends BaseNotificationItem {
-  type: NotificationType.USER_CONNECTED_YOUR_URL;
+  type:
+    | NotificationType.USER_CONNECTED_YOUR_URL
+    | NotificationType.USER_CONNECTED_YOUR_POST
+    | NotificationType.USER_CONNECTED_YOUR_COLLECTION;
   connection: ConnectionWithSourceAndTarget;
 }
 
