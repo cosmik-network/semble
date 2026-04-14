@@ -14,7 +14,7 @@ export default function useSembleCollections(props: Props) {
   const limit = props?.limit ?? 16;
 
   const collections = useSuspenseInfiniteQuery({
-    queryKey: collectionKeys.bySembleUrl(props.url),
+    queryKey: [...collectionKeys.bySembleUrl(props.url), props.sortBy],
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getCollectionsForUrl(props.url, {
