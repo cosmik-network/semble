@@ -33,7 +33,7 @@ export default function CollectionsNavList() {
   return (
     <Stack gap={'xs'}>
       <Group justify="space-between">
-        <Text fw={600} c={'gray'}>
+        <Text fz={'sm'} fw={600} c={'gray'}>
           Collections
         </Text>
 
