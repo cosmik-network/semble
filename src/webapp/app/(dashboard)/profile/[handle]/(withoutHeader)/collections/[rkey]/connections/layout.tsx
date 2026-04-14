@@ -18,8 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${collection.name}'s connections`,
     description:
-      collection.description ??
-      `See connections for ${collection.name}`,
+      collection.description ?? `See connections for ${collection.name}`,
     authors: [
       {
         name: collection.author.name,
