@@ -96,7 +96,7 @@ export default function ConnectionsContainer(props: Props) {
   const emptyMessage =
     direction === 'all'
       ? 'No connections found'
-      : `No connections found ${direction} this link`;
+      : `No connections found ${direction} this`;
 
   if (forwardError || backwardError || allError) {
     return <ConnectionsContainerError />;
