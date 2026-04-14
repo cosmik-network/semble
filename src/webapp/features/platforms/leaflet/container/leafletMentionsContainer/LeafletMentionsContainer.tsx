@@ -1,3 +1,5 @@
+'use client';
+
 import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
 import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
 import { MdOutlineAlternateEmail } from 'react-icons/md';

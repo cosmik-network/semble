@@ -2,6 +2,7 @@ import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCar
 import {
   Button,
   Combobox,
+  ComboboxTarget,
   Grid,
   GridCol,
   Group,
@@ -15,11 +16,11 @@ export default function SembleMentionsContainerSkeleton() {
     <Stack gap={'xs'} align="center">
       <Group justify="space-between" w={'100%'} maw={600}>
         <Combobox>
-          <Combobox.Target>
+          <ComboboxTarget>
             <Button variant="light" color="gray" loading>
               <Skeleton height={16} width={60} />
             </Button>
-          </Combobox.Target>
+          </ComboboxTarget>
         </Combobox>
         <Select ml={'auto'} size="sm" variant="filled" disabled />
       </Group>

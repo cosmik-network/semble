@@ -1,3 +1,5 @@
+'use client';
+
 import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
 import useSearchBlueskyPosts from '../../lib/queries/useSearchBlueskyPosts';
 import { BlueskySearchSortOptions } from '../../lib/types';
