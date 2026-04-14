@@ -8,7 +8,9 @@ import {
   CollectionSortField,
   CollectionAccessType,
   GetCollectionsResponse,
+  SortOrder,
 } from '@semble/types';
+import { getCollectionsSortParams } from '../utils';
 interface Props {
   searchText: string;
   limit?: number;
@@ -35,6 +37,8 @@ export default function useSearchCollections(props: Props) {
         limit,
         page: pageParam as number,
         collectionSortBy: props.sortBy,
+        sortOrder:
+          props.sortBy && getCollectionsSortParams(props.sortBy).sortOrder,
         accessType: props.accessType,
         identifier: props.identifier,
       }),

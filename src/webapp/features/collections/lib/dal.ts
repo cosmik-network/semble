@@ -27,13 +27,14 @@ interface SearchParams {
 }
 
 export const getCollectionsForUrl = cache(
-  async (url: string, params?: PageParams) => {
+  async (url: string, params?: PageParams & { sortOrder?: SortOrder }) => {
     const client = createSembleClient();
     const response = await client.getCollectionsForUrl({
       url,
       page: params?.page,
       limit: params?.limit,
       sortBy: params?.collectionSortBy,
+      sortOrder: params?.sortOrder,
     });
 
     return response;
