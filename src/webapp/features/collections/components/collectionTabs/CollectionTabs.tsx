@@ -39,9 +39,9 @@ export default function CollectionTabs(props: Props) {
                 rkey={props.rkey}
                 basePath={basePath}
               />
-              {/*<TabItem value="added-by" href={`${basePath}/added-by`}>
+              <TabItem value="added-by" href={`${basePath}/added-by`}>
                 Added by
-              </TabItem>*/}
+              </TabItem>
             </Group>
           </Scroller>
         </Tabs.List>
