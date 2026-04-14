@@ -159,6 +159,18 @@ export default function NotificationActivityStatus(props: Props) {
             {userName} <Text span>connected a card in your library</Text>
           </Fragment>
         );
+      case NotificationType.USER_CONNECTED_YOUR_POST:
+        return (
+          <Fragment>
+            {userName} <Text span>connected your post</Text>
+          </Fragment>
+        );
+      case NotificationType.USER_CONNECTED_YOUR_COLLECTION:
+        return (
+          <Fragment>
+            {userName} <Text span>connected your collection</Text>
+          </Fragment>
+        );
       default:
         return (
           <Fragment>

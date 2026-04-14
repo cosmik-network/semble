@@ -9,7 +9,10 @@ import { NotificationType } from '@/api-client';
 export type NotificationKind = 'connection' | 'follow' | 'cardCollection';
 
 type ClassifiedNotification =
-  | { kind: 'connection'; item: ConnectionCreatedNotificationItem }
+  | {
+      kind: 'connection';
+      item: ConnectionCreatedNotificationItem;
+    }
   | { kind: 'follow'; item: FollowNotificationItem }
   | { kind: 'cardCollection'; item: CardCollectionNotificationItem };
 
@@ -18,6 +21,8 @@ export const classifyNotification = (
 ): ClassifiedNotification => {
   switch (item.type) {
     case NotificationType.USER_CONNECTED_YOUR_URL:
+    case NotificationType.USER_CONNECTED_YOUR_POST:
+    case NotificationType.USER_CONNECTED_YOUR_COLLECTION:
       return { kind: 'connection', item };
     case NotificationType.USER_FOLLOWED_YOU:
     case NotificationType.USER_FOLLOWED_YOUR_COLLECTION:

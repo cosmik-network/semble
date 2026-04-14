@@ -40,7 +40,6 @@ export class CardAddedToLibraryEventHandler
     // Index the URL for search
     const indexResult = await this.indexUrlForSearchUseCase.execute({
       url: card.url.value,
-      cardId: event.cardId.getStringValue(),
     });
 
     if (indexResult.isErr()) {

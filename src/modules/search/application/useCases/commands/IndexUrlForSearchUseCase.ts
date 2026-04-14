@@ -7,7 +7,6 @@ import { SearchService } from '../../../domain/services/SearchService';
 
 export interface IndexUrlForSearchDTO {
   url: string;
-  cardId: string;
 }
 
 export interface IndexUrlForSearchResponseDTO {

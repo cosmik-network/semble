@@ -5,6 +5,7 @@ import {
 } from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { ConnectionCreatedEventHandler } from '../../../modules/search/application/eventHandlers/ConnectionCreatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -50,6 +51,16 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
+    );
+
+    const connectionCreatedHandler = new ConnectionCreatedEventHandler(
+      useCases.indexUrlForSearchUseCase,
+      repositories.connectionRepository,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      connectionCreatedHandler,
     );
   }
 }
