@@ -1,7 +1,7 @@
-import { Grid, GridCol, Stack } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import ProfileCardSkeleton from '@/features/profile/components/profileCard/Skeleton.ProfileCard';
 
-export default function SembleLibrariesContainerSkeleton() {
+export default function SembleAddedByContainerSkeleton() {
   return (
     <Stack gap={'xs'}>
       {Array.from({ length: 8 }).map((_, i) => (
