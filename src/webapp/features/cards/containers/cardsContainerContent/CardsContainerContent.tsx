@@ -1,6 +1,6 @@
 'use client';
 
-import { CardSortField, SortOrder, UrlType } from '@semble/types';
+import { CardSortField, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';
 import { Container, Divider, Grid, Stack } from '@mantine/core';
@@ -14,16 +14,11 @@ import { Fragment } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
+import { getCardsSortParams } from '../../lib/utils';
 
 interface Props {
   handle: string;
 }
-
-const sortOrderMap: Record<CardSortField, SortOrder> = {
-  [CardSortField.UPDATED_AT]: SortOrder.DESC,
-  [CardSortField.CREATED_AT]: SortOrder.ASC,
-  [CardSortField.LIBRARY_COUNT]: SortOrder.DESC,
-};
 
 export default function CardsContainerContent(props: Props) {
   const pathname = usePathname();
@@ -46,7 +41,7 @@ export default function CardsContainerContent(props: Props) {
   } = useCards({
     didOrHandle: props.handle,
     sortBy: sortBy,
-    sortOrder: sortOrderMap[sortBy],
+    sortOrder: getCardsSortParams(sortBy).sortOrder,
     urlType: selectedUrlType,
   });
 
