@@ -139,6 +139,23 @@ export default function UrlCardContent(props: Props) {
   }
 
   if (
+    (platform.type === SupportedPlatform.SOUNDCLOUD_TRACK ||
+      platform.type === SupportedPlatform.SOUNDCLOUD_SET) &&
+    settings.cardView === 'grid'
+  ) {
+    return (
+      <IframeEmbed
+        url={platform.url}
+        cardContent={props.cardContent}
+        height={
+          platform.type === SupportedPlatform.SOUNDCLOUD_TRACK ? 166 : 280
+        }
+        radius={'xs'}
+      />
+    );
+  }
+
+  if (
     platform.type === SupportedPlatform.PLYRFM_TRACK &&
     settings.cardView === 'grid'
   ) {

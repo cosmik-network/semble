@@ -79,6 +79,8 @@ export enum SupportedPlatform {
   YOUTUBE_VIDEO = 'youtube video',
   BANDCAMP_ALBUM = 'bandcamp album',
   BANDCAMP_TRACK = 'bandcamp track',
+  SOUNDCLOUD_TRACK = 'soundcloud track',
+  SOUNDCLOUD_SET = 'soundcloud set',
   DEFAULT = 'default',
 }
 
@@ -256,6 +258,28 @@ export const detectUrlPlatform = (url: string): PlatformData => {
               parsedUrl.href,
             )}/size=medium/minimal=true/transparent=true/`,
           };
+      }
+    }
+
+    // soundcloud
+    if (
+      parsedUrl.hostname === 'soundcloud.com' ||
+      parsedUrl.hostname === 'www.soundcloud.com'
+    ) {
+      const [, user, trackOrSets, set] = parsedUrl.pathname.split('/');
+
+      if (user && trackOrSets) {
+        if (trackOrSets === 'sets' && set) {
+          return {
+            type: SupportedPlatform.SOUNDCLOUD_SET,
+            url: `https://w.soundcloud.com/player/?url=${url}&auto_play=true&visual=false&hide_related=true`,
+          };
+        }
+
+        return {
+          type: SupportedPlatform.SOUNDCLOUD_TRACK,
+          url: `https://w.soundcloud.com/player/?url=${url}&auto_play=true&visual=false&hide_related=true`,
+        };
       }
     }
 
