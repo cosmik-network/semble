@@ -59,9 +59,8 @@ export const isProfilePage = (url: string) => {
     const parsedUrl = new URL(url, window.location.origin);
     // Must be a relative path or our own domain
     if (!isSembleUrl(parsedUrl.href)) return false;
-    // matches:
-    // /profile/:handle
-    const pattern = /^\/profile/;
+    // matches /profile/:handle and any subroutes (e.g. /profile/:handle/likes)
+    const pattern = /^\/profile\/[^/]+/;
     return pattern.test(parsedUrl.pathname);
   } catch {
     // invalid URL

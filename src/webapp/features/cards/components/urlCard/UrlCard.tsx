@@ -125,7 +125,7 @@ export default function UrlCard(props: Props) {
           {props.showAuthor && props.cardAuthor && (
             <Group gap={'7'}>
               <Text fz={'xs'} c={'dimmed'} fw={500}>
-                Added by{' '}
+                By{' '}
               </Text>
               <Group gap={'5'}>
                 <LinkAvatar

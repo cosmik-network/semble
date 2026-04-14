@@ -5,7 +5,7 @@ import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useAuth } from '@/hooks/useAuth';
-import { CardSortField, SortOrder, UrlType } from '@semble/types';
+import { CardSortField, UrlType } from '@semble/types';
 import {
   Anchor,
   Box,
@@ -23,19 +23,12 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import { FiPlus } from 'react-icons/fi';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
+import { getCardsSortParams } from '@/features/cards/lib/utils';
 
 interface Props {
   rkey: string;
   handle: string;
-  sortBy?: CardSortField;
-  sortOrder?: SortOrder;
 }
-
-const sortOrderMap: Record<CardSortField, SortOrder> = {
-  [CardSortField.UPDATED_AT]: SortOrder.DESC,
-  [CardSortField.CREATED_AT]: SortOrder.ASC,
-  [CardSortField.LIBRARY_COUNT]: SortOrder.DESC,
-};
 
 export default function CollectionContainerContent(props: Props) {
   const pathname = usePathname();
@@ -55,7 +48,7 @@ export default function CollectionContainerContent(props: Props) {
       rkey: props.rkey,
       handle: props.handle,
       sortBy: sortBy,
-      sortOrder: sortOrderMap[sortBy],
+      sortOrder: getCardsSortParams(sortBy).sortOrder,
       urlType: selectedUrlType,
     });
 

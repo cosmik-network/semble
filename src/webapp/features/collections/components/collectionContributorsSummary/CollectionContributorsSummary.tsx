@@ -35,8 +35,7 @@ export default function CollectionContributorsShortcut({
             href={`/profile/${handle}/collections/${rkey}/contributors`}
             src={u.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${u.handle}'s avatar`}
-            size={20}
-            radius={6}
+            size={'sm'}
           />
         ))}
       </AvatarGroup>

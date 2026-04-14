@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getMyGemCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
-import { SortOrder } from '@semble/types';
+import { CollectionSortField } from '@semble/types';
+import { getCollectionsSortParams } from '../utils';
 
 export default function useGemCollectionSearch() {
   const QUERY = '💎';
@@ -11,8 +12,7 @@ export default function useGemCollectionSearch() {
     queryFn: () =>
       getMyGemCollections({
         limit: 5,
-        sortBy: 'updatedAt',
-        sortOrder: SortOrder.DESC,
+        ...getCollectionsSortParams(CollectionSortField.UPDATED_AT),
         searchText: QUERY,
       }),
     enabled: !!QUERY,

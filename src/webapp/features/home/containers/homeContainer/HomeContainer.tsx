@@ -8,7 +8,6 @@ import { Suspense } from 'react';
 import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton.DiscoverOnSemble';
 import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
-import AtmosphereConfBanner from '../../components/atmosphereConfBanner/AtmosphereConfBanner';
 import { LinkButton } from '@/components/link/MantineLink';
 
 export default function HomeContainer() {
@@ -16,8 +15,6 @@ export default function HomeContainer() {
     <Container p="xs" size="xl">
       <Stack>
         <Stack gap={50}>
-          <AtmosphereConfBanner />
-
           {/* Explore */}
           <Stack>
             <ErrorBoundary

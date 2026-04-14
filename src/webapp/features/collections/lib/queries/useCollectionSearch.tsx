@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getMyCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
-import { SortOrder } from '@semble/types';
+import { CollectionSortField } from '@semble/types';
+import { getCollectionsSortParams } from '../utils';
 
 interface Props {
   query: string;
@@ -17,8 +18,7 @@ export default function useCollectionSearch(props: Props) {
     queryFn: () =>
       getMyCollections({
         limit: props.params?.limit ?? 10,
-        sortBy: 'updatedAt',
-        sortOrder: SortOrder.DESC,
+        ...getCollectionsSortParams(CollectionSortField.UPDATED_AT),
         searchText: props.query || undefined,
       }),
     enabled: !!props.query,

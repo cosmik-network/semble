@@ -9,8 +9,15 @@ import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/Profi
 import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSearchParams } from 'next/navigation';
+import { CollectionSortField } from '@semble/types';
 
 export default function AtmosphereConfCollectionsContainerContent() {
+  const searchParams = useSearchParams();
+  const sortBy =
+    (searchParams.get('collectionSort') as CollectionSortField) ??
+    CollectionSortField.UPDATED_AT;
+
   const {
     data,
     isLoading,
@@ -21,6 +28,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
     isPending,
   } = useSearchCollections({
     searchText: 'atmosphereConf',
+    sortBy,
   });
 
   const { settings } = useUserSettings();

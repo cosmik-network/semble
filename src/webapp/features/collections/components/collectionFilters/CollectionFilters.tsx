@@ -89,6 +89,15 @@ export function CollectionFiltersSortSelect() {
         Last Updated
       </Menu.Item>
       <Menu.Item
+        onClick={() => onChange(CollectionSortField.CREATED_AT)}
+        rightSection={
+          optimisticSort === CollectionSortField.CREATED_AT && <IoMdCheckmark />
+        }
+        closeMenuOnClick={false}
+      >
+        Date Created
+      </Menu.Item>
+      <Menu.Item
         onClick={() => onChange(CollectionSortField.CARD_COUNT)}
         rightSection={
           optimisticSort === CollectionSortField.CARD_COUNT && <IoMdCheckmark />
@@ -96,6 +105,15 @@ export function CollectionFiltersSortSelect() {
         closeMenuOnClick={false}
       >
         Card Count
+      </Menu.Item>
+      <Menu.Item
+        onClick={() => onChange(CollectionSortField.NAME)}
+        rightSection={
+          optimisticSort === CollectionSortField.NAME && <IoMdCheckmark />
+        }
+        closeMenuOnClick={false}
+      >
+        Name
       </Menu.Item>
     </Fragment>
   );
