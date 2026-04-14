@@ -11,6 +11,7 @@ import {
   Badge,
   Box,
   Divider,
+  AvatarGroup,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, Suspense } from 'react';
@@ -112,16 +113,17 @@ export default function CollectionHeader(props: Props) {
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
                 <Group gap={5}>
-                  <LinkAvatar
-                    size={'xs'}
-                    radius={'sm'}
-                    href={`/profile/${collection.author.handle}`}
-                    src={collection.author.avatarUrl?.replace(
-                      'avatar',
-                      'avatar_thumbnail',
-                    )}
-                    alt={`${collection.author.name}'s avatar`}
-                  />
+                  <AvatarGroup>
+                    <LinkAvatar
+                      size={'sm'}
+                      href={`/profile/${collection.author.handle}`}
+                      src={collection.author.avatarUrl?.replace(
+                        'avatar',
+                        'avatar_thumbnail',
+                      )}
+                      alt={`${collection.author.name}'s avatar`}
+                    />
+                  </AvatarGroup>
                   <Anchor
                     href={`/profile/${collection.author.handle}`}
                     fw={600}
