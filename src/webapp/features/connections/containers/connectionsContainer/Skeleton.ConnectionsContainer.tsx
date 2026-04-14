@@ -1,6 +1,6 @@
 import { Grid, Group, Skeleton, Stack } from '@mantine/core';
 
-export default function SembleConnectionsContainerSkeleton() {
+export default function ConnectionsContainerSkeleton() {
   return (
     <Stack gap={'md'} align="center">
       <Group justify="space-between" w={'100%'} maw={600}>

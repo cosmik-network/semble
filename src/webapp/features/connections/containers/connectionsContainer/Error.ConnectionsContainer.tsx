@@ -1,6 +1,6 @@
 import { Stack, Text } from '@mantine/core';
 
-export default function SembleConnectionsContainerError() {
+export default function ConnectionsContainerError() {
   return (
     <Stack align="center" justify="center" py={'xl'}>
       <Text c={'red'} fw={600}>
