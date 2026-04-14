@@ -20,8 +20,8 @@ import SimilarCardsContainerSkeleton from '@/features/cards/containers/similarCa
 import SembleMentionsContainer from '../../containers/sembleMentionsContainer/SembleMentionsContainer';
 import SembleMentionsContainerSkeleton from '../../containers/sembleMentionsContainer/Skeleton.SembleMentionsContainer';
 
-import SembleConnectionsContainer from '../../containers/sembleConnectionsContainer/SembleConnectionsContainer';
-import SembleConnectionsContainerSkeleton from '../../containers/sembleConnectionsContainer/Skeleton.SembleConnectionsContainer';
+import ConnectionsContainer from '@/features/connections/containers/connectionsContainer/ConnectionsContainer';
+import ConnectionsContainerSkeleton from '@/features/connections/containers/connectionsContainer/Skeleton.ConnectionsContainer';
 
 import UrlGraphView from '@/features/graph/components/graphView/UrlGraphView';
 
@@ -108,11 +108,8 @@ export default function SembleTabs(props: Props) {
         </TabsPanel>
 
         <TabsPanel value="connections">
-          <Suspense
-            fallback={<SembleConnectionsContainerSkeleton />}
-            key={props.url}
-          >
-            <SembleConnectionsContainer url={props.url} />
+          <Suspense fallback={<ConnectionsContainerSkeleton />} key={props.url}>
+            <ConnectionsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 

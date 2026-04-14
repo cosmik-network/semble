@@ -5,9 +5,9 @@ import useBackwardConnections from '@/features/connections/lib/queries/useBackwa
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Group, Stack } from '@mantine/core';
-import SembleConnectionsContainerError from './Error.SembleConnectionsContainer';
+import ConnectionsContainerError from './Error.ConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
@@ -22,7 +22,7 @@ interface Props {
   url: string;
 }
 
-export default function SembleConnectionsContainer(props: Props) {
+export default function ConnectionsContainer(props: Props) {
   const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false);
 
@@ -96,10 +96,10 @@ export default function SembleConnectionsContainer(props: Props) {
   const emptyMessage =
     direction === 'all'
       ? 'No connections found'
-      : `No connections found ${direction} this link`;
+      : `No connections found ${direction} this`;
 
   if (forwardError || backwardError || allError) {
-    return <SembleConnectionsContainerError />;
+    return <ConnectionsContainerError />;
   }
 
   const connections =
