@@ -19,6 +19,14 @@ const querySchema = z.object({
       if (!val) return undefined;
       return Array.isArray(val) ? val : [val];
     }),
+  includeKnownBots: z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => {
+      if (val === undefined) return false; // Default to false
+      if (typeof val === 'boolean') return val;
+      return val === 'true'; // Convert string to boolean
+    }),
 });
 
 export class GetGemActivityFeedController extends Controller {
@@ -45,6 +53,7 @@ export class GetGemActivityFeedController extends Controller {
         urlType: params.urlType,
         source: params.source,
         activityTypes: params.activityTypes,
+        includeKnownBots: params.includeKnownBots,
       });
 
       if (result.isErr()) {

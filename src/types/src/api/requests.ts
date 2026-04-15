@@ -129,6 +129,7 @@ export interface GetGlobalFeedParams extends PaginationParams {
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 export interface GetFollowingFeedParams extends PaginationParams {
@@ -136,6 +137,7 @@ export interface GetFollowingFeedParams extends PaginationParams {
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 export interface LoginWithAppPasswordRequest {
@@ -235,6 +237,7 @@ export interface GetGemActivityFeedParams extends PaginationParams {
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 export interface SearchCollectionsParams extends PaginatedSortedParams {

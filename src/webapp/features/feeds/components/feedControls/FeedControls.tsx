@@ -37,6 +37,11 @@ const feedOptions = [
   { value: 'following' as const, label: 'Following' },
 ];
 
+const botFilterOptions = [
+  { value: false, label: 'Hide bots' },
+  { value: true, label: 'Include bots' },
+];
+
 const activityTypeOptions = [
   {
     value: ActivityType.CARD_COLLECTED,
@@ -66,6 +71,8 @@ export default function FeedControls() {
     .getAll('activityTypes')
     .map(paramToActivityType)
     .filter((t): t is ActivityType => t !== undefined);
+  const includeKnownBotsFromUrl =
+    searchParams.get('includeKnownBots') === 'true';
 
   const [optimisticSource, setOptimisticSource] =
     useOptimistic<ActivitySource | null>(sourceFromUrl);
@@ -77,6 +84,8 @@ export default function FeedControls() {
   );
   const [optimisticActivityTypes, setOptimisticActivityTypes] =
     useOptimistic<ActivityType[]>(activityTypesFromUrl);
+  const [optimisticIncludeKnownBots, setOptimisticIncludeKnownBots] =
+    useOptimistic<boolean>(includeKnownBotsFromUrl);
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
@@ -160,11 +169,27 @@ export default function FeedControls() {
     });
   };
 
+  const handleBotFilterClick = (includeKnownBots: boolean) => {
+    startTransition(() => {
+      setOptimisticIncludeKnownBots(includeKnownBots);
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (includeKnownBots) {
+        params.set('includeKnownBots', 'true');
+      } else {
+        params.delete('includeKnownBots');
+      }
+
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
+  };
+
   const hasActiveFilters =
     optimisticSource !== null ||
     optimisticFeed !== 'global' ||
     optimisticType !== null ||
-    optimisticActivityTypes.length > 0;
+    optimisticActivityTypes.length > 0 ||
+    optimisticIncludeKnownBots !== false;
 
   const handleClear = () => {
     startTransition(() => {
@@ -172,6 +197,7 @@ export default function FeedControls() {
       setOptimisticFeed('global');
       setOptimisticType(null);
       setOptimisticActivityTypes([]);
+      setOptimisticIncludeKnownBots(false);
 
       router.push('?', { scroll: false });
     });
@@ -220,6 +246,24 @@ export default function FeedControls() {
                   onClick={() => handleFeedClick(option.value)}
                   rightSection={
                     option.value === optimisticFeed ? <IoMdCheckmark /> : null
+                  }
+                  closeMenuOnClick={false}
+                >
+                  {option.label}
+                </Menu.Item>
+              ))}
+            </>
+
+            <>
+              <Menu.Label>Accounts</Menu.Label>
+              {botFilterOptions.map((option) => (
+                <Menu.Item
+                  key={String(option.value)}
+                  onClick={() => handleBotFilterClick(option.value)}
+                  rightSection={
+                    option.value === optimisticIncludeKnownBots ? (
+                      <IoMdCheckmark />
+                    ) : null
                   }
                   closeMenuOnClick={false}
                 >

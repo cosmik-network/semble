@@ -22,6 +22,8 @@ export class FeedClient extends BaseClient {
         searchParams.append('activityTypes', type),
       );
     }
+    if (params?.includeKnownBots !== undefined)
+      searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -44,6 +46,8 @@ export class FeedClient extends BaseClient {
         searchParams.append('activityTypes', type),
       );
     }
+    if (params?.includeKnownBots !== undefined)
+      searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -68,6 +72,8 @@ export class FeedClient extends BaseClient {
         searchParams.append('activityTypes', type),
       );
     }
+    if (params?.includeKnownBots !== undefined)
+      searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
     const endpoint = queryString
