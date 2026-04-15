@@ -1,11 +1,11 @@
 import type { NotificationItem as NotificationItemType } from '@/api-client';
 import { NotificationType } from '@/api-client';
-import { Stack, Indicator, Box } from '@mantine/core';
+import { Stack, Indicator } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
 import ConnectionCard from '@/features/connections/components/connectionCard/ConnectionCard';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
-import { useRouter } from 'next/navigation';
+
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { classifyNotification } from '../../lib/utils';
 
@@ -15,7 +15,6 @@ interface Props {
 }
 
 export default function NotificationItem(props: Props) {
-  const router = useRouter();
   const notification = classifyNotification(props.item);
 
   // Connection notification - render similar to feed item
@@ -42,10 +41,6 @@ export default function NotificationItem(props: Props) {
 
   // Follow notification
   if (notification.kind === 'follow') {
-    const handleClick = () => {
-      router.push(`/profile/${notification.item.user.handle}`);
-    };
-
     return (
       <Indicator
         disabled={notification.item.read}
@@ -54,35 +49,23 @@ export default function NotificationItem(props: Props) {
         offset={3}
         position="top-start"
       >
-        <Box
-          onClick={handleClick}
-          style={{
-            cursor: 'pointer',
-          }}
-        >
-          <Stack gap={'xs'} align="stretch" h={'100%'}>
-            <NotificationActivityStatus
-              user={notification.item.user}
-              collections={notification.item.collections}
-              createdAt={notification.item.createdAt}
-              type={notification.item.type}
-              followButton={
-                notification.item.type ===
-                NotificationType.USER_FOLLOWED_YOU ? (
-                  <Box onClick={(e) => e.stopPropagation()}>
-                    <FollowButton
-                      targetId={notification.item.user.id}
-                      targetType="USER"
-                      targetHandle={notification.item.user.handle}
-                      initialIsFollowing={notification.item.user.isFollowing}
-                      followText="Follow back"
-                    />
-                  </Box>
-                ) : undefined
-              }
-            />
-          </Stack>
-        </Box>
+        <NotificationActivityStatus
+          user={notification.item.user}
+          collections={notification.item.collections}
+          createdAt={notification.item.createdAt}
+          type={notification.item.type}
+          followButton={
+            notification.item.type === NotificationType.USER_FOLLOWED_YOU ? (
+              <FollowButton
+                targetId={notification.item.user.id}
+                targetType="USER"
+                targetHandle={notification.item.user.handle}
+                initialIsFollowing={notification.item.user.isFollowing}
+                followText="Follow back"
+              />
+            ) : undefined
+          }
+        />
       </Indicator>
     );
   }
