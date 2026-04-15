@@ -11,6 +11,7 @@ export default [
       'dist/**',
       'node_modules/**',
       'src/modules/atproto/infrastructure/lexicon/**',
+      'src/webapp/next-env.d.ts',
     ],
   },
   {
