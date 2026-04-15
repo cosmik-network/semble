@@ -2,7 +2,7 @@
 
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, Box, Image, Anchor, Tooltip } from '@mantine/core';
+import { Group, Stack, Text, Box, Anchor, Tooltip } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
@@ -11,13 +11,12 @@ import {
   getPostModerationUI,
   getModerationReasonText,
 } from '../../lib/moderation';
-import { FaBluesky } from 'react-icons/fa6';
+
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 import { isBotAccount } from '../../lib/utils/account';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
-import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
-import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
+import BlueskyPlatformIcon from '../blueskyPlatformIcon/BlueskyPlatformIcon';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { LinkAvatar } from '@/components/link/MantineLink';
 
@@ -32,34 +31,12 @@ export default function BlueskyPost(props: Props) {
   const { data, error } = useGetBlueskyPost({ uri });
   const showEmbed = settings.cardView === 'grid';
   const platform = detectUrlPlatform(props.url);
-  const platformIcon =
-    platform.type === SupportedPlatform.BLUESKY_POST ? (
-      <FaBluesky fill="#0085ff" size={18} />
-    ) : (
-      <>
-        <Image
-          src={BlackskyLogo.src}
-          alt="Blacksky logo"
-          w={18}
-          h={'auto'}
-          darkHidden
-        />
-        <Image
-          src={BlackskyLogoWhite.src}
-          alt="Blacksky logo"
-          w={18}
-          h={'auto'}
-          lightHidden
-        />
-      </>
-    );
+  const platformIcon = <BlueskyPlatformIcon platform={platform.type} />;
 
   if (
     !data.thread ||
     !AppBskyFeedDefs.isThreadViewPost(data.thread) ||
-    AppBskyFeedDefs.isNotFoundPost(data.thread.post) ||
-    AppBskyFeedDefs.isBlockedPost(data.thread.post) ||
-    error
+    AppBskyFeedDefs.isBlockedPost(data.thread.post)
   ) {
     return props.fallbackCardContent;
   }

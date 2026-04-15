@@ -5,25 +5,15 @@ import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
-import {
-  Stack,
-  Tooltip,
-  Anchor,
-  Card,
-  Group,
-  Box,
-  Image,
-  Text,
-} from '@mantine/core';
-import { FaBluesky } from 'react-icons/fa6';
+import { Stack, Tooltip, Anchor, Card, Group, Box, Text } from '@mantine/core';
+import BlueskyPlatformIcon from '../blueskyPlatformIcon/BlueskyPlatformIcon';
 import PostEmbed from '../postEmbed/PostEmbed';
 import ContentHider from '../contentHider/ContentHider';
 import {
   getPostModerationUI,
   getModerationReasonText,
 } from '../../lib/moderation';
-import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
-import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
+
 import { Suspense } from 'react';
 import UrlTypeBadge from '@/features/semble/components/urlTypeBadge/UrlTypeBadge';
 import UrlTypeBadgeSkeleton from '@/features/semble/components/urlTypeBadge/Skeleton.UrlTypeBadge';
@@ -40,27 +30,7 @@ export default async function BlueskySemblePost(props: Props) {
   const data = await getBlueskyPost(postUri);
 
   const platform = detectUrlPlatform(props.url);
-  const platformIcon =
-    platform.type === SupportedPlatform.BLUESKY_POST ? (
-      <FaBluesky fill="#0085ff" size={18} />
-    ) : (
-      <>
-        <Image
-          src={BlackskyLogo.src}
-          alt="Blacksky logo"
-          w={18}
-          h={'auto'}
-          darkHidden
-        />
-        <Image
-          src={BlackskyLogoWhite.src}
-          alt="Blacksky logo"
-          w={18}
-          h={'auto'}
-          lightHidden
-        />
-      </>
-    );
+  const platformIcon = <BlueskyPlatformIcon platform={platform.type} />;
 
   if (
     !data.thread ||
