@@ -48,6 +48,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/a
 import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessMarginNoteFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessMarginNoteFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessFollowFirehoseEventUseCase';
 import { ProcessConnectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessConnectionFirehoseEventUseCase';
@@ -94,6 +95,7 @@ export interface WorkerUseCases {
   processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
   processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
+  processMarginNoteFirehoseEventUseCase: ProcessMarginNoteFirehoseEventUseCase;
   processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
   processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
   processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase;
@@ -670,6 +672,13 @@ export class UseCaseFactory {
         updateUrlCardAssociationsUseCase,
       );
 
+    const processMarginNoteFirehoseEventUseCase =
+      new ProcessMarginNoteFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        addUrlToLibraryUseCase,
+        removeCardFromLibraryUseCase,
+      );
+
     const processFollowFirehoseEventUseCase =
       new ProcessFollowFirehoseEventUseCase(
         repositories.atUriResolutionService,
@@ -724,6 +733,7 @@ export class UseCaseFactory {
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
+      processMarginNoteFirehoseEventUseCase,
       processFollowFirehoseEventUseCase,
       processConnectionFirehoseEventUseCase,
       // Level 3
