@@ -41,6 +41,7 @@ async function main() {
     useCases.processMarginBookmarkFirehoseEventUseCase,
     useCases.processMarginCollectionFirehoseEventUseCase,
     useCases.processMarginCollectionItemFirehoseEventUseCase,
+    useCases.processMarginNoteFirehoseEventUseCase,
     useCases.processCollectionLinkRemovalFirehoseEventUseCase,
     useCases.processFollowFirehoseEventUseCase,
     useCases.processConnectionFirehoseEventUseCase,

@@ -8,6 +8,7 @@ export const ATPROTO_NSID = {
     BOOKMARK: 'at.margin.bookmark',
     COLLECTION: 'at.margin.collection',
     COLLECTION_ITEM: 'at.margin.collectionItem',
+    NOTE: 'at.margin.note',
   },
   COSMIK: {
     NAMESPACE: 'network.cosmik',
