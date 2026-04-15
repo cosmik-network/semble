@@ -35,9 +35,7 @@ export const sourceOptions: SourceOption[] = [
   {
     value: ActivitySource.SEMBLE,
     label: 'Semble',
-    icon: (
-      <Image src={SembleLogo.src} alt="Semble logo" w={16} h={'auto'} />
-    ),
+    icon: <Image src={SembleLogo.src} alt="Semble logo" w={16} h={'auto'} />,
   },
   { value: ActivitySource.MARGIN, label: 'Margin', icon: <MarginLogo /> },
 ];
@@ -64,4 +62,3 @@ export const botFilterOptions: BotFilterOption[] = [
   { value: false, label: 'Hide bots' },
   { value: true, label: 'Include bots' },
 ];
-
