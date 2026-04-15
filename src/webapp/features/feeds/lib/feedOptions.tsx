@@ -65,8 +65,3 @@ export const botFilterOptions: BotFilterOption[] = [
   { value: true, label: 'Include bots' },
 ];
 
-export const activityTypeToParam = (type: ActivityType): string =>
-  type.toLowerCase();
-
-export const paramToActivityType = (param: string): ActivityType | undefined =>
-  Object.values(ActivityType).find((t) => t.toLowerCase() === param);

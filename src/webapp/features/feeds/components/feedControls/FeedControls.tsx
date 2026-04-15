@@ -1,9 +1,8 @@
 'use client';
 
 import { Button, Group, Menu, Popover, Scroller } from '@mantine/core';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
@@ -13,62 +12,15 @@ import { LinkButton } from '@/components/link/MantineLink';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import {
   activityTypeOptions,
-  activityTypeToParam,
   feedOptions,
   FeedView,
   sourceOptions,
 } from '@/features/feeds/lib/feedOptions';
 
-const FEED_PARAM_KEYS = ['source', 'feed', 'type', 'activityTypes'] as const;
-
-function buildFeedParams(
-  base: URLSearchParams,
-  settings: {
-    feedSource: ActivitySource | null;
-    feedView: FeedView;
-    feedUrlType: UrlType | null;
-    feedActivityType: ActivityType | null;
-  },
-) {
-  const params = new URLSearchParams(base);
-  FEED_PARAM_KEYS.forEach((key) => params.delete(key));
-
-  if (settings.feedSource) params.set('source', settings.feedSource);
-  if (settings.feedView !== 'global') params.set('feed', settings.feedView);
-  if (settings.feedUrlType) params.set('type', settings.feedUrlType);
-  if (settings.feedActivityType)
-    params.append(
-      'activityTypes',
-      activityTypeToParam(settings.feedActivityType),
-    );
-
-  return params;
-}
-
 export default function FeedControls() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { settings, updateSetting } = useUserSettings();
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
-
-  useEffect(() => {
-    const nextParams = buildFeedParams(searchParams, settings);
-    const currentParams = new URLSearchParams(searchParams);
-    // normalize param order so we only replace when semantically different
-    const normalize = (p: URLSearchParams) => {
-      const entries: [string, string][] = [];
-      p.forEach((value, key) => entries.push([key, value]));
-      entries.sort(([a1, b1], [a2, b2]) =>
-        a1 === a2 ? b1.localeCompare(b2) : a1.localeCompare(a2),
-      );
-      return entries.map(([k, v]) => `${k}=${v}`).join('&');
-    };
-    if (normalize(nextParams) !== normalize(currentParams)) {
-      const query = nextParams.toString();
-      router.replace(query ? `?${query}` : '?', { scroll: false });
-    }
-  }, [settings, searchParams, router]);
 
   const selectedSource =
     sourceOptions.find((o) => o.value === settings.feedSource) ||

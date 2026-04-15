@@ -16,36 +16,22 @@ import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
-import { UrlType, ActivitySource, ActivityType } from '@semble/types';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useState, useEffect } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function MyFeedContainer() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { settings } = useUserSettings();
-  const selectedUrlType = searchParams.get('type') as UrlType;
-  const selectedSource = searchParams.get('source') as ActivitySource;
-  const selectedFeed =
-    (searchParams.get('feed') as 'global' | 'following') || 'global';
+  const selectedUrlType = settings.feedUrlType ?? undefined;
+  const selectedSource = settings.feedSource ?? undefined;
+  const selectedFeed = settings.feedView;
   const includeKnownBots = settings.includeKnownBots;
 
-  // Parse activityTypes from URL params (lowercase) and convert to enum values
-  const activityTypesParam = searchParams.getAll('activityTypes');
-  const selectedActivityTypes =
-    activityTypesParam.length > 0
-      ? activityTypesParam
-          .map((param) =>
-            Object.values(ActivityType).find(
-              (t) => t.toLowerCase() === param.toLowerCase(),
-            ),
-          )
-          .filter((t): t is ActivityType => t !== undefined)
-      : undefined;
-
-  const activityTypesFilter = selectedActivityTypes;
+  const activityTypesFilter = settings.feedActivityType
+    ? [settings.feedActivityType]
+    : undefined;
 
   const globalFeed = useGlobalFeed({
     urlType: selectedUrlType,
