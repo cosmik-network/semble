@@ -8,6 +8,8 @@ import LinkCardContent from './LinkCardContent';
 import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/BlueskyPost';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Stack, Text, Group, Alert, Anchor, Tooltip } from '@mantine/core';
+import BlueskyPlatformIcon from '@/features/platforms/bluesky/components/blueskyPlatformIcon/BlueskyPlatformIcon';
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import IframeEmbed from '@/features/platforms/common/components/IframeEmbed/IframeEmbed';
@@ -87,13 +89,45 @@ export default function UrlCardContent(props: Props) {
   ) {
     return (
       <ErrorBoundary
-        fallback={
-          <LinkCardContent
-            cardContent={props.cardContent}
-            uri={props.uri}
-            authorHandle={props.authorHandle}
-          />
-        }
+        fallbackRender={({ error }) => {
+          if (error?.status === 404 || error?.error === 'NotFound') {
+            const platformName =
+              platform.type === SupportedPlatform.BLUESKY_POST
+                ? 'Bluesky'
+                : 'Blacksky';
+            return (
+              <Stack justify="space-between" gap="xs">
+                <Group gap="xs" justify="flex-end" wrap="nowrap" w="100%">
+                  <Tooltip label={`View on ${platformName}`}>
+                    <Anchor
+                      href={props.url}
+                      target="_blank"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BlueskyPlatformIcon platform={platform.type} />
+                    </Anchor>
+                  </Tooltip>
+                </Group>
+                <Alert
+                  component={'button'}
+                  variant="light"
+                  color="gray"
+                  p={'sm'}
+                  title="Post not found"
+                  style={{ cursor: 'pointer' }}
+                />
+              </Stack>
+            );
+          }
+
+          return (
+            <LinkCardContent
+              cardContent={props.cardContent}
+              uri={props.uri}
+              authorHandle={props.authorHandle}
+            />
+          );
+        }}
       >
         <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
