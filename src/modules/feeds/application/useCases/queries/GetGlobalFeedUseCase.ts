@@ -39,6 +39,7 @@ export interface GetGlobalFeedQuery {
   urlType?: string; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 // Use the shared API type directly
@@ -111,6 +112,7 @@ export class GetGlobalFeedUseCase
         urlType,
         source: query.source,
         activityTypes,
+        includeKnownBots: query.includeKnownBots,
       });
 
       if (feedResult.isErr()) {
