@@ -20,15 +20,17 @@ import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useState, useEffect } from 'react';
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 export default function MyFeedContainer() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { settings } = useUserSettings();
   const selectedUrlType = searchParams.get('type') as UrlType;
   const selectedSource = searchParams.get('source') as ActivitySource;
   const selectedFeed =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
-  const includeKnownBots = searchParams.get('includeKnownBots') === 'true';
+  const includeKnownBots = settings.includeKnownBots;
 
   // Parse activityTypes from URL params (lowercase) and convert to enum values
   const activityTypesParam = searchParams.getAll('activityTypes');

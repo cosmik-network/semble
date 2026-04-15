@@ -7,7 +7,7 @@ import {
   IoMdInformationCircle,
 } from 'react-icons/io';
 import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutItem';
-import { MdScience } from 'react-icons/md';
+import { MdDynamicFeed, MdScience } from 'react-icons/md';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
 
@@ -22,6 +22,9 @@ export default async function SettingsContainer() {
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
               Appearance
+            </SettingItem>
+            <SettingItem href="/settings/feed" icon={MdDynamicFeed}>
+              Feed
             </SettingItem>
             <SettingItem href="/settings/advanced" icon={MdScience}>
               Advanced

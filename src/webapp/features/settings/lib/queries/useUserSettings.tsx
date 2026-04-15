@@ -1,4 +1,6 @@
 import { useLocalStorage } from '@mantine/hooks';
+import { ActivitySource, ActivityType, UrlType } from '@semble/types';
+import { FeedView } from '@/features/feeds/lib/feedOptions';
 
 interface UserSettings {
   tinkerMode: boolean;
@@ -6,6 +8,11 @@ interface UserSettings {
   collectionView: 'grid' | 'compact';
   collectionsNavExpanded: boolean;
   followingNavExpanded: boolean;
+  feedSource: ActivitySource | null;
+  feedView: FeedView;
+  feedUrlType: UrlType | null;
+  feedActivityType: ActivityType | null;
+  includeKnownBots: boolean;
 }
 
 const defaultSettings: UserSettings = {
@@ -14,6 +21,11 @@ const defaultSettings: UserSettings = {
   collectionView: 'grid',
   collectionsNavExpanded: false,
   followingNavExpanded: false,
+  feedSource: null,
+  feedView: 'global',
+  feedUrlType: null,
+  feedActivityType: null,
+  includeKnownBots: false,
 };
 
 export function useUserSettings() {

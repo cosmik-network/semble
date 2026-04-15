@@ -1,95 +1,90 @@
 'use client';
 
-import { Button, Group, Menu, Image, Popover, Scroller } from '@mantine/core';
+import { Button, Group, Menu, Popover, Scroller } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
-import { useOptimistic, useState, useTransition } from 'react';
-import { FaRegNoteSticky, FaSeedling } from 'react-icons/fa6';
+import { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
+import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
-import MarginLogo from '@/components/MarginLogo';
-import SembleLogo from '@/assets/semble-logo.svg';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
-import { BiLink } from 'react-icons/bi';
 import { LinkButton } from '@/components/link/MantineLink';
-
-const sourceOptions = [
-  { value: null, label: 'All', icon: null },
-  {
-    value: ActivitySource.SEMBLE,
-    label: 'Semble',
-    icon: (
-      <Image
-        src={SembleLogo.src}
-        alt="Semble logo"
-        w={16}
-        h={'auto'}
-        mx={'auto'}
-      />
-    ),
-  },
-  { value: ActivitySource.MARGIN, label: 'Margin', icon: <MarginLogo /> },
-];
-
-const feedOptions = [
-  { value: 'global' as const, label: 'Global' },
-  { value: 'following' as const, label: 'Following' },
-];
-
-const botFilterOptions = [
-  { value: false, label: 'Hide bots' },
-  { value: true, label: 'Include bots' },
-];
-
-const activityTypeOptions = [
-  {
-    value: ActivityType.CARD_COLLECTED,
-    label: 'Card saves',
-    icon: <FaRegNoteSticky />,
-  },
-  {
-    value: ActivityType.CONNECTION_CREATED,
-    label: 'Connections',
-    icon: <BiLink />,
-  },
-];
-
-const activityTypeToParam = (type: ActivityType): string => type.toLowerCase();
-
-const paramToActivityType = (param: string): ActivityType | undefined =>
-  Object.values(ActivityType).find((t) => t.toLowerCase() === param);
+import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import {
+  activityTypeOptions,
+  activityTypeToParam,
+  feedOptions,
+  FeedView,
+  paramToActivityType,
+  sourceOptions,
+} from '@/features/feeds/lib/feedOptions';
 
 export default function FeedControls() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { settings, updateSetting } = useUserSettings();
+
+  const hasAnyParam =
+    searchParams.has('source') ||
+    searchParams.has('feed') ||
+    searchParams.has('type') ||
+    searchParams.has('activityTypes');
+
   const sourceFromUrl = searchParams.get('source') as ActivitySource | null;
-  const feedFromUrl =
-    (searchParams.get('feed') as 'global' | 'following') || 'global';
+  const feedFromUrl = searchParams.get('feed') as FeedView | null;
   const typeFromUrl = searchParams.get('type') as UrlType | null;
   const activityTypesFromUrl = searchParams
     .getAll('activityTypes')
     .map(paramToActivityType)
     .filter((t): t is ActivityType => t !== undefined);
-  const includeKnownBotsFromUrl =
-    searchParams.get('includeKnownBots') === 'true';
+
+  const effectiveSource = hasAnyParam ? sourceFromUrl : settings.feedSource;
+  const effectiveFeed: FeedView = hasAnyParam
+    ? (feedFromUrl ?? 'global')
+    : settings.feedView;
+  const effectiveType = hasAnyParam ? typeFromUrl : settings.feedUrlType;
+  const effectiveActivityTypes = hasAnyParam
+    ? activityTypesFromUrl
+    : settings.feedActivityType
+      ? [settings.feedActivityType]
+      : [];
 
   const [optimisticSource, setOptimisticSource] =
-    useOptimistic<ActivitySource | null>(sourceFromUrl);
-  const [optimisticFeed, setOptimisticFeed] = useOptimistic<
-    'global' | 'following'
-  >(feedFromUrl);
+    useOptimistic<ActivitySource | null>(effectiveSource);
+  const [optimisticFeed, setOptimisticFeed] =
+    useOptimistic<FeedView>(effectiveFeed);
   const [optimisticType, setOptimisticType] = useOptimistic<UrlType | null>(
-    typeFromUrl,
+    effectiveType,
   );
   const [optimisticActivityTypes, setOptimisticActivityTypes] =
-    useOptimistic<ActivityType[]>(activityTypesFromUrl);
-  const [optimisticIncludeKnownBots, setOptimisticIncludeKnownBots] =
-    useOptimistic<boolean>(includeKnownBotsFromUrl);
+    useOptimistic<ActivityType[]>(effectiveActivityTypes);
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
   const [, startTransition] = useTransition();
+
+  const initializedRef = useRef(false);
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    if (hasAnyParam) return;
+
+    const params = new URLSearchParams();
+    if (settings.feedSource) params.set('source', settings.feedSource);
+    if (settings.feedView && settings.feedView !== 'global')
+      params.set('feed', settings.feedView);
+    if (settings.feedUrlType) params.set('type', settings.feedUrlType);
+    if (settings.feedActivityType)
+      params.append(
+        'activityTypes',
+        activityTypeToParam(settings.feedActivityType),
+      );
+
+    const query = params.toString();
+    if (query) router.replace(`?${query}`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, hasAnyParam]);
 
   const selectedSource =
     sourceOptions.find((o) => o.value === optimisticSource) || sourceOptions[0];
@@ -99,6 +94,7 @@ export default function FeedControls() {
   const handleSourceClick = (source: ActivitySource | null) => {
     startTransition(() => {
       setOptimisticSource(source);
+      updateSetting('feedSource', source);
 
       const params = new URLSearchParams(searchParams.toString());
       if (source) {
@@ -107,15 +103,18 @@ export default function FeedControls() {
         params.delete('source');
       }
 
-      // if Margin is selected and feed is Following, switch to Global
-      if (source === ActivitySource.MARGIN && feedFromUrl === 'following') {
+      if (source === ActivitySource.MARGIN && optimisticFeed === 'following') {
         setOptimisticFeed('global');
+        updateSetting('feedView', 'global');
         params.set('feed', 'global');
       }
 
-      // if Margin is selected, reset activity types (not applicable to Margin)
-      if (source === ActivitySource.MARGIN && activityTypesFromUrl.length > 0) {
+      if (
+        source === ActivitySource.MARGIN &&
+        optimisticActivityTypes.length > 0
+      ) {
         setOptimisticActivityTypes([]);
+        updateSetting('feedActivityType', null);
         params.delete('activityTypes');
       }
 
@@ -123,9 +122,10 @@ export default function FeedControls() {
     });
   };
 
-  const handleFeedClick = (feed: 'global' | 'following') => {
+  const handleFeedClick = (feed: FeedView) => {
     startTransition(() => {
       setOptimisticFeed(feed);
+      updateSetting('feedView', feed);
 
       const params = new URLSearchParams(searchParams.toString());
       params.set('feed', feed);
@@ -139,6 +139,7 @@ export default function FeedControls() {
 
     startTransition(() => {
       setOptimisticType(nextType);
+      updateSetting('feedUrlType', nextType);
 
       const params = new URLSearchParams(searchParams.toString());
       if (nextType) {
@@ -158,6 +159,7 @@ export default function FeedControls() {
       const nextTypes = activityType ? [activityType] : [];
 
       setOptimisticActivityTypes(nextTypes);
+      updateSetting('feedActivityType', activityType);
 
       const params = new URLSearchParams(searchParams.toString());
       params.delete('activityTypes');
@@ -169,37 +171,34 @@ export default function FeedControls() {
     });
   };
 
-  const handleBotFilterClick = (includeKnownBots: boolean) => {
-    startTransition(() => {
-      setOptimisticIncludeKnownBots(includeKnownBots);
-
-      const params = new URLSearchParams(searchParams.toString());
-      if (includeKnownBots) {
-        params.set('includeKnownBots', 'true');
-      } else {
-        params.delete('includeKnownBots');
-      }
-
-      router.push(`?${params.toString()}`, { scroll: false });
-    });
-  };
-
   const hasActiveFilters =
-    optimisticSource !== null ||
-    optimisticFeed !== 'global' ||
-    optimisticType !== null ||
-    optimisticActivityTypes.length > 0 ||
-    optimisticIncludeKnownBots !== false;
+    optimisticSource !== settings.feedSource ||
+    optimisticFeed !== settings.feedView ||
+    optimisticType !== settings.feedUrlType ||
+    (optimisticActivityTypes[0] ?? null) !== settings.feedActivityType;
 
   const handleClear = () => {
     startTransition(() => {
-      setOptimisticSource(null);
-      setOptimisticFeed('global');
-      setOptimisticType(null);
-      setOptimisticActivityTypes([]);
-      setOptimisticIncludeKnownBots(false);
+      setOptimisticSource(settings.feedSource);
+      setOptimisticFeed(settings.feedView);
+      setOptimisticType(settings.feedUrlType);
+      setOptimisticActivityTypes(
+        settings.feedActivityType ? [settings.feedActivityType] : [],
+      );
 
-      router.push('?', { scroll: false });
+      const params = new URLSearchParams();
+      if (settings.feedSource) params.set('source', settings.feedSource);
+      if (settings.feedView && settings.feedView !== 'global')
+        params.set('feed', settings.feedView);
+      if (settings.feedUrlType) params.set('type', settings.feedUrlType);
+      if (settings.feedActivityType)
+        params.append(
+          'activityTypes',
+          activityTypeToParam(settings.feedActivityType),
+        );
+
+      const query = params.toString();
+      router.push(query ? `?${query}` : '?', { scroll: false });
     });
   };
 
@@ -254,24 +253,6 @@ export default function FeedControls() {
               ))}
             </>
 
-            <>
-              <Menu.Label>Accounts</Menu.Label>
-              {botFilterOptions.map((option) => (
-                <Menu.Item
-                  key={String(option.value)}
-                  onClick={() => handleBotFilterClick(option.value)}
-                  rightSection={
-                    option.value === optimisticIncludeKnownBots ? (
-                      <IoMdCheckmark />
-                    ) : null
-                  }
-                  closeMenuOnClick={false}
-                >
-                  {option.label}
-                </Menu.Item>
-              ))}
-            </>
-
             <Menu.Label>Card Type</Menu.Label>
             <Popover
               opened={typePopoverOpened}
@@ -283,7 +264,7 @@ export default function FeedControls() {
                   variant="light"
                   leftSection={<SelectedTypeIcon />}
                   closeMenuOnClick={false}
-                  onClick={(e) => {
+                  onClick={() => {
                     setTypePopoverOpened((o) => !o);
                   }}
                 >
@@ -382,7 +363,7 @@ export default function FeedControls() {
               <>
                 <Menu.Divider />
                 <Menu.Item onClick={handleClear} color="red">
-                  Clear filters
+                  Reset to defaults
                 </Menu.Item>
               </>
             )}
