@@ -7,3 +7,4 @@ dist/
 .next
 .plasmo
 build
+src/webapp/next-env.d.ts

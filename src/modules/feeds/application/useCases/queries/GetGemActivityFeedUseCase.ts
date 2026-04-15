@@ -36,6 +36,7 @@ export interface GetGemActivityFeedQuery {
   urlType?: string; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 // Use the shared API type directly
@@ -160,6 +161,7 @@ export class GetGemActivityFeedUseCase
         urlType,
         source: query.source,
         activityTypes,
+        includeKnownBots: query.includeKnownBots,
       });
 
       if (feedResult.isErr()) {

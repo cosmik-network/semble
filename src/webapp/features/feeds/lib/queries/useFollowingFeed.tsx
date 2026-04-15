@@ -8,6 +8,7 @@ interface Props {
   urlType?: UrlType;
   source?: ActivitySource;
   activityTypes?: ActivityType[];
+  includeKnownBots?: boolean;
   enabled?: boolean;
 }
 
@@ -21,6 +22,7 @@ export default function useFollowingFeed(props?: Props) {
       props?.urlType,
       props?.source,
       props?.activityTypes,
+      props?.includeKnownBots,
     ),
     staleTime: 10000,
     initialPageParam: 1,
@@ -33,6 +35,7 @@ export default function useFollowingFeed(props?: Props) {
         urlType: props?.urlType,
         source: props?.source,
         activityTypes: props?.activityTypes,
+        includeKnownBots: props?.includeKnownBots,
       });
     },
     getNextPageParam: (lastPage) => {

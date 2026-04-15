@@ -13,6 +13,7 @@ export interface FeedQueryOptions {
   urlType?: UrlType; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: ActivityTypeEnum[]; // Filter by activity types
+  includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
 export interface PaginatedFeedResult {
