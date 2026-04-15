@@ -3,7 +3,7 @@
 import { Button, Group, Menu, Popover, Scroller } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActivitySource, UrlType, ActivityType } from '@semble/types';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
@@ -136,6 +136,20 @@ export default function FeedControls() {
           </Menu.Target>
 
           <Menu.Dropdown>
+            <Menu.Label>Feed</Menu.Label>
+            {feedOptions.map((option) => (
+              <Menu.Item
+                key={option.value}
+                onClick={() => handleFeedClick(option.value)}
+                rightSection={
+                  option.value === settings.feedView ? <IoMdCheckmark /> : null
+                }
+                closeMenuOnClick={false}
+              >
+                {option.label}
+              </Menu.Item>
+            ))}
+
             <Menu.Label>Source</Menu.Label>
             <Menu.Sub>
               <Menu.Sub.Target>
@@ -167,78 +181,58 @@ export default function FeedControls() {
               </Menu.Sub.Dropdown>
             </Menu.Sub>
 
-            <>
-              <Menu.Label>Activity Type</Menu.Label>
-              <Menu.Sub>
-                <Menu.Sub.Target>
-                  <Menu.Sub.Item
-                    fz="md"
-                    fw={600}
-                    disabled={isMarginSource}
-                    leftSection={
-                      settings.feedActivityType
-                        ? activityTypeOptions.find(
-                            (o) => o.value === settings.feedActivityType,
-                          )?.icon
-                        : null
-                    }
-                  >
-                    {settings.feedActivityType
-                      ? (activityTypeOptions.find(
+            <Menu.Label>Activity Type</Menu.Label>
+            <Menu.Sub>
+              <Menu.Sub.Target>
+                <Menu.Sub.Item
+                  fz="md"
+                  fw={600}
+                  disabled={isMarginSource}
+                  leftSection={
+                    settings.feedActivityType
+                      ? activityTypeOptions.find(
                           (o) => o.value === settings.feedActivityType,
-                        )?.label ?? 'All')
-                      : 'All'}
-                  </Menu.Sub.Item>
-                </Menu.Sub.Target>
+                        )?.icon
+                      : null
+                  }
+                >
+                  {settings.feedActivityType
+                    ? (activityTypeOptions.find(
+                        (o) => o.value === settings.feedActivityType,
+                      )?.label ?? 'All')
+                    : 'All'}
+                </Menu.Sub.Item>
+              </Menu.Sub.Target>
 
-                <Menu.Sub.Dropdown>
-                  <Menu.Item
-                    onClick={() => handleActivityTypeClick(null)}
-                    rightSection={
-                      settings.feedActivityType === null ? (
-                        <IoMdCheckmark />
-                      ) : null
-                    }
-                    closeMenuOnClick={false}
-                  >
-                    All
-                  </Menu.Item>
-                  {activityTypeOptions.map((option) => (
-                    <Menu.Item
-                      key={option.value}
-                      onClick={() => handleActivityTypeClick(option.value)}
-                      leftSection={option.icon}
-                      rightSection={
-                        settings.feedActivityType === option.value ? (
-                          <IoMdCheckmark />
-                        ) : null
-                      }
-                      closeMenuOnClick={false}
-                    >
-                      {option.label}
-                    </Menu.Item>
-                  ))}
-                </Menu.Sub.Dropdown>
-              </Menu.Sub>
-            </>
-
-            <>
-              <Menu.Label>Feed</Menu.Label>
-              {feedOptions.map((option) => (
+              <Menu.Sub.Dropdown>
                 <Menu.Item
-                  key={option.value}
-                  onClick={() => handleFeedClick(option.value)}
+                  onClick={() => handleActivityTypeClick(null)}
                   rightSection={
-                    option.value === settings.feedView ? (
+                    settings.feedActivityType === null ? (
                       <IoMdCheckmark />
                     ) : null
                   }
                   closeMenuOnClick={false}
                 >
-                  {option.label}
+                  All
                 </Menu.Item>
-              ))}
-            </>
+                {activityTypeOptions.map((option) => (
+                  <Menu.Item
+                    key={option.value}
+                    onClick={() => handleActivityTypeClick(option.value)}
+                    leftSection={option.icon}
+                    rightSection={
+                      settings.feedActivityType === option.value ? (
+                        <IoMdCheckmark />
+                      ) : null
+                    }
+                    closeMenuOnClick={false}
+                  >
+                    {option.label}
+                  </Menu.Item>
+                ))}
+              </Menu.Sub.Dropdown>
+            </Menu.Sub>
 
             <Menu.Label>Card Type</Menu.Label>
             <Popover
@@ -295,12 +289,12 @@ export default function FeedControls() {
             </Popover>
 
             {hasActiveFilters && (
-              <>
+              <Fragment>
                 <Menu.Divider />
                 <Menu.Item onClick={handleClear} color="red">
                   Clear filters
                 </Menu.Item>
-              </>
+              </Fragment>
             )}
           </Menu.Dropdown>
         </Menu>
