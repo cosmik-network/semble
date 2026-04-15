@@ -188,6 +188,7 @@ export const theme = createTheme({
     SegmentedControl: SegmentedControl.extend({
       defaultProps: {
         withItemsBorders: false,
+        radius: 'lg',
       },
       styles: {
         root: {
