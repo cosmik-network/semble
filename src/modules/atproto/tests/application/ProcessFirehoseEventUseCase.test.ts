@@ -7,6 +7,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from '../../application/use
 import { ProcessMarginBookmarkFirehoseEventUseCase } from '../../application/useCases/ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from '../../application/useCases/ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessMarginNoteFirehoseEventUseCase } from '../../application/useCases/ProcessMarginNoteFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from '../../application/useCases/ProcessFollowFirehoseEventUseCase';
 import { ProcessConnectionFirehoseEventUseCase } from '../../application/useCases/ProcessConnectionFirehoseEventUseCase';
@@ -52,6 +53,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase;
   let processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase;
   let processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase;
+  let processMarginNoteFirehoseEventUseCase: ProcessMarginNoteFirehoseEventUseCase;
   let processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase;
   let processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase;
   let processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase;
@@ -201,6 +203,12 @@ describe('ProcessFirehoseEventUseCase', () => {
         atUriResolutionService,
         updateUrlCardAssociationsUseCase,
       );
+    processMarginNoteFirehoseEventUseCase =
+      new ProcessMarginNoteFirehoseEventUseCase(
+        atUriResolutionService,
+        addUrlToLibraryUseCase,
+        removeCardFromLibraryUseCase,
+      );
     processCollectionLinkRemovalFirehoseEventUseCase =
       new ProcessCollectionLinkRemovalFirehoseEventUseCase(
         atUriResolutionService,
@@ -272,6 +280,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       processMarginBookmarkFirehoseEventUseCase,
       processMarginCollectionFirehoseEventUseCase,
       processMarginCollectionItemFirehoseEventUseCase,
+      processMarginNoteFirehoseEventUseCase,
       processCollectionLinkRemovalFirehoseEventUseCase,
       processFollowFirehoseEventUseCase,
       processConnectionFirehoseEventUseCase,

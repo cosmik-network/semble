@@ -11,6 +11,7 @@ import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLi
 import { ProcessMarginBookmarkFirehoseEventUseCase } from './ProcessMarginBookmarkFirehoseEventUseCase';
 import { ProcessMarginCollectionFirehoseEventUseCase } from './ProcessMarginCollectionFirehoseEventUseCase';
 import { ProcessMarginCollectionItemFirehoseEventUseCase } from './ProcessMarginCollectionItemFirehoseEventUseCase';
+import { ProcessMarginNoteFirehoseEventUseCase } from './ProcessMarginNoteFirehoseEventUseCase';
 import { ProcessCollectionLinkRemovalFirehoseEventUseCase } from './ProcessCollectionLinkRemovalFirehoseEventUseCase';
 import { ProcessFollowFirehoseEventUseCase } from './ProcessFollowFirehoseEventUseCase';
 import { ProcessConnectionFirehoseEventUseCase } from './ProcessConnectionFirehoseEventUseCase';
@@ -24,6 +25,22 @@ import { Record as MarginCollectionItemRecord } from '../../infrastructure/lexic
 import { Record as CollectionLinkRemovalRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLinkRemoval';
 import { Record as FollowRecord } from '../../infrastructure/lexicon/types/network/cosmik/follow';
 import { Record as ConnectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/connection';
+
+// Margin Note Record type definition
+interface MarginNoteTarget {
+  title?: string;
+  source: string;
+  sourceHash?: string;
+  [k: string]: unknown;
+}
+
+interface MarginNoteRecord {
+  $type: 'at.margin.note';
+  target: MarginNoteTarget;
+  createdAt: string;
+  motivation?: string;
+  [k: string]: unknown;
+}
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
@@ -50,6 +67,7 @@ export class ProcessFirehoseEventUseCase
     private processMarginBookmarkFirehoseEventUseCase: ProcessMarginBookmarkFirehoseEventUseCase,
     private processMarginCollectionFirehoseEventUseCase: ProcessMarginCollectionFirehoseEventUseCase,
     private processMarginCollectionItemFirehoseEventUseCase: ProcessMarginCollectionItemFirehoseEventUseCase,
+    private processMarginNoteFirehoseEventUseCase: ProcessMarginNoteFirehoseEventUseCase,
     private processCollectionLinkRemovalFirehoseEventUseCase: ProcessCollectionLinkRemovalFirehoseEventUseCase,
     private processFollowFirehoseEventUseCase: ProcessFollowFirehoseEventUseCase,
     private processConnectionFirehoseEventUseCase: ProcessConnectionFirehoseEventUseCase,
@@ -217,6 +235,23 @@ export class ProcessFirehoseEventUseCase
           return this.processMarginCollectionItemFirehoseEventUseCase.execute({
             ...request,
             record: request.record as MarginCollectionItemRecord | undefined,
+          });
+        case collections.marginNote:
+          // Validate MarginNoteRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const noteRecord = request.record as MarginNoteRecord;
+            if (!noteRecord.target || !noteRecord.target.source) {
+              return err(
+                new ValidationError('Invalid Margin note record structure'),
+              );
+            }
+          }
+          return this.processMarginNoteFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as MarginNoteRecord | undefined,
           });
         case collections.follow:
           // Validate FollowRecord structure

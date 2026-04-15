@@ -33,6 +33,7 @@ export interface EnvironmentConfig {
       collection: string;
       collectionLink: string;
       marginBookmark: string;
+      marginNote: string;
       marginCollection: string;
       marginCollectionItem: string;
       collectionLinkRemoval: string;
@@ -149,6 +150,7 @@ export class EnvironmentConfigService {
           marginBookmark: ATPROTO_NSID.MARGIN.BOOKMARK,
           marginCollection: ATPROTO_NSID.MARGIN.COLLECTION,
           marginCollectionItem: ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
+          marginNote: ATPROTO_NSID.MARGIN.NOTE,
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',
