@@ -7,13 +7,23 @@ export const feedKeys = {
     urlType?: UrlType,
     source?: ActivitySource,
     activityTypes?: ActivityType[],
-  ) => [...feedKeys.all(), 'infinite', limit, urlType, source, activityTypes],
+    includeKnownBots?: boolean,
+  ) => [
+    ...feedKeys.all(),
+    'infinite',
+    limit,
+    urlType,
+    source,
+    activityTypes,
+    includeKnownBots,
+  ],
   gems: () => [...feedKeys.all(), 'gems'] as const,
   gemsInfinite: (
     limit?: number,
     urlType?: UrlType,
     source?: ActivitySource,
     activityTypes?: ActivityType[],
+    includeKnownBots?: boolean,
   ) => [
     ...feedKeys.gems(),
     [...feedKeys.infinite()],
@@ -21,6 +31,7 @@ export const feedKeys = {
     limit,
     source,
     activityTypes,
+    includeKnownBots,
   ],
   following: () => [...feedKeys.all(), 'following'] as const,
   followingInfinite: (
@@ -28,6 +39,7 @@ export const feedKeys = {
     urlType?: UrlType,
     source?: ActivitySource,
     activityTypes?: ActivityType[],
+    includeKnownBots?: boolean,
   ) =>
     [
       ...feedKeys.following(),
@@ -36,5 +48,6 @@ export const feedKeys = {
       urlType,
       source,
       activityTypes,
+      includeKnownBots,
     ] as const,
 };

@@ -1,4 +1,14 @@
-import { eq, desc, lt, count, sql, and, gte, inArray } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  lt,
+  count,
+  sql,
+  and,
+  gte,
+  inArray,
+  notInArray,
+} from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   IFeedRepository,
@@ -19,6 +29,7 @@ import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 import { ActivitySource } from '@semble/types';
+import { KNOWN_BOT_DIDS } from '../../../../shared/constants/knownBots';
 
 export class DrizzleFeedRepository implements IFeedRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -89,6 +100,12 @@ export class DrizzleFeedRepository implements IFeedRepository {
           // Direct match for other sources (e.g., ActivitySource.MARGIN)
           whereConditions.push(eq(feedActivities.source, options.source));
         }
+      }
+      // Filter out known bots by default (unless explicitly included)
+      if (!options.includeKnownBots && KNOWN_BOT_DIDS.length > 0) {
+        whereConditions.push(
+          notInArray(feedActivities.actorId, KNOWN_BOT_DIDS),
+        );
       }
 
       if (beforeActivityId) {
@@ -251,6 +268,12 @@ export class DrizzleFeedRepository implements IFeedRepository {
           // Direct match for other sources (e.g., ActivitySource.MARGIN)
           whereConditions.push(eq(feedActivities.source, options.source));
         }
+      }
+      // Filter out known bots by default (unless explicitly included)
+      if (!options.includeKnownBots && KNOWN_BOT_DIDS.length > 0) {
+        whereConditions.push(
+          notInArray(feedActivities.actorId, KNOWN_BOT_DIDS),
+        );
       }
 
       // Create the JSON array condition using jsonb_array_elements_text
@@ -513,6 +536,13 @@ export class DrizzleFeedRepository implements IFeedRepository {
         } else {
           whereConditions.push(eq(feedActivities.source, options.source));
         }
+      }
+
+      // Filter out known bots by default (unless explicitly included)
+      if (!options.includeKnownBots && KNOWN_BOT_DIDS.length > 0) {
+        whereConditions.push(
+          notInArray(feedActivities.actorId, KNOWN_BOT_DIDS),
+        );
       }
 
       // Cursor-based pagination

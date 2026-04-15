@@ -28,6 +28,7 @@ export default function MyFeedContainer() {
   const selectedSource = searchParams.get('source') as ActivitySource;
   const selectedFeed =
     (searchParams.get('feed') as 'global' | 'following') || 'global';
+  const includeKnownBots = searchParams.get('includeKnownBots') === 'true';
 
   // Parse activityTypes from URL params (lowercase) and convert to enum values
   const activityTypesParam = searchParams.getAll('activityTypes');
@@ -48,11 +49,13 @@ export default function MyFeedContainer() {
     urlType: selectedUrlType,
     source: selectedSource,
     activityTypes: activityTypesFilter,
+    includeKnownBots,
   });
   const followingFeed = useFollowingFeed({
     urlType: selectedUrlType,
     source: selectedSource,
     activityTypes: activityTypesFilter,
+    includeKnownBots,
     enabled: selectedFeed === 'following',
   });
 

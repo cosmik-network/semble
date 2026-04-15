@@ -9,6 +9,7 @@ interface PageParams {
   urlType?: UrlType;
   source?: ActivitySource;
   activityTypes?: ActivityType[];
+  includeKnownBots?: boolean;
 }
 
 export const getGlobalFeed = cache(async (params?: PageParams) => {
@@ -19,6 +20,7 @@ export const getGlobalFeed = cache(async (params?: PageParams) => {
     urlType: params?.urlType,
     source: params?.source,
     activityTypes: params?.activityTypes,
+    includeKnownBots: params?.includeKnownBots,
   });
 
   return response;
@@ -48,6 +50,7 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
     urlType: params?.urlType,
     source: params?.source,
     activityTypes: params?.activityTypes,
+    includeKnownBots: params?.includeKnownBots,
   });
 
   return response;
