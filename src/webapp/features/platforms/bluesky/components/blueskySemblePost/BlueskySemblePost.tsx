@@ -5,7 +5,16 @@ import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getFormattedDate } from '@/lib/utils/time';
-import { Stack, Tooltip, Anchor, Card, Group, Box, Text } from '@mantine/core';
+import {
+  Stack,
+  Tooltip,
+  Anchor,
+  Card,
+  Group,
+  Box,
+  Text,
+  Alert,
+} from '@mantine/core';
 import BlueskyPlatformIcon from '../blueskyPlatformIcon/BlueskyPlatformIcon';
 import PostEmbed from '../postEmbed/PostEmbed';
 import ContentHider from '../contentHider/ContentHider';
@@ -31,6 +40,36 @@ export default async function BlueskySemblePost(props: Props) {
 
   const platform = detectUrlPlatform(props.url);
   const platformIcon = <BlueskyPlatformIcon platform={platform.type} />;
+
+  if (!data) {
+    return (
+      <Stack gap={'xs'}>
+        <Suspense fallback={<UrlTypeBadgeSkeleton />}>
+          <UrlTypeBadge url={props.url} />
+        </Suspense>
+        <Card p={'xs'} radius={'lg'} withBorder>
+          <Stack gap={'xs'}>
+            <Group gap="xs" justify="flex-end">
+              <Tooltip
+                label={`View on ${platform.type === SupportedPlatform.BLUESKY_POST ? 'Bluesky' : 'Blacksky'}`}
+              >
+                <Anchor href={props.url} target="_blank">
+                  {platformIcon}
+                </Anchor>
+              </Tooltip>
+            </Group>
+            <Alert
+              component={'button'}
+              variant="light"
+              color="gray"
+              p={'sm'}
+              title="Post not found"
+            />
+          </Stack>
+        </Card>
+      </Stack>
+    );
+  }
 
   if (
     !data.thread ||
