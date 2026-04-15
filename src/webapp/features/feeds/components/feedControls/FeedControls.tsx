@@ -5,6 +5,7 @@ import { ActivitySource, UrlType, ActivityType } from '@semble/types';
 import { Fragment, useState } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
+import { TbSettings } from 'react-icons/tb';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
@@ -16,6 +17,7 @@ import {
   FeedView,
   sourceOptions,
 } from '@/features/feeds/lib/feedOptions';
+import Link from 'next/link';
 
 export default function FeedControls() {
   const { settings, updateSetting } = useUserSettings();
@@ -239,6 +241,15 @@ export default function FeedControls() {
                 </Group>
               </Popover.Dropdown>
             </Popover>
+
+            <Menu.Divider />
+            <Menu.Item
+              component={Link}
+              href="/settings/feed"
+              leftSection={<TbSettings />}
+            >
+              Feed settings
+            </Menu.Item>
 
             {hasActiveFilters && (
               <Fragment>
