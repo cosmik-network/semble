@@ -8,6 +8,7 @@ interface Props {
   urlType?: UrlType;
   source?: ActivitySource;
   activityTypes?: ActivityType[];
+  includeKnownBots?: boolean;
 }
 
 export default function useGlobalFeed(props?: Props) {
@@ -19,6 +20,7 @@ export default function useGlobalFeed(props?: Props) {
       props?.urlType,
       props?.source,
       props?.activityTypes,
+      props?.includeKnownBots,
     ),
     staleTime: 10000,
     initialPageParam: 1,
@@ -30,6 +32,7 @@ export default function useGlobalFeed(props?: Props) {
         urlType: props?.urlType,
         source: props?.source,
         activityTypes: props?.activityTypes,
+        includeKnownBots: props?.includeKnownBots,
       });
     },
     getNextPageParam: (lastPage) => {
