@@ -30,6 +30,21 @@ export default function FeedSettingsContainer() {
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
 
+  const isAtDefaults =
+    settings.feedSource === null &&
+    settings.feedView === 'global' &&
+    settings.feedActivityType === null &&
+    settings.feedUrlType === null &&
+    settings.includeKnownBots === false;
+
+  const handleReset = () => {
+    updateSetting('feedSource', null);
+    updateSetting('feedView', 'global');
+    updateSetting('feedActivityType', null);
+    updateSetting('feedUrlType', null);
+    updateSetting('includeKnownBots', false);
+  };
+
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
@@ -152,6 +167,14 @@ export default function FeedSettingsContainer() {
             </Group>
           </Checkbox.Card>
         </Stack>
+
+        {!isAtDefaults && (
+          <Group justify="flex-end">
+            <Button variant="light" color="red" fullWidth onClick={handleReset}>
+              Clear filters
+            </Button>
+          </Group>
+        )}
       </Stack>
     </Container>
   );
