@@ -2,7 +2,7 @@
 
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, Box, Anchor, Tooltip } from '@mantine/core';
+import { Group, Stack, Text, Box, Anchor, Tooltip, Alert } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';
@@ -28,10 +28,38 @@ interface Props {
 export default function BlueskyPost(props: Props) {
   const { settings } = useUserSettings();
   const uri = getPostUriFromUrl(props.url);
-  const { data, error } = useGetBlueskyPost({ uri });
+  const { data } = useGetBlueskyPost({ uri });
   const showEmbed = settings.cardView === 'grid';
   const platform = detectUrlPlatform(props.url);
   const platformIcon = <BlueskyPlatformIcon platform={platform.type} />;
+
+  if (!data) {
+    return (
+      <Stack justify="space-between" gap="xs">
+        <Group gap="xs" justify="flex-end" wrap="nowrap" w={'100%'}>
+          <Tooltip
+            label={`View on ${platform.type === SupportedPlatform.BLUESKY_POST ? 'Bluesky' : 'Blacksky'}`}
+          >
+            <Anchor
+              href={props.url}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {platformIcon}
+            </Anchor>
+          </Tooltip>
+        </Group>
+        <Alert
+          component={'button'}
+          variant="light"
+          color="gray"
+          p={'sm'}
+          title="Post not found"
+          style={{ cursor: 'pointer' }}
+        />
+      </Stack>
+    );
+  }
 
   if (
     !data.thread ||
