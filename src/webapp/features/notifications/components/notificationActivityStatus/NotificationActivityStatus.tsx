@@ -1,5 +1,6 @@
 import {
   Anchor,
+  Box,
   Card,
   Group,
   Menu,
@@ -17,6 +18,7 @@ import {
   NotificationType,
   CollectionAccessType,
 } from '@/api-client';
+
 import { Fragment } from 'react';
 import styles from '../../../feeds/components/feedActivityStatus/FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -36,6 +38,7 @@ interface Props {
   type: NotificationType;
   followButton?: React.ReactNode;
   note?: string;
+  iconColor?: string;
 }
 
 export default function NotificationActivityStatus(props: Props) {
@@ -241,26 +244,46 @@ export default function NotificationActivityStatus(props: Props) {
   return (
     <Card p={0} className={styles.root} radius={'lg'}>
       <Stack gap={'xs'} p={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="center" justify="space-between">
-          <Group gap={'xs'} wrap="nowrap" align="center">
-            {TypeIcon && (
-              <ThemeIcon size={'sm'} variant="light" radius={'xl'}>
-                <TypeIcon size={12} />
-              </ThemeIcon>
-            )}
-            <LinkAvatar
-              href={`/profile/${props.user.handle}`}
-              src={props.user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-              alt={`${props.user.name}'s' avatar`}
-            />
+        <Group gap={'xs'} justify="space-between" wrap="nowrap">
+          <Group gap={'xs'} align="center" wrap="nowrap">
+            <Box
+              pos="relative"
+              style={{ display: 'inline-block', flexShrink: 0 }}
+            >
+              <LinkAvatar
+                href={`/profile/${props.user.handle}`}
+                src={props.user.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${props.user.name}'s' avatar`}
+              />
+              {TypeIcon && (
+                <ThemeIcon
+                  size={20}
+                  radius="xl"
+                  pos="absolute"
+                  bottom={-4}
+                  right={-5}
+                  color={props.iconColor}
+                  style={{
+                    border:
+                      '2px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))',
+                  }}
+                >
+                  <TypeIcon size={10} />
+                </ThemeIcon>
+              )}
+            </Box>
+
             <Text fw={500}>
               {getActivityText()}
-              <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
+              <Text fz={'sm'} fw={600} c={'gray'} display={'block'} span>
                 {time}
               </Text>
             </Text>
           </Group>
-          {props.followButton}
+          <Box style={{ flexShrink: 0 }}>{props.followButton}</Box>
         </Group>
         {props.note && (
           <Spoiler

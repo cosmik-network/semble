@@ -1,11 +1,12 @@
 'use client';
 
-import { Button } from '@mantine/core';
+import { Button, ButtonProps } from '@mantine/core';
 import { startTransition } from 'react';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
 import { useWebHaptics } from 'web-haptics/react';
 
-interface Props {
+interface Props
+  extends Omit<ButtonProps, 'onClick' | 'variant' | 'color' | 'children'> {
   targetId: string;
   targetType: 'USER' | 'COLLECTION';
   targetHandle?: string;
@@ -13,27 +14,32 @@ interface Props {
   followText?: string;
 }
 
-export default function FollowButton(props: Props) {
+export default function FollowButton({
+  targetId,
+  targetType,
+  targetHandle,
+  initialIsFollowing,
+  followText,
+  ...buttonProps
+}: Props) {
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
-    useToggleFollow(props.initialIsFollowing ?? false);
+    useToggleFollow(initialIsFollowing ?? false);
   const { trigger } = useWebHaptics();
 
   return (
     <Button
+      variant={isFollowing ? 'light' : 'filled'}
+      color={isFollowing ? 'gray' : 'dark'}
+      {...buttonProps}
       onClick={() => {
         trigger();
         startTransition(() => {
           setOptimisticIsFollowing(!isFollowing);
-          toggleAction({
-            targetId: props.targetId,
-            targetType: props.targetType,
-          });
+          toggleAction({ targetId, targetType });
         });
       }}
-      variant={isFollowing ? 'light' : 'filled'}
-      color={isFollowing ? 'gray' : 'dark'}
     >
-      {isFollowing ? 'Following' : (props.followText ?? 'Follow')}
+      {isFollowing ? 'Following' : (followText ?? 'Follow')}
     </Button>
   );
 }

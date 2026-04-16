@@ -1,7 +1,7 @@
 'use client';
 
 import { AppShellFooter, Avatar, Group, Indicator } from '@mantine/core';
-import { LuLibrary } from 'react-icons/lu';
+import { HiOutlineHome } from 'react-icons/hi';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { BiSearch } from 'react-icons/bi';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
@@ -15,8 +15,8 @@ export default function BottomBar() {
 
   return (
     <AppShellFooter px={'sm'} pb={'lg'} py={'xs'} hiddenFrom="sm">
-      <Group align="start" justify="space-around" gap={'lg'} h={'100%'}>
-        <BottomBarItem href="/home" title="Home" icon={LuLibrary} />
+      <Group align="center" justify="space-around" gap={0} h={'100%'}>
+        <BottomBarItem href="/home" title="Home" icon={HiOutlineHome} />
         <BottomBarItem
           href="/explore"
           title="Explore"

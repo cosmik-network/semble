@@ -7,7 +7,7 @@ import {
   IoMdInformationCircle,
 } from 'react-icons/io';
 import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutItem';
-import { MdScience } from 'react-icons/md';
+import { MdEmojiNature, MdScience } from 'react-icons/md';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
 
@@ -25,6 +25,9 @@ export default async function SettingsContainer() {
             </SettingItem>
             <SettingItem href="/settings/advanced" icon={MdScience}>
               Advanced
+            </SettingItem>
+            <SettingItem href="/settings/feed" icon={MdEmojiNature}>
+              Feed
             </SettingItem>
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
               Help
