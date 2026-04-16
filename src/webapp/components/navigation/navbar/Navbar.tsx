@@ -15,7 +15,6 @@ import {
   Button,
   Badge,
 } from '@mantine/core';
-import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
@@ -31,6 +30,7 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
 import Composer from '@/features/composer/components/Composer';
+import { HiOutlineHome } from 'react-icons/hi';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -57,7 +57,11 @@ export default function Navbar() {
           <ProfileMenu />
 
           <Stack gap={5}>
-            <NavItem href="/home" label="Home" icon={<LuLibrary size={25} />} />
+            <NavItem
+              href="/home"
+              label="Home"
+              icon={<HiOutlineHome size={25} />}
+            />
             <NavItem
               href="/explore"
               label="Explore"
