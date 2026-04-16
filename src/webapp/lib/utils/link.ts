@@ -271,13 +271,13 @@ export const detectUrlPlatform = (url: string): PlatformData => {
         if (trackOrSets === 'sets' && set) {
           return {
             type: SupportedPlatform.SOUNDCLOUD_SET,
-            url: `https://w.soundcloud.com/player/?url=${url}&auto_play=true&visual=false&hide_related=true`,
+            url: `https://w.soundcloud.com/player/?url=${url}&auto_play=false&visual=false&hide_related=true`,
           };
         }
 
         return {
           type: SupportedPlatform.SOUNDCLOUD_TRACK,
-          url: `https://w.soundcloud.com/player/?url=${url}&auto_play=true&visual=false&hide_related=true`,
+          url: `https://w.soundcloud.com/player/?url=${url}&auto_play=false&visual=false&hide_related=true`,
         };
       }
     }
