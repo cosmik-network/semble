@@ -61,7 +61,6 @@ export default function NotificationItem(props: Props) {
                 targetType="USER"
                 targetHandle={notification.item.user.handle}
                 initialIsFollowing={notification.item.user.isFollowing}
-                followText="Follow back"
               />
             ) : undefined
           }

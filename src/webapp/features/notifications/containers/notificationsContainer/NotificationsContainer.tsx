@@ -101,7 +101,7 @@ export default function NotificationsContainer() {
         <Group justify="end" mb="md">
           <Button
             onClick={handleMarkAllAsRead}
-            variant="subtle"
+            variant="light"
             color="tangerine"
             size="sm"
             leftSection={<IoCheckmarkDoneSharp size={18} />}
