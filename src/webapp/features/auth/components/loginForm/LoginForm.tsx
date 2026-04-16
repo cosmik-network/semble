@@ -9,17 +9,27 @@ import { createSembleClient } from '@/services/client.apiClient';
 import OAuthLoginForm from './OAuthLoginForm';
 import AppPasswordLoginForm from './AppPasswordLoginForm';
 
-export default function LoginForm() {
+interface LoginFormProps {
+  returnTo?: string;
+}
+
+export default function LoginForm({ returnTo }: LoginFormProps = {}) {
   const router = useRouter();
   const { isAuthenticated, refreshAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const client = createSembleClient();
+  const destination = returnTo ?? '/home';
+
+  const clearReturnToCookie = () => {
+    document.cookie = 'postLoginReturnTo=; Max-Age=0; Path=/; SameSite=Lax';
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/home');
+      clearReturnToCookie();
+      router.push(destination);
     }
   }, [isAuthenticated]);
 
@@ -33,6 +43,12 @@ export default function LoginForm() {
     try {
       setIsLoading(true);
       setError('');
+
+      if (returnTo) {
+        // Persist target across the OAuth round-trip since the backend callback
+        // always redirects to /home; proxy consumes this cookie there.
+        document.cookie = `postLoginReturnTo=${encodeURIComponent(returnTo)}; Max-Age=600; Path=/; SameSite=Lax`;
+      }
 
       const { authUrl } = await client.initiateOAuthSignIn({
         handle: form.values.handle.trimEnd(),
@@ -64,7 +80,8 @@ export default function LoginForm() {
 
       // Refresh auth state to fetch user profile with new tokens (cookies are set automatically)
       await refreshAuth();
-      router.push('/home');
+      clearReturnToCookie();
+      router.push(destination);
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {

@@ -13,18 +13,23 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
+import { sanitizeReturnTo } from '@/lib/auth/returnTo';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
+interface LogoutOptions {
+  returnTo?: string;
+}
+
 interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (options?: LogoutOptions) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,23 +39,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const pathname = usePathname(); // to prevent redirecting to login on landing page
 
-  const logout = useCallback(async () => {
-    if (ENABLE_AUTH_LOGGING) {
-      console.log('[useAuth] Initiating logout process');
-    }
-
-    // Reset PostHog user identity
-    if (shouldCaptureAnalytics()) {
-      posthog.reset();
+  const logout = useCallback(
+    async (options?: LogoutOptions) => {
       if (ENABLE_AUTH_LOGGING) {
-        console.log('[useAuth] PostHog user identity reset');
+        console.log('[useAuth] Initiating logout process');
       }
-    }
 
-    await ClientCookieAuthService.clearTokens();
-    queryClient.clear();
-    router.push('/login');
-  }, [queryClient, router]);
+      // Reset PostHog user identity
+      if (shouldCaptureAnalytics()) {
+        posthog.reset();
+        if (ENABLE_AUTH_LOGGING) {
+          console.log('[useAuth] PostHog user identity reset');
+        }
+      }
+
+      await ClientCookieAuthService.clearTokens();
+      queryClient.clear();
+
+      const safeReturnTo = sanitizeReturnTo(options?.returnTo);
+      if (safeReturnTo) {
+        router.push(`/login?returnTo=${encodeURIComponent(safeReturnTo)}`);
+      } else {
+        router.push('/login');
+      }
+    },
+    [queryClient, router],
+  );
 
   const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
@@ -68,8 +82,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [query.refetch]);
 
   useEffect(() => {
-    // Handle other auth errors
-    if (query.isError && !query.isLoading && pathname !== '/') logout();
+    // A 401 on /login, /signup, /logout is expected — don't self-trigger
+    // logout there, or it would strip ?returnTo from the URL.
+    const isAuthPage =
+      pathname === '/login' || pathname === '/signup' || pathname === '/logout';
+    if (query.isError && !query.isLoading && pathname !== '/' && !isAuthPage)
+      logout({ returnTo: pathname ?? undefined });
   }, [query.isError, query.isLoading, pathname, logout]);
 
   // Set super properties for anonymous tracking (no PII)

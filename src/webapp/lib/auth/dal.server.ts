@@ -1,37 +1,25 @@
 import { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
-interface Options {
-  redirectOnFail?: boolean;
-}
-
-export const verifySessionOnServer = cache(async (options?: Options) => {
+export const verifySessionOnServer = cache(async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  // tokens are missing
   if (!accessToken || !refreshToken) {
-    if (options?.redirectOnFail) {
-      redirect('/login');
-    }
     return null;
   }
 
   const res = await fetch(`${appUrl}/api/auth/me`, {
     headers: {
-      Cookie: cookieStore.toString(), // forward user's cookies
+      Cookie: cookieStore.toString(),
     },
   });
 
   if (!res.ok) {
-    if (options?.redirectOnFail) {
-      redirect('/login');
-    }
     return null;
   }
 

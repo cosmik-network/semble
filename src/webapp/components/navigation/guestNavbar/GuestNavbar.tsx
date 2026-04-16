@@ -18,8 +18,10 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 import { BiRightArrowAlt, BiSearch } from 'react-icons/bi';
 import { LinkButton } from '@/components/link/MantineLink';
+import { useLoginUrlWithReturnTo } from '@/lib/auth/useLoginUrlWithReturnTo';
 
 export default function GuestNavbar() {
+  const loginUrl = useLoginUrlWithReturnTo();
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between">
@@ -43,7 +45,7 @@ export default function GuestNavbar() {
             <Group gap={'xs'}>
               <LinkButton href="/signup">Sign up</LinkButton>
               <LinkButton
-                href="/login"
+                href={loginUrl}
                 color="var(--mantine-color-dark-filled)"
                 rightSection={<BiRightArrowAlt size={22} />}
               >
