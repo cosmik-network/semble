@@ -5,6 +5,7 @@ import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
+import { connectionKeys } from '@/features/connections/lib/connectionKeys';
 import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
@@ -59,6 +60,7 @@ export default function useUpdateCardAssociations(
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all URL metadata queries with stats to update tab counts
       queryClient.invalidateQueries({
         predicate: (query): boolean => {
