@@ -36,6 +36,7 @@ interface Props {
   createdAt: string;
   type: NotificationType;
   followButton?: React.ReactNode;
+  iconColor?: string;
 }
 
 export default function NotificationActivityStatus(props: Props) {
@@ -262,6 +263,7 @@ export default function NotificationActivityStatus(props: Props) {
                   pos="absolute"
                   bottom={-4}
                   right={-5}
+                  color={props.iconColor}
                   style={{
                     border:
                       '2px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))',
