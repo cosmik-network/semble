@@ -32,6 +32,7 @@ export default function NotificationItem(props: Props) {
             user={notification.item.user}
             createdAt={notification.item.createdAt}
             type={notification.item.type}
+            iconColor="green"
           />
           <ConnectionCard connection={notification.item.connection} />
         </Stack>
@@ -54,6 +55,7 @@ export default function NotificationItem(props: Props) {
           collections={notification.item.collections}
           createdAt={notification.item.createdAt}
           type={notification.item.type}
+          iconColor="gray"
           followButton={
             notification.item.type === NotificationType.USER_FOLLOWED_YOU ? (
               <FollowButton
@@ -61,7 +63,6 @@ export default function NotificationItem(props: Props) {
                 targetType="USER"
                 targetHandle={notification.item.user.handle}
                 initialIsFollowing={notification.item.user.isFollowing}
-                followText="Follow back"
               />
             ) : undefined
           }

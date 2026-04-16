@@ -84,8 +84,8 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
       }
       const curatorDid = atUriResult.value.did.value;
 
-      // Parse the annotation AT URI to check if it's a bookmark
-      // We only support at.margin.bookmark for now (not highlight or annotation)
+      // Parse the annotation AT URI to check if it's a bookmark or note
+      // We support at.margin.bookmark and at.margin.note (not highlight or other annotation types)
       const annotationUriResult = ATUri.create(request.record.annotation);
       if (annotationUriResult.isErr()) {
         if (ENABLE_FIREHOSE_LOGGING) {
@@ -97,10 +97,13 @@ export class ProcessMarginCollectionItemFirehoseEventUseCase
       }
 
       const annotationCollection = annotationUriResult.value.collection;
-      if (annotationCollection !== ATPROTO_NSID.MARGIN.BOOKMARK) {
+      if (
+        annotationCollection !== ATPROTO_NSID.MARGIN.BOOKMARK &&
+        annotationCollection !== ATPROTO_NSID.MARGIN.NOTE
+      ) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.log(
-            `[FirehoseWorker] Ignoring Margin collection item for non-bookmark annotation type: ${annotationCollection}, itemUri: ${request.atUri}`,
+            `[FirehoseWorker] Ignoring Margin collection item for unsupported annotation type: ${annotationCollection}, itemUri: ${request.atUri}`,
           );
         }
         return ok(undefined);
