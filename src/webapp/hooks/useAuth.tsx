@@ -85,15 +85,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // A 401 on /login, /signup, /logout is expected — don't self-trigger
     // logout there, or it would strip ?returnTo from the URL.
     const isAuthPage =
-      pathname === '/login' ||
-      pathname === '/signup' ||
-      pathname === '/logout';
-    if (
-      query.isError &&
-      !query.isLoading &&
-      pathname !== '/' &&
-      !isAuthPage
-    )
+      pathname === '/login' || pathname === '/signup' || pathname === '/logout';
+    if (query.isError && !query.isLoading && pathname !== '/' && !isAuthPage)
       logout({ returnTo: pathname ?? undefined });
   }, [query.isError, query.isLoading, pathname, logout]);
 
