@@ -45,7 +45,7 @@ export class OAuthClientFactory {
       clientMetadata: {
         client_name: appName,
         client_id: !isLocal
-          ? `${url}/atproto/oauth-client-metadata.json`
+          ? `${url}/oauth-client-metadata.json`
           : `http://localhost?redirect_uri=${enc(`${baseUrl}/api/users/oauth/callback`)}&scope=${enc(scope)}`,
         client_uri: url,
         redirect_uris: [`${baseUrl}/api/users/oauth/callback`],
