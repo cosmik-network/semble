@@ -242,7 +242,7 @@ export default function NotificationActivityStatus(props: Props) {
   return (
     <Card p={0} className={styles.root} radius={'lg'}>
       <Stack gap={'xs'} p={'xs'}>
-        <Group gap={'xs'} justify="space-between">
+        <Group gap={'xs'} justify="space-between" wrap="nowrap">
           <Group gap={'xs'} align="center" wrap="nowrap">
             <Box
               pos="relative"
@@ -281,7 +281,7 @@ export default function NotificationActivityStatus(props: Props) {
               </Text>
             </Text>
           </Group>
-          {props.followButton}
+          <Box style={{ flexShrink: 0 }}>{props.followButton}</Box>
         </Group>
       </Stack>
     </Card>
