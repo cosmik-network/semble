@@ -55,7 +55,7 @@ export default async function Layout(props: Props) {
       <Box
         style={{
           position: 'sticky',
-          top: 59,
+          top: 55,
           zIndex: 1,
         }}
       >

@@ -19,14 +19,14 @@ export default function MinimalProfileHeader(props: Props) {
           <Avatar
             src={props.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
             alt={`${props.name}'s avatar`}
-            size={'md'}
+            size={'34'}
           />
 
           <Stack gap={0}>
-            <Title order={1} fz={'sm'} c={'bright'} lineClamp={1}>
+            <Title order={1} fz={'xs'} c={'bright'} lineClamp={1}>
               {props.name}
             </Title>
-            <Text c="gray" fw={600} fz={'sm'} lineClamp={1}>
+            <Text c="gray" fw={600} fz={'xs'} lineClamp={1}>
               @{props.handle}
             </Text>
           </Stack>
