@@ -117,7 +117,7 @@ export class GetCollectionContributorsUseCase
         uniqueContributorIds,
         query.callingUserId,
         {
-          skipFailures: false, // Fail if any profile fetch fails
+          skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: true, // Use full User DTO with isFollowing
         },
       );

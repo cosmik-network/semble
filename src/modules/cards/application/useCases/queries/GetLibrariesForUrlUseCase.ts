@@ -89,7 +89,7 @@ export class GetLibrariesForUrlUseCase
         uniqueUserIds,
         query.callingUserId,
         {
-          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          skipFailures: true,
           mapToUser: false, // Use inline profile (without isFollowing)
         },
       );
@@ -105,46 +105,49 @@ export class GetLibrariesForUrlUseCase
       const profileMap = profileMapResult.value;
 
       // Map items with enriched user data and card data
-      const enrichedLibraries: LibraryForUrlDTO[] = result.items.map((item) => {
-        const user = profileMap.get(item.userId);
-        if (!user) {
-          throw new Error(`Profile not found for user ${item.userId}`);
-        }
+      // Filter out items with missing profiles
+      const enrichedLibraries: LibraryForUrlDTO[] = result.items
+        .map((item) => {
+          const user = profileMap.get(item.userId);
+          if (!user) {
+            return null; // Skip items with missing profiles
+          }
 
-        // Build card object
-        // Note: userId is the card author (it's their card in their library)
-        const card: UrlCardDTO = {
-          id: item.card.id,
-          type: 'URL',
-          url: item.card.url,
-          uri: item.card.uri,
-          cardContent: {
-            url: item.card.cardContent.url,
-            title: item.card.cardContent.title,
-            description: item.card.cardContent.description,
-            author: item.card.cardContent.author,
-            publishedDate: item.card.cardContent.publishedDate?.toISOString(),
-            siteName: item.card.cardContent.siteName,
-            imageUrl: item.card.cardContent.imageUrl,
-            type: item.card.cardContent.type,
-            retrievedAt: item.card.cardContent.retrievedAt?.toISOString(),
-            doi: item.card.cardContent.doi,
-            isbn: item.card.cardContent.isbn,
-          },
-          libraryCount: item.card.libraryCount,
-          urlLibraryCount: item.card.urlLibraryCount,
-          urlInLibrary: item.card.urlInLibrary,
-          createdAt: item.card.createdAt.toISOString(),
-          updatedAt: item.card.updatedAt.toISOString(),
-          author: user, // Card author is same as library user
-          note: item.card.note,
-        };
+          // Build card object
+          // Note: userId is the card author (it's their card in their library)
+          const card: UrlCardDTO = {
+            id: item.card.id,
+            type: 'URL',
+            url: item.card.url,
+            uri: item.card.uri,
+            cardContent: {
+              url: item.card.cardContent.url,
+              title: item.card.cardContent.title,
+              description: item.card.cardContent.description,
+              author: item.card.cardContent.author,
+              publishedDate: item.card.cardContent.publishedDate?.toISOString(),
+              siteName: item.card.cardContent.siteName,
+              imageUrl: item.card.cardContent.imageUrl,
+              type: item.card.cardContent.type,
+              retrievedAt: item.card.cardContent.retrievedAt?.toISOString(),
+              doi: item.card.cardContent.doi,
+              isbn: item.card.cardContent.isbn,
+            },
+            libraryCount: item.card.libraryCount,
+            urlLibraryCount: item.card.urlLibraryCount,
+            urlInLibrary: item.card.urlInLibrary,
+            createdAt: item.card.createdAt.toISOString(),
+            updatedAt: item.card.updatedAt.toISOString(),
+            author: user, // Card author is same as library user
+            note: item.card.note,
+          };
 
-        return {
-          user,
-          card,
-        };
-      });
+          return {
+            user,
+            card,
+          };
+        })
+        .filter((library): library is LibraryForUrlDTO => library !== null);
 
       return ok({
         libraries: enrichedLibraries,
