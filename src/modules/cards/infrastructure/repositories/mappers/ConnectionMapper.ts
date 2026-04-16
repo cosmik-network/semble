@@ -160,12 +160,12 @@ export class ConnectionMapper {
       curatorId: string;
       sourceType: string;
       sourceValue: string;
-      sourceUrlMetadata?: UrlMetadataJSON;
+      sourceUrlMetadata?: UrlMetadataJSON | null;
       targetType: string;
       targetValue: string;
-      targetUrlMetadata?: UrlMetadataJSON;
-      connectionType?: string;
-      note?: string;
+      targetUrlMetadata?: UrlMetadataJSON | null;
+      connectionType?: string | null;
+      note?: string | null;
       createdAt: Date;
       updatedAt: Date;
       publishedRecordId?: string;
@@ -227,12 +227,12 @@ export class ConnectionMapper {
         curatorId: connection.curatorId.value,
         sourceType: connection.source.type,
         sourceValue: connection.source.stringValue,
-        sourceUrlMetadata,
+        sourceUrlMetadata: sourceUrlMetadata ?? null,
         targetType: connection.target.type,
         targetValue: connection.target.stringValue,
-        targetUrlMetadata,
-        connectionType: connection.type?.value,
-        note: connection.note?.value,
+        targetUrlMetadata: targetUrlMetadata ?? null,
+        connectionType: connection.type?.value ?? null,
+        note: connection.note?.value ?? null,
         createdAt: connection.createdAt,
         updatedAt: connection.updatedAt,
         publishedRecordId,
