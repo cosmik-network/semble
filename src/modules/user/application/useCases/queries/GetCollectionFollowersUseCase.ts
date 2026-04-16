@@ -110,7 +110,7 @@ export class GetCollectionFollowersUseCase
         uniqueFollowerIds,
         query.callingUserId,
         {
-          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: true, // Use full User DTO with isFollowing
         },
       );

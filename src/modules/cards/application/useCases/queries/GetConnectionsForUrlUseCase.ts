@@ -129,7 +129,7 @@ export class GetConnectionsForUrlUseCase
         uniqueCuratorIds,
         query.callingUserId,
         {
-          skipFailures: false,
+          skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: false,
         },
       );
@@ -277,51 +277,52 @@ export class GetConnectionsForUrlUseCase
       });
 
       // Map items with enriched data
-      const enrichedConnections: ConnectionView[] = result.items.map((item) => {
-        const curator = profileMap.get(item.connection.curatorId);
-        if (!curator) {
-          throw new Error(
-            `Profile not found for curator ${item.connection.curatorId}`,
-          );
-        }
+      // Filter out connections with missing curator profiles
+      const enrichedConnections = result.items
+        .map((item) => {
+          const curator = profileMap.get(item.connection.curatorId);
+          if (!curator) {
+            return null; // Skip connections with missing curator profiles
+          }
 
-        const sourceData = urlDataMap.get(item.sourceUrl);
-        if (!sourceData) {
-          throw new Error(`URL data not found for ${item.sourceUrl}`);
-        }
+          const sourceData = urlDataMap.get(item.sourceUrl);
+          if (!sourceData) {
+            throw new Error(`URL data not found for ${item.sourceUrl}`);
+          }
 
-        const targetData = urlDataMap.get(item.targetUrl);
-        if (!targetData) {
-          throw new Error(`URL data not found for ${item.targetUrl}`);
-        }
+          const targetData = urlDataMap.get(item.targetUrl);
+          if (!targetData) {
+            throw new Error(`URL data not found for ${item.targetUrl}`);
+          }
 
-        return {
-          connection: {
-            id: item.connection.id,
-            type: item.connection.type,
-            note: item.connection.note,
-            createdAt: item.connection.createdAt.toISOString(),
-            updatedAt: item.connection.updatedAt.toISOString(),
-            curator,
-          },
-          source: {
-            url: item.sourceUrl,
-            metadata: sourceData.metadata,
-            urlLibraryCount: sourceData.urlLibraryCount,
-            urlInLibrary: sourceData.urlInLibrary,
-            urlConnectionCount: sourceData.urlConnectionCount,
-            urlIsConnected: sourceData.urlIsConnected,
-          },
-          target: {
-            url: item.targetUrl,
-            metadata: targetData.metadata,
-            urlLibraryCount: targetData.urlLibraryCount,
-            urlInLibrary: targetData.urlInLibrary,
-            urlConnectionCount: targetData.urlConnectionCount,
-            urlIsConnected: targetData.urlIsConnected,
-          },
-        };
-      });
+          return {
+            connection: {
+              id: item.connection.id,
+              type: item.connection.type,
+              note: item.connection.note,
+              createdAt: item.connection.createdAt.toISOString(),
+              updatedAt: item.connection.updatedAt.toISOString(),
+              curator,
+            },
+            source: {
+              url: item.sourceUrl,
+              metadata: sourceData.metadata,
+              urlLibraryCount: sourceData.urlLibraryCount,
+              urlInLibrary: sourceData.urlInLibrary,
+              urlConnectionCount: sourceData.urlConnectionCount,
+              urlIsConnected: sourceData.urlIsConnected,
+            },
+            target: {
+              url: item.targetUrl,
+              metadata: targetData.metadata,
+              urlLibraryCount: targetData.urlLibraryCount,
+              urlInLibrary: targetData.urlInLibrary,
+              urlConnectionCount: targetData.urlConnectionCount,
+              urlIsConnected: targetData.urlIsConnected,
+            },
+          };
+        })
+        .filter((connection) => connection !== null) as ConnectionView[];
 
       return ok({
         connections: enrichedConnections,

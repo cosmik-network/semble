@@ -189,21 +189,20 @@ export class GetCollectionPageUseCase
       const authorProfileMap = authorProfileMapResult.value;
 
       // Transform raw card data to enriched DTOs with author information
-      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items.map(
-        (card) => {
+      // Filter out cards with missing author profiles
+      const enrichedCards = cardsResult.items
+        .map((card) => {
           const author = authorProfileMap.get(card.authorId);
           if (!author) {
-            throw new Error(
-              `Failed to fetch profile for card author: ${card.authorId}`,
-            );
+            return null; // Skip cards with missing author profiles
           }
 
           return {
             ...card,
             author,
           };
-        },
-      );
+        })
+        .filter((card) => card !== null) as CollectionPageUrlCardDTO[];
 
       // Process follow status (already fetched in parallel above)
       let isFollowing: boolean | undefined = undefined;
