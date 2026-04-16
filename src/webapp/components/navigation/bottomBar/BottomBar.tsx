@@ -15,7 +15,7 @@ export default function BottomBar() {
 
   return (
     <AppShellFooter px={'sm'} pb={'lg'} py={'xs'} hiddenFrom="sm">
-      <Group align="start" justify="space-around" gap={'lg'} h={'100%'}>
+      <Group align="center" justify="space-around" gap={0} h={'100%'}>
         <BottomBarItem href="/home" title="Home" icon={LuLibrary} />
         <BottomBarItem
           href="/explore"
