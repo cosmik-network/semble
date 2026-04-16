@@ -6,6 +6,7 @@ import {
   MenuDropdown,
   MenuTarget,
   ScrollArea,
+  Spoiler,
   Stack,
   Text,
   ThemeIcon,
@@ -34,6 +35,7 @@ interface Props {
   createdAt: string;
   type: NotificationType;
   followButton?: React.ReactNode;
+  note?: string;
 }
 
 export default function NotificationActivityStatus(props: Props) {
@@ -260,6 +262,17 @@ export default function NotificationActivityStatus(props: Props) {
           </Group>
           {props.followButton}
         </Group>
+        {props.note && (
+          <Spoiler
+            showLabel={'Read more'}
+            hideLabel={'See less'}
+            maxHeight={100}
+          >
+            <Text fw={500} fs={'italic'} c={'gray'}>
+              {props.note}
+            </Text>
+          </Spoiler>
+        )}
       </Stack>
     </Card>
   );
