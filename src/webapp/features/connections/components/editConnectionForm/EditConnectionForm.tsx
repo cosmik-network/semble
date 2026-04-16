@@ -143,7 +143,8 @@ export default function EditConnectionForm(props: Props) {
         connectionType: values.connectionType
           ? (values.connectionType as any)
           : undefined,
-        note: values.note || undefined,
+        note: values.note.trim() !== '' ? values.note : undefined,
+        removeNote: values.note.trim() === '',
         swap: values.swapped,
       },
       {

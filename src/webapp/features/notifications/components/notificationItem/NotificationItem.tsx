@@ -32,6 +32,7 @@ export default function NotificationItem(props: Props) {
             user={notification.item.user}
             createdAt={notification.item.createdAt}
             type={notification.item.type}
+            note={notification.item.connection.connection.note}
             iconColor="green"
           />
           <ConnectionCard connection={notification.item.connection} />

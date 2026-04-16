@@ -5,6 +5,7 @@ import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
+import { connectionKeys } from '@/features/connections/lib/connectionKeys';
 import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
@@ -60,6 +61,7 @@ export default function useAddCard(
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       queryClient.invalidateQueries({
         queryKey: collectionKeys.bySembleUrl(variables.url),
       });
