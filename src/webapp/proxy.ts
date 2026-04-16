@@ -27,7 +27,7 @@ function safeDecode(raw: string): string | null {
   }
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // Consume the one-shot return-to cookie when the user lands on /home
@@ -49,7 +49,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Gate protected routes. Checking cookie presence in the proxy avoids
+  // Gate protected routes. Checking cookie presence here avoids
   // rendering the page for unauthenticated users at all, which is the
   // recommended Next.js pattern. Expired-but-present tokens pass through
   // here and are handled by downstream data fetches.

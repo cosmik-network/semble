@@ -46,7 +46,7 @@ export default function LoginForm({ returnTo }: LoginFormProps = {}) {
 
       if (returnTo) {
         // Persist target across the OAuth round-trip since the backend callback
-        // always redirects to /home; middleware consumes this cookie there.
+        // always redirects to /home; proxy consumes this cookie there.
         document.cookie = `postLoginReturnTo=${encodeURIComponent(returnTo)}; Max-Age=600; Path=/; SameSite=Lax`;
       }
 

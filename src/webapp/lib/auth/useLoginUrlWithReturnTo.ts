@@ -4,20 +4,20 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { sanitizeReturnTo } from './returnTo';
 
-export function useLoginHref(): string {
+export function useLoginUrlWithReturnTo(): string {
   const pathname = usePathname();
-  const [href, setHref] = useState('/login');
+  const [url, setUrl] = useState('/login');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const current = window.location.pathname + window.location.search;
     if (!current || current === '/') {
-      setHref('/login');
+      setUrl('/login');
       return;
     }
     const safe = sanitizeReturnTo(current);
-    setHref(safe ? `/login?returnTo=${encodeURIComponent(safe)}` : '/login');
+    setUrl(safe ? `/login?returnTo=${encodeURIComponent(safe)}` : '/login');
   }, [pathname]);
 
-  return href;
+  return url;
 }
