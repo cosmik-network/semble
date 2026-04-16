@@ -193,6 +193,11 @@ export const createExpressApp = (
     controllers.getUserStatsController,
   );
 
+  // OAuth client metadata endpoint
+  app.get('/oauth-client-metadata.json', (req, res) => {
+    res.json(services.nodeOauthClient.clientMetadata);
+  });
+
   // DID Web endpoint
   app.get('/.well-known/did.json', (req, res) => {
     return res.json({
