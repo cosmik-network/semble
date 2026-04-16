@@ -4,6 +4,21 @@ import { sanitizeReturnTo } from './lib/auth/returnTo';
 
 const RETURN_TO_COOKIE = 'postLoginReturnTo';
 
+const PROTECTED_PREFIXES = ['/home', '/notifications', '/settings'];
+
+function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function hasSessionCookies(request: NextRequest): boolean {
+  return (
+    !!request.cookies.get('accessToken')?.value &&
+    !!request.cookies.get('refreshToken')?.value
+  );
+}
+
 function safeDecode(raw: string): string | null {
   try {
     return decodeURIComponent(raw);
@@ -12,75 +27,43 @@ function safeDecode(raw: string): string | null {
   }
 }
 
-function withPathHeaders(request: NextRequest, pathname: string, search: string) {
-  const headers = new Headers(request.headers);
-  headers.set('x-pathname', pathname);
-  headers.set('x-pathname-with-search', `${pathname}${search}`);
-  return headers;
-}
-
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // Consume the one-shot return-to cookie when the user lands on /home
-  // after a successful login (OAuth round-trip or app-password fallback).
-  if (pathname === '/home') {
+  // after the Bluesky OAuth round-trip. The backend callback hardcodes its
+  // redirect to /home, so this cookie is how the pre-OAuth destination
+  // survives the round-trip.
+  if (pathname === '/home' && hasSessionCookies(request)) {
     const raw = request.cookies.get(RETURN_TO_COOKIE)?.value;
     if (raw) {
-      const decoded = safeDecode(raw);
-      const safe = sanitizeReturnTo(decoded);
+      const safe = sanitizeReturnTo(safeDecode(raw));
       if (safe && safe !== '/home') {
-        const target = new URL(safe, request.url);
-        const response = NextResponse.redirect(target);
+        const response = NextResponse.redirect(new URL(safe, request.url));
         response.cookies.set(RETURN_TO_COOKIE, '', { path: '/', maxAge: 0 });
         return response;
       }
-      const response = NextResponse.next({
-        request: { headers: withPathHeaders(request, pathname, search) },
-      });
+      const response = NextResponse.next();
       response.cookies.set(RETURN_TO_COOKIE, '', { path: '/', maxAge: 0 });
       return response;
     }
   }
 
-  // Persist returnTo across /login refreshes. If the URL carries a valid
-  // returnTo, mirror it into a cookie. If the URL is missing it but the
-  // cookie has one, redirect to /login?returnTo=<cookie> so the form keeps
-  // working and subsequent refreshes don't lose the destination.
-  if (pathname === '/login') {
-    const rawParam = request.nextUrl.searchParams.get('returnTo');
-    const safeFromParam = rawParam ? sanitizeReturnTo(rawParam) : null;
-
-    if (safeFromParam) {
-      const response = NextResponse.next({
-        request: { headers: withPathHeaders(request, pathname, search) },
-      });
-      response.cookies.set(RETURN_TO_COOKIE, safeFromParam, {
-        path: '/',
-        maxAge: 600,
-        sameSite: 'lax',
-      });
-      return response;
-    }
-
-    if (!rawParam) {
-      const rawCookie = request.cookies.get(RETURN_TO_COOKIE)?.value;
-      if (rawCookie) {
-        const safeFromCookie = sanitizeReturnTo(safeDecode(rawCookie));
-        if (safeFromCookie) {
-          const target = new URL(
-            `/login?returnTo=${encodeURIComponent(safeFromCookie)}`,
-            request.url,
-          );
-          return NextResponse.redirect(target);
-        }
-      }
-    }
+  // Gate protected routes. Checking cookie presence in the proxy avoids
+  // rendering the page for unauthenticated users at all, which is the
+  // recommended Next.js pattern. Expired-but-present tokens pass through
+  // here and are handled by downstream data fetches.
+  if (isProtectedPath(pathname) && !hasSessionCookies(request)) {
+    const returnTo = `${pathname}${search}`;
+    const safe = sanitizeReturnTo(returnTo);
+    const loginUrl = new URL(
+      safe ? `/login?returnTo=${encodeURIComponent(safe)}` : '/login',
+      request.url,
+    );
+    return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next({
-    request: { headers: withPathHeaders(request, pathname, search) },
-  });
+  return NextResponse.next();
 }
 
 export const config = {
