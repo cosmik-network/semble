@@ -1,11 +1,19 @@
 import LoginForm from '@/features/auth/components/loginForm/LoginForm';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { sanitizeReturnTo } from '@/lib/auth/returnTo';
 import { redirect } from 'next/navigation';
 
-export default async function Page() {
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function Page(props: PageProps) {
+  const params = await props.searchParams;
+  const returnTo = sanitizeReturnTo(params.returnTo);
+
   const session = await verifySessionOnServer();
 
-  if (session) redirect('/home');
+  if (session) redirect(returnTo ?? '/home');
 
-  return <LoginForm />;
+  return <LoginForm returnTo={returnTo ?? undefined} />;
 }

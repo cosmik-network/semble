@@ -5,12 +5,14 @@ import { MdIosShare } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import { TbPlugConnected } from 'react-icons/tb';
 import { LinkButton } from '@/components/link/MantineLink';
+import { useLoginHref } from '@/lib/auth/useLoginHref';
 
 interface Props {
   url: string;
 }
 
 export default function GuestSembleActions(props: Props) {
+  const loginHref = useLoginHref();
   const shareLink =
     typeof window !== 'undefined'
       ? `${window.location.origin}/url?id=${props.url}`
@@ -47,7 +49,7 @@ export default function GuestSembleActions(props: Props) {
         )}
       </CopyButton>
       <LinkButton
-        href={'/login'}
+        href={loginHref}
         variant="light"
         color="green"
         radius={'xl'}
@@ -55,7 +57,7 @@ export default function GuestSembleActions(props: Props) {
       >
         Log in to connect
       </LinkButton>
-      <LinkButton href={'/login'}>Log in to add</LinkButton>
+      <LinkButton href={loginHref}>Log in to add</LinkButton>
     </Group>
   );
 }

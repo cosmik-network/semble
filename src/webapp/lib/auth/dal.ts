@@ -1,6 +1,7 @@
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
+import { sanitizeReturnTo } from './returnTo';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
@@ -9,6 +10,13 @@ let refreshPromise: Promise<GetProfileResponse | null> | null = null;
 
 interface VerifySessionOptions {
   redirectOnFail?: boolean;
+}
+
+function buildLoginUrlFromCurrentLocation(): string {
+  if (typeof window === 'undefined') return '/login';
+  const current = window.location.pathname + window.location.search;
+  const safe = sanitizeReturnTo(current);
+  return safe ? `/login?returnTo=${encodeURIComponent(safe)}` : '/login';
 }
 
 export const verifySessionOnClient = cache(
@@ -32,8 +40,7 @@ export const verifySessionOnClient = cache(
 
         if (!response.ok) {
           if (redirectOnFail && typeof window !== 'undefined') {
-            // Redirect to login only if requested
-            window.location.href = '/login';
+            window.location.href = buildLoginUrlFromCurrentLocation();
           }
           return null;
         }
@@ -57,6 +64,6 @@ export const verifySessionOnClient = cache(
 export const logoutUser = async (): Promise<void> => {
   await ClientCookieAuthService.clearTokens();
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    window.location.href = buildLoginUrlFromCurrentLocation();
   }
 };
