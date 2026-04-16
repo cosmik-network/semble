@@ -1,11 +1,11 @@
 import type { NotificationItem as NotificationItemType } from '@/api-client';
 import { NotificationType } from '@/api-client';
-import { Stack, Indicator } from '@mantine/core';
+import { Stack, Indicator, Group, Scroller, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
 import ConnectionCard from '@/features/connections/components/connectionCard/ConnectionCard';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
-
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { classifyNotification } from '../../lib/utils';
 
@@ -51,23 +51,51 @@ export default function NotificationItem(props: Props) {
         offset={3}
         position="top-start"
       >
-        <NotificationActivityStatus
-          user={notification.item.user}
-          collections={notification.item.collections}
-          createdAt={notification.item.createdAt}
-          type={notification.item.type}
-          iconColor="gray"
-          followButton={
-            notification.item.type === NotificationType.USER_FOLLOWED_YOU ? (
-              <FollowButton
-                targetId={notification.item.user.id}
-                targetType="USER"
-                targetHandle={notification.item.user.handle}
-                initialIsFollowing={notification.item.user.isFollowing}
-              />
-            ) : undefined
-          }
-        />
+        <Stack gap={'xs'} align="stretch" h={'100%'}>
+          <NotificationActivityStatus
+            user={notification.item.user}
+            collections={notification.item.collections}
+            createdAt={notification.item.createdAt}
+            type={notification.item.type}
+            iconColor="gray"
+            followButton={
+              notification.item.type === NotificationType.USER_FOLLOWED_YOU ? (
+                <FollowButton
+                  targetId={notification.item.user.id}
+                  targetType="USER"
+                  targetHandle={notification.item.user.handle}
+                  initialIsFollowing={notification.item.user.isFollowing}
+                />
+              ) : undefined
+            }
+          />
+          {notification.item.type ===
+            NotificationType.USER_FOLLOWED_YOUR_COLLECTION &&
+            notification.item.collections &&
+            notification.item.collections.length > 0 &&
+            (notification.item.collections.length === 1 ? (
+              <Box miw={'100%'} w={'100%'}>
+                <CollectionCard
+                  collection={notification.item.collections[0]}
+                  size="compact"
+                />
+              </Box>
+            ) : (
+              <Scroller>
+                <Group gap="xs" wrap="nowrap">
+                  {notification.item.collections.map((collection) => (
+                    <Box miw={'100%'} w={'100%'}>
+                      <CollectionCard
+                        key={collection.id}
+                        collection={collection}
+                        size="compact"
+                      />
+                    </Box>
+                  ))}
+                </Group>
+              </Scroller>
+            ))}
+        </Stack>
       </Indicator>
     );
   }
