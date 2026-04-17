@@ -155,7 +155,7 @@ export class GetFollowingCollectionsUseCase
         });
       }
 
-      // Build collections array in the order of follows (chronological)
+      // Build collections array in the order of follows (reverse chronological)
       const collections = follows
         .map((follow) => {
           const collection = collectionsMap.get(follow.targetId);

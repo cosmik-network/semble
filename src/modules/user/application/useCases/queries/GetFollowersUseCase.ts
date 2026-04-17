@@ -113,7 +113,7 @@ export class GetFollowersUseCase
 
       const profileMap = profileMapResult.value;
 
-      // Build users array in the order of follows (chronological)
+      // Build users array in the order of follows (reverse chronological)
       const users: User[] = paginatedFollows
         .map((follow) => profileMap.get(follow.followerId.value))
         .filter((user): user is User => user !== undefined);
