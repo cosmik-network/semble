@@ -13,23 +13,18 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
-import { sanitizeReturnTo } from '@/lib/auth/returnTo';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
-interface LogoutOptions {
-  returnTo?: string;
-}
-
 interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
-  logout: (options?: LogoutOptions) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,32 +34,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const pathname = usePathname(); // to prevent redirecting to login on landing page
 
-  const logout = useCallback(
-    async (options?: LogoutOptions) => {
+  const logout = useCallback(async () => {
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[useAuth] Initiating logout process');
+    }
+
+    // Reset PostHog user identity
+    if (shouldCaptureAnalytics()) {
+      posthog.reset();
       if (ENABLE_AUTH_LOGGING) {
-        console.log('[useAuth] Initiating logout process');
+        console.log('[useAuth] PostHog user identity reset');
       }
+    }
 
-      // Reset PostHog user identity
-      if (shouldCaptureAnalytics()) {
-        posthog.reset();
-        if (ENABLE_AUTH_LOGGING) {
-          console.log('[useAuth] PostHog user identity reset');
-        }
-      }
-
-      await ClientCookieAuthService.clearTokens();
-      queryClient.clear();
-
-      const safeReturnTo = sanitizeReturnTo(options?.returnTo);
-      if (safeReturnTo) {
-        router.push(`/login?returnTo=${encodeURIComponent(safeReturnTo)}`);
-      } else {
-        router.push('/login');
-      }
-    },
-    [queryClient, router],
-  );
+    await ClientCookieAuthService.clearTokens();
+    queryClient.clear();
+    router.push('/login');
+  }, [queryClient, router]);
 
   const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
@@ -74,8 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
     refetchOnWindowFocus: false,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
+    retry: false,
   });
 
   const refreshAuth = useCallback(async () => {
@@ -83,19 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [query.refetch]);
 
   useEffect(() => {
-    // query.data === null means /api/auth/me returned 401 (genuinely not
-    // authenticated). query.isError means a transient failure (500, network)
-    // after all retries — don't logout for that, the session may still be valid.
-    const isAuthPage =
-      pathname === '/login' || pathname === '/signup' || pathname === '/logout';
-    if (
-      query.data === null &&
-      !query.isLoading &&
-      pathname !== '/' &&
-      !isAuthPage
-    )
-      logout({ returnTo: pathname ?? undefined });
-  }, [query.data, query.isLoading, pathname, logout]);
+    // Handle other auth errors
+    if (query.isError && !query.isLoading && pathname !== '/') logout();
+  }, [query.isError, query.isLoading, pathname, logout]);
 
   // Set super properties for anonymous tracking (no PII)
   useEffect(() => {

@@ -69,42 +69,34 @@ export async function GET(request: NextRequest) {
         }
         console.error('Token refresh error:', error);
 
-        // If this is a refresh failure with a backend 401/403, the refresh
-        // token is genuinely invalid — clear cookies so the user re-authenticates.
+        // If this is a refresh failure with backend response, forward the cookie-clearing headers
         if (error.backendResponse) {
-          const backendStatus = error.backendResponse.status;
-          const isAuthFailure = backendStatus === 401 || backendStatus === 403;
-
           const response = NextResponse.json<AuthResult>(
             { isAuth: false },
-            { status: isAuthFailure ? 401 : 500 },
+            { status: 500 },
           );
 
-          if (isAuthFailure) {
-            const setCookieHeader =
-              error.backendResponse.headers.get('set-cookie');
-            if (setCookieHeader) {
-              response.headers.set('Set-Cookie', setCookieHeader);
-            } else {
-              response.cookies.delete('accessToken');
-              response.cookies.delete('refreshToken');
-            }
+          // Forward the Set-Cookie headers from backend to clear cookies
+          const setCookieHeader =
+            error.backendResponse.headers.get('set-cookie');
+          if (setCookieHeader) {
+            response.headers.set('Set-Cookie', setCookieHeader);
           }
 
           return response;
         }
 
-        // Transient error (network, timeout) — don't clear cookies so the
-        // client can retry. The session may still be valid.
+        // For other errors, clear cookies manually
         if (ENABLE_AUTH_LOGGING) {
-          console.log(
-            '[auth/me] Transient refresh error, preserving cookies for retry',
-          );
+          console.log('[auth/me] Clearing cookies due to token refresh error');
         }
-        return NextResponse.json<AuthResult>(
+        const response = NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: 500 },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
       } finally {
         refreshPromise = null;
       }
@@ -141,25 +133,18 @@ export async function GET(request: NextRequest) {
             `[auth/me] Profile fetch failed with status: ${profileResponse.status}; and message: ${await profileResponse.text()}`,
           );
         }
-
-        const isAuthFailure =
-          profileResponse.status === 401 || profileResponse.status === 403;
-
+        // Clear cookies on auth failure
+        if (ENABLE_AUTH_LOGGING) {
+          console.log(
+            '[auth/me] Clearing cookies due to profile fetch failure',
+          );
+        }
         const response = NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: profileResponse.status },
         );
-
-        if (isAuthFailure) {
-          if (ENABLE_AUTH_LOGGING) {
-            console.log(
-              '[auth/me] Clearing cookies due to auth failure on profile fetch',
-            );
-          }
-          response.cookies.delete('accessToken');
-          response.cookies.delete('refreshToken');
-        }
-
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
         return response;
       }
 
@@ -172,22 +157,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
+      // Clear cookies on fetch error too
       if (ENABLE_AUTH_LOGGING) {
-        console.log(
-          '[auth/me] Transient profile fetch error, preserving cookies for retry',
-        );
+        console.log('[auth/me] Clearing cookies due to profile fetch error');
       }
-      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
+      const response = NextResponse.json<AuthResult>(
+        { isAuth: false },
+        { status: 500 },
+      );
+      response.cookies.delete('accessToken');
+      response.cookies.delete('refreshToken');
+      return response;
     }
   } catch (error) {
     console.error('Auth me error:', error);
-    refreshPromise = null;
+    refreshPromise = null; // Reset on error
     if (ENABLE_AUTH_LOGGING) {
-      console.log(
-        '[auth/me] Unexpected auth error, preserving cookies for retry',
-      );
+      console.log('[auth/me] Clearing cookies due to unexpected auth error');
     }
-    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
+    const response = NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 500 },
+    );
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
+    return response;
   }
 }
 
@@ -234,17 +228,8 @@ async function performTokenRefresh(
     },
   });
 
-  const refreshCookies = refreshResponse.headers.getSetCookie();
-
   if (!profileResponse.ok) {
-    const response = NextResponse.json<AuthResult>(
-      { isAuth: false },
-      { status: 401 },
-    );
-    for (const cookie of refreshCookies) {
-      response.headers.append('Set-Cookie', cookie);
-    }
-    return response;
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
   }
 
   const user = await profileResponse.json();
@@ -253,9 +238,12 @@ async function performTokenRefresh(
       `[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`,
     );
   }
-  const response = NextResponse.json<AuthResult>({ isAuth: true, user });
-  for (const cookie of refreshCookies) {
-    response.headers.append('Set-Cookie', cookie);
-  }
-  return response;
+  // Return user profile with backend's Set-Cookie headers
+  return new Response(JSON.stringify({ isAuth: true, user }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
+    },
+  });
 }
