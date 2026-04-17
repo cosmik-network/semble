@@ -133,7 +133,8 @@ export class DrizzleCollectionQueryRepository
     curatorId: string,
   ): Promise<CollectionContainingCardDTO[]> {
     try {
-      // Find collections authored by this curator that contain this card
+      // Find all collections where this user added this card
+      // Includes collections owned by the user AND open collections where they added the card
       const collectionResults = await this.db
         .select({
           id: collections.id,
@@ -141,19 +142,19 @@ export class DrizzleCollectionQueryRepository
           description: collections.description,
           uri: publishedRecords.uri,
         })
-        .from(collections)
+        .from(collectionCards)
+        .innerJoin(
+          collections,
+          eq(collectionCards.collectionId, collections.id),
+        )
         .leftJoin(
           publishedRecords,
           eq(collections.publishedRecordId, publishedRecords.id),
         )
-        .innerJoin(
-          collectionCards,
-          eq(collections.id, collectionCards.collectionId),
-        )
         .where(
           and(
-            eq(collections.authorId, curatorId),
             eq(collectionCards.cardId, cardId),
+            eq(collectionCards.addedBy, curatorId),
           ),
         )
         .orderBy(asc(collections.name));
