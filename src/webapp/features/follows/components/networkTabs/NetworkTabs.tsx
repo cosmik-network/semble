@@ -18,6 +18,7 @@ export default function NetworkTabs() {
     if (pathname.endsWith('/following')) return 'following';
     if (pathname.endsWith('/collections-following'))
       return 'collections-following';
+    if (pathname.endsWith('/contributed-to')) return 'contributed-to';
     return 'followers';
   };
 
@@ -35,6 +36,7 @@ export default function NetworkTabs() {
         { label: 'Followers', value: 'followers' },
         { label: 'Following', value: 'following' },
         { label: 'Collections Following', value: 'collections-following' },
+        { label: 'Contributed To', value: 'contributed-to' },
       ]}
     />
   );

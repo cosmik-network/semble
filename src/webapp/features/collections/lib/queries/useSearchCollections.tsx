@@ -17,6 +17,7 @@ interface Props {
   sortBy?: CollectionSortField;
   accessType?: CollectionAccessType;
   identifier?: string;
+  enabled?: boolean;
 }
 
 export default function useSearchCollections(props: Props) {
@@ -48,5 +49,6 @@ export default function useSearchCollections(props: Props) {
         ? lastPage.pagination.currentPage + 1
         : undefined;
     },
+    enabled: props.enabled !== false,
   });
 }

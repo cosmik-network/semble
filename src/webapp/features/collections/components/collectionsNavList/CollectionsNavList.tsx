@@ -11,6 +11,7 @@ import { useNavbarContext } from '@/providers/navbar';
 import useFollowingCollections from '@/features/follows/lib/queries/useFollowingCollections';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { LinkButton, LinkNavLink } from '@/components/link/MantineLink';
+import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
 
 export default function CollectionsNavList() {
   const { toggleMobile } = useNavbarContext();
@@ -19,8 +20,20 @@ export default function CollectionsNavList() {
   const { data: profile, error: profileError } = useMyProfile();
   const { data: followingCollections, error: errorFollowingCollections } =
     useFollowingCollections({ identifier: profile.handle, limit: 30 });
+  const {
+    data: contributedToCollections,
+    error: errorContributedToCollections,
+  } = useOpenCollectionsWithContributor({
+    identifier: profile.handle,
+    limit: 30,
+  });
 
-  if (error || errorFollowingCollections || profileError) {
+  if (
+    error ||
+    errorFollowingCollections ||
+    errorContributedToCollections ||
+    profileError
+  ) {
     return <CollectionsNavListError />;
   }
 
@@ -29,6 +42,10 @@ export default function CollectionsNavList() {
 
   const followedCollections =
     followingCollections?.pages.flatMap((page) => page.collections ?? []) ?? [];
+
+  const contributedCollections =
+    contributedToCollections?.pages.flatMap((page) => page.collections ?? []) ??
+    [];
 
   return (
     <Stack gap={'xs'}>
@@ -99,6 +116,35 @@ export default function CollectionsNavList() {
             ))}
             <LinkNavLink
               href={`/profile/${profile.handle}/network/collections-following`}
+              label="View all"
+              variant="subtle"
+              c="blue"
+              onClick={toggleMobile}
+            />
+          </Stack>
+        </NavLink>
+
+        <NavLink
+          label="Contributed To"
+          c={'gray'}
+          opened={settings.contributedToNavExpanded}
+          onChange={(opened) =>
+            updateSetting('contributedToNavExpanded', opened)
+          }
+        >
+          <Stack gap={0}>
+            {contributedCollections.map((collection) => (
+              <CollectionNavItem
+                key={collection.id}
+                name={collection.name}
+                url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
+                cardCount={collection.cardCount}
+                accessType={collection.accessType}
+                uri={collection.uri}
+              />
+            ))}
+            <LinkNavLink
+              href={`/profile/${profile.handle}/network/contributed-to`}
               label="View all"
               variant="subtle"
               c="blue"
