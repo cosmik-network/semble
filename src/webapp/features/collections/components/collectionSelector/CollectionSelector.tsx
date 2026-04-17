@@ -10,13 +10,12 @@ import {
   ThemeIcon,
   Scroller,
   Loader,
-  Center,
+  Text,
 } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
-import CollectionSelectorAtmosphereConf from '../collectionSelectorAtmosphereConf/CollectionSelectorAtmosphereConf';
 import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
@@ -55,34 +54,11 @@ export default function CollectionSelector(props: Props) {
             >
               Open Collections
             </Tabs.Tab>
-            <Tabs.Tab
-              classNames={classes}
-              value="atmosphereConf"
-              leftSection={
-                <ThemeIcon
-                  variant="light"
-                  radius={'xl'}
-                  size={'xs'}
-                  color="blue"
-                  fz={10}
-                >
-                  🪿
-                </ThemeIcon>
-              }
-            >
-              AtmosphereConf
-            </Tabs.Tab>
           </Scroller>
         </Tabs.List>
 
         <Tabs.Panel value="myCollections">
-          <Suspense
-            fallback={
-              <Center>
-                <Loader size={'md'} color="gray" />
-              </Center>
-            }
-          >
+          <Suspense>
             <CollectionSelectorMyCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
@@ -93,27 +69,15 @@ export default function CollectionSelector(props: Props) {
         <Tabs.Panel value="openCollections">
           <Suspense
             fallback={
-              <Center>
-                <Loader size={'md'} color="gray" />
-              </Center>
+              <Stack align="center" gap="xs">
+                <Text fw={500} c="gray">
+                  Loading open collections...
+                </Text>
+                <Loader color="gray" />
+              </Stack>
             }
           >
             <CollectionSelectorOpenCollections
-              selectedCollections={props.selectedCollections}
-              onSelectedCollectionsChange={props.onSelectedCollectionsChange}
-            />
-          </Suspense>
-        </Tabs.Panel>
-
-        <Tabs.Panel value="atmosphereConf">
-          <Suspense
-            fallback={
-              <Center>
-                <Loader size={'md'} color="gray" />
-              </Center>
-            }
-          >
-            <CollectionSelectorAtmosphereConf
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
             />
