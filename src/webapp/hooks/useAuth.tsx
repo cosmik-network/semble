@@ -83,13 +83,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [query.refetch]);
 
   useEffect(() => {
-    // A 401 on /login, /signup, /logout is expected — don't self-trigger
-    // logout there, or it would strip ?returnTo from the URL.
+    // query.data === null means /api/auth/me returned 401 (genuinely not
+    // authenticated). query.isError means a transient failure (500, network)
+    // after all retries — don't logout for that, the session may still be valid.
     const isAuthPage =
       pathname === '/login' || pathname === '/signup' || pathname === '/logout';
-    if (query.isError && !query.isLoading && pathname !== '/' && !isAuthPage)
+    if (
+      query.data === null &&
+      !query.isLoading &&
+      pathname !== '/' &&
+      !isAuthPage
+    )
       logout({ returnTo: pathname ?? undefined });
-  }, [query.isError, query.isLoading, pathname, logout]);
+  }, [query.data, query.isLoading, pathname, logout]);
 
   // Set super properties for anonymous tracking (no PII)
   useEffect(() => {

@@ -39,14 +39,13 @@ export const verifySessionOnClient = cache(
         });
 
         if (!response.ok) {
-          if (
-            redirectOnFail &&
-            typeof window !== 'undefined' &&
-            response.status === 401
-          ) {
-            window.location.href = buildLoginUrlFromCurrentLocation();
+          if (response.status === 401) {
+            if (redirectOnFail && typeof window !== 'undefined') {
+              window.location.href = buildLoginUrlFromCurrentLocation();
+            }
+            return null;
           }
-          return null;
+          throw new Error(`Auth check failed: ${response.status}`);
         }
 
         const { user }: { user: GetProfileResponse } = await response.json();
