@@ -127,6 +127,7 @@ export default function NotificationItem(props: Props) {
             urlLibraryCount={notification.item.card.urlLibraryCount}
             urlIsInLibrary={notification.item.card.urlInLibrary}
             urlConnectionCount={notification.item.card.urlConnectionCount ?? 0}
+            urlIsConnected={notification.item.card.urlIsConnected}
             authorHandle={notification.item.user.handle}
             viaCardId={notification.item.card.id}
             analyticsContext={props.analyticsContext}

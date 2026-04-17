@@ -25,6 +25,7 @@ export default function ConnectionCard(props: Props) {
           urlLibraryCount={sourceUrlView.urlLibraryCount}
           urlIsInLibrary={sourceUrlView.urlInLibrary ?? false}
           urlConnectionCount={sourceUrlView.urlConnectionCount ?? 0}
+          urlIsConnected={sourceUrlView.urlIsConnected}
         />
       </Grid.Col>
 
@@ -87,6 +88,7 @@ export default function ConnectionCard(props: Props) {
           urlLibraryCount={targetUrlView.urlLibraryCount}
           urlIsInLibrary={targetUrlView.urlInLibrary ?? false}
           urlConnectionCount={targetUrlView.urlConnectionCount ?? 0}
+          urlIsConnected={targetUrlView.urlIsConnected}
         />
       </Grid.Col>
     </Grid>

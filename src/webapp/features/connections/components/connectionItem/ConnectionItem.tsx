@@ -31,6 +31,7 @@ export default function ConnectionItem(props: Props) {
         urlLibraryCount={urlView.urlLibraryCount}
         urlIsInLibrary={urlView.urlInLibrary ?? false}
         urlConnectionCount={urlView.urlConnectionCount ?? 0}
+        urlIsConnected={urlView.urlIsConnected}
       />
     </Stack>
   );

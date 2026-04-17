@@ -35,6 +35,7 @@ export default function FeedItem(props: Props) {
         urlLibraryCount={props.item.card.urlLibraryCount}
         urlIsInLibrary={props.item.card.urlInLibrary}
         urlConnectionCount={props.item.card.urlConnectionCount ?? 0}
+        urlIsConnected={props.item.card.urlIsConnected}
         authorHandle={props.item.user.handle}
         viaCardId={props.item.card.id}
         analyticsContext={props.analyticsContext}

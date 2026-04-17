@@ -12,9 +12,9 @@ export default function BlueskyPostSkeleton() {
         <Skeleton h={18} w={18} radius="xl" />
       </Group>
       <Stack w={'100%'} gap={5}>
-        <Skeleton w={'100%'} h={10} />
-        <Skeleton w={'100%'} h={10} />
-        <Skeleton w={'100%'} h={10} />
+        <Skeleton w={'100%'} h={16} />
+        <Skeleton w={'100%'} h={16} />
+        <Skeleton w={'100%'} h={16} />
       </Stack>
     </Stack>
   );

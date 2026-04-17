@@ -35,6 +35,7 @@ interface Props {
   currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary: boolean;
+  urlIsConnected?: boolean;
   urlConnectionCount: number;
   viaCardId?: string;
   analyticsContext?: CardSaveAnalyticsContext;
@@ -111,7 +112,8 @@ export default function UrlCardActions(props: Props) {
           </Button>
           <Button
             variant="light"
-            color={'gray'}
+            color="gray"
+            c={props.urlIsConnected ? 'green' : 'gray'}
             size="xs"
             radius={'xl'}
             leftSection={

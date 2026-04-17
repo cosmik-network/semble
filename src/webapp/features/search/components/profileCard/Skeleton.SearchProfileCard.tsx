@@ -13,8 +13,8 @@ export default function SearchProfileCardSkeleton() {
           </Stack>
         </Group>
         <Stack gap={5}>
-          <Skeleton w={'100%'} h={10} />
-          <Skeleton w={'100%'} h={10} />
+          <Skeleton w={'100%'} h={16} />
+          <Skeleton w={'100%'} h={16} />
         </Stack>
       </Stack>
     </Card>
