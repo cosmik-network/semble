@@ -8,6 +8,7 @@ interface UserSettings {
   collectionView: 'grid' | 'compact';
   collectionsNavExpanded: boolean;
   followingNavExpanded: boolean;
+  contributedToNavExpanded: boolean;
   feedSource: ActivitySource | null;
   feedView: FeedView;
   feedUrlType: UrlType | null;
@@ -21,6 +22,7 @@ const defaultSettings: UserSettings = {
   collectionView: 'grid',
   collectionsNavExpanded: false,
   followingNavExpanded: false,
+  contributedToNavExpanded: false,
   feedSource: null,
   feedView: 'global',
   feedUrlType: null,
