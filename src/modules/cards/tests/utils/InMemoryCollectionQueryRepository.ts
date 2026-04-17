@@ -183,12 +183,51 @@ export class InMemoryCollectionQueryRepository
         ),
       );
 
-      // Sort collections
-      const sortedCollections = this.sortCollections(
-        collectionsWithUrl,
-        options.sortBy,
-        options.sortOrder,
-      );
+      // For ADDED_AT sorting, we need to track the max addedAt for each collection
+      let sortedCollections: Collection[];
+      if (options.sortBy === CollectionSortField.ADDED_AT) {
+        // Create a map of collection -> max addedAt from the matching cards
+        const collectionAddedAtMap = new Map<string, Date>();
+
+        for (const collection of collectionsWithUrl) {
+          const matchingCardLinks = collection.cardLinks.filter((link) =>
+            cardIds.has(link.cardId.getStringValue()),
+          );
+
+          if (matchingCardLinks.length > 0) {
+            const maxAddedAt = matchingCardLinks.reduce((max, link) => {
+              return link.addedAt > max ? link.addedAt : max;
+            }, matchingCardLinks[0]!.addedAt);
+
+            collectionAddedAtMap.set(
+              collection.collectionId.getStringValue(),
+              maxAddedAt,
+            );
+          }
+        }
+
+        // Sort by the max addedAt
+        sortedCollections = [...collectionsWithUrl].sort((a, b) => {
+          const aAddedAt = collectionAddedAtMap.get(
+            a.collectionId.getStringValue(),
+          )!;
+          const bAddedAt = collectionAddedAtMap.get(
+            b.collectionId.getStringValue(),
+          )!;
+
+          const comparison = aAddedAt.getTime() - bAddedAt.getTime();
+          return options.sortOrder === SortOrder.DESC
+            ? -comparison
+            : comparison;
+        });
+      } else {
+        // Use the standard sorting method for other fields
+        sortedCollections = this.sortCollections(
+          collectionsWithUrl,
+          options.sortBy,
+          options.sortOrder,
+        );
+      }
 
       // Apply pagination
       const { page, limit } = options;

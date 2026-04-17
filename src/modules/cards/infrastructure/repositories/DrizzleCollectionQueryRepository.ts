@@ -203,7 +203,7 @@ export class DrizzleCollectionQueryRepository
 
       // Find all collections that contain any of these cards with pagination and sorting
       const collectionsQuery = this.db
-        .selectDistinct({
+        .select({
           id: collections.id,
           name: collections.name,
           description: collections.description,
@@ -213,6 +213,7 @@ export class DrizzleCollectionQueryRepository
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           cardCount: collections.cardCount,
+          addedAt: sql<Date>`MAX(${collectionCards.addedAt})`.as('added_at'),
         })
         .from(collections)
         .leftJoin(
@@ -224,7 +225,22 @@ export class DrizzleCollectionQueryRepository
           eq(collections.id, collectionCards.collectionId),
         )
         .where(inArray(collectionCards.cardId, cardIds))
-        .orderBy(orderDirection(this.getSortColumn(sortBy)))
+        .groupBy(
+          collections.id,
+          collections.name,
+          collections.description,
+          collections.accessType,
+          collections.authorId,
+          collections.createdAt,
+          collections.updatedAt,
+          collections.cardCount,
+          publishedRecords.uri,
+        )
+        .orderBy(
+          sortBy === CollectionSortField.ADDED_AT
+            ? orderDirection(sql`MAX(${collectionCards.addedAt})`)
+            : orderDirection(this.getSortColumn(sortBy)),
+        )
         .limit(limit)
         .offset(offset);
 

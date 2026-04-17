@@ -13,7 +13,9 @@ const querySchema = z.object({
   url: z.string().min(1, 'URL is required'),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
-  sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'cardCount']).optional(),
+  sortBy: z
+    .enum(['name', 'createdAt', 'updatedAt', 'cardCount', 'addedAt'])
+    .optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 
