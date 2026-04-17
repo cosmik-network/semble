@@ -100,15 +100,6 @@ export function CollectionFiltersSortSelect(props?: {
         </Menu.Item>
       )}
       <Menu.Item
-        onClick={() => onChange(CollectionSortField.UPDATED_AT)}
-        rightSection={
-          optimisticSort === CollectionSortField.UPDATED_AT && <IoMdCheckmark />
-        }
-        closeMenuOnClick={false}
-      >
-        Last Updated
-      </Menu.Item>
-      <Menu.Item
         onClick={() => onChange(CollectionSortField.CREATED_AT)}
         rightSection={
           optimisticSort === CollectionSortField.CREATED_AT && <IoMdCheckmark />
@@ -116,6 +107,15 @@ export function CollectionFiltersSortSelect(props?: {
         closeMenuOnClick={false}
       >
         Date Created
+      </Menu.Item>
+      <Menu.Item
+        onClick={() => onChange(CollectionSortField.UPDATED_AT)}
+        rightSection={
+          optimisticSort === CollectionSortField.UPDATED_AT && <IoMdCheckmark />
+        }
+        closeMenuOnClick={false}
+      >
+        Last Updated
       </Menu.Item>
       <Menu.Item
         onClick={() => onChange(CollectionSortField.CARD_COUNT)}
