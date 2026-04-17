@@ -39,7 +39,11 @@ export const verifySessionOnClient = cache(
         });
 
         if (!response.ok) {
-          if (redirectOnFail && typeof window !== 'undefined') {
+          if (
+            redirectOnFail &&
+            typeof window !== 'undefined' &&
+            response.status === 401
+          ) {
             window.location.href = buildLoginUrlFromCurrentLocation();
           }
           return null;

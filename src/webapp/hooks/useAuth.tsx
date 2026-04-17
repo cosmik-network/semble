@@ -74,7 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
     refetchOnWindowFocus: false,
-    retry: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 
   const refreshAuth = useCallback(async () => {
