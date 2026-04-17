@@ -18,6 +18,8 @@ import CollectionSelectorError from '../collectionSelector/Error.CollectionSelec
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
 import { Collection, CollectionAccessType } from '@semble/types';
+import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   selectedCollections: Collection[];
@@ -25,20 +27,44 @@ interface Props {
 }
 
 export default function CollectionSelectorOpenCollections(props: Props) {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
 
-  // note: this returns all open collections by default
+  // Get collections the current user has contributed to
+  const userContributedCollections = useOpenCollectionsWithContributor({
+    identifier: user?.id || '',
+    enabled: !!user?.id && !search, // Only fetch when not searching
+  });
+
+  // Use contributed collections by default, fall back to searched collections when searching
+  const userCollections =
+    userContributedCollections.data?.pages.flatMap(
+      (page) => page.collections ?? [],
+    ) ?? [];
+
+  // Get all open collections (for fallback when user has no contributed collections, or when searching)
   const searchedCollections = useSearchCollections({
     searchText: debouncedSearch,
     accessType: CollectionAccessType.OPEN,
+    enabled:
+      !!search ||
+      (userContributedCollections.isFetched && userCollections.length === 0),
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const allCollections =
+  const searchResults =
     searchedCollections.data?.pages.flatMap((page) => page.collections ?? []) ??
     [];
+
+  // If searching, show search results; otherwise show user's contributed collections
+  // If user has no contributed collections, show global open collections as fallback
+  const allCollections = search
+    ? searchResults
+    : userCollections.length > 0
+      ? userCollections
+      : searchResults;
 
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = props.selectedCollections.length > 0;
@@ -60,7 +86,11 @@ export default function CollectionSelectorOpenCollections(props: Props) {
     }
   };
 
-  if (searchedCollections.error) {
+  // Determine which query is active
+  const activeQuery = search ? searchedCollections : userContributedCollections;
+  const isLoading = activeQuery.isPending;
+
+  if (searchedCollections.error || userContributedCollections.error) {
     return <CollectionSelectorError />;
   }
 
@@ -101,7 +131,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
 
               {search ? (
                 <Stack gap={'xs'}>
-                  {searchedCollections.isPending && (
+                  {isLoading && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
                         Searching open collections...
@@ -110,20 +140,22 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                     </Stack>
                   )}
 
-                  {!hasCollections ? (
+                  {!isLoading && !hasCollections ? (
                     <Alert
                       color="gray"
                       title={`No results found for "${search}"`}
                     />
                   ) : (
-                    <CollectionSelectorItemList
-                      collections={allCollections}
-                      selectedCollections={props.selectedCollections}
-                      onChange={handleCollectionChange}
-                    />
+                    !isLoading && (
+                      <CollectionSelectorItemList
+                        collections={allCollections}
+                        selectedCollections={props.selectedCollections}
+                        onChange={handleCollectionChange}
+                      />
+                    )
                   )}
                 </Stack>
-              ) : searchedCollections.isPending ? (
+              ) : isLoading ? (
                 <Stack align="center" gap="xs">
                   <Text fw={500} c="gray">
                     Loading open collections...
