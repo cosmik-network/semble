@@ -58,8 +58,8 @@ export class GetCollectionsForUrlUseCase
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
-    const sortBy = query.sortBy || CollectionSortField.NAME;
-    const sortOrder = query.sortOrder || SortOrder.ASC;
+    const sortBy = query.sortBy || CollectionSortField.ADDED_AT;
+    const sortOrder = query.sortOrder || SortOrder.DESC;
 
     try {
       // Execute query to get collections containing cards with this URL (raw data with authorId)
