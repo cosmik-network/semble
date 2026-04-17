@@ -120,6 +120,7 @@ export default function AddCardToModal(props: Props) {
         />
         <Suspense fallback={<CollectionSelectorSkeleton />}>
           <AddCardToModalContent
+            key={`${props.url}-${props.isOpen}`}
             onClose={props.onClose}
             onSubmit={handleSubmit}
             url={props.url}
