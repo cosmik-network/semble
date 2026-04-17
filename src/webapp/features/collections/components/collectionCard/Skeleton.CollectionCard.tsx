@@ -29,7 +29,7 @@ export default function CollectionCardSkeleton() {
           </Grid>
         </Stack>
         {/* Collection metadata */}
-        <Skeleton w={'80%'} h={10} />
+        <Skeleton w={'80%'} h={16} />
       </Stack>
     </Card>
   );

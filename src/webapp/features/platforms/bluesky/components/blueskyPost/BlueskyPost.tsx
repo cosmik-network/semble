@@ -51,7 +51,8 @@ export default function BlueskyPost(props: Props) {
         </Group>
         <Alert
           component={'button'}
-          variant="light"
+          variant="transparent"
+          mx={'auto'}
           color="gray"
           p={'sm'}
           title="Post not found"

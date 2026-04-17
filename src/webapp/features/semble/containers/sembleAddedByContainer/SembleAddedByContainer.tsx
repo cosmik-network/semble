@@ -49,7 +49,7 @@ export default function SembleAddedByContainer(props: Props) {
               base: 12,
             }}
           >
-            <ProfileCard profile={item.user} />
+            <ProfileCard profile={item.user} addedAt={item.card.createdAt} />
           </Grid.Col>
         ))}
       </Grid>

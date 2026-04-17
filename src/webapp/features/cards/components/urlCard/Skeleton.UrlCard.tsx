@@ -9,17 +9,16 @@ export default function UrlCardSkeleton() {
             <Stack gap={'xs'} flex={1}>
               <Stack gap={5}>
                 {/* Domain */}
-                <Skeleton w={80} h={14} />
+                <Skeleton w={80} h={21} />
                 {/* Title */}
-                <Skeleton w={'100%'} h={14} />
-                <Skeleton w={'100%'} h={14} />
+                <Skeleton w={'100%'} h={25} />
               </Stack>
 
               {/* Description */}
               <Stack gap={5}>
-                <Skeleton w={'100%'} h={10} />
-                <Skeleton w={'100%'} h={10} />
-                <Skeleton w={'100%'} h={10} />
+                <Skeleton w={'100%'} h={16} />
+                <Skeleton w={'100%'} h={16} />
+                <Skeleton w={'100%'} h={16} />
               </Stack>
             </Stack>
 

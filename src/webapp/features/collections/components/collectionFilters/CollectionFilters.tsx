@@ -54,13 +54,22 @@ export function CollectionFiltersRoot(props: { children: ReactNode }) {
 }
 
 // sort select
-export function CollectionFiltersSortSelect() {
+export function CollectionFiltersSortSelect(props?: {
+  showAddedAt?: boolean;
+  defaultSort?: CollectionSortField;
+}) {
   const ctx = useFilterContext();
   const [, startTransition] = useTransition();
 
+  const defaultSort =
+    props?.defaultSort ??
+    (props?.showAddedAt
+      ? CollectionSortField.ADDED_AT
+      : CollectionSortField.UPDATED_AT);
+
   const sortFromUrl =
     (ctx.searchParams.get('collectionSort') as CollectionSortField) ??
-    CollectionSortField.UPDATED_AT;
+    defaultSort;
 
   const [optimisticSort, setOptimisticSort] =
     useOptimistic<CollectionSortField>(sortFromUrl);
@@ -79,15 +88,17 @@ export function CollectionFiltersSortSelect() {
   return (
     <Fragment>
       <Menu.Label>Sort</Menu.Label>
-      <Menu.Item
-        onClick={() => onChange(CollectionSortField.UPDATED_AT)}
-        rightSection={
-          optimisticSort === CollectionSortField.UPDATED_AT && <IoMdCheckmark />
-        }
-        closeMenuOnClick={false}
-      >
-        Last Updated
-      </Menu.Item>
+      {props?.showAddedAt && (
+        <Menu.Item
+          onClick={() => onChange(CollectionSortField.ADDED_AT)}
+          rightSection={
+            optimisticSort === CollectionSortField.ADDED_AT && <IoMdCheckmark />
+          }
+          closeMenuOnClick={false}
+        >
+          Date Added
+        </Menu.Item>
+      )}
       <Menu.Item
         onClick={() => onChange(CollectionSortField.CREATED_AT)}
         rightSection={
@@ -96,6 +107,15 @@ export function CollectionFiltersSortSelect() {
         closeMenuOnClick={false}
       >
         Date Created
+      </Menu.Item>
+      <Menu.Item
+        onClick={() => onChange(CollectionSortField.UPDATED_AT)}
+        rightSection={
+          optimisticSort === CollectionSortField.UPDATED_AT && <IoMdCheckmark />
+        }
+        closeMenuOnClick={false}
+      >
+        Last Updated
       </Menu.Item>
       <Menu.Item
         onClick={() => onChange(CollectionSortField.CARD_COUNT)}

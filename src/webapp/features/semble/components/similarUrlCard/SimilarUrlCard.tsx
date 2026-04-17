@@ -18,6 +18,7 @@ export default function SimilarUrlCard(props: Props) {
       urlLibraryCount={props.urlView.urlLibraryCount}
       urlIsInLibrary={props.urlView.urlInLibrary ?? false}
       urlConnectionCount={props.urlView.urlConnectionCount ?? 0}
+      urlIsConnected={props.urlView.urlIsConnected}
       analyticsContext={props.analyticsContext}
     />
   );

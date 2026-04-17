@@ -79,7 +79,7 @@ export class GetNoteCardsForUrlUseCase
         uniqueAuthorIds,
         query.callingUserId,
         {
-          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: false, // Use inline profile (without isFollowing)
         },
       );
@@ -95,19 +95,22 @@ export class GetNoteCardsForUrlUseCase
       const profileMap = profileMapResult.value;
 
       // Map items with enriched author data
-      const enrichedNotes: NoteCardDTO[] = result.items.map((item) => {
-        const author = profileMap.get(item.authorId);
-        if (!author) {
-          throw new Error(`Profile not found for author ${item.authorId}`);
-        }
-        return {
-          id: item.id,
-          note: item.note,
-          author,
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        };
-      });
+      // Filter out notes with missing author profiles
+      const enrichedNotes: NoteCardDTO[] = result.items
+        .map((item) => {
+          const author = profileMap.get(item.authorId);
+          if (!author) {
+            return null; // Skip notes with missing author profiles
+          }
+          return {
+            id: item.id,
+            note: item.note,
+            author,
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString(),
+          };
+        })
+        .filter((note): note is NoteCardDTO => note !== null);
 
       return ok({
         notes: enrichedNotes,

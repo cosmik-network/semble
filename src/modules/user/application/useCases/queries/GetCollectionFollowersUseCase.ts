@@ -110,7 +110,7 @@ export class GetCollectionFollowersUseCase
         uniqueFollowerIds,
         query.callingUserId,
         {
-          skipFailures: false, // Fail if any profile fetch fails (preserving original behavior)
+          skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: true, // Use full User DTO with isFollowing
         },
       );
@@ -125,7 +125,7 @@ export class GetCollectionFollowersUseCase
 
       const profileMap = profileMapResult.value;
 
-      // Build users array in the order of follows (chronological)
+      // Build users array in the order of follows (reverse chronological)
       const users: User[] = paginatedFollows
         .map((follow) => profileMap.get(follow.followerId.value))
         .filter((user): user is User => user !== undefined);

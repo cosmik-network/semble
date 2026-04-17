@@ -99,6 +99,7 @@ export default function CollectionContainerContent(props: Props) {
                     urlLibraryCount={card.urlLibraryCount}
                     urlIsInLibrary={card.urlInLibrary}
                     urlConnectionCount={card.urlConnectionCount ?? 0}
+                    urlIsConnected={card.urlIsConnected}
                     currentCollection={firstPage}
                     viaCardId={card.id}
                     showAuthor={props.handle !== card.author.handle}

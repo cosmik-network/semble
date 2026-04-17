@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getOpenCollectionsWithContributor } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import { CollectionSortField, GetCollectionsResponse } from '@semble/types';
@@ -7,13 +7,12 @@ interface Props {
   identifier: string;
   limit?: number;
   sortBy?: CollectionSortField;
-  enabled?: boolean;
 }
 
 export default function useOpenCollectionsWithContributor(props: Props) {
   const limit = props?.limit ?? 10;
 
-  return useInfiniteQuery<GetCollectionsResponse>({
+  return useSuspenseInfiniteQuery<GetCollectionsResponse>({
     queryKey: [
       ...collectionKeys.all(),
       'openWithContributor',
@@ -34,6 +33,5 @@ export default function useOpenCollectionsWithContributor(props: Props) {
         ? lastPage.pagination.currentPage + 1
         : undefined;
     },
-    enabled: props.enabled !== false && !!props.identifier,
   });
 }

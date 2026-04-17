@@ -554,7 +554,7 @@ describe('GetCollectionsForUrlUseCase', () => {
   });
 
   describe('Sorting', () => {
-    it('should use default sorting parameters (NAME, ASC)', async () => {
+    it('should use default sorting parameters (ADDED_AT, DESC)', async () => {
       const testUrl = 'https://example.com/test-article';
 
       const query = {
@@ -565,8 +565,8 @@ describe('GetCollectionsForUrlUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.sorting.sortBy).toBe(CollectionSortField.NAME);
-      expect(response.sorting.sortOrder).toBe(SortOrder.ASC);
+      expect(response.sorting.sortBy).toBe(CollectionSortField.ADDED_AT);
+      expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
 
     it('should use provided sorting parameters', async () => {
@@ -586,7 +586,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
 
-    it('should sort collections by name in ascending order by default', async () => {
+    it('should sort collections by name in ascending order when specified', async () => {
       const testUrl = 'https://example.com/article';
       const url = URL.create(testUrl).unwrap();
 
@@ -659,6 +659,8 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       const query = {
         url: testUrl,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       };
 
       const result = await useCase.execute(query);

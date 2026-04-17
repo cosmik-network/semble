@@ -73,6 +73,7 @@ export default function RecentCards() {
                   urlLibraryCount={card.urlLibraryCount}
                   urlIsInLibrary={card.urlInLibrary}
                   urlConnectionCount={card.urlConnectionCount ?? 0}
+                  urlIsConnected={card.urlIsConnected}
                   cardAuthor={card.author}
                   viaCardId={card.id}
                 />

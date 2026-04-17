@@ -30,7 +30,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             eq(follows.targetId, targetId),
             eq(follows.targetType, targetType.value),
           ),
-        );
+        )
+        .orderBy(sql`${follows.createdAt} DESC`);
 
       const followEntities: Follow[] = [];
 
@@ -96,7 +97,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             inArray(follows.targetId, collectionIds),
             eq(follows.targetType, FollowTargetTypeEnum.COLLECTION),
           ),
-        );
+        )
+        .orderBy(sql`${follows.createdAt} DESC`);
 
       const followEntities: Follow[] = [];
 

@@ -9,6 +9,8 @@ import {
   Tabs,
   ThemeIcon,
   Scroller,
+  Loader,
+  Center,
 } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
@@ -74,7 +76,13 @@ export default function CollectionSelector(props: Props) {
         </Tabs.List>
 
         <Tabs.Panel value="myCollections">
-          <Suspense>
+          <Suspense
+            fallback={
+              <Center>
+                <Loader size={'md'} color="gray" />
+              </Center>
+            }
+          >
             <CollectionSelectorMyCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
@@ -83,7 +91,13 @@ export default function CollectionSelector(props: Props) {
         </Tabs.Panel>
 
         <Tabs.Panel value="openCollections">
-          <Suspense>
+          <Suspense
+            fallback={
+              <Center>
+                <Loader size={'md'} color="gray" />
+              </Center>
+            }
+          >
             <CollectionSelectorOpenCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
@@ -92,7 +106,13 @@ export default function CollectionSelector(props: Props) {
         </Tabs.Panel>
 
         <Tabs.Panel value="atmosphereConf">
-          <Suspense>
+          <Suspense
+            fallback={
+              <Center>
+                <Loader size={'md'} color="gray" />
+              </Center>
+            }
+          >
             <CollectionSelectorAtmosphereConf
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}

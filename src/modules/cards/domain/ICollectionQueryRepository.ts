@@ -17,6 +17,7 @@ export enum CollectionSortField {
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
   CARD_COUNT = 'cardCount',
+  ADDED_AT = 'addedAt',
 }
 
 export enum SortOrder {

@@ -35,7 +35,7 @@ interface Props {
   form: LoginFormType;
   error: string;
   isLoading: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SubmitEvent) => void;
   onSwitchToAppPassword: () => void;
 }
 

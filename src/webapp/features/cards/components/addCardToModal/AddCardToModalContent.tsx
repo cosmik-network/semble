@@ -2,11 +2,9 @@
 
 import type { Collection, UrlCard } from '@semble/types';
 import { Stack } from '@mantine/core';
-import { useState } from 'react';
-import CollectionSelectorError from '@/features/collections/components/collectionSelector/Error.CollectionSelector';
+import { useState, useEffect } from 'react';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
-import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import AddCardActions from '../addCardActions/AddCardActions';
 
 interface Props {
@@ -40,21 +38,16 @@ export default function AddCardToModalContent(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isMyCard = props?.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(isMyCard ? props.note : '');
-  const { data, error } = useMyCollections();
 
-  if (error) {
-    return <CollectionSelectorError />;
-  }
-
-  const allCollections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  const collectionsWithCard = allCollections.filter((c) =>
-    cardStatus.data.collections?.some((col) => col.id === c.id),
-  );
+  const collectionsWithCard = cardStatus.data.collections ?? [];
 
   const [selectedCollections, setSelectedCollections] =
     useState<Collection[]>(collectionsWithCard);
+
+  // Sync state with query data when it changes
+  useEffect(() => {
+    setSelectedCollections(cardStatus.data.collections ?? []);
+  }, [cardStatus.data.collections]);
 
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +128,7 @@ export default function AddCardToModalContent(props: Props) {
         onClose={props.onClose}
         onCancel={() => {
           props.onClose();
-          setSelectedCollections(collectionsWithCard);
+          setSelectedCollections(cardStatus.data.collections ?? []);
         }}
         onSave={handleUpdateCard}
         isSaving={props.isSaving}

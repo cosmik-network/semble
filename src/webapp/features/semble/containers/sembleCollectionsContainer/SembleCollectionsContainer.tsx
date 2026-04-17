@@ -1,6 +1,6 @@
 'use client';
 
-import useSembleCollections from '@/features/collections/lib/queries/useSembleCollectionts';
+import useSembleCollections from '@/features/collections/lib/queries/useSembleCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Group, SimpleGrid, Stack } from '@mantine/core';
 import SembleCollectionsError from './Error.SembleCollectionsContainer';
@@ -24,7 +24,7 @@ export default function SembleCollectionsContainer(props: Props) {
   const searchParams = useSearchParams();
   const sortBy =
     (searchParams.get('collectionSort') as CollectionSortField) ??
-    CollectionSortField.UPDATED_AT;
+    CollectionSortField.ADDED_AT;
 
   const {
     data,
@@ -48,7 +48,7 @@ export default function SembleCollectionsContainer(props: Props) {
       <Stack>
         <Group>
           <CollectionFiltersRoot>
-            <CollectionFiltersSortSelect />
+            <CollectionFiltersSortSelect showAddedAt />
             <CollectionFiltersViewToggle />
           </CollectionFiltersRoot>
         </Group>
@@ -62,7 +62,7 @@ export default function SembleCollectionsContainer(props: Props) {
     <Stack>
       <Group>
         <CollectionFiltersRoot>
-          <CollectionFiltersSortSelect />
+          <CollectionFiltersSortSelect showAddedAt />
           <CollectionFiltersViewToggle />
         </CollectionFiltersRoot>
       </Group>

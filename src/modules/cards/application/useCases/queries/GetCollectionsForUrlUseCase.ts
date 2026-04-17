@@ -58,8 +58,8 @@ export class GetCollectionsForUrlUseCase
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
-    const sortBy = query.sortBy || CollectionSortField.NAME;
-    const sortOrder = query.sortOrder || SortOrder.ASC;
+    const sortBy = query.sortBy || CollectionSortField.ADDED_AT;
+    const sortOrder = query.sortOrder || SortOrder.DESC;
 
     try {
       // Execute query to get collections containing cards with this URL (raw data with authorId)
@@ -82,7 +82,10 @@ export class GetCollectionsForUrlUseCase
       const profileMapResult = await profileEnricher.buildProfileMap(
         uniqueAuthorIds,
         query.callingUserId,
-        { mapToUser: false }, // Use inline profile (without isFollowing)
+        {
+          skipFailures: true, // Skip profiles that fail to resolve
+          mapToUser: false, // Use inline profile (without isFollowing)
+        },
       );
 
       if (profileMapResult.isErr()) {
@@ -92,39 +95,42 @@ export class GetCollectionsForUrlUseCase
       const profileMap = profileMapResult.value;
 
       // Map items with enriched author data and full collection data
-      const enrichedCollections: Collection[] = await Promise.all(
-        result.items.map(async (item) => {
-          const author = profileMap.get(item.authorId);
-          if (!author) {
-            throw new Error(`Profile not found for author ${item.authorId}`);
-          }
+      // Filter out collections with missing author profiles
+      const enrichedCollections = (
+        await Promise.all(
+          result.items.map(async (item) => {
+            const author = profileMap.get(item.authorId);
+            if (!author) {
+              return null; // Skip collections with missing author profiles
+            }
 
-          // Fetch full collection to get cardCount, dates
-          const collectionIdResult = CollectionId.createFromString(item.id);
-          if (collectionIdResult.isErr()) {
-            throw new Error(`Invalid collection ID: ${item.id}`);
-          }
-          const collectionResult = await this.collectionRepo.findById(
-            collectionIdResult.value,
-          );
-          if (collectionResult.isErr() || !collectionResult.value) {
-            throw new Error(`Collection not found: ${item.id}`);
-          }
-          const collection = collectionResult.value;
+            // Fetch full collection to get cardCount, dates
+            const collectionIdResult = CollectionId.createFromString(item.id);
+            if (collectionIdResult.isErr()) {
+              throw new Error(`Invalid collection ID: ${item.id}`);
+            }
+            const collectionResult = await this.collectionRepo.findById(
+              collectionIdResult.value,
+            );
+            if (collectionResult.isErr() || !collectionResult.value) {
+              throw new Error(`Collection not found: ${item.id}`);
+            }
+            const collection = collectionResult.value;
 
-          return {
-            id: item.id,
-            uri: item.uri,
-            name: item.name,
-            description: item.description,
-            accessType: collection.accessType,
-            author,
-            cardCount: collection.cardCount,
-            createdAt: collection.createdAt.toISOString(),
-            updatedAt: collection.updatedAt.toISOString(),
-          };
-        }),
-      );
+            return {
+              id: item.id,
+              uri: item.uri,
+              name: item.name,
+              description: item.description,
+              accessType: collection.accessType,
+              author,
+              cardCount: collection.cardCount,
+              createdAt: collection.createdAt.toISOString(),
+              updatedAt: collection.updatedAt.toISOString(),
+            };
+          }),
+        )
+      ).filter((collection) => collection !== null) as Collection[];
 
       // Add follow status if callingUserId is provided
       if (query.callingUserId) {

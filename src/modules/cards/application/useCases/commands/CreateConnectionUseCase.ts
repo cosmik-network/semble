@@ -80,7 +80,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       }
       const curatorId = curatorIdResult.value;
 
-      // Create source UrlOrCardId
+      // Create source UrlOrCardId - validates and normalizes URLs automatically
       const sourceResult = UrlOrCardId.reconstruct(
         request.sourceType,
         request.sourceValue,
@@ -92,7 +92,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       }
       const source = sourceResult.value;
 
-      // Create target UrlOrCardId
+      // Create target UrlOrCardId - validates and normalizes URLs automatically
       const targetResult = UrlOrCardId.reconstruct(
         request.targetType,
         request.targetValue,
@@ -142,41 +142,35 @@ export class CreateConnectionUseCase extends BaseUseCase<
       }>[] = [];
 
       // Fetch source metadata if it's a URL
-      if (source.type === 'URL') {
-        const urlResult = URL.create(source.stringValue);
-        if (urlResult.isOk()) {
-          metadataFetches.push(
-            this.metadataService
-              .fetchMetadata(urlResult.value)
-              .then((result) => ({
-                type: 'source' as const,
-                metadata: result.isOk() ? result.value : undefined,
-              }))
-              .catch(() => ({
-                type: 'source' as const,
-                metadata: undefined,
-              })),
-          );
-        }
+      if (source.type === UrlOrCardIdType.URL && source.url) {
+        metadataFetches.push(
+          this.metadataService
+            .fetchMetadata(source.url)
+            .then((result) => ({
+              type: 'source' as const,
+              metadata: result.isOk() ? result.value : undefined,
+            }))
+            .catch(() => ({
+              type: 'source' as const,
+              metadata: undefined,
+            })),
+        );
       }
 
       // Fetch target metadata if it's a URL
-      if (target.type === 'URL') {
-        const urlResult = URL.create(target.stringValue);
-        if (urlResult.isOk()) {
-          metadataFetches.push(
-            this.metadataService
-              .fetchMetadata(urlResult.value)
-              .then((result) => ({
-                type: 'target' as const,
-                metadata: result.isOk() ? result.value : undefined,
-              }))
-              .catch(() => ({
-                type: 'target' as const,
-                metadata: undefined,
-              })),
-          );
-        }
+      if (target.type === UrlOrCardIdType.URL && target.url) {
+        metadataFetches.push(
+          this.metadataService
+            .fetchMetadata(target.url)
+            .then((result) => ({
+              type: 'target' as const,
+              metadata: result.isOk() ? result.value : undefined,
+            }))
+            .catch(() => ({
+              type: 'target' as const,
+              metadata: undefined,
+            })),
+        );
       }
 
       // Wait for all metadata fetches to complete
