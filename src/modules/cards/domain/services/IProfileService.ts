@@ -1,4 +1,5 @@
 import { Result } from 'src/shared/core/Result';
+import { Label } from '@semble/types';
 
 export interface IProfileService {
   getProfile(userId: string, callerId?: string): Promise<Result<UserProfile>>;
@@ -20,4 +21,5 @@ export interface UserProfile {
   collectionCount?: number;
   connectionCount?: number;
   connectionsByType?: { total: number; [type: string]: number };
+  labels?: Label[];
 }
