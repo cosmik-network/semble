@@ -11,22 +11,12 @@ interface Props {
 }
 
 export default function ContributedToCollectionsContainer(props: Props) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useOpenCollectionsWithContributor({ identifier: props.handle });
 
   const { settings } = useUserSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  if (isPending) {
-    return (
-      <Container p="xs" size="xl">
-        <Center>
-          <Text c="gray">Loading...</Text>
-        </Center>
-      </Container>
-    );
-  }
 
   return (
     <Container p="xs" size="xl">
@@ -41,7 +31,7 @@ export default function ContributedToCollectionsContainer(props: Props) {
           <InfiniteScroll
             dataLength={allCollections.length}
             hasMore={!!hasNextPage}
-            isInitialLoading={isPending}
+            isInitialLoading={false}
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >

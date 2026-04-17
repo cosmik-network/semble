@@ -34,7 +34,6 @@ export default function CollectionSelectorOpenCollections(props: Props) {
   // Get collections the current user has contributed to
   const userContributedCollections = useOpenCollectionsWithContributor({
     identifier: user?.id || '',
-    enabled: !!user?.id && !search, // Only fetch when not searching
   });
 
   // Use contributed collections by default, fall back to searched collections when searching
