@@ -56,7 +56,6 @@ export default async function Layout(props: Props) {
         style={{
           position: 'sticky',
           top: 55,
-          zIndex: 1,
         }}
       >
         <Container px={'xs'} mt={'md'} size={'xl'}>
