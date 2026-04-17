@@ -75,6 +75,7 @@ export class BlueskyProfileService implements IProfileService {
         avatarUrl: profile.avatar,
         bannerUrl: profile.banner,
         bio: profile.description,
+        labels: profile.labels,
       };
 
       return ok(userProfile);

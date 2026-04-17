@@ -1,5 +1,5 @@
 import { UserProfile } from '../../domain/services/IProfileService';
-import { User } from '@semble/types';
+import { User, Label } from '@semble/types';
 
 /**
  * ProfileMapper - Centralizes mapping from domain UserProfile to API User DTOs
@@ -28,6 +28,7 @@ export class ProfileMapper {
       collectionCount: profile.collectionCount,
       connectionCount: profile.connectionCount,
       connectionsByType: profile.connectionsByType,
+      labels: profile.labels,
     };
   }
 
@@ -46,6 +47,7 @@ export class ProfileMapper {
     followerCount?: number;
     followingCount?: number;
     followedCollectionsCount?: number;
+    labels?: Label[];
   } {
     return {
       id: profile.id,
@@ -58,6 +60,7 @@ export class ProfileMapper {
       followerCount: profile.followerCount,
       followingCount: profile.followingCount,
       followedCollectionsCount: profile.followedCollectionsCount,
+      labels: profile.labels,
     };
   }
 

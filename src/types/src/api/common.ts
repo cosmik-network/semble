@@ -1,3 +1,26 @@
+// ATProto Label interface
+export interface Label {
+  $type?: 'com.atproto.label.defs#label';
+  /** The AT Protocol version of the label object. */
+  ver?: number;
+  /** DID of the actor who created this label. */
+  src: string;
+  /** AT URI of the record, repository (account), or other resource that this label applies to. */
+  uri: string;
+  /** Optionally, CID specifying the specific version of 'uri' resource this label applies to. */
+  cid?: string;
+  /** The short string name of the value or type of this label. */
+  val: string;
+  /** If true, this is a negation label, overwriting a previous label. */
+  neg?: boolean;
+  /** Timestamp when this label was created. */
+  cts: string;
+  /** Timestamp at which this label expires (no longer applies). */
+  exp?: string;
+  /** Signature of dag-cbor encoded label. */
+  sig?: Uint8Array;
+}
+
 // Unified User/Profile interface - used across all endpoints
 export interface User {
   id: string;
@@ -15,6 +38,7 @@ export interface User {
   collectionCount?: number; // Number of collections created by this user
   connectionCount?: number; // Total number of connections created by this user
   connectionsByType?: { total: number; [type: string]: number }; // Breakdown of connections by type
+  labels?: Label[]; // Moderation labels from ATProto
 }
 
 // Extended User interface for contributors with contribution count
