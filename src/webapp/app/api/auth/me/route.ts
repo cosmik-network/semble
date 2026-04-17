@@ -177,10 +177,7 @@ export async function GET(request: NextRequest) {
           '[auth/me] Transient profile fetch error, preserving cookies for retry',
         );
       }
-      return NextResponse.json<AuthResult>(
-        { isAuth: false },
-        { status: 500 },
-      );
+      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
     }
   } catch (error) {
     console.error('Auth me error:', error);
@@ -190,10 +187,7 @@ export async function GET(request: NextRequest) {
         '[auth/me] Unexpected auth error, preserving cookies for retry',
       );
     }
-    return NextResponse.json<AuthResult>(
-      { isAuth: false },
-      { status: 500 },
-    );
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
 }
 
