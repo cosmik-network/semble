@@ -234,8 +234,17 @@ async function performTokenRefresh(
     },
   });
 
+  const refreshCookies = refreshResponse.headers.getSetCookie();
+
   if (!profileResponse.ok) {
-    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
+    const response = NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 401 },
+    );
+    for (const cookie of refreshCookies) {
+      response.headers.append('Set-Cookie', cookie);
+    }
+    return response;
   }
 
   const user = await profileResponse.json();
@@ -244,12 +253,9 @@ async function performTokenRefresh(
       `[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`,
     );
   }
-  // Return user profile with backend's Set-Cookie headers
-  return new Response(JSON.stringify({ isAuth: true, user }), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
-    },
-  });
+  const response = NextResponse.json<AuthResult>({ isAuth: true, user });
+  for (const cookie of refreshCookies) {
+    response.headers.append('Set-Cookie', cookie);
+  }
+  return response;
 }
