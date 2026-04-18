@@ -369,9 +369,7 @@ export class ControllerFactory {
         useCases.searchLeafletDocsForUrlUseCase,
       ),
       xrpcMentionSearchController: new XrpcMentionSearchController(
-        useCases.searchUrlsUseCase,
-        useCases.searchCollectionsUseCase,
-        repositories.atUriResolutionService,
+        useCases.xrpcMentionSearchUseCase,
         appUrl,
         serviceDid,
       ),
