@@ -22,6 +22,8 @@ import {
   LinkMenuItem,
   LinkText,
 } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   user: User;
@@ -41,13 +43,21 @@ export default function FeedActivityStatus(props: Props) {
     if (props.activityType === ActivityType.CONNECTION_CREATED) {
       return (
         <Text fw={500}>
-          <LinkText
-            href={`/profile/${props.user.handle}`}
-            fw={600}
-            c={'bright'}
+          <Group
+            component="span"
+            gap={'xs'}
+            wrap="nowrap"
+            display={'inline-flex'}
           >
-            {sanitizeText(props.user.name)}
-          </LinkText>{' '}
+            <LinkText
+              href={`/profile/${props.user.handle}`}
+              fw={600}
+              c={'bright'}
+            >
+              {sanitizeText(props.user.name)}
+            </LinkText>
+            {isBotAccount(props.user) && <BotLabel />}
+          </Group>{' '}
           <Text span>made a connection</Text>
           <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
             {relativeCreatedDate}
@@ -66,9 +76,21 @@ export default function FeedActivityStatus(props: Props) {
 
     return (
       <Text fw={500}>
-        <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
-          {sanitizeText(props.user.name)}
-        </LinkText>{' '}
+        <Group
+          component="span"
+          gap={'xs'}
+          wrap="nowrap"
+          display={'inline-flex'}
+        >
+          <LinkText
+            href={`/profile/${props.user.handle}`}
+            fw={600}
+            c={'bright'}
+          >
+            {sanitizeText(props.user.name)}
+          </LinkText>
+          {isBotAccount(props.user) && <BotLabel />}
+        </Group>{' '}
         {collections.length === 0 ? (
           <Text span>added to library</Text>
         ) : (
@@ -94,11 +116,11 @@ export default function FeedActivityStatus(props: Props) {
             )}
             {remainingCount > 0 && <Text span>{' and '}</Text>}
             {remainingCount > 0 && (
-              <Menu shadow="sm">
+              <Menu shadow="sm" position="bottom-start">
                 <MenuTarget>
                   <Text
                     fw={600}
-                    c={'blue'}
+                    c={'gray'}
                     style={{ cursor: 'pointer', userSelect: 'none' }}
                     span
                   >

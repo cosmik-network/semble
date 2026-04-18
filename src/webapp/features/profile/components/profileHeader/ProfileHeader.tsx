@@ -23,6 +23,8 @@ import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
 import { IoSearch } from 'react-icons/io5';
 import { LinkActionIcon } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '../botLabel/BotLabel';
 
 interface Props {
   handle: string;
@@ -86,9 +88,12 @@ export default async function ProfileHeader(props: Props) {
             {/* profile info */}
             <Stack gap={'sm'}>
               <Stack gap={0}>
-                <Title order={1} fz={'h2'} c={'bright'}>
-                  {profile.name}
-                </Title>
+                <Group gap={'xs'} wrap="nowrap">
+                  <Title order={1} fz={'h2'} c={'bright'}>
+                    {profile.name}
+                  </Title>
+                  {isBotAccount(profile) && <BotLabel />}
+                </Group>
                 <Group gap={'xs'}>
                   {profile.followsYou && (
                     <Badge variant="light" color="gray">

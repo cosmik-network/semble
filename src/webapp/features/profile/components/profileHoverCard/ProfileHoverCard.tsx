@@ -14,6 +14,8 @@ import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { LinkButton } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '../botLabel/BotLabel';
 
 interface Props {
   children: React.ReactNode;
@@ -50,9 +52,12 @@ export default function ProfileHoverCard(props: Props) {
               size={'lg'}
             />
             <Stack gap={0}>
-              <Text fw={600} c={'bright'}>
-                {profile.name || profile.handle}
-              </Text>
+              <Group gap={'xs'} wrap="nowrap">
+                <Text fw={600} c={'bright'}>
+                  {profile.name || profile.handle}
+                </Text>
+                {isBotAccount(profile) && <BotLabel />}
+              </Group>
               <Text fw={500} c={'gray'}>
                 @{profile.handle}
               </Text>
