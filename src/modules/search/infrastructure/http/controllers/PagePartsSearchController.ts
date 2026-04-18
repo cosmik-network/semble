@@ -1,13 +1,13 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { XrpcMentionSearchUseCase } from '../../../application/useCases/queries/PagePartsSearchUseCase';
+import { PagePartsSearchUseCase } from '../../../application/useCases/queries/PagePartsSearchUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
 import { IIdentityResolutionService } from '../../../../../modules/atproto/domain/services/IIdentityResolutionService';
 
-export class XrpcMentionSearchController extends Controller {
+export class PagePartsSearchController extends Controller {
   constructor(
-    private xrpcMentionSearchUseCase: XrpcMentionSearchUseCase,
+    private pagePartsSearchUseCase: PagePartsSearchUseCase,
     private appUrl: string,
     private serviceDid: string,
     private identityResolutionService: IIdentityResolutionService,
@@ -64,7 +64,7 @@ export class XrpcMentionSearchController extends Controller {
       // Validate JWT and extract DID (optional)
       const callingUserId = await this.validateAuth(req);
 
-      const result = await this.xrpcMentionSearchUseCase.execute({
+      const result = await this.pagePartsSearchUseCase.execute({
         service: serviceUri,
         search: search || '',
         scope,

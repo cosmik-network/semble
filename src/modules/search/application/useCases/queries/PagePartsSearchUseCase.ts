@@ -19,11 +19,11 @@ import { DID } from '../../../../atproto/domain/DID';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 
 // XRPC parts.page.mention.search types based on lexicon
-export interface XrpcMentionLabel {
+export interface PagePartsLabel {
   text: string;
 }
 
-export interface XrpcEmbedInfo {
+export interface PagePartsEmbedInfo {
   src: string;
   width?: number;
   height?: number;
@@ -33,27 +33,27 @@ export interface XrpcEmbedInfo {
   };
 }
 
-export interface XrpcSubscopeInfo {
+export interface PagePartsSubscopeInfo {
   scope: string;
   label: string;
 }
 
-export interface XrpcMentionSearchResult {
+export interface PagePartsSearchResult {
   uri: string;
   name: string;
   description?: string;
-  labels?: XrpcMentionLabel[];
+  labels?: PagePartsLabel[];
   href?: string;
   icon?: string;
-  embed?: XrpcEmbedInfo;
-  subscope?: XrpcSubscopeInfo;
+  embed?: PagePartsEmbedInfo;
+  subscope?: PagePartsSubscopeInfo;
 }
 
-export interface XrpcMentionSearchResponse {
-  results: XrpcMentionSearchResult[];
+export interface PagePartsSearchResponse {
+  results: PagePartsSearchResult[];
 }
 
-export interface XrpcMentionSearchQuery {
+export interface PagePartsSearchQuery {
   service: string;
   search: string;
   scope?: string;
@@ -71,7 +71,7 @@ const CARD_SEARCH_SERVICE =
 /**
  * Encapsulates the logic for determining search parameters based on service type and scope
  */
-class MentionSearchContext {
+class PagePartsSearchContext {
   private parsedScope?: DIDOrATUri;
   private scopeIdentifier?: string;
 
@@ -196,12 +196,12 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class XrpcMentionSearchUseCase
+export class PagePartsSearchUseCase
   implements
     UseCase<
-      XrpcMentionSearchQuery,
+      PagePartsSearchQuery,
       Result<
-        XrpcMentionSearchResponse,
+        PagePartsSearchResponse,
         ValidationError | AppError.UnexpectedError
       >
     >
@@ -213,16 +213,13 @@ export class XrpcMentionSearchUseCase
   ) {}
 
   async execute(
-    query: XrpcMentionSearchQuery,
+    query: PagePartsSearchQuery,
   ): Promise<
-    Result<
-      XrpcMentionSearchResponse,
-      ValidationError | AppError.UnexpectedError
-    >
+    Result<PagePartsSearchResponse, ValidationError | AppError.UnexpectedError>
   > {
     try {
       // Create and initialize search context
-      const context = new MentionSearchContext(
+      const context = new PagePartsSearchContext(
         query.service,
         query.scope,
         query.search,
@@ -255,13 +252,10 @@ export class XrpcMentionSearchUseCase
   }
 
   private async handleCollectionSearch(
-    query: XrpcMentionSearchQuery,
-    context: MentionSearchContext,
+    query: PagePartsSearchQuery,
+    context: PagePartsSearchContext,
   ): Promise<
-    Result<
-      XrpcMentionSearchResponse,
-      ValidationError | AppError.UnexpectedError
-    >
+    Result<PagePartsSearchResponse, ValidationError | AppError.UnexpectedError>
   > {
     const result = await this.searchCollectionsUseCase.execute({
       searchText: query.search || '',
@@ -277,7 +271,7 @@ export class XrpcMentionSearchUseCase
       return err(AppError.UnexpectedError.create(result.error));
     }
 
-    const mappedResults: XrpcMentionSearchResult[] = [];
+    const mappedResults: PagePartsSearchResult[] = [];
 
     for (const collection of result.value.collections) {
       if (!collection.uri) {
@@ -322,13 +316,10 @@ export class XrpcMentionSearchUseCase
   }
 
   private async handleCardSearch(
-    query: XrpcMentionSearchQuery,
-    context: MentionSearchContext,
+    query: PagePartsSearchQuery,
+    context: PagePartsSearchContext,
   ): Promise<
-    Result<
-      XrpcMentionSearchResponse,
-      ValidationError | AppError.UnexpectedError
-    >
+    Result<PagePartsSearchResponse, ValidationError | AppError.UnexpectedError>
   > {
     const filtersResult = await context.getCardSearchFilters(
       this.atUriResolutionService,
@@ -354,7 +345,7 @@ export class XrpcMentionSearchUseCase
       return err(AppError.UnexpectedError.create(result.error));
     }
 
-    const mappedResults: XrpcMentionSearchResult[] = result.value.urls.map(
+    const mappedResults: PagePartsSearchResult[] = result.value.urls.map(
       (urlView) => ({
         uri: urlView.url,
         name: urlView.metadata.title || urlView.url,

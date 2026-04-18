@@ -42,7 +42,7 @@ import { SemanticSearchUrlsUseCase } from '../../../../modules/search/applicatio
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
-import { XrpcMentionSearchUseCase } from '../../../../modules/search/application/useCases/queries/PagePartsSearchUseCase';
+import { PagePartsSearchUseCase } from '../../../../modules/search/application/useCases/queries/PagePartsSearchUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
@@ -169,7 +169,7 @@ export interface UseCases {
   searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
   searchAtProtoAccountsUseCase: SearchAtProtoAccountsUseCase;
   searchLeafletDocsForUrlUseCase: SearchLeafletDocsForUrlUseCase;
-  xrpcMentionSearchUseCase: XrpcMentionSearchUseCase;
+  pagePartsSearchUseCase: PagePartsSearchUseCase;
   // Notification use cases
   getMyNotificationsUseCase: GetMyNotificationsUseCase;
   getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
@@ -204,7 +204,7 @@ export class UseCaseFactory {
       repositories.followsRepository,
     );
 
-    const xrpcMentionSearchUseCase = new XrpcMentionSearchUseCase(
+    const pagePartsSearchUseCase = new PagePartsSearchUseCase(
       searchUrlsUseCase,
       searchCollectionsUseCase,
       repositories.atUriResolutionService,
@@ -510,7 +510,7 @@ export class UseCaseFactory {
         services.leafletSearchService,
         repositories.cardQueryRepository,
       ),
-      xrpcMentionSearchUseCase,
+      pagePartsSearchUseCase,
       // Notification use cases
       getMyNotificationsUseCase: new GetMyNotificationsUseCase(
         repositories.notificationRepository,
