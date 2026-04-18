@@ -214,11 +214,11 @@ export default function NotificationActivityStatus(props: Props) {
       ))}
       {remainingCount > 0 && <Text span>{' and '}</Text>}
       {remainingCount > 0 && (
-        <Menu shadow="sm">
+        <Menu shadow="sm" position="bottom-start">
           <MenuTarget>
             <Text
               fw={600}
-              c={'blue'}
+              c={'gray'}
               style={{ cursor: 'pointer', userSelect: 'none' }}
               span
             >
