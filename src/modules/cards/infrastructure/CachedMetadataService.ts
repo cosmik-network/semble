@@ -9,19 +9,22 @@ import { Result, ok } from '../../../shared/core/Result';
 
 export class CachedMetadataService implements IMetadataService {
   private readonly CACHE_KEY_PREFIX: string;
-  private readonly CACHE_TTL_SECONDS: number;
+  private readonly STALENESS_THRESHOLD_SECONDS: number;
 
   constructor(
     private readonly metadataService: IMetadataService,
     private readonly redis: Redis,
     private readonly serviceName: string,
-    ttlSeconds: number = 3600, // 1 hour default
+    stalenessThresholdSeconds: number = 3600, // 1 hour default
   ) {
     this.CACHE_KEY_PREFIX = `metadata:${serviceName}:`;
-    this.CACHE_TTL_SECONDS = ttlSeconds;
+    this.STALENESS_THRESHOLD_SECONDS = stalenessThresholdSeconds;
   }
 
-  async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
+  async fetchMetadata(
+    url: URL,
+    refetchStaleMetadata: boolean = false,
+  ): Promise<Result<UrlMetadata>> {
     const cacheKey = this.getCacheKey(url.value);
 
     try {
@@ -38,7 +41,36 @@ export class CachedMetadataService implements IMetadataService {
             );
           }
           const metadata = metadataResult.value;
-          return ok(metadata);
+
+          // If refetchStaleMetadata is true, check if cached data is stale
+          if (refetchStaleMetadata) {
+            // If retrievedAt is missing, treat as stale and refetch
+            if (!metadata.retrievedAt) {
+              console.log(
+                `Cached metadata for ${url.value} from ${this.serviceName} has no retrievedAt, treating as stale...`,
+              );
+              // Continue to fetch fresh data below
+            } else {
+              const now = new Date();
+              const retrievedAt = new Date(metadata.retrievedAt);
+              const ageInSeconds =
+                (now.getTime() - retrievedAt.getTime()) / 1000;
+
+              if (ageInSeconds > this.STALENESS_THRESHOLD_SECONDS) {
+                // Data is stale, fetch fresh data
+                console.log(
+                  `Cached metadata for ${url.value} from ${this.serviceName} is stale (${ageInSeconds}s old), refetching...`,
+                );
+                // Continue to fetch fresh data below
+              } else {
+                // Data is fresh enough, return cached
+                return ok(metadata);
+              }
+            }
+          } else {
+            // Not refetching stale data, always return cached if available
+            return ok(metadata);
+          }
         } catch (parseError) {
           // If JSON parsing fails, continue to fetch fresh data
           console.warn(
@@ -48,17 +80,13 @@ export class CachedMetadataService implements IMetadataService {
         }
       }
 
-      // Cache miss or parse error - fetch from underlying service
+      // Cache miss, parse error, or stale data - fetch from underlying service
       const result = await this.metadataService.fetchMetadata(url);
 
       if (result.isOk()) {
-        // Cache the successful result
+        // Cache the successful result with infinite TTL
         try {
-          await this.redis.setex(
-            cacheKey,
-            this.CACHE_TTL_SECONDS,
-            JSON.stringify(result.value.props),
-          );
+          await this.redis.set(cacheKey, JSON.stringify(result.value.props));
         } catch (cacheError) {
           // Log cache error but don't fail the request
           console.warn(
