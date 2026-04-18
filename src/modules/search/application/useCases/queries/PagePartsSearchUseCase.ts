@@ -309,7 +309,7 @@ export class XrpcMentionSearchUseCase
           { text: `${collection.cardCount} cards` },
         ],
         embed: {
-          src: `${query.appUrl}/profile/${handle}/collections/${atUri.rkey}/page-parts-embed`,
+          src: `${query.appUrl}/page-parts-embed/profile/${handle}/collections/${atUri.rkey}`,
           aspectRatio: {
             height: 9,
             width: 21,
