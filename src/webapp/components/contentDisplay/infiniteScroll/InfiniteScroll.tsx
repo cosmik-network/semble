@@ -20,6 +20,7 @@ export default function InfiniteScroll(props: Props) {
   const { ref, entry } = useIntersection({
     root: containerRef.current,
     threshold: 0,
+    rootMargin: '0px 0px 1000px 0px',
   });
 
   const { hasMore, isLoading, loadMore } = props;
