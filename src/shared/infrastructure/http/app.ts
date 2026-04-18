@@ -216,7 +216,7 @@ export const createExpressApp = (
   // XRPC mention search endpoint
   app.get('/xrpc/parts.page.mention.search', (req, res) => {
     console.log('Received XRPC mention search request with query:', req.query);
-    return controllers.xrpcMentionSearchController.execute(req, res);
+    return controllers.pagePartsSearchController.execute(req, res);
   });
 
   // Register routes

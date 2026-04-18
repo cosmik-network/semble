@@ -9,7 +9,8 @@ export class CachedATProtoIdentityResolutionService
   implements IIdentityResolutionService
 {
   private readonly CACHE_TTL_SECONDS = 900; // 15 minutes
-  private readonly CACHE_KEY_PREFIX = 'handle-to-did:';
+  private readonly HANDLE_TO_DID_PREFIX = 'handle-to-did:';
+  private readonly DID_TO_KEY_PREFIX = 'did-to-key:';
 
   constructor(
     private readonly identityResolutionService: IIdentityResolutionService,
@@ -29,7 +30,7 @@ export class CachedATProtoIdentityResolutionService
         return err(new Error('Invalid handle in identifier'));
       }
 
-      const cacheKey = this.getCacheKey(handle.value);
+      const cacheKey = this.getHandleToDIDCacheKey(handle.value);
 
       try {
         // Try to get DID from cache
@@ -96,8 +97,48 @@ export class CachedATProtoIdentityResolutionService
     return this.identityResolutionService.resolveToHandle(identifier);
   }
 
-  private getCacheKey(handle: string): string {
-    return `${this.CACHE_KEY_PREFIX}${handle}`;
+  async resolveAtprotoKey(did: string): Promise<Result<string>> {
+    const cacheKey = this.getDIDToKeyCacheKey(did);
+
+    try {
+      // Try to get key from cache
+      const cachedKey = await this.redis.get(cacheKey);
+
+      if (cachedKey) {
+        return ok(cachedKey);
+      }
+    } catch (redisError) {
+      // If Redis read fails, log and continue to fetch from service
+      console.warn(
+        `Redis error when fetching cached atproto key for DID ${did}:`,
+        redisError,
+      );
+    }
+
+    // Cache miss - fetch from underlying service
+    const result = await this.identityResolutionService.resolveAtprotoKey(did);
+
+    if (result.isErr()) {
+      return result;
+    }
+
+    // Cache the key
+    try {
+      await this.redis.setex(cacheKey, this.CACHE_TTL_SECONDS, result.value);
+    } catch (cacheError) {
+      // Log cache error but don't fail the request
+      console.warn(`Failed to cache atproto key for DID ${did}:`, cacheError);
+    }
+
+    return result;
+  }
+
+  private getHandleToDIDCacheKey(handle: string): string {
+    return `${this.HANDLE_TO_DID_PREFIX}${handle}`;
+  }
+
+  private getDIDToKeyCacheKey(did: string): string {
+    return `${this.DID_TO_KEY_PREFIX}${did}`;
   }
 
   /**
@@ -105,7 +146,7 @@ export class CachedATProtoIdentityResolutionService
    */
   async invalidateHandle(handle: string): Promise<void> {
     try {
-      await this.redis.del(this.getCacheKey(handle));
+      await this.redis.del(this.getHandleToDIDCacheKey(handle));
     } catch (error) {
       console.warn(
         `Failed to invalidate DID cache for handle ${handle}:`,

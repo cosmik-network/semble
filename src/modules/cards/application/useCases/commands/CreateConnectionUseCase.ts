@@ -145,7 +145,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       if (source.type === UrlOrCardIdType.URL && source.url) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(source.url)
+            .fetchMetadata(source.url, true)
             .then((result) => ({
               type: 'source' as const,
               metadata: result.isOk() ? result.value : undefined,
@@ -161,7 +161,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       if (target.type === UrlOrCardIdType.URL && target.url) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(target.url)
+            .fetchMetadata(target.url, true)
             .then((result) => ({
               type: 'target' as const,
               metadata: result.isOk() ? result.value : undefined,

@@ -31,11 +31,14 @@ export class CompositeMetadataService implements IMetadataService {
     this.config = config;
   }
 
-  async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
+  async fetchMetadata(
+    url: URL,
+    refetchStaleMetadata: boolean = false,
+  ): Promise<Result<UrlMetadata>> {
     // Fetch metadata from both services concurrently
     const [iframelyResult, citoidResult] = await Promise.allSettled([
-      this.iframelyService.fetchMetadata(url),
-      this.citoidService.fetchMetadata(url),
+      this.iframelyService.fetchMetadata(url, refetchStaleMetadata),
+      this.citoidService.fetchMetadata(url, refetchStaleMetadata),
     ]);
 
     // Extract successful results
@@ -152,15 +155,21 @@ export class CompositeMetadataService implements IMetadataService {
   /**
    * Get metadata from a specific service for debugging/testing purposes
    */
-  public async fetchFromIframely(url: URL): Promise<Result<UrlMetadata>> {
-    return this.iframelyService.fetchMetadata(url);
+  public async fetchFromIframely(
+    url: URL,
+    refetchStaleMetadata: boolean = false,
+  ): Promise<Result<UrlMetadata>> {
+    return this.iframelyService.fetchMetadata(url, refetchStaleMetadata);
   }
 
   /**
    * Get metadata from a specific service for debugging/testing purposes
    */
-  public async fetchFromCitoid(url: URL): Promise<Result<UrlMetadata>> {
-    return this.citoidService.fetchMetadata(url);
+  public async fetchFromCitoid(
+    url: URL,
+    refetchStaleMetadata: boolean = false,
+  ): Promise<Result<UrlMetadata>> {
+    return this.citoidService.fetchMetadata(url, refetchStaleMetadata);
   }
 
   /**
