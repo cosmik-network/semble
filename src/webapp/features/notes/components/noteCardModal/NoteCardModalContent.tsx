@@ -20,6 +20,8 @@ import { notifications } from '@mantine/notifications';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
 import { BsExclamation } from 'react-icons/bs';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   onClose: () => void;
@@ -153,7 +155,7 @@ export default function NoteCardModalContent(props: Props) {
   return (
     <Stack gap={'xs'}>
       {props.cardAuthor && (
-        <Group gap={5}>
+        <Group gap={'xs'}>
           <LinkAvatar
             size={'sm'}
             href={`/profile/${props.cardAuthor.handle}`}
@@ -164,15 +166,18 @@ export default function NoteCardModalContent(props: Props) {
             )}
             alt={`${props.cardAuthor.name}'s avatar`}
           />
-          <Anchor
-            href={`/profile/${props.cardAuthor.handle}`}
-            target="_blank"
-            fw={700}
-            c="bright"
-            lineClamp={1}
-          >
-            {props.cardAuthor.name}
-          </Anchor>
+          <Group gap={'xs'} wrap="nowrap">
+            <Anchor
+              href={`/profile/${props.cardAuthor.handle}`}
+              target="_blank"
+              fw={600}
+              c="bright"
+              lineClamp={1}
+            >
+              {props.cardAuthor.name}
+            </Anchor>
+            {isBotAccount(props.cardAuthor) && <BotLabel />}
+          </Group>
         </Group>
       )}
       {props.note && <Text fs={'italic'}>{props.note.text}</Text>}

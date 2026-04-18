@@ -19,6 +19,8 @@ import ConnectionCard from '../connectionCard/ConnectionCard';
 import styles from './ProfileConnectionItem.module.css';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   connection: ConnectionWithSourceAndTarget;
@@ -64,6 +66,7 @@ export default function ProfileConnectionItem(props: Props) {
                     >
                       {props.curator.name}
                     </LinkText>
+                    {isBotAccount(props.curator) && <BotLabel />}
                     {props.activityStatusText && (
                       <Text fw={500} span>
                         {' '}

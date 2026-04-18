@@ -1,7 +1,9 @@
-import { Stack, Text } from '@mantine/core';
+import { Group, Stack, Text } from '@mantine/core';
 import { createServerSembleClient } from '@/services/server.apiClient';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 export default async function AccountSummary() {
   await verifySessionOnServer({ redirectOnFail: true });
@@ -19,9 +21,13 @@ export default async function AccountSummary() {
         radius={'lg'}
       />
       <Stack gap={0} align="center">
-        <Text fw={600} fz={'h3'} c={'bright'}>
-          {profile.name}
-        </Text>
+        <Group gap={'xs'} wrap="nowrap">
+          <Text fw={600} fz={'h3'} c={'bright'}>
+            {profile.name}
+          </Text>
+          {isBotAccount(profile) && <BotLabel />}
+        </Group>
+
         <Text fw={500} fz={'h4'} c={'gray'}>
           @{profile.handle}
         </Text>

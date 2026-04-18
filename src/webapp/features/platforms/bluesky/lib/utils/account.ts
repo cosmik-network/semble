@@ -1,14 +1,23 @@
 import { ComAtprotoLabelDefs } from '@atproto/api';
+import { Label } from '@semble/types';
+
+type AnyLabel = ComAtprotoLabelDefs.Label | Label;
 
 type ProfileWithLabels = {
-  did: string;
-  labels?: ComAtprotoLabelDefs.Label[];
+  did?: string;
+  id?: string;
+  labels?: AnyLabel[];
 };
 
-const isSelfAppliedLabel = (label: ComAtprotoLabelDefs.Label, did: string) =>
-  label.src === did;
+const isSelfAppliedLabel = (label: AnyLabel, identifier: string) =>
+  label.src === identifier;
 
 export const isBotAccount = (profile: ProfileWithLabels): boolean => {
-  const { did, labels = [] } = profile;
-  return labels.some((l) => l.val === 'bot' && isSelfAppliedLabel(l, did));
+  const identifier = profile.did ?? profile.id;
+  if (!identifier) return false;
+
+  const labels = profile.labels ?? [];
+  return labels.some(
+    (l) => l.val === 'bot' && isSelfAppliedLabel(l, identifier),
+  );
 };

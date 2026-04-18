@@ -30,6 +30,8 @@ import {
   LinkMenuItem,
   LinkText,
 } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   user: NotificationItem['user'];
@@ -56,9 +58,12 @@ export default function NotificationActivityStatus(props: Props) {
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     const userName = (
-      <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
-        {sanitizeText(props.user.name)}
-      </LinkText>
+      <Group gap={'xs'} wrap="nowrap">
+        <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
+          {sanitizeText(props.user.name)}
+        </LinkText>
+        {isBotAccount(props.user) && <BotLabel />}
+      </Group>
     );
 
     switch (props.type) {

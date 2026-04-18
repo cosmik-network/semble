@@ -5,7 +5,7 @@ export default function NoteCardSkeleton() {
     <Card p={'sm'} radius={'lg'} withBorder>
       <Stack gap={'xs'}>
         {/* Note */}
-        <Stack gap={5}>
+        <Stack gap={'xs'}>
           <Skeleton w={'100%'} h={14} />
           <Skeleton w={'100%'} h={14} />
           <Skeleton w={'100%'} h={14} />

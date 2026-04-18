@@ -30,6 +30,8 @@ import { useOs } from '@mantine/hooks';
 import { BsThreeDots } from 'react-icons/bs';
 import styles from './ProfileMenu.module.css';
 import { sanitizeText } from '@/lib/utils/text';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '../botLabel/BotLabel';
 
 const schemes = ['light', 'dark', 'auto'] as const;
 type ColorScheme = (typeof schemes)[number];
@@ -92,6 +94,8 @@ export default function ProfileMenu() {
                   <Text fw={600} lineClamp={1}>
                     {data.name}
                   </Text>
+
+                  {isBotAccount(data) && <BotLabel />}
                 </Group>
                 <BsThreeDots />
               </Group>
@@ -112,9 +116,13 @@ export default function ProfileMenu() {
               />
 
               <Stack gap={0}>
-                <Text fw={600} c={'bright'} lineClamp={1}>
-                  {sanitizeText(data.name) || data.handle}
-                </Text>
+                <Group gap={'xs'} wrap="nowrap">
+                  <Text fw={600} c={'bright'} lineClamp={1}>
+                    {sanitizeText(data.name) || data.handle}
+                  </Text>
+                  {isBotAccount(data) && <BotLabel />}
+                </Group>
+
                 <Text fw={600} c={'gray'} lineClamp={1}>
                   @{data.handle}
                 </Text>

@@ -23,6 +23,8 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { getRelativeTime } from '@/lib/utils/time';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 
 interface Props {
   rkey: string;
@@ -132,6 +134,7 @@ export default function CollectionHeader(props: Props) {
                   >
                     {collection.author.name}
                   </Anchor>
+                  {isBotAccount(collection.author) && <BotLabel />}
                   <Suspense>
                     <CollectionContributorsSummary
                       collectionId={collection.id}

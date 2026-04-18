@@ -21,6 +21,8 @@ import CardChip from '@/features/cards/components/cardChip/CardChip';
 import { BsTrash2Fill } from 'react-icons/bs';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 import styles from './ConnectionStatus.module.css';
 
 interface Props {
@@ -52,6 +54,7 @@ export default function ConnectionStatus(props: Props) {
           <LinkText href={`/profile/${curator.handle}`} fw={600} c={'bright'}>
             {sanitizeText(curator.name)}
           </LinkText>
+          {isBotAccount(curator) && <BotLabel />}
           <Text>connected</Text>
           <CardChip
             url={props.source.url}

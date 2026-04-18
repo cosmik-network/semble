@@ -4,6 +4,8 @@ import { sanitizeText } from '@/lib/utils/text';
 import { getRelativeTime } from '@/lib/utils/time';
 import { ReactNode } from 'react';
 import { LinkCard } from '@/components/link/MantineLink';
+import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
+import BotLabel from '../botLabel/BotLabel';
 
 interface Props {
   profile: User;
@@ -39,9 +41,12 @@ export default function ProfileCard(props: Props) {
             />
 
             <Stack gap={0}>
-              <Text fw={600} c={'bright'} lineClamp={1}>
-                {sanitizeText(props.profile.name) || props.profile.handle}
-              </Text>
+              <Group gap={'xs'} wrap="nowrap">
+                <Text fw={600} c={'bright'} lineClamp={1}>
+                  {sanitizeText(props.profile.name) || props.profile.handle}
+                </Text>
+                {isBotAccount(props.profile) && <BotLabel />}
+              </Group>
               <Text fw={600} c={'gray'} lineClamp={1}>
                 @{props.profile.handle}
               </Text>
