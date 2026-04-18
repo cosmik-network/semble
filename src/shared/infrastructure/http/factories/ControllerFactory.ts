@@ -26,7 +26,7 @@ import { SemanticSearchUrlsController } from '../../../../modules/search/infrast
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
-import { XrpcMentionSearchController } from '../../../../modules/search/infrastructure/http/controllers/XrpcMentionSearchController';
+import { XrpcMentionSearchController } from '../../../../modules/search/infrastructure/http/controllers/PagePartsSearchController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';

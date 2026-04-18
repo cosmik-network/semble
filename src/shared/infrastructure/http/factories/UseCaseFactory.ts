@@ -42,7 +42,7 @@ import { SemanticSearchUrlsUseCase } from '../../../../modules/search/applicatio
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
-import { XrpcMentionSearchUseCase } from '../../../../modules/search/application/useCases/queries/XrpcMentionSearchUseCase';
+import { XrpcMentionSearchUseCase } from '../../../../modules/search/application/useCases/queries/PagePartsSearchUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';

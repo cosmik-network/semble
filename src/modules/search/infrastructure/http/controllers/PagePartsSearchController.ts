@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { XrpcMentionSearchUseCase } from '../../../application/useCases/queries/XrpcMentionSearchUseCase';
+import { XrpcMentionSearchUseCase } from '../../../application/useCases/queries/PagePartsSearchUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
 import { IdResolver } from '@atproto/identity';
