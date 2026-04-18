@@ -3,18 +3,16 @@ import { Response } from 'express';
 import { XrpcMentionSearchUseCase } from '../../../application/useCases/queries/PagePartsSearchUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { parseReqNsid, verifyJwt } from '@atproto/xrpc-server';
-import { IdResolver } from '@atproto/identity';
+import { IIdentityResolutionService } from '../../../../../modules/atproto/domain/services/IIdentityResolutionService';
 
 export class XrpcMentionSearchController extends Controller {
-  private idResolver: IdResolver;
-
   constructor(
     private xrpcMentionSearchUseCase: XrpcMentionSearchUseCase,
     private appUrl: string,
     private serviceDid: string,
+    private identityResolutionService: IIdentityResolutionService,
   ) {
     super();
-    this.idResolver = new IdResolver();
   }
 
   private async validateAuth(req: any): Promise<string | undefined> {
@@ -31,11 +29,14 @@ export class XrpcMentionSearchController extends Controller {
         this.serviceDid,
         nsid,
         async (did: string) => {
-          const didDoc = await this.idResolver.did.resolve(did);
-          if (!didDoc) {
-            throw new Error('Could not resolve DID');
+          const keyResult =
+            await this.identityResolutionService.resolveAtprotoKey(did);
+          if (keyResult.isErr()) {
+            throw new Error(
+              `Could not resolve atproto key: ${keyResult.error.message}`,
+            );
           }
-          return await this.idResolver.did.resolveAtprotoKey(did);
+          return keyResult.value;
         },
       );
       return parsed.iss;

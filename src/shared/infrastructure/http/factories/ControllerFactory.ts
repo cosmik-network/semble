@@ -372,6 +372,7 @@ export class ControllerFactory {
         useCases.xrpcMentionSearchUseCase,
         appUrl,
         serviceDid,
+        services.identityResolutionService,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(

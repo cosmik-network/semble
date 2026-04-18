@@ -9,6 +9,7 @@ export class FakeIdentityResolutionService
 {
   private handleToDIDMap: Map<string, string> = new Map();
   private didToHandleMap: Map<string, string> = new Map();
+  private didToKeyMap: Map<string, string> = new Map();
   private shouldFail = false;
 
   async resolveToDID(identifier: DIDOrHandle): Promise<Result<DID>> {
@@ -101,10 +102,38 @@ export class FakeIdentityResolutionService
     }
   }
 
+  async resolveAtprotoKey(did: string): Promise<Result<string>> {
+    if (this.shouldFail) {
+      return err(new Error('Identity resolution service failed'));
+    }
+
+    try {
+      // Check if we have a mapping for this DID
+      const mappedKey = this.didToKeyMap.get(did);
+      if (mappedKey) {
+        return ok(mappedKey);
+      }
+
+      // Return a default fake key if no mapping exists
+      // Format: did:key:z... (multibase format)
+      return ok(`did:key:zFakeKey${did.slice(-10)}`);
+    } catch (error) {
+      return err(
+        new Error(
+          `Error resolving atproto key for DID ${did}: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
+  }
+
   // Test helper methods
   addHandleMapping(handle: string, did: string): void {
     this.handleToDIDMap.set(handle, did);
     this.didToHandleMap.set(did, handle);
+  }
+
+  addKeyMapping(did: string, key: string): void {
+    this.didToKeyMap.set(did, key);
   }
 
   setShouldFail(shouldFail: boolean): void {
@@ -114,6 +143,7 @@ export class FakeIdentityResolutionService
   clear(): void {
     this.handleToDIDMap.clear();
     this.didToHandleMap.clear();
+    this.didToKeyMap.clear();
     this.shouldFail = false;
   }
 }
