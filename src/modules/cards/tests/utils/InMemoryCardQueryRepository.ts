@@ -51,6 +51,26 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         );
       }
 
+      // Filter out cards in collections if uncollected flag is set
+      if (options.uncollected) {
+        const allCollections = this.collectionRepository.getAllCollections();
+        const collectedCardIds = new Set<string>();
+
+        // Find all cards that the user added to any collection
+        for (const collection of allCollections) {
+          for (const cardLink of collection.cardLinks) {
+            if (cardLink.addedBy.value === userId) {
+              collectedCardIds.add(cardLink.cardId.getStringValue());
+            }
+          }
+        }
+
+        // Filter out cards that are in collections
+        userCards = userCards.filter(
+          (card) => !collectedCardIds.has(card.cardId.getStringValue()),
+        );
+      }
+
       const userCardResults = await Promise.all(
         userCards.map((card) =>
           this.cardToUrlCardQueryResult(card, callingUserId),
