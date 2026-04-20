@@ -1,11 +1,11 @@
-import UrlAddedBySummary from '@/features/semble/components/urlAddedBySummary/UrlAddedBySummary';
+import SembleStats from '@/features/semble/components/sembleStats/SembleStats';
 import { Stack } from '@mantine/core';
 import SembleActionsContainer from '@/features/semble/containers/sembleActionsContainer/SembleActionsContainer';
 import { Suspense } from 'react';
 import SembleActionsContainerSkeleton from '@/features/semble/containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 import BlueskySemblePost from '../../components/blueskySemblePost/BlueskySemblePost';
 import BlueskySemblePostSkeleton from '../../components/blueskySemblePost/Skeleton.BlueskySemblePost';
-import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySummary/Skeleton.UrlAddedBySummary';
+import SembleStatsSkeleton from '@/features/semble/components/sembleStats/Skeleton.SembleStats';
 
 interface Props {
   url: string;
@@ -23,26 +23,28 @@ export default async function BlueskySembleHeader(props: Props) {
         <BlueskySemblePost url={props.url} />
       </Suspense>
 
-      {!props.hideActions && (
-        <Stack align="center">
-          <Suspense
-            fallback={<SembleActionsContainerSkeleton />}
-            key={props.url + 'semble actions'}
-          >
-            <SembleActionsContainer
-              url={props.url}
-              viaCardId={props.viaCardId}
-            />
-          </Suspense>
-        </Stack>
-      )}
+      <Stack gap={'xl'}>
+        {!props.hideActions && (
+          <Stack align="center">
+            <Suspense
+              fallback={<SembleActionsContainerSkeleton />}
+              key={props.url + 'semble actions'}
+            >
+              <SembleActionsContainer
+                url={props.url}
+                viaCardId={props.viaCardId}
+              />
+            </Suspense>
+          </Stack>
+        )}
 
-      <Suspense
-        fallback={<UrlAddedBySummarySkeleton />}
-        key={props.url + 'added by summary'}
-      >
-        <UrlAddedBySummary url={props.url} />
-      </Suspense>
+        <Suspense
+          fallback={<SembleStatsSkeleton />}
+          key={props.url + 'added by summary'}
+        >
+          <SembleStats url={props.url} />
+        </Suspense>
+      </Stack>
     </Stack>
   );
 }

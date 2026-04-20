@@ -58,7 +58,12 @@ export default function NotificationActivityStatus(props: Props) {
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     const userName = (
-      <Group gap={'xs'} wrap="nowrap" component={'span'} display={'inline-flex'}>
+      <Group
+        gap={'xs'}
+        wrap="nowrap"
+        component={'span'}
+        display={'inline-flex'}
+      >
         <LinkText href={`/profile/${props.user.handle}`} fw={600} c={'bright'}>
           {sanitizeText(props.user.name)}
         </LinkText>
