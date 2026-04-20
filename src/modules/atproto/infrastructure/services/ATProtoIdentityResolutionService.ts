@@ -4,11 +4,16 @@ import { DID } from '../../domain/DID';
 import { DIDOrHandle } from '../../domain/DIDOrHandle';
 import { Handle } from '../../domain/Handle';
 import { IAgentService } from '../../application/IAgentService';
+import { IdResolver } from '@atproto/identity';
 
 export class ATProtoIdentityResolutionService
   implements IIdentityResolutionService
 {
-  constructor(private readonly agentService: IAgentService) {}
+  private readonly idResolver: IdResolver;
+
+  constructor(private readonly agentService: IAgentService) {
+    this.idResolver = new IdResolver();
+  }
 
   async resolveToDID(identifier: DIDOrHandle): Promise<Result<DID>> {
     try {
@@ -125,6 +130,20 @@ export class ATProtoIdentityResolutionService
       return err(
         new Error(
           `Error resolving identifier to handle: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
+  }
+
+  async resolveAtprotoKey(did: string): Promise<Result<string>> {
+    try {
+      // Use IdResolver to get the atproto signing key
+      const atprotoKey = await this.idResolver.did.resolveAtprotoKey(did);
+      return ok(atprotoKey);
+    } catch (error) {
+      return err(
+        new Error(
+          `Error resolving atproto key for DID ${did}: ${error instanceof Error ? error.message : String(error)}`,
         ),
       );
     }

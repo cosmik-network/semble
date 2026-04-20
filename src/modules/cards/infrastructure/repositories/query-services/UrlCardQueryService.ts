@@ -82,7 +82,29 @@ export class UrlCardQueryService {
 
         const allUrlCardsResult = await allUrlCardsQuery;
 
-        if (allUrlCardsResult.length === 0) {
+        // Filter out cards in collections if uncollected flag is set
+        let filteredUrlCards = allUrlCardsResult;
+        if (options.uncollected) {
+          // Get all cardIds that are in collections added by this user
+          const collectedCardIdsQuery = this.db
+            .select({
+              cardId: collectionCards.cardId,
+            })
+            .from(collectionCards)
+            .where(eq(collectionCards.addedBy, userId));
+
+          const collectedCardIdsResult = await collectedCardIdsQuery;
+          const collectedCardIds = new Set(
+            collectedCardIdsResult.map((row) => row.cardId),
+          );
+
+          // Filter out cards that are in collections
+          filteredUrlCards = allUrlCardsResult.filter(
+            (card) => !collectedCardIds.has(card.id),
+          );
+        }
+
+        if (filteredUrlCards.length === 0) {
           return {
             items: [],
             totalCount: 0,
@@ -90,7 +112,7 @@ export class UrlCardQueryService {
           };
         }
 
-        const urls = allUrlCardsResult.map((card) => card.url || '');
+        const urls = filteredUrlCards.map((card) => card.url || '');
 
         // Calculate urlLibraryCount for each URL
         const urlLibraryCountsQuery = this.db
@@ -119,7 +141,7 @@ export class UrlCardQueryService {
         });
 
         // Combine cards with their urlLibraryCount
-        const cardsWithUrlLibraryCount = allUrlCardsResult.map((card) => ({
+        const cardsWithUrlLibraryCount = filteredUrlCards.map((card) => ({
           ...card,
           urlLibraryCount: urlLibraryCountMap.get(card.url || '') || 0,
         }));
@@ -151,7 +173,7 @@ export class UrlCardQueryService {
         if (urlCardsResult.length === 0) {
           return {
             items: [],
-            totalCount: allUrlCardsResult.length,
+            totalCount: filteredUrlCards.length,
             hasMore: false,
           };
         }
@@ -329,7 +351,7 @@ export class UrlCardQueryService {
           );
         }
 
-        const totalCount = allUrlCardsResult.length;
+        const totalCount = filteredUrlCards.length;
         const hasMore = startIndex + urlCardsResult.length < totalCount;
 
         // Combine the data
@@ -394,6 +416,18 @@ export class UrlCardQueryService {
       }
 
       // Standard sorting for other fields
+      // Add uncollected filter for standard sorting path
+      const standardWhereConditions = [...whereConditions];
+      if (options.uncollected) {
+        standardWhereConditions.push(
+          sql`NOT EXISTS (
+            SELECT 1 FROM collection_cards
+            WHERE collection_cards.card_id = ${cards.id}
+            AND collection_cards.added_by = ${userId}
+          )`,
+        );
+      }
+
       const urlCardsQuery = this.db
         .select({
           id: cards.id,
@@ -410,7 +444,7 @@ export class UrlCardQueryService {
           publishedRecords,
           eq(cards.publishedRecordId, publishedRecords.id),
         )
-        .where(and(...whereConditions))
+        .where(and(...standardWhereConditions))
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
@@ -621,7 +655,7 @@ export class UrlCardQueryService {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(cards)
-        .where(and(...whereConditions));
+        .where(and(...standardWhereConditions));
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + urlCardsResult.length < totalCount;

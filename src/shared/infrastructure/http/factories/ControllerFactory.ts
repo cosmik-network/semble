@@ -26,7 +26,7 @@ import { SemanticSearchUrlsController } from '../../../../modules/search/infrast
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
-import { XrpcMentionSearchController } from '../../../../modules/search/infrastructure/http/controllers/XrpcMentionSearchController';
+import { PagePartsSearchController } from '../../../../modules/search/infrastructure/http/controllers/PagePartsSearchController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -140,7 +140,7 @@ export interface Controllers {
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   searchAtProtoAccountsController: SearchAtProtoAccountsController;
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController;
-  xrpcMentionSearchController: XrpcMentionSearchController;
+  pagePartsSearchController: PagePartsSearchController;
   // Notification controllers
   getMyNotificationsController: GetMyNotificationsController;
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
@@ -368,12 +368,11 @@ export class ControllerFactory {
       searchLeafletDocsForUrlController: new SearchLeafletDocsForUrlController(
         useCases.searchLeafletDocsForUrlUseCase,
       ),
-      xrpcMentionSearchController: new XrpcMentionSearchController(
-        useCases.searchUrlsUseCase,
-        useCases.searchCollectionsUseCase,
-        repositories.atUriResolutionService,
+      pagePartsSearchController: new PagePartsSearchController(
+        useCases.pagePartsSearchUseCase,
         appUrl,
         serviceDid,
+        services.identityResolutionService,
       ),
       // Notification controllers
       getMyNotificationsController: new GetMyNotificationsController(

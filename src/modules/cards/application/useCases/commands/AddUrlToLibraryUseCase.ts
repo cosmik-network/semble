@@ -101,7 +101,10 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       let urlCard = existingUrlCardResult.value;
       if (!urlCard) {
         // Fetch metadata for URL
-        const metadataResult = await this.metadataService.fetchMetadata(url);
+        const metadataResult = await this.metadataService.fetchMetadata(
+          url,
+          true,
+        );
         let metadata: UrlMetadata;
         if (metadataResult.isOk()) {
           metadata = metadataResult.value;

@@ -83,6 +83,7 @@ export class QueryClient extends BaseClient {
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params?.urlType) searchParams.set('urlType', params.urlType);
+    if (params?.uncollected) searchParams.set('uncollected', 'true');
 
     const queryString = searchParams.toString();
     const endpoint = queryString
@@ -101,6 +102,7 @@ export class QueryClient extends BaseClient {
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params.urlType) searchParams.set('urlType', params.urlType);
+    if (params.uncollected) searchParams.set('uncollected', 'true');
 
     const queryString = searchParams.toString();
     const endpoint = queryString

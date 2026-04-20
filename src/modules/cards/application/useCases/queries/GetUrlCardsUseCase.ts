@@ -22,6 +22,7 @@ export interface GetUrlCardsQuery {
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
   urlType?: UrlType;
+  uncollected?: boolean;
 }
 
 // Enriched data for the final use case result
@@ -95,6 +96,7 @@ export class GetUrlCardsUseCase
           sortBy,
           sortOrder,
           urlType,
+          uncollected: query.uncollected,
         },
         query.callingUserId,
       );
