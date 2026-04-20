@@ -42,9 +42,10 @@ export default function BlueskySembleHeaderSkeleton() {
         </Stack>
       </Card>
 
-      <SembleActionsContainerSkeleton />
-
-      <UrlAddedBySummarySkeleton />
+      <Stack gap={'xl'}>
+        <SembleActionsContainerSkeleton />
+        <UrlAddedBySummarySkeleton />
+      </Stack>
     </Stack>
   );
 }

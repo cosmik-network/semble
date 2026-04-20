@@ -23,26 +23,28 @@ export default async function BlueskySembleHeader(props: Props) {
         <BlueskySemblePost url={props.url} />
       </Suspense>
 
-      {!props.hideActions && (
-        <Stack align="center">
-          <Suspense
-            fallback={<SembleActionsContainerSkeleton />}
-            key={props.url + 'semble actions'}
-          >
-            <SembleActionsContainer
-              url={props.url}
-              viaCardId={props.viaCardId}
-            />
-          </Suspense>
-        </Stack>
-      )}
+      <Stack gap={'xl'}>
+        {!props.hideActions && (
+          <Stack align="center">
+            <Suspense
+              fallback={<SembleActionsContainerSkeleton />}
+              key={props.url + 'semble actions'}
+            >
+              <SembleActionsContainer
+                url={props.url}
+                viaCardId={props.viaCardId}
+              />
+            </Suspense>
+          </Stack>
+        )}
 
-      <Suspense
-        fallback={<UrlAddedBySummarySkeleton />}
-        key={props.url + 'added by summary'}
-      >
-        <UrlAddedBySummary url={props.url} />
-      </Suspense>
+        <Suspense
+          fallback={<UrlAddedBySummarySkeleton />}
+          key={props.url + 'added by summary'}
+        >
+          <UrlAddedBySummary url={props.url} />
+        </Suspense>
+      </Stack>
     </Stack>
   );
 }

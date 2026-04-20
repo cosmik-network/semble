@@ -17,7 +17,7 @@ interface Props {
 
 export default function SembleHeader(props: Props) {
   return (
-    <Stack gap={'md'}>
+    <Stack gap={'lg'}>
       <Grid gap="lg" justify="space-between">
         <GridCol span={{ base: 'auto' }}>
           <Suspense fallback={<UrlMetadataHeaderSkeleton />} key={props.url}>
