@@ -10,7 +10,7 @@ interface Props {
   url: string;
 }
 
-export default async function UrlAddedBySummary(props: Props) {
+export default async function SembleStats(props: Props) {
   const { stats } = await getUrlMetadata({
     url: props.url,
     includeStats: true,

@@ -1,5 +1,5 @@
 import { Stack, Skeleton, Group, Box, Card } from '@mantine/core';
-import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySummary/Skeleton.UrlAddedBySummary';
+import SembleStatsSkeleton from '@/features/semble/components/sembleStats/Skeleton.SembleStats';
 import SembleActionsContainerSkeleton from '@/features/semble/containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 
 export default function BlueskySembleHeaderSkeleton() {
@@ -44,7 +44,7 @@ export default function BlueskySembleHeaderSkeleton() {
 
       <Stack gap={'xl'}>
         <SembleActionsContainerSkeleton />
-        <UrlAddedBySummarySkeleton />
+        <SembleStatsSkeleton />
       </Stack>
     </Stack>
   );
