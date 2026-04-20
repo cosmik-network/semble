@@ -9,6 +9,7 @@ export interface CardQueryOptions {
   sortBy: CardSortField;
   sortOrder: SortOrder;
   urlType?: UrlType;
+  uncollected?: boolean;
 }
 
 export interface SearchUrlsOptions {
