@@ -14,6 +14,7 @@ interface PageParams {
   cardSortBy?: CardSortField;
   cardSortOrder?: SortOrder;
   urlType?: UrlType;
+  uncollected?: boolean;
 }
 
 export const getUrlMetadata = cache(async (params: GetUrlMetadataParams) => {
@@ -89,6 +90,7 @@ export const getUrlCards = cache(
       sortBy: params?.cardSortBy,
       sortOrder: params?.cardSortOrder,
       urlType: params?.urlType,
+      uncollected: params?.uncollected,
     });
 
     return response;

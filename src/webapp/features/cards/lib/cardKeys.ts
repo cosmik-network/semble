@@ -14,6 +14,7 @@ export const cardKeys = {
     sortBy?: CardSortField,
     sortOrder?: SortOrder,
     urlType?: UrlType,
+    uncollected?: boolean,
   ) => [
     ...cardKeys.all(),
     'infinite',
@@ -22,6 +23,7 @@ export const cardKeys = {
     sortBy,
     sortOrder,
     urlType,
+    uncollected,
   ],
   urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
     [...cardKeys.all(), 'metadata', url, options] as const,

@@ -14,7 +14,7 @@ import {
 import { upperFirst } from '@mantine/hooks';
 import { CardSortField, UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
-import { MdFilterList } from 'react-icons/md';
+import { MdFilterList, MdOutlineInbox } from 'react-icons/md';
 import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
@@ -204,6 +204,49 @@ export function CardFiltersTypeFilter() {
 }
 
 // view toggle
+// uncollected toggle
+export function CardFiltersUncollectedToggle() {
+  const ctx = useFilterContext();
+  const [, startTransition] = useTransition();
+
+  const uncollectedFromUrl = ctx.searchParams.get('uncollected') === 'true';
+
+  const [optimisticUncollected, setOptimisticUncollected] =
+    useOptimistic<boolean>(uncollectedFromUrl);
+
+  const onChange = () => {
+    const next = !optimisticUncollected;
+
+    startTransition(() => {
+      setOptimisticUncollected(next);
+
+      const params = new URLSearchParams(ctx.searchParams.toString());
+      if (next) {
+        params.set('uncollected', 'true');
+      } else {
+        params.delete('uncollected');
+      }
+
+      ctx.router.replace(`?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  return (
+    <Fragment>
+      <Menu.Label>Status</Menu.Label>
+      <Menu.Item
+        leftSection={<MdOutlineInbox />}
+        rightSection={optimisticUncollected && <IoMdCheckmark />}
+        onClick={onChange}
+        closeMenuOnClick={false}
+      >
+        Not in collection
+      </Menu.Item>
+    </Fragment>
+  );
+}
+
+// view toggle
 export function CardFiltersViewToggle() {
   const { settings, updateSetting } = useUserSettings();
 
@@ -242,5 +285,6 @@ export const CardFilters = {
   Root: CardFiltersRoot,
   SortSelect: CardFiltersSortSelect,
   TypeFilter: CardFiltersTypeFilter,
+  UncollectedToggle: CardFiltersUncollectedToggle,
   ViewToggle: CardFiltersViewToggle,
 };

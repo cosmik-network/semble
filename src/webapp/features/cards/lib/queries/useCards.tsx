@@ -9,6 +9,7 @@ interface Props {
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
   urlType?: UrlType;
+  uncollected?: boolean;
 }
 
 export default function useCards(props: Props) {
@@ -21,6 +22,7 @@ export default function useCards(props: Props) {
       props.sortBy,
       props.sortOrder,
       props.urlType,
+      props.uncollected,
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
@@ -30,6 +32,7 @@ export default function useCards(props: Props) {
         cardSortBy: props.sortBy,
         cardSortOrder: props.sortOrder,
         urlType: props.urlType,
+        uncollected: props.uncollected,
       });
     },
     getNextPageParam: (lastPage) => {

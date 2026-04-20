@@ -27,6 +27,7 @@ export default function CardsContainerContent(props: Props) {
 
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
+  const uncollected = searchParams.get('uncollected') === 'true';
 
   const sortBy =
     (searchParams.get('sort') as CardSortField) ?? CardSortField.UPDATED_AT;
@@ -43,6 +44,7 @@ export default function CardsContainerContent(props: Props) {
     sortBy: sortBy,
     sortOrder: getCardsSortParams(sortBy).sortOrder,
     urlType: selectedUrlType,
+    uncollected,
   });
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
@@ -59,7 +61,13 @@ export default function CardsContainerContent(props: Props) {
     return (
       <Container px="xs" py={'xl'} size="xl">
         <ProfileEmptyTab
-          message={selectedUrlType ? `No ${selectedUrlType} cards` : 'No cards'}
+          message={
+            uncollected
+              ? 'No unsorted cards'
+              : selectedUrlType
+                ? `No ${selectedUrlType} cards`
+                : 'No cards'
+          }
           icon={FaRegNoteSticky}
         />
       </Container>
