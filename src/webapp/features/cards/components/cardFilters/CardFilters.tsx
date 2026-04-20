@@ -14,7 +14,7 @@ import {
 import { upperFirst } from '@mantine/hooks';
 import { CardSortField, UrlType } from '@semble/types';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
-import { MdFilterList, MdOutlineInbox } from 'react-icons/md';
+import { MdFilterList } from 'react-icons/md';
 import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
@@ -235,7 +235,6 @@ export function CardFiltersUncollectedToggle() {
     <Fragment>
       <Menu.Label>Status</Menu.Label>
       <Menu.Item
-        leftSection={<MdOutlineInbox />}
         rightSection={optimisticUncollected && <IoMdCheckmark />}
         onClick={onChange}
         closeMenuOnClick={false}
