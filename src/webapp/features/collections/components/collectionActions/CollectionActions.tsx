@@ -12,8 +12,10 @@ import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardTo
 import { notifications } from '@mantine/notifications';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import { useWebHaptics } from 'web-haptics/react';
-import { LuLibrary } from 'react-icons/lu';
-import { BiCollection } from 'react-icons/bi';
+import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
+import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
+import { IoMdCheckmark } from 'react-icons/io';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 
 interface Props {
   collection: Collection & {
@@ -41,6 +43,16 @@ export default function CollectionActions(props: Props) {
 
   const collectionPageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/profile/${props.collection.author?.handle}/collections/${props.collection.rkey}`;
 
+  const cardStatus = useGetCardFromMyLibrary({ url: collectionPageUrl });
+  const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
+
+  const { data: librariesData } = useSembleLibraries({
+    url: collectionPageUrl,
+  });
+  const allLibraries =
+    librariesData?.pages.flatMap((page) => page.libraries ?? []) ?? [];
+  const urlLibraryCount = allLibraries.length ?? 0;
+
   return (
     <Fragment>
       <Group gap={'xs'}>
@@ -52,20 +64,20 @@ export default function CollectionActions(props: Props) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<LuLibrary />}
-                onClick={() => setShowSaveToLibraryModal(true)}
-              >
-                Save to library
-              </Menu.Item>
               {canAddCard && (
                 <Menu.Item
-                  leftSection={<BiCollection />}
+                  leftSection={<FaRegNoteSticky />}
                   onClick={() => setShowAddDrawer(true)}
                 >
                   Add card
                 </Menu.Item>
               )}
+              <Menu.Item
+                leftSection={isInYourLibrary ? <IoMdCheckmark /> : <FiPlus />}
+                onClick={() => setShowSaveToLibraryModal(true)}
+              >
+                {isInYourLibrary ? 'Saved to library' : 'Save to library'}
+              </Menu.Item>
             </Menu.Dropdown>
           </Menu>
         )}
@@ -136,7 +148,10 @@ export default function CollectionActions(props: Props) {
         isOpen={showSaveToLibraryModal}
         onClose={() => setShowSaveToLibraryModal(false)}
         url={collectionPageUrl}
-        urlLibraryCount={0}
+        cardId={cardStatus.data.card?.id}
+        note={cardStatus.data.card?.note?.text}
+        isInYourLibrary={isInYourLibrary}
+        urlLibraryCount={urlLibraryCount}
       />
 
       <EditCollectionModal
