@@ -59,7 +59,7 @@ export default function CollectionHeaderSkeleton() {
 
               {/* Actions */}
               <Group gap={'xs'}>
-                <Skeleton w={124} h={36} radius={'xl'} />
+                <Skeleton w={34} h={34} radius={'xl'} />
                 <Skeleton w={34} h={34} radius={'xl'} />
                 <Skeleton w={34} h={34} radius={'xl'} />
               </Group>
