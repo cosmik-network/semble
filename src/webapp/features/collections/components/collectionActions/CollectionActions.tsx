@@ -1,5 +1,5 @@
 import { Collection, CollectionAccessType } from '@semble/types';
-import { Group, Menu, ActionIcon, CopyButton, Button } from '@mantine/core';
+import { Group, Menu, ActionIcon, CopyButton } from '@mantine/core';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
 import { BsThreeDots, BsPencilFill, BsTrash2Fill } from 'react-icons/bs';
@@ -7,8 +7,6 @@ import { MdIosShare } from 'react-icons/md';
 import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
-import { IoBookmarkOutline } from 'react-icons/io5';
-import { TbCards } from 'react-icons/tb';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { notifications } from '@mantine/notifications';
@@ -49,27 +47,23 @@ export default function CollectionActions(props: Props) {
         {isAuthenticated && (
           <Menu shadow="sm">
             <Menu.Target>
-              <Button
-                size="sm"
-                leftSection={<FiPlus size={22} />}
-                onClick={() => trigger()}
-              >
-                Add
-              </Button>
+              <ActionIcon size="lg" radius={'xl'} onClick={() => trigger()}>
+                <FiPlus size={18} />
+              </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
               <Menu.Item
                 leftSection={<LuLibrary />}
                 onClick={() => setShowSaveToLibraryModal(true)}
               >
-                To your library
+                Save to library
               </Menu.Item>
               {canAddCard && (
                 <Menu.Item
                   leftSection={<BiCollection />}
                   onClick={() => setShowAddDrawer(true)}
                 >
-                  To this collection
+                  Add card
                 </Menu.Item>
               )}
             </Menu.Dropdown>
