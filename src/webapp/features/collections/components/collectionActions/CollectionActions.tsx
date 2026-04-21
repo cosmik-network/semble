@@ -69,7 +69,7 @@ export default function CollectionActions(props: Props) {
                   leftSection={<FaRegNoteSticky />}
                   onClick={() => setShowAddDrawer(true)}
                 >
-                  Add card
+                  Add card to collection
                 </Menu.Item>
               )}
               <Menu.Item
