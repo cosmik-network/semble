@@ -6,6 +6,7 @@ import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
 import {
+  ActionIcon,
   Anchor,
   Button,
   Divider,
@@ -36,13 +37,25 @@ export default function RecentCards() {
           <FaRegNoteSticky size={22} />
           <Title order={2}>Cards</Title>
         </Group>
-        <LinkButton
-          variant="light"
-          color="blue"
-          href={`/profile/${profile.handle}/cards`}
-        >
-          View all
-        </LinkButton>
+        <Group gap="xs">
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowAddDrawer(true)}
+            aria-label="Add card"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
+          <LinkButton
+            variant="light"
+            color="blue"
+            href={`/profile/${profile.handle}/cards`}
+          >
+            View all
+          </LinkButton>
+        </Group>
       </Group>
 
       {cards.length > 0 ? (
@@ -104,13 +117,13 @@ export default function RecentCards() {
               </Anchor>
             </Text>
           </Stack>
-
-          <AddCardDrawer
-            isOpen={showAddDrawer}
-            onClose={() => setShowAddDrawer(false)}
-          />
         </Fragment>
       )}
+
+      <AddCardDrawer
+        isOpen={showAddDrawer}
+        onClose={() => setShowAddDrawer(false)}
+      />
     </Stack>
   );
 }
