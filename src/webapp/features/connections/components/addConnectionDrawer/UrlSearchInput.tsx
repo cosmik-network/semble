@@ -89,7 +89,7 @@ export default function UrlSearchInput(props: Props) {
 
   const collectionSearch = useSearchCollections({
     searchText: searchFilter === 'collections' ? debounced : '',
-    limit: 10,
+    limit: 5,
     enabled: searchFilter === 'collections' && debounced.trim().length > 0,
   });
 
@@ -427,7 +427,7 @@ export default function UrlSearchInput(props: Props) {
                       <Fragment>
                         {isCollectionSearchFetching ? (
                           <Stack gap={5} p={5}>
-                            {Array.from({ length: 3 }).map((_, i) => (
+                            {Array.from({ length: 5 }).map((_, i) => (
                               <Group
                                 key={i}
                                 gap="xs"
