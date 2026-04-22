@@ -16,6 +16,8 @@ import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFrom
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { TbPlugConnected } from 'react-icons/tb';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   collection: Collection & {
@@ -29,6 +31,7 @@ export default function CollectionActions(props: Props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [showSaveToLibraryModal, setShowSaveToLibraryModal] = useState(false);
+  const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
   const { trigger } = useWebHaptics();
 
   const isAuthor = user?.handle === props.collection.author?.handle;
@@ -80,6 +83,21 @@ export default function CollectionActions(props: Props) {
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+        )}
+
+        {isAuthenticated && (
+          <ActionIcon
+            variant="light"
+            color="green"
+            size="lg"
+            radius={'xl'}
+            onClick={() => {
+              trigger();
+              setShowAddConnectionModal(true);
+            }}
+          >
+            <TbPlugConnected size={18} />
+          </ActionIcon>
         )}
 
         {isAuthenticated && !isAuthor && (
@@ -143,6 +161,12 @@ export default function CollectionActions(props: Props) {
           </Menu>
         )}
       </Group>
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={collectionPageUrl}
+      />
 
       <AddCardToModal
         isOpen={showSaveToLibraryModal}

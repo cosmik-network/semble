@@ -6,6 +6,7 @@ export default function CollectionActionsSkeleton() {
       <Skeleton w={34} h={34} radius={'xl'} />
       <Skeleton w={34} h={34} radius={'xl'} />
       <Skeleton w={34} h={34} radius={'xl'} />
+      <Skeleton w={34} h={34} radius={'xl'} />
     </Group>
   );
 }
