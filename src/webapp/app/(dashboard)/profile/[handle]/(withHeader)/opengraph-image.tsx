@@ -14,7 +14,7 @@ export const size = {
 
 export default async function Image(props: Props) {
   const { handle } = await props.params;
-  const profile = await getProfile(handle);
+  const profile = await getProfile(handle, true);
 
   return await OpenGraphCard({
     children: (
@@ -62,6 +62,49 @@ export default async function Image(props: Props) {
           >
             @{truncateText(truncateText(profile.handle), 35)}
           </p>
+
+          {/* stats */}
+          <div style={{ display: 'flex', gap: 40, marginTop: 40 }}>
+            {profile.urlCardCount !== undefined && (
+              <p
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  color: '#495057',
+                  margin: 0,
+                }}
+              >
+                {profile.urlCardCount}{' '}
+                {profile.urlCardCount === 1 ? 'card' : 'cards'}
+              </p>
+            )}
+            {profile.collectionCount !== undefined && (
+              <p
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  color: '#495057',
+                  margin: 0,
+                }}
+              >
+                {profile.collectionCount}{' '}
+                {profile.collectionCount === 1 ? 'collection' : 'collections'}
+              </p>
+            )}
+            {profile.connectionCount !== undefined && (
+              <p
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  color: '#495057',
+                  margin: 0,
+                }}
+              >
+                {profile.connectionCount}{' '}
+                {profile.connectionCount === 1 ? 'connection' : 'connections'}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     ),
