@@ -10,7 +10,10 @@ export default function RecentCollectionsSkeleton() {
           <BiCollection size={22} />
           <Title order={2}>Collections</Title>
         </Group>
-        <Skeleton w={87} h={36} radius={'xl'} />
+        <Group gap="xs">
+          <Skeleton w={38} h={38} circle />
+          <Skeleton w={87} h={36} radius={'xl'} />
+        </Group>
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">

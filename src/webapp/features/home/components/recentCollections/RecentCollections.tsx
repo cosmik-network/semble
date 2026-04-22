@@ -4,7 +4,15 @@ import CollectionCard from '@/features/collections/components/collectionCard/Col
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
-import { Stack, Button, Text, SimpleGrid, Group, Title } from '@mantine/core';
+import {
+  Stack,
+  Button,
+  Text,
+  SimpleGrid,
+  Group,
+  Title,
+  ActionIcon,
+} from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
@@ -26,13 +34,25 @@ export default function RecentCollections() {
           <BiCollection size={22} />
           <Title order={2}>Collections</Title>
         </Group>
-        <LinkButton
-          variant="light"
-          color="blue"
-          href={`/profile/${profile.handle}/collections`}
-        >
-          View all
-        </LinkButton>
+        <Group gap="xs">
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowCollectionDrawer(true)}
+            aria-label="Create collection"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
+          <LinkButton
+            variant="light"
+            color="blue"
+            href={`/profile/${profile.handle}/collections`}
+          >
+            View all
+          </LinkButton>
+        </Group>
       </Group>
 
       {collections.length > 0 ? (
@@ -64,13 +84,13 @@ export default function RecentCollections() {
               Create your first collection
             </Button>
           </Stack>
-
-          <CreateCollectionDrawer
-            isOpen={showCollectionDrawer}
-            onClose={() => setShowCollectionDrawer(false)}
-          />
         </Fragment>
       )}
+
+      <CreateCollectionDrawer
+        isOpen={showCollectionDrawer}
+        onClose={() => setShowCollectionDrawer(false)}
+      />
     </Stack>
   );
 }

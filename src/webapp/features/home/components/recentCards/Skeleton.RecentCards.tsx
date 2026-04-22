@@ -10,7 +10,10 @@ export default function RecentCardsSkeleton() {
           <FaRegNoteSticky size={22} />
           <Title order={2}>Cards</Title>
         </Group>
-        <Skeleton w={87} h={36} radius={'xl'} />
+        <Group gap="xs">
+          <Skeleton w={38} h={38} circle />
+          <Skeleton w={87} h={36} radius={'xl'} />
+        </Group>
       </Group>
 
       <Grid gap="xs">
