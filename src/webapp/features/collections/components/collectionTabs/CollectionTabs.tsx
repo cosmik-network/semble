@@ -4,9 +4,10 @@ import { Group, Paper, Scroller, Tabs } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import TabItem from './TabItem';
-import ContributorTab from './ContributorTab';
 import { getCollectionPageByAtUri } from '../../lib/dal';
+import { getCollectionContributors } from '../../lib/dal';
 import { collectionKeys } from '../../lib/collectionKeys';
+import { CollectionAccessType } from '@semble/types';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 
 interface Props {
@@ -38,6 +39,17 @@ export default function CollectionTabs(props: Props) {
   });
 
   const stats = urlMetadata?.stats;
+
+  const isOpen = collection?.accessType === CollectionAccessType.OPEN;
+
+  const { data: contributors } = useQuery({
+    queryKey: [
+      ...collectionKeys.collection(collection?.id ?? ''),
+      'contributors-count',
+    ],
+    queryFn: () => getCollectionContributors(collection!.id, { limit: 1 }),
+    enabled: isOpen && !!collection?.id,
+  });
 
   return (
     <Tabs value={currentTab}>
@@ -72,11 +84,15 @@ export default function CollectionTabs(props: Props) {
               >
                 Followers
               </TabItem>
-              <ContributorTab
-                handle={props.handle}
-                rkey={props.rkey}
-                basePath={basePath}
-              />
+              {isOpen && (
+                <TabItem
+                  value="contributors"
+                  href={`${basePath}/contributors`}
+                  count={contributors?.pagination.totalCount}
+                >
+                  Contributors
+                </TabItem>
+              )}
               <TabItem
                 value="added-by"
                 href={`${basePath}/added-by`}
