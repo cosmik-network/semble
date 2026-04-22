@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
-import { truncateText } from '@/lib/utils/text';
+import { abbreviateNumber, truncateText } from '@/lib/utils/text';
 import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 
 export const runtime = 'edge';
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {metadata.libraries}{' '}
+                      {abbreviateNumber(metadata.libraries ?? 0)}{' '}
                       {metadata.libraries === 1 ? 'save' : 'saves'}
                     </p>
                   </div>
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {metadata.collections}{' '}
+                      {abbreviateNumber(metadata.collections ?? 0)}{' '}
                       {metadata.collections === 1
                         ? 'collection'
                         : 'collections'}
@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {metadata.connections}{' '}
+                      {abbreviateNumber(metadata.connections ?? 0)}{' '}
                       {metadata.connections === 1
                         ? 'connection'
                         : 'connections'}
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {metadata.notes ?? 0}{' '}
+                      {abbreviateNumber(metadata.notes ?? 0)}{' '}
                       {metadata.notes === 1 ? 'note' : 'notes'}
                     </p>
                   </div>
