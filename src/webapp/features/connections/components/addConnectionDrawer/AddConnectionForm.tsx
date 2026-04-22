@@ -180,7 +180,7 @@ export default function AddConnectionForm(props: Props) {
       <UrlSearchInput
         id="sourceUrl"
         label="From"
-        placeholder="Search cards or paste a link"
+        placeholder="Search or paste a link"
         value={form.values.sourceUrl}
         error={form.errors.sourceUrl}
         onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
@@ -202,7 +202,7 @@ export default function AddConnectionForm(props: Props) {
       <UrlSearchInput
         id="targetUrl"
         label="To"
-        placeholder="Search cards or paste a link"
+        placeholder="Search or paste a link"
         value={form.values.targetUrl}
         error={form.errors.targetUrl}
         onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
