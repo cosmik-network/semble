@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Avatar,
   Card,
   Combobox,
   Group,
@@ -8,6 +9,7 @@ import {
   Input,
   Loader,
   ScrollArea,
+  SegmentedControl,
   Skeleton,
   Stack,
   Text,
@@ -22,8 +24,12 @@ import { searchUrls } from '../../lib/dal';
 import { BiPlus } from 'react-icons/bi';
 import { getDomain } from '@/lib/utils/link';
 import { useMyCardsInfinite } from '@/features/cards/lib/queries/useMyCards';
-import type { UrlMetadata } from '@semble/types';
+import { CollectionAccessType, type UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
+import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
+import { getRecordKey } from '@/lib/utils/atproto';
+
+type SearchFilter = 'cards' | 'collections';
 
 function isValidUrl(value: string): boolean {
   try {
@@ -71,14 +77,26 @@ export default function UrlSearchInput(props: Props) {
   >(undefined);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
+  const [searchFilter, setSearchFilter] = useState<SearchFilter>('cards');
 
-  const { data: searchResults, isFetching, error } = useUrlSearch(debounced);
+  const {
+    data: searchResults,
+    isFetching,
+    error,
+  } = useUrlSearch(searchFilter === 'cards' ? debounced : '');
   const { data: recentCards, isLoading: isLoadingRecentCards } =
     useMyCardsInfinite({ limit: 5 });
+
+  const collectionSearch = useCollectionSearch({
+    query: searchFilter === 'collections' ? debounced : '',
+  });
 
   const recentCardsList = recentCards?.pages[0]?.cards ?? [];
 
   const urls = searchResults?.urls ?? [];
+  const collections = collectionSearch.data?.collections ?? [];
+  const isCollectionSearchFetching = collectionSearch.isFetching;
+  const collectionSearchError = collectionSearch.error;
 
   // Sync when the external value changes (e.g. after swap)
   const [prevValue, setPrevValue] = useState(props.value);
@@ -101,6 +119,17 @@ export default function UrlSearchInput(props: Props) {
     props.onUrlClear?.();
   };
 
+  const buildCollectionUrl = (collection: {
+    uri?: string;
+    author: { handle: string };
+  }): string | null => {
+    if (!collection.uri) return null;
+    const rkey = getRecordKey(collection.uri);
+    if (!rkey) return null;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    return `${appUrl}/profile/${collection.author.handle}/collections/${rkey}`;
+  };
+
   if (confirmedUrl) {
     return (
       <Fragment>
@@ -114,7 +143,10 @@ export default function UrlSearchInput(props: Props) {
     );
   }
 
-  const options = urls.map((urlView) => (
+  const isSearchFetching =
+    searchFilter === 'cards' ? isFetching : isCollectionSearchFetching;
+
+  const cardOptions = urls.map((urlView) => (
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
       <Group gap={'xs'} align="center" wrap="nowrap">
         {urlView.metadata.imageUrl && (
@@ -138,6 +170,47 @@ export default function UrlSearchInput(props: Props) {
       </Group>
     </Combobox.Option>
   ));
+
+  const collectionOptions = collections.map((collection) => {
+    const collectionUrl = buildCollectionUrl(collection);
+
+    if (!collectionUrl) return null;
+
+    return (
+      <Combobox.Option key={collection.id} value={collectionUrl} p={5}>
+        <Group gap={'xs'} align="center" justify="space-between" wrap="nowrap">
+          <Text
+            fw={500}
+            c={
+              collection.accessType === CollectionAccessType.OPEN
+                ? 'green'
+                : 'bright'
+            }
+            lineClamp={1}
+            size="sm"
+          >
+            {collection.name}
+          </Text>
+
+          <Avatar
+            src={collection.author?.avatarUrl?.replace(
+              'avatar',
+              'avatar_thumbnail',
+            )}
+            alt={`${collection.author?.handle}'s avatar`}
+            size={'sm'}
+          />
+        </Group>
+      </Combobox.Option>
+    );
+  });
+
+  const hasSearchResults =
+    searchFilter === 'cards'
+      ? cardOptions.length > 0
+      : collectionOptions.filter(Boolean).length > 0;
+
+  const currentError = searchFilter === 'cards' ? error : collectionSearchError;
 
   return (
     <Card padding="xs" radius="lg" withBorder>
@@ -182,9 +255,8 @@ export default function UrlSearchInput(props: Props) {
               }}
               onBlur={() => {
                 setIsInputFocused(false);
-                combobox.closeDropdown();
               }}
-              rightSection={isFetching && <Loader size={18} />}
+              rightSection={null}
               variant="unstyled"
               size="md"
               required
@@ -194,7 +266,6 @@ export default function UrlSearchInput(props: Props) {
 
           <Combobox.Dropdown
             hidden={
-              isFetching ||
               (inputValue.trim().length === 0 &&
                 debounced.trim().length === 0 &&
                 !(
@@ -261,10 +332,10 @@ export default function UrlSearchInput(props: Props) {
                   </Fragment>
                 ) : (
                   <Fragment>
-                    {error && (
-                      <Combobox.Empty>Could not search for URLs</Combobox.Empty>
+                    {currentError && (
+                      <Combobox.Empty>Could not search</Combobox.Empty>
                     )}
-                    {!isFetching && !error && inputValue.trim() && (
+                    {!currentError && inputValue.trim() && (
                       <Fragment>
                         <Combobox.Option value={inputValue}>
                           <Group gap="xs" wrap="nowrap" p={0}>
@@ -286,14 +357,96 @@ export default function UrlSearchInput(props: Props) {
                             </Stack>
                           </Group>
                         </Combobox.Option>
-                        {options.length > 0 && (
-                          <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
-                            Search results
-                          </Text>
+
+                        {(hasSearchResults || true) && (
+                          <Fragment>
+                            <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
+                              Search results
+                            </Text>
+                            <SegmentedControl
+                              value={searchFilter}
+                              onChange={(value) => {
+                                setSearchFilter(value as SearchFilter);
+                                combobox.resetSelectedOption();
+                              }}
+                              data={[
+                                { label: 'Cards', value: 'cards' },
+                                {
+                                  label: 'Collections',
+                                  value: 'collections',
+                                },
+                              ]}
+                              size="xs"
+                              mb="xs"
+                            />
+                          </Fragment>
                         )}
                       </Fragment>
                     )}
-                    {options.length > 0 && <Fragment>{options}</Fragment>}
+                    {searchFilter === 'cards' && (
+                      <Fragment>
+                        {isFetching ? (
+                          <Stack gap={5} p={5}>
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <Group
+                                key={i}
+                                gap="xs"
+                                align="center"
+                                wrap="nowrap"
+                              >
+                                <Skeleton height={35} width={35} radius="sm" />
+                                <Stack gap={4} style={{ flex: 1 }}>
+                                  <Skeleton
+                                    height={12}
+                                    width="70%"
+                                    radius="xl"
+                                  />
+                                  <Skeleton
+                                    height={10}
+                                    width="40%"
+                                    radius="xl"
+                                  />
+                                </Stack>
+                              </Group>
+                            ))}
+                          </Stack>
+                        ) : cardOptions.length > 0 ? (
+                          <Fragment>{cardOptions}</Fragment>
+                        ) : (
+                          debounced.trim().length > 0 && (
+                            <Combobox.Empty>No cards found</Combobox.Empty>
+                          )
+                        )}
+                      </Fragment>
+                    )}
+                    {searchFilter === 'collections' && (
+                      <Fragment>
+                        {isCollectionSearchFetching ? (
+                          <Stack gap={5} p={5}>
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <Group
+                                key={i}
+                                gap="xs"
+                                align="center"
+                                justify="space-between"
+                                wrap="nowrap"
+                              >
+                                <Skeleton height={20} width="70%" radius="xl" />
+                                <Skeleton height={26} width={26} radius="md" />
+                              </Group>
+                            ))}
+                          </Stack>
+                        ) : collectionOptions.filter(Boolean).length > 0 ? (
+                          <Fragment>{collectionOptions}</Fragment>
+                        ) : (
+                          debounced.trim().length > 0 && (
+                            <Combobox.Empty>
+                              No collections found
+                            </Combobox.Empty>
+                          )
+                        )}
+                      </Fragment>
+                    )}
                   </Fragment>
                 )}
               </ScrollArea.Autosize>
