@@ -190,7 +190,7 @@ export default function UrlSearchInput(props: Props) {
                 ? 'green'
                 : 'bright'
             }
-            lineClamp={1}
+            lineClamp={2}
             size="sm"
           >
             {collection.name}
