@@ -55,7 +55,7 @@ export default async function Layout(props: Props) {
         <CollectionHeader handle={handle} rkey={rkey} />
       </Suspense>
 
-      <Container size={'xl'} p={'xs'}>
+      <Container size={'xl'} px={'xs'} mt={'md'}>
         <CollectionTabs handle={handle} rkey={rkey} />
       </Container>
       {props.children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Paper, Scroller, Tabs } from '@mantine/core';
+import { Paper, Scroller, Tabs } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import TabItem from './TabItem';
@@ -54,53 +54,58 @@ export default function CollectionTabs(props: Props) {
   return (
     <Tabs value={currentTab}>
       <Paper radius={0}>
-        <Tabs.List>
+        <Tabs.List style={{ flexWrap: 'nowrap' }}>
           <Scroller>
-            <Group wrap="nowrap">
+            <TabItem
+              value="cards"
+              href={basePath}
+              count={collection?.cardCount}
+            >
+              Cards
+            </TabItem>
+            <TabItem value="similar-cards" href={`${basePath}/similar-cards`}>
+              Similar cards
+            </TabItem>
+            <TabItem value="mentions" href={`${basePath}/mentions`}>
+              Mentions
+            </TabItem>
+            <TabItem
+              value="connections"
+              href={`${basePath}/connections`}
+              count={stats?.connections?.all?.total}
+            >
+              Connections
+            </TabItem>
+            <TabItem
+              value="followers"
+              href={`${basePath}/followers`}
+              count={collection?.followerCount}
+            >
+              Followers
+            </TabItem>
+            {isOpen && (
               <TabItem
-                value="cards"
-                href={basePath}
-                count={collection?.cardCount}
+                value="contributors"
+                href={`${basePath}/contributors`}
+                count={contributors?.pagination.totalCount}
               >
-                Cards
+                Contributors
               </TabItem>
-              <TabItem value="similar-cards" href={`${basePath}/similar-cards`}>
-                Similar cards
-              </TabItem>
-              <TabItem value="mentions" href={`${basePath}/mentions`}>
-                Mentions
-              </TabItem>
-              <TabItem
-                value="connections"
-                href={`${basePath}/connections`}
-                count={stats?.connections?.all?.total}
-              >
-                Connections
-              </TabItem>
-              <TabItem
-                value="followers"
-                href={`${basePath}/followers`}
-                count={collection?.followerCount}
-              >
-                Followers
-              </TabItem>
-              {isOpen && (
-                <TabItem
-                  value="contributors"
-                  href={`${basePath}/contributors`}
-                  count={contributors?.pagination.totalCount}
-                >
-                  Contributors
-                </TabItem>
-              )}
-              <TabItem
-                value="added-by"
-                href={`${basePath}/added-by`}
-                count={stats?.libraryCount}
-              >
-                Added by
-              </TabItem>
-            </Group>
+            )}
+            <TabItem
+              value="added-by"
+              href={`${basePath}/added-by`}
+              count={stats?.libraryCount}
+            >
+              Added by
+            </TabItem>
+            <TabItem
+              value="appears-in"
+              href={`${basePath}/appears-in`}
+              count={stats?.collectionCount}
+            >
+              Appears in
+            </TabItem>
           </Scroller>
         </Tabs.List>
       </Paper>
