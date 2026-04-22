@@ -18,6 +18,7 @@ export default function CollectionsNavListSkeleton() {
         <Stack gap={5} my={'sm'}>
           <Skeleton h={40} w={'100%'} />
           <Skeleton h={40} w={'100%'} />
+          <Skeleton h={40} w={'100%'} />
         </Stack>
       </Stack>
     </Stack>
