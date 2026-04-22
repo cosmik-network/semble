@@ -25,6 +25,7 @@ import { getRelativeTime } from '@/lib/utils/time';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
 
 interface Props {
   rkey: string;
@@ -202,12 +203,14 @@ export default function CollectionHeader(props: Props) {
                 </Group>
               </Stack>
 
-              <CollectionActions
-                collection={{
-                  ...collection,
-                  rkey: props.rkey,
-                }}
-              />
+              <Suspense fallback={<CollectionActionsSkeleton />}>
+                <CollectionActions
+                  collection={{
+                    ...collection,
+                    rkey: props.rkey,
+                  }}
+                />
+              </Suspense>
             </Group>
           </Stack>
         </Stack>

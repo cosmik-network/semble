@@ -1,4 +1,5 @@
 import { Container, Group, Stack, Skeleton, Box } from '@mantine/core';
+import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
 
 export default function CollectionHeaderSkeleton() {
   return (
@@ -57,12 +58,7 @@ export default function CollectionHeaderSkeleton() {
                 <Skeleton w={'100%'} h={20} />
               </Stack>
 
-              {/* Actions */}
-              <Group gap={'xs'}>
-                <Skeleton w={124} h={36} radius={'xl'} />
-                <Skeleton w={34} h={34} radius={'xl'} />
-                <Skeleton w={34} h={34} radius={'xl'} />
-              </Group>
+              <CollectionActionsSkeleton />
             </Group>
           </Stack>
         </Stack>
