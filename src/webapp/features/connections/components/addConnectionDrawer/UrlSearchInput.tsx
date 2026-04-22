@@ -26,7 +26,7 @@ import { getDomain } from '@/lib/utils/link';
 import { useMyCardsInfinite } from '@/features/cards/lib/queries/useMyCards';
 import { CollectionAccessType, type UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
-import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
+import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import { getRecordKey } from '@/lib/utils/atproto';
 
 type SearchFilter = 'cards' | 'collections';
@@ -87,14 +87,18 @@ export default function UrlSearchInput(props: Props) {
   const { data: recentCards, isLoading: isLoadingRecentCards } =
     useMyCardsInfinite({ limit: 5 });
 
-  const collectionSearch = useCollectionSearch({
-    query: searchFilter === 'collections' ? debounced : '',
+  const collectionSearch = useSearchCollections({
+    searchText: searchFilter === 'collections' ? debounced : '',
+    limit: 10,
+    enabled: searchFilter === 'collections' && debounced.trim().length > 0,
   });
 
   const recentCardsList = recentCards?.pages[0]?.cards ?? [];
 
   const urls = searchResults?.urls ?? [];
-  const collections = collectionSearch.data?.collections ?? [];
+  const collections =
+    collectionSearch.data?.pages.flatMap((page) => page.collections ?? []) ??
+    [];
   const isCollectionSearchFetching = collectionSearch.isFetching;
   const collectionSearchError = collectionSearch.error;
 
