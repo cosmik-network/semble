@@ -1,6 +1,6 @@
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { getProfile } from '@/features/profile/lib/dal.server';
-import { truncateText } from '@/lib/utils/text';
+import { abbreviateNumber, truncateText } from '@/lib/utils/text';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -74,7 +74,7 @@ export default async function Image(props: Props) {
                   margin: 0,
                 }}
               >
-                {profile.urlCardCount}{' '}
+                {abbreviateNumber(profile.urlCardCount)}{' '}
                 {profile.urlCardCount === 1 ? 'card' : 'cards'}
               </p>
             )}
@@ -87,7 +87,7 @@ export default async function Image(props: Props) {
                   margin: 0,
                 }}
               >
-                {profile.collectionCount}{' '}
+                {abbreviateNumber(profile.collectionCount)}{' '}
                 {profile.collectionCount === 1 ? 'collection' : 'collections'}
               </p>
             )}
@@ -100,7 +100,7 @@ export default async function Image(props: Props) {
                   margin: 0,
                 }}
               >
-                {profile.connectionCount}{' '}
+                {abbreviateNumber(profile.connectionCount)}{' '}
                 {profile.connectionCount === 1 ? 'connection' : 'connections'}
               </p>
             )}

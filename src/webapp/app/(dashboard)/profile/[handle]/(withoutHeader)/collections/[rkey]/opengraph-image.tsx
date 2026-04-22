@@ -1,6 +1,6 @@
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
-import { truncateText } from '@/lib/utils/text';
+import { abbreviateNumber, truncateText } from '@/lib/utils/text';
 import { CollectionAccessType } from '@semble/types';
 
 interface Props {
@@ -121,7 +121,7 @@ export default async function Image(props: Props) {
                   wordBreak: 'break-word',
                 }}
               >
-                {collection.cardCount}{' '}
+                {abbreviateNumber(collection.cardCount)}{' '}
                 {collection.cardCount > 1 ? 'cards' : 'card'}
               </p>
             )}
@@ -140,7 +140,7 @@ export default async function Image(props: Props) {
                   wordBreak: 'break-word',
                 }}
               >
-                {collection.followerCount}{' '}
+                {abbreviateNumber(collection.followerCount)}{' '}
                 {collection.followerCount > 1 ? 'followers' : 'follower'}
               </p>
             ) : null}
