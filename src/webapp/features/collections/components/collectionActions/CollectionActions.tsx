@@ -25,26 +25,18 @@ interface Props {
   };
 }
 
-export default function CollectionActions(props: Props) {
-  const { isAuthenticated, user } = useAuth();
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+function AuthenticatedCollectionActions({ collection }: Props) {
+  const { user } = useAuth();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [showSaveToLibraryModal, setShowSaveToLibraryModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
   const { trigger } = useWebHaptics();
 
-  const isAuthor = user?.handle === props.collection.author?.handle;
+  const isAuthor = user?.handle === collection.author?.handle;
   const canAddCard =
-    isAuthenticated &&
-    (props.collection.accessType === CollectionAccessType.OPEN || isAuthor);
+    collection.accessType === CollectionAccessType.OPEN || isAuthor;
 
-  const shareLink =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/profile/${props.collection.author?.handle}/collections/${props.collection.rkey}`
-      : '';
-
-  const collectionPageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/profile/${props.collection.author?.handle}/collections/${props.collection.rkey}`;
+  const collectionPageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/profile/${collection.author?.handle}/collections/${collection.rkey}`;
 
   const cardStatus = useGetCardFromMyLibrary({ url: collectionPageUrl });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
@@ -58,55 +50,146 @@ export default function CollectionActions(props: Props) {
 
   return (
     <Fragment>
+      <Menu shadow="sm">
+        <Menu.Target>
+          <ActionIcon size="lg" radius={'xl'} onClick={() => trigger()}>
+            <FiPlus size={18} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {canAddCard && (
+            <Menu.Item
+              leftSection={<FaRegNoteSticky />}
+              onClick={() => setShowAddDrawer(true)}
+            >
+              Add card to collection
+            </Menu.Item>
+          )}
+          <Menu.Item
+            leftSection={isInYourLibrary ? <IoMdCheckmark /> : <FiPlus />}
+            onClick={() => setShowSaveToLibraryModal(true)}
+          >
+            {isInYourLibrary ? 'Saved to library' : 'Save to library'}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+
+      <ActionIcon
+        variant="light"
+        color="green"
+        size="lg"
+        radius={'xl'}
+        onClick={() => {
+          trigger();
+          setShowAddConnectionModal(true);
+        }}
+      >
+        <TbPlugConnected size={18} />
+      </ActionIcon>
+
+      {!isAuthor && (
+        <FollowButton
+          targetId={collection.id}
+          targetType="COLLECTION"
+          targetHandle={collection.author.handle}
+          initialIsFollowing={collection.isFollowing}
+        />
+      )}
+
+      <AddConnectionModal
+        isOpen={showAddConnectionModal}
+        onClose={() => setShowAddConnectionModal(false)}
+        sourceUrl={collectionPageUrl}
+      />
+
+      <AddCardToModal
+        isOpen={showSaveToLibraryModal}
+        onClose={() => setShowSaveToLibraryModal(false)}
+        url={collectionPageUrl}
+        cardId={cardStatus.data.card?.id}
+        note={cardStatus.data.card?.note?.text}
+        isInYourLibrary={isInYourLibrary}
+        urlLibraryCount={urlLibraryCount}
+      />
+
+      {user && (
+        <AddCardDrawer
+          isOpen={showAddDrawer}
+          onClose={() => setShowAddDrawer(false)}
+          selectedCollection={collection}
+        />
+      )}
+    </Fragment>
+  );
+}
+
+function AuthorCollectionMenu({ collection }: Props) {
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  return (
+    <Fragment>
+      <Menu shadow="sm">
+        <Menu.Target>
+          <ActionIcon variant="light" color={'gray'} size={'lg'} radius={'xl'}>
+            <BsThreeDots size={22} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            onClick={() => setShowEditModal(true)}
+            leftSection={<BsPencilFill />}
+          >
+            Edit collection
+          </Menu.Item>
+          <Menu.Item
+            color="red"
+            leftSection={<BsTrash2Fill />}
+            onClick={() => setShowDeleteModal(true)}
+          >
+            Delete collection
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+
+      <EditCollectionModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        collection={{
+          id: collection.id,
+          rkey: collection.rkey,
+          name: collection.name,
+          description: collection.description,
+          accessType: collection.accessType,
+          uri: collection.uri,
+          authorHandle: collection.author?.handle,
+        }}
+      />
+      <DeleteCollectionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        collectionId={collection.id}
+      />
+    </Fragment>
+  );
+}
+
+export default function CollectionActions(props: Props) {
+  const { isAuthenticated, user } = useAuth();
+
+  const isAuthor =
+    isAuthenticated && user?.handle === props.collection.author?.handle;
+
+  const shareLink =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/profile/${props.collection.author?.handle}/collections/${props.collection.rkey}`
+      : '';
+
+  return (
+    <Fragment>
       <Group gap={'xs'}>
         {isAuthenticated && (
-          <Menu shadow="sm">
-            <Menu.Target>
-              <ActionIcon size="lg" radius={'xl'} onClick={() => trigger()}>
-                <FiPlus size={18} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {canAddCard && (
-                <Menu.Item
-                  leftSection={<FaRegNoteSticky />}
-                  onClick={() => setShowAddDrawer(true)}
-                >
-                  Add card to collection
-                </Menu.Item>
-              )}
-              <Menu.Item
-                leftSection={isInYourLibrary ? <IoMdCheckmark /> : <FiPlus />}
-                onClick={() => setShowSaveToLibraryModal(true)}
-              >
-                {isInYourLibrary ? 'Saved to library' : 'Save to library'}
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        )}
-
-        {isAuthenticated && (
-          <ActionIcon
-            variant="light"
-            color="green"
-            size="lg"
-            radius={'xl'}
-            onClick={() => {
-              trigger();
-              setShowAddConnectionModal(true);
-            }}
-          >
-            <TbPlugConnected size={18} />
-          </ActionIcon>
-        )}
-
-        {isAuthenticated && !isAuthor && (
-          <FollowButton
-            targetId={props.collection.id}
-            targetType="COLLECTION"
-            targetHandle={props.collection.author.handle}
-            initialIsFollowing={props.collection.isFollowing}
-          />
+          <AuthenticatedCollectionActions collection={props.collection} />
         )}
 
         <CopyButton value={shareLink}>
@@ -131,79 +214,8 @@ export default function CollectionActions(props: Props) {
           )}
         </CopyButton>
 
-        {isAuthor && (
-          <Menu shadow="sm">
-            <Menu.Target>
-              <ActionIcon
-                variant="light"
-                color={'gray'}
-                size={'lg'}
-                radius={'xl'}
-              >
-                <BsThreeDots size={22} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                onClick={() => setShowEditModal(true)}
-                leftSection={<BsPencilFill />}
-              >
-                Edit collection
-              </Menu.Item>
-              <Menu.Item
-                color="red"
-                leftSection={<BsTrash2Fill />}
-                onClick={() => setShowDeleteModal(true)}
-              >
-                Delete collection
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        )}
+        {isAuthor && <AuthorCollectionMenu collection={props.collection} />}
       </Group>
-
-      <AddConnectionModal
-        isOpen={showAddConnectionModal}
-        onClose={() => setShowAddConnectionModal(false)}
-        sourceUrl={collectionPageUrl}
-      />
-
-      <AddCardToModal
-        isOpen={showSaveToLibraryModal}
-        onClose={() => setShowSaveToLibraryModal(false)}
-        url={collectionPageUrl}
-        cardId={cardStatus.data.card?.id}
-        note={cardStatus.data.card?.note?.text}
-        isInYourLibrary={isInYourLibrary}
-        urlLibraryCount={urlLibraryCount}
-      />
-
-      <EditCollectionModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        collection={{
-          id: props.collection.id,
-          rkey: props.collection.rkey,
-          name: props.collection.name,
-          description: props.collection.description,
-          accessType: props.collection.accessType,
-          uri: props.collection.uri,
-          authorHandle: props.collection.author?.handle,
-        }}
-      />
-      <DeleteCollectionModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        collectionId={props.collection.id}
-      />
-
-      {user && (
-        <AddCardDrawer
-          isOpen={showAddDrawer}
-          onClose={() => setShowAddDrawer(false)}
-          selectedCollection={props.collection}
-        />
-      )}
     </Fragment>
   );
 }
