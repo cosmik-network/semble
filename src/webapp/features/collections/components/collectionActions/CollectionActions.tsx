@@ -69,7 +69,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
             leftSection={isInYourLibrary ? <IoMdCheckmark /> : <FiPlus />}
             onClick={() => setShowSaveToLibraryModal(true)}
           >
-            {isInYourLibrary ? 'Saved to library' : 'Save to library'}
+            {isInYourLibrary ? 'Collection saved' : 'Save collection'}
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
