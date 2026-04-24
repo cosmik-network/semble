@@ -19,7 +19,7 @@ export default function NavMenu() {
           data-tally-hide-title="1"
           data-tally-layout="modal"
           data-tally-emoji-animation="none"
-          variant="light"
+          variant="white"
           color="gray"
           size="xs"
         >
@@ -30,7 +30,7 @@ export default function NavMenu() {
           <LinkButton
             href={IOS_SHORTCUT_HREF}
             target="_blank"
-            variant="light"
+            variant="white"
             color="gray"
             size="xs"
           >

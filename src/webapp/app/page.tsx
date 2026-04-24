@@ -29,23 +29,10 @@ import NavMenu from '@/components/landing/navMenu/NavMenu';
 import { LinkButton } from '@/components/link/MantineLink';
 
 export default async function Page() {
-  const fadeStyle = {
-    inset: 0,
-    WebkitMaskImage: 'linear-gradient(to bottom, transparent 10%, black 35%)',
-    maskImage: 'linear-gradient(to bottom, transparent 10%, black 35%)',
-    zIndex: 0,
-  };
-
   return (
     <Box component="section" pos="relative" h="100svh" w="100%">
       {/* light mode bg */}
-      <BackgroundImage
-        src={BG.src}
-        darkHidden
-        h="100svh"
-        pos={'absolute'}
-        style={fadeStyle}
-      />
+      <BackgroundImage src={BG.src} darkHidden h="100svh" pos={'absolute'} />
 
       {/* dark mode bg */}
       <BackgroundImage
@@ -53,7 +40,6 @@ export default async function Page() {
         lightHidden
         h="100svh"
         pos={'absolute'}
-        style={fadeStyle}
       />
 
       <Box pos="relative" style={{ zIndex: 1 }}>

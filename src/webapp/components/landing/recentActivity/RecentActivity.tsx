@@ -53,7 +53,7 @@ export default async function RecentActivity() {
           <LinkButton
             href="/explore"
             variant="light"
-            color="gray"
+            color="grape"
             rightSection={<BiRightArrowAlt size={20} />}
           >
             Explore

@@ -17,30 +17,14 @@ import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 
-const bgStyle = {
-  position: 'absolute' as const,
-  top: 0,
-  left: '50%',
-  marginLeft: '-50vw',
-  marginRight: '-50vw',
-  width: '100vw',
-  height: '250px',
-  transform: 'rotate(180deg)',
-  opacity: 0.7,
-  filter: 'grayscale(100%)',
-  WebkitMaskImage: 'linear-gradient(to top, transparent 5%, black 35%)',
-  maskImage: 'linear-gradient(to top, transparent 5%, black 35%)',
-  zIndex: 0,
-};
-
 export default function Footer() {
   return (
-    <Box component="footer" px="md" py="xs" mt="xl" pos="relative">
+    <Box component="footer" px="md" py="xs" mt="xl">
       {/* light mode bg */}
-      <BackgroundImage src={BG.src} darkHidden style={bgStyle} />
+      <BackgroundImage src={BG.src} darkHidden />
 
       {/* dark mode bg */}
-      <BackgroundImage src={DarkBG.src} lightHidden style={bgStyle} />
+      <BackgroundImage src={DarkBG.src} lightHidden />
 
       <Stack align="center" gap="xs" pos="relative" style={{ zIndex: 1 }}>
         <Group gap="0">
@@ -100,7 +84,7 @@ export default function Footer() {
             fw={600}
             rightSection={<RiArrowRightUpLine />}
           >
-            Follow our blog for updates
+            Follow our blog
           </Button>
           <Button
             component="a"
