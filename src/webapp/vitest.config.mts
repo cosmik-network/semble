@@ -8,6 +8,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    include: ['**/*.{test,spec}.{ts,tsx}'],
     server: {
       deps: {
         // Mantine and react-icons publish ESM that references browser globals;
