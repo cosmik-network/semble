@@ -85,7 +85,12 @@ export default function OAuthLoginForm(props: Props) {
 
   return (
     <Stack gap="xl">
-      <form onSubmit={props.onSubmit}>
+      <form
+        onSubmit={(e) => {
+          combobox.closeDropdown();
+          props.onSubmit(e);
+        }}
+      >
         <Stack align="center">
           <Combobox
             shadow="sm"
