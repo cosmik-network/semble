@@ -140,7 +140,9 @@ export default async function BlueskySemblePost(props: Props) {
                   textProps={{ c: 'bright' }}
                 />
               </Box>
-              {post.embed && <PostEmbed embed={post.embed} />}
+              {post.embed && (
+                <PostEmbed embed={JSON.parse(JSON.stringify(post.embed))} />
+              )}
             </Stack>
           </ContentHider>
           <Text c={'gray'} fz={'sm'} fw={500}>

@@ -8,6 +8,7 @@ import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadata
 import SembleStatsSkeleton from '../sembleStats/Skeleton.SembleStats';
 import UrlMetadataImage from '../urlMetadataHeader/UrlMetadataImage';
 import UrlMetadataImageSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataImage';
+import SembleHeaderMedia from './SembleHeaderMedia';
 
 interface Props {
   url: string;
@@ -26,9 +27,11 @@ export default function SembleHeader(props: Props) {
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="center">
-            <Suspense fallback={<UrlMetadataImageSkeleton />} key={props.url}>
-              <UrlMetadataImage url={props.url} />
-            </Suspense>
+            <SembleHeaderMedia url={props.url}>
+              <Suspense fallback={<UrlMetadataImageSkeleton />} key={props.url}>
+                <UrlMetadataImage url={props.url} />
+              </Suspense>
+            </SembleHeaderMedia>
             {!props.hideActions && (
               <Suspense
                 fallback={<SembleActionsContainerSkeleton />}
