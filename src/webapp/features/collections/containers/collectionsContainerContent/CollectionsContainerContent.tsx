@@ -14,6 +14,7 @@ import { useSearchParams } from 'next/navigation';
 
 interface Props {
   handle: string;
+  query?: string;
 }
 
 export default function CollectionsContainerContent(props: Props) {
@@ -26,6 +27,7 @@ export default function CollectionsContainerContent(props: Props) {
     useCollections({
       didOrHandle: props.handle,
       sortBy,
+      query: props.query,
     });
 
   const { settings } = useUserSettings();
