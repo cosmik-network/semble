@@ -205,7 +205,7 @@ export default function RecentCollections() {
           size="xs"
           onClick={() => setFilter('mine')}
         >
-          Mine
+          My Collections
         </Button>
         <Button
           variant={filter === 'following' ? 'filled' : 'light'}
