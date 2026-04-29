@@ -64,7 +64,8 @@ const preview: Preview = {
 
   decorators: [
     (Story, context) => {
-      const colorScheme = (context.globals.colorScheme as 'light' | 'dark') ?? 'light';
+      const colorScheme =
+        (context.globals.colorScheme as 'light' | 'dark') ?? 'light';
       return (
         <QueryClientProvider client={queryClient}>
           <MantineProvider
