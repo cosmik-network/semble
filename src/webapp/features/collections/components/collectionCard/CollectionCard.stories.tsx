@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { CollectionAccessType, CardSortField, SortOrder } from '@semble/types';
 import type { Collection, GetCollectionPageResponse } from '@semble/types';
 import CollectionCard from './CollectionCard';
+import CollectionCardSkeleton from './Skeleton.CollectionCard';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -219,4 +220,8 @@ export const Empty: Story = {
       followerCount: 0,
     },
   },
+};
+
+export const Skeleton: Story = {
+  render: () => <CollectionCardSkeleton />,
 };
