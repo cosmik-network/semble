@@ -78,7 +78,14 @@ export const BotAccount: Story = {
           handle: 'bot.semble',
           avatarUrl: 'https://i.pravatar.cc/150?u=bot',
           description: 'An automated bot that curates content.',
-          labels: [{ val: 'bot', src: 'did:plc:bot999', uri: 'did:plc:bot999', cts: '2024-01-01T00:00:00.000Z' }],
+          labels: [
+            {
+              val: 'bot',
+              src: 'did:plc:bot999',
+              uri: 'did:plc:bot999',
+              cts: '2024-01-01T00:00:00.000Z',
+            },
+          ],
         }}
       >
         <Suspense>

@@ -72,7 +72,12 @@ export const SingleFollower: Story = {
   decorators: [
     (Story) => (
       <QueryCacheSeed
-        profile={{ ...mockProfile, followerCount: 1, followingCount: 0, followedCollectionsCount: 0 }}
+        profile={{
+          ...mockProfile,
+          followerCount: 1,
+          followingCount: 0,
+          followedCollectionsCount: 0,
+        }}
       >
         <Suspense fallback={<FollowStatsSkeleton />}>
           <Story />

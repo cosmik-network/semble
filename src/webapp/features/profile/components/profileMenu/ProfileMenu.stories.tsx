@@ -45,7 +45,9 @@ const meta: Meta<typeof ProfileMenu> = {
     (Story) => (
       <AuthContext.Provider value={mockAuthContext}>
         <QueryCacheSeed profile={mockProfile}>
-          <Suspense fallback={<MantineSkeleton w={38} h={38} radius="md" ml={4} />}>
+          <Suspense
+            fallback={<MantineSkeleton w={38} h={38} radius="md" ml={4} />}
+          >
             <div style={{ maxWidth: 280 }}>
               <Story />
             </div>
@@ -75,10 +77,19 @@ export const BotAccount: Story = {
             name: 'Semble Bot',
             handle: 'bot.semble',
             avatarUrl: 'https://i.pravatar.cc/150?u=bot',
-            labels: [{ val: 'bot', src: 'did:plc:bot999', uri: 'did:plc:bot999', cts: '2024-01-01T00:00:00.000Z' }],
+            labels: [
+              {
+                val: 'bot',
+                src: 'did:plc:bot999',
+                uri: 'did:plc:bot999',
+                cts: '2024-01-01T00:00:00.000Z',
+              },
+            ],
           }}
         >
-          <Suspense fallback={<MantineSkeleton w={38} h={38} radius="md" ml={4} />}>
+          <Suspense
+            fallback={<MantineSkeleton w={38} h={38} radius="md" ml={4} />}
+          >
             <div style={{ maxWidth: 280 }}>
               <Story />
             </div>
