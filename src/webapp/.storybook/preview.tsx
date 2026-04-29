@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/nextjs-vite';
 import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, v8CssVariablesResolver } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '../styles/theme';
 
@@ -36,7 +36,11 @@ const preview: Preview = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="light">
+        <MantineProvider
+          theme={theme}
+          cssVariablesResolver={v8CssVariablesResolver}
+          defaultColorScheme="light"
+        >
           <Story />
         </MantineProvider>
       </QueryClientProvider>
