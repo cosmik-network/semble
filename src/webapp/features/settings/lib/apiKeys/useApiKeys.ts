@@ -15,8 +15,9 @@ import { MOCK_API_KEYS } from './mockData';
 
 function generateToken(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const random = Array.from({ length: 32 }, () =>
-    chars[Math.floor(Math.random() * chars.length)],
+  const random = Array.from(
+    { length: 32 },
+    () => chars[Math.floor(Math.random() * chars.length)],
   ).join('');
   return `sk_${random}`;
 }
