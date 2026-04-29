@@ -19,7 +19,7 @@ import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -27,7 +27,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
