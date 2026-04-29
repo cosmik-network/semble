@@ -1,4 +1,8 @@
 .groupedCards {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
   & > * {
     border-radius: 0;
 
@@ -12,10 +16,6 @@
 
     &:only-child {
       border-radius: var(--mantine-radius-lg);
-    }
-
-    & + * {
-      border-top: 1px solid var(--mantine-color-default-border);
     }
   }
 }
