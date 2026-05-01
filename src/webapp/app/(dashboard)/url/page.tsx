@@ -39,7 +39,9 @@ export async function generateMetadata({
 
 export default async function Page(props: Props) {
   const searchParams = await props.searchParams;
-  const url = searchParams.id;
+  const url = searchParams.id
+    ? decodeURIComponent(searchParams.id)
+    : searchParams.id;
   const viaCardId = searchParams.viaCardId;
 
   if (!url) {
