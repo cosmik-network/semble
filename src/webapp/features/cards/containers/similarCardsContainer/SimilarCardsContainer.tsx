@@ -48,7 +48,14 @@ export default function SimilarCardsContainer(props: Props) {
         ) : (
           <Grid gap="sm" mx={'auto'} maw={600} w={'100%'}>
             {allSimilarUrls.map((urlView) => (
-              <Grid.Col key={urlView.url} span={12}>
+              <Grid.Col
+                key={urlView.url}
+                span={12}
+                style={{
+                  contentVisibility: 'auto',
+                  containIntrinsicSize: 'auto 300px',
+                }}
+              >
                 <SimilarUrlCard
                   urlView={urlView}
                   analyticsContext={{

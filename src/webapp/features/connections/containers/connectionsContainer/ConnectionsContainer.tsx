@@ -4,7 +4,7 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Group, Stack } from '@mantine/core';
+import { Box, Grid, Group, Stack } from '@mantine/core';
 import ConnectionsContainerError from './Error.ConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
@@ -170,15 +170,23 @@ export default function ConnectionsContainer(props: Props) {
                   : connection.source.url;
 
                 return (
-                  <Grid.Col key={`${direction}-${index}`} span={12}>
-                    <ConnectionItem
-                      connection={connection}
-                      direction={connectionDirection}
-                      onEdit={() => {
-                        handleOpenEditModal(connection.connection, targetUrl);
-                      }}
-                    />
-                  </Grid.Col>
+                  <Box
+                    key={`${direction}-${index}`}
+                    style={{
+                      contentVisibility: 'auto',
+                      containIntrinsicSize: 'auto 200px',
+                    }}
+                  >
+                    <Grid.Col span={12}>
+                      <ConnectionItem
+                        connection={connection}
+                        direction={connectionDirection}
+                        onEdit={() => {
+                          handleOpenEditModal(connection.connection, targetUrl);
+                        }}
+                      />
+                    </Grid.Col>
+                  </Box>
                 );
               })}
             </Grid>
