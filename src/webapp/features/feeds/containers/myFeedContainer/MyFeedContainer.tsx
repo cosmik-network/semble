@@ -115,17 +115,24 @@ export default function MyFeedContainer() {
           <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
             <Stack gap={60}>
               {allActivities.map((item) => (
-                <FeedItem
+                <Box
                   key={item.id}
-                  item={item}
-                  analyticsContext={{
-                    saveSource: CardSaveSource.FEED,
-                    activeFilters: {
-                      urlType: selectedUrlType,
-                    },
-                    pagePath: pathname,
+                  style={{
+                    contentVisibility: 'auto',
+                    containIntrinsicSize: 'auto 400px',
                   }}
-                />
+                >
+                  <FeedItem
+                    item={item}
+                    analyticsContext={{
+                      saveSource: CardSaveSource.FEED,
+                      activeFilters: {
+                        urlType: selectedUrlType,
+                      },
+                      pagePath: pathname,
+                    }}
+                  />
+                </Box>
               ))}
             </Stack>
           </Stack>
