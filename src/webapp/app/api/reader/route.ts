@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
-import DOMPurify from 'isomorphic-dompurify';
+import createDOMPurify from 'dompurify';
 
 export interface ReaderContent {
   title: string | null;
@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
   }
 
   // Sanitize the extracted HTML to prevent XSS
+  // Reuse the existing jsdom window so we don't spin up a second DOM instance
+  const DOMPurify = createDOMPurify(dom.window as unknown as typeof globalThis);
   const sanitizedContent = DOMPurify.sanitize(article.content ?? '', {
     USE_PROFILES: { html: true },
     // Allow common article elements but strip scripts/iframes/etc.
