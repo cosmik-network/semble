@@ -1,10 +1,10 @@
 import { Box, Divider, Group, Paper, Text } from '@mantine/core';
 import NavbarToggle from '../NavbarToggle';
-import { ReactElement } from 'react';
+import { ReactNode } from 'react';
 
 interface Props {
   title?: string;
-  children?: ReactElement;
+  children?: ReactNode;
 }
 
 export default function Header(props: Props) {

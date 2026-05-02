@@ -1,0 +1,135 @@
+/* ── Bottom bar ── */
+
+.bottomBar {
+  position: relative;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--mantine-color-body) 85%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--mantine-color-gray-2);
+}
+
+/* ── Article body typography ── */
+
+.readerContent :global(p) {
+  margin: 0 0 1.3em;
+}
+
+.readerContent :global(h1),
+.readerContent :global(h2),
+.readerContent :global(h3),
+.readerContent :global(h4),
+.readerContent :global(h5),
+.readerContent :global(h6) {
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.75em 0 0.5em;
+}
+
+.readerContent :global(h1) { font-size: 1.6em; }
+.readerContent :global(h2) { font-size: 1.35em; }
+.readerContent :global(h3) { font-size: 1.15em; }
+.readerContent :global(h4) { font-size: 1.0em; }
+
+.readerContent :global(a) {
+  color: var(--mantine-color-blue-6);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.readerContent :global(a:hover) {
+  color: var(--mantine-color-blue-8);
+}
+
+.readerContent :global(blockquote) {
+  border-left: 3px solid var(--mantine-color-gray-4);
+  margin: 1.5em 0;
+  padding: 0.4em 1.25em;
+  color: var(--mantine-color-dimmed);
+  font-style: italic;
+}
+
+.readerContent :global(pre) {
+  background: var(--mantine-color-gray-0);
+  border: 1px solid var(--mantine-color-gray-2);
+  border-radius: 8px;
+  padding: 1em 1.25em;
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.6;
+  margin: 1.5em 0;
+}
+
+.readerContent :global(code) {
+  background: var(--mantine-color-gray-1);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+  font-family: var(--mantine-font-family-monospace, monospace);
+}
+
+.readerContent :global(pre code) {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.readerContent :global(ul),
+.readerContent :global(ol) {
+  padding-left: 1.75em;
+  margin: 0 0 1.3em;
+}
+
+.readerContent :global(li) {
+  margin-bottom: 0.4em;
+}
+
+.readerContent :global(li > ul),
+.readerContent :global(li > ol) {
+  margin-top: 0.3em;
+  margin-bottom: 0;
+}
+
+.readerContent :global(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1.5em 0;
+  display: block;
+}
+
+.readerContent :global(figure) {
+  margin: 1.75em 0;
+}
+
+.readerContent :global(figcaption) {
+  font-size: 0.8125em;
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+  margin-top: 0.6em;
+}
+
+.readerContent :global(hr) {
+  border: none;
+  border-top: 1px solid var(--mantine-color-gray-3);
+  margin: 2em 0;
+}
+
+.readerContent :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.9375em;
+}
+
+.readerContent :global(th),
+.readerContent :global(td) {
+  border: 1px solid var(--mantine-color-gray-3);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.readerContent :global(th) {
+  background: var(--mantine-color-gray-0);
+  font-weight: 600;
+}
