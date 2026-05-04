@@ -13,6 +13,7 @@ import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   url: string;
+  semblePageUrl?: string;
 }
 
 export default function SimilarCardsContainer(props: Props) {
@@ -58,6 +59,7 @@ export default function SimilarCardsContainer(props: Props) {
               >
                 <SimilarUrlCard
                   urlView={urlView}
+                  semblePageUrl={props.semblePageUrl}
                   analyticsContext={{
                     saveSource: CardSaveSource.SIMILAR_CARDS,
                     activeFilters: {

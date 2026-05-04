@@ -6,6 +6,7 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   urlView: UrlView;
+  semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -19,6 +20,7 @@ export default function SimilarUrlCard(props: Props) {
       urlIsInLibrary={props.urlView.urlInLibrary ?? false}
       urlConnectionCount={props.urlView.urlConnectionCount ?? 0}
       urlIsConnected={props.urlView.urlIsConnected}
+      semblePageUrl={props.semblePageUrl}
       analyticsContext={props.analyticsContext}
     />
   );
