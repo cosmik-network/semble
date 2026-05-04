@@ -33,6 +33,8 @@ interface Props {
   onClose: () => void;
   /** When provided the source is fixed (connecting from a card). When omitted both URLs are searchable. */
   sourceUrl?: string;
+  /** When provided the target is prefilled. */
+  targetUrl?: string;
 }
 
 export default function AddConnectionForm(props: Props) {
@@ -41,7 +43,7 @@ export default function AddConnectionForm(props: Props) {
 
   // Track the raw input values so we can auto-confirm valid URLs on submit
   const rawSourceInput = useRef(props.sourceUrl ?? '');
-  const rawTargetInput = useRef('');
+  const rawTargetInput = useRef(props.targetUrl ?? '');
 
   const typeCombobox = useCombobox({
     onDropdownClose: () => typeCombobox.resetSelectedOption(),
@@ -50,7 +52,7 @@ export default function AddConnectionForm(props: Props) {
   const form = useForm({
     initialValues: {
       sourceUrl: props.sourceUrl ?? '',
-      targetUrl: '',
+      targetUrl: props.targetUrl ?? '',
       connectionType: 'RELATED',
       note: '',
     },

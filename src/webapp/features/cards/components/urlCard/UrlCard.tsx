@@ -31,6 +31,7 @@ interface Props {
   cardAuthor?: User;
   viaCardId?: string;
   showAuthor?: boolean;
+  semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -166,6 +167,7 @@ export default function UrlCard(props: Props) {
             urlConnectionCount={props.urlConnectionCount}
             urlIsConnected={props.urlIsConnected}
             viaCardId={props.viaCardId}
+            semblePageUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
           />
         </Stack>

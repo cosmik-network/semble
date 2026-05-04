@@ -8,7 +8,8 @@ import { Suspense } from 'react';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  sourceUrl: string;
+  sourceUrl?: string;
+  targetUrl?: string;
 }
 
 export default function AddConnectionModal(props: Props) {
@@ -26,6 +27,7 @@ export default function AddConnectionModal(props: Props) {
         <AddConnectionForm
           onClose={props.onClose}
           sourceUrl={props.sourceUrl}
+          targetUrl={props.targetUrl}
         />
       </Suspense>
     </Modal>
