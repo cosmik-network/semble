@@ -11,6 +11,7 @@ interface FeatureFlags {
   following: boolean;
   connections: boolean;
   graphView: boolean;
+  readerMode: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {

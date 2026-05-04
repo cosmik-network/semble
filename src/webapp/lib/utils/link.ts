@@ -32,8 +32,10 @@ const getAppOrigin = () => {
 };
 
 const isSembleUrl = (url: string): boolean => {
+  // Relative paths are always local to the app
+  if (url.startsWith('/')) return true;
   try {
-    const parsedUrl = new URL(url, window.location.origin);
+    const parsedUrl = new URL(url);
     return parsedUrl.origin === getAppOrigin();
   } catch {
     return false;
@@ -42,12 +44,11 @@ const isSembleUrl = (url: string): boolean => {
 
 export const isCollectionPage = (url: string) => {
   try {
-    const parsedUrl = new URL(url, window.location.origin);
-    // Must be a relative path or our own domain
-    if (!isSembleUrl(parsedUrl.href)) return false;
+    if (!isSembleUrl(url)) return false;
+    const pathname = url.startsWith('/') ? url : new URL(url).pathname;
     // expect /profile/:handle/collections/:id
     const pattern = /^\/profile\/[^/]+\/collections\/[^/]+\/?$/;
-    return pattern.test(parsedUrl.pathname);
+    return pattern.test(pathname);
   } catch {
     // invalid URL
     return false;
@@ -56,12 +57,11 @@ export const isCollectionPage = (url: string) => {
 
 export const isProfilePage = (url: string) => {
   try {
-    const parsedUrl = new URL(url, window.location.origin);
-    // Must be a relative path or our own domain
-    if (!isSembleUrl(parsedUrl.href)) return false;
+    if (!isSembleUrl(url)) return false;
+    const pathname = url.startsWith('/') ? url : new URL(url).pathname;
     // matches /profile/:handle and any subroutes (e.g. /profile/:handle/likes)
     const pattern = /^\/profile\/[^/]+/;
-    return pattern.test(parsedUrl.pathname);
+    return pattern.test(pathname);
   } catch {
     // invalid URL
     return false;
@@ -106,8 +106,8 @@ type PlatformData =
 export const detectUrlPlatform = (url: string): PlatformData => {
   if (isCollectionPage(url)) {
     try {
-      const parsedUrl = new URL(url, window.location.origin);
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      const pathname = url.startsWith('/') ? url : new URL(url).pathname;
+      const pathParts = pathname.split('/').filter(Boolean);
       // expected format: profile/:handle/collections/:rkey
       const handle = pathParts[1];
       const rkey = pathParts[3];
@@ -124,8 +124,8 @@ export const detectUrlPlatform = (url: string): PlatformData => {
 
   if (isProfilePage(url)) {
     try {
-      const parsedUrl = new URL(url, window.location.origin);
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      const pathname = url.startsWith('/') ? url : new URL(url).pathname;
+      const pathParts = pathname.split('/').filter(Boolean);
       // expected format: profile/:handle or profile/:handle/:subroute
       const handle = pathParts[1];
       return { type: SupportedPlatform.SEMBLE_PROFILE, url, handle };

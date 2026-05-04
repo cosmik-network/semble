@@ -17,6 +17,7 @@ export async function GET() {
       following: false,
       connections: false,
       graphView: false,
+      readerMode: false,
     });
   }
 }
