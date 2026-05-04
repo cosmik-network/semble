@@ -183,7 +183,7 @@ export default function ReaderButton({ url }: Props) {
 
         {/* ── Sticky bottom bar ── */}
         <Box className={styles.bottomBar}>
-          <Group px={'xs'} py={'lg'} justify="space-between" align="center">
+          <Group px={'md'} py={'lg'} justify="space-between" align="center">
             {/* Left: font size + link toggle */}
             <Group gap="xs">
               <Tooltip label="Decrease font size" withArrow position="top">
