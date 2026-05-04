@@ -183,14 +183,14 @@ export default function ReaderButton({ url }: Props) {
 
         {/* ── Sticky bottom bar ── */}
         <Box className={styles.bottomBar}>
-          <Group px="lg" py="xs" justify="space-between" align="center">
+          <Group px={'xs'} py={'lg'} justify="space-between" align="center">
             {/* Left: font size + link toggle */}
             <Group gap="xs">
               <Tooltip label="Decrease font size" withArrow position="top">
                 <ActionIcon
                   variant="light"
                   color="gray"
-                  size="md"
+                  size="lg"
                   radius="xl"
                   onClick={() =>
                     setFontSize((s) =>
@@ -209,7 +209,7 @@ export default function ReaderButton({ url }: Props) {
                 <ActionIcon
                   variant="light"
                   color="gray"
-                  size="md"
+                  size="lg"
                   radius="xl"
                   onClick={() =>
                     setFontSize((s) =>
@@ -232,7 +232,7 @@ export default function ReaderButton({ url }: Props) {
                 <ActionIcon
                   variant={removeLinks ? 'filled' : 'light'}
                   color={'gray'}
-                  size="md"
+                  size="lg"
                   radius="xl"
                   onClick={() => setRemoveLinks((v) => !v)}
                   aria-label={removeLinks ? 'Show links' : 'Remove links'}
@@ -253,7 +253,7 @@ export default function ReaderButton({ url }: Props) {
                 <Button
                   variant="light"
                   color="gray"
-                  size="xs"
+                  size="sm"
                   radius="xl"
                   rightSection={<TbExternalLink size={14} />}
                 >
