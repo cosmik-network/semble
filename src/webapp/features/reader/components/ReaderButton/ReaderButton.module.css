@@ -26,10 +26,18 @@
   margin: 1.75em 0 0.5em;
 }
 
-.readerContent :global(h1) { font-size: 1.6em; }
-.readerContent :global(h2) { font-size: 1.35em; }
-.readerContent :global(h3) { font-size: 1.15em; }
-.readerContent :global(h4) { font-size: 1.0em; }
+.readerContent :global(h1) {
+  font-size: 1.6em;
+}
+.readerContent :global(h2) {
+  font-size: 1.35em;
+}
+.readerContent :global(h3) {
+  font-size: 1.15em;
+}
+.readerContent :global(h4) {
+  font-size: 1em;
+}
 
 .readerContent :global(a) {
   color: var(--mantine-color-blue-6);

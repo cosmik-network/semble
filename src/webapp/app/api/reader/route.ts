@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
   const url = searchParams.get('url');
 
   if (!url) {
-    return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing url parameter' },
+      { status: 400 },
+    );
   }
 
   let targetUrl: URL;
@@ -33,7 +36,8 @@ export async function GET(request: NextRequest) {
         // Mimic a real browser to avoid blocks
         'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
       },
       // 10 second timeout
@@ -42,7 +46,9 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: `Failed to fetch URL: ${response.status} ${response.statusText}` },
+        {
+          error: `Failed to fetch URL: ${response.status} ${response.statusText}`,
+        },
         { status: 502 },
       );
     }
@@ -50,7 +56,10 @@ export async function GET(request: NextRequest) {
     html = await response.text();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ error: `Failed to fetch URL: ${message}` }, { status: 502 });
+    return NextResponse.json(
+      { error: `Failed to fetch URL: ${message}` },
+      { status: 502 },
+    );
   }
 
   // Parse with jsdom, passing the URL so Readability can resolve relative links

@@ -20,7 +20,10 @@ import {
 } from '@mantine/core';
 import { TbBook2, TbExternalLink, TbLink, TbLinkOff } from 'react-icons/tb';
 import { MdErrorOutline } from 'react-icons/md';
-import { fetchReaderContent, type ReaderState } from '../../lib/fetchReaderContent';
+import {
+  fetchReaderContent,
+  type ReaderState,
+} from '../../lib/fetchReaderContent';
 import styles from './ReaderButton.module.css';
 
 interface Props {
