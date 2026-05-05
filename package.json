@@ -23,7 +23,7 @@
     "worker:notifications": "node dist/workers/notification-worker.js",
     "worker:sync": "node dist/workers/sync-worker.js",
     "test": "jest",
-    "test:unit": "jest --testPathIgnorePatterns='.integration.test.' --testPathIgnorePatterns='.e2e.test.'",
+    "test:unit": "jest --testPathIgnorePatterns='.integration.test.|.e2e.test.|src/webapp/'",
     "test:integration": "jest --testPathPattern='.integration.test.'",
     "test:integration:db": "jest --testPathPattern='.integration.test.' --testNamePattern='Drizzle'",
     "test:integration:db:watch": "jest --watch --testPathPattern='.integration.test.' --testNamePattern='Drizzle'",
