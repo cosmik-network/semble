@@ -2,15 +2,7 @@
 
 import { AppBskyEmbedVideo } from '@atproto/api';
 import { AspectRatio } from '@mantine/core';
-import {
-  MediaPlayer,
-  MediaProvider,
-  MuteButton,
-  MuteButtonInstance,
-  PlayButton,
-  VolumeSlider,
-  VolumeSliderInstance,
-} from '@vidstack/react';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import {
   defaultLayoutIcons,
   DefaultVideoLayout,
