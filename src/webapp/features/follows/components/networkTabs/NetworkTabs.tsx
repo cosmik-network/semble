@@ -1,7 +1,14 @@
 'use client';
 
 import { useRouter, usePathname, useParams } from 'next/navigation';
-import { SegmentedControl } from '@mantine/core';
+import { Button, Group, ScrollArea, Scroller } from '@mantine/core';
+
+const tabs = [
+  { label: 'Followers', value: 'followers' },
+  { label: 'Following', value: 'following' },
+  { label: 'Collections Following', value: 'collections-following' },
+  { label: 'Contributed To', value: 'contributed-to' },
+];
 
 export default function NetworkTabs() {
   const router = useRouter();
@@ -22,22 +29,29 @@ export default function NetworkTabs() {
     return 'followers';
   };
 
+  const currentValue = getCurrentValue();
+
   return (
-    <SegmentedControl
-      value={getCurrentValue()}
-      onChange={(value) => {
-        if (value === 'followers') {
-          router.push(basePath);
-        } else {
-          router.push(`${basePath}/${value}`);
-        }
-      }}
-      data={[
-        { label: 'Followers', value: 'followers' },
-        { label: 'Following', value: 'following' },
-        { label: 'Collections Following', value: 'collections-following' },
-        { label: 'Contributed To', value: 'contributed-to' },
-      ]}
-    />
+    <Scroller>
+      <Group gap="xs" wrap="nowrap">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.value}
+            size="xs"
+            color="gray"
+            variant={currentValue === tab.value ? 'filled' : 'light'}
+            onClick={() => {
+              if (tab.value === 'followers') {
+                router.push(basePath);
+              } else {
+                router.push(`${basePath}/${tab.value}`);
+              }
+            }}
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </Group>
+    </Scroller>
   );
 }
