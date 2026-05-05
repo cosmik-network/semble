@@ -38,6 +38,7 @@ interface Props {
   urlIsConnected?: boolean;
   urlConnectionCount: number;
   viaCardId?: string;
+  semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -244,6 +245,7 @@ export default function UrlCardActions(props: Props) {
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
         sourceUrl={props.cardContent.url}
+        targetUrl={props.semblePageUrl}
       />
 
       <NoteCardModal
