@@ -25,7 +25,7 @@ export async function getServerFeatureFlags() {
     openCollections: true,
     following: true,
     connections: true,
-    graphView: show,
+    graphView: false,
     readerMode: showForTeam,
   };
 }
