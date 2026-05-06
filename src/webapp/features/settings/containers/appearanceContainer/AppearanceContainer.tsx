@@ -6,6 +6,7 @@ import {
   SegmentedControl,
   Center,
   Text,
+  Divider,
 } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
 import {
@@ -63,6 +64,8 @@ export default function AppearanceContainer() {
             ]}
           />
         </Stack>
+
+        <Divider />
 
         <Stack gap="xs">
           <Text fw={500}>Card View</Text>

@@ -9,6 +9,8 @@ import {
   Checkbox,
   Group,
   Button,
+  Divider,
+  ThemeIcon,
 } from '@mantine/core';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { upperFirst } from '@mantine/hooks';
@@ -120,6 +122,8 @@ export default function FeedSettingsContainer() {
           />
         </Stack>
 
+        <Divider />
+
         <Stack gap="xs">
           <Text fw={500}>Card Type</Text>
           <Group gap={6}>
@@ -147,6 +151,8 @@ export default function FeedSettingsContainer() {
           </Group>
         </Stack>
 
+        <Divider />
+
         <Stack gap="xs">
           <Text fw={500}>Accounts</Text>
           <Checkbox.Card
@@ -160,8 +166,20 @@ export default function FeedSettingsContainer() {
           >
             <Group justify="space-between" wrap="nowrap">
               <Group gap="xs">
-                <RiRobot2Fill size={16} />
-                <Text>Include bots</Text>
+                <ThemeIcon
+                  variant="light"
+                  color="gray"
+                  size={'lg'}
+                  radius={'xl'}
+                >
+                  <RiRobot2Fill size={16} />
+                </ThemeIcon>
+                <Stack gap={0}>
+                  <Text>Include bots</Text>
+                  <Text c={'dimmed'} fz={'sm'}>
+                    Show activity from accounts marked as bots
+                  </Text>
+                </Stack>
               </Group>
               <Checkbox.Indicator />
             </Group>

@@ -6,6 +6,7 @@ import {
   Image,
   Text,
   Group,
+  Divider,
 } from '@mantine/core';
 import SettingItem from '../../components/settingItem/SettingItem';
 import { MdSpeakerNotes } from 'react-icons/md';
@@ -34,6 +35,9 @@ export default function AboutContainer() {
             View source code
           </SettingItem>
         </ButtonGroup>
+
+        <Divider />
+
         <Card
           component="a"
           href="https://cosmik.network/"
