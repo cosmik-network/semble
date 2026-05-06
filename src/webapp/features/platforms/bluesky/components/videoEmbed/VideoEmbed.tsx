@@ -20,7 +20,7 @@ export default function VideoEmbed(props: Props) {
     : 16 / 9;
 
   return (
-    <AspectRatio ratio={ratio}>
+    <AspectRatio ratio={ratio} style={{ position: 'relative', zIndex: 1 }}>
       <MediaPlayer
         crossOrigin
         playsInline

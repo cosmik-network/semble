@@ -28,6 +28,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@mantine-bites/lightbox": "^2.0.0",
     "@mantine/code-highlight": "9.0.0",
     "@mantine/core": "9.0.0",
     "@mantine/dates": "9.0.0",
@@ -49,6 +50,8 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "dompurify": "^3.4.2",
+    "embla-carousel": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "next": "16.2.3",
     "react": "19.2.5",
     "react-dom": "19.2.5",
