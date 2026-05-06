@@ -51,7 +51,14 @@ export default function FeedSettingsContainer() {
     <Container p="xs" size="xs">
       <Stack gap="xl">
         <Stack gap="xs">
-          <Text fw={500}>Source</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Source</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Where activity comes from. Semble can show data from other AT
+              Protocol apps that use compatible lexicons
+            </Text>
+          </Stack>
+
           <SegmentedControl
             radius={'lg'}
             value={settings.feedSource ?? SOURCE_ALL}
@@ -82,7 +89,13 @@ export default function FeedSettingsContainer() {
         </Stack>
 
         <Stack gap="xs">
-          <Text fw={500}>Feed</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Feed</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Global shows activity from all accounts, while following only
+              shows people you follow
+            </Text>
+          </Stack>
           <SegmentedControl
             value={settings.feedView}
             onChange={(value) => updateSetting('feedView', value as FeedView)}
@@ -96,7 +109,12 @@ export default function FeedSettingsContainer() {
         </Stack>
 
         <Stack gap="xs">
-          <Text fw={500}>Activity Type</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Activity Type</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Show all activity, or narrow to just new cards or connections
+            </Text>
+          </Stack>
           <SegmentedControl
             value={settings.feedActivityType ?? ACTIVITY_TYPE_ALL}
             onChange={(value) =>
@@ -125,7 +143,13 @@ export default function FeedSettingsContainer() {
         <Divider />
 
         <Stack gap="xs">
-          <Text fw={500}>Card Type</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Card Type</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Filter cards by content type
+            </Text>
+          </Stack>
+
           <Group gap={6}>
             <Button
               color={settings.feedUrlType === null ? 'lime' : 'gray'}
@@ -154,7 +178,8 @@ export default function FeedSettingsContainer() {
         <Divider />
 
         <Stack gap="xs">
-          <Text fw={500}>Accounts</Text>
+          <Text fw={500}>Account</Text>
+
           <Checkbox.Card
             withBorder={false}
             radius="md"
@@ -165,7 +190,7 @@ export default function FeedSettingsContainer() {
             }
           >
             <Group justify="space-between" wrap="nowrap">
-              <Group gap="xs">
+              <Group gap="xs" wrap="nowrap">
                 <ThemeIcon
                   variant="light"
                   color="gray"
