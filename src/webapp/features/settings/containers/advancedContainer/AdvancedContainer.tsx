@@ -98,7 +98,12 @@ export default function AdvancedContainer() {
         <Card bg={'var(--mantine-color-gray-light)'} radius={'lg'} p="md">
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <Stack gap="xs">
-              <Badge variant="light" color="gray" size="sm" w="fit-content">
+              <Badge
+                variant={!settings.tinkerMode ? 'filled' : 'light'}
+                color={!settings.tinkerMode ? undefined : 'gray'}
+                size="sm"
+                w="fit-content"
+              >
                 Off
               </Badge>
               <Card
@@ -118,7 +123,12 @@ export default function AdvancedContainer() {
             </Stack>
 
             <Stack gap="xs">
-              <Badge variant="light" color="gray" size="sm" w="fit-content">
+              <Badge
+                variant={settings.tinkerMode ? 'filled' : 'light'}
+                color={settings.tinkerMode ? undefined : 'gray'}
+                size="sm"
+                w="fit-content"
+              >
                 On
               </Badge>
               <Card
