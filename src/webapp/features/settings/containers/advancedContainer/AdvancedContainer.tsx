@@ -75,25 +75,27 @@ export default function AdvancedContainer() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="md">
-        <Stack gap={4}>
-          <Group justify="space-between">
+        <Group justify="space-between" wrap="nowrap">
+          <Stack gap={4}>
             <Text fw={500}>Tinker mode</Text>
-            <Switch
-              size="md"
-              onLabel="ON"
-              offLabel="OFF"
-              withThumbIndicator={false}
-              checked={settings.tinkerMode}
-              onChange={(event) =>
-                updateSetting('tinkerMode', event.currentTarget.checked)
-              }
-            />
-          </Group>
-          <Text fw={500} c={'gray'} fz={'sm'}>
-            Reveals raw data structures throughout the app — feed items, cards,
-            and collections expand to show the underlying AT Protocol records.
-          </Text>
-        </Stack>
+
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Reveals raw data structures throughout the app — feed items,
+              cards, and collections expand to show the underlying AT Protocol
+              records.
+            </Text>
+          </Stack>
+          <Switch
+            size="md"
+            onLabel="ON"
+            offLabel="OFF"
+            withThumbIndicator={false}
+            checked={settings.tinkerMode}
+            onChange={(event) =>
+              updateSetting('tinkerMode', event.currentTarget.checked)
+            }
+          />
+        </Group>
 
         <Card bg={'var(--mantine-color-gray-light)'} radius={'lg'} p="md">
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
