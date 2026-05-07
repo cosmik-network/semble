@@ -1,13 +1,18 @@
-import { Stack, Avatar, Skeleton } from '@mantine/core';
+import { Card, Group, Stack, Skeleton } from '@mantine/core';
+import classes from './AccountSummary.module.css';
 
 export default function AccountSummarySkeleton() {
   return (
-    <Stack align="center">
-      <Avatar size={'xl'} radius={'lg'} />
-      <Stack gap={'xs'} align="center">
-        <Skeleton w={100} h={28} />
-        <Skeleton w={80} h={18} />
-      </Stack>
-    </Stack>
+    <Card p={'sm'} radius={'lg'} classNames={{ root: classes.root }}>
+      <Group gap={'xs'}>
+        <Skeleton width={56} height={56} radius={'md'} />
+        <Stack gap={'xs'}>
+          <Stack gap={0}>
+            <Skeleton w={120} h={22} />
+            <Skeleton w={90} h={22} mt={4} />
+          </Stack>
+        </Stack>
+      </Group>
+    </Card>
   );
 }
