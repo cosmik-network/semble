@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { Box, Paper, Scroller, Tabs, TabsList, TabsPanel } from '@mantine/core';
+import {
+  Box,
+  Container,
+  Paper,
+  Scroller,
+  Tabs,
+  TabsList,
+  TabsPanel,
+} from '@mantine/core';
 import TabItem from './TabItem';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
@@ -61,31 +69,36 @@ export default function SembleTabs(props: Props) {
         }}
       >
         <Paper radius={0}>
-          <TabsList style={{ flexWrap: 'nowrap' }}>
-            <Scroller>
-              <TabItem value="similar">Similar cards</TabItem>
-              <TabItem value="collections" count={stats?.collectionCount}>
-                Collections
-              </TabItem>
-              <TabItem value="mentions">Mentions</TabItem>
-              <TabItem value="connections" count={stats?.connections.all.total}>
-                Connections
-              </TabItem>
-              <TabItem value="notes" count={stats?.noteCount}>
-                Notes
-              </TabItem>
-              <TabItem value="addedBy" count={stats?.libraryCount}>
-                Added by
-              </TabItem>
-              {featureFlags?.graphView && (
-                <TabItem value="graph">Graph</TabItem>
-              )}
-            </Scroller>
-          </TabsList>
+          <Container px={'xs'} size={'xl'}>
+            <TabsList style={{ flexWrap: 'nowrap' }}>
+              <Scroller>
+                <TabItem value="similar">Similar cards</TabItem>
+                <TabItem value="collections" count={stats?.collectionCount}>
+                  Collections
+                </TabItem>
+                <TabItem value="mentions">Mentions</TabItem>
+                <TabItem
+                  value="connections"
+                  count={stats?.connections.all.total}
+                >
+                  Connections
+                </TabItem>
+                <TabItem value="notes" count={stats?.noteCount}>
+                  Notes
+                </TabItem>
+                <TabItem value="addedBy" count={stats?.libraryCount}>
+                  Added by
+                </TabItem>
+                {featureFlags?.graphView && (
+                  <TabItem value="graph">Graph</TabItem>
+                )}
+              </Scroller>
+            </TabsList>
+          </Container>
         </Paper>
       </Box>
 
-      <Box mt="md">
+      <Container px={'xs'} size={'xl'} mt="md">
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />} key={props.url}>
             <SembleNotesContainer url={props.url} />
@@ -139,7 +152,7 @@ export default function SembleTabs(props: Props) {
             <SembleMentionsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
-      </Box>
+      </Container>
     </Tabs>
   );
 }

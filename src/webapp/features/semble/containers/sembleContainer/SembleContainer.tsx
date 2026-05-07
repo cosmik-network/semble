@@ -57,10 +57,10 @@ export default function SembleContainer(props: Props) {
               hideActions={props.hideActions}
             />
           </Suspense>
-
-          <SembleTabs url={props.url} />
         </Stack>
       </Container>
+
+      <SembleTabs url={props.url} />
     </Container>
   );
 }
