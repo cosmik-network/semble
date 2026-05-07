@@ -4,7 +4,7 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Box, Grid, Group, Stack } from '@mantine/core';
+import { Box, Group, Stack } from '@mantine/core';
 import ConnectionsContainerError from './Error.ConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
@@ -156,7 +156,7 @@ export default function ConnectionsContainer(props: Props) {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Grid gap="xl" mx={'auto'} maw={600} w={'100%'}>
+            <Stack gap="xl" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connection, index) => {
                 // Determine the actual direction for this specific connection
                 // If direction is 'all', check if the source URL matches props.url
@@ -177,19 +177,17 @@ export default function ConnectionsContainer(props: Props) {
                       containIntrinsicSize: 'auto 200px',
                     }}
                   >
-                    <Grid.Col span={12}>
-                      <ConnectionItem
-                        connection={connection}
-                        direction={connectionDirection}
-                        onEdit={() => {
-                          handleOpenEditModal(connection.connection, targetUrl);
-                        }}
-                      />
-                    </Grid.Col>
+                    <ConnectionItem
+                      connection={connection}
+                      direction={connectionDirection}
+                      onEdit={() => {
+                        handleOpenEditModal(connection.connection, targetUrl);
+                      }}
+                    />
                   </Box>
                 );
               })}
-            </Grid>
+            </Stack>
           </InfiniteScroll>
         )}
       </Stack>
