@@ -6,7 +6,15 @@ import {
   type User,
   CollectionAccessType,
 } from '@/api-client';
-import { ActionIcon, Button, Collapse, CopyButton, Group, Menu } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Collapse,
+  CopyButton,
+  Group,
+  Menu,
+  Tooltip,
+} from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
@@ -92,78 +100,84 @@ export default function UrlCardActions(props: Props) {
       )}
       <Group justify="space-between">
         <Group gap={'xs'}>
-          <Button
-            variant="light"
-            color={'gray'}
-            size="xs"
-            radius={'xl'}
-            leftSection={
-              props.urlLibraryCount > 0 ? (
-                props.urlIsInLibrary ? (
-                  <IoMdCheckmark size={18} />
-                ) : (
-                  <FiPlus size={18} />
-                )
-              ) : undefined
-            }
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isAuthenticated) {
-                router.push('/login');
-                return;
-              }
-              trigger();
-              setShowAddToModal(true);
-            }}
-          >
-            {props.urlLibraryCount ? (
-              props.urlLibraryCount
-            ) : props.urlIsInLibrary ? (
-              <IoMdCheckmark size={18} />
-            ) : (
-              <FiPlus size={18} />
-            )}
-          </Button>
-          <Button
-            variant="light"
-            color="gray"
-            c={props.urlIsConnected ? 'green' : 'gray'}
-            size="xs"
-            radius={'xl'}
-            leftSection={
-              props.urlConnectionCount > 0 ? (
-                <TbPlugConnected size={15} />
-              ) : undefined
-            }
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isAuthenticated) {
-                router.push('/login');
-                return;
-              }
-              trigger();
-              setShowAddConnectionModal(true);
-            }}
-          >
-            {props.urlConnectionCount ? (
-              props.urlConnectionCount
-            ) : (
-              <TbPlugConnected size={15} />
-            )}
-          </Button>
-
-          {props.note && (
-            <ActionIcon
+          <Tooltip label="Save or update" withArrow>
+            <Button
               variant="light"
-              color="gray"
+              color={'gray'}
+              size="xs"
               radius={'xl'}
+              leftSection={
+                props.urlLibraryCount > 0 ? (
+                  props.urlIsInLibrary ? (
+                    <IoMdCheckmark size={18} />
+                  ) : (
+                    <FiPlus size={18} />
+                  )
+                ) : undefined
+              }
               onClick={(e) => {
                 e.stopPropagation();
-                setShowNote((prev) => !prev);
+                if (!isAuthenticated) {
+                  router.push('/login');
+                  return;
+                }
+                trigger();
+                setShowAddToModal(true);
               }}
             >
-              <MdOutlineStickyNote2 />
-            </ActionIcon>
+              {props.urlLibraryCount ? (
+                props.urlLibraryCount
+              ) : props.urlIsInLibrary ? (
+                <IoMdCheckmark size={18} />
+              ) : (
+                <FiPlus size={18} />
+              )}
+            </Button>
+          </Tooltip>
+          <Tooltip label="Connect to another card" withArrow>
+            <Button
+              variant="light"
+              color="gray"
+              c={props.urlIsConnected ? 'green' : 'gray'}
+              size="xs"
+              radius={'xl'}
+              leftSection={
+                props.urlConnectionCount > 0 ? (
+                  <TbPlugConnected size={15} />
+                ) : undefined
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isAuthenticated) {
+                  router.push('/login');
+                  return;
+                }
+                trigger();
+                setShowAddConnectionModal(true);
+              }}
+            >
+              {props.urlConnectionCount ? (
+                props.urlConnectionCount
+              ) : (
+                <TbPlugConnected size={15} />
+              )}
+            </Button>
+          </Tooltip>
+
+          {props.note && (
+            <Tooltip label="View note" withArrow>
+              <ActionIcon
+                variant="light"
+                color="gray"
+                radius={'xl'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowNote((prev) => !prev);
+                }}
+              >
+                <MdOutlineStickyNote2 />
+              </ActionIcon>
+            </Tooltip>
           )}
         </Group>
 
