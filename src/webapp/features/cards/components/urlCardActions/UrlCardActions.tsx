@@ -6,7 +6,7 @@ import {
   type User,
   CollectionAccessType,
 } from '@/api-client';
-import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
+import { ActionIcon, Button, Collapse, CopyButton, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
@@ -14,8 +14,9 @@ import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/Remo
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { MdIosShare, MdOutlineStickyNote2 } from 'react-icons/md';
-import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
+import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardInline';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
@@ -65,7 +66,7 @@ export default function UrlCardActions(props: Props) {
 
   const canRemoveFromLibrary = isAuthor && props.urlIsInLibrary;
 
-  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showNote, setShowNote] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
@@ -74,13 +75,21 @@ export default function UrlCardActions(props: Props) {
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   const { trigger } = useWebHaptics();
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  const router = useRouter();
 
   return (
     <Fragment>
+      {props.note && (
+        <Collapse expanded={showNote}>
+          <NoteCardInline
+            note={props.note}
+            cardContent={props.cardContent}
+            cardAuthor={props.cardAuthor}
+            isOwner={isAuthenticated && isAuthor}
+            onClose={() => setShowNote(false)}
+          />
+        </Collapse>
+      )}
       <Group justify="space-between">
         <Group gap={'xs'}>
           <Button
@@ -99,6 +108,10 @@ export default function UrlCardActions(props: Props) {
             }
             onClick={(e) => {
               e.stopPropagation();
+              if (!isAuthenticated) {
+                router.push('/login');
+                return;
+              }
               trigger();
               setShowAddToModal(true);
             }}
@@ -124,6 +137,10 @@ export default function UrlCardActions(props: Props) {
             }
             onClick={(e) => {
               e.stopPropagation();
+              if (!isAuthenticated) {
+                router.push('/login');
+                return;
+              }
               trigger();
               setShowAddConnectionModal(true);
             }}
@@ -142,7 +159,7 @@ export default function UrlCardActions(props: Props) {
               radius={'xl'}
               onClick={(e) => {
                 e.stopPropagation();
-                setShowNoteModal(true);
+                setShowNote((prev) => !prev);
               }}
             >
               <MdOutlineStickyNote2 />
@@ -228,47 +245,43 @@ export default function UrlCardActions(props: Props) {
         </Menu>
       </Group>
 
-      <AddCardToModal
-        isOpen={showAddToModal}
-        onClose={() => setShowAddToModal(false)}
-        url={props.cardContent.url}
-        cardContent={props.cardContent}
-        cardId={props.id}
-        note={props.note?.text}
-        isInYourLibrary={props.urlIsInLibrary}
-        urlLibraryCount={props.urlLibraryCount}
-        viaCardId={props.viaCardId}
-        analyticsContext={props.analyticsContext}
-      />
+      {isAuthenticated && (
+        <>
+          <AddCardToModal
+            isOpen={showAddToModal}
+            onClose={() => setShowAddToModal(false)}
+            url={props.cardContent.url}
+            cardContent={props.cardContent}
+            cardId={props.id}
+            note={props.note?.text}
+            isInYourLibrary={props.urlIsInLibrary}
+            urlLibraryCount={props.urlLibraryCount}
+            viaCardId={props.viaCardId}
+            analyticsContext={props.analyticsContext}
+          />
 
-      <AddConnectionModal
-        isOpen={showAddConnectionModal}
-        onClose={() => setShowAddConnectionModal(false)}
-        sourceUrl={props.cardContent.url}
-        targetUrl={props.semblePageUrl}
-      />
+          <AddConnectionModal
+            isOpen={showAddConnectionModal}
+            onClose={() => setShowAddConnectionModal(false)}
+            sourceUrl={props.cardContent.url}
+            targetUrl={props.semblePageUrl}
+          />
 
-      <NoteCardModal
-        isOpen={showNoteModal}
-        onClose={() => setShowNoteModal(false)}
-        note={props.note}
-        cardContent={props.cardContent}
-        cardAuthor={props.cardAuthor}
-      />
-
-      {props.currentCollection && (
-        <RemoveCardFromCollectionModal
-          isOpen={showRemoveFromCollectionModal}
-          onClose={() => setShowRemoveFromCollectionModal(false)}
-          cardId={props.id}
-          collectionId={props.currentCollection.id}
-        />
+          {props.currentCollection && (
+            <RemoveCardFromCollectionModal
+              isOpen={showRemoveFromCollectionModal}
+              onClose={() => setShowRemoveFromCollectionModal(false)}
+              cardId={props.id}
+              collectionId={props.currentCollection.id}
+            />
+          )}
+          <RemoveCardFromLibraryModal
+            isOpen={showRemoveFromLibaryModal}
+            onClose={() => setShowRemoveFromLibraryModal(false)}
+            cardId={props.id}
+          />
+        </>
       )}
-      <RemoveCardFromLibraryModal
-        isOpen={showRemoveFromLibaryModal}
-        onClose={() => setShowRemoveFromLibraryModal(false)}
-        cardId={props.id}
-      />
     </Fragment>
   );
 }
