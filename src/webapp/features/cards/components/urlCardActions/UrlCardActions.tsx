@@ -6,7 +6,15 @@ import {
   type User,
   CollectionAccessType,
 } from '@/api-client';
-import { ActionIcon, Button, CopyButton, Group, Menu } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Collapse,
+  CopyButton,
+  Group,
+  Menu,
+  Tooltip,
+} from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
@@ -14,8 +22,9 @@ import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/Remo
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { MdIosShare, MdOutlineStickyNote2 } from 'react-icons/md';
-import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
+import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardInline';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
@@ -65,7 +74,7 @@ export default function UrlCardActions(props: Props) {
 
   const canRemoveFromLibrary = isAuthor && props.urlIsInLibrary;
 
-  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showNote, setShowNote] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
@@ -74,79 +83,101 @@ export default function UrlCardActions(props: Props) {
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
   const { trigger } = useWebHaptics();
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  const router = useRouter();
 
   return (
     <Fragment>
+      {props.note && (
+        <Collapse expanded={showNote}>
+          <NoteCardInline
+            note={props.note}
+            cardContent={props.cardContent}
+            cardAuthor={props.cardAuthor}
+            isOwner={isAuthenticated && isAuthor}
+            onClose={() => setShowNote(false)}
+          />
+        </Collapse>
+      )}
       <Group justify="space-between">
         <Group gap={'xs'}>
-          <Button
-            variant="light"
-            color={'gray'}
-            size="xs"
-            radius={'xl'}
-            leftSection={
-              props.urlLibraryCount > 0 ? (
-                props.urlIsInLibrary ? (
-                  <IoMdCheckmark size={18} />
-                ) : (
-                  <FiPlus size={18} />
-                )
-              ) : undefined
-            }
-            onClick={(e) => {
-              e.stopPropagation();
-              trigger();
-              setShowAddToModal(true);
-            }}
-          >
-            {props.urlLibraryCount ? (
-              props.urlLibraryCount
-            ) : props.urlIsInLibrary ? (
-              <IoMdCheckmark size={18} />
-            ) : (
-              <FiPlus size={18} />
-            )}
-          </Button>
-          <Button
-            variant="light"
-            color="gray"
-            c={props.urlIsConnected ? 'green' : 'gray'}
-            size="xs"
-            radius={'xl'}
-            leftSection={
-              props.urlConnectionCount > 0 ? (
-                <TbPlugConnected size={15} />
-              ) : undefined
-            }
-            onClick={(e) => {
-              e.stopPropagation();
-              trigger();
-              setShowAddConnectionModal(true);
-            }}
-          >
-            {props.urlConnectionCount ? (
-              props.urlConnectionCount
-            ) : (
-              <TbPlugConnected size={15} />
-            )}
-          </Button>
-
-          {props.note && (
-            <ActionIcon
+          <Tooltip label="Save or update" withArrow>
+            <Button
               variant="light"
-              color="gray"
+              color={'gray'}
+              size="xs"
               radius={'xl'}
+              leftSection={
+                props.urlLibraryCount > 0 ? (
+                  props.urlIsInLibrary ? (
+                    <IoMdCheckmark size={18} />
+                  ) : (
+                    <FiPlus size={18} />
+                  )
+                ) : undefined
+              }
               onClick={(e) => {
                 e.stopPropagation();
-                setShowNoteModal(true);
+                if (!isAuthenticated) {
+                  router.push('/login');
+                  return;
+                }
+                trigger();
+                setShowAddToModal(true);
               }}
             >
-              <MdOutlineStickyNote2 />
-            </ActionIcon>
+              {props.urlLibraryCount ? (
+                props.urlLibraryCount
+              ) : props.urlIsInLibrary ? (
+                <IoMdCheckmark size={18} />
+              ) : (
+                <FiPlus size={18} />
+              )}
+            </Button>
+          </Tooltip>
+          <Tooltip label="Connect to another card" withArrow>
+            <Button
+              variant="light"
+              color="gray"
+              c={props.urlIsConnected ? 'green' : 'gray'}
+              size="xs"
+              radius={'xl'}
+              leftSection={
+                props.urlConnectionCount > 0 ? (
+                  <TbPlugConnected size={15} />
+                ) : undefined
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isAuthenticated) {
+                  router.push('/login');
+                  return;
+                }
+                trigger();
+                setShowAddConnectionModal(true);
+              }}
+            >
+              {props.urlConnectionCount ? (
+                props.urlConnectionCount
+              ) : (
+                <TbPlugConnected size={15} />
+              )}
+            </Button>
+          </Tooltip>
+
+          {props.note && (
+            <Tooltip label="View note" withArrow>
+              <ActionIcon
+                variant="light"
+                color="gray"
+                radius={'xl'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowNote((prev) => !prev);
+                }}
+              >
+                <MdOutlineStickyNote2 />
+              </ActionIcon>
+            </Tooltip>
           )}
         </Group>
 
@@ -228,47 +259,43 @@ export default function UrlCardActions(props: Props) {
         </Menu>
       </Group>
 
-      <AddCardToModal
-        isOpen={showAddToModal}
-        onClose={() => setShowAddToModal(false)}
-        url={props.cardContent.url}
-        cardContent={props.cardContent}
-        cardId={props.id}
-        note={props.note?.text}
-        isInYourLibrary={props.urlIsInLibrary}
-        urlLibraryCount={props.urlLibraryCount}
-        viaCardId={props.viaCardId}
-        analyticsContext={props.analyticsContext}
-      />
+      {isAuthenticated && (
+        <>
+          <AddCardToModal
+            isOpen={showAddToModal}
+            onClose={() => setShowAddToModal(false)}
+            url={props.cardContent.url}
+            cardContent={props.cardContent}
+            cardId={props.id}
+            note={props.note?.text}
+            isInYourLibrary={props.urlIsInLibrary}
+            urlLibraryCount={props.urlLibraryCount}
+            viaCardId={props.viaCardId}
+            analyticsContext={props.analyticsContext}
+          />
 
-      <AddConnectionModal
-        isOpen={showAddConnectionModal}
-        onClose={() => setShowAddConnectionModal(false)}
-        sourceUrl={props.cardContent.url}
-        targetUrl={props.semblePageUrl}
-      />
+          <AddConnectionModal
+            isOpen={showAddConnectionModal}
+            onClose={() => setShowAddConnectionModal(false)}
+            sourceUrl={props.cardContent.url}
+            targetUrl={props.semblePageUrl}
+          />
 
-      <NoteCardModal
-        isOpen={showNoteModal}
-        onClose={() => setShowNoteModal(false)}
-        note={props.note}
-        cardContent={props.cardContent}
-        cardAuthor={props.cardAuthor}
-      />
-
-      {props.currentCollection && (
-        <RemoveCardFromCollectionModal
-          isOpen={showRemoveFromCollectionModal}
-          onClose={() => setShowRemoveFromCollectionModal(false)}
-          cardId={props.id}
-          collectionId={props.currentCollection.id}
-        />
+          {props.currentCollection && (
+            <RemoveCardFromCollectionModal
+              isOpen={showRemoveFromCollectionModal}
+              onClose={() => setShowRemoveFromCollectionModal(false)}
+              cardId={props.id}
+              collectionId={props.currentCollection.id}
+            />
+          )}
+          <RemoveCardFromLibraryModal
+            isOpen={showRemoveFromLibaryModal}
+            onClose={() => setShowRemoveFromLibraryModal(false)}
+            cardId={props.id}
+          />
+        </>
       )}
-      <RemoveCardFromLibraryModal
-        isOpen={showRemoveFromLibaryModal}
-        onClose={() => setShowRemoveFromLibraryModal(false)}
-        cardId={props.id}
-      />
     </Fragment>
   );
 }
