@@ -9,6 +9,8 @@ import {
   Checkbox,
   Group,
   Button,
+  Divider,
+  ThemeIcon,
 } from '@mantine/core';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { upperFirst } from '@mantine/hooks';
@@ -49,7 +51,14 @@ export default function FeedSettingsContainer() {
     <Container p="xs" size="xs">
       <Stack gap="xl">
         <Stack gap="xs">
-          <Text fw={500}>Source</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Source</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Where activity comes from. Semble can show data from other AT
+              Protocol apps that use compatible lexicons
+            </Text>
+          </Stack>
+
           <SegmentedControl
             radius={'lg'}
             value={settings.feedSource ?? SOURCE_ALL}
@@ -80,7 +89,13 @@ export default function FeedSettingsContainer() {
         </Stack>
 
         <Stack gap="xs">
-          <Text fw={500}>Feed</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Feed</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Global shows activity from all accounts, while following only
+              shows people you follow
+            </Text>
+          </Stack>
           <SegmentedControl
             value={settings.feedView}
             onChange={(value) => updateSetting('feedView', value as FeedView)}
@@ -94,7 +109,12 @@ export default function FeedSettingsContainer() {
         </Stack>
 
         <Stack gap="xs">
-          <Text fw={500}>Activity Type</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Activity Type</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Show all activity, or narrow to just new cards or connections
+            </Text>
+          </Stack>
           <SegmentedControl
             value={settings.feedActivityType ?? ACTIVITY_TYPE_ALL}
             onChange={(value) =>
@@ -120,8 +140,16 @@ export default function FeedSettingsContainer() {
           />
         </Stack>
 
+        <Divider />
+
         <Stack gap="xs">
-          <Text fw={500}>Card Type</Text>
+          <Stack gap={4}>
+            <Text fw={500}>Card Type</Text>
+            <Text fw={500} c={'gray'} fz={'sm'}>
+              Filter cards by content type
+            </Text>
+          </Stack>
+
           <Group gap={6}>
             <Button
               color={settings.feedUrlType === null ? 'lime' : 'gray'}
@@ -147,8 +175,11 @@ export default function FeedSettingsContainer() {
           </Group>
         </Stack>
 
+        <Divider />
+
         <Stack gap="xs">
-          <Text fw={500}>Accounts</Text>
+          <Text fw={500}>Account</Text>
+
           <Checkbox.Card
             withBorder={false}
             radius="md"
@@ -159,9 +190,21 @@ export default function FeedSettingsContainer() {
             }
           >
             <Group justify="space-between" wrap="nowrap">
-              <Group gap="xs">
-                <RiRobot2Fill size={16} />
-                <Text>Include bots</Text>
+              <Group gap="xs" wrap="nowrap">
+                <ThemeIcon
+                  variant="light"
+                  color="gray"
+                  size={'lg'}
+                  radius={'xl'}
+                >
+                  <RiRobot2Fill size={16} />
+                </ThemeIcon>
+                <Stack gap={0}>
+                  <Text>Include bots</Text>
+                  <Text c={'dimmed'} fz={'sm'}>
+                    Show activity from accounts marked as bots
+                  </Text>
+                </Stack>
               </Group>
               <Checkbox.Indicator />
             </Group>

@@ -148,6 +148,7 @@ export const theme = createTheme({
     Tooltip: Tooltip.extend({
       defaultProps: {
         position: 'top-start',
+        openDelay: 500,
       },
     }),
     Title: Text.extend({
