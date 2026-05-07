@@ -17,9 +17,9 @@ export default function RecentCollectionsSkeleton() {
       </Group>
 
       <Group gap="xs">
-        <Skeleton w={56} h={30} radius={'xl'} />
         <Skeleton w={82} h={30} radius={'xl'} />
         <Skeleton w={110} h={30} radius={'xl'} />
+        <Skeleton w={56} h={30} radius={'xl'} />
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
