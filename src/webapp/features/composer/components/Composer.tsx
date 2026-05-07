@@ -400,7 +400,7 @@ export default function Composer(props: Props) {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" size="md" loading={addCard.isPending}>
+                  <Button type="submit" size="md">
                     Add card
                   </Button>
                 </Group>
