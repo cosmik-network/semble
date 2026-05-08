@@ -19,6 +19,7 @@ import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { IoMdCheckmark } from 'react-icons/io';
+import { FaAsterisk } from 'react-icons/fa';
 
 // context
 interface FilterContextValue {
@@ -152,7 +153,7 @@ export function CardFiltersTypeFilter() {
   };
 
   const SelectedIcon =
-    optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
+    optimisticType === null ? FaAsterisk : getUrlTypeIcon(optimisticType);
 
   return (
     <Fragment>
@@ -175,6 +176,7 @@ export function CardFiltersTypeFilter() {
               size="xs"
               color="lime"
               variant={optimisticType === null ? 'filled' : 'light'}
+              leftSection={<FaAsterisk />}
               onClick={() => onChange()}
             >
               All Cards

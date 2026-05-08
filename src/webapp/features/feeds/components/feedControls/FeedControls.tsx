@@ -9,6 +9,7 @@ import { TbSettings } from 'react-icons/tb';
 import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
+import { FaAsterisk } from 'react-icons/fa';
 import { LinkButton } from '@/components/link/MantineLink';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import {
@@ -72,7 +73,7 @@ export default function FeedControls() {
 
   const SelectedTypeIcon =
     settings.feedUrlType === null
-      ? MdFilterList
+      ? FaAsterisk
       : getUrlTypeIcon(settings.feedUrlType);
 
   return (
@@ -215,6 +216,7 @@ export default function FeedControls() {
                     size="xs"
                     color="lime"
                     variant={settings.feedUrlType === null ? 'filled' : 'light'}
+                    leftSection={<FaAsterisk />}
                     onClick={() => handleTypeClick()}
                   >
                     All Cards
