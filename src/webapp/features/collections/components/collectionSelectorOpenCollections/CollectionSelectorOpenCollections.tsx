@@ -156,9 +156,6 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                 </Stack>
               ) : isLoading ? (
                 <Stack align="center" gap="xs">
-                  <Text fw={500} c="gray">
-                    Loading open collections...
-                  </Text>
                   <Loader color="gray" />
                 </Stack>
               ) : hasCollections ? (
