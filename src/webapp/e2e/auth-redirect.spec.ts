@@ -1,26 +1,22 @@
 import { test, expect } from '@playwright/test';
 
-test('unauthenticated /settings visit redirects to /login', async ({
-  page,
-}) => {
-  const response = await page.goto('/settings');
-  console.log('status:', response?.status(), 'final url:', page.url());
+/**
+ * Auth redirect tests.
+ *
+ * /home and /notifications have server-side guards (verifySessionOnServer).
+ * /settings/* and /profile (bare) redirect via the client-side useAuth fallback.
+ */
 
-  await expect(page).toHaveURL('/login');
-});
+const protectedRoutes = [
+  '/home',
+  '/notifications',
+  '/settings',
+  '/profile',
+];
 
-test('unauthenticated /notifications visit redirects to /login', async ({
-  page,
-}) => {
-  const response = await page.goto('/notifications');
-  console.log('status:', response?.status(), 'final url:', page.url());
-
-  await expect(page).toHaveURL('/login');
-});
-
-test('unauthenticated /home visit redirects to /login', async ({ page }) => {
-  const response = await page.goto('/home');
-  console.log('status:', response?.status(), 'final url:', page.url());
-
-  await expect(page).toHaveURL('/login');
-});
+for (const route of protectedRoutes) {
+  test(`unauthenticated ${route} redirects to /login`, async ({ page }) => {
+    await page.goto(route);
+    await expect(page).toHaveURL('/login');
+  });
+}
