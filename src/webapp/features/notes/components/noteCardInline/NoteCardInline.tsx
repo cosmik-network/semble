@@ -105,7 +105,7 @@ export default function NoteCardInline(props: Props) {
       <Card
         className={styles.root}
         radius="md"
-        p="sm"
+        p="xs"
         onClick={(e) => e.stopPropagation()}
       >
         <Stack gap={'xs'}>
@@ -162,7 +162,7 @@ export default function NoteCardInline(props: Props) {
     <Card
       className={styles.root}
       radius="md"
-      p="sm"
+      p="xs"
       onClick={(e) => e.stopPropagation()}
     >
       <Stack gap={'xs'}>
