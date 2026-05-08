@@ -14,7 +14,7 @@ if (sentryConfig.dsn) {
     environment: sentryConfig.environment,
     release: release,
     // Performance Monitoring - Start at 10% to manage costs (Fly.io recommendation)
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.1,
     // Send default PII (includes IP addresses, user data)
     sendDefaultPii: true,
   });
