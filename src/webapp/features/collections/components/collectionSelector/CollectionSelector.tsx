@@ -58,19 +58,24 @@ export default function CollectionSelector(props: Props) {
         </Tabs.List>
 
         <Tabs.Panel value="myCollections">
-          <CollectionSelectorMyCollections
-            selectedCollections={props.selectedCollections}
-            onSelectedCollectionsChange={props.onSelectedCollectionsChange}
-          />
+          <Suspense
+            fallback={
+              <Stack align="center" gap="xs">
+                <Loader color="gray" />
+              </Stack>
+            }
+          >
+            <CollectionSelectorMyCollections
+              selectedCollections={props.selectedCollections}
+              onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+            />
+          </Suspense>
         </Tabs.Panel>
 
         <Tabs.Panel value="openCollections">
           <Suspense
             fallback={
               <Stack align="center" gap="xs">
-                <Text fw={500} c="gray">
-                  Loading open collections...
-                </Text>
                 <Loader color="gray" />
               </Stack>
             }

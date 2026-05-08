@@ -514,19 +514,17 @@ export default function Composer(props: Props) {
           </Drawer.Title>
         </Drawer.Header>
         <Container size={'xs'} p={0}>
-          <Suspense fallback={<CollectionSelectorSkeleton />}>
-            <CollectionSelector
-              isOpen={collectionSelectorOpened}
-              onCancel={() => {
-                setSelectedCollections(initialCollections);
-                toggleCollectionSelector();
-              }}
-              onClose={toggleCollectionSelector}
-              onSave={toggleCollectionSelector}
-              selectedCollections={selectedCollections}
-              onSelectedCollectionsChange={setSelectedCollections}
-            />
-          </Suspense>
+          <CollectionSelector
+            isOpen={collectionSelectorOpened}
+            onCancel={() => {
+              setSelectedCollections(initialCollections);
+              toggleCollectionSelector();
+            }}
+            onClose={toggleCollectionSelector}
+            onSave={toggleCollectionSelector}
+            selectedCollections={selectedCollections}
+            onSelectedCollectionsChange={setSelectedCollections}
+          />
         </Container>
       </Drawer>
     </>
