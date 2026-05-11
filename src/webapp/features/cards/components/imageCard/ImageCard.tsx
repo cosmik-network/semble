@@ -4,6 +4,8 @@ import type { UrlCard, Collection, User } from '@/api-client';
 import { Card, Image, Stack, Text } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import { Fragment, useState } from 'react';
+import { Lightbox } from '@mantine-bites/lightbox';
 
 interface Props {
   id: string;
@@ -22,6 +24,8 @@ interface Props {
 }
 
 export default function ImageCard(props: Props) {
+  const [lightboxOpened, setLightboxOpened] = useState(false);
+
   return (
     <Card
       component="article"
@@ -42,14 +46,25 @@ export default function ImageCard(props: Props) {
           )}
 
           {props.cardContent.imageUrl && (
-            <Image
-              src={props.cardContent.imageUrl}
-              alt={props.cardContent.title || 'Card image'}
-              w="100%"
-              mah={400}
-              radius="md"
-              fit="cover"
-            />
+            <Fragment>
+              <Image
+                src={props.cardContent.imageUrl}
+                alt={props.cardContent.title || 'Card image'}
+                w="100%"
+                mah={400}
+                radius="md"
+                fit="cover"
+                onClick={() => setLightboxOpened(true)}
+              />
+              <Lightbox
+                images={[{ src: props.cardContent.imageUrl }]}
+                opened={lightboxOpened}
+                onClose={() => setLightboxOpened(false)}
+                initialSlide={0}
+                withThumbnails={false}
+                withControls={false}
+              />
+            </Fragment>
           )}
         </Stack>
 

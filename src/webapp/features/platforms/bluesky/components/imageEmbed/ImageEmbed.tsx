@@ -32,7 +32,6 @@ export default function ImageEmbed(props: Props) {
       <Lightbox.Root
         opened={lightboxOpened}
         onClose={() => setLightboxOpened(false)}
-        initialSlide={initialSlide}
       >
         <Lightbox.Toolbar>
           <Lightbox.CloseButton />
