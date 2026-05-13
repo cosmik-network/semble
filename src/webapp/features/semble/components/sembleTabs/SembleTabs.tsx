@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Box,
   Container,
@@ -59,7 +59,6 @@ const VALID_TABS: TabValue[] = [
 
 export default function SembleTabs(props: Props) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const tabParam = searchParams.get('sembleTab') as TabValue;
   const [activeTab, setActiveTab] = useState<TabValue>(
     VALID_TABS.includes(tabParam) ? tabParam : 'similar',
@@ -81,7 +80,7 @@ export default function SembleTabs(props: Props) {
         setActiveTab(newTab);
         const viaCardId = searchParams.get('viaCardId');
         const qs = `id=${props.url}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
-        router.replace(`?${qs}`, { scroll: false });
+        window.history.replaceState(null, '', `?${qs}`);
       }}
     >
       <Box
