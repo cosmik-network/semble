@@ -7,12 +7,7 @@ import { test, expect } from '@playwright/test';
  * /settings/* and /profile (bare) redirect via the client-side useAuth fallback.
  */
 
-const protectedRoutes = [
-  '/home',
-  '/notifications',
-  '/settings',
-  '/profile',
-];
+const protectedRoutes = ['/home', '/notifications', '/settings', '/profile'];
 
 for (const route of protectedRoutes) {
   test(`unauthenticated ${route} redirects to /login`, async ({ page }) => {

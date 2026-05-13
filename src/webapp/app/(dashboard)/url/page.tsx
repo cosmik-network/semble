@@ -7,13 +7,21 @@ import { Suspense } from 'react';
 import SembleContainerSkeleton from '@/features/semble/containers/sembleContainer/Skeleton.SembleContainer';
 
 interface Props {
-  searchParams: Promise<{ id: string | undefined; viaCardId?: string; sembleTab?: string }>;
+  searchParams: Promise<{
+    id: string | undefined;
+    viaCardId?: string;
+    sembleTab?: string;
+  }>;
 }
 
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ id: string | undefined; viaCardId?: string; sembleTab?: string }>;
+  searchParams: Promise<{
+    id: string | undefined;
+    viaCardId?: string;
+    sembleTab?: string;
+  }>;
 }): Promise<Metadata> {
   const { id: url } = await searchParams;
 

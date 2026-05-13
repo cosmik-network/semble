@@ -25,22 +25,15 @@ test.describe('Landing page', () => {
   });
 
   test('renders community highlights section', async ({ page }) => {
-    await expect(
-      page.getByText('Highlights from our community'),
-    ).toBeVisible();
+    await expect(page.getByText('Highlights from our community')).toBeVisible();
 
-    await expect(
-      page.getByRole('link', { name: 'Explore' }),
-    ).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Explore' })).toBeVisible();
   });
-
 
   test('renders footer with social and doc links', async ({ page }) => {
     await expect(
       page.getByRole('link', { name: 'Follow our blog' }),
     ).toBeVisible();
-    await expect(
-      page.getByRole('link', { name: 'Semble Docs' }),
-    ).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Semble Docs' })).toBeVisible();
   });
 });
