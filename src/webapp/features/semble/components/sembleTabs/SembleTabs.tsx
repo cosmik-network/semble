@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
   Container,
@@ -42,11 +43,27 @@ type TabValue =
   | 'collections'
   | 'addedBy'
   | 'similar'
+  | 'mentions'
   | 'connections'
   | 'graph';
 
+const VALID_TABS: TabValue[] = [
+  'notes',
+  'collections',
+  'addedBy',
+  'similar',
+  'mentions',
+  'connections',
+  'graph',
+];
+
 export default function SembleTabs(props: Props) {
-  const [activeTab, setActiveTab] = useState<TabValue>('similar');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams.get('sembleTab') as TabValue;
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    VALID_TABS.includes(tabParam) ? tabParam : 'similar',
+  );
   const { data: featureFlags } = useFeatureFlags();
   const { data: urlMetadata } = useUrlMetadata({
     url: props.url,
@@ -59,7 +76,13 @@ export default function SembleTabs(props: Props) {
     <Tabs
       keepMounted={false}
       value={activeTab}
-      onChange={(val) => setActiveTab(val as TabValue)}
+      onChange={(val) => {
+        const newTab = val as TabValue;
+        setActiveTab(newTab);
+        const viaCardId = searchParams.get('viaCardId');
+        const qs = `id=${props.url}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
+        router.replace(`?${qs}`, { scroll: false });
+      }}
     >
       <Box
         style={{
