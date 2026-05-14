@@ -18,7 +18,7 @@ import {
   VisuallyHidden,
   Scroller,
 } from '@mantine/core';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Collection, CollectionAccessType } from '@semble/types';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { useForm } from '@mantine/form';
@@ -30,6 +30,7 @@ import CollectionSelectorSkeleton from '@/features/collections/components/collec
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
 import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
+import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
@@ -84,11 +85,28 @@ export default function Composer(props: Props) {
     pagePath: pathname,
   });
 
+  const rawUrlInput = useRef(props.initialUrl ?? '');
+
   const cardForm = useForm({
     initialValues: {
       url: props.initialUrl || '',
       note: '',
       collections: selectedCollections,
+    },
+    validateInputOnChange: false,
+    validateInputOnBlur: true,
+    validate: {
+      url: (value) => {
+        if (!value || value.trim() === '') {
+          return 'URL is required';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
     },
   });
 
@@ -114,6 +132,7 @@ export default function Composer(props: Props) {
   useEffect(() => {
     if (props.initialUrl) {
       cardForm.setValues({ url: props.initialUrl });
+      rawUrlInput.current = props.initialUrl;
     }
   }, [props.initialUrl]);
 
@@ -124,11 +143,26 @@ export default function Composer(props: Props) {
       collectionForm.reset();
       setSelectedCollections(initialCollections);
       setMode('card');
+      rawUrlInput.current = '';
     }
   }, [props.isOpen]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Auto-confirm a valid URL that was typed/pasted but not explicitly selected
+    if (!cardForm.values.url && rawUrlInput.current) {
+      try {
+        new URL(rawUrlInput.current);
+        cardForm.setFieldValue('url', rawUrlInput.current);
+      } catch {
+        // let validation handle it
+      }
+    }
+
+    const validation = cardForm.validate();
+    if (validation.hasErrors) return;
+
     track('add new card');
 
     // Capture values before any state changes
@@ -154,6 +188,7 @@ export default function Composer(props: Props) {
     props.onClose();
     setSelectedCollections(initialCollections);
     window.history.replaceState({}, '', window.location.pathname);
+    rawUrlInput.current = '';
     cardForm.reset();
 
     addCard.mutate({ ...cardData, notificationId });
@@ -268,18 +303,26 @@ export default function Composer(props: Props) {
               style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
             >
               <Stack gap={'xl'} style={{ flex: 1 }}>
-                <TextInput
+                <UrlSearchInput
                   id="url"
                   label="URL"
-                  type="url"
-                  placeholder="https://www.example.com"
-                  variant="filled"
-                  required
-                  size="md"
-                  leftSection={<IoMdLink size={22} />}
-                  data-autofocus
-                  key={cardForm.key('url')}
-                  {...cardForm.getInputProps('url')}
+                  placeholder="Search of paste a link"
+                  value={cardForm.values.url}
+                  error={cardForm.errors.url}
+                  onUrlSelect={(url) => cardForm.setFieldValue('url', url)}
+                  onUrlClear={() => {
+                    rawUrlInput.current = '';
+                    cardForm.setFieldValue('url', '');
+                  }}
+                  onInputChange={(raw) => {
+                    rawUrlInput.current = raw;
+                  }}
+                  inputProps={{
+                    variant: 'filled',
+                    size: 'md',
+                    leftSection: <IoMdLink size={22} />,
+                    'data-autofocus': true,
+                  }}
                 />
 
                 <Stack gap={0}>

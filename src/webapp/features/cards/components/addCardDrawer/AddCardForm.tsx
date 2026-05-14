@@ -9,7 +9,6 @@ import {
   Stack,
   Text,
   Textarea,
-  TextInput,
   ThemeIcon,
   VisuallyHidden,
   Container,
@@ -19,7 +18,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useAddCard from '../../lib/mutations/useAddCard';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
@@ -33,6 +32,7 @@ import { Collection, CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
 
 interface Props {
   onClose: () => void;
@@ -67,11 +67,28 @@ export default function AddCardForm(props: Props) {
     pagePath: pathname,
   });
 
+  const rawUrlInput = useRef(props.initialUrl ?? '');
+
   const form = useForm({
     initialValues: {
       url: props.initialUrl || '',
       note: '',
       collections: selectedCollections,
+    },
+    validateInputOnChange: false,
+    validateInputOnBlur: true,
+    validate: {
+      url: (value) => {
+        if (!value || value.trim() === '') {
+          return 'URL is required';
+        }
+        try {
+          new URL(value);
+          return null;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
     },
   });
 
@@ -80,11 +97,26 @@ export default function AddCardForm(props: Props) {
   useEffect(() => {
     if (props.initialUrl) {
       form.setValues({ url: props.initialUrl });
+      rawUrlInput.current = props.initialUrl;
     }
   }, [props.initialUrl]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Auto-confirm a valid URL that was typed/pasted but not explicitly selected
+    if (!form.values.url && rawUrlInput.current) {
+      try {
+        new URL(rawUrlInput.current);
+        form.setFieldValue('url', rawUrlInput.current);
+      } catch {
+        // let validation handle it
+      }
+    }
+
+    const validation = form.validate();
+    if (validation.hasErrors) return;
+
     track('add new card');
 
     // Capture values before any state changes
@@ -109,6 +141,7 @@ export default function AddCardForm(props: Props) {
     // Close drawer immediately
     props.onClose();
     setSelectedCollections(initialCollections);
+    rawUrlInput.current = '';
     form.reset();
 
     addCard.mutate({ ...cardData, notificationId });
@@ -118,17 +151,26 @@ export default function AddCardForm(props: Props) {
     <>
       <form onSubmit={handleAddCard}>
         <Stack gap={'xl'}>
-          <TextInput
+          <UrlSearchInput
             id="url"
             label="URL"
-            type="url"
-            placeholder="https://www.example.com"
-            variant="filled"
-            required
-            size="md"
-            leftSection={<IoMdLink size={22} />}
-            key={form.key('url')}
-            {...form.getInputProps('url')}
+            placeholder="Search or paste a link"
+            value={form.values.url}
+            error={form.errors.url}
+            onUrlSelect={(url) => form.setFieldValue('url', url)}
+            onUrlClear={() => {
+              rawUrlInput.current = '';
+              form.setFieldValue('url', '');
+            }}
+            onInputChange={(raw) => {
+              rawUrlInput.current = raw;
+            }}
+            inputProps={{
+              variant: 'filled',
+              size: 'md',
+              leftSection: <IoMdLink size={22} />,
+              'data-autofocus': true,
+            }}
           />
 
           <Stack gap={0}>

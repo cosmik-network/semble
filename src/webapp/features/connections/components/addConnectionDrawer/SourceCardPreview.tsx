@@ -19,7 +19,7 @@ function SourceCardPreviewSkeleton() {
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Group gap="xs" wrap="nowrap">
-        <Skeleton width={45} height={45} radius={'md'} />
+        <Skeleton width={42} height={42} radius={'md'} />
         <Stack gap={0} style={{ flex: 1 }}>
           <Skeleton height={21.5} width="80%" radius="sm" />
           <Skeleton height={18.5} width="60%" radius="sm" mt={4} />
@@ -56,8 +56,8 @@ export default function SourceCardPreview(props: Props) {
             src={data.metadata.imageUrl}
             alt={`${data.metadata.title} social preview image`}
             radius={'md'}
-            w={45}
-            h={45}
+            w={42}
+            h={42}
             style={{ flexShrink: 0 }}
           />
         )}

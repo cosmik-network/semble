@@ -13,6 +13,8 @@ import {
   Skeleton,
   Stack,
   Text,
+  TextInput,
+  type TextInputProps,
   ThemeIcon,
   useCombobox,
   VisuallyHidden,
@@ -61,6 +63,24 @@ interface Props {
   onUrlSelect: (url: string) => void;
   onUrlClear?: () => void;
   onInputChange?: (rawValue: string) => void;
+  /**
+   * When provided, the input is rendered as a standard Mantine `TextInput`
+   * (with a visible label) and these props are spread onto it. Use this to
+   * customize variant, size, leftSection, etc. When omitted, the input keeps
+   * the legacy card-wrapped unstyled layout used by the connection form.
+   */
+  inputProps?: Omit<
+    TextInputProps,
+    | 'id'
+    | 'label'
+    | 'placeholder'
+    | 'value'
+    | 'onChange'
+    | 'onFocus'
+    | 'onBlur'
+    | 'error'
+    | 'required'
+  > & { [K in `data-${string}`]?: unknown };
 }
 
 export default function UrlSearchInput(props: Props) {
@@ -216,83 +236,198 @@ export default function UrlSearchInput(props: Props) {
 
   const currentError = searchFilter === 'cards' ? error : collectionSearchError;
 
-  return (
-    <Card padding="xs" radius="lg" withBorder>
-      <Stack gap={0}>
-        <Combobox
-          shadow="sm"
-          radius={'md'}
-          store={combobox}
-          position="bottom-start"
-          onOptionSubmit={(url) => {
-            props.onUrlSelect(url);
-            setInputValue(url);
-            if (isValidUrl(url)) {
-              setConfirmedUrl(url);
-              // Look up metadata from search results or recent cards
-              const searchMatch = urls.find((u) => u.url === url);
-              const recentMatch = recentCardsList.find((c) => c.url === url);
-              setConfirmedMetadata(
-                searchMatch?.metadata ?? recentMatch?.cardContent,
-              );
-            }
-            combobox.closeDropdown();
-          }}
-        >
-          <Combobox.Target>
-            <Input
-              id={props.id}
-              component="input"
-              type="text"
-              py={2.5}
-              placeholder={props.placeholder}
-              value={inputValue}
-              onChange={(e) => {
-                const val = e.currentTarget.value;
-                setInputValue(val);
-                props.onInputChange?.(val);
-                combobox.openDropdown();
-              }}
-              onFocus={() => {
-                setIsInputFocused(true);
-                combobox.openDropdown();
-              }}
-              onBlur={() => {
-                setIsInputFocused(false);
-              }}
-              rightSection={null}
-              variant="unstyled"
-              size="md"
-              required
-              error={props.error}
-            />
-          </Combobox.Target>
+  const isPlainLayout = !!props.inputProps;
 
-          <Combobox.Dropdown
-            hidden={
-              (inputValue.trim().length === 0 &&
-                debounced.trim().length === 0 &&
-                !(
-                  isInputFocused &&
-                  (isLoadingRecentCards || recentCardsList.length > 0)
-                )) ||
-              (inputValue.trim().length === 0 && debounced.trim().length > 0)
-            }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.currentTarget.value;
+    setInputValue(val);
+    props.onInputChange?.(val);
+    combobox.openDropdown();
+  };
+
+  const handleFocus = () => {
+    setIsInputFocused(true);
+    combobox.openDropdown();
+  };
+
+  const handleBlur = () => {
+    setIsInputFocused(false);
+  };
+
+  const inputElement = isPlainLayout ? (
+    <TextInput
+      {...props.inputProps}
+      id={props.id}
+      label={props.label}
+      placeholder={props.placeholder}
+      value={inputValue}
+      onChange={handleInputChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      error={props.error}
+      required
+    />
+  ) : (
+    <Input
+      id={props.id}
+      component="input"
+      type="text"
+      py={2.5}
+      placeholder={props.placeholder}
+      value={inputValue}
+      onChange={handleInputChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      rightSection={null}
+      variant="unstyled"
+      size="md"
+      required
+      error={props.error}
+    />
+  );
+
+  const comboboxBlock = (
+    <Combobox
+      shadow="sm"
+      radius={'md'}
+      store={combobox}
+      position="bottom-start"
+      onOptionSubmit={(url) => {
+        props.onUrlSelect(url);
+        setInputValue(url);
+        if (isValidUrl(url)) {
+          setConfirmedUrl(url);
+          // Look up metadata from search results or recent cards
+          const searchMatch = urls.find((u) => u.url === url);
+          const recentMatch = recentCardsList.find((c) => c.url === url);
+          setConfirmedMetadata(
+            searchMatch?.metadata ?? recentMatch?.cardContent,
+          );
+        }
+        combobox.closeDropdown();
+      }}
+    >
+      <Combobox.Target>{inputElement}</Combobox.Target>
+
+      <Combobox.Dropdown
+        hidden={
+          (inputValue.trim().length === 0 &&
+            debounced.trim().length === 0 &&
+            !(
+              isInputFocused &&
+              (isLoadingRecentCards || recentCardsList.length > 0)
+            )) ||
+          (inputValue.trim().length === 0 && debounced.trim().length > 0)
+        }
+      >
+        <Combobox.Options>
+          <ScrollArea.Autosize
+            type="scroll"
+            mah={{ base: 150, xs: 300 }}
+            offsetScrollbars={'present'}
           >
-            <Combobox.Options>
-              <ScrollArea.Autosize
-                type="scroll"
-                mah={{ base: 150, xs: 300 }}
-                offsetScrollbars={'present'}
-              >
-                {debounced.trim().length === 0 ? (
+            {debounced.trim().length === 0 ? (
+              <Fragment>
+                <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
+                  Recent cards
+                </Text>
+                {isLoadingRecentCards ? (
+                  <Stack gap={5} p={5}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Group key={i} gap="xs" align="center" wrap="nowrap">
+                        <Skeleton height={35} width={35} radius="sm" />
+                        <Stack gap={4} style={{ flex: 1 }}>
+                          <Skeleton height={12} width="70%" radius="xl" />
+                          <Skeleton height={10} width="40%" radius="xl" />
+                        </Stack>
+                      </Group>
+                    ))}
+                  </Stack>
+                ) : (
+                  recentCardsList.map((card) => (
+                    <Combobox.Option key={card.url} value={card.url} p={5}>
+                      <Group gap={'xs'} align="center" wrap="nowrap">
+                        {card.cardContent.imageUrl && (
+                          <Image
+                            src={card.cardContent.imageUrl}
+                            alt={card.cardContent.title || 'URL thumbnail'}
+                            w={35}
+                            h={35}
+                            radius="sm"
+                            fit="cover"
+                          />
+                        )}
+                        <Stack gap={0}>
+                          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
+                            {card.cardContent.title || card.url}
+                          </Text>
+                          <Text c={'gray'} lineClamp={1} size="xs">
+                            {getDomain(card.url)}
+                          </Text>
+                        </Stack>
+                      </Group>
+                    </Combobox.Option>
+                  ))
+                )}
+              </Fragment>
+            ) : (
+              <Fragment>
+                {currentError && (
+                  <Combobox.Empty>Could not search</Combobox.Empty>
+                )}
+                {!currentError && inputValue.trim() && (
                   <Fragment>
-                    <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
-                      Recent cards
-                    </Text>
-                    {isLoadingRecentCards ? (
+                    <Combobox.Option value={inputValue}>
+                      <Group gap="xs" wrap="nowrap" p={0}>
+                        <ThemeIcon
+                          radius={'xl'}
+                          size={'sm'}
+                          variant="light"
+                          color="gray"
+                        >
+                          <BiPlus />
+                        </ThemeIcon>
+                        <Stack gap={0} style={{ flex: 1 }}>
+                          <Text size="sm" fw={600} c={'bright'}>
+                            Add this link
+                          </Text>
+                          <Text size="xs" c="dimmed" lineClamp={1}>
+                            {inputValue}
+                          </Text>
+                        </Stack>
+                      </Group>
+                    </Combobox.Option>
+
+                    {(hasSearchResults || true) && (
+                      <Fragment>
+                        <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
+                          Search results
+                        </Text>
+                        <SegmentedControl
+                          value={searchFilter}
+                          onChange={(value) => {
+                            setSearchFilter(value as SearchFilter);
+                            combobox.resetSelectedOption();
+                          }}
+                          data={[
+                            { label: 'Cards', value: 'cards' },
+                            {
+                              label: 'Collections',
+                              value: 'collections',
+                            },
+                          ]}
+                          size="xs"
+                          mb="xs"
+                        />
+                      </Fragment>
+                    )}
+                  </Fragment>
+                )}
+                {searchFilter === 'cards' && (
+                  <Fragment>
+                    {isFetching ? (
                       <Stack gap={5} p={5}>
-                        {Array.from({ length: 5 }).map((_, i) => (
+                        {Array.from({ length: 3 }).map((_, i) => (
                           <Group key={i} gap="xs" align="center" wrap="nowrap">
                             <Skeleton height={35} width={35} radius="sm" />
                             <Stack gap={4} style={{ flex: 1 }}>
@@ -302,161 +437,57 @@ export default function UrlSearchInput(props: Props) {
                           </Group>
                         ))}
                       </Stack>
+                    ) : cardOptions.length > 0 ? (
+                      <Fragment>{cardOptions}</Fragment>
                     ) : (
-                      recentCardsList.map((card) => (
-                        <Combobox.Option key={card.url} value={card.url} p={5}>
-                          <Group gap={'xs'} align="center" wrap="nowrap">
-                            {card.cardContent.imageUrl && (
-                              <Image
-                                src={card.cardContent.imageUrl}
-                                alt={card.cardContent.title || 'URL thumbnail'}
-                                w={35}
-                                h={35}
-                                radius="sm"
-                                fit="cover"
-                              />
-                            )}
-                            <Stack gap={0}>
-                              <Text
-                                fw={500}
-                                c={'bright'}
-                                lineClamp={1}
-                                size="sm"
-                              >
-                                {card.cardContent.title || card.url}
-                              </Text>
-                              <Text c={'gray'} lineClamp={1} size="xs">
-                                {getDomain(card.url)}
-                              </Text>
-                            </Stack>
-                          </Group>
-                        </Combobox.Option>
-                      ))
-                    )}
-                  </Fragment>
-                ) : (
-                  <Fragment>
-                    {currentError && (
-                      <Combobox.Empty>Could not search</Combobox.Empty>
-                    )}
-                    {!currentError && inputValue.trim() && (
-                      <Fragment>
-                        <Combobox.Option value={inputValue}>
-                          <Group gap="xs" wrap="nowrap" p={0}>
-                            <ThemeIcon
-                              radius={'xl'}
-                              size={'sm'}
-                              variant="light"
-                              color="gray"
-                            >
-                              <BiPlus />
-                            </ThemeIcon>
-                            <Stack gap={0} style={{ flex: 1 }}>
-                              <Text size="sm" fw={600} c={'bright'}>
-                                Add this link
-                              </Text>
-                              <Text size="xs" c="dimmed" lineClamp={1}>
-                                {inputValue}
-                              </Text>
-                            </Stack>
-                          </Group>
-                        </Combobox.Option>
-
-                        {(hasSearchResults || true) && (
-                          <Fragment>
-                            <Text size="sm" fw={500} c="dimmed" py="xs" px={5}>
-                              Search results
-                            </Text>
-                            <SegmentedControl
-                              value={searchFilter}
-                              onChange={(value) => {
-                                setSearchFilter(value as SearchFilter);
-                                combobox.resetSelectedOption();
-                              }}
-                              data={[
-                                { label: 'Cards', value: 'cards' },
-                                {
-                                  label: 'Collections',
-                                  value: 'collections',
-                                },
-                              ]}
-                              size="xs"
-                              mb="xs"
-                            />
-                          </Fragment>
-                        )}
-                      </Fragment>
-                    )}
-                    {searchFilter === 'cards' && (
-                      <Fragment>
-                        {isFetching ? (
-                          <Stack gap={5} p={5}>
-                            {Array.from({ length: 3 }).map((_, i) => (
-                              <Group
-                                key={i}
-                                gap="xs"
-                                align="center"
-                                wrap="nowrap"
-                              >
-                                <Skeleton height={35} width={35} radius="sm" />
-                                <Stack gap={4} style={{ flex: 1 }}>
-                                  <Skeleton
-                                    height={12}
-                                    width="70%"
-                                    radius="xl"
-                                  />
-                                  <Skeleton
-                                    height={10}
-                                    width="40%"
-                                    radius="xl"
-                                  />
-                                </Stack>
-                              </Group>
-                            ))}
-                          </Stack>
-                        ) : cardOptions.length > 0 ? (
-                          <Fragment>{cardOptions}</Fragment>
-                        ) : (
-                          debounced.trim().length > 0 && (
-                            <Combobox.Empty>No cards found</Combobox.Empty>
-                          )
-                        )}
-                      </Fragment>
-                    )}
-                    {searchFilter === 'collections' && (
-                      <Fragment>
-                        {isCollectionSearchFetching ? (
-                          <Stack gap={5} p={5}>
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Group
-                                key={i}
-                                gap="xs"
-                                align="center"
-                                justify="space-between"
-                                wrap="nowrap"
-                              >
-                                <Skeleton height={20} width="70%" radius="xl" />
-                                <Skeleton height={26} width={26} radius="md" />
-                              </Group>
-                            ))}
-                          </Stack>
-                        ) : collectionOptions.filter(Boolean).length > 0 ? (
-                          <Fragment>{collectionOptions}</Fragment>
-                        ) : (
-                          debounced.trim().length > 0 && (
-                            <Combobox.Empty>
-                              No collections found
-                            </Combobox.Empty>
-                          )
-                        )}
-                      </Fragment>
+                      debounced.trim().length > 0 && (
+                        <Combobox.Empty>No cards found</Combobox.Empty>
+                      )
                     )}
                   </Fragment>
                 )}
-              </ScrollArea.Autosize>
-            </Combobox.Options>
-          </Combobox.Dropdown>
-        </Combobox>
+                {searchFilter === 'collections' && (
+                  <Fragment>
+                    {isCollectionSearchFetching ? (
+                      <Stack gap={5} p={5}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Group
+                            key={i}
+                            gap="xs"
+                            align="center"
+                            justify="space-between"
+                            wrap="nowrap"
+                          >
+                            <Skeleton height={20} width="70%" radius="xl" />
+                            <Skeleton height={26} width={26} radius="md" />
+                          </Group>
+                        ))}
+                      </Stack>
+                    ) : collectionOptions.filter(Boolean).length > 0 ? (
+                      <Fragment>{collectionOptions}</Fragment>
+                    ) : (
+                      debounced.trim().length > 0 && (
+                        <Combobox.Empty>No collections found</Combobox.Empty>
+                      )
+                    )}
+                  </Fragment>
+                )}
+              </Fragment>
+            )}
+          </ScrollArea.Autosize>
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+
+  if (isPlainLayout) {
+    return comboboxBlock;
+  }
+
+  return (
+    <Card padding="xs" radius="lg" withBorder>
+      <Stack gap={0}>
+        {comboboxBlock}
         <VisuallyHidden>
           <Input.Label htmlFor={props.id} required>
             {props.label}
