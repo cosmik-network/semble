@@ -5,11 +5,7 @@ import { ReactNode } from 'react';
 
 export const SEMBLE_TAB_CHANGE_EVENT = 'semble:tab-change';
 
-export type SembleStatTab =
-  | 'notes'
-  | 'collections'
-  | 'addedBy'
-  | 'connections';
+export type SembleStatTab = 'notes' | 'collections' | 'addedBy' | 'connections';
 
 interface Props {
   tab: SembleStatTab;
