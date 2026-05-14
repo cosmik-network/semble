@@ -16,8 +16,6 @@ export default async function SembleStats(props: Props) {
     includeStats: true,
   });
 
-  const data = await getLibrariesForUrl(props.url);
-
   return (
     <Group>
       <SembleStatItem tab="addedBy">
