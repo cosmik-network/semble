@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Router } from 'express';
@@ -50,13 +50,48 @@ export const createExpressApp = (
     }
   };
 
-  app.use(
-    cors({
-      origin: getAllowedOrigins(),
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      credentials: true, // Required for cookies to work in cross-origin requests
-    }),
-  );
+  const environment = configService.get().environment;
+  const allowedOrigins = getAllowedOrigins();
+  const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE'];
+
+  if (environment === Environment.PROD) {
+    app.use(
+      cors({
+        origin: allowedOrigins,
+        methods: allowedMethods,
+        credentials: true, // Required for cookies to work in cross-origin requests
+      }),
+    );
+  } else {
+    // DEV/LOCAL: allow credentialed CORS for known origins, open CORS for everyone else.
+    // Non-allowed origins get '*' which browsers refuse to use with credentials —
+    // so cookie-auth endpoints naturally fail for them, while read-only endpoints work.
+    const allowedOriginsSet = new Set(allowedOrigins);
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      const origin = req.headers.origin;
+
+      if (typeof origin === 'string' && allowedOriginsSet.has(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Vary', 'Origin');
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
+
+      res.setHeader('Access-Control-Allow-Methods', allowedMethods.join(','));
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type,Authorization',
+      );
+
+      if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return;
+      }
+
+      next();
+    });
+  }
 
   // Middleware setup
   app.use(cookieParser()); // Parse cookies from incoming requests
