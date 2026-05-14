@@ -17,6 +17,17 @@ trap cleanup_and_exit SIGINT SIGTERM
 
 echo "Starting development with separate processes (BullMQ + Redis)..."
 
+if [ "$TUNNEL" = "true" ]; then
+    echo "=========================================="
+    echo "TUNNEL MODE ENABLED"
+    echo "  Frontend: https://frontend-development.semble.cafe"
+    echo "  Backend:  https://backend-development.semble.cafe"
+    echo ""
+    echo "  Make sure cloudflared is running in another terminal:"
+    echo "    cloudflared tunnel run semble-tunnel"
+    echo "=========================================="
+fi
+
 # Use nodemon instead of tsup --onSuccess for better process management
 concurrently -k -n APP,FEED,SEARCH,FIREHOSE,NOTIF,SYNC,BUILD -c blue,green,yellow,magenta,cyan,white,red \
   "dotenv -e .env.local -- nodemon --exec 'node dist/index.js' --watch dist/index.js --delay 1000ms" \
