@@ -169,7 +169,6 @@ export default function AddCardForm(props: Props) {
               variant: 'filled',
               size: 'md',
               leftSection: <IoMdLink size={22} />,
-              'data-autofocus': true,
             }}
           />
 

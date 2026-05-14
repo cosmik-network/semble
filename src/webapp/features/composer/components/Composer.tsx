@@ -321,7 +321,6 @@ export default function Composer(props: Props) {
                     variant: 'filled',
                     size: 'md',
                     leftSection: <IoMdLink size={22} />,
-                    'data-autofocus': true,
                   }}
                 />
 
