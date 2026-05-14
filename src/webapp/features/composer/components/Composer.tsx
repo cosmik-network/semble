@@ -306,7 +306,7 @@ export default function Composer(props: Props) {
                 <UrlSearchInput
                   id="url"
                   label="URL"
-                  placeholder="Search of paste a link"
+                  placeholder="Search or paste a link"
                   value={cardForm.values.url}
                   error={cardForm.errors.url}
                   onUrlSelect={(url) => cardForm.setFieldValue('url', url)}
