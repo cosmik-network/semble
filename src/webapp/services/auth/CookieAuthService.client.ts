@@ -1,5 +1,3 @@
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
-
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
 export class ClientCookieAuthService {
@@ -15,7 +13,7 @@ export class ClientCookieAuthService {
       );
     }
     try {
-      const response = await fetch(`${appUrl}/api/auth/logout`, {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
