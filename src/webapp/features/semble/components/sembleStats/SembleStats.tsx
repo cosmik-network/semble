@@ -1,5 +1,4 @@
 import { Group, Text, ThemeIcon } from '@mantine/core';
-import { getLibrariesForUrl } from '../../lib/dal';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { BiCollection, BiLink } from 'react-icons/bi';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
