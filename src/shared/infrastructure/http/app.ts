@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Router } from 'express';
@@ -58,45 +58,31 @@ export const createExpressApp = (
   const environment = configService.get().environment;
   const allowedOrigins = getAllowedOrigins();
   const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE'];
+  const allowedOriginsSet = new Set(allowedOrigins);
 
-  if (environment === Environment.PROD) {
-    app.use(
-      cors({
-        origin: allowedOrigins,
-        methods: allowedMethods,
-        credentials: true, // Required for cookies to work in cross-origin requests
-      }),
-    );
-  } else {
-    // DEV/LOCAL: allow credentialed CORS for known origins, open CORS for everyone else.
-    // Non-allowed origins get '*' which browsers refuse to use with credentials —
-    // so cookie-auth endpoints naturally fail for them, while read-only endpoints work.
-    const allowedOriginsSet = new Set(allowedOrigins);
-    app.use((req: Request, res: Response, next: NextFunction) => {
-      const origin = req.headers.origin;
-
-      if (typeof origin === 'string' && allowedOriginsSet.has(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Vary', 'Origin');
-      } else {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-      }
-
-      res.setHeader('Access-Control-Allow-Methods', allowedMethods.join(','));
-      res.setHeader(
-        'Access-Control-Allow-Headers',
-        'Content-Type,Authorization',
-      );
-
-      if (req.method === 'OPTIONS') {
-        res.status(204).end();
-        return;
-      }
-
-      next();
-    });
-  }
+  // PROD: strict allowlist only — no open-CORS fallback.
+  // DEV/LOCAL: credentialed CORS for known origins, open wildcard for everyone else
+  // so public read endpoints are callable from any third-party origin.
+  // We use an origin callback rather than a custom middleware to avoid Fly.io's
+  // proxy rewriting the Origin header and then stripping the reflected ACAO header.
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOriginsSet.has(origin)) {
+          // No origin (server-to-server) or known origin: allow with credentials
+          callback(null, origin || true);
+        } else if (environment === Environment.PROD) {
+          // Prod: reject unknown origins entirely
+          callback(new Error(`Origin ${origin} not allowed`));
+        } else {
+          // DEV/LOCAL: allow unknown origins without credentials (open read access)
+          callback(null, '*');
+        }
+      },
+      credentials: true,
+      methods: allowedMethods,
+    }),
+  );
 
   // Middleware setup
   app.use(cookieParser()); // Parse cookies from incoming requests
