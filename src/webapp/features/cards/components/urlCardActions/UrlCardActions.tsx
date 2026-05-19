@@ -17,12 +17,7 @@ import {
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
-import {
-  BsPin,
-  BsPinFill,
-  BsThreeDots,
-  BsTrash2Fill,
-} from 'react-icons/bs';
+import { BsPin, BsPinFill, BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
@@ -243,11 +238,7 @@ export default function UrlCardActions(props: Props) {
               isCollectionOwner && (
                 <Menu.Item
                   leftSection={
-                    props.isPinnedInCollection ? (
-                      <BsPinFill />
-                    ) : (
-                      <BsPin />
-                    )
+                    props.isPinnedInCollection ? <BsPinFill /> : <BsPin />
                   }
                   onClick={(e) => {
                     e.stopPropagation();

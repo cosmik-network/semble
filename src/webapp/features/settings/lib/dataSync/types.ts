@@ -1,8 +1,4 @@
-export type DataSyncStatus =
-  | 'in-sync'
-  | 'out-of-sync'
-  | 'syncing'
-  | 'failed';
+export type DataSyncStatus = 'in-sync' | 'out-of-sync' | 'syncing' | 'failed';
 
 export interface DataSyncDrift {
   /** Records in the user's PDS that are not in the Semble DB. */
