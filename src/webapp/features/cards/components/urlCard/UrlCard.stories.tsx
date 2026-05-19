@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { useState } from 'react';
 import { CollectionAccessType } from '@semble/types';
 import type { Collection } from '@semble/types';
 import UrlCard from './UrlCard';
@@ -186,6 +187,63 @@ export const HighCounts: Story = {
     note: {
       id: 'note-002',
       text: 'The foundational transformer paper. Still worth re-reading every few months.',
+    },
+  },
+};
+
+const ownedCollection: Collection = {
+  ...baseCollection,
+  id: 'col-story-pin-001',
+  uri: 'at://did:plc:mock123/app.semble.collection/pinstory',
+  name: 'My Reading List',
+  author: {
+    id: mockAuthUser.id,
+    name: mockAuthUser.name,
+    handle: mockAuthUser.handle,
+    avatarUrl: mockAuthUser.avatarUrl,
+  },
+};
+
+export const PinUnpinInCollection: Story = {
+  render: (args) => {
+    const [isPinned, setIsPinned] = useState(false);
+    return (
+      <UrlCard
+        {...args}
+        isPinnedInCollection={isPinned}
+        onTogglePinInCollection={() => setIsPinned((prev) => !prev)}
+      />
+    );
+  },
+  args: {
+    id: 'card-pin-toggle-008',
+    currentCollection: ownedCollection,
+    cardContent: {
+      ...baseCardContent,
+      url: 'https://example.com/css-cascade-layers',
+      title: 'A Practical Look at CSS Cascade Layers',
+      description:
+        'Cascade layers give you explicit control over CSS specificity ordering — here is when they help and when they get in the way.',
+      imageUrl: 'https://picsum.photos/seed/urlcard-pin/400/225',
+      siteName: 'Example Blog',
+    },
+  },
+};
+
+export const PinnedInCollection: Story = {
+  args: {
+    id: 'card-pinned-009',
+    currentCollection: ownedCollection,
+    isPinnedInCollection: true,
+    onTogglePinInCollection: () => {},
+    cardContent: {
+      ...baseCardContent,
+      url: 'https://example.com/the-tao-of-css',
+      title: 'The Tao of CSS',
+      description:
+        'A meditation on simplicity, specificity, and the long road from inline styles to design systems.',
+      imageUrl: 'https://picsum.photos/seed/urlcard-pinned/400/225',
+      siteName: 'Example Blog',
     },
   },
 };

@@ -33,6 +33,8 @@ interface Props {
   showAuthor?: boolean;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  isPinnedInCollection?: boolean;
+  onTogglePinInCollection?: () => void;
 }
 
 export default function UrlCard(props: Props) {
@@ -169,6 +171,8 @@ export default function UrlCard(props: Props) {
             viaCardId={props.viaCardId}
             semblePageUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
+            isPinnedInCollection={props.isPinnedInCollection}
+            onTogglePinInCollection={props.onTogglePinInCollection}
           />
         </Stack>
       </Stack>

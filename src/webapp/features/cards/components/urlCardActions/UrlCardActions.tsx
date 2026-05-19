@@ -17,7 +17,12 @@ import {
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
-import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
+import {
+  BsPinAngle,
+  BsPinAngleFill,
+  BsThreeDots,
+  BsTrash2Fill,
+} from 'react-icons/bs';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
@@ -49,6 +54,8 @@ interface Props {
   viaCardId?: string;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  isPinnedInCollection?: boolean;
+  onTogglePinInCollection?: () => void;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -231,6 +238,28 @@ export default function UrlCardActions(props: Props) {
               )}
             </CopyButton>
 
+            {props.currentCollection &&
+              props.onTogglePinInCollection &&
+              isCollectionOwner && (
+                <Menu.Item
+                  leftSection={
+                    props.isPinnedInCollection ? (
+                      <BsPinAngleFill />
+                    ) : (
+                      <BsPinAngle />
+                    )
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    trigger();
+                    props.onTogglePinInCollection?.();
+                  }}
+                >
+                  {props.isPinnedInCollection
+                    ? 'Unpin from collection'
+                    : 'Pin to collection'}
+                </Menu.Item>
+              )}
             {props.currentCollection &&
               (isAuthor || canRemoveFromOpenCollection) && (
                 <Menu.Item
