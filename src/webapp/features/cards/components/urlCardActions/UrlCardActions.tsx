@@ -18,8 +18,8 @@ import {
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import {
-  BsPinAngle,
-  BsPinAngleFill,
+  BsPin,
+  BsPinFill,
   BsThreeDots,
   BsTrash2Fill,
 } from 'react-icons/bs';
@@ -244,9 +244,9 @@ export default function UrlCardActions(props: Props) {
                 <Menu.Item
                   leftSection={
                     props.isPinnedInCollection ? (
-                      <BsPinAngleFill />
+                      <BsPinFill />
                     ) : (
-                      <BsPinAngle />
+                      <BsPin />
                     )
                   }
                   onClick={(e) => {
