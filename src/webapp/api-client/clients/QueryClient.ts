@@ -450,15 +450,6 @@ export class QueryClient extends BaseClient {
     return this.request<GetCollectionFollowersResponse>('GET', endpoint);
   }
 
-  async getFollowingCount(
-    params: GetFollowingCountParams,
-  ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      `/api/users/${params.identifier}/following/count`,
-    );
-  }
-
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {

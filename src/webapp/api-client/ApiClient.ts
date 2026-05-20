@@ -292,12 +292,6 @@ export class ApiClient {
     return this.queryClient.getCollectionFollowers(params);
   }
 
-  async getFollowingCount(
-    params: GetFollowingCountParams,
-  ): Promise<GetFollowCountResponse> {
-    return this.queryClient.getFollowingCount(params);
-  }
-
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
