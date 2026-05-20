@@ -40,7 +40,11 @@ export default function SubscribeButton({ prefs, onPrefsChange }: Props) {
           radius="xl"
           aria-label="Subscribe"
         >
-          {isActive ? <MdNotificationsActive size={16} /> : <MdNotificationAdd size={16} />}
+          {isActive ? (
+            <MdNotificationsActive size={16} />
+          ) : (
+            <MdNotificationAdd size={16} />
+          )}
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
