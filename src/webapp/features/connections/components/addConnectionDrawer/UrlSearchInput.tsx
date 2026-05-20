@@ -92,9 +92,6 @@ export default function UrlSearchInput(props: Props) {
   const [confirmedUrl, setConfirmedUrl] = useState<string | null>(
     isValidUrl(props.value) ? props.value : null,
   );
-  const [confirmedMetadata, setConfirmedMetadata] = useState<
-    UrlMetadata | undefined
-  >(undefined);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [debounced] = useDebouncedValue(inputValue, 200);
   const [searchFilter, setSearchFilter] = useState<SearchFilter>('cards');
@@ -132,12 +129,10 @@ export default function UrlSearchInput(props: Props) {
     } else {
       setConfirmedUrl(null);
     }
-    setConfirmedMetadata(undefined);
   }
 
   const handleClear = () => {
     setConfirmedUrl(null);
-    setConfirmedMetadata(undefined);
     setInputValue('');
     props.onUrlSelect('');
     props.onUrlClear?.();
@@ -300,9 +295,6 @@ export default function UrlSearchInput(props: Props) {
           // Look up metadata from search results or recent cards
           const searchMatch = urls.find((u) => u.url === url);
           const recentMatch = recentCardsList.find((c) => c.url === url);
-          setConfirmedMetadata(
-            searchMatch?.metadata ?? recentMatch?.cardContent,
-          );
         }
         combobox.closeDropdown();
       }}
