@@ -96,10 +96,9 @@ export class CardLibraryService implements DomainService {
         }
         const viaCardValue = viaCardResult.value;
 
-        if (!viaCardValue) {
-          return err(new CardLibraryValidationError(`Via card not found`));
+        if (viaCardValue) {
+          viaCardPublishedRecordId = viaCardValue.publishedRecordId;
         }
-        viaCardPublishedRecordId = viaCardValue.publishedRecordId;
       }
 
       if (libraryInfo?.publishedRecordId) {
@@ -218,10 +217,9 @@ export class CardLibraryService implements DomainService {
         }
         const viaCardValue = viaCardResult.value;
 
-        if (!viaCardValue) {
-          return err(new CardLibraryValidationError(`Via card not found`));
+        if (viaCardValue) {
+          viaCardPublishedRecordId = viaCardValue.publishedRecordId;
         }
-        viaCardPublishedRecordId = viaCardValue.publishedRecordId;
       }
 
       if (isInLibrary && libraryInfo?.publishedRecordId) {
