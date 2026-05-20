@@ -1,0 +1,304 @@
+# Semble XRPC API Overhaul — Planning Overview
+
+## Current State
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CURRENT ARCHITECTURE                      │
+│                                                                  │
+│  src/types/                                                      │
+│  └── src/api/                                                    │
+│      ├── requests.ts        ← hand-authored TS interfaces        │
+│      ├── responses.ts       ← hand-authored TS interfaces        │
+│      ├── common.ts          ← shared enums, base types           │
+│      └── prototypey.ts      ← 2 example lexicons (WIP)          │
+│                                                                  │
+│  src/webapp/api-client/                                          │
+│  ├── ApiClient.ts           ← monolithic facade (~550 lines)     │
+│  └── clients/                                                    │
+│      ├── QueryClient.ts     ← GET endpoints (hand-coded)         │
+│      ├── CardClient.ts      ← POST/PUT/DELETE for cards          │
+│      ├── CollectionClient.ts                                     │
+│      ├── UserClient.ts                                           │
+│      ├── FeedClient.ts                                           │
+│      ├── NotificationClient.ts                                   │
+│      └── ConnectionClient.ts                                     │
+│                                                                  │
+│  src/packages/                                                   │
+│  └── semble-pds-client/    ← separate published npm package      │
+│      (reads/writes records directly to PDS via atproto)          │
+│                                                                  │
+│  Backend: Express REST endpoints at /api/*                       │
+│  ─ path params, query params, JSON bodies                        │
+│  ─ no lexicon validation                                         │
+│  ─ no shared schema between server and client                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Problems with the current system:**
+- Types are defined in 3 places: TS interfaces (canonical), backend route handlers (implicit), frontend clients (repeated imports)
+- No single source of truth for schema validation — server doesn't validate against the same types the client uses
+- Docs require a separate effort; they go stale
+- The `api-client` is buried inside `src/webapp`, making it hard to publish or reuse in other projects
+- No standard format for third parties to build against
+
+---
+
+## Target State
+
+The idea: define all API methods once as **atproto Lexicons** (using prototypey), then use `lex-cli` to generate:
+1. A typed **server stub** (route handlers with validated I/O)
+2. A typed **client SDK** (publishable npm package)
+3. **Markdown docs** (auto-generated from schemas)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        TARGET ARCHITECTURE                       │
+│                                                                  │
+│  src/lexicons/   ← NEW — the single source of truth             │
+│  └── src/                                                        │
+│      └── network/cosmik/semble/                                  │
+│          ├── cards/                                              │
+│          │   ├── getUrlMetadata.ts                               │
+│          │   ├── getMyUrlCards.ts                                │
+│          │   ├── addUrlToLibrary.ts                              │
+│          │   └── ...                                             │
+│          ├── collections/                                        │
+│          ├── users/                                              │
+│          ├── feeds/                                              │
+│          ├── notifications/                                      │
+│          ├── connections/                                        │
+│          ├── search/                                             │
+│          ├── graph/                                              │
+│          └── defs/          ← shared object types               │
+│              └── common.ts  ← User, Collection, Pagination...   │
+│                                                                  │
+│  src/packages/                                                   │
+│  ├── semble-pds-client/     ← existing (unchanged)              │
+│  └── semble-api-client/     ← NEW publishable package           │
+│      └── (generated by lex gen-api, then published to npm)      │
+│                                                                  │
+│  src/types/                 ← may shrink or be absorbed         │
+│  └── shared object types that aren't endpoint-specific          │
+│                                                                  │
+│  Backend: XRPC endpoints at /xrpc/network.cosmik.semble.*       │
+│  └── (generated server stubs + existing business logic)         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## How the Flow Works
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                         GENERATION PIPELINE                            │
+│                                                                        │
+│  1. AUTHOR (prototypey TS DSL)                                        │
+│  ┌─────────────────────────────────────────────────────────┐         │
+│  │  // src/lexicons/src/network/cosmik/semble/cards/        │         │
+│  │  // getMyUrlCards.ts                                     │         │
+│  │  export const getMyUrlCards = lx.lexicon(               │         │
+│  │    'network.cosmik.semble.cards.getMyUrlCards', {       │         │
+│  │    main: lx.query({                                      │         │
+│  │      parameters: lx.params({                            │         │
+│  │        page: lx.integer(),                              │         │
+│  │        limit: lx.integer(),                             │         │
+│  │        urlType: lx.string(),                            │         │
+│  │      }),                                                │         │
+│  │      output: {                                          │         │
+│  │        encoding: 'application/json',                    │         │
+│  │        schema: lx.object({                              │         │
+│  │          cards: lx.array({ items: lx.ref('#urlCard') }),│         │
+│  │          pagination: lx.ref('...defs#pagination'),      │         │
+│  │        }),                                              │         │
+│  │      },                                                 │         │
+│  │    }),                                                  │         │
+│  │  });                                                    │         │
+│  └─────────────────────────────────────────────────────────┘         │
+│                │                                                       │
+│                │  prototypey gen-emit                                  │
+│                ▼                                                       │
+│  2. EMIT (JSON lexicon schemas)                                        │
+│  ┌─────────────────────────────────────────────────────────┐         │
+│  │  src/lexicons/schemas/                                   │         │
+│  │  └── network/cosmik/semble/cards/                        │         │
+│  │      └── getMyUrlCards.json                              │         │
+│  └─────────────────────────────────────────────────────────┘         │
+│                │                                                       │
+│                ├──────────────────────┬────────────────────┐          │
+│                │                      │                    │          │
+│    lex gen-server            lex gen-api           lex gen-md         │
+│                │                      │                    │          │
+│                ▼                      ▼                    ▼          │
+│  3a. SERVER STUBS       3b. CLIENT SDK        3c. DOCS                │
+│  ┌──────────────┐       ┌─────────────┐       ┌──────────────┐       │
+│  │ XRPC handler │       │ api-client  │       │ docs/api.md  │       │
+│  │ interfaces + │       │ package     │       │ (auto)       │       │
+│  │ validation   │       │ (publishable│       └──────────────┘       │
+│  └──────────────┘       │  npm pkg)   │                              │
+│                         └─────────────┘                              │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## NSID Naming Convention
+
+Semble's endpoints would use a reverse-domain NSID under your control:
+
+```
+network.cosmik.semble.cards.getMyUrlCards      → GET /xrpc/network.cosmik.semble.cards.getMyUrlCards
+network.cosmik.semble.cards.addUrlToLibrary    → POST /xrpc/network.cosmik.semble.cards.addUrlToLibrary
+network.cosmik.semble.collections.create       → POST /xrpc/network.cosmik.semble.collections.create
+network.cosmik.semble.users.getMyProfile       → GET /xrpc/network.cosmik.semble.users.getMyProfile
+network.cosmik.semble.feeds.getGlobalFeed      → GET /xrpc/network.cosmik.semble.feeds.getGlobalFeed
+```
+
+Lexicon types (`query` = GET, `procedure` = POST/PUT/DELETE). DELETE semantics are expressed as procedures.
+
+---
+
+## Shared Type Strategy (the `defs` problem)
+
+The trickiest part: many endpoints share complex types (`User`, `Collection`, `Pagination`, `UrlCard`). In the atproto lexicon system, shared types live in `defs.json` files and are referenced via `$ref`:
+
+```
+network.cosmik.semble.defs#user
+network.cosmik.semble.defs#collection
+network.cosmik.semble.defs#pagination
+network.cosmik.semble.cards.defs#urlCard
+```
+
+With prototypey, these become:
+
+```ts
+// src/lexicons/src/network/cosmik/semble/defs.ts
+export const sembleDefs = lx.lexicon('network.cosmik.semble.defs', {
+  user: lx.object({
+    id: lx.string({ required: true }),
+    handle: lx.string({ required: true }),
+    avatarUrl: lx.string(),
+    ...
+  }),
+  pagination: lx.object({
+    page: lx.integer({ required: true }),
+    limit: lx.integer({ required: true }),
+    total: lx.integer({ required: true }),
+    ...
+  }),
+});
+```
+
+Then referenced in endpoint lexicons:
+```ts
+output: {
+  encoding: 'application/json',
+  schema: lx.object({
+    cards: lx.array({ items: lx.ref('network.cosmik.semble.cards.defs#urlCard') }),
+    pagination: lx.ref('network.cosmik.semble.defs#pagination'),
+  }),
+}
+```
+
+---
+
+## What Changes, What Stays
+
+### What needs to be built/migrated
+
+| Item | Status | Action |
+|------|--------|--------|
+| Lexicon definitions (`src/lexicons/`) | Not started | Create new package; author all ~50 endpoints in prototypey |
+| JSON schema emit | Not started | `prototypey gen-emit` as build step |
+| Server XRPC stubs | Not started | `lex gen-server` → integrate with existing Express/business logic |
+| `semble-api-client` package | Not started | `lex gen-api` → new package in `src/packages/` |
+| URL routing | Currently `/api/*` | Migrate to `/xrpc/network.cosmik.semble.*` (or run both during transition) |
+| `@semble/types` | Currently canonical | Becomes derived from lexicons, or kept for non-endpoint types only |
+| Docs | Manual / none | `lex gen-md` as CI step |
+
+### What stays unchanged
+- All business logic (DAL, service layer, DB queries)
+- `semble-pds-client` (writes to ATProto PDS — separate concern)
+- Frontend components (they call the api-client, not raw fetch)
+- Auth system
+
+---
+
+## Key Open Questions
+
+### 1. Can `lex gen-api` generate what you need?
+
+The `@atproto/lex-cli` `gen-api` command generates a client that calls `/xrpc/{nsid}` endpoints. The generated client is typed against the lexicon schemas. **This replaces** the hand-authored `QueryClient`, `CardClient`, etc.
+
+**Limitation:** The generated client uses atproto's own HTTP client conventions. You'd need to verify it supports your auth header approach (Bearer JWT) and that it's compatible with how the frontend currently passes tokens. If it doesn't fit exactly, the generated types can still be used even if the HTTP layer is hand-rolled.
+
+### 2. Transition strategy: `/api/*` vs `/xrpc/*`
+
+Two options:
+- **Hard cut**: migrate all routes at once, update all callers
+- **Parallel run**: run `/xrpc/*` alongside `/api/*`, migrate frontend incrementally
+
+The parallel approach is safer but creates a period of dual maintenance. Given the frontend uses `ApiClient` as a single facade, a complete swap of its internals (from hand-rolled fetch to generated client) could be done without touching any component code.
+
+### 3. Where do enums/constants live?
+
+Currently `UrlType`, `CollectionAccessType`, `ActivitySource` are in `@semble/types`. In a lexicon world, these become `token` definitions or `string` with `knownValues`. The generated TS client recreates them. During transition, you'd maintain backward compat by re-exporting from the generated client.
+
+### 4. Does prototypey support `lx.ref()` across files?
+
+Yes — refs are by NSID string, resolved at emit time. The `gen-emit` step needs all lexicon files as input simultaneously so refs can be validated. This means a single `lexicon:emit` script that includes all TS files.
+
+---
+
+## Rough Package Structure After Migration
+
+```
+src/
+├── lexicons/                          ← NEW workspace package: @semble/lexicons
+│   ├── package.json                   (devDep: prototypey; scripts: emit, gen-server, gen-api, gen-docs)
+│   ├── src/
+│   │   └── network/cosmik/semble/
+│   │       ├── defs.ts                ← shared types (User, Collection, Pagination...)
+│   │       ├── cards/
+│   │       │   ├── defs.ts            ← UrlCard, UrlMetadata...
+│   │       │   ├── getMyUrlCards.ts
+│   │       │   ├── addUrlToLibrary.ts
+│   │       │   └── ...
+│   │       ├── collections/
+│   │       ├── users/
+│   │       ├── feeds/
+│   │       ├── notifications/
+│   │       ├── connections/
+│   │       ├── search/
+│   │       └── graph/
+│   └── schemas/                       ← emitted JSON (gitignored or committed)
+│       └── network/cosmik/semble/...
+│
+├── packages/
+│   ├── semble-pds-client/             ← existing (unchanged)
+│   └── semble-api-client/             ← NEW: generated + thin wrapper
+│       ├── package.json               (published to npm as @cosmik.network/semble-api-client)
+│       └── src/
+│           └── (generated by lex gen-api, plus any auth helpers)
+│
+├── types/                             ← shrinks to non-endpoint shared types, or deprecated
+│
+└── webapp/
+    ├── api-client/                    ← replaced by import of semble-api-client
+    └── ...
+```
+
+---
+
+## Recommended First Steps
+
+1. **Validate `lex gen-api` output** — run it on the 2 existing prototypey lexicons (`appBskyActorGetProfile` etc.) and inspect what the generated client looks like. Determine if it fits your auth/fetch pattern.
+
+2. **Author `defs` first** — the shared types (`User`, `Collection`, `Pagination`, `UrlCard`) are referenced everywhere. Define these in prototypey before tackling endpoint lexicons.
+
+3. **Pick one domain (e.g. `cards`) as a pilot** — fully author its lexicons, emit JSON, generate server stub and client, wire up. Validate end-to-end before committing to the full migration.
+
+4. **Create `src/lexicons/` as a new workspace package** — `@semble/lexicons`, with `prototypey` as devDep and scripts for emit + generation.
+
+5. **Create `src/packages/semble-api-client/`** — initially just re-exports the generated output, adds auth configuration helpers, published to npm.
