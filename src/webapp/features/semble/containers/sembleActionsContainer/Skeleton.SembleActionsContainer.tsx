@@ -7,6 +7,7 @@ export default function SembleActionsContainerSkeleton() {
         <Skeleton w={36} h={36} circle />
         <Skeleton w={114} h={36} radius="xl" />
         <Skeleton w={113} h={36} radius="xl" />
+        <Skeleton w={36} h={36} circle />
       </Group>
     </Stack>
   );

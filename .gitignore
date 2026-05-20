@@ -11,3 +11,4 @@ build
 storybook-static
 src/webapp/tsconfig.tsbuildinfo
 src/webapp/next-env.d.ts
+src/webapp/next-env.d.ts
