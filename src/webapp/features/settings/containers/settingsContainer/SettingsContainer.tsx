@@ -29,9 +29,9 @@ export default async function SettingsContainer() {
             <SettingItem href="/settings/feed" icon={MdEmojiNature}>
               Feed
             </SettingItem>
-            <SettingItem href="/settings/data-sync" icon={MdSync}>
+            {/*<SettingItem href="/settings/data-sync" icon={MdSync}>
               Data sync
-            </SettingItem>
+            </SettingItem>*/}
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
               Help
             </SettingItem>
