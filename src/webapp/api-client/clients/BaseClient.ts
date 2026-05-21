@@ -1,7 +1,5 @@
 import { ApiError, ApiErrorResponse } from '../errors';
-import { RouteDefinition } from '@semble/types';
-
-type QueryParamValue = string | string[] | number | boolean | undefined;
+import { RouteDefinition, QueryParamValue } from '@semble/types';
 
 export abstract class BaseClient {
   constructor(

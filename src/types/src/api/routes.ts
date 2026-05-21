@@ -1,4 +1,10 @@
-type QueryParamValue = string | string[] | number | boolean | undefined;
+export type QueryParamValue =
+  | string
+  | string[]
+  | number
+  | boolean
+  | undefined
+  | null;
 
 export interface RouteDefinition<Path extends string> {
   readonly path: Path;
@@ -20,7 +26,7 @@ function defineRoute<Path extends string>(
       if (!queryParams) return path;
       const params = new URLSearchParams();
       for (const [k, v] of Object.entries(queryParams)) {
-        if (v === undefined) continue;
+        if (v === undefined || v === null) continue;
         if (Array.isArray(v)) {
           v.forEach((item) => params.append(k, item));
         } else {
