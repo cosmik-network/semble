@@ -2,6 +2,7 @@ import { CollectionAccessType } from '@semble/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCollection } from '../dal';
 import { collectionKeys } from '../collectionKeys';
+import { profileKeys } from '@/features/profile/lib/profileKeys';
 
 export default function useCreateCollection() {
   const queryClient = useQueryClient();
@@ -20,6 +21,7 @@ export default function useCreateCollection() {
     // https://tkdodo.eu/blog/mastering-mutations-in-react-query#some-callbacks-might-not-fire
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       queryClient.refetchQueries({ queryKey: collectionKeys.mine() });
     },
   });
