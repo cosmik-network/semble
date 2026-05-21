@@ -11,7 +11,7 @@ export class DeleteCollectionController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { collectionId } = req.params;
+      const { collectionId } = req.query as Record<string, string>;
       const curatorId = req.did;
 
       if (!curatorId) {

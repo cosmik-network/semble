@@ -32,9 +32,8 @@ export class ConnectionClient extends BaseClient {
         JSON.stringify(request, null, 2),
       );
       const response = await this.request<CreateConnectionResponse>(
-        'POST',
-        routes.connections.createConnection.path,
-        request,
+        routes.connections.createConnection,
+        { body: request },
       );
       console.log(
         'CreateConnectionResponse:',
@@ -51,15 +50,15 @@ export class ConnectionClient extends BaseClient {
     request: UpdateConnectionRequest,
   ): Promise<UpdateConnectionResponse> {
     return this.request<UpdateConnectionResponse>(
-      'PUT',
-      routes.connections.updateConnection.build({
-        connectionId: request.connectionId,
-      }),
+      routes.connections.updateConnection,
       {
-        connectionType: request.connectionType,
-        note: request.note,
-        removeNote: request.removeNote,
-        swap: request.swap,
+        body: {
+          connectionId: request.connectionId,
+          connectionType: request.connectionType,
+          note: request.note,
+          removeNote: request.removeNote,
+          swap: request.swap,
+        },
       },
     );
   }
@@ -68,10 +67,8 @@ export class ConnectionClient extends BaseClient {
     request: DeleteConnectionRequest,
   ): Promise<DeleteConnectionResponse> {
     return this.request<DeleteConnectionResponse>(
-      'DELETE',
-      routes.connections.deleteConnection.build({
-        connectionId: request.connectionId,
-      }),
+      routes.connections.deleteConnection,
+      { query: { connectionId: request.connectionId } },
     );
   }
 }

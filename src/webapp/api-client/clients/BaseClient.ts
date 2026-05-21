@@ -1,4 +1,7 @@
 import { ApiError, ApiErrorResponse } from '../errors';
+import { RouteDefinition } from '@semble/types';
+
+type QueryParamValue = string | string[] | number | boolean | undefined;
 
 export abstract class BaseClient {
   constructor(
@@ -7,10 +10,13 @@ export abstract class BaseClient {
   ) {}
 
   protected async request<T>(
-    method: string,
-    endpoint: string,
-    data?: any,
+    route: RouteDefinition<string>,
+    options?: {
+      query?: Record<string, QueryParamValue>;
+      body?: unknown;
+    },
   ): Promise<T> {
+    const endpoint = route.url(options?.query);
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
@@ -23,13 +29,14 @@ export abstract class BaseClient {
     }
 
     const config: RequestInit = {
-      method,
+      method: route.method,
       headers,
       credentials: this.accessToken ? 'omit' : 'include', // Use 'omit' for server-side with manual cookies
     };
 
-    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      config.body = JSON.stringify(data);
+    const { method } = route;
+    if (options?.body && (method === 'POST' || method === 'PUT')) {
+      config.body = JSON.stringify(options.body);
     }
 
     const response = await fetch(url, config);

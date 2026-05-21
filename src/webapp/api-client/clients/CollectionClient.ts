@@ -16,9 +16,8 @@ export class CollectionClient extends BaseClient {
     request: CreateCollectionRequest,
   ): Promise<CreateCollectionResponse> {
     return this.request<CreateCollectionResponse>(
-      'POST',
-      routes.collections.createCollection.path,
-      request,
+      routes.collections.createCollection,
+      { body: request },
     );
   }
 
@@ -27,9 +26,8 @@ export class CollectionClient extends BaseClient {
   ): Promise<UpdateCollectionResponse> {
     const { collectionId, ...updateData } = request;
     return this.request<UpdateCollectionResponse>(
-      'PUT',
-      routes.collections.updateCollection.build({ collectionId }),
-      updateData,
+      routes.collections.updateCollection,
+      { body: { collectionId, ...updateData } },
     );
   }
 
@@ -37,30 +35,27 @@ export class CollectionClient extends BaseClient {
     request: DeleteCollectionRequest,
   ): Promise<DeleteCollectionResponse> {
     return this.request<DeleteCollectionResponse>(
-      'DELETE',
-      routes.collections.deleteCollection.build({
-        collectionId: request.collectionId,
-      }),
+      routes.collections.deleteCollection,
+      { query: { collectionId: request.collectionId } },
     );
   }
 
   async searchCollections(
     params?: SearchCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.searchText) searchParams.set('searchText', params.searchText);
-    if (params?.identifier) searchParams.set('identifier', params.identifier);
-    if (params?.accessType) searchParams.set('accessType', params.accessType);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.searchCollections.path;
     return this.request<GetCollectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.searchCollections,
+      {
+        query: {
+          page: params?.page,
+          limit: params?.limit,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          searchText: params?.searchText,
+          identifier: params?.identifier,
+          accessType: params?.accessType,
+        },
+      },
     );
   }
 }

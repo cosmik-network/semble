@@ -1,20 +1,10 @@
-type ExtractParams<Path extends string> =
-  Path extends `${string}:${infer Param}/${infer Rest}`
-    ? Param | ExtractParams<Rest>
-    : Path extends `${string}:${infer Param}`
-      ? Param
-      : never;
-
-type BuildArgs<Path extends string> =
-  ExtractParams<Path> extends never
-    ? []
-    : [params: Record<ExtractParams<Path>, string>];
+type QueryParamValue = string | string[] | number | boolean | undefined;
 
 export interface RouteDefinition<Path extends string> {
   readonly path: Path;
   readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   readonly requiresAuth: boolean;
-  build(...args: BuildArgs<Path>): string;
+  url(queryParams?: Record<string, QueryParamValue>): string;
 }
 
 function defineRoute<Path extends string>(
@@ -26,88 +16,98 @@ function defineRoute<Path extends string>(
     path,
     method,
     requiresAuth,
-    build(...args: any[]) {
-      const params: Record<string, string> = args[0] ?? {};
-      return path.replace(/:([^/]+)/g, (_, key) => params[key] ?? key);
+    url(queryParams?: Record<string, QueryParamValue>): string {
+      if (!queryParams) return path;
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(queryParams)) {
+        if (v === undefined) continue;
+        if (Array.isArray(v)) {
+          v.forEach((item) => params.append(k, item));
+        } else {
+          params.append(k, String(v));
+        }
+      }
+      const qs = params.toString();
+      return qs ? `${path}?${qs}` : path;
     },
-  } as RouteDefinition<Path>;
+  };
 }
 
 export const paths = {
   // cards
-  addUrlToLibrary: '/api/cards/library/urls',
-  addCardToLibrary: '/api/cards/library',
-  addCardToCollection: '/api/cards/collections',
-  urlCardAssociations: '/api/cards/url/associations',
-  myUrlCards: '/api/cards/my',
-  urlMetadata: '/api/cards/metadata',
-  urlLibraryStatus: '/api/cards/library/status',
-  librariesForUrl: '/api/cards/libraries/url',
-  noteCardsForUrl: '/api/cards/notes/url',
-  searchCards: '/api/cards/search',
-  cardById: '/api/cards/:cardId',
-  cardLibraries: '/api/cards/:cardId/libraries',
-  cardNote: '/api/cards/:cardId/note',
-  removeFromLibrary: '/api/cards/:cardId/library',
-  removeFromCollections: '/api/cards/:cardId/collections',
-  cardsByUser: '/api/cards/user/:identifier',
+  addUrlToLibrary: '/xrpc/network.cosmik.card.addUrl',
+  addCardToLibrary: '/xrpc/network.cosmik.card.addToLibrary',
+  addCardToCollection: '/xrpc/network.cosmik.card.addToCollection',
+  urlCardAssociations: '/xrpc/network.cosmik.card.updateUrlAssociations',
+  myUrlCards: '/xrpc/network.cosmik.card.listMine',
+  urlMetadata: '/xrpc/network.cosmik.card.getUrlMetadata',
+  urlLibraryStatus: '/xrpc/network.cosmik.card.getLibraryStatus',
+  librariesForUrl: '/xrpc/network.cosmik.card.getLibrariesForUrl',
+  noteCardsForUrl: '/xrpc/network.cosmik.card.getNoteCardsForUrl',
+  searchCards: '/xrpc/network.cosmik.card.search',
+  cardById: '/xrpc/network.cosmik.card.get',
+  cardLibraries: '/xrpc/network.cosmik.card.getLibraries',
+  cardNote: '/xrpc/network.cosmik.card.updateNote',
+  removeFromLibrary: '/xrpc/network.cosmik.card.removeFromLibrary',
+  removeFromCollections: '/xrpc/network.cosmik.card.removeFromCollections',
+  cardsByUser: '/xrpc/network.cosmik.card.listByUser',
   // collections
-  myCollections: '/api/collections',
-  createCollection: '/api/collections',
-  collectionsForUrl: '/api/collections/url',
-  searchCollections: '/api/collections/search',
-  collectionById: '/api/collections/:collectionId',
-  updateCollection: '/api/collections/:collectionId',
-  deleteCollection: '/api/collections/:collectionId',
-  collectionsByUser: '/api/collections/user/:identifier',
-  collectionByAtUri: '/api/collections/at/:handle/:recordKey',
-  openWithContributor: '/api/collections/contributed/:identifier',
-  collectionFollowers: '/api/collections/:collectionId/followers',
-  collectionFollowersCount: '/api/collections/:collectionId/followers/count',
-  collectionContributors: '/api/collections/:collectionId/contributors',
-  // users
-  myProfile: '/api/users/me',
-  userProfile: '/api/users/:identifier',
-  initiateOAuth: '/api/users/login',
-  oauthCallback: '/api/users/oauth/callback',
-  loginWithAppPassword: '/api/users/login/app-password',
-  refreshToken: '/api/users/oauth/refresh',
-  logout: '/api/users/logout',
-  extensionTokens: '/api/users/extension/tokens',
-  followTarget: '/api/users/follows',
-  unfollowTarget: '/api/users/follows/:targetId/:targetType',
-  followingUsers: '/api/users/:identifier/following',
-  userFollowers: '/api/users/:identifier/followers',
-  followingCollections: '/api/users/:identifier/following-collections',
-  followingCount: '/api/users/:identifier/following/count',
-  userFollowersCount: '/api/users/:identifier/followers/count',
+  myCollections: '/xrpc/network.cosmik.collection.listMine',
+  createCollection: '/xrpc/network.cosmik.collection.create',
+  collectionsForUrl: '/xrpc/network.cosmik.collection.getForUrl',
+  searchCollections: '/xrpc/network.cosmik.collection.search',
+  collectionById: '/xrpc/network.cosmik.collection.get',
+  updateCollection: '/xrpc/network.cosmik.collection.update',
+  deleteCollection: '/xrpc/network.cosmik.collection.delete',
+  collectionsByUser: '/xrpc/network.cosmik.collection.listByUser',
+  collectionByAtUri: '/xrpc/network.cosmik.collection.getByAtUri',
+  openWithContributor: '/xrpc/network.cosmik.collection.listContributed',
+  collectionFollowers: '/xrpc/network.cosmik.collection.getFollowers',
+  collectionFollowersCount: '/xrpc/network.cosmik.collection.getFollowerCount',
+  collectionContributors: '/xrpc/network.cosmik.collection.getContributors',
+  // users / actor
+  myProfile: '/xrpc/network.cosmik.actor.getMyProfile',
+  userProfile: '/xrpc/network.cosmik.actor.getProfile',
+  initiateOAuth: '/xrpc/network.cosmik.server.initiateOAuth',
+  oauthCallback: '/xrpc/network.cosmik.server.oauthCallback',
+  loginWithAppPassword: '/xrpc/network.cosmik.server.createSession',
+  refreshToken: '/xrpc/network.cosmik.server.refreshSession',
+  logout: '/xrpc/network.cosmik.server.deleteSession',
+  extensionTokens: '/xrpc/network.cosmik.server.getExtensionTokens',
+  followTarget: '/xrpc/network.cosmik.graph.follow',
+  unfollowTarget: '/xrpc/network.cosmik.graph.unfollow',
+  followingUsers: '/xrpc/network.cosmik.graph.getFollowing',
+  userFollowers: '/xrpc/network.cosmik.graph.getFollowers',
+  followingCollections: '/xrpc/network.cosmik.graph.getFollowingCollections',
+  followingCount: '/xrpc/network.cosmik.graph.getFollowingCount',
+  userFollowersCount: '/xrpc/network.cosmik.graph.getFollowersCount',
   followingCollectionsCount:
-    '/api/users/:identifier/following-collections/count',
+    '/xrpc/network.cosmik.graph.getFollowingCollectionsCount',
   // feeds
-  globalFeed: '/api/feeds/global',
-  gemFeed: '/api/feeds/gem',
-  followingFeed: '/api/feeds/following',
+  globalFeed: '/xrpc/network.cosmik.feed.getGlobal',
+  gemFeed: '/xrpc/network.cosmik.feed.getGem',
+  followingFeed: '/xrpc/network.cosmik.feed.getFollowing',
   // notifications
-  myNotifications: '/api/notifications',
-  unreadCount: '/api/notifications/unread-count',
-  markRead: '/api/notifications/mark-read',
-  markAllRead: '/api/notifications/mark-all-read',
+  myNotifications: '/xrpc/network.cosmik.notification.list',
+  unreadCount: '/xrpc/network.cosmik.notification.getUnreadCount',
+  markRead: '/xrpc/network.cosmik.notification.markRead',
+  markAllRead: '/xrpc/network.cosmik.notification.markAllRead',
   // connections
-  connectionsForUrl: '/api/connections/url',
-  createConnection: '/api/connections',
-  connectionsByUser: '/api/connections/user/:identifier',
-  updateConnection: '/api/connections/:connectionId',
-  deleteConnection: '/api/connections/:connectionId',
+  connectionsForUrl: '/xrpc/network.cosmik.connection.getForUrl',
+  createConnection: '/xrpc/network.cosmik.connection.create',
+  connectionsByUser: '/xrpc/network.cosmik.connection.listByUser',
+  updateConnection: '/xrpc/network.cosmik.connection.update',
+  deleteConnection: '/xrpc/network.cosmik.connection.delete',
   // search
-  similarUrls: '/api/search/similar-urls',
-  semantic: '/api/search/semantic',
-  bskyPosts: '/api/search/bsky-posts',
-  atProtoAccounts: '/api/search/accounts',
-  leafletDocs: '/api/search/leaflet-docs',
-  // graph
-  graphData: '/api/graph/data',
-  userGraphData: '/api/graph/user/:identifier',
-  urlGraphData: '/api/graph/url',
+  similarUrls: '/xrpc/network.cosmik.search.getSimilarUrls',
+  semantic: '/xrpc/network.cosmik.search.semantic',
+  bskyPosts: '/xrpc/network.cosmik.search.getBskyPosts',
+  atProtoAccounts: '/xrpc/network.cosmik.search.getAccounts',
+  leafletDocs: '/xrpc/network.cosmik.search.getLeafletDocs',
+  // graph (graphView namespace to avoid collision with social graph)
+  graphData: '/xrpc/network.cosmik.graphView.getData',
+  userGraphData: '/xrpc/network.cosmik.graphView.getUserData',
+  urlGraphData: '/xrpc/network.cosmik.graphView.getUrlData',
 } as const;
 
 export const routes = {

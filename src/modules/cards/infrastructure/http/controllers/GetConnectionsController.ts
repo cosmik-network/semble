@@ -15,7 +15,7 @@ export class GetConnectionsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { identifier } = req.params;
+      const identifier = req.query.identifier as string | undefined;
       const callingUserId = req.did;
 
       if (!identifier) {

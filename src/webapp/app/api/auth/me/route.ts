@@ -3,6 +3,7 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
+import { paths } from '@semble/types';
 
 const backendUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
 
       const backendUrl =
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-      const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
+      const profileResponse = await fetch(`${backendUrl}${paths.myProfile}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +195,7 @@ async function performTokenRefresh(
   }
 
   // Proxy the refresh request completely to backend
-  const refreshResponse = await fetch(`${backendUrl}/api/users/oauth/refresh`, {
+  const refreshResponse = await fetch(`${backendUrl}${paths.refreshToken}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,7 +221,7 @@ async function performTokenRefresh(
   const accessToken = newTokens.accessToken;
 
   // Fetch profile with new token
-  const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
+  const profileResponse = await fetch(`${backendUrl}${paths.myProfile}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

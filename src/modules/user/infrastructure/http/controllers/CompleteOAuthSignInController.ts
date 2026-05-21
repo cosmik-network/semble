@@ -14,6 +14,10 @@ export class CompleteOAuthSignInController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     const appUrl = configService.getAppConfig().appUrl;
+    console.log(
+      `[CompleteOAuthSignInController] Received OAuth callback with query:`,
+      req.query,
+    );
     try {
       const { code, state, iss } = req.query;
 

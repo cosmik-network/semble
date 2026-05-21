@@ -21,20 +21,19 @@ export class CardClient extends BaseClient {
   async addUrlToLibrary(
     request: AddUrlToLibraryRequest,
   ): Promise<AddUrlToLibraryResponse> {
-    return this.request<AddUrlToLibraryResponse>(
-      'POST',
-      routes.cards.addUrlToLibrary.path,
-      request,
-    );
+    return this.request<AddUrlToLibraryResponse>(routes.cards.addUrlToLibrary, {
+      body: request,
+    });
   }
 
   async addCardToLibrary(
     request: AddCardToLibraryRequest,
   ): Promise<AddCardToLibraryResponse> {
     return this.request<AddCardToLibraryResponse>(
-      'POST',
-      routes.cards.addCardToLibrary.path,
-      request,
+      routes.cards.addCardToLibrary,
+      {
+        body: request,
+      },
     );
   }
 
@@ -42,29 +41,25 @@ export class CardClient extends BaseClient {
     request: AddCardToCollectionRequest,
   ): Promise<AddCardToCollectionResponse> {
     return this.request<AddCardToCollectionResponse>(
-      'POST',
-      routes.cards.addCardToCollection.path,
-      request,
+      routes.cards.addCardToCollection,
+      { body: request },
     );
   }
 
   async updateNoteCard(
     request: UpdateNoteCardRequest,
   ): Promise<UpdateNoteCardResponse> {
-    return this.request<UpdateNoteCardResponse>(
-      'PUT',
-      routes.cards.cardNote.build({ cardId: request.cardId }),
-      { note: request.note },
-    );
+    return this.request<UpdateNoteCardResponse>(routes.cards.cardNote, {
+      body: { cardId: request.cardId, note: request.note },
+    });
   }
 
   async updateUrlCardAssociations(
     request: UpdateUrlCardAssociationsRequest,
   ): Promise<UpdateUrlCardAssociationsResponse> {
     return this.request<UpdateUrlCardAssociationsResponse>(
-      'PUT',
-      routes.cards.urlCardAssociations.path,
-      request,
+      routes.cards.urlCardAssociations,
+      { body: request },
     );
   }
 
@@ -72,18 +67,22 @@ export class CardClient extends BaseClient {
     request: RemoveCardFromLibraryRequest,
   ): Promise<RemoveCardFromLibraryResponse> {
     return this.request<RemoveCardFromLibraryResponse>(
-      'DELETE',
-      routes.cards.removeFromLibrary.build({ cardId: request.cardId }),
+      routes.cards.removeFromLibrary,
+      { query: { cardId: request.cardId } },
     );
   }
 
   async removeCardFromCollection(
     request: RemoveCardFromCollectionRequest,
   ): Promise<RemoveCardFromCollectionResponse> {
-    const collectionIdsParam = request.collectionIds.join(',');
     return this.request<RemoveCardFromCollectionResponse>(
-      'DELETE',
-      `${routes.cards.removeFromCollections.build({ cardId: request.cardId })}?collectionIds=${encodeURIComponent(collectionIdsParam)}`,
+      routes.cards.removeFromCollections,
+      {
+        query: {
+          cardId: request.cardId,
+          collectionIds: request.collectionIds.join(','),
+        },
+      },
     );
   }
 }

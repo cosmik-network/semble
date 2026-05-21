@@ -8,6 +8,7 @@ import { InMemoryStateStore } from '../../tests/infrastructure/InMemoryStateStor
 import { InMemorySessionStore } from '../../tests/infrastructure/InMemorySessionStore';
 import { configService } from 'src/shared/infrastructure/config';
 import { LockServiceFactory } from 'src/shared/infrastructure/locking';
+import { paths } from '@semble/types';
 
 export class OAuthClientFactory {
   static getClientMetadata(
@@ -53,9 +54,9 @@ export class OAuthClientFactory {
         client_name: appName,
         client_id: !isLocal
           ? `${url}/oauth-client-metadata.json`
-          : `http://localhost?redirect_uri=${enc(`${baseUrl}/api/users/oauth/callback`)}&scope=${enc(scope)}`,
+          : `http://localhost?redirect_uri=${enc(`${baseUrl}${paths.oauthCallback}`)}&scope=${enc(scope)}`,
         client_uri: clientUri,
-        redirect_uris: [`${baseUrl}/api/users/oauth/callback`],
+        redirect_uris: [`${baseUrl}${paths.oauthCallback}`],
         scope,
         grant_types: ['authorization_code', 'refresh_token'],
         response_types: ['code'],

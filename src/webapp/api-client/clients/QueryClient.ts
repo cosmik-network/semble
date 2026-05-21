@@ -65,433 +65,378 @@ export class QueryClient extends BaseClient {
   async getUrlMetadata(
     params: GetUrlMetadataParams,
   ): Promise<GetUrlMetadataResponse> {
-    const queryParams = new URLSearchParams({ url: params.url });
-    if (params.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    return this.request<GetUrlMetadataResponse>(
-      'GET',
-      `${routes.cards.urlMetadata.path}?${queryParams}`,
-    );
+    return this.request<GetUrlMetadataResponse>(routes.cards.urlMetadata, {
+      query: { url: params.url, includeStats: params.includeStats },
+    });
   }
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.urlType) searchParams.set('urlType', params.urlType);
-    if (params?.uncollected) searchParams.set('uncollected', 'true');
-
-    const queryString = searchParams.toString();
-    const base = routes.cards.myUrlCards.path;
-    return this.request<GetUrlCardsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
+    return this.request<GetUrlCardsResponse>(routes.cards.myUrlCards, {
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        urlType: params?.urlType,
+        uncollected: params?.uncollected ? true : undefined,
+      },
+    });
   }
 
   async getUserUrlCards(
     params: GetUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-    if (params.uncollected) searchParams.set('uncollected', 'true');
-
-    const queryString = searchParams.toString();
-    const base = routes.cards.cardsByUser.build({
-      identifier: params.identifier,
+    return this.request<GetUrlCardsResponse>(routes.cards.cardsByUser, {
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        urlType: params.urlType,
+        uncollected: params.uncollected ? true : undefined,
+      },
     });
-    return this.request<GetUrlCardsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
-    return this.request<GetUrlCardViewResponse>(
-      'GET',
-      routes.cards.cardById.build({ cardId }),
-    );
+    return this.request<GetUrlCardViewResponse>(routes.cards.cardById, {
+      query: { cardId },
+    });
   }
 
   async getLibrariesForCard(
     cardId: string,
   ): Promise<GetLibrariesForCardResponse> {
     return this.request<GetLibrariesForCardResponse>(
-      'GET',
-      routes.cards.cardLibraries.build({ cardId }),
+      routes.cards.cardLibraries,
+      {
+        query: { cardId },
+      },
     );
   }
 
   async getMyProfile(params?: {
     includeStats?: boolean;
   }): Promise<GetProfileResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.request<GetProfileResponse>(
-      'GET',
-      queryString
-        ? `${routes.users.myProfile.path}?${queryString}`
-        : routes.users.myProfile.path,
-    );
+    return this.request<GetProfileResponse>(routes.users.myProfile, {
+      query: { includeStats: params?.includeStats },
+    });
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    const queryParams = new URLSearchParams();
-    if (params.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    const queryString = queryParams.toString();
-    const base = routes.users.userProfile.build({
-      identifier: params.identifier,
+    return this.request<GetProfileResponse>(routes.users.userProfile, {
+      query: {
+        identifier: params.identifier,
+        includeStats: params.includeStats,
+      },
     });
-    return this.request<GetProfileResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
   }
 
   async getCollectionPage(
     collectionId: string,
     params?: GetCollectionPageParams,
   ): Promise<GetCollectionPageResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.urlType) searchParams.set('urlType', params.urlType);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.collectionById.build({ collectionId });
     return this.request<GetCollectionPageResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.collectionById,
+      {
+        query: {
+          collectionId,
+          page: params?.page,
+          limit: params?.limit,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          urlType: params?.urlType,
+        },
+      },
     );
   }
 
   async getCollectionPageByAtUri(
     params: GetCollectionPageByAtUriParams,
   ): Promise<GetCollectionPageResponse> {
-    const { handle, recordKey, ...queryParams } = params;
-    const searchParams = new URLSearchParams();
-
-    if (queryParams.page) searchParams.set('page', queryParams.page.toString());
-    if (queryParams.limit)
-      searchParams.set('limit', queryParams.limit.toString());
-    if (queryParams.sortBy) searchParams.set('sortBy', queryParams.sortBy);
-    if (queryParams.sortOrder)
-      searchParams.set('sortOrder', queryParams.sortOrder);
-    if (queryParams.urlType) searchParams.set('urlType', queryParams.urlType);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.collectionByAtUri.build({
-      handle,
-      recordKey,
-    });
+    const { handle, recordKey, page, limit, sortBy, sortOrder, urlType } =
+      params;
     return this.request<GetCollectionPageResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.collectionByAtUri,
+      {
+        query: { handle, recordKey, page, limit, sortBy, sortOrder, urlType },
+      },
     );
   }
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.searchText) searchParams.set('searchText', params.searchText);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.myCollections.path;
     return this.request<GetCollectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.myCollections,
+      {
+        query: {
+          page: params?.page,
+          limit: params?.limit,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          searchText: params?.searchText,
+        },
+      },
     );
   }
 
   async getUserCollections(
     params: GetCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.searchText) searchParams.set('searchText', params.searchText);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.collectionsByUser.build({
-      identifier: params.identifier,
-    });
     return this.request<GetCollectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.collectionsByUser,
+      {
+        query: {
+          identifier: params.identifier,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+          searchText: params.searchText,
+        },
+      },
     );
   }
 
   async getUrlStatusForMyLibrary(
     params: GetUrlStatusForMyLibraryParams,
   ): Promise<GetUrlStatusForMyLibraryResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
     return this.request<GetUrlStatusForMyLibraryResponse>(
-      'GET',
-      `${routes.cards.urlLibraryStatus.path}?${searchParams}`,
+      routes.cards.urlLibraryStatus,
+      { query: { url: params.url } },
     );
   }
 
   async getLibrariesForUrl(
     params: GetLibrariesForUrlParams,
   ): Promise<GetLibrariesForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
     return this.request<GetLibrariesForUrlResponse>(
-      'GET',
-      `${routes.cards.librariesForUrl.path}?${searchParams}`,
+      routes.cards.librariesForUrl,
+      {
+        query: {
+          url: params.url,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        },
+      },
     );
   }
 
   async getNoteCardsForUrl(
     params: GetNoteCardsForUrlParams,
   ): Promise<GetNoteCardsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
     return this.request<GetNoteCardsForUrlResponse>(
-      'GET',
-      `${routes.cards.noteCardsForUrl.path}?${searchParams}`,
+      routes.cards.noteCardsForUrl,
+      {
+        query: {
+          url: params.url,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        },
+      },
     );
   }
 
   async getCollectionsForUrl(
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
     return this.request<GetCollectionsForUrlResponse>(
-      'GET',
-      `${routes.collections.collectionsForUrl.path}?${searchParams}`,
+      routes.collections.collectionsForUrl,
+      {
+        query: {
+          url: params.url,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        },
+      },
     );
   }
 
   async getSimilarUrlsForUrl(
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.threshold)
-      searchParams.set('threshold', params.threshold.toString());
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-
     return this.request<GetSimilarUrlsForUrlResponse>(
-      'GET',
-      `${routes.search.similarUrls.path}?${searchParams}`,
+      routes.search.similarUrls,
+      {
+        query: {
+          url: params.url,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+          threshold: params.threshold,
+          urlType: params.urlType,
+        },
+      },
     );
   }
 
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<SemanticSearchUrlsResponse> {
-    const searchParams = new URLSearchParams({ query: params.query });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.threshold)
-      searchParams.set('threshold', params.threshold.toString());
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-    if (params.identifier) searchParams.set('identifier', params.identifier);
-
-    return this.request<SemanticSearchUrlsResponse>(
-      'GET',
-      `${routes.search.semantic.path}?${searchParams}`,
-    );
+    return this.request<SemanticSearchUrlsResponse>(routes.search.semantic, {
+      query: {
+        query: params.query,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        threshold: params.threshold,
+        urlType: params.urlType,
+        identifier: params.identifier,
+      },
+    });
   }
 
   async searchBskyPosts(
     params: SearchBskyPostsForUrlParams,
   ): Promise<SearchBskyPostsForUrlResponse> {
-    const searchParams = new URLSearchParams({ q: params.q });
-    if (params.sort) searchParams.set('sort', params.sort);
-    if (params.since) searchParams.set('since', params.since);
-    if (params.until) searchParams.set('until', params.until);
-    if (params.mentions) searchParams.set('mentions', params.mentions);
-    if (params.author) searchParams.set('author', params.author);
-    if (params.lang) searchParams.set('lang', params.lang);
-    if (params.domain) searchParams.set('domain', params.domain);
-    if (params.url) searchParams.set('url', params.url);
-    if (params.tag) {
-      params.tag.forEach((t) => searchParams.append('tag', t));
-    }
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
     return this.request<SearchBskyPostsForUrlResponse>(
-      'GET',
-      `${routes.search.bskyPosts.path}?${searchParams}`,
+      routes.search.bskyPosts,
+      {
+        query: {
+          q: params.q,
+          sort: params.sort,
+          since: params.since,
+          until: params.until,
+          mentions: params.mentions,
+          author: params.author,
+          lang: params.lang,
+          domain: params.domain,
+          url: params.url,
+          tag: params.tag, // string[] — url() uses append for arrays
+          limit: params.limit,
+          cursor: params.cursor,
+        },
+      },
     );
   }
 
   async searchAtProtoAccounts(
     params: SearchAtProtoAccountsParams,
   ): Promise<SearchAtProtoAccountsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.term) searchParams.set('term', params.term);
-    if (params.q) searchParams.set('q', params.q);
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
     return this.request<SearchAtProtoAccountsResponse>(
-      'GET',
-      `${routes.search.atProtoAccounts.path}?${searchParams}`,
+      routes.search.atProtoAccounts,
+      {
+        query: {
+          term: params.term,
+          q: params.q,
+          limit: params.limit,
+          cursor: params.cursor,
+        },
+      },
     );
   }
 
   async searchLeafletDocs(
     params: SearchLeafletDocsForUrlParams,
   ): Promise<SearchLeafletDocsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
     return this.request<SearchLeafletDocsForUrlResponse>(
-      'GET',
-      `${routes.search.leafletDocs.path}?${searchParams}`,
+      routes.search.leafletDocs,
+      {
+        query: { url: params.url, limit: params.limit, cursor: params.cursor },
+      },
     );
   }
 
   async getOpenCollectionsWithContributor(
     params: GetOpenCollectionsWithContributorParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.openWithContributor.build({
-      identifier: params.identifier,
-    });
     return this.request<GetCollectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.openWithContributor,
+      {
+        query: {
+          identifier: params.identifier,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        },
+      },
     );
   }
 
   async getFollowingUsers(
     params: GetFollowingUsersParams,
   ): Promise<GetFollowingUsersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.users.followingUsers.build({
-      identifier: params.identifier,
-    });
     return this.request<GetFollowingUsersResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.users.followingUsers,
+      {
+        query: {
+          identifier: params.identifier,
+          page: params.page,
+          limit: params.limit,
+        },
+      },
     );
   }
 
   async getFollowers(
     params: GetFollowersParams,
   ): Promise<GetFollowersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.users.followers.build({
-      identifier: params.identifier,
+    return this.request<GetFollowersResponse>(routes.users.followers, {
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
     });
-    return this.request<GetFollowersResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
   }
 
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.users.followingCollections.build({
-      identifier: params.identifier,
-    });
     return this.request<GetFollowingCollectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.users.followingCollections,
+      {
+        query: {
+          identifier: params.identifier,
+          page: params.page,
+          limit: params.limit,
+        },
+      },
     );
   }
 
   async getCollectionFollowers(
     params: GetCollectionFollowersParams,
   ): Promise<GetCollectionFollowersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.followers.build({
-      collectionId: params.collectionId,
-    });
     return this.request<GetCollectionFollowersResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.followers,
+      {
+        query: {
+          collectionId: params.collectionId,
+          page: params.page,
+          limit: params.limit,
+        },
+      },
     );
   }
 
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      routes.users.followersCount.build({ identifier: params.identifier }),
-    );
+    return this.request<GetFollowCountResponse>(routes.users.followersCount, {
+      query: { identifier: params.identifier },
+    });
   }
 
   async getFollowingCollectionsCount(
     params: GetFollowingCollectionsCountParams,
   ): Promise<GetFollowCountResponse> {
     return this.request<GetFollowCountResponse>(
-      'GET',
-      routes.users.followingCollectionsCount.build({
-        identifier: params.identifier,
-      }),
+      routes.users.followingCollectionsCount,
+      { query: { identifier: params.identifier } },
     );
   }
 
@@ -499,85 +444,76 @@ export class QueryClient extends BaseClient {
     params: GetCollectionFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
     return this.request<GetFollowCountResponse>(
-      'GET',
-      routes.collections.followersCount.build({
-        collectionId: params.collectionId,
-      }),
+      routes.collections.followersCount,
+      {
+        query: { collectionId: params.collectionId },
+      },
     );
   }
 
   async getCollectionContributors(
     params: GetCollectionContributorsParams,
   ): Promise<GetCollectionContributorsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.collections.contributors.build({
-      collectionId: params.collectionId,
-    });
     return this.request<GetCollectionContributorsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.collections.contributors,
+      {
+        query: {
+          collectionId: params.collectionId,
+          page: params.page,
+          limit: params.limit,
+        },
+      },
     );
   }
 
   async getConnectionsForUrl(
     params: GetConnectionsForUrlParams,
   ): Promise<GetConnectionsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.direction) searchParams.set('direction', params.direction);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
     return this.request<GetConnectionsForUrlResponse>(
-      'GET',
-      `${routes.connections.connectionsForUrl.path}?${searchParams}`,
+      routes.connections.connectionsForUrl,
+      {
+        query: {
+          url: params.url,
+          direction: params.direction,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+          connectionTypes: params.connectionTypes?.join(','),
+        },
+      },
     );
   }
 
   async getConnections(
     params: GetConnectionsParams,
   ): Promise<GetConnectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
-    const queryString = searchParams.toString();
-    const base = routes.connections.connectionsByUser.build({
-      identifier: params.identifier,
-    });
     return this.request<GetConnectionsResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.connections.connectionsByUser,
+      {
+        query: {
+          identifier: params.identifier,
+          page: params.page,
+          limit: params.limit,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+          connectionTypes: params.connectionTypes?.join(','),
+        },
+      },
     );
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('searchQuery', params.searchQuery);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-
-    return this.request<SearchUrlsResponse>(
-      'GET',
-      `${routes.cards.searchCards.path}?${searchParams}`,
-    );
+    return this.request<SearchUrlsResponse>(routes.cards.searchCards, {
+      query: {
+        searchQuery: params.searchQuery,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        urlType: params.urlType,
+      },
+    });
   }
 
   async getUserGraphData(params: {
@@ -585,31 +521,21 @@ export class QueryClient extends BaseClient {
     page?: number;
     limit?: number;
   }): Promise<GetGraphDataResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.graph.userGraphData.build({
-      identifier: params.identifier,
+    return this.request<GetGraphDataResponse>(routes.graph.userGraphData, {
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
     });
-    return this.request<GetGraphDataResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
   }
 
   async getUrlGraphData(
     params: GetUrlGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.depth) searchParams.set('depth', params.depth.toString());
-
-    return this.request<GetGraphDataResponse>(
-      'GET',
-      `${routes.graph.urlGraphData.path}?${searchParams}`,
-    );
+    return this.request<GetGraphDataResponse>(routes.graph.urlGraphData, {
+      query: { url: params.url, depth: params.depth },
+    });
   }
 
   async getGraphData(
@@ -652,15 +578,8 @@ export class QueryClient extends BaseClient {
       };
     }
 
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const base = routes.graph.graphData.path;
-    return this.request<GetGraphDataResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
-    );
+    return this.request<GetGraphDataResponse>(routes.graph.graphData, {
+      query: { page: params?.page, limit: params?.limit },
+    });
   }
 }

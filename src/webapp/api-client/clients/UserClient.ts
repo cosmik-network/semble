@@ -20,84 +20,69 @@ export class UserClient extends BaseClient {
     request: LoginWithAppPasswordRequest,
   ): Promise<LoginWithAppPasswordResponse> {
     return this.request<LoginWithAppPasswordResponse>(
-      'POST',
-      routes.users.loginWithAppPassword.path,
-      request,
+      routes.users.loginWithAppPassword,
+      { body: request },
     );
   }
 
   async initiateOAuthSignIn(
     request?: InitiateOAuthSignInRequest,
   ): Promise<InitiateOAuthSignInResponse> {
-    const params = new URLSearchParams();
-    if (request?.handle) {
-      params.set('handle', request.handle);
-    }
-    const queryString = params.toString();
-    const base = routes.users.initiateOAuth.path;
     return this.request<InitiateOAuthSignInResponse>(
-      'GET',
-      queryString ? `${base}?${queryString}` : base,
+      routes.users.initiateOAuth,
+      {
+        query: { handle: request?.handle },
+      },
     );
   }
 
   async completeOAuthSignIn(
     request: CompleteOAuthSignInRequest,
   ): Promise<CompleteOAuthSignInResponse> {
-    const params = new URLSearchParams({
-      code: request.code,
-      state: request.state,
-      iss: request.iss,
-    });
     return this.request<CompleteOAuthSignInResponse>(
-      'GET',
-      `${routes.users.oauthCallback.path}?${params}`,
+      routes.users.oauthCallback,
+      {
+        query: { code: request.code, state: request.state, iss: request.iss },
+      },
     );
   }
 
   async refreshAccessToken(
     request: RefreshAccessTokenRequest,
   ): Promise<RefreshAccessTokenResponse> {
-    return this.request<RefreshAccessTokenResponse>(
-      'POST',
-      routes.users.refreshToken.path,
-      request,
-    );
+    return this.request<RefreshAccessTokenResponse>(routes.users.refreshToken, {
+      body: request,
+    });
   }
 
   async generateExtensionTokens(
     _request?: GenerateExtensionTokensRequest,
   ): Promise<GenerateExtensionTokensResponse> {
     return this.request<GenerateExtensionTokensResponse>(
-      'GET',
-      routes.users.extensionTokens.path,
+      routes.users.extensionTokens,
     );
   }
 
   async logout(): Promise<{ success: boolean; message: string }> {
     return this.request<{ success: boolean; message: string }>(
-      'POST',
-      routes.users.logout.path,
+      routes.users.logout,
     );
   }
 
   async followTarget(
     request: FollowTargetRequest,
   ): Promise<FollowTargetResponse> {
-    return this.request<FollowTargetResponse>(
-      'POST',
-      routes.users.followTarget.path,
-      request,
-    );
+    return this.request<FollowTargetResponse>(routes.users.followTarget, {
+      body: request,
+    });
   }
 
   async unfollowTarget(
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
-    return this.request<void>(
-      'DELETE',
-      routes.users.unfollowTarget.build({ targetId, targetType }),
-    );
+    return this.request<void>(routes.users.unfollowTarget, {
+      query: { targetId, targetType },
+    });
   }
 }

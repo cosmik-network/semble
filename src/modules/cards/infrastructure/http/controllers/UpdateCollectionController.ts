@@ -12,8 +12,7 @@ export class UpdateCollectionController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { collectionId } = req.params;
-      const { name, description, accessType } = req.body;
+      const { collectionId, name, description, accessType } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
