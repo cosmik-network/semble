@@ -8,6 +8,7 @@ import {
   DeleteCollectionResponse,
   SearchCollectionsParams,
   GetCollectionsResponse,
+  routes,
 } from '@semble/types';
 
 export class CollectionClient extends BaseClient {
@@ -16,7 +17,7 @@ export class CollectionClient extends BaseClient {
   ): Promise<CreateCollectionResponse> {
     return this.request<CreateCollectionResponse>(
       'POST',
-      '/api/collections',
+      routes.collections.createCollection.path,
       request,
     );
   }
@@ -27,7 +28,7 @@ export class CollectionClient extends BaseClient {
     const { collectionId, ...updateData } = request;
     return this.request<UpdateCollectionResponse>(
       'PUT',
-      `/api/collections/${collectionId}`,
+      routes.collections.updateCollection.build({ collectionId }),
       updateData,
     );
   }
@@ -37,7 +38,9 @@ export class CollectionClient extends BaseClient {
   ): Promise<DeleteCollectionResponse> {
     return this.request<DeleteCollectionResponse>(
       'DELETE',
-      `/api/collections/${request.collectionId}`,
+      routes.collections.deleteCollection.build({
+        collectionId: request.collectionId,
+      }),
     );
   }
 
@@ -54,10 +57,10 @@ export class CollectionClient extends BaseClient {
     if (params?.accessType) searchParams.set('accessType', params.accessType);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/search?${queryString}`
-      : '/api/collections/search';
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const base = routes.collections.searchCollections.path;
+    return this.request<GetCollectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 }

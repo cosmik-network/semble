@@ -3,15 +3,15 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Router } from 'express';
 import * as Sentry from '@sentry/node';
-import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
+import { registerUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createStatsRoutes } from '../../../modules/user/infrastructure/http/routes/statsRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
-import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
-import { createConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
-import { createGraphRoutes } from '../../../modules/cards/infrastructure/http/routes/graphRoutes';
-import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
-import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
-import { createNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
+import { registerCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
+import { registerConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
+import { registerGraphRoutes } from '../../../modules/cards/infrastructure/http/routes/graphRoutes';
+import { registerFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
+import { registerSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
+import { registerNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
 import { createTestRoutes } from './routes/testRoutes';
 import {
   EnvironmentConfigService,
@@ -107,12 +107,35 @@ export const createExpressApp = (
     serviceDid,
   );
 
-  // Routes
-  const userRouter = Router();
-  const atprotoRouter = Router();
+  // OAuth client metadata endpoint
+  app.get('/oauth-client-metadata.json', (req, res) => {
+    res.json(services.nodeOauthClient.clientMetadata);
+  });
 
-  createUserRoutes(
-    userRouter,
+  // DID Web endpoint
+  app.get('/.well-known/did.json', (req, res) => {
+    return res.json({
+      '@context': ['https://www.w3.org/ns/did/v1'],
+      id: serviceDid,
+      service: [
+        {
+          id: '#mention_search',
+          type: 'MentionSearchService',
+          serviceEndpoint: `https://${baseUrl.replace(/^https?:\/\//, '')}`,
+        },
+      ],
+    });
+  });
+
+  // XRPC mention search endpoint
+  app.get('/xrpc/parts.page.mention.search', (req, res) => {
+    console.log('Received XRPC mention search request with query:', req.query);
+    return controllers.pagePartsSearchController.execute(req, res);
+  });
+
+  // Register API routes directly on app (full paths from routes object)
+  registerUserRoutes(
+    app,
     services.authMiddleware,
     controllers.initiateOAuthSignInController,
     controllers.completeOAuthSignInController,
@@ -132,9 +155,8 @@ export const createExpressApp = (
     controllers.getFollowingCollectionsCountController,
   );
 
-  createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);
-
-  const cardsRouter = createCardsModuleRoutes(
+  registerCardsModuleRoutes(
+    app,
     services.authMiddleware,
     // Card controllers
     controllers.addUrlToLibraryController,
@@ -169,7 +191,8 @@ export const createExpressApp = (
     controllers.getCollectionContributorsController,
   );
 
-  const connectionRouter = createConnectionRoutes(
+  registerConnectionRoutes(
+    app,
     services.authMiddleware,
     controllers.createConnectionController,
     controllers.updateConnectionController,
@@ -178,21 +201,24 @@ export const createExpressApp = (
     controllers.getConnectionsForUrlController,
   );
 
-  const graphRouter = createGraphRoutes(
+  registerGraphRoutes(
+    app,
     services.authMiddleware,
     controllers.getGraphDataController,
     controllers.getUserGraphDataController,
     controllers.getUrlGraphDataController,
   );
 
-  const feedRouter = createFeedRoutes(
+  registerFeedRoutes(
+    app,
     services.authMiddleware,
     controllers.getGlobalFeedController,
     controllers.getGemActivityFeedController,
     controllers.getFollowingFeedController,
   );
 
-  const searchRouter = createSearchRoutes(
+  registerSearchRoutes(
+    app,
     services.authMiddleware,
     controllers.getSimilarUrlsForUrlController,
     controllers.searchBskyPostsForUrlController,
@@ -201,7 +227,8 @@ export const createExpressApp = (
     controllers.searchLeafletDocsForUrlController,
   );
 
-  const notificationRouter = createNotificationRoutes(
+  registerNotificationRoutes(
+    app,
     services.authMiddleware,
     controllers.getMyNotificationsController,
     controllers.getUnreadNotificationCountController,
@@ -209,8 +236,15 @@ export const createExpressApp = (
     controllers.markAllNotificationsAsReadController,
   );
 
+  // AtProto routes (mounted as sub-router — not REST API endpoints)
+  const atprotoRouter = Router();
+  createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);
+  app.use('/atproto', atprotoRouter);
+
+  // Test and stats routes (internal — not in routes object)
   const testRouter = Router();
   createTestRoutes(testRouter);
+  app.use('/api/test', testRouter);
 
   const statsRouter = Router();
   createStatsRoutes(
@@ -218,43 +252,6 @@ export const createExpressApp = (
     services.statsApiKeyMiddleware,
     controllers.getUserStatsController,
   );
-
-  // OAuth client metadata endpoint
-  app.get('/oauth-client-metadata.json', (req, res) => {
-    res.json(services.nodeOauthClient.clientMetadata);
-  });
-
-  // DID Web endpoint
-  app.get('/.well-known/did.json', (req, res) => {
-    return res.json({
-      '@context': ['https://www.w3.org/ns/did/v1'],
-      id: serviceDid,
-      service: [
-        {
-          id: '#mention_search',
-          type: 'MentionSearchService',
-          serviceEndpoint: `https://${baseUrl.replace(/^https?:\/\//, '')}`,
-        },
-      ],
-    });
-  });
-
-  // XRPC mention search endpoint
-  app.get('/xrpc/parts.page.mention.search', (req, res) => {
-    console.log('Received XRPC mention search request with query:', req.query);
-    return controllers.pagePartsSearchController.execute(req, res);
-  });
-
-  // Register routes
-  app.use('/api/users', userRouter);
-  app.use('/atproto', atprotoRouter);
-  app.use('/api', cardsRouter);
-  app.use('/api/connections', connectionRouter);
-  app.use('/api/graph', graphRouter);
-  app.use('/api/feeds', feedRouter);
-  app.use('/api/search', searchRouter);
-  app.use('/api/notifications', notificationRouter);
-  app.use('/api/test', testRouter);
   app.use('/api/stats', statsRouter);
 
   // Sentry error handler - must be after all routes and before other error middleware

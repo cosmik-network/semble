@@ -4,6 +4,7 @@ import {
   GetGlobalFeedParams,
   GetFollowingFeedParams,
   GetGlobalFeedResponse,
+  routes,
 } from '@semble/types';
 
 export class FeedClient extends BaseClient {
@@ -26,11 +27,11 @@ export class FeedClient extends BaseClient {
       searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/feeds/global?${queryString}`
-      : '/api/feeds/global';
-
-    return this.request<GetGlobalFeedResponse>('GET', endpoint);
+    const base = routes.feeds.global.path;
+    return this.request<GetGlobalFeedResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getGemsActivityFeed(
@@ -50,11 +51,11 @@ export class FeedClient extends BaseClient {
       searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/feeds/gem?${queryString}`
-      : '/api/feeds/gem';
-
-    return this.request<GetGlobalFeedResponse>('GET', endpoint);
+    const base = routes.feeds.gem.path;
+    return this.request<GetGlobalFeedResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getFollowingFeed(
@@ -76,10 +77,10 @@ export class FeedClient extends BaseClient {
       searchParams.set('includeKnownBots', params.includeKnownBots.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/feeds/following?${queryString}`
-      : '/api/feeds/following';
-
-    return this.request<GetGlobalFeedResponse>('GET', endpoint);
+    const base = routes.feeds.following.path;
+    return this.request<GetGlobalFeedResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 }

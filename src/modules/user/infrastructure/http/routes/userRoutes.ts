@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Express } from 'express';
 import { InitiateOAuthSignInController } from '../controllers/InitiateOAuthSignInController';
 import { CompleteOAuthSignInController } from '../controllers/CompleteOAuthSignInController';
 import { LoginWithAppPasswordController } from '../controllers/LoginWithAppPasswordController';
@@ -16,9 +16,10 @@ import { GetFollowingCollectionsController } from '../controllers/GetFollowingCo
 import { GetFollowingCountController } from '../controllers/GetFollowingCountController';
 import { GetFollowersCountController } from '../controllers/GetFollowersCountController';
 import { GetFollowingCollectionsCountController } from '../controllers/GetFollowingCollectionsCountController';
+import { routes } from '@semble/types';
 
-export const createUserRoutes = (
-  router: Router,
+export function registerUserRoutes(
+  app: Express,
   authMiddleware: AuthMiddleware,
   initiateOAuthSignInController: InitiateOAuthSignInController,
   completeOAuthSignInController: CompleteOAuthSignInController,
@@ -36,86 +37,91 @@ export const createUserRoutes = (
   getFollowingCountController: GetFollowingCountController,
   getFollowersCountController: GetFollowersCountController,
   getFollowingCollectionsCountController: GetFollowingCollectionsCountController,
-) => {
-  // Public routes
-  router.get('/login', (req, res) =>
+): void {
+  app.get(routes.users.initiateOAuth.path, (req, res) =>
     initiateOAuthSignInController.execute(req, res),
   );
-  router.get('/oauth/callback', (req, res) =>
+
+  app.get(routes.users.oauthCallback.path, (req, res) =>
     completeOAuthSignInController.execute(req, res),
   );
-  router.post('/login/app-password', (req, res) =>
+
+  app.post(routes.users.loginWithAppPassword.path, (req, res) =>
     loginWithAppPasswordController.execute(req, res),
   );
-  router.post('/logout', (req, res) => logoutController.execute(req, res));
-  router.post('/oauth/refresh', (req, res) =>
+
+  app.post(routes.users.logout.path, (req, res) =>
+    logoutController.execute(req, res),
+  );
+
+  app.post(routes.users.refreshToken.path, (req, res) =>
     refreshAccessTokenController.execute(req, res),
   );
 
-  // Protected routes
-  router.get('/me', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getMyProfileController.execute(req, res),
+  app.get(
+    routes.users.myProfile.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => getMyProfileController.execute(req, res),
   );
 
-  // Public routes
-  router.get('/:identifier', authMiddleware.optionalAuth(), (req, res) =>
-    getUserProfileController.execute(req, res),
-  );
-
-  router.get(
-    '/extension/tokens',
+  app.get(
+    routes.users.extensionTokens.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => generateExtensionTokensController.execute(req, res),
   );
 
-  // Follow/Unfollow routes
-  router.post('/follows', authMiddleware.ensureAuthenticated(), (req, res) =>
-    followTargetController.execute(req, res),
+  app.post(
+    routes.users.followTarget.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => followTargetController.execute(req, res),
   );
 
-  router.delete(
-    '/follows/:targetId/:targetType',
+  app.delete(
+    routes.users.unfollowTarget.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => unfollowTargetController.execute(req, res),
   );
 
-  // Following/Followers query routes (public with optional auth)
-  router.get(
-    '/:identifier/following',
+  app.get(
+    routes.users.followingUsers.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowingUsersController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/followers',
+  app.get(
+    routes.users.followers.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowersController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/following-collections',
+  app.get(
+    routes.users.followingCollections.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowingCollectionsController.execute(req, res),
   );
 
-  // Following/Followers count routes (public)
-  router.get(
-    '/:identifier/following/count',
+  app.get(
+    routes.users.followingCount.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowingCountController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/followers/count',
+  app.get(
+    routes.users.followersCount.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowersCountController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/following-collections/count',
+  app.get(
+    routes.users.followingCollectionsCount.path,
     authMiddleware.optionalAuth(),
     (req, res) => getFollowingCollectionsCountController.execute(req, res),
   );
 
-  return router;
-};
+  // userProfile must be last: /:identifier would swallow /me, /login, /extension/tokens, etc.
+  app.get(
+    routes.users.userProfile.path,
+    authMiddleware.optionalAuth(),
+    (req, res) => getUserProfileController.execute(req, res),
+  );
+}

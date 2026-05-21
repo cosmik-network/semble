@@ -7,6 +7,7 @@ import {
   DeleteConnectionRequest,
   DeleteConnectionResponse,
   ConnectionType,
+  routes,
 } from '@semble/types';
 
 export class ConnectionClient extends BaseClient {
@@ -17,7 +18,6 @@ export class ConnectionClient extends BaseClient {
     note?: string;
   }): Promise<CreateConnectionResponse> {
     try {
-      // Transform simplified params to full request format
       const request: CreateConnectionRequest = {
         sourceType: 'URL',
         sourceValue: params.sourceUrl,
@@ -33,7 +33,7 @@ export class ConnectionClient extends BaseClient {
       );
       const response = await this.request<CreateConnectionResponse>(
         'POST',
-        '/api/connections',
+        routes.connections.createConnection.path,
         request,
       );
       console.log(
@@ -52,7 +52,9 @@ export class ConnectionClient extends BaseClient {
   ): Promise<UpdateConnectionResponse> {
     return this.request<UpdateConnectionResponse>(
       'PUT',
-      `/api/connections/${request.connectionId}`,
+      routes.connections.updateConnection.build({
+        connectionId: request.connectionId,
+      }),
       {
         connectionType: request.connectionType,
         note: request.note,
@@ -67,7 +69,9 @@ export class ConnectionClient extends BaseClient {
   ): Promise<DeleteConnectionResponse> {
     return this.request<DeleteConnectionResponse>(
       'DELETE',
-      `/api/connections/${request.connectionId}`,
+      routes.connections.deleteConnection.build({
+        connectionId: request.connectionId,
+      }),
     );
   }
 }

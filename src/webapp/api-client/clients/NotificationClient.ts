@@ -6,6 +6,7 @@ import {
   GetUnreadNotificationCountResponse,
   MarkNotificationsAsReadResponse,
   MarkAllNotificationsAsReadResponse,
+  routes,
 } from '@semble/types';
 
 export class NotificationClient extends BaseClient {
@@ -20,17 +21,17 @@ export class NotificationClient extends BaseClient {
     if (params?.unreadOnly) searchParams.set('unreadOnly', 'true');
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/notifications?${queryString}`
-      : '/api/notifications';
-
-    return this.request<GetMyNotificationsResponse>('GET', endpoint);
+    const base = routes.notifications.myNotifications.path;
+    return this.request<GetMyNotificationsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUnreadNotificationCount(): Promise<GetUnreadNotificationCountResponse> {
     return this.request<GetUnreadNotificationCountResponse>(
       'GET',
-      '/api/notifications/unread-count',
+      routes.notifications.unreadCount.path,
     );
   }
 
@@ -39,7 +40,7 @@ export class NotificationClient extends BaseClient {
   ): Promise<MarkNotificationsAsReadResponse> {
     return this.request<MarkNotificationsAsReadResponse>(
       'POST',
-      '/api/notifications/mark-read',
+      routes.notifications.markRead.path,
       request,
     );
   }
@@ -47,7 +48,7 @@ export class NotificationClient extends BaseClient {
   async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
     return this.request<MarkAllNotificationsAsReadResponse>(
       'POST',
-      '/api/notifications/mark-all-read',
+      routes.notifications.markAllRead.path,
     );
   }
 }

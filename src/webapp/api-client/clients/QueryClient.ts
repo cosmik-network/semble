@@ -58,6 +58,7 @@ import {
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
   GetUrlGraphDataParams,
+  routes,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -70,7 +71,7 @@ export class QueryClient extends BaseClient {
     }
     return this.request<GetUrlMetadataResponse>(
       'GET',
-      `/api/cards/metadata?${queryParams}`,
+      `${routes.cards.urlMetadata.path}?${queryParams}`,
     );
   }
 
@@ -86,11 +87,11 @@ export class QueryClient extends BaseClient {
     if (params?.uncollected) searchParams.set('uncollected', 'true');
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/cards/my?${queryString}`
-      : '/api/cards/my';
-
-    return this.request<GetUrlCardsResponse>('GET', endpoint);
+    const base = routes.cards.myUrlCards.path;
+    return this.request<GetUrlCardsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUserUrlCards(
@@ -105,15 +106,20 @@ export class QueryClient extends BaseClient {
     if (params.uncollected) searchParams.set('uncollected', 'true');
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/cards/user/${params.identifier}?${queryString}`
-      : `/api/cards/user/${params.identifier}`;
-
-    return this.request<GetUrlCardsResponse>('GET', endpoint);
+    const base = routes.cards.cardsByUser.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetUrlCardsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
-    return this.request<GetUrlCardViewResponse>('GET', `/api/cards/${cardId}`);
+    return this.request<GetUrlCardViewResponse>(
+      'GET',
+      routes.cards.cardById.build({ cardId }),
+    );
   }
 
   async getLibrariesForCard(
@@ -121,7 +127,7 @@ export class QueryClient extends BaseClient {
   ): Promise<GetLibrariesForCardResponse> {
     return this.request<GetLibrariesForCardResponse>(
       'GET',
-      `/api/cards/${cardId}/libraries`,
+      routes.cards.cardLibraries.build({ cardId }),
     );
   }
 
@@ -135,7 +141,9 @@ export class QueryClient extends BaseClient {
     const queryString = queryParams.toString();
     return this.request<GetProfileResponse>(
       'GET',
-      `/api/users/me${queryString ? `?${queryString}` : ''}`,
+      queryString
+        ? `${routes.users.myProfile.path}?${queryString}`
+        : routes.users.myProfile.path,
     );
   }
 
@@ -145,9 +153,12 @@ export class QueryClient extends BaseClient {
       queryParams.set('includeStats', params.includeStats.toString());
     }
     const queryString = queryParams.toString();
+    const base = routes.users.userProfile.build({
+      identifier: params.identifier,
+    });
     return this.request<GetProfileResponse>(
       'GET',
-      `/api/users/${params.identifier}${queryString ? `?${queryString}` : ''}`,
+      queryString ? `${base}?${queryString}` : base,
     );
   }
 
@@ -163,11 +174,11 @@ export class QueryClient extends BaseClient {
     if (params?.urlType) searchParams.set('urlType', params.urlType);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${collectionId}?${queryString}`
-      : `/api/collections/${collectionId}`;
-
-    return this.request<GetCollectionPageResponse>('GET', endpoint);
+    const base = routes.collections.collectionById.build({ collectionId });
+    return this.request<GetCollectionPageResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getCollectionPageByAtUri(
@@ -185,11 +196,14 @@ export class QueryClient extends BaseClient {
     if (queryParams.urlType) searchParams.set('urlType', queryParams.urlType);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/at/${handle}/${recordKey}?${queryString}`
-      : `/api/collections/at/${handle}/${recordKey}`;
-
-    return this.request<GetCollectionPageResponse>('GET', endpoint);
+    const base = routes.collections.collectionByAtUri.build({
+      handle,
+      recordKey,
+    });
+    return this.request<GetCollectionPageResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getMyCollections(
@@ -203,11 +217,11 @@ export class QueryClient extends BaseClient {
     if (params?.searchText) searchParams.set('searchText', params.searchText);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections?${queryString}`
-      : '/api/collections';
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const base = routes.collections.myCollections.path;
+    return this.request<GetCollectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUserCollections(
@@ -221,11 +235,13 @@ export class QueryClient extends BaseClient {
     if (params.searchText) searchParams.set('searchText', params.searchText);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/user/${params.identifier}?${queryString}`
-      : `/api/collections/user/${params.identifier}`;
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const base = routes.collections.collectionsByUser.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetCollectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUrlStatusForMyLibrary(
@@ -234,7 +250,7 @@ export class QueryClient extends BaseClient {
     const searchParams = new URLSearchParams({ url: params.url });
     return this.request<GetUrlStatusForMyLibraryResponse>(
       'GET',
-      `/api/cards/library/status?${searchParams}`,
+      `${routes.cards.urlLibraryStatus.path}?${searchParams}`,
     );
   }
 
@@ -249,7 +265,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<GetLibrariesForUrlResponse>(
       'GET',
-      `/api/cards/libraries/url?${searchParams}`,
+      `${routes.cards.librariesForUrl.path}?${searchParams}`,
     );
   }
 
@@ -264,7 +280,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<GetNoteCardsForUrlResponse>(
       'GET',
-      `/api/cards/notes/url?${searchParams}`,
+      `${routes.cards.noteCardsForUrl.path}?${searchParams}`,
     );
   }
 
@@ -279,7 +295,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<GetCollectionsForUrlResponse>(
       'GET',
-      `/api/collections/url?${searchParams}`,
+      `${routes.collections.collectionsForUrl.path}?${searchParams}`,
     );
   }
 
@@ -297,7 +313,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<GetSimilarUrlsForUrlResponse>(
       'GET',
-      `/api/search/similar-urls?${searchParams}`,
+      `${routes.search.similarUrls.path}?${searchParams}`,
     );
   }
 
@@ -316,7 +332,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<SemanticSearchUrlsResponse>(
       'GET',
-      `/api/search/semantic?${searchParams}`,
+      `${routes.search.semantic.path}?${searchParams}`,
     );
   }
 
@@ -340,7 +356,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<SearchBskyPostsForUrlResponse>(
       'GET',
-      `/api/search/bsky-posts?${searchParams}`,
+      `${routes.search.bskyPosts.path}?${searchParams}`,
     );
   }
 
@@ -355,7 +371,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<SearchAtProtoAccountsResponse>(
       'GET',
-      `/api/search/accounts?${searchParams}`,
+      `${routes.search.atProtoAccounts.path}?${searchParams}`,
     );
   }
 
@@ -368,7 +384,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<SearchLeafletDocsForUrlResponse>(
       'GET',
-      `/api/search/leaflet-docs?${searchParams}`,
+      `${routes.search.leafletDocs.path}?${searchParams}`,
     );
   }
 
@@ -382,14 +398,15 @@ export class QueryClient extends BaseClient {
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/contributed/${params.identifier}?${queryString}`
-      : `/api/collections/contributed/${params.identifier}`;
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const base = routes.collections.openWithContributor.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetCollectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
-  // Follow query methods
   async getFollowingUsers(
     params: GetFollowingUsersParams,
   ): Promise<GetFollowingUsersResponse> {
@@ -398,11 +415,13 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/following?${queryString}`
-      : `/api/users/${params.identifier}/following`;
-
-    return this.request<GetFollowingUsersResponse>('GET', endpoint);
+    const base = routes.users.followingUsers.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetFollowingUsersResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getFollowers(
@@ -413,11 +432,13 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/followers?${queryString}`
-      : `/api/users/${params.identifier}/followers`;
-
-    return this.request<GetFollowersResponse>('GET', endpoint);
+    const base = routes.users.followers.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetFollowersResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getFollowingCollections(
@@ -428,11 +449,13 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/following-collections?${queryString}`
-      : `/api/users/${params.identifier}/following-collections`;
-
-    return this.request<GetFollowingCollectionsResponse>('GET', endpoint);
+    const base = routes.users.followingCollections.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetFollowingCollectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getCollectionFollowers(
@@ -443,11 +466,13 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${params.collectionId}/followers?${queryString}`
-      : `/api/collections/${params.collectionId}/followers`;
-
-    return this.request<GetCollectionFollowersResponse>('GET', endpoint);
+    const base = routes.collections.followers.build({
+      collectionId: params.collectionId,
+    });
+    return this.request<GetCollectionFollowersResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getFollowersCount(
@@ -455,7 +480,7 @@ export class QueryClient extends BaseClient {
   ): Promise<GetFollowCountResponse> {
     return this.request<GetFollowCountResponse>(
       'GET',
-      `/api/users/${params.identifier}/followers/count`,
+      routes.users.followersCount.build({ identifier: params.identifier }),
     );
   }
 
@@ -464,7 +489,9 @@ export class QueryClient extends BaseClient {
   ): Promise<GetFollowCountResponse> {
     return this.request<GetFollowCountResponse>(
       'GET',
-      `/api/users/${params.identifier}/following-collections/count`,
+      routes.users.followingCollectionsCount.build({
+        identifier: params.identifier,
+      }),
     );
   }
 
@@ -473,7 +500,9 @@ export class QueryClient extends BaseClient {
   ): Promise<GetFollowCountResponse> {
     return this.request<GetFollowCountResponse>(
       'GET',
-      `/api/collections/${params.collectionId}/followers/count`,
+      routes.collections.followersCount.build({
+        collectionId: params.collectionId,
+      }),
     );
   }
 
@@ -485,11 +514,13 @@ export class QueryClient extends BaseClient {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${params.collectionId}/contributors?${queryString}`
-      : `/api/collections/${params.collectionId}/contributors`;
-
-    return this.request<GetCollectionContributorsResponse>('GET', endpoint);
+    const base = routes.collections.contributors.build({
+      collectionId: params.collectionId,
+    });
+    return this.request<GetCollectionContributorsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getConnectionsForUrl(
@@ -508,7 +539,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<GetConnectionsForUrlResponse>(
       'GET',
-      `/api/connections/url?${searchParams}`,
+      `${routes.connections.connectionsForUrl.path}?${searchParams}`,
     );
   }
 
@@ -525,11 +556,13 @@ export class QueryClient extends BaseClient {
     }
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/connections/user/${params.identifier}?${queryString}`
-      : `/api/connections/user/${params.identifier}`;
-
-    return this.request<GetConnectionsResponse>('GET', endpoint);
+    const base = routes.connections.connectionsByUser.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetConnectionsResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
@@ -543,7 +576,7 @@ export class QueryClient extends BaseClient {
 
     return this.request<SearchUrlsResponse>(
       'GET',
-      `/api/cards/search?${searchParams}`,
+      `${routes.cards.searchCards.path}?${searchParams}`,
     );
   }
 
@@ -552,53 +585,47 @@ export class QueryClient extends BaseClient {
     page?: number;
     limit?: number;
   }): Promise<GetGraphDataResponse> {
-    // Build query string with pagination parameters
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/graph/user/${params.identifier}?${queryString}`
-      : `/api/graph/user/${params.identifier}`;
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    const base = routes.graph.userGraphData.build({
+      identifier: params.identifier,
+    });
+    return this.request<GetGraphDataResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async getUrlGraphData(
     params: GetUrlGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    // Build query string with url and depth parameters
     const searchParams = new URLSearchParams();
     searchParams.set('url', params.url);
     if (params.depth) searchParams.set('depth', params.depth.toString());
 
-    const endpoint = `/api/graph/url?${searchParams.toString()}`;
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    return this.request<GetGraphDataResponse>(
+      'GET',
+      `${routes.graph.urlGraphData.path}?${searchParams}`,
+    );
   }
 
   async getGraphData(
     params?: GetGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    // Check if mock data should be used (for performance testing)
-    // Set NEXT_PUBLIC_USE_MOCK_GRAPH_DATA=true in .env.local to enable
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
-    // const useMockData = true;
 
     if (useMockData) {
       const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(
         './mockGraphData'
       );
 
-      // You can change the preset here for different test scenarios
-      // Options: small, medium, large, extraLarge, denseSmall
       const mockData = generateMockGraphData(MOCK_GRAPH_PRESETS.large);
 
-      // Simulate network delay for realistic testing
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Apply pagination to mock data
       const page = params?.page || 1;
       const limit = params?.limit || 300;
       const offset = (page - 1) * limit;
@@ -625,16 +652,15 @@ export class QueryClient extends BaseClient {
       };
     }
 
-    // Build query string with pagination parameters
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/graph/data?${queryString}`
-      : '/api/graph/data';
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    const base = routes.graph.graphData.path;
+    return this.request<GetGraphDataResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 }

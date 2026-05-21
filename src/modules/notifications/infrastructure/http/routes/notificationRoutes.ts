@@ -1,42 +1,40 @@
-import { Router } from 'express';
+import { Express } from 'express';
 import { GetMyNotificationsController } from '../controllers/GetMyNotificationsController';
 import { GetUnreadNotificationCountController } from '../controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../controllers/MarkAllNotificationsAsReadController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { routes } from '@semble/types';
 
-export function createNotificationRoutes(
+export function registerNotificationRoutes(
+  app: Express,
   authMiddleware: AuthMiddleware,
   getMyNotificationsController: GetMyNotificationsController,
   getUnreadNotificationCountController: GetUnreadNotificationCountController,
   markNotificationsAsReadController: MarkNotificationsAsReadController,
   markAllNotificationsAsReadController: MarkAllNotificationsAsReadController,
-): Router {
-  const router = Router();
-
-  // GET /api/notifications - Get my notifications
-  router.get('/', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getMyNotificationsController.execute(req, res),
+): void {
+  app.get(
+    routes.notifications.myNotifications.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => getMyNotificationsController.execute(req, res),
   );
 
-  // GET /api/notifications/unread-count - Get unread notification count
-  router.get(
-    '/unread-count',
+  app.get(
+    routes.notifications.unreadCount.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => getUnreadNotificationCountController.execute(req, res),
   );
 
-  // POST /api/notifications/mark-read - Mark notifications as read
-  router.post('/mark-read', authMiddleware.ensureAuthenticated(), (req, res) =>
-    markNotificationsAsReadController.execute(req, res),
+  app.post(
+    routes.notifications.markRead.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => markNotificationsAsReadController.execute(req, res),
   );
 
-  // POST /api/notifications/mark-all-read - Mark all notifications as read
-  router.post(
-    '/mark-all-read',
+  app.post(
+    routes.notifications.markAllRead.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => markAllNotificationsAsReadController.execute(req, res),
   );
-
-  return router;
 }

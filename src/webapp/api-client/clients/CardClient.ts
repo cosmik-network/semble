@@ -14,6 +14,7 @@ import {
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionRequest,
   RemoveCardFromCollectionResponse,
+  routes,
 } from '@semble/types';
 
 export class CardClient extends BaseClient {
@@ -22,7 +23,7 @@ export class CardClient extends BaseClient {
   ): Promise<AddUrlToLibraryResponse> {
     return this.request<AddUrlToLibraryResponse>(
       'POST',
-      '/api/cards/library/urls',
+      routes.cards.addUrlToLibrary.path,
       request,
     );
   }
@@ -32,7 +33,7 @@ export class CardClient extends BaseClient {
   ): Promise<AddCardToLibraryResponse> {
     return this.request<AddCardToLibraryResponse>(
       'POST',
-      '/api/cards/library',
+      routes.cards.addCardToLibrary.path,
       request,
     );
   }
@@ -42,7 +43,7 @@ export class CardClient extends BaseClient {
   ): Promise<AddCardToCollectionResponse> {
     return this.request<AddCardToCollectionResponse>(
       'POST',
-      '/api/cards/collections',
+      routes.cards.addCardToCollection.path,
       request,
     );
   }
@@ -52,10 +53,8 @@ export class CardClient extends BaseClient {
   ): Promise<UpdateNoteCardResponse> {
     return this.request<UpdateNoteCardResponse>(
       'PUT',
-      `/api/cards/${request.cardId}/note`,
-      {
-        note: request.note,
-      },
+      routes.cards.cardNote.build({ cardId: request.cardId }),
+      { note: request.note },
     );
   }
 
@@ -64,7 +63,7 @@ export class CardClient extends BaseClient {
   ): Promise<UpdateUrlCardAssociationsResponse> {
     return this.request<UpdateUrlCardAssociationsResponse>(
       'PUT',
-      '/api/cards/url/associations',
+      routes.cards.urlCardAssociations.path,
       request,
     );
   }
@@ -74,7 +73,7 @@ export class CardClient extends BaseClient {
   ): Promise<RemoveCardFromLibraryResponse> {
     return this.request<RemoveCardFromLibraryResponse>(
       'DELETE',
-      `/api/cards/${request.cardId}/library`,
+      routes.cards.removeFromLibrary.build({ cardId: request.cardId }),
     );
   }
 
@@ -84,7 +83,7 @@ export class CardClient extends BaseClient {
     const collectionIdsParam = request.collectionIds.join(',');
     return this.request<RemoveCardFromCollectionResponse>(
       'DELETE',
-      `/api/cards/${request.cardId}/collections?collectionIds=${encodeURIComponent(collectionIdsParam)}`,
+      `${routes.cards.removeFromCollections.build({ cardId: request.cardId })}?collectionIds=${encodeURIComponent(collectionIdsParam)}`,
     );
   }
 }

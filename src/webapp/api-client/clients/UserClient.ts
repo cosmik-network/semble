@@ -12,6 +12,7 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  routes,
 } from '@semble/types';
 
 export class UserClient extends BaseClient {
@@ -20,7 +21,7 @@ export class UserClient extends BaseClient {
   ): Promise<LoginWithAppPasswordResponse> {
     return this.request<LoginWithAppPasswordResponse>(
       'POST',
-      '/api/users/login/app-password',
+      routes.users.loginWithAppPassword.path,
       request,
     );
   }
@@ -33,10 +34,11 @@ export class UserClient extends BaseClient {
       params.set('handle', request.handle);
     }
     const queryString = params.toString();
-    const endpoint = queryString
-      ? `/api/users/login?${queryString}`
-      : '/api/users/login';
-    return this.request<InitiateOAuthSignInResponse>('GET', endpoint);
+    const base = routes.users.initiateOAuth.path;
+    return this.request<InitiateOAuthSignInResponse>(
+      'GET',
+      queryString ? `${base}?${queryString}` : base,
+    );
   }
 
   async completeOAuthSignIn(
@@ -49,7 +51,7 @@ export class UserClient extends BaseClient {
     });
     return this.request<CompleteOAuthSignInResponse>(
       'GET',
-      `/api/users/oauth/callback?${params}`,
+      `${routes.users.oauthCallback.path}?${params}`,
     );
   }
 
@@ -58,25 +60,24 @@ export class UserClient extends BaseClient {
   ): Promise<RefreshAccessTokenResponse> {
     return this.request<RefreshAccessTokenResponse>(
       'POST',
-      '/api/users/oauth/refresh',
+      routes.users.refreshToken.path,
       request,
     );
   }
 
   async generateExtensionTokens(
-    request?: GenerateExtensionTokensRequest,
+    _request?: GenerateExtensionTokensRequest,
   ): Promise<GenerateExtensionTokensResponse> {
     return this.request<GenerateExtensionTokensResponse>(
       'GET',
-      '/api/users/extension/tokens',
+      routes.users.extensionTokens.path,
     );
   }
 
   async logout(): Promise<{ success: boolean; message: string }> {
-    // With cookie-based auth, refreshToken is sent automatically via cookies
     return this.request<{ success: boolean; message: string }>(
       'POST',
-      '/api/users/logout',
+      routes.users.logout.path,
     );
   }
 
@@ -85,7 +86,7 @@ export class UserClient extends BaseClient {
   ): Promise<FollowTargetResponse> {
     return this.request<FollowTargetResponse>(
       'POST',
-      '/api/users/follows',
+      routes.users.followTarget.path,
       request,
     );
   }
@@ -96,7 +97,7 @@ export class UserClient extends BaseClient {
   ): Promise<void> {
     return this.request<void>(
       'DELETE',
-      `/api/users/follows/${targetId}/${targetType}`,
+      routes.users.unfollowTarget.build({ targetId, targetType }),
     );
   }
 }
