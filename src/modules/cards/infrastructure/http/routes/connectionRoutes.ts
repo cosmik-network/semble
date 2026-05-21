@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { CreateConnectionController } from '../controllers/CreateConnectionController';
 import { UpdateConnectionController } from '../controllers/UpdateConnectionController';
 import { DeleteConnectionController } from '../controllers/DeleteConnectionController';
@@ -8,7 +8,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 
 export function registerConnectionRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   createConnectionController: CreateConnectionController,
   updateConnectionController: UpdateConnectionController,

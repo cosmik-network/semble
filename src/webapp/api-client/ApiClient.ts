@@ -539,13 +539,15 @@ export * from '@semble/types';
 // Factory functions for different client types
 export const createApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` ||
+      'http://127.0.0.1:3000/api',
   );
 };
 
 export const createServerApiClient = (accessToken?: string) => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` ||
+      'http://127.0.0.1:3000/api',
     accessToken,
   );
 };

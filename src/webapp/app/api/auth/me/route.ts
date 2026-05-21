@@ -6,7 +6,7 @@ import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 import { paths } from '@semble/types';
 
 const backendUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+  `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` || 'http://127.0.0.1:3000/api';
 
 type AuthResult = {
   isAuth: boolean;
@@ -118,8 +118,6 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
       const profileResponse = await fetch(`${backendUrl}${paths.myProfile}`, {
         method: 'GET',
         headers: {

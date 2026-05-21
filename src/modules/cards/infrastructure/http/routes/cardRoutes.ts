@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
@@ -19,7 +19,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 
 export function registerCardRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   addUrlToLibraryController: AddUrlToLibraryController,
   addCardToLibraryController: AddCardToLibraryController,

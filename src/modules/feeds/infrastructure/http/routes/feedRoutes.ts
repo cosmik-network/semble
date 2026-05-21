@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { GetGlobalFeedController } from '../controllers/GetGlobalFeedController';
 import { GetGemActivityFeedController } from '../controllers/GetGemActivityFeedController';
 import { GetFollowingFeedController } from '../controllers/GetFollowingFeedController';
@@ -6,7 +6,7 @@ import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middle
 import { routes } from '@semble/types';
 
 export function registerFeedRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getGlobalFeedController: GetGlobalFeedController,
   getGemActivityFeedController: GetGemActivityFeedController,

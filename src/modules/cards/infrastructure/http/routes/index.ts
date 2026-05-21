@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { registerCardRoutes } from './cardRoutes';
 import { registerCollectionRoutes } from './collectionRoutes';
 import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
@@ -33,7 +33,7 @@ import { GetCollectionContributorsController } from '../controllers/GetCollectio
 import { SearchUrlsController } from '../controllers/SearchUrlsController';
 
 export function registerCardsModuleRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController,

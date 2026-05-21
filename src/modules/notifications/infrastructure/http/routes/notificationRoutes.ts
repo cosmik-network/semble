@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { GetMyNotificationsController } from '../controllers/GetMyNotificationsController';
 import { GetUnreadNotificationCountController } from '../controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../controllers/MarkNotificationsAsReadController';
@@ -7,7 +7,7 @@ import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middle
 import { routes } from '@semble/types';
 
 export function registerNotificationRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getMyNotificationsController: GetMyNotificationsController,
   getUnreadNotificationCountController: GetUnreadNotificationCountController,

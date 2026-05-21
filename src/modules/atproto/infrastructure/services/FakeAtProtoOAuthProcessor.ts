@@ -15,7 +15,7 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
       // Encode the handle in the state parameter so we can decode it later
       const state = this.encodeState(handle || '');
       const baseUrl = configService.getAtProtoConfig().baseUrl;
-      const mockUrl = `${baseUrl}${paths.oauthCallback}?code=mockCode&state=${state}&iss=mockIssuer`;
+      const mockUrl = `${baseUrl}/api${paths.oauthCallback}?code=mockCode&state=${state}&iss=mockIssuer`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);

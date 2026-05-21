@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsForUrlController';
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
@@ -8,7 +8,7 @@ import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middle
 import { routes } from '@semble/types';
 
 export function registerSearchRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController,
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController,

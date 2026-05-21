@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -16,7 +16,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 
 export function registerCollectionRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,

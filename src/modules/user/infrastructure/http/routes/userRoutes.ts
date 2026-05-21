@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { InitiateOAuthSignInController } from '../controllers/InitiateOAuthSignInController';
 import { CompleteOAuthSignInController } from '../controllers/CompleteOAuthSignInController';
 import { LoginWithAppPasswordController } from '../controllers/LoginWithAppPasswordController';
@@ -19,7 +19,7 @@ import { GetFollowingCollectionsCountController } from '../controllers/GetFollow
 import { routes } from '@semble/types';
 
 export function registerUserRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   initiateOAuthSignInController: InitiateOAuthSignInController,
   completeOAuthSignInController: CompleteOAuthSignInController,

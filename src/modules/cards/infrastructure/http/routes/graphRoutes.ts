@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { IRouter } from 'express';
 import { GetGraphDataController } from '../controllers/GetGraphDataController';
 import { GetUserGraphDataController } from '../controllers/GetUserGraphDataController';
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
@@ -6,7 +6,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 
 export function registerGraphRoutes(
-  app: Express,
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getGraphDataController: GetGraphDataController,
   getUserGraphDataController: GetUserGraphDataController,
