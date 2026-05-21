@@ -76,7 +76,7 @@ export function registerUserRoutes(
     (req, res) => followTargetController.execute(req, res),
   );
 
-  app.delete(
+  app.post(
     routes.users.unfollowTarget.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => unfollowTargetController.execute(req, res),

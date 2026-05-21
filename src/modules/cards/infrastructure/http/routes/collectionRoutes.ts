@@ -104,7 +104,7 @@ export function registerCollectionRoutes(
     (req, res) => updateCollectionController.execute(req, res),
   );
 
-  app.delete(
+  app.post(
     routes.collections.deleteCollection.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => deleteCollectionController.execute(req, res),

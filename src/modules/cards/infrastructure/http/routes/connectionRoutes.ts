@@ -40,7 +40,7 @@ export function registerConnectionRoutes(
     (req, res) => updateConnectionController.execute(req, res),
   );
 
-  app.delete(
+  app.post(
     routes.connections.deleteConnection.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => deleteConnectionController.execute(req, res),

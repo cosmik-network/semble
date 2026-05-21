@@ -124,16 +124,14 @@ export const cardsContract = c.router({
     body: UpdateNoteCardRequestSchema,
     responses: { 200: UpdateNoteCardResponseSchema },
   },
-  // NOTE: browser native fetch drops the body on DELETE requests.
-  // Use the ts-rest client or axios when calling these endpoints.
   removeFromLibrary: {
-    method: 'DELETE',
+    method: 'POST',
     path: paths.removeFromLibrary,
     body: RemoveCardFromLibraryRequestSchema,
     responses: { 200: RemoveCardFromLibraryResponseSchema },
   },
   removeFromCollections: {
-    method: 'DELETE',
+    method: 'POST',
     path: paths.removeFromCollections,
     body: RemoveCardFromCollectionRequestSchema,
     responses: { 200: RemoveCardFromCollectionResponseSchema },

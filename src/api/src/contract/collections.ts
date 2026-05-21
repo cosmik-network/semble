@@ -75,9 +75,8 @@ export const collectionsContract = c.router({
     body: UpdateCollectionRequestSchema,
     responses: { 200: UpdateCollectionResponseSchema },
   },
-  // NOTE: browser native fetch drops the body on DELETE requests.
   deleteCollection: {
-    method: 'DELETE',
+    method: 'POST',
     path: paths.deleteCollection,
     body: DeleteCollectionRequestSchema,
     responses: { 200: DeleteCollectionResponseSchema },

@@ -122,13 +122,13 @@ export function registerCardRoutes(
     (req, res) => updateUrlCardAssociationsController.execute(req, res),
   );
 
-  app.delete(
+  app.post(
     routes.cards.removeFromLibrary.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => removeCardFromLibraryController.execute(req, res),
   );
 
-  app.delete(
+  app.post(
     routes.cards.removeFromCollections.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => removeCardFromCollectionController.execute(req, res),

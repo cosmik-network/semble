@@ -91,9 +91,8 @@ export const usersContract = c.router({
     body: FollowTargetRequestSchema,
     responses: { 200: FollowTargetResponseSchema },
   },
-  // NOTE: browser native fetch drops the body on DELETE requests.
   unfollowTarget: {
-    method: 'DELETE',
+    method: 'POST',
     path: paths.unfollowTarget,
     body: UnfollowTargetRequestSchema,
     responses: { 200: z.object({ success: z.boolean() }) },

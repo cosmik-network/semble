@@ -48,9 +48,8 @@ export const connectionsContract = c.router({
     body: UpdateConnectionRequestSchema,
     responses: { 200: UpdateConnectionResponseSchema },
   },
-  // NOTE: browser native fetch drops the body on DELETE requests.
   deleteConnection: {
-    method: 'DELETE',
+    method: 'POST',
     path: paths.deleteConnection,
     body: DeleteConnectionRequestSchema,
     responses: { 200: DeleteConnectionResponseSchema },
