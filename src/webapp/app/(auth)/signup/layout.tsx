@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Sign up — Semble',
   description: 'Sign up to get started',
+  robots: { index: false, follow: true },
 };
 
 interface Props {

@@ -20,6 +20,7 @@ import SembleLogo from '@/assets/semble-logo.svg';
 export const metadata: Metadata = {
   title: 'Log in — Semble',
   description: 'Welcome back',
+  robots: { index: false, follow: true },
 };
 
 interface Props {
