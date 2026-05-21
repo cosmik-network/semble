@@ -4,9 +4,7 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { URL } from '../../../../cards/domain/value-objects/URL';
 import { SearchService } from '../../../domain/services/SearchService';
-import { GetSimilarUrlsForUrlParams } from '@semble/types/api/requests';
-import { UrlView } from '@semble/types/api/responses';
-import { Pagination } from '@semble/types/api/common';
+import { GetSimilarUrlsForUrlParams, UrlView, Pagination } from '@semble/types';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 
 export interface GetSimilarUrlsForUrlQuery extends GetSimilarUrlsForUrlParams {
