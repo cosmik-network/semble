@@ -11,7 +11,6 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { notifications } from '@mantine/notifications';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
-import { useWebHaptics } from 'web-haptics/react';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
@@ -30,7 +29,6 @@ function AuthenticatedCollectionActions({ collection }: Props) {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [showSaveToLibraryModal, setShowSaveToLibraryModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
-  const { trigger } = useWebHaptics();
 
   const isAuthor = user?.handle === collection.author?.handle;
   const canAddCard =
@@ -52,7 +50,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
     <Fragment>
       <Menu shadow="sm">
         <Menu.Target>
-          <ActionIcon size="lg" radius={'xl'} onClick={() => trigger()}>
+          <ActionIcon size="lg" radius={'xl'}>
             <FiPlus size={18} />
           </ActionIcon>
         </Menu.Target>
@@ -80,7 +78,6 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         size="lg"
         radius={'xl'}
         onClick={() => {
-          trigger();
           setShowAddConnectionModal(true);
         }}
       >

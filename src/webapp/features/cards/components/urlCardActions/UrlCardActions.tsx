@@ -32,7 +32,6 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
-import { useWebHaptics } from 'web-haptics/react';
 
 interface Props {
   id: string;
@@ -84,7 +83,6 @@ export default function UrlCardActions(props: Props) {
   const [showAddToModal, setShowAddToModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
-  const { trigger } = useWebHaptics();
   const router = useRouter();
 
   return (
@@ -123,7 +121,6 @@ export default function UrlCardActions(props: Props) {
                   router.push('/login');
                   return;
                 }
-                trigger();
                 setShowAddToModal(true);
               }}
             >
@@ -154,7 +151,6 @@ export default function UrlCardActions(props: Props) {
                   router.push('/login');
                   return;
                 }
-                trigger();
                 setShowAddConnectionModal(true);
               }}
             >
@@ -242,7 +238,6 @@ export default function UrlCardActions(props: Props) {
                   }
                   onClick={(e) => {
                     e.stopPropagation();
-                    trigger();
                     props.onTogglePinInCollection?.();
                   }}
                 >
