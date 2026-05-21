@@ -7,13 +7,14 @@ import '@mantine-bites/lightbox/styles.css';
 import { theme } from '@/styles/theme';
 import {
   MantineProvider as BaseProvider,
+  useMantineColorScheme,
   v8CssVariablesResolver,
 } from '@mantine/core';
 import {
   CodeHighlightAdapterProvider,
   createShikiAdapter,
 } from '@mantine/code-highlight';
-
+import { useHotkeys } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
 
 interface Props {
@@ -33,6 +34,23 @@ async function loadShiki() {
 
 const shikiAdapter = createShikiAdapter(loadShiki);
 
+const schemes = ['light', 'dark', 'auto'] as const;
+type ColorScheme = (typeof schemes)[number];
+
+function ThemeHotkey() {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  useHotkeys([
+    [
+      'ctrl+shift+T',
+      () => {
+        const idx = schemes.indexOf(colorScheme as ColorScheme);
+        setColorScheme(schemes[(idx + 1) % schemes.length]);
+      },
+    ],
+  ]);
+  return null;
+}
+
 export default function MantineProvider(props: Props) {
   return (
     <BaseProvider
@@ -41,6 +59,7 @@ export default function MantineProvider(props: Props) {
       cssVariablesResolver={v8CssVariablesResolver}
     >
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
+        <ThemeHotkey />
         <Notifications
           position="bottom-right"
           pauseResetOnHover="notification"
