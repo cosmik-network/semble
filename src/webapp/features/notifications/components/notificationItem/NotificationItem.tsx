@@ -85,10 +85,7 @@ export default function NotificationItem(props: Props) {
                 <Group gap="xs" wrap="nowrap">
                   {notification.item.collections.map((collection) => (
                     <Box key={collection.id} miw={'100%'} w={'100%'}>
-                      <CollectionCard
-                        collection={collection}
-                        size="compact"
-                      />
+                      <CollectionCard collection={collection} size="compact" />
                     </Box>
                   ))}
                 </Group>

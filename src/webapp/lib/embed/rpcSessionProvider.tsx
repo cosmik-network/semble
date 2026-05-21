@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, use, useEffect, useRef, useState } from 'react';
 import { newMessagePortRpcSession, type RpcStub } from 'capnweb';
 
 type EmbedBlockData =
@@ -68,13 +68,9 @@ export function RpcSessionProvider({
     };
   }, [session]);
 
-  return (
-    <RpcSessionContext.Provider value={session}>
-      {children}
-    </RpcSessionContext.Provider>
-  );
+  return <RpcSessionContext value={session}>{children}</RpcSessionContext>;
 }
 
 export function useRpcSession() {
-  return useContext(RpcSessionContext);
+  return use(RpcSessionContext);
 }

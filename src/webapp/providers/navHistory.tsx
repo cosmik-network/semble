@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface NavHistoryContext {
@@ -30,16 +30,16 @@ export function NavHistoryProvider(props: Props) {
   }, [pathname, currentPath]);
 
   return (
-    <NavHistoryContext.Provider
+    <NavHistoryContext
       value={{ previousPath, canGoBack: previousPath !== null }}
     >
       {props.children}
-    </NavHistoryContext.Provider>
+    </NavHistoryContext>
   );
 }
 
 export function useNavHistory() {
-  const context = useContext(NavHistoryContext);
+  const context = use(NavHistoryContext);
 
   if (!context) {
     throw new Error('useNavHistory must be used within a NavHistoryProvider');

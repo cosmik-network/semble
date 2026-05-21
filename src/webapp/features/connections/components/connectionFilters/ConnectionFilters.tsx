@@ -3,7 +3,7 @@
 import { Group, Button, Menu } from '@mantine/core';
 import {
   createContext,
-  useContext,
+  use,
   ReactNode,
   useOptimistic,
   useTransition,
@@ -22,7 +22,7 @@ interface FilterContextValue {
 const FilterContext = createContext<FilterContextValue | null>(null);
 
 const useFilterContext = () => {
-  const ctx = useContext(FilterContext);
+  const ctx = use(FilterContext);
   if (!ctx)
     throw new Error(
       'ConnectionFilter components must be wrapped in ConnectionFilters.Root',
@@ -39,7 +39,7 @@ interface RootProps {
 
 export function Root(props: RootProps) {
   return (
-    <FilterContext.Provider
+    <FilterContext
       value={{
         connectionType: props.connectionType,
         onConnectionTypeChange: props.onConnectionTypeChange,
@@ -55,7 +55,7 @@ export function Root(props: RootProps) {
           {props.children}
         </Menu.Dropdown>
       </Menu>
-    </FilterContext.Provider>
+    </FilterContext>
   );
 }
 

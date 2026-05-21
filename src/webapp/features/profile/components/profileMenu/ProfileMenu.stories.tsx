@@ -43,7 +43,7 @@ const meta: Meta<typeof ProfileMenu> = {
   component: ProfileMenu,
   decorators: [
     (Story) => (
-      <AuthContext.Provider value={mockAuthContext}>
+      <AuthContext value={mockAuthContext}>
         <QueryCacheSeed profile={mockProfile}>
           <Suspense
             fallback={<MantineSkeleton w={38} h={38} radius="md" ml={4} />}
@@ -53,7 +53,7 @@ const meta: Meta<typeof ProfileMenu> = {
             </div>
           </Suspense>
         </QueryCacheSeed>
-      </AuthContext.Provider>
+      </AuthContext>
     ),
   ],
 };
@@ -69,7 +69,7 @@ export const Default: Story = {};
 export const BotAccount: Story = {
   decorators: [
     (Story) => (
-      <AuthContext.Provider value={mockAuthContext}>
+      <AuthContext value={mockAuthContext}>
         <QueryCacheSeed
           profile={{
             ...mockProfile,
@@ -95,7 +95,7 @@ export const BotAccount: Story = {
             </div>
           </Suspense>
         </QueryCacheSeed>
-      </AuthContext.Provider>
+      </AuthContext>
     ),
   ],
 };

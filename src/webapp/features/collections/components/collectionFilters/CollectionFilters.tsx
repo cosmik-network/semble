@@ -4,7 +4,7 @@ import { Button, Menu } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
-  useContext,
+  use,
   ReactNode,
   Fragment,
   useOptimistic,
@@ -26,7 +26,7 @@ interface FilterContextValue {
 const FilterContext = createContext<FilterContextValue | null>(null);
 
 const useFilterContext = () => {
-  const ctx = useContext(FilterContext);
+  const ctx = use(FilterContext);
   if (!ctx)
     throw new Error(
       'CollectionFilter components must be wrapped in CollectionFiltersRoot',
@@ -40,7 +40,7 @@ export function CollectionFiltersRoot(props: { children: ReactNode }) {
   const router = useRouter();
 
   return (
-    <FilterContext.Provider value={{ router, searchParams }}>
+    <FilterContext value={{ router, searchParams }}>
       <Menu shadow="sm">
         <Menu.Target>
           <Button variant="light" color="gray" leftSection={<MdFilterList />}>
@@ -49,7 +49,7 @@ export function CollectionFiltersRoot(props: { children: ReactNode }) {
         </Menu.Target>
         <Menu.Dropdown w={200}>{props.children}</Menu.Dropdown>
       </Menu>
-    </FilterContext.Provider>
+    </FilterContext>
   );
 }
 

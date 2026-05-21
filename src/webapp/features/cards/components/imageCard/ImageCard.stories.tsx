@@ -64,11 +64,11 @@ const meta: Meta<typeof ImageCard> = {
   component: ImageCard,
   decorators: [
     (Story) => (
-      <AuthContext.Provider value={mockAuthValue}>
+      <AuthContext value={mockAuthValue}>
         <div style={{ maxWidth: 360 }}>
           <Story />
         </div>
-      </AuthContext.Provider>
+      </AuthContext>
     ),
   ],
   args: {
