@@ -14,12 +14,15 @@ import {
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { notifications } from '@mantine/notifications';
+import { Button, Group, Text } from '@mantine/core';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
+import { useRouter } from 'next/navigation';
 
 export default function useAddCard(
   analyticsContext?: CardSaveAnalyticsContext,
 ) {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const mutation = useMutation({
     mutationFn: async (newCard: {
@@ -43,14 +46,35 @@ export default function useAddCard(
     // https://tkdodo.eu/blog/mastering-mutations-in-react-query#some-callbacks-might-not-fire
     onSuccess: (_data, variables) => {
       if (variables.notificationId) {
+        const notificationId = variables.notificationId;
         notifications.update({
-          id: variables.notificationId,
+          id: notificationId,
           color: 'green',
-          title: 'Success!',
-          message: 'Card added',
+          title: null,
+          message: (
+            <Group
+              gap="xs"
+              justify="space-between"
+              wrap="nowrap"
+              align="center"
+            >
+              <Text size="sm">Card added</Text>
+              <Button
+                size="xs"
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  notifications.hide(notificationId);
+                  router.push(`/url?id=${encodeURIComponent(variables.url)}`);
+                }}
+              >
+                View
+              </Button>
+            </Group>
+          ),
           position: 'top-center',
           loading: false,
-          autoClose: 2000,
+          autoClose: 5000,
           icon: <BsCheck />,
         });
       }
