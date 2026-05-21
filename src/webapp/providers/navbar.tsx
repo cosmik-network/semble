@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, use } from 'react';
 import { useLocalStorage } from '@mantine/hooks';
 
 interface NavbarContext {
@@ -36,16 +36,16 @@ export function NavbarProvider(props: Props) {
   const toggleDesktop = () => setDesktopOpened((o) => !o);
 
   return (
-    <NavbarContext.Provider
+    <NavbarContext
       value={{ mobileOpened, desktopOpened, toggleMobile, toggleDesktop }}
     >
       {props.children}
-    </NavbarContext.Provider>
+    </NavbarContext>
   );
 }
 
 export function useNavbarContext() {
-  const context = useContext(NavbarContext);
+  const context = use(NavbarContext);
 
   if (!context) {
     throw new Error('useNavbarContext must be used within a NavbarProvider');

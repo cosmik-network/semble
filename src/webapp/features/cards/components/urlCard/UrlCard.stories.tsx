@@ -69,11 +69,11 @@ const meta: Meta<typeof UrlCard> = {
   component: UrlCard,
   decorators: [
     (Story) => (
-      <AuthContext.Provider value={mockAuthValue}>
+      <AuthContext value={mockAuthValue}>
         <div style={{ maxWidth: 400 }}>
           <Story />
         </div>
-      </AuthContext.Provider>
+      </AuthContext>
     ),
   ],
   args: {
