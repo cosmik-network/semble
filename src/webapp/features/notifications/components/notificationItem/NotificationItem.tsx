@@ -84,9 +84,8 @@ export default function NotificationItem(props: Props) {
               <Scroller>
                 <Group gap="xs" wrap="nowrap">
                   {notification.item.collections.map((collection) => (
-                    <Box miw={'100%'} w={'100%'}>
+                    <Box key={collection.id} miw={'100%'} w={'100%'}>
                       <CollectionCard
-                        key={collection.id}
                         collection={collection}
                         size="compact"
                       />
