@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { Fragment, Suspense } from 'react';
 import CollectionHeader from '@/features/collections/components/collectionHeader/CollectionHeader';
 import CollectionHeaderSkeleton from '@/features/collections/components/collectionHeader/Skeleton.CollectionHeader';
+import CollectionShareHeaderButton from '@/features/collections/components/CollectionShareHeaderButton/CollectionShareHeaderButton';
 import CollectionTabs from '@/features/collections/components/collectionTabs/CollectionTabs';
 import { Container } from '@mantine/core';
 
@@ -50,6 +51,7 @@ export default async function Layout(props: Props) {
     <Fragment>
       <Header>
         <BackButton />
+        <CollectionShareHeaderButton handle={handle} rkey={rkey} />
       </Header>
       <Suspense fallback={<CollectionHeaderSkeleton />}>
         <CollectionHeader handle={handle} rkey={rkey} />
