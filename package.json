@@ -5,6 +5,7 @@
   "main": "index.js",
   "workspaces": [
     "src/types",
+    "src/api",
     "src/webapp",
     "src/packages/semble-pds-client"
   ],
@@ -14,6 +15,7 @@
   "scripts": {
     "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
+    "build:api": "npm run build:types && npm run build --workspace=@semble/api",
     "dev:types": "npm run dev --workspace=@semble/types",
     "type-check": "tsc --noEmit",
     "start": "node dist/index.js",
