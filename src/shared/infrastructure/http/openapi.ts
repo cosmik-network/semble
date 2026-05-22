@@ -9,14 +9,9 @@ export const openApiDocument = generateOpenApi(
       version: '1.0.0',
       description: 'The official Semble API',
     },
-    servers: [{ url: 'https://api.semble.so' }],
+    servers: [{ url: 'https://api.semble.so/xrpc' }],
     components: {
       securitySchemes: {
-        cookieAuth: {
-          type: 'apiKey',
-          in: 'cookie',
-          name: 'accessToken',
-        },
         apiKey: {
           type: 'apiKey',
           in: 'header',
