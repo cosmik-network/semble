@@ -24,6 +24,9 @@ export const searchContract = c.router({
       urlType: UrlTypeSchema.optional(),
     }),
     responses: { 200: GetSimilarUrlsForUrlResponseSchema },
+    summary: 'Find similar URLs',
+    description:
+      'Returns URLs semantically similar to a given URL using vector similarity search.',
   },
   semantic: {
     method: 'GET',
@@ -35,6 +38,9 @@ export const searchContract = c.router({
       identifier: z.string().optional(),
     }),
     responses: { 200: SemanticSearchUrlsResponseSchema },
+    summary: 'Semantic search',
+    description:
+      'Returns URLs matching a natural-language query using vector search, optionally scoped to a user.',
   },
   bskyPosts: {
     method: 'GET',
@@ -54,6 +60,9 @@ export const searchContract = c.router({
       cursor: z.string().optional(),
     }),
     responses: { 200: SearchBskyPostsForUrlResponseSchema },
+    summary: 'Search Bluesky posts',
+    description:
+      'Searches Bluesky posts via the AT Protocol, proxied through the Semble API.',
   },
   atProtoAccounts: {
     method: 'GET',
@@ -65,6 +74,9 @@ export const searchContract = c.router({
       cursor: z.string().optional(),
     }),
     responses: { 200: SearchAtProtoAccountsResponseSchema },
+    summary: 'Search AT Protocol accounts',
+    description:
+      'Searches for AT Protocol user accounts by handle or display name.',
   },
   leafletDocs: {
     method: 'GET',
@@ -75,5 +87,8 @@ export const searchContract = c.router({
       cursor: z.string().optional(),
     }),
     responses: { 200: SearchLeafletDocsForUrlResponseSchema },
+    summary: 'Search Leaflet documents for a URL',
+    description:
+      'Returns Leaflet documents that reference or annotate a given URL.',
   },
 });

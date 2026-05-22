@@ -26,12 +26,18 @@ export const feedsContract = c.router({
       beforeActivityId: z.string().optional(),
     }),
     responses: { 200: GetGlobalFeedResponseSchema },
+    summary: 'Get global feed',
+    description:
+      'Returns a paginated activity feed across all users, ordered by recency.',
   },
   gemFeed: {
     method: 'GET',
     path: paths.gemFeed,
     query: FeedQuery,
     responses: { 200: GetGlobalFeedResponseSchema },
+    summary: 'Get gem feed',
+    description:
+      'Returns a curated feed of highly-saved URLs (gems), ordered by library count.',
   },
   followingFeed: {
     method: 'GET',
@@ -40,5 +46,8 @@ export const feedsContract = c.router({
       beforeActivityId: z.string().optional(),
     }),
     responses: { 200: GetGlobalFeedResponseSchema },
+    summary: 'Get following feed',
+    description:
+      'Returns an activity feed of users and collections the authenticated user follows.',
   },
 });

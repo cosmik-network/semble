@@ -13,6 +13,9 @@ export const graphContract = c.router({
       limit: z.coerce.number().optional(),
     }),
     responses: { 200: GetGraphDataResponseSchema },
+    summary: 'Get my graph data',
+    description:
+      "Returns the authenticated user's connection graph as nodes and edges.",
   },
   userGraphData: {
     method: 'GET',
@@ -23,6 +26,9 @@ export const graphContract = c.router({
       limit: z.coerce.number().optional(),
     }),
     responses: { 200: GetGraphDataResponseSchema },
+    summary: "Get a user's graph data",
+    description:
+      "Returns a user's connection graph as nodes and edges, identified by handle or DID.",
   },
   urlGraphData: {
     method: 'GET',
@@ -32,5 +38,8 @@ export const graphContract = c.router({
       depth: z.coerce.number().optional(),
     }),
     responses: { 200: GetGraphDataResponseSchema },
+    summary: 'Get URL graph data',
+    description:
+      'Returns the connection graph centered on a given URL, up to the specified depth.',
   },
 });

@@ -35,12 +35,17 @@ export const collectionsContract = c.router({
       searchText: z.string().optional(),
     }),
     responses: { 200: GetCollectionsResponseSchema },
+    summary: 'List my collections',
+    description:
+      "Returns a paginated list of the authenticated user's collections.",
   },
   createCollection: {
     method: 'POST',
     path: paths.createCollection,
     body: CreateCollectionRequestSchema,
     responses: { 200: CreateCollectionResponseSchema },
+    summary: 'Create a collection',
+    description: 'Creates a new collection for the authenticated user.',
   },
   collectionsForUrl: {
     method: 'GET',
@@ -49,6 +54,8 @@ export const collectionsContract = c.router({
       url: z.string(),
     }),
     responses: { 200: GetCollectionsForUrlResponseSchema },
+    summary: 'Get collections containing a URL',
+    description: 'Returns collections that contain a card for the given URL.',
   },
   searchCollections: {
     method: 'GET',
@@ -59,6 +66,9 @@ export const collectionsContract = c.router({
       accessType: CollectionAccessTypeSchema.optional(),
     }),
     responses: { 200: GetCollectionsResponseSchema },
+    summary: 'Search collections',
+    description:
+      'Full-text search across collection names, optionally filtered by user or access type.',
   },
   collectionById: {
     method: 'GET',
@@ -68,18 +78,27 @@ export const collectionsContract = c.router({
       urlType: UrlTypeSchema.optional(),
     }),
     responses: { 200: GetCollectionPageResponseSchema },
+    summary: 'Get a collection by ID',
+    description:
+      'Returns a collection and its cards, paginated, by collection ID.',
   },
   updateCollection: {
     method: 'PUT',
     path: paths.updateCollection,
     body: UpdateCollectionRequestSchema,
     responses: { 200: UpdateCollectionResponseSchema },
+    summary: 'Update a collection',
+    description:
+      'Updates the name, description, or access type of a collection.',
   },
   deleteCollection: {
     method: 'POST',
     path: paths.deleteCollection,
     body: DeleteCollectionRequestSchema,
     responses: { 200: DeleteCollectionResponseSchema },
+    summary: 'Delete a collection',
+    description:
+      'Permanently deletes a collection owned by the authenticated user.',
   },
   collectionsByUser: {
     method: 'GET',
@@ -89,6 +108,9 @@ export const collectionsContract = c.router({
       searchText: z.string().optional(),
     }),
     responses: { 200: GetCollectionsResponseSchema },
+    summary: "List a user's collections",
+    description:
+      'Returns a paginated list of collections owned by a user, identified by handle or DID.',
   },
   collectionByAtUri: {
     method: 'GET',
@@ -99,6 +121,9 @@ export const collectionsContract = c.router({
       urlType: UrlTypeSchema.optional(),
     }),
     responses: { 200: GetCollectionPageResponseSchema },
+    summary: 'Get a collection by AT URI',
+    description:
+      'Returns a collection and its cards, looked up by AT Protocol handle and record key.',
   },
   openWithContributor: {
     method: 'GET',
@@ -107,6 +132,9 @@ export const collectionsContract = c.router({
       identifier: z.string(),
     }),
     responses: { 200: GetCollectionsResponseSchema },
+    summary: 'List open collections with a contributor',
+    description:
+      'Returns open collections that a given user has contributed cards to.',
   },
   collectionFollowers: {
     method: 'GET',
@@ -117,12 +145,16 @@ export const collectionsContract = c.router({
       limit: z.coerce.number().optional(),
     }),
     responses: { 200: GetCollectionFollowersResponseSchema },
+    summary: 'Get collection followers',
+    description: 'Returns users who follow a given collection.',
   },
   collectionFollowersCount: {
     method: 'GET',
     path: paths.collectionFollowersCount,
     query: GetCollectionFollowersCountParamsSchema,
     responses: { 200: GetFollowCountResponseSchema },
+    summary: 'Get collection follower count',
+    description: 'Returns the total number of followers for a collection.',
   },
   collectionContributors: {
     method: 'GET',
@@ -133,5 +165,7 @@ export const collectionsContract = c.router({
       limit: z.coerce.number().optional(),
     }),
     responses: { 200: GetCollectionContributorsResponseSchema },
+    summary: 'Get collection contributors',
+    description: 'Returns users who have added cards to a given collection.',
   },
 });
