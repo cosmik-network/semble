@@ -26,7 +26,6 @@ export default function useFollowingFeed(props?: Props) {
     ),
     staleTime: 10000,
     initialPageParam: 1,
-    refetchOnWindowFocus: false,
     enabled,
     queryFn: ({ pageParam = 1 }) => {
       return getFollowingFeed({

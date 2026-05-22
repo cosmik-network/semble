@@ -11,7 +11,6 @@ export default function useCollectionFollowersCount({ collectionId }: Props) {
     queryKey: followKeys.collectionFollowersCount(collectionId),
     queryFn: () => getCollectionFollowersCount(collectionId),
     staleTime: 10000,
-    refetchOnWindowFocus: false,
   });
 
   return query;

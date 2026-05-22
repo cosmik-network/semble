@@ -34,6 +34,5 @@ export default function useGraphNodeCollection({
     enabled: enabled && !!handle && !!rkey,
     staleTime: 5 * 60 * 1000, // 5 minutes - collections don't change often
     retry: 1, // Only retry once for popup data
-    refetchOnWindowFocus: false, // Don't refetch on focus for popup data
   });
 }

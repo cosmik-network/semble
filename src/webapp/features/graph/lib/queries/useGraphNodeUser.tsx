@@ -21,6 +21,5 @@ export default function useGraphNodeUser({ handle, enabled = true }: Props) {
     enabled: enabled && !!handle,
     staleTime: 5 * 60 * 1000, // 5 minutes - profiles don't change often
     retry: 1, // Only retry once for popup data
-    refetchOnWindowFocus: false, // Don't refetch on focus for popup data
   });
 }
