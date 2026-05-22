@@ -121,7 +121,6 @@ export default function NoteCardInline(props: Props) {
             <Textarea
               id="note-inline"
               placeholder="Add a note about this card"
-              variant="filled"
               size="md"
               autosize
               minRows={3}
