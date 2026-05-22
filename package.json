@@ -17,7 +17,7 @@
     "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
     "build:contract": "npm run build:types && npm run build --workspace=@semble/contract",
-    "build:sdk": "npm run build:contract && npm run build --workspace=@semble/api",
+    "build:sdk": "npm run build:contract && npm run build --workspace=@semble.so/api",
     "dev:types": "npm run dev --workspace=@semble/types",
     "type-check": "tsc --noEmit",
     "start": "node dist/index.js",

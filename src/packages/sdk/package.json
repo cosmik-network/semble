@@ -1,7 +1,7 @@
 {
-  "name": "@semble/api",
-  "version": "1.0.0",
-  "description": "Official Semble API client",
+  "name": "@semble.so/api",
+  "version": "0.0.1",
+  "description": "A fully-typed Semble API client",
   "type": "module",
   "publishConfig": {
     "access": "public"
