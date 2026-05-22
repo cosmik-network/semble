@@ -41,7 +41,7 @@ export default function ImageEmbed(props: Props) {
         <Lightbox.Slides>
           {lightboxImages.map((img) => (
             <Lightbox.Slide key={img.src}>
-              <img src={img.src} alt={img.alt} />
+              <Image src={img.src} alt={img.alt} />
             </Lightbox.Slide>
           ))}
         </Lightbox.Slides>
