@@ -42,7 +42,6 @@ import {
   GetFollowingCollectionsResponse,
   GetCollectionFollowersParams,
   GetCollectionFollowersResponse,
-  GetFollowingCountParams,
   GetFollowersCountParams,
   GetFollowingCollectionsCountParams,
   GetCollectionFollowersCountParams,
@@ -58,22 +57,22 @@ import {
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
   GetUrlGraphDataParams,
-  routes,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
   async getUrlMetadata(
     params: GetUrlMetadataParams,
   ): Promise<GetUrlMetadataResponse> {
-    return this.request<GetUrlMetadataResponse>(routes.cards.urlMetadata, {
+    const res = await this.client.cards.urlMetadata({
       query: { url: params.url, includeStats: params.includeStats },
     });
+    return res.body as GetUrlMetadataResponse;
   }
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    return this.request<GetUrlCardsResponse>(routes.cards.myUrlCards, {
+    const res = await this.client.cards.myUrlCards({
       query: {
         page: params?.page,
         limit: params?.limit,
@@ -83,12 +82,13 @@ export class QueryClient extends BaseClient {
         uncollected: params?.uncollected ? true : undefined,
       },
     });
+    return res.body as GetUrlCardsResponse;
   }
 
   async getUserUrlCards(
     params: GetUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    return this.request<GetUrlCardsResponse>(routes.cards.cardsByUser, {
+    const res = await this.client.cards.cardsByUser({
       query: {
         identifier: params.identifier,
         page: params.page,
@@ -99,59 +99,55 @@ export class QueryClient extends BaseClient {
         uncollected: params.uncollected ? true : undefined,
       },
     });
+    return res.body as GetUrlCardsResponse;
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
-    return this.request<GetUrlCardViewResponse>(routes.cards.cardById, {
-      query: { cardId },
-    });
+    const res = await this.client.cards.cardById({ query: { cardId } });
+    return res.body as GetUrlCardViewResponse;
   }
 
   async getLibrariesForCard(
     cardId: string,
   ): Promise<GetLibrariesForCardResponse> {
-    return this.request<GetLibrariesForCardResponse>(
-      routes.cards.cardLibraries,
-      {
-        query: { cardId },
-      },
-    );
+    const res = await this.client.cards.cardLibraries({ query: { cardId } });
+    return res.body as GetLibrariesForCardResponse;
   }
 
   async getMyProfile(params?: {
     includeStats?: boolean;
   }): Promise<GetProfileResponse> {
-    return this.request<GetProfileResponse>(routes.users.myProfile, {
+    const res = await this.client.users.myProfile({
       query: { includeStats: params?.includeStats },
     });
+    return res.body as GetProfileResponse;
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    return this.request<GetProfileResponse>(routes.users.userProfile, {
+    const res = await this.client.users.userProfile({
       query: {
         identifier: params.identifier,
         includeStats: params.includeStats,
       },
     });
+    return res.body as GetProfileResponse;
   }
 
   async getCollectionPage(
     collectionId: string,
     params?: GetCollectionPageParams,
   ): Promise<GetCollectionPageResponse> {
-    return this.request<GetCollectionPageResponse>(
-      routes.collections.collectionById,
-      {
-        query: {
-          collectionId,
-          page: params?.page,
-          limit: params?.limit,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          urlType: params?.urlType,
-        },
+    const res = await this.client.collections.collectionById({
+      query: {
+        collectionId,
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        urlType: params?.urlType,
       },
-    );
+    });
+    return res.body as GetCollectionPageResponse;
   }
 
   async getCollectionPageByAtUri(
@@ -159,132 +155,118 @@ export class QueryClient extends BaseClient {
   ): Promise<GetCollectionPageResponse> {
     const { handle, recordKey, page, limit, sortBy, sortOrder, urlType } =
       params;
-    return this.request<GetCollectionPageResponse>(
-      routes.collections.collectionByAtUri,
-      {
-        query: { handle, recordKey, page, limit, sortBy, sortOrder, urlType },
-      },
-    );
+    const res = await this.client.collections.collectionByAtUri({
+      query: { handle, recordKey, page, limit, sortBy, sortOrder, urlType },
+    });
+    return res.body as GetCollectionPageResponse;
   }
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    return this.request<GetCollectionsResponse>(
-      routes.collections.myCollections,
-      {
-        query: {
-          page: params?.page,
-          limit: params?.limit,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          searchText: params?.searchText,
-        },
+    const res = await this.client.collections.myCollections({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        searchText: params?.searchText,
       },
-    );
+    });
+    return res.body as GetCollectionsResponse;
   }
 
   async getUserCollections(
     params: GetCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    return this.request<GetCollectionsResponse>(
-      routes.collections.collectionsByUser,
-      {
-        query: {
-          identifier: params.identifier,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-          searchText: params.searchText,
-        },
+    const res = await this.client.collections.collectionsByUser({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        searchText: params.searchText,
       },
-    );
+    });
+    return res.body as GetCollectionsResponse;
   }
 
   async getUrlStatusForMyLibrary(
     params: GetUrlStatusForMyLibraryParams,
   ): Promise<GetUrlStatusForMyLibraryResponse> {
-    return this.request<GetUrlStatusForMyLibraryResponse>(
-      routes.cards.urlLibraryStatus,
-      { query: { url: params.url } },
-    );
+    const res = await this.client.cards.urlLibraryStatus({
+      query: { url: params.url },
+    });
+    return res.body as GetUrlStatusForMyLibraryResponse;
   }
 
   async getLibrariesForUrl(
     params: GetLibrariesForUrlParams,
   ): Promise<GetLibrariesForUrlResponse> {
-    return this.request<GetLibrariesForUrlResponse>(
-      routes.cards.librariesForUrl,
-      {
-        query: {
-          url: params.url,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-        },
+    const res = await this.client.cards.librariesForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
       },
-    );
+    });
+    return res.body as GetLibrariesForUrlResponse;
   }
 
   async getNoteCardsForUrl(
     params: GetNoteCardsForUrlParams,
   ): Promise<GetNoteCardsForUrlResponse> {
-    return this.request<GetNoteCardsForUrlResponse>(
-      routes.cards.noteCardsForUrl,
-      {
-        query: {
-          url: params.url,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-        },
+    const res = await this.client.cards.noteCardsForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
       },
-    );
+    });
+    return res.body as GetNoteCardsForUrlResponse;
   }
 
   async getCollectionsForUrl(
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
-    return this.request<GetCollectionsForUrlResponse>(
-      routes.collections.collectionsForUrl,
-      {
-        query: {
-          url: params.url,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-        },
+    const res = await this.client.collections.collectionsForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
       },
-    );
+    });
+    return res.body as GetCollectionsForUrlResponse;
   }
 
   async getSimilarUrlsForUrl(
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
-    return this.request<GetSimilarUrlsForUrlResponse>(
-      routes.search.similarUrls,
-      {
-        query: {
-          url: params.url,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-          threshold: params.threshold,
-          urlType: params.urlType,
-        },
+    const res = await this.client.search.similarUrls({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        threshold: params.threshold,
+        urlType: params.urlType as any,
       },
-    );
+    });
+    return res.body as GetSimilarUrlsForUrlResponse;
   }
 
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<SemanticSearchUrlsResponse> {
-    return this.request<SemanticSearchUrlsResponse>(routes.search.semantic, {
+    const res = await this.client.search.semantic({
       query: {
         query: params.query,
         page: params.page,
@@ -292,219 +274,200 @@ export class QueryClient extends BaseClient {
         sortBy: params.sortBy,
         sortOrder: params.sortOrder,
         threshold: params.threshold,
-        urlType: params.urlType,
+        urlType: params.urlType as any,
         identifier: params.identifier,
       },
     });
+    return res.body as SemanticSearchUrlsResponse;
   }
 
   async searchBskyPosts(
     params: SearchBskyPostsForUrlParams,
   ): Promise<SearchBskyPostsForUrlResponse> {
-    return this.request<SearchBskyPostsForUrlResponse>(
-      routes.search.bskyPosts,
-      {
-        query: {
-          q: params.q,
-          sort: params.sort,
-          since: params.since,
-          until: params.until,
-          mentions: params.mentions,
-          author: params.author,
-          lang: params.lang,
-          domain: params.domain,
-          url: params.url,
-          tag: params.tag, // string[] — url() uses append for arrays
-          limit: params.limit,
-          cursor: params.cursor,
-        },
+    const res = await this.client.search.bskyPosts({
+      query: {
+        q: params.q,
+        sort: params.sort,
+        since: params.since,
+        until: params.until,
+        mentions: params.mentions,
+        author: params.author,
+        lang: params.lang,
+        domain: params.domain,
+        url: params.url,
+        tag: params.tag,
+        limit: params.limit,
+        cursor: params.cursor,
       },
-    );
+    });
+    return res.body as SearchBskyPostsForUrlResponse;
   }
 
   async searchAtProtoAccounts(
     params: SearchAtProtoAccountsParams,
   ): Promise<SearchAtProtoAccountsResponse> {
-    return this.request<SearchAtProtoAccountsResponse>(
-      routes.search.atProtoAccounts,
-      {
-        query: {
-          term: params.term,
-          q: params.q,
-          limit: params.limit,
-          cursor: params.cursor,
-        },
+    const res = await this.client.search.atProtoAccounts({
+      query: {
+        term: params.term,
+        q: params.q,
+        limit: params.limit,
+        cursor: params.cursor,
       },
-    );
+    });
+    return res.body as SearchAtProtoAccountsResponse;
   }
 
   async searchLeafletDocs(
     params: SearchLeafletDocsForUrlParams,
   ): Promise<SearchLeafletDocsForUrlResponse> {
-    return this.request<SearchLeafletDocsForUrlResponse>(
-      routes.search.leafletDocs,
-      {
-        query: { url: params.url, limit: params.limit, cursor: params.cursor },
-      },
-    );
+    const res = await this.client.search.leafletDocs({
+      query: { url: params.url, limit: params.limit, cursor: params.cursor },
+    });
+    return res.body as SearchLeafletDocsForUrlResponse;
   }
 
   async getOpenCollectionsWithContributor(
     params: GetOpenCollectionsWithContributorParams,
   ): Promise<GetCollectionsResponse> {
-    return this.request<GetCollectionsResponse>(
-      routes.collections.openWithContributor,
-      {
-        query: {
-          identifier: params.identifier,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-        },
+    const res = await this.client.collections.openWithContributor({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
       },
-    );
+    });
+    return res.body as GetCollectionsResponse;
   }
 
   async getFollowingUsers(
     params: GetFollowingUsersParams,
   ): Promise<GetFollowingUsersResponse> {
-    return this.request<GetFollowingUsersResponse>(
-      routes.users.followingUsers,
-      {
-        query: {
-          identifier: params.identifier,
-          page: params.page,
-          limit: params.limit,
-        },
-      },
-    );
-  }
-
-  async getFollowers(
-    params: GetFollowersParams,
-  ): Promise<GetFollowersResponse> {
-    return this.request<GetFollowersResponse>(routes.users.followers, {
+    const res = await this.client.users.followingUsers({
       query: {
         identifier: params.identifier,
         page: params.page,
         limit: params.limit,
       },
     });
+    return res.body as GetFollowingUsersResponse;
+  }
+
+  async getFollowers(
+    params: GetFollowersParams,
+  ): Promise<GetFollowersResponse> {
+    const res = await this.client.users.userFollowers({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return res.body as GetFollowersResponse;
   }
 
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
-    return this.request<GetFollowingCollectionsResponse>(
-      routes.users.followingCollections,
-      {
-        query: {
-          identifier: params.identifier,
-          page: params.page,
-          limit: params.limit,
-        },
+    const res = await this.client.users.followingCollections({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
       },
-    );
+    });
+    return res.body as GetFollowingCollectionsResponse;
   }
 
   async getCollectionFollowers(
     params: GetCollectionFollowersParams,
   ): Promise<GetCollectionFollowersResponse> {
-    return this.request<GetCollectionFollowersResponse>(
-      routes.collections.followers,
-      {
-        query: {
-          collectionId: params.collectionId,
-          page: params.page,
-          limit: params.limit,
-        },
+    const res = await this.client.collections.collectionFollowers({
+      query: {
+        collectionId: params.collectionId,
+        page: params.page,
+        limit: params.limit,
       },
-    );
+    });
+    return res.body as GetCollectionFollowersResponse;
   }
 
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(routes.users.followersCount, {
+    const res = await this.client.users.userFollowersCount({
       query: { identifier: params.identifier },
     });
+    return res.body as GetFollowCountResponse;
   }
 
   async getFollowingCollectionsCount(
     params: GetFollowingCollectionsCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      routes.users.followingCollectionsCount,
-      { query: { identifier: params.identifier } },
-    );
+    const res = await this.client.users.followingCollectionsCount({
+      query: { identifier: params.identifier },
+    });
+    return res.body as GetFollowCountResponse;
   }
 
   async getCollectionFollowersCount(
     params: GetCollectionFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      routes.collections.followersCount,
-      {
-        query: { collectionId: params.collectionId },
-      },
-    );
+    const res = await this.client.collections.collectionFollowersCount({
+      query: { collectionId: params.collectionId },
+    });
+    return res.body as GetFollowCountResponse;
   }
 
   async getCollectionContributors(
     params: GetCollectionContributorsParams,
   ): Promise<GetCollectionContributorsResponse> {
-    return this.request<GetCollectionContributorsResponse>(
-      routes.collections.contributors,
-      {
-        query: {
-          collectionId: params.collectionId,
-          page: params.page,
-          limit: params.limit,
-        },
+    const res = await this.client.collections.collectionContributors({
+      query: {
+        collectionId: params.collectionId,
+        page: params.page,
+        limit: params.limit,
       },
-    );
+    });
+    return res.body as GetCollectionContributorsResponse;
   }
 
   async getConnectionsForUrl(
     params: GetConnectionsForUrlParams,
   ): Promise<GetConnectionsForUrlResponse> {
-    return this.request<GetConnectionsForUrlResponse>(
-      routes.connections.connectionsForUrl,
-      {
-        query: {
-          url: params.url,
-          direction: params.direction,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-          connectionTypes: params.connectionTypes?.join(','),
-        },
+    const res = await this.client.connections.connectionsForUrl({
+      query: {
+        url: params.url,
+        direction: params.direction,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        connectionTypes: params.connectionTypes,
       },
-    );
+    });
+    return res.body as GetConnectionsForUrlResponse;
   }
 
   async getConnections(
     params: GetConnectionsParams,
   ): Promise<GetConnectionsResponse> {
-    return this.request<GetConnectionsResponse>(
-      routes.connections.connectionsByUser,
-      {
-        query: {
-          identifier: params.identifier,
-          page: params.page,
-          limit: params.limit,
-          sortBy: params.sortBy,
-          sortOrder: params.sortOrder,
-          connectionTypes: params.connectionTypes?.join(','),
-        },
+    const res = await this.client.connections.connectionsByUser({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        connectionTypes: params.connectionTypes,
       },
-    );
+    });
+    return res.body as GetConnectionsResponse;
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
-    return this.request<SearchUrlsResponse>(routes.cards.searchCards, {
+    const res = await this.client.cards.searchCards({
       query: {
         searchQuery: params.searchQuery,
         page: params.page,
@@ -514,6 +477,7 @@ export class QueryClient extends BaseClient {
         urlType: params.urlType,
       },
     });
+    return res.body as SearchUrlsResponse;
   }
 
   async getUserGraphData(params: {
@@ -521,21 +485,23 @@ export class QueryClient extends BaseClient {
     page?: number;
     limit?: number;
   }): Promise<GetGraphDataResponse> {
-    return this.request<GetGraphDataResponse>(routes.graph.userGraphData, {
+    const res = await this.client.graph.userGraphData({
       query: {
         identifier: params.identifier,
         page: params.page,
         limit: params.limit,
       },
     });
+    return res.body as GetGraphDataResponse;
   }
 
   async getUrlGraphData(
     params: GetUrlGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    return this.request<GetGraphDataResponse>(routes.graph.urlGraphData, {
+    const res = await this.client.graph.urlGraphData({
       query: { url: params.url, depth: params.depth },
     });
+    return res.body as GetGraphDataResponse;
   }
 
   async getGraphData(
@@ -578,8 +544,9 @@ export class QueryClient extends BaseClient {
       };
     }
 
-    return this.request<GetGraphDataResponse>(routes.graph.graphData, {
+    const res = await this.client.graph.graphData({
       query: { page: params?.page, limit: params?.limit },
     });
+    return res.body as GetGraphDataResponse;
   }
 }

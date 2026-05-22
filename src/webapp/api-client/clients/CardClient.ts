@@ -14,75 +14,61 @@ import {
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionRequest,
   RemoveCardFromCollectionResponse,
-  routes,
 } from '@semble/types';
 
 export class CardClient extends BaseClient {
   async addUrlToLibrary(
     request: AddUrlToLibraryRequest,
   ): Promise<AddUrlToLibraryResponse> {
-    return this.request<AddUrlToLibraryResponse>(routes.cards.addUrlToLibrary, {
-      body: request,
-    });
+    const res = await this.client.cards.addUrlToLibrary({ body: request });
+    return res.body as AddUrlToLibraryResponse;
   }
 
   async addCardToLibrary(
     request: AddCardToLibraryRequest,
   ): Promise<AddCardToLibraryResponse> {
-    return this.request<AddCardToLibraryResponse>(
-      routes.cards.addCardToLibrary,
-      {
-        body: request,
-      },
-    );
+    const res = await this.client.cards.addCardToLibrary({ body: request });
+    return res.body as AddCardToLibraryResponse;
   }
 
   async addCardToCollection(
     request: AddCardToCollectionRequest,
   ): Promise<AddCardToCollectionResponse> {
-    return this.request<AddCardToCollectionResponse>(
-      routes.cards.addCardToCollection,
-      { body: request },
-    );
+    const res = await this.client.cards.addCardToCollection({ body: request });
+    return res.body as AddCardToCollectionResponse;
   }
 
   async updateNoteCard(
     request: UpdateNoteCardRequest,
   ): Promise<UpdateNoteCardResponse> {
-    return this.request<UpdateNoteCardResponse>(routes.cards.cardNote, {
+    const res = await this.client.cards.cardNote({
       body: { cardId: request.cardId, note: request.note },
     });
+    return res.body as UpdateNoteCardResponse;
   }
 
   async updateUrlCardAssociations(
     request: UpdateUrlCardAssociationsRequest,
   ): Promise<UpdateUrlCardAssociationsResponse> {
-    return this.request<UpdateUrlCardAssociationsResponse>(
-      routes.cards.urlCardAssociations,
-      { body: request },
-    );
+    const res = await this.client.cards.urlCardAssociations({ body: request });
+    return res.body as UpdateUrlCardAssociationsResponse;
   }
 
   async removeCardFromLibrary(
     request: RemoveCardFromLibraryRequest,
   ): Promise<RemoveCardFromLibraryResponse> {
-    return this.request<RemoveCardFromLibraryResponse>(
-      routes.cards.removeFromLibrary,
-      { query: { cardId: request.cardId } },
-    );
+    const res = await this.client.cards.removeFromLibrary({
+      body: { cardId: request.cardId },
+    });
+    return res.body as RemoveCardFromLibraryResponse;
   }
 
   async removeCardFromCollection(
     request: RemoveCardFromCollectionRequest,
   ): Promise<RemoveCardFromCollectionResponse> {
-    return this.request<RemoveCardFromCollectionResponse>(
-      routes.cards.removeFromCollections,
-      {
-        query: {
-          cardId: request.cardId,
-          collectionIds: request.collectionIds.join(','),
-        },
-      },
-    );
+    const res = await this.client.cards.removeFromCollections({
+      body: { cardId: request.cardId, collectionIds: request.collectionIds },
+    });
+    return res.body as RemoveCardFromCollectionResponse;
   }
 }

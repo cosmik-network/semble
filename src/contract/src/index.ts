@@ -10,7 +10,18 @@ import { graphContract } from './contract/graph';
 
 const c = initContract();
 
-const contractDef = {
+export type ContractType = {
+  cards: typeof cardsContract;
+  collections: typeof collectionsContract;
+  users: typeof usersContract;
+  feeds: typeof feedsContract;
+  notifications: typeof notificationsContract;
+  connections: typeof connectionsContract;
+  search: typeof searchContract;
+  graph: typeof graphContract;
+};
+
+export const contract: ContractType = c.router({
   cards: cardsContract,
   collections: collectionsContract,
   users: usersContract,
@@ -19,9 +30,7 @@ const contractDef = {
   connections: connectionsContract,
   search: searchContract,
   graph: graphContract,
-} satisfies AppRouter;
-
-export const contract: AppRouter = c.router(contractDef);
+} satisfies AppRouter);
 
 export { paths } from '@semble/types';
 

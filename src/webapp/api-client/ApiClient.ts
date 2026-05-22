@@ -7,6 +7,7 @@ import {
   FeedClient,
   NotificationClient,
 } from './clients';
+import { createTsRestClient } from './tsRestClient';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -136,13 +137,14 @@ export class ApiClient {
     private baseUrl: string,
     accessToken?: string,
   ) {
-    this.queryClient = new QueryClient(baseUrl, accessToken);
-    this.cardClient = new CardClient(baseUrl, accessToken);
-    this.collectionClient = new CollectionClient(baseUrl, accessToken);
-    this.connectionClient = new ConnectionClient(baseUrl, accessToken);
-    this.userClient = new UserClient(baseUrl, accessToken);
-    this.feedClient = new FeedClient(baseUrl, accessToken);
-    this.notificationClient = new NotificationClient(baseUrl, accessToken);
+    const client = createTsRestClient(baseUrl, accessToken);
+    this.queryClient = new QueryClient(client);
+    this.cardClient = new CardClient(client);
+    this.collectionClient = new CollectionClient(client);
+    this.connectionClient = new ConnectionClient(client);
+    this.userClient = new UserClient(client);
+    this.feedClient = new FeedClient(client);
+    this.notificationClient = new NotificationClient(client);
   }
 
   // Query operations - delegate to QueryClient

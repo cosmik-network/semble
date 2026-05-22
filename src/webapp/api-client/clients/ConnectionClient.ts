@@ -7,7 +7,6 @@ import {
   DeleteConnectionRequest,
   DeleteConnectionResponse,
   ConnectionType,
-  routes,
 } from '@semble/types';
 
 export class ConnectionClient extends BaseClient {
@@ -17,58 +16,42 @@ export class ConnectionClient extends BaseClient {
     connectionType?: ConnectionType;
     note?: string;
   }): Promise<CreateConnectionResponse> {
-    try {
-      const request: CreateConnectionRequest = {
-        sourceType: 'URL',
-        sourceValue: params.sourceUrl,
-        targetType: 'URL',
-        targetValue: params.targetUrl,
-        connectionType: params.connectionType,
-        note: params.note,
-      };
+    const request: CreateConnectionRequest = {
+      sourceType: 'URL',
+      sourceValue: params.sourceUrl,
+      targetType: 'URL',
+      targetValue: params.targetUrl,
+      connectionType: params.connectionType,
+      note: params.note,
+    };
 
-      console.log(
-        'Creating connection with request:',
-        JSON.stringify(request, null, 2),
-      );
-      const response = await this.request<CreateConnectionResponse>(
-        routes.connections.createConnection,
-        { body: request },
-      );
-      console.log(
-        'CreateConnectionResponse:',
-        JSON.stringify(response, null, 2),
-      );
-      return response;
-    } catch (error) {
-      console.error('Error creating connection:', error);
-      throw error;
-    }
+    const res = await this.client.connections.createConnection({
+      body: request,
+    });
+    return res.body as CreateConnectionResponse;
   }
 
   async updateConnection(
     request: UpdateConnectionRequest,
   ): Promise<UpdateConnectionResponse> {
-    return this.request<UpdateConnectionResponse>(
-      routes.connections.updateConnection,
-      {
-        body: {
-          connectionId: request.connectionId,
-          connectionType: request.connectionType,
-          note: request.note,
-          removeNote: request.removeNote,
-          swap: request.swap,
-        },
+    const res = await this.client.connections.updateConnection({
+      body: {
+        connectionId: request.connectionId,
+        connectionType: request.connectionType,
+        note: request.note,
+        removeNote: request.removeNote,
+        swap: request.swap,
       },
-    );
+    });
+    return res.body as UpdateConnectionResponse;
   }
 
   async deleteConnection(
     request: DeleteConnectionRequest,
   ): Promise<DeleteConnectionResponse> {
-    return this.request<DeleteConnectionResponse>(
-      routes.connections.deleteConnection,
-      { query: { connectionId: request.connectionId } },
-    );
+    const res = await this.client.connections.deleteConnection({
+      body: { connectionId: request.connectionId },
+    });
+    return res.body as DeleteConnectionResponse;
   }
 }
