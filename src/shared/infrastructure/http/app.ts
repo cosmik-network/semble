@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Router } from 'express';
 import * as Sentry from '@sentry/node';
+import { openApiDocument } from './openapi';
 import { registerUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createStatsRoutes } from '../../../modules/user/infrastructure/http/routes/statsRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
@@ -107,6 +108,30 @@ export const createExpressApp = (
   const atprotoRouter = Router();
   createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);
   app.use('/atproto', atprotoRouter);
+
+  // OpenAPI spec and Scalar docs — public, no auth required
+  app.get('/api/openapi.json', (req, res) => res.json(openApiDocument));
+  app.get('/api/docs', (req, res) => {
+    const baseUrl = configService.getAtProtoConfig().baseUrl;
+    const specUrl = `${baseUrl}/api/openapi.json`;
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`<!doctype html>
+<html>
+  <head>
+    <title>Semble API Docs</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script
+      id="api-reference"
+      data-url="${specUrl}"
+      data-configuration='{"authentication":{"preferredSecurityScheme":"apiKey"}}'
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  </body>
+</html>`);
+  });
 
   // Test and stats routes — mounted before /api router to avoid prefix shadowing
   const testRouter = Router();

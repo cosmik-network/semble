@@ -88,6 +88,7 @@
     "@semble/contract": "*",
     "@semble/types": "*",
     "@sentry/node": "^10.42.0",
+    "@ts-rest/open-api": "^3.52.1",
     "@upstash/vector": "^1.2.2",
     "atpi": "^1.0.7",
     "bullmq": "^5.56.8",
