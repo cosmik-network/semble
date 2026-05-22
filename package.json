@@ -83,6 +83,7 @@
     "@atproto/sync": "^0.1.36",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
+    "@semble/api": "*",
     "@semble/types": "*",
     "@sentry/node": "^10.42.0",
     "@upstash/vector": "^1.2.2",

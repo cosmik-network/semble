@@ -4,6 +4,8 @@ import { GetUserGraphDataController } from '../controllers/GetUserGraphDataContr
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
+import { graphContract } from '@semble/api';
+import { validateQuery } from 'src/shared/infrastructure/http/middleware/validateContract';
 
 export function registerGraphRoutes(
   app: IRouter,
@@ -15,18 +17,21 @@ export function registerGraphRoutes(
   app.get(
     routes.graph.graphData.path,
     authMiddleware.optionalAuth(),
+    validateQuery(graphContract.graphData.query),
     (req, res) => getGraphDataController.execute(req, res),
   );
 
   app.get(
     routes.graph.userGraphData.path,
     authMiddleware.optionalAuth(),
+    validateQuery(graphContract.userGraphData.query),
     (req, res) => getUserGraphDataController.execute(req, res),
   );
 
   app.get(
     routes.graph.urlGraphData.path,
     authMiddleware.optionalAuth(),
+    validateQuery(graphContract.urlGraphData.query),
     (req, res) => getUrlGraphDataController.execute(req, res),
   );
 }

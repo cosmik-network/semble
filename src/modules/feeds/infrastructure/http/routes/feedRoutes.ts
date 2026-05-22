@@ -4,6 +4,8 @@ import { GetGemActivityFeedController } from '../controllers/GetGemActivityFeedC
 import { GetFollowingFeedController } from '../controllers/GetFollowingFeedController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { routes } from '@semble/types';
+import { feedsContract } from '@semble/api';
+import { validateQuery } from '../../../../../shared/infrastructure/http/middleware/validateContract';
 
 export function registerFeedRoutes(
   app: IRouter,
@@ -12,17 +14,24 @@ export function registerFeedRoutes(
   getGemActivityFeedController: GetGemActivityFeedController,
   getFollowingFeedController: GetFollowingFeedController,
 ): void {
-  app.get(routes.feeds.global.path, authMiddleware.optionalAuth(), (req, res) =>
-    getGlobalFeedController.execute(req, res),
+  app.get(
+    routes.feeds.global.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(feedsContract.globalFeed.query),
+    (req, res) => getGlobalFeedController.execute(req, res),
   );
 
-  app.get(routes.feeds.gem.path, authMiddleware.optionalAuth(), (req, res) =>
-    getGemActivityFeedController.execute(req, res),
+  app.get(
+    routes.feeds.gem.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(feedsContract.gemFeed.query),
+    (req, res) => getGemActivityFeedController.execute(req, res),
   );
 
   app.get(
     routes.feeds.following.path,
     authMiddleware.optionalAuth(),
+    validateQuery(feedsContract.followingFeed.query),
     (req, res) => getFollowingFeedController.execute(req, res),
   );
 }
