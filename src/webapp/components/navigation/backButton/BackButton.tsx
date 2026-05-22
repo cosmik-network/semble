@@ -14,7 +14,7 @@ export default function BackButton() {
   return (
     <ActionIcon
       onClick={() => router.back()}
-      variant="light"
+      variant="subtle"
       size="lg"
       color="gray"
       radius={'xl'}

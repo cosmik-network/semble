@@ -117,6 +117,7 @@ export default function AddCardToModalContent(props: Props) {
   return (
     <Stack>
       <AddCardActions
+        cardId={cardStatus.data.card?.id}
         note={isMyCard ? note : cardStatus.data.card?.note?.text}
         noteId={cardStatus.data.card?.note?.id}
         onUpdateNote={setNote}

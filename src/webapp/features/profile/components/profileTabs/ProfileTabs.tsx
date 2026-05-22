@@ -32,21 +32,21 @@ export default function ProfileTabs(props: Props) {
             <TabItem
               value="cards"
               href={`${basePath}/cards`}
-              count={profile.urlCardCount}
+              count={profile?.urlCardCount}
             >
               Cards
             </TabItem>
             <TabItem
               value="collections"
               href={`${basePath}/collections`}
-              count={profile.collectionCount}
+              count={profile?.collectionCount}
             >
               Collections
             </TabItem>
             <TabItem
               value="connections"
               href={`${basePath}/connections`}
-              count={profile.connectionCount}
+              count={profile?.connectionCount}
             >
               Connections
             </TabItem>
