@@ -20,7 +20,6 @@ export default function useUrlGraphData(url: string, depth: number = 1) {
     queryKey: graphKeys.url(url, depth),
     queryFn: () => apiClient.getUrlGraphData({ url, depth }),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
     enabled: !!url, // Only fetch if URL is provided
   });
 

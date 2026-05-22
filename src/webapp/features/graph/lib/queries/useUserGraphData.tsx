@@ -37,7 +37,6 @@ export default function useUserGraphData(identifier: string) {
       queryKey: graphKeys.userPage(identifier, page),
       queryFn: () => apiClient.getUserGraphData({ identifier, page }),
       staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
     })),
   });
 

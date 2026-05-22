@@ -22,7 +22,6 @@ export default function useGemsFeed(props?: Props) {
     ),
     staleTime: 10000,
     initialPageParam: 1,
-    refetchOnWindowFocus: false,
     queryFn: ({ pageParam = 1 }) => {
       return getGemsActivityFeed({
         limit,

@@ -24,7 +24,6 @@ export default function useGraphNodeUrl({ url, enabled = true }: Props) {
         enabled: enabled && !!url,
         staleTime: 3 * 60 * 1000, // 3 minutes - URLs change more often
         retry: 1,
-        refetchOnWindowFocus: false,
       },
       {
         queryKey: url
@@ -37,7 +36,6 @@ export default function useGraphNodeUrl({ url, enabled = true }: Props) {
         enabled: enabled && !!url,
         staleTime: 3 * 60 * 1000,
         retry: 1,
-        refetchOnWindowFocus: false,
       },
     ],
   });
