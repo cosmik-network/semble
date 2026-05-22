@@ -17,7 +17,7 @@ import { GetFollowingCountController } from '../controllers/GetFollowingCountCon
 import { GetFollowersCountController } from '../controllers/GetFollowersCountController';
 import { GetFollowingCollectionsCountController } from '../controllers/GetFollowingCollectionsCountController';
 import { routes } from '@semble/types';
-import { usersContract } from '@semble/api';
+import { usersContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,

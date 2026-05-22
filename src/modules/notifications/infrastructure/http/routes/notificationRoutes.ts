@@ -5,7 +5,7 @@ import { MarkNotificationsAsReadController } from '../controllers/MarkNotificati
 import { MarkAllNotificationsAsReadController } from '../controllers/MarkAllNotificationsAsReadController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { routes } from '@semble/types';
-import { notificationsContract } from '@semble/api';
+import { notificationsContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,

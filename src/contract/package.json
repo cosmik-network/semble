@@ -1,5 +1,5 @@
 {
-  "name": "@semble/api",
+  "name": "@semble/contract",
   "version": "1.0.0",
   "description": "ts-rest contract for the Semble API",
   "main": "dist/index.js",

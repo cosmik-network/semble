@@ -14,7 +14,7 @@ import { GetCollectionFollowersCountController } from '../controllers/GetCollect
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
-import { collectionsContract } from '@semble/api';
+import { collectionsContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,

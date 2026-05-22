@@ -4,7 +4,7 @@ import { GetUserGraphDataController } from '../controllers/GetUserGraphDataContr
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
-import { graphContract } from '@semble/api';
+import { graphContract } from '@semble/contract';
 import { validateQuery } from 'src/shared/infrastructure/http/middleware/validateContract';
 
 export function registerGraphRoutes(

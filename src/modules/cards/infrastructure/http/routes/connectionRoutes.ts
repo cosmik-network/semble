@@ -6,7 +6,7 @@ import { GetConnectionsController } from '../controllers/GetConnectionsControlle
 import { GetConnectionsForUrlController } from '../controllers/GetConnectionsForUrlController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
-import { connectionsContract } from '@semble/api';
+import { connectionsContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,

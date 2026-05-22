@@ -4,7 +4,7 @@ import { GetGemActivityFeedController } from '../controllers/GetGemActivityFeedC
 import { GetFollowingFeedController } from '../controllers/GetFollowingFeedController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { routes } from '@semble/types';
-import { feedsContract } from '@semble/api';
+import { feedsContract } from '@semble/contract';
 import { validateQuery } from '../../../../../shared/infrastructure/http/middleware/validateContract';
 
 export function registerFeedRoutes(

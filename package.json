@@ -5,7 +5,7 @@
   "main": "index.js",
   "workspaces": [
     "src/types",
-    "src/api",
+    "src/contract",
     "src/webapp",
     "src/packages/semble-pds-client"
   ],
@@ -15,7 +15,7 @@
   "scripts": {
     "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
-    "build:api": "npm run build:types && npm run build --workspace=@semble/api",
+    "build:contract": "npm run build:types && npm run build --workspace=@semble/contract",
     "dev:types": "npm run dev --workspace=@semble/types",
     "type-check": "tsc --noEmit",
     "start": "node dist/index.js",
@@ -83,7 +83,7 @@
     "@atproto/sync": "^0.1.36",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
-    "@semble/api": "*",
+    "@semble/contract": "*",
     "@semble/types": "*",
     "@sentry/node": "^10.42.0",
     "@upstash/vector": "^1.2.2",

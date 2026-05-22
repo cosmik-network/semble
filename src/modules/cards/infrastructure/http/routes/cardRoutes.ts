@@ -17,7 +17,7 @@ import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlC
 import { SearchUrlsController } from '../controllers/SearchUrlsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
-import { cardsContract } from '@semble/api';
+import { cardsContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,

@@ -6,7 +6,7 @@ import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAcc
 import { SearchLeafletDocsForUrlController } from '../controllers/SearchLeafletDocsForUrlController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { routes } from '@semble/types';
-import { searchContract } from '@semble/api';
+import { searchContract } from '@semble/contract';
 import { validateQuery } from '../../../../../shared/infrastructure/http/middleware/validateContract';
 
 export function registerSearchRoutes(
