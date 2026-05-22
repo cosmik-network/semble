@@ -16,6 +16,7 @@ import {
 
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
+import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 
 export default function NavbarSkeleton() {
   return (
@@ -35,7 +36,7 @@ export default function NavbarSkeleton() {
       </Group>
 
       <AppShellSection grow component={ScrollArea}>
-        <Stack mt={'xl'}>
+        <Stack gap={'md'} mt={'xl'}>
           {/* Profile Menu Skeleton */}
           <Group gap="sm" m={5} wrap="nowrap">
             <Skeleton h={38} w={38} />
@@ -43,21 +44,17 @@ export default function NavbarSkeleton() {
           </Group>
 
           {/* Nav Items Skeleton */}
-          <Stack gap={5} mt="xs">
+          <Stack gap={5}>
             {[...Array(6)].map((_, i) => (
               <Skeleton key={i} height={40} radius="md" />
             ))}
           </Stack>
         </Stack>
 
-        <Divider my={'sm'} />
+        <Divider mb={'sm'} mt={'18'} />
 
         {/* Collections List Skeleton */}
-        <Stack gap={5}>
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} height={36} radius="md" />
-          ))}
-        </Stack>
+        <CollectionsNavListSkeleton />
       </AppShellSection>
 
       <AppShellSection>
