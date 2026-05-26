@@ -1,5 +1,8 @@
 import { generateOpenApi } from '@ts-rest/open-api';
 import { contract } from '@semble/contract';
+import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
+
+const appUrl = new EnvironmentConfigService().getAtProtoConfig().baseUrl;
 
 export const openApiDocument = generateOpenApi(
   contract,
@@ -9,7 +12,7 @@ export const openApiDocument = generateOpenApi(
       version: '1.0.0',
       description: 'The official Semble API',
     },
-    servers: [{ url: 'https://api.semble.so/xrpc' }],
+    servers: [{ url: `${appUrl}/xrpc` }],
     components: {
       securitySchemes: {
         apiKey: {

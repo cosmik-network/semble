@@ -16,6 +16,10 @@ import { GetFollowingCollectionsController } from '../controllers/GetFollowingCo
 import { GetFollowingCountController } from '../controllers/GetFollowingCountController';
 import { GetFollowersCountController } from '../controllers/GetFollowersCountController';
 import { GetFollowingCollectionsCountController } from '../controllers/GetFollowingCollectionsCountController';
+import { ListApiKeysController } from '../controllers/ListApiKeysController';
+import { CreateApiKeyController } from '../controllers/CreateApiKeyController';
+import { UpdateApiKeyController } from '../controllers/UpdateApiKeyController';
+import { RevokeApiKeyController } from '../controllers/RevokeApiKeyController';
 import { routes } from '@semble/types';
 import { usersContract } from '@semble/contract';
 import {
@@ -42,6 +46,10 @@ export function registerUserRoutes(
   getFollowingCountController: GetFollowingCountController,
   getFollowersCountController: GetFollowersCountController,
   getFollowingCollectionsCountController: GetFollowingCollectionsCountController,
+  listApiKeysController: ListApiKeysController,
+  createApiKeyController: CreateApiKeyController,
+  updateApiKeyController: UpdateApiKeyController,
+  revokeApiKeyController: RevokeApiKeyController,
 ): void {
   app.get(
     routes.users.initiateOAuth.path,
@@ -138,6 +146,34 @@ export function registerUserRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(usersContract.followingCollectionsCount.query),
     (req, res) => getFollowingCollectionsCountController.execute(req, res),
+  );
+
+  // API key management
+  app.get(
+    routes.apiKeys.listApiKeys.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => listApiKeysController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.createApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.createApiKey.body),
+    (req, res) => createApiKeyController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.updateApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.updateApiKey.body),
+    (req, res) => updateApiKeyController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.revokeApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.revokeApiKey.body),
+    (req, res) => revokeApiKeyController.execute(req, res),
   );
 
   // userProfile must be last: /:identifier would swallow /me, /login, /extension/tokens, etc.

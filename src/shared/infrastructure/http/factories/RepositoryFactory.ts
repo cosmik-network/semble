@@ -3,6 +3,7 @@ import { EnvironmentConfigService } from '../../config/EnvironmentConfigService'
 import { RedisFactory } from '../../redis/RedisFactory';
 import { DrizzleUserRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserRepository';
 import { DrizzleTokenRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleTokenRepository';
+import { DrizzleApiKeyRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleApiKeyRepository';
 import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardRepository';
 import { DrizzleCardQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardQueryRepository';
 import { DrizzleCollectionRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCollectionRepository';
@@ -18,6 +19,7 @@ import { InMemoryConnectionRepository } from '../../../../modules/cards/tests/ut
 import { InMemoryConnectionQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionQueryRepository';
 import { InMemoryUserRepository } from '../../../../modules/user/tests/infrastructure/InMemoryUserRepository';
 import { InMemoryTokenRepository } from '../../../../modules/user/tests/infrastructure/InMemoryTokenRepository';
+import { InMemoryApiKeyRepository } from '../../../../modules/user/tests/infrastructure/InMemoryApiKeyRepository';
 import { InMemoryAppPasswordSessionRepository } from '../../../../modules/atproto/tests/infrastructure/InMemoryAppPasswordSessionRepository';
 import { ICardRepository } from 'src/modules/cards/domain/ICardRepository';
 import { ICardQueryRepository } from 'src/modules/cards/domain/ICardQueryRepository';
@@ -27,6 +29,7 @@ import { IConnectionRepository } from 'src/modules/cards/domain/IConnectionRepos
 import { IConnectionQueryRepository } from 'src/modules/cards/domain/IConnectionQueryRepository';
 import { IUserRepository } from 'src/modules/user/domain/repositories/IUserRepository';
 import { ITokenRepository } from 'src/modules/user/domain/repositories/ITokenRepository';
+import { IApiKeyRepository } from 'src/modules/user/domain/repositories/IApiKeyRepository';
 import { IAppPasswordSessionRepository } from 'src/modules/atproto/infrastructure/repositories/IAppPasswordSessionRepository';
 import { DrizzleStateStore } from '../../../../modules/user/infrastructure/services/DrizzleStateStore';
 import { DrizzleSessionStore } from '../../../../modules/user/infrastructure/services/DrizzleSessionStore';
@@ -61,6 +64,7 @@ export interface Repositories {
   userRepository: IUserRepository;
   userStatsRepository: IUserStatsRepository;
   tokenRepository: ITokenRepository;
+  apiKeyRepository: IApiKeyRepository;
   cardRepository: ICardRepository;
   cardQueryRepository: ICardQueryRepository;
   collectionRepository: ICollectionRepository;
@@ -86,6 +90,7 @@ export class RepositoryFactory {
       // Use singleton instances to ensure same data across processes
       const userRepository = InMemoryUserRepository.getInstance();
       const tokenRepository = InMemoryTokenRepository.getInstance();
+      const apiKeyRepository = InMemoryApiKeyRepository.getInstance();
       const cardRepository = InMemoryCardRepository.getInstance();
       const collectionRepository = InMemoryCollectionRepository.getInstance();
       const connectionRepository = InMemoryConnectionRepository.getInstance();
@@ -133,6 +138,7 @@ export class RepositoryFactory {
         userRepository,
         userStatsRepository,
         tokenRepository,
+        apiKeyRepository,
         cardRepository,
         cardQueryRepository,
         collectionRepository,
@@ -162,6 +168,7 @@ export class RepositoryFactory {
       userRepository: new DrizzleUserRepository(db),
       userStatsRepository: new DrizzleUserStatsRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
+      apiKeyRepository: new DrizzleApiKeyRepository(db),
       cardRepository: new DrizzleCardRepository(db),
       cardQueryRepository: new DrizzleCardQueryRepository(db),
       collectionRepository: new DrizzleCollectionRepository(db),

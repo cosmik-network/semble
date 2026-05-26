@@ -198,6 +198,10 @@ export const createExpressApp = (
       controllers.getFollowingCountController,
       controllers.getFollowersCountController,
       controllers.getFollowingCollectionsCountController,
+      controllers.listApiKeysController,
+      controllers.createApiKeyController,
+      controllers.updateApiKeyController,
+      controllers.revokeApiKeyController,
     );
 
     registerCardsModuleRoutes(

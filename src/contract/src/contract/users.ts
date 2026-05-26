@@ -26,6 +26,13 @@ import {
   GetFollowingCountParamsSchema,
   GetFollowersCountParamsSchema,
   GetFollowingCollectionsCountParamsSchema,
+  ListApiKeysResponseSchema,
+  CreateApiKeyRequestSchema,
+  CreateApiKeyResponseSchema,
+  UpdateApiKeyRequestSchema,
+  UpdateApiKeyResponseSchema,
+  RevokeApiKeyRequestSchema,
+  RevokeApiKeyResponseSchema,
 } from '@semble/types';
 
 const c = initContract();
@@ -187,5 +194,41 @@ export const usersContract = c.router({
     responses: { 200: CountResponseSchema },
     summary: 'Get following collections count',
     description: 'Returns the number of collections a given account follows.',
+  },
+  listApiKeys: {
+    method: 'GET',
+    path: paths.listApiKeys,
+    query: z.object({}),
+    responses: { 200: ListApiKeysResponseSchema },
+    summary: 'List my API keys',
+    description:
+      'Returns the API keys belonging to the authenticated user. Token values are never returned after creation; only the prefix is shown.',
+  },
+  createApiKey: {
+    method: 'POST',
+    path: paths.createApiKey,
+    body: CreateApiKeyRequestSchema,
+    responses: { 200: CreateApiKeyResponseSchema },
+    summary: 'Create an API key',
+    description:
+      'Generates a new API key for the authenticated user. The full token is returned in this response only — it cannot be retrieved later.',
+  },
+  updateApiKey: {
+    method: 'POST',
+    path: paths.updateApiKey,
+    body: UpdateApiKeyRequestSchema,
+    responses: { 200: UpdateApiKeyResponseSchema },
+    summary: 'Rename an API key',
+    description:
+      "Updates the human-readable name of one of the user's API keys.",
+  },
+  revokeApiKey: {
+    method: 'POST',
+    path: paths.revokeApiKey,
+    body: RevokeApiKeyRequestSchema,
+    responses: { 200: RevokeApiKeyResponseSchema },
+    summary: 'Revoke an API key',
+    description:
+      'Permanently revokes the specified API key. Subsequent requests using that token will be rejected.',
   },
 });

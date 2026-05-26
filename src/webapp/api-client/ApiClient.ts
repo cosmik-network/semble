@@ -121,6 +121,14 @@ import type {
   GetGraphDataParams,
   GetGraphDataResponse,
   GetUrlGraphDataParams,
+  // API key types
+  ListApiKeysResponse,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  UpdateApiKeyRequest,
+  UpdateApiKeyResponse,
+  RevokeApiKeyRequest,
+  RevokeApiKeyResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -432,6 +440,29 @@ export class ApiClient {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
     return this.userClient.unfollowTarget(targetId, targetType);
+  }
+
+  // API key operations - delegate to UserClient
+  async listApiKeys(): Promise<ListApiKeysResponse> {
+    return this.userClient.listApiKeys();
+  }
+
+  async createApiKey(
+    request: CreateApiKeyRequest,
+  ): Promise<CreateApiKeyResponse> {
+    return this.userClient.createApiKey(request);
+  }
+
+  async updateApiKey(
+    request: UpdateApiKeyRequest,
+  ): Promise<UpdateApiKeyResponse> {
+    return this.userClient.updateApiKey(request);
+  }
+
+  async revokeApiKey(
+    request: RevokeApiKeyRequest,
+  ): Promise<RevokeApiKeyResponse> {
+    return this.userClient.revokeApiKey(request);
   }
 
   // Feed operations - delegate to FeedClient

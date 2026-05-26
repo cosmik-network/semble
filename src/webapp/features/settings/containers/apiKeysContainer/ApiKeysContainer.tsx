@@ -20,28 +20,19 @@ import { useState } from 'react';
 import { MdDelete, MdKey } from 'react-icons/md';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 import { useApiKeys } from '../../lib/apiKeys/useApiKeys';
-import type { ApiKey, NewApiKey } from '../../lib/apiKeys/types';
+import type { ApiKey, NewApiKey } from '@semble/types';
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+function formatDate(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 }
 
-interface ApiKeysContainerProps {
-  /**
-   * Seed the key list. Defaults to MOCK_API_KEYS.
-   * Remove this prop when wiring up real data via the hook.
-   */
-  initialKeys?: ApiKey[];
-}
-
-export default function ApiKeysContainer({
-  initialKeys,
-}: ApiKeysContainerProps) {
-  const { keys, createKey, revokeKey } = useApiKeys(initialKeys);
+export default function ApiKeysContainer() {
+  const { keys, createKey, revokeKey, isCreating, isRevoking } = useApiKeys();
 
   // Create modal
   const [createOpened, { open: openCreate, close: closeCreate }] =
@@ -58,9 +49,9 @@ export default function ApiKeysContainer({
   const [revokeOpened, { open: openRevoke, close: closeRevoke }] =
     useDisclosure(false);
 
-  function handleCreate() {
-    if (!keyName.trim()) return;
-    const created = createKey(keyName.trim());
+  async function handleCreate() {
+    if (!keyName.trim() || isCreating) return;
+    const created = await createKey(keyName.trim());
     setKeyName('');
     closeCreate();
     setNewKey(created);
@@ -72,9 +63,9 @@ export default function ApiKeysContainer({
     openRevoke();
   }
 
-  function handleRevokeConfirm() {
-    if (!revokeTarget) return;
-    revokeKey(revokeTarget.id);
+  async function handleRevokeConfirm() {
+    if (!revokeTarget || isRevoking) return;
+    await revokeKey(revokeTarget.id);
     setRevokeTarget(null);
     closeRevoke();
   }
@@ -191,7 +182,12 @@ export default function ApiKeysContainer({
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleCreate} disabled={!keyName.trim()}>
+            <Button
+              size="sm"
+              onClick={handleCreate}
+              disabled={!keyName.trim() || isCreating}
+              loading={isCreating}
+            >
               Generate
             </Button>
           </Group>
@@ -275,6 +271,8 @@ export default function ApiKeysContainer({
             size="md"
             onClick={handleRevokeConfirm}
             data-autofocus
+            loading={isRevoking}
+            disabled={isRevoking}
           >
             Revoke key
           </Button>

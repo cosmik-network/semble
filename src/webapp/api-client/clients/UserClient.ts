@@ -12,6 +12,13 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  ListApiKeysResponse,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  UpdateApiKeyRequest,
+  UpdateApiKeyResponse,
+  RevokeApiKeyRequest,
+  RevokeApiKeyResponse,
 } from '@semble/types';
 
 export class UserClient extends BaseClient {
@@ -71,5 +78,31 @@ export class UserClient extends BaseClient {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
     await this.client.users.unfollowTarget({ body: { targetId, targetType } });
+  }
+
+  async listApiKeys(): Promise<ListApiKeysResponse> {
+    const res = await this.client.users.listApiKeys({ query: {} });
+    return res.body as ListApiKeysResponse;
+  }
+
+  async createApiKey(
+    request: CreateApiKeyRequest,
+  ): Promise<CreateApiKeyResponse> {
+    const res = await this.client.users.createApiKey({ body: request });
+    return res.body as CreateApiKeyResponse;
+  }
+
+  async updateApiKey(
+    request: UpdateApiKeyRequest,
+  ): Promise<UpdateApiKeyResponse> {
+    const res = await this.client.users.updateApiKey({ body: request });
+    return res.body as UpdateApiKeyResponse;
+  }
+
+  async revokeApiKey(
+    request: RevokeApiKeyRequest,
+  ): Promise<RevokeApiKeyResponse> {
+    const res = await this.client.users.revokeApiKey({ body: request });
+    return res.body as RevokeApiKeyResponse;
   }
 }

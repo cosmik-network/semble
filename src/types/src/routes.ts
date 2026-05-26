@@ -89,6 +89,11 @@ export const paths = {
   userFollowersCount: '/network.cosmik.graph.getFollowersCount',
   followingCollectionsCount:
     '/network.cosmik.graph.getFollowingCollectionsCount',
+  // api keys
+  listApiKeys: '/network.cosmik.apiKey.list',
+  createApiKey: '/network.cosmik.apiKey.create',
+  updateApiKey: '/network.cosmik.apiKey.update',
+  revokeApiKey: '/network.cosmik.apiKey.revoke',
   // feeds
   globalFeed: '/network.cosmik.feed.getGlobal',
   gemFeed: '/network.cosmik.feed.getGem',
@@ -179,6 +184,12 @@ export const routes = {
       'GET',
       false,
     ),
+  },
+  apiKeys: {
+    listApiKeys: defineRoute(paths.listApiKeys, 'GET', true),
+    createApiKey: defineRoute(paths.createApiKey, 'POST', true),
+    updateApiKey: defineRoute(paths.updateApiKey, 'POST', true),
+    revokeApiKey: defineRoute(paths.revokeApiKey, 'POST', true),
   },
   feeds: {
     global: defineRoute(paths.globalFeed, 'GET', false),

@@ -47,6 +47,8 @@ import { FakeAgentService } from '../../../../modules/atproto/infrastructure/ser
 import { FakeAppPasswordSessionService } from '../../../../modules/atproto/infrastructure/services/FakeAppPasswordSessionService';
 import { FakeAtpAppPasswordProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtpAppPasswordProcessor';
 import { ITokenService } from 'src/modules/user/application/services/ITokenService';
+import { IApiKeyService } from 'src/modules/user/application/services/IApiKeyService';
+import { HashedApiKeyService } from '../../../../modules/user/infrastructure/services/HashedApiKeyService';
 import { IOAuthProcessor } from 'src/modules/user/application/services/IOAuthProcessor';
 import { IAppPasswordProcessor } from 'src/modules/atproto/application/IAppPasswordProcessor';
 import { IUserAuthenticationService } from 'src/modules/user/domain/services/IUserAuthenticationService';
@@ -81,6 +83,7 @@ import { DistributedLockServiceFactory } from '../../locking/DistributedLockServ
 // Shared services needed by both web app and workers
 export interface SharedServices {
   tokenService: ITokenService;
+  apiKeyService: IApiKeyService;
   userAuthService: IUserAuthenticationService;
   atProtoAgentService: IAgentService;
   atProtoRepoService: IAtProtoRepoService;
@@ -170,6 +173,8 @@ export class ServiceFactory {
     const authMiddleware = new AuthMiddleware(
       sharedServices.tokenService,
       sharedServices.cookieService,
+      sharedServices.apiKeyService,
+      repositories.apiKeyRepository,
     );
 
     const statsApiKeyMiddleware = new StatsApiKeyMiddleware(
@@ -257,6 +262,10 @@ export class ServiceFactory {
           jwtConfig.accessTokenExpiresIn,
           jwtConfig.refreshTokenExpiresIn,
         );
+
+    const apiKeyService = new HashedApiKeyService(
+      repositories.apiKeyRepository,
+    );
 
     // User Authentication Service
     const userAuthService = useMockAuth
@@ -475,6 +484,7 @@ export class ServiceFactory {
 
     return {
       tokenService,
+      apiKeyService,
       userAuthService,
       atProtoAgentService,
       atProtoRepoService,
