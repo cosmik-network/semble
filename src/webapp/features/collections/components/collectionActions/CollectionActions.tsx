@@ -58,7 +58,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
               leftSection={<FaRegNoteSticky />}
               onClick={() => setShowAddDrawer(true)}
             >
-              Add card to collection
+              Add a card to this collection
             </Menu.Item>
           )}
           <Menu.Item
