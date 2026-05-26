@@ -136,8 +136,7 @@ export default function UrlCardActions(props: Props) {
           <Tooltip label="Connect to another card" withArrow>
             <Button
               variant="light"
-              color="gray"
-              c={props.urlIsConnected ? 'green' : 'gray'}
+              color={props.urlIsConnected ? 'green' : 'gray'}
               size="xs"
               radius={'xl'}
               leftSection={
