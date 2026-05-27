@@ -203,6 +203,7 @@ export default function RecentCollections() {
           variant={filter === 'mine' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('mine')}
         >
           My Collections
@@ -211,6 +212,7 @@ export default function RecentCollections() {
           variant={filter === 'following' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('following')}
         >
           Following
@@ -219,6 +221,7 @@ export default function RecentCollections() {
           variant={filter === 'contributed' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('contributed')}
         >
           Contributed to
