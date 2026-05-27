@@ -1,4 +1,14 @@
-import { AspectRatio, Card, Center, Grid, Text, Image } from '@mantine/core';
+import {
+  AspectRatio,
+  Card,
+  Center,
+  Group,
+  Text,
+  Image,
+  Box,
+  ScrollAreaAutosize,
+} from '@mantine/core';
+import { useScroller } from '@mantine/hooks';
 import useCollection from '../../lib/queries/useCollection';
 import { useState } from 'react';
 
@@ -7,7 +17,10 @@ interface Props {
   handle: string;
 }
 
+const CARD_WIDTH = 120;
+
 export default function CollectionCardPreview(props: Props) {
+  const scroller = useScroller();
   const [imageError, setImageError] = useState(false);
 
   const { data } = useCollection({
@@ -21,35 +34,45 @@ export default function CollectionCardPreview(props: Props) {
   if (cards.length === 0) return null;
 
   return (
-    <Grid gap={'xs'}>
-      {cards.map((c) => (
-        <Grid.Col key={c.id} span={3}>
-          {c.cardContent.imageUrl && !imageError ? (
-            <AspectRatio ratio={16 / 9}>
-              <Image
-                src={c.cardContent.imageUrl}
-                alt={`${c.cardContent.url} social preview image`}
-                radius={'md'}
-                mih={45}
-                w={'100%'}
-                onError={() => setImageError(true)}
-              />
-            </AspectRatio>
-          ) : (
-            <AspectRatio ratio={16 / 9}>
-              <Card p={'xs'} radius={'md'} mih={45} w={'100%'} withBorder>
-                <Center my={'auto'}>
-                  <Text fz={8} fw={500} lineClamp={2}>
-                    {c.cardContent.title ??
-                      c.cardContent.description ??
-                      c.cardContent.url}
-                  </Text>
-                </Center>
-              </Card>
-            </AspectRatio>
-          )}
-        </Grid.Col>
-      ))}
-    </Grid>
+    <Box
+      ref={scroller.ref}
+      {...scroller.dragHandlers}
+      style={{
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+    >
+      <Group gap={'xs'} grow={cards.length > 2} wrap="nowrap">
+        {cards.map((c) => (
+          <Box key={c.id} w={CARD_WIDTH} miw={CARD_WIDTH}>
+            {c.cardContent.imageUrl && !imageError ? (
+              <AspectRatio ratio={16 / 9}>
+                <Image
+                  src={c.cardContent.imageUrl}
+                  alt={`${c.cardContent.url} social preview image`}
+                  radius={'md'}
+                  fit="cover"
+                  draggable={false}
+                  onError={() => setImageError(true)}
+                />
+              </AspectRatio>
+            ) : (
+              <AspectRatio ratio={16 / 9}>
+                <Card p={'xs'} radius={'md'} withBorder>
+                  <Center my={'auto'}>
+                    <Text fz={8} fw={500} lineClamp={2}>
+                      {c.cardContent.title ??
+                        c.cardContent.description ??
+                        c.cardContent.url}
+                    </Text>
+                  </Center>
+                </Card>
+              </AspectRatio>
+            )}
+          </Box>
+        ))}
+      </Group>
+    </Box>
   );
 }
