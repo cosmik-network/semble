@@ -16,7 +16,7 @@ interface Props {
   handle: string;
 }
 
-const CARD_WIDTH = 120;
+const CARD_WIDTH = 130;
 
 export default function CollectionCardPreview(props: Props) {
   const scroller = useScroller();
@@ -25,7 +25,7 @@ export default function CollectionCardPreview(props: Props) {
   const { data } = useCollection({
     rkey: props.rkey,
     handle: props.handle,
-    limit: 4,
+    limit: 6,
   });
 
   const cards = data?.pages.flatMap((col) => col.urlCards) ?? [];
