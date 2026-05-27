@@ -10,10 +10,10 @@ export default function DiscoverOnSembleSkeleton() {
         <Stack gap={0}>
           <Group gap="xs">
             <MdOutlineEmojiNature size={22} />
-            <Title order={2}>Discover on Semble</Title>
+            <Title order={2}>Recommendations</Title>
           </Group>
           <Text fw={500} fz={'lg'}>
-            Recommendations based on your activity
+            Based on your activity
           </Text>
         </Stack>
         <LinkButton variant="light" color="blue" href={'/explore'}>
