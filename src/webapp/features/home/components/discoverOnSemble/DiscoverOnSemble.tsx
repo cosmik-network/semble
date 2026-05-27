@@ -4,22 +4,18 @@ import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import useSimilarCards from '@/features/semble/lib/queries/useSimilarCards';
-import { useNavbarContext } from '@/providers/navbar';
-import { Divider, Grid, Group, Stack, Text, Title } from '@mantine/core';
-import { Fragment } from 'react';
+import { Box, Group, Scroller, Stack, Text, Title } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { LinkButton } from '@/components/link/MantineLink';
 
 export default function DiscoverOnSemble() {
-  const { desktopOpened } = useNavbarContext();
-  const { settings } = useUserSettings();
   const { data: profile } = useMyProfile();
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: similarCardsData } = useSimilarCards({
     url:
       myCardsData.pages[0].cards[0]?.url ??
       `https://bsky.app/profile/${profile?.handle}`,
+    limit: 6,
   });
   const cards = similarCardsData.pages.flatMap((page) => page.urls) ?? [];
 
@@ -43,28 +39,19 @@ export default function DiscoverOnSemble() {
       </Group>
 
       {cards.length > 0 ? (
-        <Grid gap={settings.cardView === 'list' ? 0 : 'xs'}>
-          {cards.slice(0, 3).map((item, i) => (
-            <Fragment key={i}>
-              {settings.cardView === 'list' && i > 0 && (
-                <Grid.Col span={12}>
-                  <Divider />
-                </Grid.Col>
-              )}
-              <Grid.Col
-                span={{
-                  base: 12,
-                  xs:
-                    settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
-                  sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
-                  md: settings.cardView !== 'grid' ? 12 : 4,
-                }}
+        <Scroller scrollAmount={320}>
+          <Group wrap="nowrap" align="stretch" gap="xs">
+            {cards.slice(0, 10).map((item, i) => (
+              <Box
+                key={i}
+                w={300}
+                style={{ flexShrink: 0, whiteSpace: 'normal' }}
               >
                 <SimilarUrlCard urlView={item} />
-              </Grid.Col>
-            </Fragment>
-          ))}
-        </Grid>
+              </Box>
+            ))}
+          </Group>
+        </Scroller>
       ) : (
         <Stack align="center" gap="xs">
           <Text fz="h3" fw={600} c="gray">

@@ -1,4 +1,4 @@
-import { Grid, GridCol, Group, Stack, Title, Text } from '@mantine/core';
+import { Box, Group, Scroller, Stack, Title, Text } from '@mantine/core';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { LinkButton } from '@/components/link/MantineLink';
@@ -21,13 +21,15 @@ export default function DiscoverOnSembleSkeleton() {
         </LinkButton>
       </Group>
 
-      <Grid gap="xs">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <GridCol key={i} span={{ base: 12, sm: 4 }}>
-            <UrlCardSkeleton />
-          </GridCol>
-        ))}
-      </Grid>
+      <Scroller scrollAmount={320}>
+        <Group wrap="nowrap" align="stretch" gap="xs">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Box key={i} w={300} style={{ flexShrink: 0 }}>
+              <UrlCardSkeleton />
+            </Box>
+          ))}
+        </Group>
+      </Scroller>
     </Stack>
   );
 }
