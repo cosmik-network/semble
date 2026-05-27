@@ -16,7 +16,7 @@ interface Props {
   handle: string;
 }
 
-const CARD_WIDTH = 130;
+const CARD_WIDTH = 110;
 
 export default function CollectionCardPreview(props: Props) {
   const scroller = useScroller();

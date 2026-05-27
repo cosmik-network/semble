@@ -1,6 +1,6 @@
 import { AspectRatio, Box, Group, Skeleton } from '@mantine/core';
 
-const CARD_WIDTH = 130;
+const CARD_WIDTH = 110;
 
 export default function CollectionCardPreviewSkeleton() {
   return (
