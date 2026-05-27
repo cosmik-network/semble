@@ -31,6 +31,7 @@ export const createExpressApp = (
   const getAllowedOrigins = () => {
     const environment = configService.get().environment;
     const appUrl = configService.getAppConfig().appUrl;
+    const tunnel = configService.getTunnelConfig();
 
     switch (environment) {
       case Environment.PROD:
@@ -38,15 +39,19 @@ export const createExpressApp = (
       case Environment.DEV:
         return ['https://dev.semble.so', 'https://api.dev.semble.so'];
       case Environment.LOCAL:
-      default:
-        // Allow both localhost:4000 and configured appUrl for flexibility
-        return [
+      default: {
+        const origins = [
           'http://localhost:4000',
           'http://127.0.0.1:4000',
           appUrl,
           'http://localhost:3000',
           'http://127.0.0.1:3000',
         ];
+        if (tunnel.enabled) {
+          origins.push(tunnel.frontendUrl, tunnel.backendUrl);
+        }
+        return origins;
+      }
     }
   };
 

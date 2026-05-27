@@ -16,7 +16,8 @@ export class OAuthClientFactory {
   ): { clientMetadata: OAuthClientMetadataInput } {
     const url = baseUrl || 'http://127.0.0.1:3000';
     const enc = encodeURIComponent;
-    const isLocal = configService.get().environment === 'local';
+    const isTunnel = configService.isTunnelMode();
+    const isLocal = configService.get().environment === 'local' && !isTunnel;
     const isProd = configService.get().environment === 'prod';
 
     const collections = configService.getAtProtoCollections();
@@ -41,13 +42,19 @@ export class OAuthClientFactory {
       'rpc:app.bsky.actor.getProfile?aud=*',
     ].join(' ');
 
+    // OAuth spec requires client_uri to share its origin with client_id.
+    // In tunnel mode client_id lives on the backend host, so client_uri must
+    // also be the backend host — pointing it at the frontend host fails PAR
+    // with "client_uri must have the same origin as the client_id".
+    const clientUri = url;
+
     return {
       clientMetadata: {
         client_name: appName,
         client_id: !isLocal
           ? `${url}/oauth-client-metadata.json`
           : `http://localhost?redirect_uri=${enc(`${baseUrl}/api/users/oauth/callback`)}&scope=${enc(scope)}`,
-        client_uri: url,
+        client_uri: clientUri,
         redirect_uris: [`${baseUrl}/api/users/oauth/callback`],
         scope,
         grant_types: ['authorization_code', 'refresh_token'],

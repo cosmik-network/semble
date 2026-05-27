@@ -7,7 +7,12 @@ const nextConfig = {
   serverExternalPackages: ['jsdom', '@mozilla/readability', 'dompurify'],
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
-  allowedDevOrigins: ['127.0.0.1'],
+  allowedDevOrigins: [
+    '127.0.0.1',
+    ...(process.env.NEXT_PUBLIC_APP_URL
+      ? [new URL(process.env.NEXT_PUBLIC_APP_URL).host]
+      : []),
+  ],
   experimental: {
     optimizePackageImports: [
       '@mantine/core',

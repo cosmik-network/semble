@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "PORT=4000 NODE_OPTIONS='--dns-result-order=ipv4first' next dev --turbopack",
+    "dev:tunnel": "PORT=4000 NODE_OPTIONS='--dns-result-order=ipv4first' dotenv -e .env.tunnel -- next dev --turbopack",
     "dev:prod": "NODE_ENV=production PORT=4000 next dev",
     "dev:extension": "plasmo dev",
     "build": "next build",
