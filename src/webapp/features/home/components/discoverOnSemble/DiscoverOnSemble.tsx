@@ -25,10 +25,10 @@ export default function DiscoverOnSemble() {
         <Stack gap={0}>
           <Group gap="xs">
             <MdOutlineEmojiNature size={22} />
-            <Title order={2}>Discover on Semble</Title>
+            <Title order={2}>Recommendations</Title>
           </Group>
           <Text fw={500} fz={'lg'}>
-            {`Recommendations based on your ${
+            {`Based on your ${
               myCardsData.pages[0].cards.length > 0 ? 'activity' : 'profile'
             }`}
           </Text>
