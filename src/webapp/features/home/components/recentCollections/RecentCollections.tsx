@@ -180,18 +180,16 @@ export default function RecentCollections() {
           <Title order={2}>Collections</Title>
         </Group>
         <Group gap="xs">
-          {filter === 'mine' && (
-            <ActionIcon
-              variant="light"
-              color="blue"
-              size={38}
-              radius={'xl'}
-              onClick={() => setShowCollectionDrawer(true)}
-              aria-label="Create collection"
-            >
-              <FiPlus size={18} />
-            </ActionIcon>
-          )}
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowCollectionDrawer(true)}
+            aria-label="Create collection"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
           <LinkButton variant="light" color="blue" href={viewAllHref}>
             View all
           </LinkButton>
@@ -203,6 +201,7 @@ export default function RecentCollections() {
           variant={filter === 'mine' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('mine')}
         >
           My Collections
@@ -211,6 +210,7 @@ export default function RecentCollections() {
           variant={filter === 'following' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('following')}
         >
           Following
@@ -219,6 +219,7 @@ export default function RecentCollections() {
           variant={filter === 'contributed' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('contributed')}
         >
           Contributed to

@@ -1,15 +1,25 @@
-import { AspectRatio, Grid, GridCol, Skeleton } from '@mantine/core';
+import { AspectRatio, Box, Group, Skeleton } from '@mantine/core';
+
+const CARD_WIDTH = 130;
 
 export default function CollectionCardPreviewSkeleton() {
   return (
-    <Grid gap={'xs'}>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <GridCol key={i} span={3}>
-          <AspectRatio ratio={16 / 9}>
-            <Skeleton radius={'md'} h={45} w={'100%'} />
-          </AspectRatio>
-        </GridCol>
-      ))}
-    </Grid>
+    <Box
+      style={{
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+    >
+      <Group gap={'xs'} grow wrap="nowrap">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Box key={i} w={CARD_WIDTH} miw={CARD_WIDTH}>
+            <AspectRatio ratio={16 / 9}>
+              <Skeleton radius={'md'} />
+            </AspectRatio>
+          </Box>
+        ))}
+      </Group>
+    </Box>
   );
 }
