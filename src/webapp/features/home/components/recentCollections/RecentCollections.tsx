@@ -180,18 +180,16 @@ export default function RecentCollections() {
           <Title order={2}>Collections</Title>
         </Group>
         <Group gap="xs">
-          {filter === 'mine' && (
-            <ActionIcon
-              variant="light"
-              color="blue"
-              size={38}
-              radius={'xl'}
-              onClick={() => setShowCollectionDrawer(true)}
-              aria-label="Create collection"
-            >
-              <FiPlus size={18} />
-            </ActionIcon>
-          )}
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowCollectionDrawer(true)}
+            aria-label="Create collection"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
           <LinkButton variant="light" color="blue" href={viewAllHref}>
             View all
           </LinkButton>
