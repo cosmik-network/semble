@@ -6,7 +6,6 @@ import {
   Text,
   Image,
   Box,
-  ScrollAreaAutosize,
 } from '@mantine/core';
 import { useScroller } from '@mantine/hooks';
 import useCollection from '../../lib/queries/useCollection';
