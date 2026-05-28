@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
-import { MdDelete, MdKey } from 'react-icons/md';
+import { MdDelete, MdEdit, MdKey } from 'react-icons/md';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 import { useApiKeys } from '../../lib/apiKeys/useApiKeys';
 import type { ApiKey, NewApiKey } from '@semble/types';
@@ -32,7 +32,15 @@ function formatDate(date: Date | string): string {
 }
 
 export default function ApiKeysContainer() {
-  const { keys, createKey, revokeKey, isCreating, isRevoking } = useApiKeys();
+  const {
+    keys,
+    createKey,
+    updateKey,
+    revokeKey,
+    isCreating,
+    isUpdating,
+    isRevoking,
+  } = useApiKeys();
 
   // Create modal
   const [createOpened, { open: openCreate, close: closeCreate }] =
@@ -42,6 +50,12 @@ export default function ApiKeysContainer() {
   // Token reveal modal (shown once after creation)
   const [newKey, setNewKey] = useState<NewApiKey | null>(null);
   const [tokenOpened, { open: openToken, close: closeToken }] =
+    useDisclosure(false);
+
+  // Rename modal
+  const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editOpened, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
 
   // Revoke confirm modal
@@ -56,6 +70,20 @@ export default function ApiKeysContainer() {
     closeCreate();
     setNewKey(created);
     openToken();
+  }
+
+  function handleEditClick(key: ApiKey) {
+    setEditTarget(key);
+    setEditName(key.name);
+    openEdit();
+  }
+
+  async function handleEditConfirm() {
+    if (!editTarget || !editName.trim() || isUpdating) return;
+    await updateKey(editTarget.id, editName.trim());
+    setEditTarget(null);
+    setEditName('');
+    closeEdit();
   }
 
   function handleRevokeClick(key: ApiKey) {
@@ -139,15 +167,26 @@ export default function ApiKeysContainer() {
                       </Text>
                     </Group>
                   </Stack>
-                  <ActionIcon
-                    variant="light"
-                    color="red"
-                    radius="xl"
-                    onClick={() => handleRevokeClick(key)}
-                    aria-label={`Revoke ${key.name}`}
-                  >
-                    <MdDelete size={14} />
-                  </ActionIcon>
+                  <Group gap="xs" wrap="nowrap">
+                    <ActionIcon
+                      variant="light"
+                      color="gray"
+                      radius="xl"
+                      onClick={() => handleEditClick(key)}
+                      aria-label={`Rename ${key.name}`}
+                    >
+                      <MdEdit size={14} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      radius="xl"
+                      onClick={() => handleRevokeClick(key)}
+                      aria-label={`Revoke ${key.name}`}
+                    >
+                      <MdDelete size={14} />
+                    </ActionIcon>
+                  </Group>
                 </Group>
               </Card>
             ))
@@ -189,6 +228,40 @@ export default function ApiKeysContainer() {
               loading={isCreating}
             >
               Generate
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Rename key modal */}
+      <Modal
+        opened={editOpened}
+        onClose={closeEdit}
+        title="Rename API key"
+        size="sm"
+        centered
+      >
+        <Stack>
+          <TextInput
+            variant="filled"
+            label="Choose a name that helps you identify this key"
+            placeholder="e.g. Production server"
+            value={editName}
+            onChange={(e) => setEditName(e.currentTarget.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditConfirm()}
+            data-autofocus
+          />
+          <Group justify="end" gap={'xs'}>
+            <Button variant="light" color="gray" size="sm" onClick={closeEdit}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleEditConfirm}
+              disabled={!editName.trim() || isUpdating}
+              loading={isUpdating}
+            >
+              Save
             </Button>
           </Group>
         </Stack>
