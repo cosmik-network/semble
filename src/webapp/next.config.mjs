@@ -2,6 +2,7 @@ import createMDX from '@next/mdx';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactCompiler: true,
   reactStrictMode: false,
   serverExternalPackages: ['jsdom', '@mozilla/readability', 'dompurify'],
   // Configure `pageExtensions` to include markdown and MDX files

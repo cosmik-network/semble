@@ -15,7 +15,6 @@ export default function useMyNotifications(props?: Props) {
     queryKey: notificationKeys.infinite(limit),
     staleTime: 10000,
     initialPageParam: 1,
-    refetchOnWindowFocus: false,
     queryFn: ({ pageParam = 1 }) => {
       return getMyNotifications({ limit, page: pageParam, unreadOnly });
     },

@@ -14,7 +14,6 @@ interface Props {
 export default function ImageEmbed(props: Props) {
   const { settings } = useUserSettings();
   const [lightboxOpened, setLightboxOpened] = useState(false);
-  const [initialSlide, setInitialSlide] = useState(0);
 
   const lightboxImages = props.images.map((img) => ({
     src: img.fullsize,
@@ -23,7 +22,6 @@ export default function ImageEmbed(props: Props) {
 
   const openLightbox = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
-    setInitialSlide(index);
     setLightboxOpened(true);
   };
 
@@ -41,7 +39,7 @@ export default function ImageEmbed(props: Props) {
         <Lightbox.Slides>
           {lightboxImages.map((img) => (
             <Lightbox.Slide key={img.src}>
-              <img src={img.src} alt={img.alt} />
+              <Image src={img.src} alt={img.alt} />
             </Lightbox.Slide>
           ))}
         </Lightbox.Slides>

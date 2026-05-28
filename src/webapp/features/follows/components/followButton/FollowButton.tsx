@@ -3,7 +3,6 @@
 import { Button, ButtonProps } from '@mantine/core';
 import { startTransition } from 'react';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
-import { useWebHaptics } from 'web-haptics/react';
 
 interface Props
   extends Omit<ButtonProps, 'onClick' | 'variant' | 'color' | 'children'> {
@@ -24,7 +23,6 @@ export default function FollowButton({
 }: Props) {
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
     useToggleFollow(initialIsFollowing ?? false);
-  const { trigger } = useWebHaptics();
 
   return (
     <Button
@@ -32,7 +30,6 @@ export default function FollowButton({
       color={isFollowing ? 'gray' : 'dark'}
       {...buttonProps}
       onClick={() => {
-        trigger();
         startTransition(() => {
           setOptimisticIsFollowing(!isFollowing);
           toggleAction({ targetId, targetType });

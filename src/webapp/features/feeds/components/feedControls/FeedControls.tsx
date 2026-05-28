@@ -273,14 +273,6 @@ export default function FeedControls() {
         >
           <FaSeedling />
         </LinkButton>
-        <LinkButton
-          href={'/explore/atmosphereConf-collections'}
-          color="blue"
-          variant="light"
-          fz={'md'}
-        >
-          🪿
-        </LinkButton>
       </Group>
     </Group>
   );

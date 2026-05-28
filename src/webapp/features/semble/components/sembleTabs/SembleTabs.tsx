@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { SEMBLE_TAB_CHANGE_EVENT } from '../sembleStats/SembleStatItem';
 import {
   Box,
   Container,
@@ -70,6 +71,17 @@ export default function SembleTabs(props: Props) {
   });
 
   const stats = urlMetadata?.stats;
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<TabValue>).detail;
+      if (VALID_TABS.includes(detail)) {
+        setActiveTab(detail);
+      }
+    };
+    window.addEventListener(SEMBLE_TAB_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(SEMBLE_TAB_CHANGE_EVENT, handler);
+  }, []);
 
   return (
     <Tabs

@@ -2,7 +2,6 @@
 
 import { ActionIcon } from '@mantine/core';
 import { useWindowScroll, useDebouncedCallback } from '@mantine/hooks';
-import { useWebHaptics } from 'web-haptics/react';
 import { LuRefreshCcw } from 'react-icons/lu';
 
 interface Props {
@@ -10,7 +9,6 @@ interface Props {
 }
 
 export default function RefetchButton(props: Props) {
-  const { trigger } = useWebHaptics();
   const [_scroll, scrollTo] = useWindowScroll();
   const DEBOUNCE_MS = 500;
 
@@ -26,7 +24,6 @@ export default function RefetchButton(props: Props) {
       variant="default"
       c="gray"
       onClick={() => {
-        trigger();
         debouncedRefetch();
         scrollTo({ y: 0 });
       }}

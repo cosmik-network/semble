@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
-import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
+import { BsPin, BsPinFill, BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
@@ -32,7 +32,6 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
-import { useWebHaptics } from 'web-haptics/react';
 
 interface Props {
   id: string;
@@ -49,6 +48,8 @@ interface Props {
   viaCardId?: string;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  isPinnedInCollection?: boolean;
+  onTogglePinInCollection?: () => void;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -82,7 +83,6 @@ export default function UrlCardActions(props: Props) {
   const [showAddToModal, setShowAddToModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
-  const { trigger } = useWebHaptics();
   const router = useRouter();
 
   return (
@@ -121,7 +121,6 @@ export default function UrlCardActions(props: Props) {
                   router.push('/login');
                   return;
                 }
-                trigger();
                 setShowAddToModal(true);
               }}
             >
@@ -137,8 +136,7 @@ export default function UrlCardActions(props: Props) {
           <Tooltip label="Connect to another card" withArrow>
             <Button
               variant="light"
-              color="gray"
-              c={props.urlIsConnected ? 'green' : 'gray'}
+              color={props.urlIsConnected ? 'green' : 'gray'}
               size="xs"
               radius={'xl'}
               leftSection={
@@ -152,7 +150,6 @@ export default function UrlCardActions(props: Props) {
                   router.push('/login');
                   return;
                 }
-                trigger();
                 setShowAddConnectionModal(true);
               }}
             >
@@ -231,6 +228,23 @@ export default function UrlCardActions(props: Props) {
               )}
             </CopyButton>
 
+            {props.currentCollection &&
+              props.onTogglePinInCollection &&
+              isCollectionOwner && (
+                <Menu.Item
+                  leftSection={
+                    props.isPinnedInCollection ? <BsPinFill /> : <BsPin />
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    props.onTogglePinInCollection?.();
+                  }}
+                >
+                  {props.isPinnedInCollection
+                    ? 'Unpin from collection'
+                    : 'Pin to collection'}
+                </Menu.Item>
+              )}
             {props.currentCollection &&
               (isAuthor || canRemoveFromOpenCollection) && (
                 <Menu.Item

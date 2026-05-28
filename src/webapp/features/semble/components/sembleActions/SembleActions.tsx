@@ -1,19 +1,19 @@
 'use client';
 
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
+import RemoveCardFromLibraryModal from '@/features/cards/components/removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
-import { ActionIcon, Button, CopyButton, Group, Tooltip } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { ActionIcon, Button, Group } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
-import { MdIosShare } from 'react-icons/md';
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { BsTrash2Fill } from 'react-icons/bs';
 
 interface Props {
   url: string;
@@ -26,14 +26,13 @@ export default function SembleActions(props: Props) {
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const { data } = useSembleLibraries({ url: props.url });
   const allLibraries =
     data?.pages.flatMap((page) => page.libraries ?? []) ?? [];
 
   const urlLibraryCount = allLibraries.length ?? 0;
-
-  const shareLink = `${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.url}`;
 
   if (cardStatus.error) {
     return null;
@@ -42,34 +41,6 @@ export default function SembleActions(props: Props) {
   return (
     <Fragment>
       <Group gap={'xs'}>
-        <CopyButton value={shareLink}>
-          {({ copied, copy }) => (
-            <Tooltip
-              label={copied ? 'Link copied!' : 'Share'}
-              withArrow
-              position="top"
-            >
-              <ActionIcon
-                variant="light"
-                color="gray"
-                size={36}
-                radius={'xl'}
-                onClick={() => {
-                  copy();
-
-                  if (copied) return;
-                  notifications.show({
-                    message: 'Link copied!',
-                    position: 'top-center',
-                    id: copied.toString(),
-                  });
-                }}
-              >
-                <MdIosShare />
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </CopyButton>
         <Button
           variant="light"
           color="green"
@@ -96,6 +67,17 @@ export default function SembleActions(props: Props) {
         >
           {isInYourLibrary ? 'Update' : 'Add'}
         </Button>
+        {isInYourLibrary && (
+          <ActionIcon
+            variant="light"
+            color="red"
+            size={36}
+            radius={'xl'}
+            onClick={() => setShowRemoveModal(true)}
+          >
+            <BsTrash2Fill />
+          </ActionIcon>
+        )}
       </Group>
 
       <AddConnectionModal
@@ -119,6 +101,13 @@ export default function SembleActions(props: Props) {
           pagePath: pathname,
         }}
       />
+      {isInYourLibrary && cardStatus.data.card?.id && (
+        <RemoveCardFromLibraryModal
+          isOpen={showRemoveModal}
+          onClose={() => setShowRemoveModal(false)}
+          cardId={cardStatus.data.card.id}
+        />
+      )}
     </Fragment>
   );
 }

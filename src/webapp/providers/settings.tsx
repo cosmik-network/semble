@@ -1,5 +1,5 @@
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 const SettingsContext = createContext<ReturnType<
   typeof useUserSettings
@@ -11,15 +11,11 @@ interface Props {
 
 export function SettingsProvider(props: Props) {
   const settings = useUserSettings();
-  return (
-    <SettingsContext.Provider value={settings}>
-      {props.children}
-    </SettingsContext.Provider>
-  );
+  return <SettingsContext value={settings}>{props.children}</SettingsContext>;
 }
 
 export function useSettings() {
-  const ctx = useContext(SettingsContext);
+  const ctx = use(SettingsContext);
   if (!ctx) throw new Error('useSettings must be used inside SettingsProvider');
   return ctx;
 }

@@ -37,7 +37,6 @@ export default function useGraphData() {
       queryKey: graphKeys.page(page),
       queryFn: () => getGraphDataPage(page),
       staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
     })),
   });
 

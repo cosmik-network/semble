@@ -26,7 +26,7 @@ import { TbAdjustmentsHorizontal } from 'react-icons/tb';
 import { useDebouncedValue, upperFirst } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, use, useState, ReactNode } from 'react';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { UrlType, CollectionAccessType } from '@semble/types';
@@ -58,7 +58,7 @@ interface FilterContextValue {
 const FilterContext = createContext<FilterContextValue | null>(null);
 
 const useFilterContext = () => {
-  const ctx = useContext(FilterContext);
+  const ctx = use(FilterContext);
   if (!ctx)
     throw new Error(
       'SearchFilter components must be wrapped in SearchFilter.Root',
@@ -114,7 +114,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   ) : null;
 
   return (
-    <FilterContext.Provider
+    <FilterContext
       value={{
         opened,
         setOpened,
@@ -156,7 +156,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
           <Stack gap="xl">{props.children}</Stack>
         </Container>
       </Drawer>
-    </FilterContext.Provider>
+    </FilterContext>
   );
 }
 

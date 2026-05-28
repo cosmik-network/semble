@@ -2,6 +2,7 @@
 
 import type { UrlCard, Collection, User } from '@/api-client';
 import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
+import { BsPinFill } from 'react-icons/bs';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { MouseEvent, Suspense } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
@@ -33,6 +34,8 @@ interface Props {
   showAuthor?: boolean;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  isPinnedInCollection?: boolean;
+  onTogglePinInCollection?: () => void;
 }
 
 export default function UrlCard(props: Props) {
@@ -108,6 +111,14 @@ export default function UrlCard(props: Props) {
       onAuxClick={handleAuxClick}
     >
       <Stack justify="space-between" flex={1}>
+        {props.isPinnedInCollection && (
+          <Group gap={5} c="dimmed">
+            <BsPinFill size={12} />
+            <Text fz="xs" fw={500}>
+              Pinned
+            </Text>
+          </Group>
+        )}
         <Suspense fallback={<UrlCardContentSkeleton />}>
           <UrlCardContent
             url={props.url}
@@ -169,6 +180,8 @@ export default function UrlCard(props: Props) {
             viaCardId={props.viaCardId}
             semblePageUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
+            isPinnedInCollection={props.isPinnedInCollection}
+            onTogglePinInCollection={props.onTogglePinInCollection}
           />
         </Stack>
       </Stack>

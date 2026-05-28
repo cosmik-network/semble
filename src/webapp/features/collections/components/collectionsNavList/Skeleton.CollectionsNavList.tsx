@@ -4,12 +4,12 @@ export default function CollectionsNavListSkeleton() {
   return (
     <Stack gap={'xs'}>
       <Group justify="space-between">
-        <Text fw={600} c={'gray'}>
+        <Text fw={600} fz={'sm'} c={'gray'}>
           Collections
         </Text>
 
         <Group gap={'xs'}>
-          <Skeleton radius={'xl'} h={26} w={73} />
+          <Skeleton radius={'xl'} h={30} w={73} />
           <Skeleton radius={'xl'} h={26} w={26} />
         </Group>
       </Group>

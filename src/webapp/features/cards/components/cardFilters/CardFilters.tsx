@@ -4,7 +4,7 @@ import { Group, Button, Popover, Menu } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
-  useContext,
+  use,
   useState,
   ReactNode,
   useOptimistic,
@@ -30,7 +30,7 @@ interface FilterContextValue {
 const FilterContext = createContext<FilterContextValue | null>(null);
 
 const useFilterContext = () => {
-  const ctx = useContext(FilterContext);
+  const ctx = use(FilterContext);
   if (!ctx)
     throw new Error('CardFilter components must be wrapped in CardFiltersRoot');
   return ctx;
@@ -42,7 +42,7 @@ export function CardFiltersRoot(props: { children: ReactNode }) {
   const router = useRouter();
 
   return (
-    <FilterContext.Provider
+    <FilterContext
       value={{
         router,
         searchParams,
@@ -56,7 +56,7 @@ export function CardFiltersRoot(props: { children: ReactNode }) {
         </Menu.Target>
         <Menu.Dropdown w={200}>{props.children}</Menu.Dropdown>
       </Menu>
-    </FilterContext.Provider>
+    </FilterContext>
   );
 }
 
