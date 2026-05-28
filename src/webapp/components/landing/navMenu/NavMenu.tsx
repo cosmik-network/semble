@@ -7,10 +7,7 @@ export default function NavMenu() {
   return (
     <Group gap="xs">
       <Card p={'8'} radius={'xl'}>
-        <form
-          action="https://leaflet.pub/api/subscribe_email"
-          method="post"
-        >
+        <form action="https://leaflet.pub/api/subscribe_email" method="post">
           <Group gap={'xs'}>
             <input type="hidden" name="publication" value={PUBLICATION_ID} />
             <TextInput
