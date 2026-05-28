@@ -11,7 +11,7 @@ export class DeleteConnectionController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { connectionId } = req.query as Record<string, string>;
+      const { connectionId } = req.body as Record<string, string>;
       const curatorId = req.did;
 
       if (!curatorId) {

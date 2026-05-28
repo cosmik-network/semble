@@ -11,7 +11,7 @@ export class UnfollowTargetController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { targetId, targetType } = req.query as Record<string, string>;
+      const { targetId, targetType } = req.body as Record<string, string>;
       const followerId = req.did;
 
       if (!followerId) {
