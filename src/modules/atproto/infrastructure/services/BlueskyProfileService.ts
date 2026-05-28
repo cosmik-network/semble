@@ -55,8 +55,27 @@ export class BlueskyProfileService implements IProfileService {
       }
 
       // Fetch the profile using the ATProto API
-      const profileResult = await agent.getProfile({ actor: userId });
+      let profileResult: Awaited<ReturnType<typeof agent.getProfile>>;
 
+      // Attempt to fetch profile from the authenticated agent first, then fall back to unauthenticated if it fails (may not be implemented)
+      try {
+        profileResult = await agent.getProfile({ actor: userId });
+      } catch (error) {
+        const unauthenticatedAgentResult =
+          this.agentService.getUnauthenticatedAgent();
+        if (unauthenticatedAgentResult.isOk()) {
+          const unauthenticatedAgent = unauthenticatedAgentResult.value;
+          profileResult = await unauthenticatedAgent.getProfile({
+            actor: userId,
+          });
+        } else {
+          return err(
+            new Error(
+              `Failed to fetch profile with authenticated agent and no unauthenticated agent available: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          );
+        }
+      }
       if (!profileResult.success) {
         return err(
           new Error(
