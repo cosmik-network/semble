@@ -16,7 +16,14 @@ export function validateBody(schema: ZodTypeAny) {
 
 export function validateQuery(schema: ZodTypeAny) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.query);
+    // Browsers/clients often send optional params as empty strings (`?urlType=`).
+    // Strip them so optional fields read as omitted rather than failing validation.
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(req.query)) {
+      if (value === '') continue;
+      sanitized[key] = value;
+    }
+    const result = schema.safeParse(sanitized);
     if (!result.success) {
       return res
         .status(400)
