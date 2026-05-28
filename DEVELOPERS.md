@@ -36,6 +36,8 @@ Useful for testing the locally-running app from another device (phone, etc.) aga
 
 ### Run
 
+_NOTE: you may need to clear cookies in the browser for both localhost and the tunnel url. As well as clearing the `.next/` directory._
+
 - terminal 1: `cloudflared tunnel run semble-tunnel`
 - terminal 2: `npm run dev:tunnel` (or `npm run dev:mock:tunnel` for mocked backend)
 - terminal 3: `npm run webapp:dev:tunnel`
