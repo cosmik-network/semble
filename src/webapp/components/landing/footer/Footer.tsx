@@ -11,11 +11,15 @@ import {
 } from '@mantine/core';
 import { FaBluesky, FaDiscord, FaGithub } from 'react-icons/fa6';
 import { RiArrowRightUpLine } from 'react-icons/ri';
+import { IoPhonePortraitOutline } from 'react-icons/io5';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
+
+const IOS_SHORTCUT_HREF =
+  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6';
 
 export default function Footer() {
   return (
@@ -96,6 +100,17 @@ export default function Footer() {
             rightSection={<RiArrowRightUpLine />}
           >
             Semble Docs
+          </Button>
+          <Button
+            component="a"
+            href={IOS_SHORTCUT_HREF}
+            target="_blank"
+            variant="light"
+            color="gray"
+            fw={600}
+            leftSection={<IoPhonePortraitOutline />}
+          >
+            iOS shortcut
           </Button>
         </Group>
         <Stack align="center" gap="0">
