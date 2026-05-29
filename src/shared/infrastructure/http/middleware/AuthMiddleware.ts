@@ -31,6 +31,15 @@ export class AuthMiddleware {
   }
 
   /**
+   * Extract API key from the `x-api-key` header.
+   */
+  private extractApiKey(req: AuthenticatedRequest): string | undefined {
+    const header = req.headers['x-api-key'];
+    if (typeof header === 'string' && header.length > 0) return header;
+    return undefined;
+  }
+
+  /**
    * Resolve the request to a user DID via cookie, JWT bearer, or API key bearer.
    * API key tokens are recognised by their `sk_` prefix. On success, the key's
    * lastUsedAt is updated asynchronously.
@@ -40,6 +49,16 @@ export class AuthMiddleware {
     if (cookieToken) {
       const didResult = await this.tokenService.validateToken(cookieToken);
       if (didResult.isOk() && didResult.value) return didResult.value;
+    }
+
+    const apiKey = this.extractApiKey(req);
+    if (apiKey) {
+      const verifyResult = await this.apiKeyService.verify(apiKey);
+      if (verifyResult.isErr() || !verifyResult.value) return null;
+      const record = verifyResult.value;
+      // Fire-and-forget; failure to touch lastUsedAt should not block the request.
+      void this.apiKeyRepository.touchLastUsed(record.id, new Date());
+      return record.userDid;
     }
 
     const bearer = this.extractBearer(req);
@@ -71,7 +90,8 @@ export class AuthMiddleware {
       try {
         const cookieToken = this.cookieService.getAccessToken(req);
         const bearer = this.extractBearer(req);
-        if (!cookieToken && !bearer) {
+        const apiKey = this.extractApiKey(req);
+        if (!cookieToken && !bearer && !apiKey) {
           res.status(401).json({ message: 'No access token provided' });
           return;
         }
@@ -103,7 +123,8 @@ export class AuthMiddleware {
       try {
         const cookieToken = this.cookieService.getAccessToken(req);
         const bearer = this.extractBearer(req);
-        if (!cookieToken && !bearer) return next();
+        const apiKey = this.extractApiKey(req);
+        if (!cookieToken && !bearer && !apiKey) return next();
 
         const did = await this.resolveDid(req);
         if (did) {
@@ -128,15 +149,25 @@ export class AuthMiddleware {
       next: NextFunction,
     ): Promise<void> => {
       try {
+        const apiKey = this.extractApiKey(req);
         const bearer = this.extractBearer(req);
-        if (!bearer) {
+        if (!apiKey && !bearer) {
           res.status(401).json({ message: 'No Bearer token provided' });
           return;
         }
 
         let did: string | null = null;
-        if (bearer.startsWith(API_KEY_PREFIX)) {
-          const verifyResult = await this.apiKeyService.verify(bearer);
+        if (apiKey) {
+          const verifyResult = await this.apiKeyService.verify(apiKey);
+          if (verifyResult.isOk() && verifyResult.value) {
+            did = verifyResult.value.userDid;
+            void this.apiKeyRepository.touchLastUsed(
+              verifyResult.value.id,
+              new Date(),
+            );
+          }
+        } else if (bearer!.startsWith(API_KEY_PREFIX)) {
+          const verifyResult = await this.apiKeyService.verify(bearer!);
           if (verifyResult.isOk() && verifyResult.value) {
             did = verifyResult.value.userDid;
             void this.apiKeyRepository.touchLastUsed(
@@ -145,7 +176,7 @@ export class AuthMiddleware {
             );
           }
         } else {
-          const didResult = await this.tokenService.validateToken(bearer);
+          const didResult = await this.tokenService.validateToken(bearer!);
           if (didResult.isOk() && didResult.value) did = didResult.value;
         }
 
