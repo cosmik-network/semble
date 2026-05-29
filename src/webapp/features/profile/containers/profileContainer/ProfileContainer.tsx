@@ -28,7 +28,7 @@ interface Props {
 export default function ProfileContainer(props: Props) {
   const pathname = usePathname();
   const { data: collectionsData } = useCollections({
-    limit: 4,
+    limit: 3,
     didOrHandle: props.handle,
   });
   const { data: cardsData } = useCards({ limit: 4, didOrHandle: props.handle });
@@ -119,7 +119,7 @@ export default function ProfileContainer(props: Props) {
                 cols={
                   settings.collectionView !== 'grid'
                     ? { base: 1 }
-                    : { base: 1, sm: 2, lg: 4 }
+                    : { base: 1, sm: 2, lg: 3 }
                 }
                 spacing="xs"
               >
