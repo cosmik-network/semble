@@ -4,7 +4,7 @@ import CollectionContainerContentSkeleton from '../collectionContainerContent/Sk
 export default function CollectionContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
-      <Stack gap={'lg'}>
+      <Stack gap={'xs'}>
         <Group justify="space-between" gap={'xs'}>
           {/* Card Filters */}
           <Group gap={'xs'}>
