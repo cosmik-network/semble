@@ -51,7 +51,7 @@ export const connectionsContract = c.router({
       'Returns a paginated list of connections created by a user, identified by handle or DID.',
   },
   updateConnection: {
-    method: 'PUT',
+    method: 'POST',
     path: paths.updateConnection,
     body: UpdateConnectionRequestSchema,
     responses: { 200: UpdateConnectionResponseSchema },

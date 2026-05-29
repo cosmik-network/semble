@@ -42,7 +42,7 @@ export function registerConnectionRoutes(
     (req, res) => createConnectionController.execute(req, res),
   );
 
-  app.put(
+  app.post(
     routes.connections.updateConnection.path,
     authMiddleware.ensureAuthenticated(),
     validateBody(connectionsContract.updateConnection.body),

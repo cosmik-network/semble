@@ -83,7 +83,7 @@ export const collectionsContract = c.router({
       'Returns a collection and its cards, paginated, by collection ID.',
   },
   updateCollection: {
-    method: 'PUT',
+    method: 'POST',
     path: paths.updateCollection,
     body: UpdateCollectionRequestSchema,
     responses: { 200: UpdateCollectionResponseSchema },

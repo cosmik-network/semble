@@ -114,7 +114,7 @@ export function registerCollectionRoutes(
     (req, res) => createCollectionController.execute(req, res),
   );
 
-  app.put(
+  app.post(
     routes.collections.updateCollection.path,
     authMiddleware.ensureAuthenticated(),
     validateBody(collectionsContract.updateCollection.body),

@@ -127,14 +127,14 @@ export function registerCardRoutes(
     (req, res) => addCardToCollectionController.execute(req, res),
   );
 
-  app.put(
+  app.post(
     routes.cards.cardNote.path,
     authMiddleware.ensureAuthenticated(),
     validateBody(cardsContract.cardNote.body),
     (req, res) => updateNoteCardController.execute(req, res),
   );
 
-  app.put(
+  app.post(
     routes.cards.urlCardAssociations.path,
     authMiddleware.ensureAuthenticated(),
     validateBody(cardsContract.urlCardAssociations.body),

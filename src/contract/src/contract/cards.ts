@@ -61,7 +61,7 @@ export const cardsContract = c.router({
       'Adds a card to a collection the authenticated user can write to.',
   },
   urlCardAssociations: {
-    method: 'PUT',
+    method: 'POST',
     path: paths.urlCardAssociations,
     body: UpdateUrlCardAssociationsRequestSchema,
     responses: { 200: UpdateUrlCardAssociationsResponseSchema },
@@ -149,7 +149,7 @@ export const cardsContract = c.router({
       'Returns users who have saved a specific card to their library.',
   },
   cardNote: {
-    method: 'PUT',
+    method: 'POST',
     path: paths.cardNote,
     body: UpdateNoteCardRequestSchema,
     responses: { 200: UpdateNoteCardResponseSchema },

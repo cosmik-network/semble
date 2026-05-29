@@ -8,7 +8,7 @@ export type QueryParamValue =
 
 export interface RouteDefinition<Path extends string> {
   readonly path: Path;
-  readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  readonly method: 'GET' | 'POST';
   readonly requiresAuth: boolean;
   url(queryParams?: Record<string, QueryParamValue>): string;
 }
@@ -126,7 +126,7 @@ export const routes = {
     addUrlToLibrary: defineRoute(paths.addUrlToLibrary, 'POST', true),
     addCardToLibrary: defineRoute(paths.addCardToLibrary, 'POST', true),
     addCardToCollection: defineRoute(paths.addCardToCollection, 'POST', true),
-    urlCardAssociations: defineRoute(paths.urlCardAssociations, 'PUT', true),
+    urlCardAssociations: defineRoute(paths.urlCardAssociations, 'POST', true),
     myUrlCards: defineRoute(paths.myUrlCards, 'GET', true),
     urlMetadata: defineRoute(paths.urlMetadata, 'GET', false),
     urlLibraryStatus: defineRoute(paths.urlLibraryStatus, 'GET', true),
@@ -135,7 +135,7 @@ export const routes = {
     searchCards: defineRoute(paths.searchCards, 'GET', false),
     cardById: defineRoute(paths.cardById, 'GET', false),
     cardLibraries: defineRoute(paths.cardLibraries, 'GET', false),
-    cardNote: defineRoute(paths.cardNote, 'PUT', true),
+    cardNote: defineRoute(paths.cardNote, 'POST', true),
     removeFromLibrary: defineRoute(paths.removeFromLibrary, 'POST', true),
     removeFromCollections: defineRoute(
       paths.removeFromCollections,
@@ -150,7 +150,7 @@ export const routes = {
     collectionsForUrl: defineRoute(paths.collectionsForUrl, 'GET', false),
     searchCollections: defineRoute(paths.searchCollections, 'GET', false),
     collectionById: defineRoute(paths.collectionById, 'GET', false),
-    updateCollection: defineRoute(paths.updateCollection, 'PUT', true),
+    updateCollection: defineRoute(paths.updateCollection, 'POST', true),
     deleteCollection: defineRoute(paths.deleteCollection, 'POST', true),
     collectionsByUser: defineRoute(paths.collectionsByUser, 'GET', false),
     collectionByAtUri: defineRoute(paths.collectionByAtUri, 'GET', false),
@@ -206,7 +206,7 @@ export const routes = {
     connectionsForUrl: defineRoute(paths.connectionsForUrl, 'GET', false),
     createConnection: defineRoute(paths.createConnection, 'POST', true),
     connectionsByUser: defineRoute(paths.connectionsByUser, 'GET', false),
-    updateConnection: defineRoute(paths.updateConnection, 'PUT', true),
+    updateConnection: defineRoute(paths.updateConnection, 'POST', true),
     deleteConnection: defineRoute(paths.deleteConnection, 'POST', true),
   },
   search: {
