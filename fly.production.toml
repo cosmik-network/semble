@@ -30,12 +30,16 @@ primary_region = 'yyz'
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
+  auto_stop_machines = false
+  min_machines_running = 1
 
 [[vm]]
   processes = ['search-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
+  auto_stop_machines = false
+  min_machines_running = 1
 
 [[vm]]
   processes = ['firehose-worker']
@@ -50,12 +54,16 @@ primary_region = 'yyz'
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
+  auto_stop_machines = false
+  min_machines_running = 1
 
 [[vm]]
   processes = ['sync-worker']
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+  auto_stop_machines = false
+  min_machines_running = 1
 
 [env]
 NODE_ENV="prod"
