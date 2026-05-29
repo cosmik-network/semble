@@ -19,6 +19,27 @@ primary_region = 'yyz'
   min_machines_running = 0
   processes = ['web']
 
+[[restart]]
+  policy = "always"
+  processes = ["feed-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["search-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["firehose-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["notification-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["sync-worker"]
+
+# Default VM for web
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
@@ -29,40 +50,30 @@ primary_region = 'yyz'
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['search-worker']
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['firehose-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['notification-worker']
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['sync-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [env]
 NODE_ENV="dev"

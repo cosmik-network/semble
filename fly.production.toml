@@ -20,6 +20,26 @@ primary_region = 'yyz'
   max_machines_running = 10
   processes = ['web']
 
+[[restart]]
+  policy = "always"
+  processes = ["feed-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["search-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["firehose-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["notification-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["sync-worker"]
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
@@ -30,40 +50,30 @@ primary_region = 'yyz'
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['search-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['firehose-worker']
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['notification-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['sync-worker']
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [env]
 NODE_ENV="prod"
