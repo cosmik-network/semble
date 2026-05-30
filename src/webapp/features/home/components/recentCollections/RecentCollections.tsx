@@ -26,8 +26,8 @@ type CollectionFilter = 'mine' | 'following' | 'contributed';
 
 function CollectionsListSkeleton() {
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
-      {Array.from({ length: 4 }).map((_, i) => (
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+      {Array.from({ length: 3 }).map((_, i) => (
         <CollectionCardSkeleton key={i} />
       ))}
     </SimpleGrid>
@@ -41,7 +41,7 @@ function MyCollectionsList({
   onCreateCollection: () => void;
   settings: ReturnType<typeof useUserSettings>['settings'];
 }) {
-  const { data: collectionsData } = useMyCollections({ limit: 4 });
+  const { data: collectionsData } = useMyCollections({ limit: 3 });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
 
@@ -69,7 +69,7 @@ function MyCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >
@@ -89,7 +89,7 @@ function FollowingCollectionsList({
 }) {
   const { data: collectionsData } = useFollowingCollections({
     identifier,
-    limit: 4,
+    limit: 3,
   });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
@@ -109,7 +109,7 @@ function FollowingCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >
@@ -129,7 +129,7 @@ function ContributedCollectionsList({
 }) {
   const { data: collectionsData } = useOpenCollectionsWithContributor({
     identifier,
-    limit: 4,
+    limit: 3,
   });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
@@ -149,7 +149,7 @@ function ContributedCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >

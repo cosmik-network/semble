@@ -56,7 +56,7 @@ export default function FollowingCollectionsContainer(props: Props) {
               cols={
                 settings.collectionView !== 'grid'
                   ? { base: 1 }
-                  : { base: 1, sm: 2, lg: 4 }
+                  : { base: 1, sm: 2, lg: 3 }
               }
               spacing="xs"
             >

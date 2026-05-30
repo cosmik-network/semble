@@ -20,6 +20,26 @@ primary_region = 'yyz'
   max_machines_running = 10
   processes = ['web']
 
+[[restart]]
+  policy = "always"
+  processes = ["feed-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["search-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["firehose-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["notification-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["sync-worker"]
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
@@ -42,8 +62,6 @@ primary_region = 'yyz'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  auto_stop_machines = false
-  min_machines_running = 1
 
 [[vm]]
   processes = ['notification-worker']
@@ -65,4 +83,5 @@ APP_URL="https://semble.so"
 ACCESS_TOKEN_EXPIRES_IN=2592000
 REFRESH_TOKEN_EXPIRES_IN=5184000
 ATPROTO_FIREHOSE_WEBSOCKET="wss://relay1.us-west.bsky.network"
+ATPROTO_JETSTREAM_WEBSOCKET="wss://jetstream2.us-west.bsky.network,wss://jetstream1.us-west.bsky.network,wss://jetstream2.us-east.bsky.network,wss://jetstream1.us-east.bsky.network"
 NODE_OPTIONS="--dns-result-order=ipv4first"

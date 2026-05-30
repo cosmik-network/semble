@@ -1,6 +1,7 @@
 import { IProcess } from 'src/shared/domain/IProcess';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
+import { IFirehoseCursorRepository } from '../../application/services/IFirehoseCursorRepository';
 import { AtProtoJetstreamService } from '../services/AtProtoJetstreamService';
 
 export class FirehoseWorkerProcess implements IProcess {
@@ -9,6 +10,7 @@ export class FirehoseWorkerProcess implements IProcess {
   constructor(
     private configService: EnvironmentConfigService,
     private firehoseEventHandler: FirehoseEventHandler,
+    private firehoseCursorRepository: IFirehoseCursorRepository,
   ) {}
 
   async start(): Promise<void> {
@@ -18,6 +20,7 @@ export class FirehoseWorkerProcess implements IProcess {
     this.firehoseService = new AtProtoJetstreamService(
       this.firehoseEventHandler,
       this.configService,
+      this.firehoseCursorRepository,
     );
 
     // Don't await - let it run in background
