@@ -22,3 +22,5 @@ export function createSembleClient({
 }
 
 export type { publicContract as contract };
+
+export type SembleClient = ReturnType<typeof createSembleClient>;

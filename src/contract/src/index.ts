@@ -33,7 +33,7 @@ export const contract: ContractType = c.router({
   graph: graphContract,
 } satisfies AppRouter);
 
-export const publicContract: AppRouter = filterPublicRoutes(contract);
+export const publicContract = filterPublicRoutes(contract);
 
 export { filterPublicRoutes } from './filter';
 
