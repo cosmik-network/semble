@@ -7,6 +7,7 @@ import { notificationsContract } from './contract/notifications';
 import { connectionsContract } from './contract/connections';
 import { searchContract } from './contract/search';
 import { graphContract } from './contract/graph';
+import { filterPublicRoutes } from './filter';
 
 const c = initContract();
 
@@ -31,6 +32,10 @@ export const contract: ContractType = c.router({
   search: searchContract,
   graph: graphContract,
 } satisfies AppRouter);
+
+export const publicContract: AppRouter = filterPublicRoutes(contract);
+
+export { filterPublicRoutes } from './filter';
 
 export { paths } from '@semble/types';
 

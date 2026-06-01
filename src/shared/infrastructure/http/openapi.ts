@@ -1,11 +1,11 @@
 import { generateOpenApi } from '@ts-rest/open-api';
-import { contract } from '@semble/contract';
+import { publicContract } from '@semble/contract';
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
 
 const appUrl = new EnvironmentConfigService().getAtProtoConfig().baseUrl;
 
 export const openApiDocument = generateOpenApi(
-  contract,
+  publicContract,
   {
     info: {
       title: 'Semble API',

@@ -1,27 +1,5 @@
-import { initClient, initContract } from '@ts-rest/core';
-import {
-  cardsContract,
-  collectionsContract,
-  usersContract,
-  feedsContract,
-  notificationsContract,
-  connectionsContract,
-  searchContract,
-  graphContract,
-} from '@semble/contract';
-
-const c = initContract();
-
-const contract = c.router({
-  cards: cardsContract,
-  collections: collectionsContract,
-  users: usersContract,
-  feeds: feedsContract,
-  notifications: notificationsContract,
-  connections: connectionsContract,
-  search: searchContract,
-  graph: graphContract,
-});
+import { initClient } from '@ts-rest/core';
+import { contract } from '@semble/contract';
 
 export function createTsRestClient(baseUrl: string, accessToken?: string) {
   return initClient(contract, {

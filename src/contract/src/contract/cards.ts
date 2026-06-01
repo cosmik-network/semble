@@ -50,6 +50,7 @@ export const cardsContract = c.router({
     summary: 'Add an existing card to library',
     description:
       "Adds an existing card (by ID) to the authenticated user's library.",
+    metadata: { internal: true } as const,
   },
   addCardToCollection: {
     method: 'POST',
@@ -59,6 +60,7 @@ export const cardsContract = c.router({
     summary: 'Add a card to a collection',
     description:
       'Adds a card to a collection the authenticated user can write to.',
+    metadata: { internal: true } as const,
   },
   urlCardAssociations: {
     method: 'POST',
@@ -171,6 +173,7 @@ export const cardsContract = c.router({
     responses: { 200: RemoveCardFromCollectionResponseSchema },
     summary: 'Remove a card from collections',
     description: 'Removes a card from one or more collections.',
+    metadata: { internal: true } as const,
   },
   cardsByUser: {
     method: 'GET',

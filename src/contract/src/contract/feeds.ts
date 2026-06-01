@@ -38,6 +38,7 @@ export const feedsContract = c.router({
     summary: 'Get gem feed',
     description:
       'Returns a curated feed of highly-saved URLs (gems), ordered by library count.',
+    metadata: { internal: true } as const,
   },
   followingFeed: {
     method: 'GET',

@@ -63,6 +63,7 @@ export const searchContract = c.router({
     summary: 'Search Bluesky posts',
     description:
       'Searches Bluesky posts via the AT Protocol, proxied through the Semble API.',
+    metadata: { internal: true } as const,
   },
   atProtoAccounts: {
     method: 'GET',
@@ -90,5 +91,6 @@ export const searchContract = c.router({
     summary: 'Search Leaflet documents for a URL',
     description:
       'Returns Leaflet documents that reference or annotate a given URL.',
+    metadata: { internal: true } as const,
   },
 });

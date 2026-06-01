@@ -1,5 +1,5 @@
 import { initClient } from '@ts-rest/core';
-import { contract } from '@semble/contract';
+import { publicContract } from '@semble/contract';
 
 /**
  * Creates a Semble API client.
@@ -15,10 +15,10 @@ export function createSembleClient({
   apiKey: string;
   baseUrl?: string;
 }) {
-  return initClient(contract, {
+  return initClient(publicContract, {
     baseUrl,
     baseHeaders: { 'x-api-key': apiKey },
   });
 }
 
-export type { contract };
+export type { publicContract as contract };

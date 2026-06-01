@@ -16,6 +16,7 @@ export const graphContract = c.router({
     summary: 'Get my graph data',
     description:
       "Returns the authenticated user's connection graph as nodes and edges.",
+    metadata: { internal: true } as const,
   },
   userGraphData: {
     method: 'GET',
@@ -29,6 +30,7 @@ export const graphContract = c.router({
     summary: "Get a user's graph data",
     description:
       "Returns a user's connection graph as nodes and edges, identified by handle or DID.",
+    metadata: { internal: true } as const,
   },
   urlGraphData: {
     method: 'GET',
@@ -41,5 +43,6 @@ export const graphContract = c.router({
     summary: 'Get URL graph data',
     description:
       'Returns the connection graph centered on a given URL, up to the specified depth.',
+    metadata: { internal: true } as const,
   },
 });
