@@ -119,6 +119,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
 
+    // Firehose cursors table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS firehose_cursors (
+      id TEXT PRIMARY KEY,
+      time_us BIGINT NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )`,
+
     // Follows table (references published_records)
     sql`CREATE TABLE IF NOT EXISTS follows (
       follower_id TEXT NOT NULL,

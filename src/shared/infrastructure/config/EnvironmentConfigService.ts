@@ -129,7 +129,7 @@ export class EnvironmentConfigService {
           'wss://relay1.us-west.bsky.network',
         jetstreamWebsocket:
           process.env.ATPROTO_JETSTREAM_WEBSOCKET ||
-          'wss://jetstream2.us-west.bsky.network',
+          'wss://jetstream2.us-west.bsky.network,wss://jetstream1.us-west.bsky.network,wss://jetstream2.us-east.bsky.network,wss://jetstream1.us-east.bsky.network',
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: tunnelEnabled

@@ -1,6 +1,6 @@
 {
-  "id": "fd978321-a416-442a-b266-706060a121b9",
-  "prevId": "411a0087-6ded-48dd-beb3-1d1aa4ea11b6",
+  "id": "950a8ac0-5c61-4441-a1b4-0d4fcccfa757",
+  "prevId": "fd978321-a416-442a-b266-706060a121b9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1688,6 +1688,122 @@
           "name": "sync_statuses_curator_id_unique",
           "nullsNotDistinct": false,
           "columns": ["curator_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.api_keys": {
+      "name": "api_keys",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_did": {
+          "name": "user_did",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prefix": {
+          "name": "prefix",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "last_used_at": {
+          "name": "last_used_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revoked": {
+          "name": "revoked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "api_keys_user_did_idx": {
+          "name": "api_keys_user_did_idx",
+          "columns": [
+            {
+              "expression": "user_did",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "api_keys_token_hash_idx": {
+          "name": "api_keys_token_hash_idx",
+          "columns": [
+            {
+              "expression": "token_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "api_keys_user_did_users_id_fk": {
+          "name": "api_keys_user_did_users_id_fk",
+          "tableFrom": "api_keys",
+          "tableTo": "users",
+          "columnsFrom": ["user_did"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "api_keys_token_hash_unique": {
+          "name": "api_keys_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": ["token_hash"]
         }
       },
       "policies": {},

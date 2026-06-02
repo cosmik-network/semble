@@ -43,8 +43,8 @@ export default function ProfileContainerSkeleton() {
             <Skeleton w={87} h={36} radius={'xl'} />
           </Group>
 
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+            {Array.from({ length: 3 }).map((_, i) => (
               <CollectionCardSkeleton key={i} />
             ))}
           </SimpleGrid>

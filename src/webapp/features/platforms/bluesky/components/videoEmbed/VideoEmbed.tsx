@@ -31,6 +31,7 @@ export default function VideoEmbed(props: Props) {
         style={{
           width: '100%',
           height: '100%',
+          maxHeight: '200px',
           borderRadius: 'var(--mantine-radius-md)',
           overflow: 'hidden',
           '--video-border': '0px',

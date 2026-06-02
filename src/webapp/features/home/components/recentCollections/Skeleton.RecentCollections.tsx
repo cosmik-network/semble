@@ -17,13 +17,13 @@ export default function RecentCollectionsSkeleton() {
       </Group>
 
       <Group gap="xs">
-        <Skeleton w={110} h={30} radius={'xl'} />
-        <Skeleton w={82} h={30} radius={'xl'} />
-        <Skeleton w={109} h={30} radius={'xl'} />
+        <Skeleton w={110} h={30} radius={'md'} />
+        <Skeleton w={82} h={30} radius={'md'} />
+        <Skeleton w={109} h={30} radius={'md'} />
       </Group>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+        {Array.from({ length: 3 }).map((_, i) => (
           <CollectionCardSkeleton key={i} />
         ))}
       </SimpleGrid>

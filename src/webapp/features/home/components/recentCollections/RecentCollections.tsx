@@ -26,8 +26,8 @@ type CollectionFilter = 'mine' | 'following' | 'contributed';
 
 function CollectionsListSkeleton() {
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xs">
-      {Array.from({ length: 4 }).map((_, i) => (
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+      {Array.from({ length: 3 }).map((_, i) => (
         <CollectionCardSkeleton key={i} />
       ))}
     </SimpleGrid>
@@ -41,7 +41,7 @@ function MyCollectionsList({
   onCreateCollection: () => void;
   settings: ReturnType<typeof useUserSettings>['settings'];
 }) {
-  const { data: collectionsData } = useMyCollections({ limit: 4 });
+  const { data: collectionsData } = useMyCollections({ limit: 3 });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
 
@@ -69,7 +69,7 @@ function MyCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >
@@ -89,7 +89,7 @@ function FollowingCollectionsList({
 }) {
   const { data: collectionsData } = useFollowingCollections({
     identifier,
-    limit: 4,
+    limit: 3,
   });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
@@ -109,7 +109,7 @@ function FollowingCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >
@@ -129,7 +129,7 @@ function ContributedCollectionsList({
 }) {
   const { data: collectionsData } = useOpenCollectionsWithContributor({
     identifier,
-    limit: 4,
+    limit: 3,
   });
   const collections =
     collectionsData.pages.flatMap((page) => page.collections) ?? [];
@@ -149,7 +149,7 @@ function ContributedCollectionsList({
       cols={
         settings.collectionView !== 'grid'
           ? { base: 1 }
-          : { base: 1, sm: 2, lg: 4 }
+          : { base: 1, sm: 2, lg: 3 }
       }
       spacing="xs"
     >
@@ -180,18 +180,16 @@ export default function RecentCollections() {
           <Title order={2}>Collections</Title>
         </Group>
         <Group gap="xs">
-          {filter === 'mine' && (
-            <ActionIcon
-              variant="light"
-              color="blue"
-              size={38}
-              radius={'xl'}
-              onClick={() => setShowCollectionDrawer(true)}
-              aria-label="Create collection"
-            >
-              <FiPlus size={18} />
-            </ActionIcon>
-          )}
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowCollectionDrawer(true)}
+            aria-label="Create collection"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
           <LinkButton variant="light" color="blue" href={viewAllHref}>
             View all
           </LinkButton>
@@ -203,6 +201,7 @@ export default function RecentCollections() {
           variant={filter === 'mine' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('mine')}
         >
           My Collections
@@ -211,6 +210,7 @@ export default function RecentCollections() {
           variant={filter === 'following' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('following')}
         >
           Following
@@ -219,6 +219,7 @@ export default function RecentCollections() {
           variant={filter === 'contributed' ? 'filled' : 'light'}
           color="gray"
           size="xs"
+          radius={'md'}
           onClick={() => setFilter('contributed')}
         >
           Contributed to

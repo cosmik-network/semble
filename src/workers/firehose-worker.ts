@@ -9,6 +9,7 @@ import { FirehoseWorkerProcess } from '../modules/atproto/infrastructure/process
 import { FirehoseEventHandler } from '../modules/atproto/application/handlers/FirehoseEventHandler';
 import { ProcessFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessFirehoseEventUseCase';
 import { DrizzleFirehoseEventDuplicationService } from '../modules/atproto/infrastructure/services/DrizzleFirehoseEventDuplicationService';
+import { DrizzleFirehoseCursorRepository } from '../modules/atproto/infrastructure/repositories/DrizzleFirehoseCursorRepository';
 import { DatabaseFactory } from '../shared/infrastructure/database/DatabaseFactory';
 
 async function main() {
@@ -30,6 +31,8 @@ async function main() {
     repositories.atUriResolutionService,
     configService,
   );
+
+  const firehoseCursorRepository = new DrizzleFirehoseCursorRepository(db);
 
   // Create main processing use case using the factory-created use cases
   const processFirehoseEventUseCase = new ProcessFirehoseEventUseCase(
@@ -54,6 +57,7 @@ async function main() {
   const firehoseWorker = new FirehoseWorkerProcess(
     configService,
     firehoseEventHandler,
+    firehoseCursorRepository,
   );
 
   await firehoseWorker.start();
