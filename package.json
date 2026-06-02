@@ -14,7 +14,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
+    "build:webapp": "npm run build:contract && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
     "build:contract": "npm run build:types && npm run build --workspace=@semble/contract",
     "build:sdk": "npm run build:contract && npm run build --workspace=@semble.so/api",
