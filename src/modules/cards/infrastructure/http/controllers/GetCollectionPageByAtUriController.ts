@@ -13,16 +13,16 @@ export class GetCollectionPageByAtUriController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { handle, recordKey } = req.params;
+      const { handle, recordKey, page, limit, sortBy, sortOrder, urlType } =
+        req.query;
       if (!handle || !recordKey) {
         return this.badRequest(res, 'Handle and recordKey are required');
       }
-      const { page, limit, sortBy, sortOrder, urlType } = req.query;
       const callerDid = req.did;
 
       const result = await this.getCollectionPageByAtUriUseCase.execute({
-        handle,
-        recordKey,
+        handle: handle as string,
+        recordKey: recordKey as string,
         callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

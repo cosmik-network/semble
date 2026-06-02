@@ -153,6 +153,19 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
 
+    // API keys table (references users)
+    sql`CREATE TABLE IF NOT EXISTS api_keys (
+      id TEXT PRIMARY KEY,
+      user_did TEXT NOT NULL REFERENCES users(id),
+      name TEXT NOT NULL,
+      prefix TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      last_used_at TIMESTAMP,
+      expires_at TIMESTAMP,
+      revoked BOOLEAN NOT NULL DEFAULT false
+    )`,
+
     // Following feed items table (references feed_activities)
     sql`CREATE TABLE IF NOT EXISTS following_feed_items (
       user_id TEXT NOT NULL,
@@ -353,5 +366,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Following feed items indexes
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
+  `);
+
+  // API keys indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_keys_user_did_idx ON api_keys(user_did);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_keys_token_hash_idx ON api_keys(token_hash);
   `);
 }

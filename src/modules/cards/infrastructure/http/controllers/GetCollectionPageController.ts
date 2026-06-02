@@ -11,8 +11,8 @@ export class GetCollectionPageController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { collectionId } = req.params;
-      const { page, limit, sortBy, sortOrder, urlType } = req.query;
+      const { collectionId, page, limit, sortBy, sortOrder, urlType } =
+        req.query;
       const callerDid = req.did;
 
       if (!collectionId) {
@@ -20,7 +20,7 @@ export class GetCollectionPageController extends Controller {
       }
 
       const result = await this.getCollectionPageUseCase.execute({
-        collectionId,
+        collectionId: collectionId as string,
         callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

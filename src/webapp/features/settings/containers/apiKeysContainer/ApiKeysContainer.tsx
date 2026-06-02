@@ -17,31 +17,30 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
-import { MdDelete, MdKey } from 'react-icons/md';
+import { MdDelete, MdEdit, MdKey } from 'react-icons/md';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 import { useApiKeys } from '../../lib/apiKeys/useApiKeys';
-import type { ApiKey, NewApiKey } from '../../lib/apiKeys/types';
+import type { ApiKey, NewApiKey } from '@semble/types';
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+function formatDate(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 }
 
-interface ApiKeysContainerProps {
-  /**
-   * Seed the key list. Defaults to MOCK_API_KEYS.
-   * Remove this prop when wiring up real data via the hook.
-   */
-  initialKeys?: ApiKey[];
-}
-
-export default function ApiKeysContainer({
-  initialKeys,
-}: ApiKeysContainerProps) {
-  const { keys, createKey, revokeKey } = useApiKeys(initialKeys);
+export default function ApiKeysContainer() {
+  const {
+    keys,
+    createKey,
+    updateKey,
+    revokeKey,
+    isCreating,
+    isUpdating,
+    isRevoking,
+  } = useApiKeys();
 
   // Create modal
   const [createOpened, { open: openCreate, close: closeCreate }] =
@@ -53,18 +52,38 @@ export default function ApiKeysContainer({
   const [tokenOpened, { open: openToken, close: closeToken }] =
     useDisclosure(false);
 
+  // Rename modal
+  const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editOpened, { open: openEdit, close: closeEdit }] =
+    useDisclosure(false);
+
   // Revoke confirm modal
   const [revokeTarget, setRevokeTarget] = useState<ApiKey | null>(null);
   const [revokeOpened, { open: openRevoke, close: closeRevoke }] =
     useDisclosure(false);
 
-  function handleCreate() {
-    if (!keyName.trim()) return;
-    const created = createKey(keyName.trim());
+  async function handleCreate() {
+    if (!keyName.trim() || isCreating) return;
+    const created = await createKey(keyName.trim());
     setKeyName('');
     closeCreate();
     setNewKey(created);
     openToken();
+  }
+
+  function handleEditClick(key: ApiKey) {
+    setEditTarget(key);
+    setEditName(key.name);
+    openEdit();
+  }
+
+  async function handleEditConfirm() {
+    if (!editTarget || !editName.trim() || isUpdating) return;
+    await updateKey(editTarget.id, editName.trim());
+    setEditTarget(null);
+    setEditName('');
+    closeEdit();
   }
 
   function handleRevokeClick(key: ApiKey) {
@@ -72,9 +91,9 @@ export default function ApiKeysContainer({
     openRevoke();
   }
 
-  function handleRevokeConfirm() {
-    if (!revokeTarget) return;
-    revokeKey(revokeTarget.id);
+  async function handleRevokeConfirm() {
+    if (!revokeTarget || isRevoking) return;
+    await revokeKey(revokeTarget.id);
     setRevokeTarget(null);
     closeRevoke();
   }
@@ -148,15 +167,26 @@ export default function ApiKeysContainer({
                       </Text>
                     </Group>
                   </Stack>
-                  <ActionIcon
-                    variant="light"
-                    color="red"
-                    radius="xl"
-                    onClick={() => handleRevokeClick(key)}
-                    aria-label={`Revoke ${key.name}`}
-                  >
-                    <MdDelete size={14} />
-                  </ActionIcon>
+                  <Group gap="xs" wrap="nowrap">
+                    <ActionIcon
+                      variant="light"
+                      color="gray"
+                      radius="xl"
+                      onClick={() => handleEditClick(key)}
+                      aria-label={`Rename ${key.name}`}
+                    >
+                      <MdEdit size={14} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      radius="xl"
+                      onClick={() => handleRevokeClick(key)}
+                      aria-label={`Revoke ${key.name}`}
+                    >
+                      <MdDelete size={14} />
+                    </ActionIcon>
+                  </Group>
                 </Group>
               </Card>
             ))
@@ -191,8 +221,47 @@ export default function ApiKeysContainer({
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleCreate} disabled={!keyName.trim()}>
+            <Button
+              size="sm"
+              onClick={handleCreate}
+              disabled={!keyName.trim() || isCreating}
+              loading={isCreating}
+            >
               Generate
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Rename key modal */}
+      <Modal
+        opened={editOpened}
+        onClose={closeEdit}
+        title="Rename API key"
+        size="sm"
+        centered
+      >
+        <Stack>
+          <TextInput
+            variant="filled"
+            label="Choose a name that helps you identify this key"
+            placeholder="e.g. Production server"
+            value={editName}
+            onChange={(e) => setEditName(e.currentTarget.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditConfirm()}
+            data-autofocus
+          />
+          <Group justify="end" gap={'xs'}>
+            <Button variant="light" color="gray" size="sm" onClick={closeEdit}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleEditConfirm}
+              disabled={!editName.trim() || isUpdating}
+              loading={isUpdating}
+            >
+              Save
             </Button>
           </Group>
         </Stack>
@@ -275,6 +344,8 @@ export default function ApiKeysContainer({
             size="md"
             onClick={handleRevokeConfirm}
             data-autofocus
+            loading={isRevoking}
+            disabled={isRevoking}
           >
             Revoke key
           </Button>

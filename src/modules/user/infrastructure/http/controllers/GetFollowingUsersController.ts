@@ -9,8 +9,7 @@ export class GetFollowingUsersController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { identifier } = req.params;
-      const { page, limit } = req.query;
+      const { identifier, page, limit } = req.query;
       const callingUserId = (req as any).did;
 
       if (!identifier) {
@@ -18,7 +17,7 @@ export class GetFollowingUsersController extends Controller {
       }
 
       const result = await this.getFollowingUsersUseCase.execute({
-        userId: identifier,
+        userId: identifier as string,
         callingUserId,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

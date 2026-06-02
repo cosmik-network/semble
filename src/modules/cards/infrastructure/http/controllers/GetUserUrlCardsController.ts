@@ -11,9 +11,15 @@ export class GetUserUrlCardsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { identifier } = req.params;
-      const { page, limit, sortBy, sortOrder, urlType, uncollected } =
-        req.query;
+      const {
+        identifier,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        uncollected,
+      } = req.query;
       const callerDid = req.did;
 
       if (!identifier) {
@@ -21,7 +27,7 @@ export class GetUserUrlCardsController extends Controller {
       }
 
       const result = await this.getUrlCardsUseCase.execute({
-        userId: identifier,
+        userId: identifier as string,
         callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

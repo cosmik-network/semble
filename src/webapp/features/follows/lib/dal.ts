@@ -93,12 +93,6 @@ export const getCollectionFollowers = cache(
   },
 );
 
-export const getFollowingCount = cache(async (identifier: string) => {
-  const client = createSembleClient();
-  const response = await client.getFollowingCount({ identifier });
-  return response;
-});
-
 export const getFollowersCount = cache(async (identifier: string) => {
   const client = createSembleClient();
   const response = await client.getFollowersCount({ identifier });

@@ -1,41 +1,85 @@
 import { Request, Response, NextFunction } from 'express';
 import * as Sentry from '@sentry/node';
 import { ITokenService } from '../../../../modules/user/application/services/ITokenService';
+import { IApiKeyService } from '../../../../modules/user/application/services/IApiKeyService';
+import { IApiKeyRepository } from '../../../../modules/user/domain/repositories/IApiKeyRepository';
 import { CookieService } from '../services/CookieService';
 
 export interface AuthenticatedRequest extends Request {
   did?: string;
 }
 
+const API_KEY_PREFIX = 'sk_';
+
 export class AuthMiddleware {
   constructor(
     private tokenService: ITokenService,
     private cookieService: CookieService,
+    private apiKeyService: IApiKeyService,
+    private apiKeyRepository: IApiKeyRepository,
   ) {}
 
   /**
-   * Extract access token from request - checks both cookies and Authorization header
-   * Priority: Cookie > Bearer token (for backward compatibility)
+   * Extract bearer token from Authorization header.
    */
-  private extractAccessToken(req: AuthenticatedRequest): string | undefined {
-    // First, try to get token from cookie
-    const cookieToken = this.cookieService.getAccessToken(req);
-    if (cookieToken) {
-      return cookieToken;
-    }
-
-    // Fallback to Authorization header for backward compatibility
+  private extractBearer(req: AuthenticatedRequest): string | undefined {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      return authHeader.substring(7); // Remove 'Bearer ' prefix
+      return authHeader.substring(7);
     }
-
     return undefined;
   }
 
   /**
-   * Require authentication - accepts both cookie-based and Bearer token auth
-   * This is the unified method that supports both authentication methods
+   * Extract API key from the `x-api-key` header.
+   */
+  private extractApiKey(req: AuthenticatedRequest): string | undefined {
+    const header = req.headers['x-api-key'];
+    if (typeof header === 'string' && header.length > 0) return header;
+    return undefined;
+  }
+
+  /**
+   * Resolve the request to a user DID via cookie, JWT bearer, or API key bearer.
+   * API key tokens are recognised by their `sk_` prefix. On success, the key's
+   * lastUsedAt is updated asynchronously.
+   */
+  private async resolveDid(req: AuthenticatedRequest): Promise<string | null> {
+    const cookieToken = this.cookieService.getAccessToken(req);
+    if (cookieToken) {
+      const didResult = await this.tokenService.validateToken(cookieToken);
+      if (didResult.isOk() && didResult.value) return didResult.value;
+    }
+
+    const apiKey = this.extractApiKey(req);
+    if (apiKey) {
+      const verifyResult = await this.apiKeyService.verify(apiKey);
+      if (verifyResult.isErr() || !verifyResult.value) return null;
+      const record = verifyResult.value;
+      // Fire-and-forget; failure to touch lastUsedAt should not block the request.
+      void this.apiKeyRepository.touchLastUsed(record.id, new Date());
+      return record.userDid;
+    }
+
+    const bearer = this.extractBearer(req);
+    if (!bearer) return null;
+
+    if (bearer.startsWith(API_KEY_PREFIX)) {
+      const verifyResult = await this.apiKeyService.verify(bearer);
+      if (verifyResult.isErr() || !verifyResult.value) return null;
+      const record = verifyResult.value;
+      // Fire-and-forget; failure to touch lastUsedAt should not block the request.
+      void this.apiKeyRepository.touchLastUsed(record.id, new Date());
+      return record.userDid;
+    }
+
+    const didResult = await this.tokenService.validateToken(bearer);
+    if (didResult.isOk() && didResult.value) return didResult.value;
+    return null;
+  }
+
+  /**
+   * Require authentication. Accepts cookie session, JWT bearer, or API key bearer.
    */
   public ensureAuthenticated() {
     return async (
@@ -44,28 +88,22 @@ export class AuthMiddleware {
       next: NextFunction,
     ): Promise<void> => {
       try {
-        const token = this.extractAccessToken(req);
-
-        if (!token) {
+        const cookieToken = this.cookieService.getAccessToken(req);
+        const bearer = this.extractBearer(req);
+        const apiKey = this.extractApiKey(req);
+        if (!cookieToken && !bearer && !apiKey) {
           res.status(401).json({ message: 'No access token provided' });
           return;
         }
 
-        // Validate token
-        const didResult = await this.tokenService.validateToken(token);
-
-        if (didResult.isErr() || !didResult.value) {
+        const did = await this.resolveDid(req);
+        if (!did) {
           res.status(403).json({ message: 'Invalid or expired token' });
           return;
         }
 
-        // Attach user DID to request for use in controllers
-        req.did = didResult.value;
-
-        // Set user context in Sentry for error tracking
-        Sentry.setUser({ id: didResult.value });
-
-        // Continue to the next middleware or controller
+        req.did = did;
+        Sentry.setUser({ id: did });
         next();
       } catch (error) {
         res.status(500).json({ message: 'Authentication error' });
@@ -74,8 +112,7 @@ export class AuthMiddleware {
   }
 
   /**
-   * Optional authentication - accepts both cookie-based and Bearer token auth
-   * Continues even if no token is provided
+   * Optional authentication. Continues even without credentials; attaches did when present.
    */
   public optionalAuth() {
     return async (
@@ -84,36 +121,26 @@ export class AuthMiddleware {
       next: NextFunction,
     ) => {
       try {
-        const token = this.extractAccessToken(req);
+        const cookieToken = this.cookieService.getAccessToken(req);
+        const bearer = this.extractBearer(req);
+        const apiKey = this.extractApiKey(req);
+        if (!cookieToken && !bearer && !apiKey) return next();
 
-        if (!token) {
-          // No token, but that's okay - continue without authentication
-          return next();
+        const did = await this.resolveDid(req);
+        if (did) {
+          req.did = did;
+          Sentry.setUser({ id: did });
         }
-
-        // Validate token
-        const didResult = await this.tokenService.validateToken(token);
-
-        if (didResult.isOk() && didResult.value) {
-          // Attach user DID to request for use in controllers
-          req.did = didResult.value;
-
-          // Set user context in Sentry for error tracking
-          Sentry.setUser({ id: didResult.value });
-        }
-
-        // Continue to the controller regardless of token validity
         next();
       } catch (error) {
-        // Continue without authentication in case of error
         next();
       }
     };
   }
 
   /**
-   * Require Bearer token authentication only (legacy support)
-   * Use this when you specifically need Bearer token auth
+   * Require Bearer token authentication only (legacy support). Accepts both
+   * JWT and API key bearer tokens.
    */
   public requireBearerAuth() {
     return async (
@@ -122,27 +149,44 @@ export class AuthMiddleware {
       next: NextFunction,
     ): Promise<void> => {
       try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const apiKey = this.extractApiKey(req);
+        const bearer = this.extractBearer(req);
+        if (!apiKey && !bearer) {
           res.status(401).json({ message: 'No Bearer token provided' });
           return;
         }
 
-        const token = authHeader.substring(7);
+        let did: string | null = null;
+        if (apiKey) {
+          const verifyResult = await this.apiKeyService.verify(apiKey);
+          if (verifyResult.isOk() && verifyResult.value) {
+            did = verifyResult.value.userDid;
+            void this.apiKeyRepository.touchLastUsed(
+              verifyResult.value.id,
+              new Date(),
+            );
+          }
+        } else if (bearer!.startsWith(API_KEY_PREFIX)) {
+          const verifyResult = await this.apiKeyService.verify(bearer!);
+          if (verifyResult.isOk() && verifyResult.value) {
+            did = verifyResult.value.userDid;
+            void this.apiKeyRepository.touchLastUsed(
+              verifyResult.value.id,
+              new Date(),
+            );
+          }
+        } else {
+          const didResult = await this.tokenService.validateToken(bearer!);
+          if (didResult.isOk() && didResult.value) did = didResult.value;
+        }
 
-        // Validate token
-        const didResult = await this.tokenService.validateToken(token);
-
-        if (didResult.isErr() || !didResult.value) {
+        if (!did) {
           res.status(403).json({ message: 'Invalid or expired token' });
           return;
         }
 
-        req.did = didResult.value;
-
-        // Set user context in Sentry for error tracking
-        Sentry.setUser({ id: didResult.value });
-
+        req.did = did;
+        Sentry.setUser({ id: did });
         next();
       } catch (error) {
         res.status(500).json({ message: 'Authentication error' });
@@ -151,8 +195,7 @@ export class AuthMiddleware {
   }
 
   /**
-   * Require cookie-based authentication only
-   * Use this when you specifically need cookie auth (e.g., CSRF protection)
+   * Require cookie-based authentication only.
    */
   public requireCookieAuth() {
     return async (
@@ -170,7 +213,6 @@ export class AuthMiddleware {
           return;
         }
 
-        // Validate token
         const didResult = await this.tokenService.validateToken(token);
 
         if (didResult.isErr() || !didResult.value) {
@@ -179,10 +221,7 @@ export class AuthMiddleware {
         }
 
         req.did = didResult.value;
-
-        // Set user context in Sentry for error tracking
         Sentry.setUser({ id: didResult.value });
-
         next();
       } catch (error) {
         res.status(500).json({ message: 'Authentication error' });

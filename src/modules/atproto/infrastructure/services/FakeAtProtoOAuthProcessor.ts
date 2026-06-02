@@ -3,8 +3,9 @@ import {
   IOAuthProcessor,
   AuthResult,
 } from '../../../user/application/services/IOAuthProcessor';
-import { OAuthCallbackDTO } from '@semble/types';
+import { OAuthCallbackDTO, paths } from '@semble/types';
 import { ITokenService } from '../../../user/application/services/ITokenService';
+import { configService } from 'src/shared/infrastructure/config';
 
 export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
   constructor(private tokenService: ITokenService) {}
@@ -13,7 +14,8 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
     try {
       // Encode the handle in the state parameter so we can decode it later
       const state = this.encodeState(handle || '');
-      const mockUrl = `http://127.0.0.1:3000/api/users/oauth/callback?code=mockCode&state=${state}&iss=mockIssuer`;
+      const baseUrl = configService.getAtProtoConfig().baseUrl;
+      const mockUrl = `${baseUrl}/api${paths.oauthCallback}?code=mockCode&state=${state}&iss=mockIssuer`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);

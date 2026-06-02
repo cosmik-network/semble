@@ -1,6 +1,10 @@
 import { InitiateOAuthSignInUseCase } from '../../../../modules/user/application/use-cases/InitiateOAuthSignInUseCase';
 import { CompleteOAuthSignInUseCase } from '../../../../modules/user/application/use-cases/CompleteOAuthSignInUseCase';
 import { RefreshAccessTokenUseCase } from '../../../../modules/user/application/use-cases/RefreshAccessTokenUseCase';
+import { ListApiKeysUseCase } from '../../../../modules/user/application/use-cases/ListApiKeysUseCase';
+import { CreateApiKeyUseCase } from '../../../../modules/user/application/use-cases/CreateApiKeyUseCase';
+import { UpdateApiKeyUseCase } from '../../../../modules/user/application/use-cases/UpdateApiKeyUseCase';
+import { RevokeApiKeyUseCase } from '../../../../modules/user/application/use-cases/RevokeApiKeyUseCase';
 import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase';
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
@@ -111,6 +115,10 @@ export interface UseCases {
   getProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
+  listApiKeysUseCase: ListApiKeysUseCase;
+  createApiKeyUseCase: CreateApiKeyUseCase;
+  updateApiKeyUseCase: UpdateApiKeyUseCase;
+  revokeApiKeyUseCase: RevokeApiKeyUseCase;
   followTargetUseCase: FollowTargetUseCase;
   unfollowTargetUseCase: UnfollowTargetUseCase;
   getFollowingUsersUseCase: GetFollowingUsersUseCase;
@@ -241,6 +249,17 @@ export class UseCaseFactory {
       ),
       generateExtensionTokensUseCase: new GenerateExtensionTokensUseCase(
         services.tokenService,
+      ),
+      listApiKeysUseCase: new ListApiKeysUseCase(repositories.apiKeyRepository),
+      createApiKeyUseCase: new CreateApiKeyUseCase(
+        repositories.apiKeyRepository,
+        services.apiKeyService,
+      ),
+      updateApiKeyUseCase: new UpdateApiKeyUseCase(
+        repositories.apiKeyRepository,
+      ),
+      revokeApiKeyUseCase: new RevokeApiKeyUseCase(
+        repositories.apiKeyRepository,
       ),
       followTargetUseCase: new FollowTargetUseCase(
         repositories.followsRepository,

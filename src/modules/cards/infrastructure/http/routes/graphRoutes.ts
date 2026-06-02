@@ -1,32 +1,37 @@
-import { Router } from 'express';
+import { IRouter } from 'express';
 import { GetGraphDataController } from '../controllers/GetGraphDataController';
 import { GetUserGraphDataController } from '../controllers/GetUserGraphDataController';
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
+import { routes } from '@semble/types';
+import { graphContract } from '@semble/contract';
+import { validateQuery } from 'src/shared/infrastructure/http/middleware/validateContract';
 
-export function createGraphRoutes(
+export function registerGraphRoutes(
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getGraphDataController: GetGraphDataController,
   getUserGraphDataController: GetUserGraphDataController,
   getUrlGraphDataController: GetUrlGraphDataController,
-): Router {
-  const router = Router();
-
-  // Query routes
-  // GET /api/graph/data - Get all nodes and edges for graph visualization
-  router.get('/data', authMiddleware.optionalAuth(), (req, res) =>
-    getGraphDataController.execute(req, res),
+): void {
+  app.get(
+    routes.graph.graphData.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(graphContract.graphData.query),
+    (req, res) => getGraphDataController.execute(req, res),
   );
 
-  // GET /api/graph/user/:identifier - Get user-scoped graph data
-  router.get('/user/:identifier', authMiddleware.optionalAuth(), (req, res) =>
-    getUserGraphDataController.execute(req, res),
+  app.get(
+    routes.graph.userGraphData.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(graphContract.userGraphData.query),
+    (req, res) => getUserGraphDataController.execute(req, res),
   );
 
-  // GET /api/graph/url - Get URL-scoped sub-graph with depth-based traversal
-  router.get('/url', authMiddleware.optionalAuth(), (req, res) =>
-    getUrlGraphDataController.execute(req, res),
+  app.get(
+    routes.graph.urlGraphData.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(graphContract.urlGraphData.query),
+    (req, res) => getUrlGraphDataController.execute(req, res),
   );
-
-  return router;
 }

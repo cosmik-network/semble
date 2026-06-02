@@ -1,45 +1,55 @@
-import { Router } from 'express';
+import { IRouter } from 'express';
 import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsForUrlController';
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
 import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../controllers/SearchLeafletDocsForUrlController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { routes } from '@semble/types';
+import { searchContract } from '@semble/contract';
+import { validateQuery } from '../../../../../shared/infrastructure/http/middleware/validateContract';
 
-export function createSearchRoutes(
+export function registerSearchRoutes(
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController,
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController,
   semanticSearchUrlsController: SemanticSearchUrlsController,
   searchAtProtoAccountsController: SearchAtProtoAccountsController,
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController,
-): Router {
-  const router = Router();
-
-  // GET /api/search/similar-urls - Get similar URLs for a given URL
-  router.get('/similar-urls', authMiddleware.optionalAuth(), (req, res) =>
-    getSimilarUrlsForUrlController.execute(req, res),
+): void {
+  app.get(
+    routes.search.similarUrls.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.similarUrls.query),
+    (req, res) => getSimilarUrlsForUrlController.execute(req, res),
   );
 
-  // GET /api/search/bsky-posts - Search Bluesky posts
-  router.get('/bsky-posts', authMiddleware.optionalAuth(), (req, res) =>
-    searchBskyPostsForUrlController.execute(req, res),
+  app.get(
+    routes.search.bskyPosts.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.bskyPosts.query),
+    (req, res) => searchBskyPostsForUrlController.execute(req, res),
   );
 
-  // GET /api/search/semantic - Semantic search for URLs
-  router.get('/semantic', authMiddleware.optionalAuth(), (req, res) =>
-    semanticSearchUrlsController.execute(req, res),
+  app.get(
+    routes.search.semantic.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.semantic.query),
+    (req, res) => semanticSearchUrlsController.execute(req, res),
   );
 
-  // GET /api/search/accounts - Search AtProto accounts
-  router.get('/accounts', authMiddleware.optionalAuth(), (req, res) =>
-    searchAtProtoAccountsController.execute(req, res),
+  app.get(
+    routes.search.atProtoAccounts.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.atProtoAccounts.query),
+    (req, res) => searchAtProtoAccountsController.execute(req, res),
   );
 
-  // GET /api/search/leaflet-docs - Search Leaflet documents that link to a URL
-  router.get('/leaflet-docs', authMiddleware.optionalAuth(), (req, res) =>
-    searchLeafletDocsForUrlController.execute(req, res),
+  app.get(
+    routes.search.leafletDocs.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.leafletDocs.query),
+    (req, res) => searchLeafletDocsForUrlController.execute(req, res),
   );
-
-  return router;
 }

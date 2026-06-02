@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { createCardRoutes } from './cardRoutes';
-import { createCollectionRoutes } from './collectionRoutes';
+import { IRouter } from 'express';
+import { registerCardRoutes } from './cardRoutes';
+import { registerCollectionRoutes } from './collectionRoutes';
 import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
@@ -32,7 +32,8 @@ import { GetCollectionFollowersCountController } from '../controllers/GetCollect
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 import { SearchUrlsController } from '../controllers/SearchUrlsController';
 
-export function createCardsModuleRoutes(
+export function registerCardsModuleRoutes(
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController,
@@ -65,53 +66,43 @@ export function createCardsModuleRoutes(
   getCollectionFollowersController: GetCollectionFollowersController,
   getCollectionFollowersCountController: GetCollectionFollowersCountController,
   getCollectionContributorsController: GetCollectionContributorsController,
-): Router {
-  const router = Router();
-
-  // Mount card routes at /api/cards
-  router.use(
-    '/cards',
-    createCardRoutes(
-      authMiddleware,
-      addUrlToLibraryController,
-      addCardToLibraryController,
-      addCardToCollectionController,
-      updateNoteCardController,
-      updateUrlCardAssociationsController,
-      removeCardFromLibraryController,
-      removeCardFromCollectionController,
-      getUrlMetadataController,
-      getUrlCardViewController,
-      getLibrariesForCardController,
-      getMyUrlCardsController,
-      getUserUrlCardsController,
-      getUrlStatusForMyLibraryController,
-      getLibrariesForUrlController,
-      getNoteCardsForUrlController,
-      searchUrlsController,
-    ),
+): void {
+  registerCardRoutes(
+    app,
+    authMiddleware,
+    addUrlToLibraryController,
+    addCardToLibraryController,
+    addCardToCollectionController,
+    updateNoteCardController,
+    updateUrlCardAssociationsController,
+    removeCardFromLibraryController,
+    removeCardFromCollectionController,
+    getUrlMetadataController,
+    getUrlCardViewController,
+    getLibrariesForCardController,
+    getMyUrlCardsController,
+    getUserUrlCardsController,
+    getUrlStatusForMyLibraryController,
+    getLibrariesForUrlController,
+    getNoteCardsForUrlController,
+    searchUrlsController,
   );
 
-  // Mount collection routes at /api/collections
-  router.use(
-    '/collections',
-    createCollectionRoutes(
-      authMiddleware,
-      createCollectionController,
-      updateCollectionController,
-      deleteCollectionController,
-      getCollectionPageController,
-      getMyCollectionsController,
-      getCollectionsController,
-      getCollectionPageByAtUriController,
-      getCollectionsForUrlController,
-      searchCollectionsController,
-      getOpenCollectionsWithContributorController,
-      getCollectionFollowersController,
-      getCollectionFollowersCountController,
-      getCollectionContributorsController,
-    ),
+  registerCollectionRoutes(
+    app,
+    authMiddleware,
+    createCollectionController,
+    updateCollectionController,
+    deleteCollectionController,
+    getCollectionPageController,
+    getMyCollectionsController,
+    getCollectionsController,
+    getCollectionPageByAtUriController,
+    getCollectionsForUrlController,
+    searchCollectionsController,
+    getOpenCollectionsWithContributorController,
+    getCollectionFollowersController,
+    getCollectionFollowersCountController,
+    getCollectionContributorsController,
   );
-
-  return router;
 }

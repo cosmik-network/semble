@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { IRouter } from 'express';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -13,8 +13,15 @@ import { GetCollectionFollowersController } from '../controllers/GetCollectionFo
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
+import { routes } from '@semble/types';
+import { collectionsContract } from '@semble/contract';
+import {
+  validateBody,
+  validateQuery,
+} from 'src/shared/infrastructure/http/middleware/validateContract';
 
-export function createCollectionRoutes(
+export function registerCollectionRoutes(
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -29,89 +36,95 @@ export function createCollectionRoutes(
   getCollectionFollowersController: GetCollectionFollowersController,
   getCollectionFollowersCountController: GetCollectionFollowersCountController,
   getCollectionContributorsController: GetCollectionContributorsController,
-): Router {
-  const router = Router();
-
-  // Query routes
-  // GET /api/collections - Get my collections
-  router.get('/', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getMyCollectionsController.execute(req, res),
+): void {
+  app.get(
+    routes.collections.myCollections.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(collectionsContract.myCollections.query),
+    (req, res) => getMyCollectionsController.execute(req, res),
   );
 
-  // GET /api/collections/search - Search collections globally
-  router.get('/search', authMiddleware.optionalAuth(), (req, res) =>
-    searchCollectionsController.execute(req, res),
-  );
-
-  // GET /api/collections/url - Get collections for URL
-  router.get('/url', authMiddleware.optionalAuth(), (req, res) =>
-    getCollectionsForUrlController.execute(req, res),
-  );
-
-  // GET /api/collections/user/:identifier - Get user's collections by identifier
-  router.get('/user/:identifier', authMiddleware.optionalAuth(), (req, res) =>
-    getUserCollectionsController.execute(req, res),
-  );
-
-  // GET /api/collections/contributed/:identifier - Get open collections where user contributed
-  router.get(
-    '/contributed/:identifier',
+  app.get(
+    routes.collections.searchCollections.path,
     authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.searchCollections.query),
+    (req, res) => searchCollectionsController.execute(req, res),
+  );
+
+  app.get(
+    routes.collections.collectionsForUrl.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionsForUrl.query),
+    (req, res) => getCollectionsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.collections.collectionsByUser.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionsByUser.query),
+    (req, res) => getUserCollectionsController.execute(req, res),
+  );
+
+  app.get(
+    routes.collections.openWithContributor.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.openWithContributor.query),
     (req, res) => getOpenCollectionsWithContributorController.execute(req, res),
   );
 
-  // GET /api/collections/at/:handle/:recordKey - Get collection by AT URI
-  router.get(
-    '/at/:handle/:recordKey',
+  app.get(
+    routes.collections.collectionByAtUri.path,
     authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionByAtUri.query),
     (req, res) => getCollectionPageByAtUriController.execute(req, res),
   );
 
-  // GET /api/collections/:collectionId/followers - Get collection followers
-  router.get(
-    '/:collectionId/followers',
+  app.get(
+    routes.collections.followersCount.path,
     authMiddleware.optionalAuth(),
-    (req, res) => getCollectionFollowersController.execute(req, res),
-  );
-
-  // GET /api/collections/:collectionId/followers/count - Get collection followers count
-  router.get(
-    '/:collectionId/followers/count',
-    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionFollowersCount.query),
     (req, res) => getCollectionFollowersCountController.execute(req, res),
   );
 
-  // GET /api/collections/:collectionId/contributors - Get collection contributors
-  router.get(
-    '/:collectionId/contributors',
+  app.get(
+    routes.collections.followers.path,
     authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionFollowers.query),
+    (req, res) => getCollectionFollowersController.execute(req, res),
+  );
+
+  app.get(
+    routes.collections.contributors.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionContributors.query),
     (req, res) => getCollectionContributorsController.execute(req, res),
   );
 
-  // GET /api/collections/:collectionId - Get collection page
-  router.get('/:collectionId', authMiddleware.optionalAuth(), (req, res) =>
-    getCollectionPageController.execute(req, res),
+  app.get(
+    routes.collections.collectionById.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(collectionsContract.collectionById.query),
+    (req, res) => getCollectionPageController.execute(req, res),
   );
 
-  // Command routes
-  // POST /api/collections - Create a new collection
-  router.post('/', authMiddleware.ensureAuthenticated(), (req, res) =>
-    createCollectionController.execute(req, res),
-  );
-
-  // PUT /api/collections/:collectionId - Update collection details
-  router.put(
-    '/:collectionId',
+  app.post(
+    routes.collections.createCollection.path,
     authMiddleware.ensureAuthenticated(),
+    validateBody(collectionsContract.createCollection.body),
+    (req, res) => createCollectionController.execute(req, res),
+  );
+
+  app.post(
+    routes.collections.updateCollection.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(collectionsContract.updateCollection.body),
     (req, res) => updateCollectionController.execute(req, res),
   );
 
-  // DELETE /api/collections/:collectionId - Delete a collection
-  router.delete(
-    '/:collectionId',
+  app.post(
+    routes.collections.deleteCollection.path,
     authMiddleware.ensureAuthenticated(),
+    validateBody(collectionsContract.deleteCollection.body),
     (req, res) => deleteCollectionController.execute(req, res),
   );
-
-  return router;
 }

@@ -11,7 +11,7 @@ export class GetFollowingCollectionsCountController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { identifier } = req.params;
+      const { identifier } = req.query as Record<string, string>;
 
       if (!identifier) {
         return this.fail(res, 'Identifier (DID or handle) is required');

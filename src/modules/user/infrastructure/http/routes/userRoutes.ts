@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { IRouter } from 'express';
 import { InitiateOAuthSignInController } from '../controllers/InitiateOAuthSignInController';
 import { CompleteOAuthSignInController } from '../controllers/CompleteOAuthSignInController';
 import { LoginWithAppPasswordController } from '../controllers/LoginWithAppPasswordController';
@@ -16,9 +16,19 @@ import { GetFollowingCollectionsController } from '../controllers/GetFollowingCo
 import { GetFollowingCountController } from '../controllers/GetFollowingCountController';
 import { GetFollowersCountController } from '../controllers/GetFollowersCountController';
 import { GetFollowingCollectionsCountController } from '../controllers/GetFollowingCollectionsCountController';
+import { ListApiKeysController } from '../controllers/ListApiKeysController';
+import { CreateApiKeyController } from '../controllers/CreateApiKeyController';
+import { UpdateApiKeyController } from '../controllers/UpdateApiKeyController';
+import { RevokeApiKeyController } from '../controllers/RevokeApiKeyController';
+import { routes } from '@semble/types';
+import { usersContract } from '@semble/contract';
+import {
+  validateBody,
+  validateQuery,
+} from '../../../../../shared/infrastructure/http/middleware/validateContract';
 
-export const createUserRoutes = (
-  router: Router,
+export function registerUserRoutes(
+  app: IRouter,
   authMiddleware: AuthMiddleware,
   initiateOAuthSignInController: InitiateOAuthSignInController,
   completeOAuthSignInController: CompleteOAuthSignInController,
@@ -36,86 +46,141 @@ export const createUserRoutes = (
   getFollowingCountController: GetFollowingCountController,
   getFollowersCountController: GetFollowersCountController,
   getFollowingCollectionsCountController: GetFollowingCollectionsCountController,
-) => {
-  // Public routes
-  router.get('/login', (req, res) =>
-    initiateOAuthSignInController.execute(req, res),
-  );
-  router.get('/oauth/callback', (req, res) =>
-    completeOAuthSignInController.execute(req, res),
-  );
-  router.post('/login/app-password', (req, res) =>
-    loginWithAppPasswordController.execute(req, res),
-  );
-  router.post('/logout', (req, res) => logoutController.execute(req, res));
-  router.post('/oauth/refresh', (req, res) =>
-    refreshAccessTokenController.execute(req, res),
+  listApiKeysController: ListApiKeysController,
+  createApiKeyController: CreateApiKeyController,
+  updateApiKeyController: UpdateApiKeyController,
+  revokeApiKeyController: RevokeApiKeyController,
+): void {
+  app.get(
+    routes.users.initiateOAuth.path,
+    validateQuery(usersContract.initiateOAuth.query),
+    (req, res) => initiateOAuthSignInController.execute(req, res),
   );
 
-  // Protected routes
-  router.get('/me', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getMyProfileController.execute(req, res),
+  app.get(
+    routes.users.oauthCallback.path,
+    validateQuery(usersContract.oauthCallback.query),
+    (req, res) => completeOAuthSignInController.execute(req, res),
   );
 
-  // Public routes
-  router.get('/:identifier', authMiddleware.optionalAuth(), (req, res) =>
-    getUserProfileController.execute(req, res),
+  app.post(
+    routes.users.loginWithAppPassword.path,
+    validateBody(usersContract.loginWithAppPassword.body),
+    (req, res) => loginWithAppPasswordController.execute(req, res),
   );
 
-  router.get(
-    '/extension/tokens',
+  app.post(routes.users.logout.path, (req, res) =>
+    logoutController.execute(req, res),
+  );
+
+  app.post(
+    routes.users.refreshToken.path,
+    validateBody(usersContract.refreshToken.body),
+    (req, res) => refreshAccessTokenController.execute(req, res),
+  );
+
+  app.get(
+    routes.users.myProfile.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(usersContract.myProfile.query),
+    (req, res) => getMyProfileController.execute(req, res),
+  );
+
+  app.get(
+    routes.users.extensionTokens.path,
     authMiddleware.ensureAuthenticated(),
     (req, res) => generateExtensionTokensController.execute(req, res),
   );
 
-  // Follow/Unfollow routes
-  router.post('/follows', authMiddleware.ensureAuthenticated(), (req, res) =>
-    followTargetController.execute(req, res),
+  app.post(
+    routes.users.followTarget.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.followTarget.body),
+    (req, res) => followTargetController.execute(req, res),
   );
 
-  router.delete(
-    '/follows/:targetId/:targetType',
+  app.post(
+    routes.users.unfollowTarget.path,
     authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.unfollowTarget.body),
     (req, res) => unfollowTargetController.execute(req, res),
   );
 
-  // Following/Followers query routes (public with optional auth)
-  router.get(
-    '/:identifier/following',
+  app.get(
+    routes.users.followingUsers.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.followingUsers.query),
     (req, res) => getFollowingUsersController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/followers',
+  app.get(
+    routes.users.followers.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.userFollowers.query),
     (req, res) => getFollowersController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/following-collections',
+  app.get(
+    routes.users.followingCollections.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.followingCollections.query),
     (req, res) => getFollowingCollectionsController.execute(req, res),
   );
 
-  // Following/Followers count routes (public)
-  router.get(
-    '/:identifier/following/count',
+  app.get(
+    routes.users.followingCount.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.followingCount.query),
     (req, res) => getFollowingCountController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/followers/count',
+  app.get(
+    routes.users.followersCount.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.userFollowersCount.query),
     (req, res) => getFollowersCountController.execute(req, res),
   );
 
-  router.get(
-    '/:identifier/following-collections/count',
+  app.get(
+    routes.users.followingCollectionsCount.path,
     authMiddleware.optionalAuth(),
+    validateQuery(usersContract.followingCollectionsCount.query),
     (req, res) => getFollowingCollectionsCountController.execute(req, res),
   );
 
-  return router;
-};
+  // API key management
+  app.get(
+    routes.apiKeys.listApiKeys.path,
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => listApiKeysController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.createApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.createApiKey.body),
+    (req, res) => createApiKeyController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.updateApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.updateApiKey.body),
+    (req, res) => updateApiKeyController.execute(req, res),
+  );
+
+  app.post(
+    routes.apiKeys.revokeApiKey.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.revokeApiKey.body),
+    (req, res) => revokeApiKeyController.execute(req, res),
+  );
+
+  // userProfile must be last: /:identifier would swallow /me, /login, /extension/tokens, etc.
+  app.get(
+    routes.users.userProfile.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(usersContract.userProfile.query),
+    (req, res) => getUserProfileController.execute(req, res),
+  );
+}
