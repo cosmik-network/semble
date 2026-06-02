@@ -19,16 +19,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class IndexUrlForSearchUseCase
-  implements
-    UseCase<
-      IndexUrlForSearchDTO,
-      Result<
-        IndexUrlForSearchResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class IndexUrlForSearchUseCase implements UseCase<
+  IndexUrlForSearchDTO,
+  Result<
+    IndexUrlForSearchResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(private searchService: SearchService) {}
 
   async execute(

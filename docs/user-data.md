@@ -203,9 +203,7 @@ export class CuratorEnrichmentService implements ICuratorEnrichmentService {
 ### 2. Add Caching for Performance
 
 ```typescript
-export class CachedCuratorEnrichmentService
-  implements ICuratorEnrichmentService
-{
+export class CachedCuratorEnrichmentService implements ICuratorEnrichmentService {
   constructor(
     private userContextGateway: IUserContextGateway,
     private cache: ICache,

@@ -12,9 +12,10 @@ export interface CreateApiKeyDTO {
 
 export type CreateApiKeyResult = Result<NewApiKey, AppError.UnexpectedError>;
 
-export class CreateApiKeyUseCase
-  implements UseCase<CreateApiKeyDTO, Promise<CreateApiKeyResult>>
-{
+export class CreateApiKeyUseCase implements UseCase<
+  CreateApiKeyDTO,
+  Promise<CreateApiKeyResult>
+> {
   constructor(
     private apiKeyRepository: IApiKeyRepository,
     private apiKeyService: IApiKeyService,

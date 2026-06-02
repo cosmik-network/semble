@@ -22,9 +22,10 @@ export interface ProcessFollowFirehoseEventDTO {
 
 const ENABLE_FIREHOSE_LOGGING = true;
 
-export class ProcessFollowFirehoseEventUseCase
-  implements UseCase<ProcessFollowFirehoseEventDTO, Result<void>>
-{
+export class ProcessFollowFirehoseEventUseCase implements UseCase<
+  ProcessFollowFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private followTargetUseCase: FollowTargetUseCase,

@@ -7,9 +7,7 @@ import { ICollectionRepository } from '../../../cards/domain/ICollectionReposito
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 
-export class UserFollowedTargetEventHandler
-  implements IEventHandler<UserFollowedTargetEvent>
-{
+export class UserFollowedTargetEventHandler implements IEventHandler<UserFollowedTargetEvent> {
   constructor(
     private notificationService: NotificationService,
     private userRepository: IUserRepository,

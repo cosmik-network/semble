@@ -38,9 +38,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class SearchUrlsUseCase
-  implements UseCase<SearchUrlsQuery, Result<SearchUrlsResult>>
-{
+export class SearchUrlsUseCase implements UseCase<
+  SearchUrlsQuery,
+  Result<SearchUrlsResult>
+> {
   constructor(private cardQueryRepo: ICardQueryRepository) {}
 
   async execute(query: SearchUrlsQuery): Promise<Result<SearchUrlsResult>> {

@@ -9,9 +9,7 @@ import {
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 
-export class DrizzleConnectionQueryRepository
-  implements IConnectionQueryRepository
-{
+export class DrizzleConnectionQueryRepository implements IConnectionQueryRepository {
   private connectionQueryService: ConnectionQueryService;
 
   constructor(private db: PostgresJsDatabase) {

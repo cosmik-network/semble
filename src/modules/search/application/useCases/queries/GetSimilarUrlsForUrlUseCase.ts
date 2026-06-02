@@ -22,16 +22,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetSimilarUrlsForUrlUseCase
-  implements
-    UseCase<
-      GetSimilarUrlsForUrlQuery,
-      Result<
-        GetSimilarUrlsForUrlResult,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class GetSimilarUrlsForUrlUseCase implements UseCase<
+  GetSimilarUrlsForUrlQuery,
+  Result<GetSimilarUrlsForUrlResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(private searchService: SearchService) {}
 
   async execute(

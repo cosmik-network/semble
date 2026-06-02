@@ -28,9 +28,10 @@ function inferUrlOrCardIdType(value: string): UrlOrCardIdType {
   return value.startsWith('at://') ? UrlOrCardIdType.CARD : UrlOrCardIdType.URL;
 }
 
-export class ProcessConnectionFirehoseEventUseCase
-  implements UseCase<ProcessConnectionFirehoseEventDTO, Result<void>>
-{
+export class ProcessConnectionFirehoseEventUseCase implements UseCase<
+  ProcessConnectionFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private createConnectionUseCase: CreateConnectionUseCase,

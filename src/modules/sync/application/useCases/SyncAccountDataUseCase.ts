@@ -30,13 +30,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class SyncAccountDataUseCase
-  implements
-    UseCase<
-      SyncAccountDataDTO,
-      Result<void, ValidationError | AppError.UnexpectedError>
-    >
-{
+export class SyncAccountDataUseCase implements UseCase<
+  SyncAccountDataDTO,
+  Result<void, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private syncStatusRepo: ISyncStatusRepository,
     private atProtoRepoService: IAtProtoRepoService,

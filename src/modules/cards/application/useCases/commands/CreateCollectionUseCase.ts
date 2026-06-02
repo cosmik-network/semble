@@ -28,16 +28,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class CreateCollectionUseCase
-  implements
-    UseCase<
-      CreateCollectionDTO,
-      Result<
-        CreateCollectionResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class CreateCollectionUseCase implements UseCase<
+  CreateCollectionDTO,
+  Result<
+    CreateCollectionResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,

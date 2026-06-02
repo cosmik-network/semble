@@ -4,9 +4,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { AddActivityToFeedUseCase } from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../../feeds/domain/value-objects/ActivityType';
 
-export class ConnectionCreatedEventHandler
-  implements IEventHandler<ConnectionCreatedEvent>
-{
+export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(private addActivityToFeedUseCase: AddActivityToFeedUseCase) {}
 
   async handle(event: ConnectionCreatedEvent): Promise<Result<void>> {

@@ -35,9 +35,10 @@ export interface SearchCollectionsResult {
   sorting: CollectionSortingDTO;
 }
 
-export class SearchCollectionsUseCase
-  implements UseCase<SearchCollectionsQuery, Result<SearchCollectionsResult>>
-{
+export class SearchCollectionsUseCase implements UseCase<
+  SearchCollectionsQuery,
+  Result<SearchCollectionsResult>
+> {
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,

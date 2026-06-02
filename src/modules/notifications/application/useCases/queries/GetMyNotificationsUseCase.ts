@@ -39,16 +39,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetMyNotificationsUseCase
-  implements
-    UseCase<
-      GetMyNotificationsDTO,
-      Result<
-        GetMyNotificationsResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class GetMyNotificationsUseCase implements UseCase<
+  GetMyNotificationsDTO,
+  Result<
+    GetMyNotificationsResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private notificationRepository: INotificationRepository,
     private profileService: IProfileService,

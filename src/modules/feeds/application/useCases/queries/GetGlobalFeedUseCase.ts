@@ -51,13 +51,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetGlobalFeedUseCase
-  implements
-    UseCase<
-      GetGlobalFeedQuery,
-      Result<GetGlobalFeedResult, ValidationError | AppError.UnexpectedError>
-    >
-{
+export class GetGlobalFeedUseCase implements UseCase<
+  GetGlobalFeedQuery,
+  Result<GetGlobalFeedResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private feedRepository: IFeedRepository,
     private profileService: IProfileService,

@@ -38,9 +38,10 @@ export class CardNotFoundError extends Error {
   }
 }
 
-export class GetUrlCardViewUseCase
-  implements UseCase<GetUrlCardViewQuery, Result<UrlCardViewResult>>
-{
+export class GetUrlCardViewUseCase implements UseCase<
+  GetUrlCardViewQuery,
+  Result<UrlCardViewResult>
+> {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,

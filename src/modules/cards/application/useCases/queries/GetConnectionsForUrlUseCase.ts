@@ -68,10 +68,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetConnectionsForUrlUseCase
-  implements
-    UseCase<GetConnectionsForUrlQuery, Result<GetConnectionsForUrlResult>>
-{
+export class GetConnectionsForUrlUseCase implements UseCase<
+  GetConnectionsForUrlQuery,
+  Result<GetConnectionsForUrlResult>
+> {
   constructor(
     private connectionQueryRepo: IConnectionQueryRepository,
     private cardQueryRepo: ICardQueryRepository,

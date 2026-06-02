@@ -31,9 +31,10 @@ export interface GetGraphDataResult {
   totalNodeCount: number;
 }
 
-export class GetGraphDataUseCase
-  implements UseCase<GetGraphDataQuery, Result<GetGraphDataResult>>
-{
+export class GetGraphDataUseCase implements UseCase<
+  GetGraphDataQuery,
+  Result<GetGraphDataResult>
+> {
   constructor(
     private graphQueryRepo: IGraphQueryRepository,
     private identityResolver: IIdentityResolutionService,

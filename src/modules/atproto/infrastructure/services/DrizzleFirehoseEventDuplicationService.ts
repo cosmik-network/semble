@@ -10,9 +10,7 @@ import { publishedRecords } from '../../../cards/infrastructure/repositories/sch
 import { Result, ok, err } from 'src/shared/core/Result';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
-export class DrizzleFirehoseEventDuplicationService
-  implements IFirehoseEventDuplicationService
-{
+export class DrizzleFirehoseEventDuplicationService implements IFirehoseEventDuplicationService {
   constructor(
     private db: PostgresJsDatabase,
     private atUriResolver: IAtUriResolutionService,

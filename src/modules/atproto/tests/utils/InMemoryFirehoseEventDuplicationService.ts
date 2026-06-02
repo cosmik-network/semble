@@ -4,9 +4,7 @@ import {
   FirehoseEventType,
 } from '../../domain/services/IFirehoseEventDuplicationService';
 
-export class InMemoryFirehoseEventDuplicationService
-  implements IFirehoseEventDuplicationService
-{
+export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDuplicationService {
   private processedEvents: Set<string> = new Set();
   private deletedUris: Set<string> = new Set();
   private shouldFail: boolean = false;

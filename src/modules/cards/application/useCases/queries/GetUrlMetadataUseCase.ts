@@ -51,9 +51,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetUrlMetadataUseCase
-  implements UseCase<GetUrlMetadataQuery, Result<GetUrlMetadataResult>>
-{
+export class GetUrlMetadataUseCase implements UseCase<
+  GetUrlMetadataQuery,
+  Result<GetUrlMetadataResult>
+> {
   constructor(
     private metadataService: IMetadataService,
     private cardRepository: ICardRepository,

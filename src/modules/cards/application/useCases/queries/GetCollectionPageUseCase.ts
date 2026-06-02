@@ -66,9 +66,10 @@ export class CollectionNotFoundError extends Error {
   }
 }
 
-export class GetCollectionPageUseCase
-  implements UseCase<GetCollectionPageQuery, Result<GetCollectionPageResult>>
-{
+export class GetCollectionPageUseCase implements UseCase<
+  GetCollectionPageQuery,
+  Result<GetCollectionPageResult>
+> {
   constructor(
     private collectionRepo: ICollectionRepository,
     private cardQueryRepo: ICardQueryRepository,

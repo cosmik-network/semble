@@ -55,9 +55,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class ProcessFirehoseEventUseCase
-  implements UseCase<ProcessFirehoseEventDTO, Result<void>>
-{
+export class ProcessFirehoseEventUseCase implements UseCase<
+  ProcessFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private duplicationService: IFirehoseEventDuplicationService,
     private configService: EnvironmentConfigService,

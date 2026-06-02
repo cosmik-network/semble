@@ -8,9 +8,7 @@ import {
 } from './IAppPasswordSessionRepository';
 import { appPasswordSessions } from './schema/appPasswordSession.sql';
 
-export class DrizzleAppPasswordSessionRepository
-  implements IAppPasswordSessionRepository
-{
+export class DrizzleAppPasswordSessionRepository implements IAppPasswordSessionRepository {
   constructor(private db: PostgresJsDatabase) {}
 
   async saveSession(

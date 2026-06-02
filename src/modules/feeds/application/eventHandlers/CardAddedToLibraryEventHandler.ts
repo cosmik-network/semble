@@ -4,9 +4,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { AddActivityToFeedUseCase } from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../../feeds/domain/value-objects/ActivityType';
 
-export class CardAddedToLibraryEventHandler
-  implements IEventHandler<CardAddedToLibraryEvent>
-{
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(private addActivityToFeedUseCase: AddActivityToFeedUseCase) {}
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {

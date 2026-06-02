@@ -26,10 +26,10 @@ export interface GetCollectionPageByAtUriQuery {
   urlType?: UrlType;
 }
 
-export class GetCollectionPageByAtUriUseCase
-  implements
-    UseCase<GetCollectionPageByAtUriQuery, Result<GetCollectionPageResult>>
-{
+export class GetCollectionPageByAtUriUseCase implements UseCase<
+  GetCollectionPageByAtUriQuery,
+  Result<GetCollectionPageResult>
+> {
   constructor(
     private identityResolutionService: IIdentityResolutionService,
     private atUriResolutionService: IAtUriResolutionService,

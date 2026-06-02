@@ -30,9 +30,7 @@ import { cards } from './schema/card.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
-export class DrizzleCollectionQueryRepository
-  implements ICollectionQueryRepository
-{
+export class DrizzleCollectionQueryRepository implements ICollectionQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
 
   async findByCreator(

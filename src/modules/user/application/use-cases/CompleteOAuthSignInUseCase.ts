@@ -19,9 +19,10 @@ export type CompleteOAuthSignInResponse = Result<
   | AppError.UnexpectedError
 >;
 
-export class CompleteOAuthSignInUseCase
-  implements UseCase<OAuthCallbackDTO, Promise<CompleteOAuthSignInResponse>>
-{
+export class CompleteOAuthSignInUseCase implements UseCase<
+  OAuthCallbackDTO,
+  Promise<CompleteOAuthSignInResponse>
+> {
   constructor(
     private oauthProcessor: IOAuthProcessor,
     private tokenService: ITokenService,

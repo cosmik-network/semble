@@ -44,8 +44,7 @@ export interface SerializedCardRemovedFromLibraryEvent extends SerializedEvent {
   curatorId: string;
 }
 
-export interface SerializedCardRemovedFromCollectionEvent
-  extends SerializedEvent {
+export interface SerializedCardRemovedFromCollectionEvent extends SerializedEvent {
   eventType: typeof EventNames.CARD_REMOVED_FROM_COLLECTION;
   cardId: string;
   collectionId: string;

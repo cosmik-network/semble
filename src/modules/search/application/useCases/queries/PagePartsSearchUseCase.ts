@@ -196,16 +196,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class PagePartsSearchUseCase
-  implements
-    UseCase<
-      PagePartsSearchQuery,
-      Result<
-        PagePartsSearchResponse,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class PagePartsSearchUseCase implements UseCase<
+  PagePartsSearchQuery,
+  Result<PagePartsSearchResponse, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private searchUrlsUseCase: SearchUrlsUseCase,
     private searchCollectionsUseCase: SearchCollectionsUseCase,

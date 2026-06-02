@@ -48,16 +48,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetGemActivityFeedUseCase
-  implements
-    UseCase<
-      GetGemActivityFeedQuery,
-      Result<
-        GetGemActivityFeedResult,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class GetGemActivityFeedUseCase implements UseCase<
+  GetGemActivityFeedQuery,
+  Result<GetGemActivityFeedResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private feedRepository: IFeedRepository,
     private profileService: IProfileService,

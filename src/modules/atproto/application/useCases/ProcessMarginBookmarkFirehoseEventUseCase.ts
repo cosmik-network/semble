@@ -17,9 +17,10 @@ export interface ProcessMarginBookmarkFirehoseEventDTO {
 
 const ENABLE_FIREHOSE_LOGGING = true;
 
-export class ProcessMarginBookmarkFirehoseEventUseCase
-  implements UseCase<ProcessMarginBookmarkFirehoseEventDTO, Result<void>>
-{
+export class ProcessMarginBookmarkFirehoseEventUseCase implements UseCase<
+  ProcessMarginBookmarkFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private addUrlToLibraryUseCase: AddUrlToLibraryUseCase,
