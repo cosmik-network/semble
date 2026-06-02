@@ -1,5 +1,6 @@
 {
   "buildCommand": "npm run build:webapp",
   "outputDirectory": "src/webapp/.next",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }
