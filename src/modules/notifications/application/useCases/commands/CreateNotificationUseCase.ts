@@ -81,16 +81,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class CreateNotificationUseCase
-  implements
-    UseCase<
-      CreateNotificationDTO,
-      Result<
-        CreateNotificationResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class CreateNotificationUseCase implements UseCase<
+  CreateNotificationDTO,
+  Result<
+    CreateNotificationResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(private notificationService: NotificationService) {}
 
   async execute(

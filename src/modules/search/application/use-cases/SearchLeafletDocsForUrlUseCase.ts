@@ -12,8 +12,7 @@ import {
   SortOrder,
 } from 'src/modules/cards/domain/ICardQueryRepository';
 
-export interface SearchLeafletDocsForUrlRequest
-  extends SearchLeafletDocsForUrlParams {
+export interface SearchLeafletDocsForUrlRequest extends SearchLeafletDocsForUrlParams {
   userDid?: string; // Optional - for authenticated features
 }
 
@@ -22,13 +21,10 @@ export type SearchLeafletDocsForUrlResult = Result<
   AppError.UnexpectedError
 >;
 
-export class SearchLeafletDocsForUrlUseCase
-  implements
-    UseCase<
-      SearchLeafletDocsForUrlRequest,
-      Promise<SearchLeafletDocsForUrlResult>
-    >
-{
+export class SearchLeafletDocsForUrlUseCase implements UseCase<
+  SearchLeafletDocsForUrlRequest,
+  Promise<SearchLeafletDocsForUrlResult>
+> {
   constructor(
     private leafletSearchService: ILeafletSearchService,
     private cardQueryRepository: ICardQueryRepository,

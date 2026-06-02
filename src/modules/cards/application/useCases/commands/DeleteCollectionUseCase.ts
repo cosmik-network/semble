@@ -25,16 +25,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class DeleteCollectionUseCase
-  implements
-    UseCase<
-      DeleteCollectionDTO,
-      Result<
-        DeleteCollectionResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class DeleteCollectionUseCase implements UseCase<
+  DeleteCollectionDTO,
+  Result<
+    DeleteCollectionResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,

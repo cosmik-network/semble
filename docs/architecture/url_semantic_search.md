@@ -265,9 +265,7 @@ export interface UrlSearchResult {
 ### Event Handler
 
 ```typescript
-export class CardAddedToLibraryEventHandler
-  implements IEventHandler<CardAddedToLibraryEvent>
-{
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(private indexUrlForSearchUseCase: IndexUrlForSearchUseCase) {}
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {

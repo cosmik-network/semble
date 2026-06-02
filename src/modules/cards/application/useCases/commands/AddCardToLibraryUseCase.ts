@@ -26,16 +26,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class AddCardToLibraryUseCase
-  implements
-    UseCase<
-      AddCardToLibraryDTO,
-      Result<
-        AddCardToLibraryResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class AddCardToLibraryUseCase implements UseCase<
+  AddCardToLibraryDTO,
+  Result<
+    AddCardToLibraryResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private cardLibraryService: CardLibraryService,

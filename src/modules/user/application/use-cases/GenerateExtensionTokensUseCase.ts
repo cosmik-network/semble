@@ -14,13 +14,10 @@ export type GenerateExtensionTokensResponse = Result<
   GenerateExtensionTokensErrors.TokenGenerationError | AppError.UnexpectedError
 >;
 
-export class GenerateExtensionTokensUseCase
-  implements
-    UseCase<
-      GenerateExtensionTokensRequest,
-      Promise<GenerateExtensionTokensResponse>
-    >
-{
+export class GenerateExtensionTokensUseCase implements UseCase<
+  GenerateExtensionTokensRequest,
+  Promise<GenerateExtensionTokensResponse>
+> {
   constructor(private tokenService: ITokenService) {}
 
   async execute(

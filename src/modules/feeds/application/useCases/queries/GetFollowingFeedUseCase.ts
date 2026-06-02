@@ -49,13 +49,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetFollowingFeedUseCase
-  implements
-    UseCase<
-      GetFollowingFeedQuery,
-      Result<GetFollowingFeedResult, ValidationError | AppError.UnexpectedError>
-    >
-{
+export class GetFollowingFeedUseCase implements UseCase<
+  GetFollowingFeedQuery,
+  Result<GetFollowingFeedResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private feedRepository: IFeedRepository,
     private profileService: IProfileService,

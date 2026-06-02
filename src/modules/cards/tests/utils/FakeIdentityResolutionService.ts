@@ -4,9 +4,7 @@ import { DID } from 'src/modules/atproto/domain/DID';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { Handle } from 'src/modules/atproto/domain/Handle';
 
-export class FakeIdentityResolutionService
-  implements IIdentityResolutionService
-{
+export class FakeIdentityResolutionService implements IIdentityResolutionService {
   private handleToDIDMap: Map<string, string> = new Map();
   private didToHandleMap: Map<string, string> = new Map();
   private didToKeyMap: Map<string, string> = new Map();

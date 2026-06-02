@@ -4,9 +4,7 @@ import {
   SessionWithAppPassword,
 } from '../../infrastructure/repositories/IAppPasswordSessionRepository';
 
-export class InMemoryAppPasswordSessionRepository
-  implements IAppPasswordSessionRepository
-{
+export class InMemoryAppPasswordSessionRepository implements IAppPasswordSessionRepository {
   private static instance: InMemoryAppPasswordSessionRepository;
   private sessions: Map<string, SessionWithAppPassword> = new Map();
 

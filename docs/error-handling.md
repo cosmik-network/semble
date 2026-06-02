@@ -101,13 +101,10 @@ The `Result` type should be used for operations that can **predictably fail** du
       super(message);
     }
   }
-  export class CreateAnnotationUseCase
-    implements
-      UseCase<
-        InputDTO,
-        Result<void, ValidationError | AppError.UnexpectedError>
-      >
-  {
+  export class CreateAnnotationUseCase implements UseCase<
+    InputDTO,
+    Result<void, ValidationError | AppError.UnexpectedError>
+  > {
     constructor(private repo: IAnnotationRepository) {}
 
     async execute(

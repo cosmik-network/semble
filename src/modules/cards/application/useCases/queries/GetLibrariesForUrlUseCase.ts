@@ -42,9 +42,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetLibrariesForUrlUseCase
-  implements UseCase<GetLibrariesForUrlQuery, Result<GetLibrariesForUrlResult>>
-{
+export class GetLibrariesForUrlUseCase implements UseCase<
+  GetLibrariesForUrlQuery,
+  Result<GetLibrariesForUrlResult>
+> {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,

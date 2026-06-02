@@ -6,9 +6,10 @@ export interface UseCase<IRequest, IResponse> {
   execute(request?: IRequest): Promise<IResponse> | IResponse;
 }
 
-export abstract class BaseUseCase<IRequest, IResponse>
-  implements UseCase<IRequest, IResponse>
-{
+export abstract class BaseUseCase<IRequest, IResponse> implements UseCase<
+  IRequest,
+  IResponse
+> {
   constructor(protected eventPublisher: IEventPublisher) {}
 
   abstract execute(request?: IRequest): Promise<IResponse> | IResponse;

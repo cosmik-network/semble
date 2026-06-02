@@ -16,9 +16,10 @@ export type GetCurrentUserResponse = Result<
   GetCurrentUserErrors.UserNotFoundError | AppError.UnexpectedError
 >;
 
-export class GetCurrentUserUseCase
-  implements UseCase<GetCurrentUserDTO, Promise<GetCurrentUserResponse>>
-{
+export class GetCurrentUserUseCase implements UseCase<
+  GetCurrentUserDTO,
+  Promise<GetCurrentUserResponse>
+> {
   constructor(private userRepository: IUserRepository) {}
 
   async execute(request: GetCurrentUserDTO): Promise<GetCurrentUserResponse> {

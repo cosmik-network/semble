@@ -16,9 +16,10 @@ export type UpdateApiKeyResult = Result<
   ApiKeyErrors.ApiKeyNotFoundError | AppError.UnexpectedError
 >;
 
-export class UpdateApiKeyUseCase
-  implements UseCase<UpdateApiKeyDTO, Promise<UpdateApiKeyResult>>
-{
+export class UpdateApiKeyUseCase implements UseCase<
+  UpdateApiKeyDTO,
+  Promise<UpdateApiKeyResult>
+> {
   constructor(private apiKeyRepository: IApiKeyRepository) {}
 
   async execute(request: UpdateApiKeyDTO): Promise<UpdateApiKeyResult> {

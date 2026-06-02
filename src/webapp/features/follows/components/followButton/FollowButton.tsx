@@ -4,8 +4,10 @@ import { Button, ButtonProps } from '@mantine/core';
 import { startTransition } from 'react';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
 
-interface Props
-  extends Omit<ButtonProps, 'onClick' | 'variant' | 'color' | 'children'> {
+interface Props extends Omit<
+  ButtonProps,
+  'onClick' | 'variant' | 'color' | 'children'
+> {
   targetId: string;
   targetType: 'USER' | 'COLLECTION';
   targetHandle?: string;

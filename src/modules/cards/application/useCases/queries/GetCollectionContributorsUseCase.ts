@@ -32,13 +32,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetCollectionContributorsUseCase
-  implements
-    UseCase<
-      GetCollectionContributorsQuery,
-      Result<GetCollectionContributorsResult>
-    >
-{
+export class GetCollectionContributorsUseCase implements UseCase<
+  GetCollectionContributorsQuery,
+  Result<GetCollectionContributorsResult>
+> {
   constructor(
     private collectionQueryRepository: ICollectionQueryRepository,
     private profileService: IProfileService,

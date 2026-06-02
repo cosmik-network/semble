@@ -31,8 +31,10 @@ export interface ExtendedGraphNode extends APIGraphNode {
  * Extended graph edge type
  * Extends the API type with force-graph properties
  */
-export interface ExtendedGraphEdge
-  extends Omit<APIGraphEdge, 'source' | 'target'> {
+export interface ExtendedGraphEdge extends Omit<
+  APIGraphEdge,
+  'source' | 'target'
+> {
   source: string | ExtendedGraphNode;
   target: string | ExtendedGraphNode;
   value?: number; // Line thickness

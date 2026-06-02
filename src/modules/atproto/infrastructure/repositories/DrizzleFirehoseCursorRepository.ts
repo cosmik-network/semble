@@ -6,9 +6,7 @@ import { firehoseCursors } from './schema/firehoseCursor.sql';
 
 const CURSOR_ID = 'jetstream';
 
-export class DrizzleFirehoseCursorRepository
-  implements IFirehoseCursorRepository
-{
+export class DrizzleFirehoseCursorRepository implements IFirehoseCursorRepository {
   constructor(private db: PostgresJsDatabase) {}
 
   async getCursor(): Promise<Result<number | null>> {

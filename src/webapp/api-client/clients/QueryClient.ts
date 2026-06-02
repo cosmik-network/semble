@@ -510,9 +510,8 @@ export class QueryClient extends BaseClient {
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
 
     if (useMockData) {
-      const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(
-        './mockGraphData'
-      );
+      const { generateMockGraphData, MOCK_GRAPH_PRESETS } =
+        await import('./mockGraphData');
 
       const mockData = generateMockGraphData(MOCK_GRAPH_PRESETS.large);
 

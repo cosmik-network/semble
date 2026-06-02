@@ -24,16 +24,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class SemanticSearchUrlsUseCase
-  implements
-    UseCase<
-      SemanticSearchUrlsQuery,
-      Result<
-        SemanticSearchUrlsResult,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class SemanticSearchUrlsUseCase implements UseCase<
+  SemanticSearchUrlsQuery,
+  Result<SemanticSearchUrlsResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private searchService: SearchService,
     private identityResolutionService: IIdentityResolutionService,

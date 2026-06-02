@@ -13,9 +13,10 @@ export type ListApiKeysResult = Result<
   AppError.UnexpectedError
 >;
 
-export class ListApiKeysUseCase
-  implements UseCase<ListApiKeysDTO, Promise<ListApiKeysResult>>
-{
+export class ListApiKeysUseCase implements UseCase<
+  ListApiKeysDTO,
+  Promise<ListApiKeysResult>
+> {
   constructor(private apiKeyRepository: IApiKeyRepository) {}
 
   async execute(request: ListApiKeysDTO): Promise<ListApiKeysResult> {

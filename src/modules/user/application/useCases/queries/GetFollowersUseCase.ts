@@ -33,9 +33,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetFollowersUseCase
-  implements UseCase<GetFollowersQuery, Result<GetFollowersResult>>
-{
+export class GetFollowersUseCase implements UseCase<
+  GetFollowersQuery,
+  Result<GetFollowersResult>
+> {
   constructor(
     private followsRepository: IFollowsRepository,
     private identityResolver: IIdentityResolutionService,

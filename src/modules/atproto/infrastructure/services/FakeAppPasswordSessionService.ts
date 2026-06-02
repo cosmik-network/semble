@@ -2,9 +2,7 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
 import { AtpSessionData } from '@atproto/api';
 
-export class FakeAppPasswordSessionService
-  implements IAppPasswordSessionService
-{
+export class FakeAppPasswordSessionService implements IAppPasswordSessionService {
   async getSession(did: string): Promise<Result<AtpSessionData>> {
     try {
       // Use mock data from environment variables

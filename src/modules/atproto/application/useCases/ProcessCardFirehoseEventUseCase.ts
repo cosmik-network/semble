@@ -26,9 +26,10 @@ export interface ProcessCardFirehoseEventDTO {
 }
 
 const ENABLE_FIREHOSE_LOGGING = true;
-export class ProcessCardFirehoseEventUseCase
-  implements UseCase<ProcessCardFirehoseEventDTO, Result<void>>
-{
+export class ProcessCardFirehoseEventUseCase implements UseCase<
+  ProcessCardFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private addUrlToLibraryUseCase: AddUrlToLibraryUseCase,

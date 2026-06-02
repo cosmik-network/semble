@@ -5,9 +5,7 @@ import { DID } from '../../domain/DID';
 import { DIDOrHandle } from '../../domain/DIDOrHandle';
 import { Handle } from '../../domain/Handle';
 
-export class CachedATProtoIdentityResolutionService
-  implements IIdentityResolutionService
-{
+export class CachedATProtoIdentityResolutionService implements IIdentityResolutionService {
   private readonly CACHE_TTL_SECONDS = 900; // 15 minutes
   private readonly HANDLE_TO_DID_PREFIX = 'handle-to-did:';
   private readonly DID_TO_KEY_PREFIX = 'did-to-key:';

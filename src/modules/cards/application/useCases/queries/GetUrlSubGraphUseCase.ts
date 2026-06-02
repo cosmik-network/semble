@@ -28,9 +28,10 @@ export interface GetUrlSubGraphResult {
   totalNodeCount: number;
 }
 
-export class GetUrlSubGraphUseCase
-  implements UseCase<GetUrlSubGraphQuery, Result<GetUrlSubGraphResult>>
-{
+export class GetUrlSubGraphUseCase implements UseCase<
+  GetUrlSubGraphQuery,
+  Result<GetUrlSubGraphResult>
+> {
   constructor(private graphQueryRepo: IGraphQueryRepository) {}
 
   async execute(

@@ -19,16 +19,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class GetUnreadNotificationCountUseCase
-  implements
-    UseCase<
-      GetUnreadNotificationCountDTO,
-      Result<
-        GetUnreadNotificationCountResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class GetUnreadNotificationCountUseCase implements UseCase<
+  GetUnreadNotificationCountDTO,
+  Result<
+    GetUnreadNotificationCountResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(private notificationRepository: INotificationRepository) {}
 
   async execute(

@@ -20,13 +20,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetFollowingCollectionsCountUseCase
-  implements
-    UseCase<
-      GetFollowingCollectionsCountQuery,
-      Result<GetFollowingCollectionsCountResult>
-    >
-{
+export class GetFollowingCollectionsCountUseCase implements UseCase<
+  GetFollowingCollectionsCountQuery,
+  Result<GetFollowingCollectionsCountResult>
+> {
   constructor(
     private followsRepository: IFollowsRepository,
     private identityResolver: IIdentityResolutionService,

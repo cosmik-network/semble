@@ -14,9 +14,10 @@ export type RevokeApiKeyResult = Result<
   ApiKeyErrors.ApiKeyNotFoundError | AppError.UnexpectedError
 >;
 
-export class RevokeApiKeyUseCase
-  implements UseCase<RevokeApiKeyDTO, Promise<RevokeApiKeyResult>>
-{
+export class RevokeApiKeyUseCase implements UseCase<
+  RevokeApiKeyDTO,
+  Promise<RevokeApiKeyResult>
+> {
   constructor(private apiKeyRepository: IApiKeyRepository) {}
 
   async execute(request: RevokeApiKeyDTO): Promise<RevokeApiKeyResult> {

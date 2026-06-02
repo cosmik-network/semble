@@ -40,9 +40,7 @@ export interface LeafletPublicationRecord {
   preferences?: any;
 }
 
-export class ConstellationLeafletSearchService
-  implements ILeafletSearchService
-{
+export class ConstellationLeafletSearchService implements ILeafletSearchService {
   private readonly CONSTELLATION_BASE_URL =
     'https://constellation.microcosm.blue';
 

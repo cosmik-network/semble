@@ -6,9 +6,7 @@ import { Handle } from '../../domain/Handle';
 import { IAgentService } from '../../application/IAgentService';
 import { IdResolver } from '@atproto/identity';
 
-export class ATProtoIdentityResolutionService
-  implements IIdentityResolutionService
-{
+export class ATProtoIdentityResolutionService implements IIdentityResolutionService {
   private readonly idResolver: IdResolver;
 
   constructor(private readonly agentService: IAgentService) {

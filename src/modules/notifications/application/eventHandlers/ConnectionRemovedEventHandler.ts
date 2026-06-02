@@ -4,9 +4,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { INotificationRepository } from '../../domain/INotificationRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 
-export class ConnectionRemovedEventHandler
-  implements IEventHandler<ConnectionRemovedEvent>
-{
+export class ConnectionRemovedEventHandler implements IEventHandler<ConnectionRemovedEvent> {
   constructor(private notificationRepository: INotificationRepository) {}
 
   async handle(event: ConnectionRemovedEvent): Promise<Result<void>> {
