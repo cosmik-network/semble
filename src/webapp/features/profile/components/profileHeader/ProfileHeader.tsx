@@ -74,7 +74,7 @@ export default async function ProfileHeader(props: Props) {
                   />
                 )}
                 <LinkActionIcon
-                  href={`/search/cards?handle=${props.handle}`}
+                  href={`/search?handle=${props.handle}`}
                   variant="light"
                   color="gray"
                   size={'lg'}
