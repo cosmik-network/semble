@@ -27,6 +27,7 @@ export const createExpressApp = (
   configService: EnvironmentConfigService,
 ): Express => {
   const app = express();
+  app.set('query parser', 'extended');
 
   // Determine allowed origins based on environment
   const getAllowedOrigins = () => {

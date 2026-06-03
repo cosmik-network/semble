@@ -28,18 +28,14 @@ export class GetConnectionsController extends Controller {
         ? parseInt(req.query.limit as string, 10)
         : 20;
 
-      // Parse sorting parameters
       const sortBy =
         (req.query.sortBy as ConnectionSortField) ||
         ConnectionSortField.CREATED_AT;
       const sortOrder = (req.query.sortOrder as SortOrder) || SortOrder.DESC;
 
-      // Parse connection types filter
-      let connectionTypes: ConnectionTypeEnum[] | undefined;
-      if (req.query.connectionTypes) {
-        const typesParam = req.query.connectionTypes as string;
-        connectionTypes = typesParam.split(',') as ConnectionTypeEnum[];
-      }
+      const connectionTypes = req.query.connectionTypes as
+        | ConnectionTypeEnum[]
+        | undefined;
 
       const result = await this.getConnectionsUseCase.execute({
         userId: identifier,
