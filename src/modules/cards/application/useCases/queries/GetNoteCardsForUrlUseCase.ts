@@ -97,11 +97,11 @@ export class GetNoteCardsForUrlUseCase implements UseCase<
 
       // Map items with enriched author data
       // Filter out notes with missing author profiles
-      const enrichedNotes: NoteCardDTO[] = result.items
+      const enrichedNotes = result.items
         .map((item) => {
           const author = profileMap.get(item.authorId);
           if (!author) {
-            return null; // Skip notes with missing author profiles
+            return null;
           }
           return {
             id: item.id,
@@ -109,9 +109,9 @@ export class GetNoteCardsForUrlUseCase implements UseCase<
             author,
             createdAt: item.createdAt.toISOString(),
             updatedAt: item.updatedAt.toISOString(),
-          };
+          } satisfies NoteCardDTO;
         })
-        .filter((note): note is NoteCardDTO => note !== null);
+        .filter((note) => note !== null);
 
       return ok({
         notes: enrichedNotes,
