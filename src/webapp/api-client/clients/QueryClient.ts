@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   GetUrlMetadataResponse,
   GetUrlCardsResponse,
@@ -66,7 +67,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.cards.urlMetadata({
       query: { url: params.url, includeStats: params.includeStats },
     });
-    return res.body as GetUrlMetadataResponse;
+    return unwrap<GetUrlMetadataResponse>(res);
   }
 
   async getMyUrlCards(
@@ -82,7 +83,7 @@ export class QueryClient extends BaseClient {
         uncollected: params?.uncollected ? true : undefined,
       },
     });
-    return res.body as GetUrlCardsResponse;
+    return unwrap<GetUrlCardsResponse>(res);
   }
 
   async getUserUrlCards(
@@ -99,19 +100,19 @@ export class QueryClient extends BaseClient {
         uncollected: params.uncollected ? true : undefined,
       },
     });
-    return res.body as GetUrlCardsResponse;
+    return unwrap<GetUrlCardsResponse>(res);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
     const res = await this.client.cards.cardById({ query: { cardId } });
-    return res.body as GetUrlCardViewResponse;
+    return unwrap<GetUrlCardViewResponse>(res);
   }
 
   async getLibrariesForCard(
     cardId: string,
   ): Promise<GetLibrariesForCardResponse> {
     const res = await this.client.cards.cardLibraries({ query: { cardId } });
-    return res.body as GetLibrariesForCardResponse;
+    return unwrap<GetLibrariesForCardResponse>(res);
   }
 
   async getMyProfile(params?: {
@@ -120,7 +121,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.users.myProfile({
       query: { includeStats: params?.includeStats },
     });
-    return res.body as GetProfileResponse;
+    return unwrap<GetProfileResponse>(res);
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
@@ -130,7 +131,7 @@ export class QueryClient extends BaseClient {
         includeStats: params.includeStats,
       },
     });
-    return res.body as GetProfileResponse;
+    return unwrap<GetProfileResponse>(res);
   }
 
   async getCollectionPage(
@@ -147,7 +148,7 @@ export class QueryClient extends BaseClient {
         urlType: params?.urlType,
       },
     });
-    return res.body as GetCollectionPageResponse;
+    return unwrap<GetCollectionPageResponse>(res);
   }
 
   async getCollectionPageByAtUri(
@@ -158,7 +159,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.collections.collectionByAtUri({
       query: { handle, recordKey, page, limit, sortBy, sortOrder, urlType },
     });
-    return res.body as GetCollectionPageResponse;
+    return unwrap<GetCollectionPageResponse>(res);
   }
 
   async getMyCollections(
@@ -173,7 +174,7 @@ export class QueryClient extends BaseClient {
         searchText: params?.searchText,
       },
     });
-    return res.body as GetCollectionsResponse;
+    return unwrap<GetCollectionsResponse>(res);
   }
 
   async getUserCollections(
@@ -189,7 +190,7 @@ export class QueryClient extends BaseClient {
         searchText: params.searchText,
       },
     });
-    return res.body as GetCollectionsResponse;
+    return unwrap<GetCollectionsResponse>(res);
   }
 
   async getUrlStatusForMyLibrary(
@@ -198,7 +199,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.cards.urlLibraryStatus({
       query: { url: params.url },
     });
-    return res.body as GetUrlStatusForMyLibraryResponse;
+    return unwrap<GetUrlStatusForMyLibraryResponse>(res);
   }
 
   async getLibrariesForUrl(
@@ -213,7 +214,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params.sortOrder,
       },
     });
-    return res.body as GetLibrariesForUrlResponse;
+    return unwrap<GetLibrariesForUrlResponse>(res);
   }
 
   async getNoteCardsForUrl(
@@ -228,7 +229,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params.sortOrder,
       },
     });
-    return res.body as GetNoteCardsForUrlResponse;
+    return unwrap<GetNoteCardsForUrlResponse>(res);
   }
 
   async getCollectionsForUrl(
@@ -243,7 +244,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params.sortOrder,
       },
     });
-    return res.body as GetCollectionsForUrlResponse;
+    return unwrap<GetCollectionsForUrlResponse>(res);
   }
 
   async getSimilarUrlsForUrl(
@@ -260,7 +261,7 @@ export class QueryClient extends BaseClient {
         urlType: params.urlType as any,
       },
     });
-    return res.body as GetSimilarUrlsForUrlResponse;
+    return unwrap<GetSimilarUrlsForUrlResponse>(res);
   }
 
   async semanticSearchUrls(
@@ -278,7 +279,7 @@ export class QueryClient extends BaseClient {
         identifier: params.identifier,
       },
     });
-    return res.body as SemanticSearchUrlsResponse;
+    return unwrap<SemanticSearchUrlsResponse>(res);
   }
 
   async searchBskyPosts(
@@ -300,7 +301,7 @@ export class QueryClient extends BaseClient {
         cursor: params.cursor,
       },
     });
-    return res.body as SearchBskyPostsForUrlResponse;
+    return unwrap<SearchBskyPostsForUrlResponse>(res);
   }
 
   async searchAtProtoAccounts(
@@ -314,7 +315,7 @@ export class QueryClient extends BaseClient {
         cursor: params.cursor,
       },
     });
-    return res.body as SearchAtProtoAccountsResponse;
+    return unwrap<SearchAtProtoAccountsResponse>(res);
   }
 
   async searchLeafletDocs(
@@ -323,7 +324,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.search.leafletDocs({
       query: { url: params.url, limit: params.limit, cursor: params.cursor },
     });
-    return res.body as SearchLeafletDocsForUrlResponse;
+    return unwrap<SearchLeafletDocsForUrlResponse>(res);
   }
 
   async getOpenCollectionsWithContributor(
@@ -338,7 +339,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params.sortOrder,
       },
     });
-    return res.body as GetCollectionsResponse;
+    return unwrap<GetCollectionsResponse>(res);
   }
 
   async getFollowingUsers(
@@ -351,7 +352,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetFollowingUsersResponse;
+    return unwrap<GetFollowingUsersResponse>(res);
   }
 
   async getFollowers(
@@ -364,7 +365,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetFollowersResponse;
+    return unwrap<GetFollowersResponse>(res);
   }
 
   async getFollowingCollections(
@@ -377,7 +378,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetFollowingCollectionsResponse;
+    return unwrap<GetFollowingCollectionsResponse>(res);
   }
 
   async getCollectionFollowers(
@@ -390,7 +391,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetCollectionFollowersResponse;
+    return unwrap<GetCollectionFollowersResponse>(res);
   }
 
   async getFollowersCount(
@@ -399,7 +400,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.users.userFollowersCount({
       query: { identifier: params.identifier },
     });
-    return res.body as GetFollowCountResponse;
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getFollowingCollectionsCount(
@@ -408,7 +409,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.users.followingCollectionsCount({
       query: { identifier: params.identifier },
     });
-    return res.body as GetFollowCountResponse;
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getCollectionFollowersCount(
@@ -417,7 +418,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.collections.collectionFollowersCount({
       query: { collectionId: params.collectionId },
     });
-    return res.body as GetFollowCountResponse;
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getCollectionContributors(
@@ -430,7 +431,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetCollectionContributorsResponse;
+    return unwrap<GetCollectionContributorsResponse>(res);
   }
 
   async getConnectionsForUrl(
@@ -447,7 +448,7 @@ export class QueryClient extends BaseClient {
         connectionTypes: params.connectionTypes,
       },
     });
-    return res.body as GetConnectionsForUrlResponse;
+    return unwrap<GetConnectionsForUrlResponse>(res);
   }
 
   async getConnections(
@@ -463,7 +464,7 @@ export class QueryClient extends BaseClient {
         connectionTypes: params.connectionTypes,
       },
     });
-    return res.body as GetConnectionsResponse;
+    return unwrap<GetConnectionsResponse>(res);
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
@@ -477,7 +478,7 @@ export class QueryClient extends BaseClient {
         urlType: params.urlType,
       },
     });
-    return res.body as SearchUrlsResponse;
+    return unwrap<SearchUrlsResponse>(res);
   }
 
   async getUserGraphData(params: {
@@ -492,7 +493,7 @@ export class QueryClient extends BaseClient {
         limit: params.limit,
       },
     });
-    return res.body as GetGraphDataResponse;
+    return unwrap<GetGraphDataResponse>(res);
   }
 
   async getUrlGraphData(
@@ -501,7 +502,7 @@ export class QueryClient extends BaseClient {
     const res = await this.client.graph.urlGraphData({
       query: { url: params.url, depth: params.depth },
     });
-    return res.body as GetGraphDataResponse;
+    return unwrap<GetGraphDataResponse>(res);
   }
 
   async getGraphData(
@@ -546,6 +547,6 @@ export class QueryClient extends BaseClient {
     const res = await this.client.graph.graphData({
       query: { page: params?.page, limit: params?.limit },
     });
-    return res.body as GetGraphDataResponse;
+    return unwrap<GetGraphDataResponse>(res);
   }
 }

@@ -117,13 +117,9 @@ export const createCollection = cache(
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
-    try {
-      const response = await client.createCollection(newCollection);
+    const response = await client.createCollection(newCollection);
 
-      return response;
-    } catch (error) {
-      await logoutUser();
-    }
+    return response;
   },
 );
 
@@ -132,13 +128,9 @@ export const deleteCollection = cache(async (id: string) => {
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
 
-  try {
-    const response = await client.deleteCollection({ collectionId: id });
+  const response = await client.deleteCollection({ collectionId: id });
 
-    return response;
-  } catch (error) {
-    await logoutUser();
-  }
+  return response;
 });
 
 export const updateCollection = cache(
@@ -153,13 +145,9 @@ export const updateCollection = cache(
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
-    try {
-      const response = await client.updateCollection(collection);
+    const response = await client.updateCollection(collection);
 
-      return response;
-    } catch (error) {
-      await logoutUser();
-    }
+    return response;
   },
 );
 

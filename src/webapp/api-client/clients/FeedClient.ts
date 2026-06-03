@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   GetGemActivityFeedParams,
   GetGlobalFeedParams,
@@ -21,7 +22,7 @@ export class FeedClient extends BaseClient {
         includeKnownBots: params?.includeKnownBots,
       },
     });
-    return res.body as GetGlobalFeedResponse;
+    return unwrap<GetGlobalFeedResponse>(res);
   }
 
   async getGemsActivityFeed(
@@ -37,7 +38,7 @@ export class FeedClient extends BaseClient {
         includeKnownBots: params?.includeKnownBots,
       },
     });
-    return res.body as GetGlobalFeedResponse;
+    return unwrap<GetGlobalFeedResponse>(res);
   }
 
   async getFollowingFeed(
@@ -54,6 +55,6 @@ export class FeedClient extends BaseClient {
         includeKnownBots: params?.includeKnownBots,
       },
     });
-    return res.body as GetGlobalFeedResponse;
+    return unwrap<GetGlobalFeedResponse>(res);
   }
 }

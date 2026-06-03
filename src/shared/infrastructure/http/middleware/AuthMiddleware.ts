@@ -98,7 +98,7 @@ export class AuthMiddleware {
 
         const did = await this.resolveDid(req);
         if (!did) {
-          res.status(403).json({ message: 'Invalid or expired token' });
+          res.status(401).json({ message: 'Invalid or expired token' });
           return;
         }
 
@@ -181,7 +181,7 @@ export class AuthMiddleware {
         }
 
         if (!did) {
-          res.status(403).json({ message: 'Invalid or expired token' });
+          res.status(401).json({ message: 'Invalid or expired token' });
           return;
         }
 
@@ -216,7 +216,7 @@ export class AuthMiddleware {
         const didResult = await this.tokenService.validateToken(token);
 
         if (didResult.isErr() || !didResult.value) {
-          res.status(403).json({ message: 'Invalid or expired token' });
+          res.status(401).json({ message: 'Invalid or expired token' });
           return;
         }
 

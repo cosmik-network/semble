@@ -2,13 +2,25 @@
 
 import {
   QueryClient,
+  QueryCache,
+  MutationCache,
   QueryClientProvider,
   defaultShouldDehydrateQuery,
   isServer,
 } from '@tanstack/react-query';
+import { ApiError } from '@/api-client/errors';
+import { logoutUser } from '@/lib/auth/dal';
+
+function handleAuthError(error: unknown) {
+  if (error instanceof ApiError && error.statusCode === 401) {
+    logoutUser();
+  }
+}
 
 function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({ onError: handleAuthError }),
+    mutationCache: new MutationCache({ onError: handleAuthError }),
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
