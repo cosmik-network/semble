@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   AddUrlToLibraryRequest,
   AddUrlToLibraryResponse,
@@ -21,21 +22,21 @@ export class CardClient extends BaseClient {
     request: AddUrlToLibraryRequest,
   ): Promise<AddUrlToLibraryResponse> {
     const res = await this.client.cards.addUrlToLibrary({ body: request });
-    return res.body as AddUrlToLibraryResponse;
+    return unwrap<AddUrlToLibraryResponse>(res);
   }
 
   async addCardToLibrary(
     request: AddCardToLibraryRequest,
   ): Promise<AddCardToLibraryResponse> {
     const res = await this.client.cards.addCardToLibrary({ body: request });
-    return res.body as AddCardToLibraryResponse;
+    return unwrap<AddCardToLibraryResponse>(res);
   }
 
   async addCardToCollection(
     request: AddCardToCollectionRequest,
   ): Promise<AddCardToCollectionResponse> {
     const res = await this.client.cards.addCardToCollection({ body: request });
-    return res.body as AddCardToCollectionResponse;
+    return unwrap<AddCardToCollectionResponse>(res);
   }
 
   async updateNoteCard(
@@ -44,14 +45,14 @@ export class CardClient extends BaseClient {
     const res = await this.client.cards.cardNote({
       body: { cardId: request.cardId, note: request.note },
     });
-    return res.body as UpdateNoteCardResponse;
+    return unwrap<UpdateNoteCardResponse>(res);
   }
 
   async updateUrlCardAssociations(
     request: UpdateUrlCardAssociationsRequest,
   ): Promise<UpdateUrlCardAssociationsResponse> {
     const res = await this.client.cards.urlCardAssociations({ body: request });
-    return res.body as UpdateUrlCardAssociationsResponse;
+    return unwrap<UpdateUrlCardAssociationsResponse>(res);
   }
 
   async removeCardFromLibrary(
@@ -60,7 +61,7 @@ export class CardClient extends BaseClient {
     const res = await this.client.cards.removeFromLibrary({
       body: { cardId: request.cardId },
     });
-    return res.body as RemoveCardFromLibraryResponse;
+    return unwrap<RemoveCardFromLibraryResponse>(res);
   }
 
   async removeCardFromCollection(
@@ -69,6 +70,6 @@ export class CardClient extends BaseClient {
     const res = await this.client.cards.removeFromCollections({
       body: { cardId: request.cardId, collectionIds: request.collectionIds },
     });
-    return res.body as RemoveCardFromCollectionResponse;
+    return unwrap<RemoveCardFromCollectionResponse>(res);
   }
 }

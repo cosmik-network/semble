@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   CreateCollectionRequest,
   CreateCollectionResponse,
@@ -17,7 +18,7 @@ export class CollectionClient extends BaseClient {
     const res = await this.client.collections.createCollection({
       body: request,
     });
-    return res.body as CreateCollectionResponse;
+    return unwrap<CreateCollectionResponse>(res);
   }
 
   async updateCollection(
@@ -27,7 +28,7 @@ export class CollectionClient extends BaseClient {
     const res = await this.client.collections.updateCollection({
       body: { collectionId, ...updateData },
     });
-    return res.body as UpdateCollectionResponse;
+    return unwrap<UpdateCollectionResponse>(res);
   }
 
   async deleteCollection(
@@ -36,7 +37,7 @@ export class CollectionClient extends BaseClient {
     const res = await this.client.collections.deleteCollection({
       body: { collectionId: request.collectionId },
     });
-    return res.body as DeleteCollectionResponse;
+    return unwrap<DeleteCollectionResponse>(res);
   }
 
   async searchCollections(
@@ -53,6 +54,6 @@ export class CollectionClient extends BaseClient {
         accessType: params?.accessType,
       },
     });
-    return res.body as GetCollectionsResponse;
+    return unwrap<GetCollectionsResponse>(res);
   }
 }

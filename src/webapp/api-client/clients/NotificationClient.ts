@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   GetMyNotificationsParams,
   MarkNotificationsAsReadRequest,
@@ -21,23 +22,23 @@ export class NotificationClient extends BaseClient {
         unreadOnly: params?.unreadOnly,
       },
     });
-    return res.body as GetMyNotificationsResponse;
+    return unwrap<GetMyNotificationsResponse>(res);
   }
 
   async getUnreadNotificationCount(): Promise<GetUnreadNotificationCountResponse> {
     const res = await this.client.notifications.unreadCount({ query: {} });
-    return res.body as GetUnreadNotificationCountResponse;
+    return unwrap<GetUnreadNotificationCountResponse>(res);
   }
 
   async markNotificationsAsRead(
     request: MarkNotificationsAsReadRequest,
   ): Promise<MarkNotificationsAsReadResponse> {
     const res = await this.client.notifications.markRead({ body: request });
-    return res.body as MarkNotificationsAsReadResponse;
+    return unwrap<MarkNotificationsAsReadResponse>(res);
   }
 
   async markAllNotificationsAsRead(): Promise<MarkAllNotificationsAsReadResponse> {
     const res = await this.client.notifications.markAllRead({ body: {} });
-    return res.body as MarkAllNotificationsAsReadResponse;
+    return unwrap<MarkAllNotificationsAsReadResponse>(res);
   }
 }

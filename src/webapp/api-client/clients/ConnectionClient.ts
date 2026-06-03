@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   CreateConnectionRequest,
   CreateConnectionResponse,
@@ -28,7 +29,7 @@ export class ConnectionClient extends BaseClient {
     const res = await this.client.connections.createConnection({
       body: request,
     });
-    return res.body as CreateConnectionResponse;
+    return unwrap<CreateConnectionResponse>(res);
   }
 
   async updateConnection(
@@ -43,7 +44,7 @@ export class ConnectionClient extends BaseClient {
         swap: request.swap,
       },
     });
-    return res.body as UpdateConnectionResponse;
+    return unwrap<UpdateConnectionResponse>(res);
   }
 
   async deleteConnection(
@@ -52,6 +53,6 @@ export class ConnectionClient extends BaseClient {
     const res = await this.client.connections.deleteConnection({
       body: { connectionId: request.connectionId },
     });
-    return res.body as DeleteConnectionResponse;
+    return unwrap<DeleteConnectionResponse>(res);
   }
 }

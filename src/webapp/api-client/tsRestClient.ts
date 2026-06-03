@@ -6,7 +6,6 @@ export function createTsRestClient(baseUrl: string, accessToken?: string) {
     baseUrl,
     credentials: accessToken ? 'omit' : 'include',
     baseHeaders: accessToken ? { Cookie: `accessToken=${accessToken}` } : {},
-    throwOnUnknownStatus: true,
   });
 }
 
