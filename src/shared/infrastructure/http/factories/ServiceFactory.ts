@@ -68,6 +68,7 @@ import { SearchService } from '../../../../modules/search/domain/services/Search
 import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDatabase';
 import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
 import { UpstashVectorDatabase } from '../../../../modules/search/infrastructure/UpstashVectorDatabase';
+import { HuggingFaceEmbeddingService } from '../../../../modules/search/infrastructure/HuggingFaceEmbeddingService';
 import { NotificationService } from '../../../../modules/notifications/domain/services/NotificationService';
 import { FakeLeafletSearchService } from 'src/modules/search/infrastructure/FakeLeafletSearchService';
 import { ILeafletSearchService } from 'src/modules/search/domain/services/ILeafletSearchService';
@@ -383,11 +384,16 @@ export class ServiceFactory {
     // Create vector database and search service (shared by both web app and workers)
     const useMockVectorDb = configService.shouldUseMockVectorDb();
 
+    const embeddingService = new HuggingFaceEmbeddingService(
+      configService.getHuggingFaceConfig().apiToken,
+    );
+
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? InMemoryVectorDatabase.getInstance()
       : new UpstashVectorDatabase(
           configService.getUpstashConfig().vectorUrl,
           configService.getUpstashConfig().vectorToken,
+          embeddingService,
         );
 
     const searchService = new SearchService(
