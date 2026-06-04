@@ -10,8 +10,7 @@ export class GetUserGraphDataController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      // Extract identifier from route params
-      const identifier = req.params.identifier;
+      const identifier = req.query.identifier as string | undefined;
       if (!identifier) {
         return this.badRequest(res, 'Identifier is required');
       }

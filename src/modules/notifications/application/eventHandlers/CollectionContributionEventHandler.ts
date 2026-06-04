@@ -6,9 +6,7 @@ import { ICollectionRepository } from '../../../cards/domain/ICollectionReposito
 import { CollectionAccessType } from '../../../cards/domain/Collection';
 import { NotificationType } from '@semble/types';
 
-export class CollectionContributionEventHandler
-  implements IEventHandler<CardAddedToCollectionEvent>
-{
+export class CollectionContributionEventHandler implements IEventHandler<CardAddedToCollectionEvent> {
   constructor(
     private createNotificationUseCase: CreateNotificationUseCase,
     private collectionRepository: ICollectionRepository,

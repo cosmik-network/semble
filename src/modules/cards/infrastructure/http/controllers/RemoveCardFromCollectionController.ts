@@ -13,8 +13,7 @@ export class RemoveCardFromCollectionController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { cardId } = req.params;
-      const { collectionIds: collectionIdsParam } = req.query;
+      const { cardId, collectionIds: collectionIdsParam } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -41,7 +40,7 @@ export class RemoveCardFromCollectionController extends Controller {
       }
 
       const result = await this.removeCardFromCollectionUseCase.execute({
-        cardId,
+        cardId: cardId as string,
         collectionIds,
         curatorId,
       });

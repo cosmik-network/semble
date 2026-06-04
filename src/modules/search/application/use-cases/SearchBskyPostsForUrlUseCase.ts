@@ -8,8 +8,7 @@ import {
   SearchBskyPostsForUrlResponse,
 } from '@semble/types';
 
-export interface SearchBskyPostsForUrlRequest
-  extends SearchBskyPostsForUrlParams {
+export interface SearchBskyPostsForUrlRequest extends SearchBskyPostsForUrlParams {
   userDid?: string; // Optional - if provided, use authenticated agent
 }
 
@@ -18,10 +17,10 @@ export type SearchBskyPostsForUrlResult = Result<
   AppError.UnexpectedError
 >;
 
-export class SearchBskyPostsForUrlUseCase
-  implements
-    UseCase<SearchBskyPostsForUrlRequest, Promise<SearchBskyPostsForUrlResult>>
-{
+export class SearchBskyPostsForUrlUseCase implements UseCase<
+  SearchBskyPostsForUrlRequest,
+  Promise<SearchBskyPostsForUrlResult>
+> {
   constructor(private agentService: IAgentService) {}
 
   async execute(

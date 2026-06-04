@@ -1,48 +1,60 @@
 'use client';
 
-// Mock implementation backed by useState.
-//
-// To connect real data, replace this hook with TanStack Query:
-//   - List:   useSuspenseQuery({ queryKey: apiKeyKeys.list(), queryFn: () => dal.listApiKeys() })
-//   - Create: useMutation({ mutationFn: (name) => dal.createApiKey(name), onSuccess: () => queryClient.invalidateQueries(...) })
-//   - Revoke: useMutation({ mutationFn: (id) => dal.revokeApiKey(id), onSuccess: () => queryClient.invalidateQueries(...) })
-//
-// The container's `initialKeys` prop can be dropped once real data is in place.
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
+import type { ApiKey, NewApiKey } from '@semble/types';
+import { apiKeyKeys } from './apiKeyKeys';
+import * as dal from './dal';
 
-import { useCallback, useState } from 'react';
-import type { ApiKey, NewApiKey } from './types';
-import { MOCK_API_KEYS } from './mockData';
+export function useApiKeys() {
+  const queryClient = useQueryClient();
 
-function generateToken(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const random = Array.from(
-    { length: 32 },
-    () => chars[Math.floor(Math.random() * chars.length)],
-  ).join('');
-  return `sk_${random}`;
-}
+  const { data: keys } = useSuspenseQuery<ApiKey[]>({
+    queryKey: apiKeyKeys.list(),
+    queryFn: () => dal.listApiKeys(),
+  });
 
-export function useApiKeys(initialKeys: ApiKey[] = MOCK_API_KEYS) {
-  const [keys, setKeys] = useState<ApiKey[]>(initialKeys);
+  const createMutation = useMutation({
+    mutationFn: (name: string) => dal.createApiKey(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apiKeyKeys.all() });
+    },
+  });
 
-  const createKey = useCallback((name: string): NewApiKey => {
-    const token = generateToken();
-    const newKey: NewApiKey = {
-      id: crypto.randomUUID(),
-      name,
-      prefix: token.slice(0, 10),
-      createdAt: new Date(),
-      lastUsedAt: null,
-      expiresAt: null,
-      token,
-    };
-    setKeys((prev) => [newKey, ...prev]);
-    return newKey;
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      dal.updateApiKey(id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apiKeyKeys.all() });
+    },
+  });
 
-  const revokeKey = useCallback((id: string): void => {
-    setKeys((prev) => prev.filter((k) => k.id !== id));
-  }, []);
+  const revokeMutation = useMutation({
+    mutationFn: (id: string) => dal.revokeApiKey(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apiKeyKeys.all() });
+    },
+  });
 
-  return { keys, createKey, revokeKey };
+  const createKey = (name: string): Promise<NewApiKey> =>
+    createMutation.mutateAsync(name);
+
+  const updateKey = (id: string, name: string): Promise<ApiKey> =>
+    updateMutation.mutateAsync({ id, name });
+
+  const revokeKey = (id: string): Promise<void> =>
+    revokeMutation.mutateAsync(id);
+
+  return {
+    keys,
+    createKey,
+    updateKey,
+    revokeKey,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isRevoking: revokeMutation.isPending,
+  };
 }

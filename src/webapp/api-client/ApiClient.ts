@@ -7,6 +7,7 @@ import {
   FeedClient,
   NotificationClient,
 } from './clients';
+import { createTsRestClient } from './tsRestClient';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -120,6 +121,14 @@ import type {
   GetGraphDataParams,
   GetGraphDataResponse,
   GetUrlGraphDataParams,
+  // API key types
+  ListApiKeysResponse,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  UpdateApiKeyRequest,
+  UpdateApiKeyResponse,
+  RevokeApiKeyRequest,
+  RevokeApiKeyResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -136,13 +145,14 @@ export class ApiClient {
     private baseUrl: string,
     accessToken?: string,
   ) {
-    this.queryClient = new QueryClient(baseUrl, accessToken);
-    this.cardClient = new CardClient(baseUrl, accessToken);
-    this.collectionClient = new CollectionClient(baseUrl, accessToken);
-    this.connectionClient = new ConnectionClient(baseUrl, accessToken);
-    this.userClient = new UserClient(baseUrl, accessToken);
-    this.feedClient = new FeedClient(baseUrl, accessToken);
-    this.notificationClient = new NotificationClient(baseUrl, accessToken);
+    const client = createTsRestClient(baseUrl, accessToken);
+    this.queryClient = new QueryClient(client);
+    this.cardClient = new CardClient(client);
+    this.collectionClient = new CollectionClient(client);
+    this.connectionClient = new ConnectionClient(client);
+    this.userClient = new UserClient(client);
+    this.feedClient = new FeedClient(client);
+    this.notificationClient = new NotificationClient(client);
   }
 
   // Query operations - delegate to QueryClient
@@ -292,12 +302,6 @@ export class ApiClient {
     return this.queryClient.getCollectionFollowers(params);
   }
 
-  async getFollowingCount(
-    params: GetFollowingCountParams,
-  ): Promise<GetFollowCountResponse> {
-    return this.queryClient.getFollowingCount(params);
-  }
-
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
@@ -438,6 +442,29 @@ export class ApiClient {
     return this.userClient.unfollowTarget(targetId, targetType);
   }
 
+  // API key operations - delegate to UserClient
+  async listApiKeys(): Promise<ListApiKeysResponse> {
+    return this.userClient.listApiKeys();
+  }
+
+  async createApiKey(
+    request: CreateApiKeyRequest,
+  ): Promise<CreateApiKeyResponse> {
+    return this.userClient.createApiKey(request);
+  }
+
+  async updateApiKey(
+    request: UpdateApiKeyRequest,
+  ): Promise<UpdateApiKeyResponse> {
+    return this.userClient.updateApiKey(request);
+  }
+
+  async revokeApiKey(
+    request: RevokeApiKeyRequest,
+  ): Promise<RevokeApiKeyResponse> {
+    return this.userClient.revokeApiKey(request);
+  }
+
   // Feed operations - delegate to FeedClient
   async getGlobalFeed(
     params?: GetGlobalFeedParams,
@@ -545,13 +572,15 @@ export * from '@semble/types';
 // Factory functions for different client types
 export const createApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` ||
+      'http://127.0.0.1:3000/api',
   );
 };
 
 export const createServerApiClient = (accessToken?: string) => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` ||
+      'http://127.0.0.1:3000/api',
     accessToken,
   );
 };

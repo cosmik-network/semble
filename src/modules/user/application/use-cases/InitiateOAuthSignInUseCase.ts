@@ -14,10 +14,10 @@ export type InitiateOAuthSignInResponse = Result<
   InitiateOAuthSignInErrors.InvalidHandleError | AppError.UnexpectedError
 >;
 
-export class InitiateOAuthSignInUseCase
-  implements
-    UseCase<InitiateOAuthSignInDTO, Promise<InitiateOAuthSignInResponse>>
-{
+export class InitiateOAuthSignInUseCase implements UseCase<
+  InitiateOAuthSignInDTO,
+  Promise<InitiateOAuthSignInResponse>
+> {
   constructor(private oauthProcessor: IOAuthProcessor) {}
 
   async execute(

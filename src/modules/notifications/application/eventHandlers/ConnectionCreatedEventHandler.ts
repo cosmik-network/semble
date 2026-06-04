@@ -14,9 +14,7 @@ import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriRe
 import { DIDOrHandle } from '../../../atproto/domain/DIDOrHandle';
 import { DID } from '../../../atproto/domain/DID';
 
-export class ConnectionCreatedEventHandler
-  implements IEventHandler<ConnectionCreatedEvent>
-{
+export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(
     private notificationService: NotificationService,
     private connectionRepository: IConnectionRepository,

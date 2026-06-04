@@ -31,9 +31,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetProfileUseCase
-  implements UseCase<GetMyProfileQuery, Result<GetMyProfileResult>>
-{
+export class GetProfileUseCase implements UseCase<
+  GetMyProfileQuery,
+  Result<GetMyProfileResult>
+> {
   constructor(
     private profileService: IProfileService,
     private identityResolver: IIdentityResolutionService,

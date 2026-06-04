@@ -16,9 +16,10 @@ export type RefreshAccessTokenResponse = Result<
   RefreshAccessTokenErrors.InvalidRefreshTokenError | AppError.UnexpectedError
 >;
 
-export class RefreshAccessTokenUseCase
-  implements UseCase<RefreshAccessTokenDTO, Promise<RefreshAccessTokenResponse>>
-{
+export class RefreshAccessTokenUseCase implements UseCase<
+  RefreshAccessTokenDTO,
+  Promise<RefreshAccessTokenResponse>
+> {
   constructor(private tokenService: ITokenService) {}
 
   async execute(

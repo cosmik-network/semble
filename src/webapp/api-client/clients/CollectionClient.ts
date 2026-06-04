@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   CreateCollectionRequest,
   CreateCollectionResponse,
@@ -14,50 +15,45 @@ export class CollectionClient extends BaseClient {
   async createCollection(
     request: CreateCollectionRequest,
   ): Promise<CreateCollectionResponse> {
-    return this.request<CreateCollectionResponse>(
-      'POST',
-      '/api/collections',
-      request,
-    );
+    const res = await this.client.collections.createCollection({
+      body: request,
+    });
+    return unwrap<CreateCollectionResponse>(res);
   }
 
   async updateCollection(
     request: UpdateCollectionRequest,
   ): Promise<UpdateCollectionResponse> {
     const { collectionId, ...updateData } = request;
-    return this.request<UpdateCollectionResponse>(
-      'PUT',
-      `/api/collections/${collectionId}`,
-      updateData,
-    );
+    const res = await this.client.collections.updateCollection({
+      body: { collectionId, ...updateData },
+    });
+    return unwrap<UpdateCollectionResponse>(res);
   }
 
   async deleteCollection(
     request: DeleteCollectionRequest,
   ): Promise<DeleteCollectionResponse> {
-    return this.request<DeleteCollectionResponse>(
-      'DELETE',
-      `/api/collections/${request.collectionId}`,
-    );
+    const res = await this.client.collections.deleteCollection({
+      body: { collectionId: request.collectionId },
+    });
+    return unwrap<DeleteCollectionResponse>(res);
   }
 
   async searchCollections(
     params?: SearchCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.searchText) searchParams.set('searchText', params.searchText);
-    if (params?.identifier) searchParams.set('identifier', params.identifier);
-    if (params?.accessType) searchParams.set('accessType', params.accessType);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/search?${queryString}`
-      : '/api/collections/search';
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const res = await this.client.collections.searchCollections({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        searchText: params?.searchText,
+        identifier: params?.identifier,
+        accessType: params?.accessType,
+      },
+    });
+    return unwrap<GetCollectionsResponse>(res);
   }
 }

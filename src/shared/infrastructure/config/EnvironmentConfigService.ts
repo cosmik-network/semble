@@ -78,6 +78,12 @@ export interface EnvironmentConfig {
   stats: {
     apiKey: string | undefined;
   };
+  tunnel: {
+    enabled: boolean;
+    frontendUrl: string;
+    backendUrl: string;
+    cookieDomain: string;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -86,6 +92,16 @@ export class EnvironmentConfigService {
   constructor() {
     const environment = (process.env.NODE_ENV ||
       Environment.LOCAL) as Environment;
+
+    const tunnelEnabled = process.env.TUNNEL === 'true';
+    const tunnelFrontendUrl =
+      process.env.TUNNEL_FRONTEND_URL ||
+      'https://frontend-development.semble.cafe';
+    const tunnelBackendUrl =
+      process.env.TUNNEL_BACKEND_URL ||
+      'https://backend-development.semble.cafe';
+    const tunnelCookieDomain =
+      process.env.TUNNEL_COOKIE_DOMAIN || '.semble.cafe';
 
     this.config = {
       environment,
@@ -119,7 +135,9 @@ export class EnvironmentConfigService {
           'wss://jetstream2.us-west.bsky.network,wss://jetstream1.us-west.bsky.network,wss://jetstream2.us-east.bsky.network,wss://jetstream1.us-east.bsky.network',
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
-        baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
+        baseUrl: tunnelEnabled
+          ? tunnelBackendUrl
+          : process.env.BASE_URL || 'http://127.0.0.1:3000',
         baseCollection:
           environment === Environment.PROD
             ? ATPROTO_NSID.COSMIK.NAMESPACE
@@ -165,7 +183,9 @@ export class EnvironmentConfigService {
         host: process.env.HOST || '127.0.0.1',
       },
       app: {
-        appUrl: process.env.APP_URL || 'http://127.0.0.1:4000',
+        appUrl: tunnelEnabled
+          ? tunnelFrontendUrl
+          : process.env.APP_URL || 'http://127.0.0.1:4000',
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
@@ -192,6 +212,12 @@ export class EnvironmentConfigService {
       },
       stats: {
         apiKey: process.env.STATS_API_KEY,
+      },
+      tunnel: {
+        enabled: tunnelEnabled,
+        frontendUrl: tunnelFrontendUrl,
+        backendUrl: tunnelBackendUrl,
+        cookieDomain: tunnelCookieDomain,
       },
     };
 
@@ -283,6 +309,14 @@ export class EnvironmentConfigService {
 
   public getRuntimeConfig() {
     return this.config.runtime;
+  }
+
+  public getTunnelConfig() {
+    return this.config.tunnel;
+  }
+
+  public isTunnelMode(): boolean {
+    return this.config.tunnel.enabled;
   }
 
   public shouldUseMockPersistence(): boolean {

@@ -31,7 +31,7 @@ export default function MinimalProfileHeader(props: Props) {
 
         <Group gap={'xs'} wrap="nowrap">
           <LinkActionIcon
-            href={`/search/cards?handle=${props.handle}`}
+            href={`/search?handle=${props.handle}`}
             variant="light"
             color="gray"
             size={'lg'}

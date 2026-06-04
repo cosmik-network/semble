@@ -33,6 +33,10 @@ import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
+import { ListApiKeysController } from '../../../../modules/user/infrastructure/http/controllers/ListApiKeysController';
+import { CreateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/CreateApiKeyController';
+import { UpdateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/UpdateApiKeyController';
+import { RevokeApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/RevokeApiKeyController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
@@ -80,6 +84,10 @@ export interface Controllers {
   getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
+  listApiKeysController: ListApiKeysController;
+  createApiKeyController: CreateApiKeyController;
+  updateApiKeyController: UpdateApiKeyController;
+  revokeApiKeyController: RevokeApiKeyController;
   followTargetController: FollowTargetController;
   unfollowTargetController: UnfollowTargetController;
   getFollowingUsersController: GetFollowingUsersController;
@@ -186,6 +194,18 @@ export class ControllerFactory {
       ),
       generateExtensionTokensController: new GenerateExtensionTokensController(
         useCases.generateExtensionTokensUseCase,
+      ),
+      listApiKeysController: new ListApiKeysController(
+        useCases.listApiKeysUseCase,
+      ),
+      createApiKeyController: new CreateApiKeyController(
+        useCases.createApiKeyUseCase,
+      ),
+      updateApiKeyController: new UpdateApiKeyController(
+        useCases.updateApiKeyUseCase,
+      ),
+      revokeApiKeyController: new RevokeApiKeyController(
+        useCases.revokeApiKeyUseCase,
       ),
       followTargetController: new FollowTargetController(
         useCases.followTargetUseCase,

@@ -3,9 +3,7 @@ import { IEventHandler } from '../../../../shared/application/events/IEventSubsc
 import { Result } from '../../../../shared/core/Result';
 import { SyncAccountDataUseCase } from '../useCases/SyncAccountDataUseCase';
 
-export class CardAddedToLibraryEventHandler
-  implements IEventHandler<CardAddedToLibraryEvent>
-{
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(private syncAccountDataUseCase: SyncAccountDataUseCase) {}
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {

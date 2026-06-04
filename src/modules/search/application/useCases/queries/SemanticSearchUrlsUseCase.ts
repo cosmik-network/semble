@@ -3,9 +3,7 @@ import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { SearchService } from '../../../domain/services/SearchService';
-import { SemanticSearchUrlsParams } from '@semble/types/api/requests';
-import { UrlView } from '@semble/types/api/responses';
-import { Pagination } from '@semble/types/api/common';
+import { SemanticSearchUrlsParams, UrlView, Pagination } from '@semble/types';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
@@ -26,16 +24,10 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class SemanticSearchUrlsUseCase
-  implements
-    UseCase<
-      SemanticSearchUrlsQuery,
-      Result<
-        SemanticSearchUrlsResult,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class SemanticSearchUrlsUseCase implements UseCase<
+  SemanticSearchUrlsQuery,
+  Result<SemanticSearchUrlsResult, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private searchService: SearchService,
     private identityResolutionService: IIdentityResolutionService,

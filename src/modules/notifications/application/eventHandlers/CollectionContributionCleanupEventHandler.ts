@@ -5,9 +5,7 @@ import { INotificationRepository } from '../../domain/INotificationRepository';
 import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 
-export class CollectionContributionCleanupEventHandler
-  implements IEventHandler<CardRemovedFromCollectionEvent>
-{
+export class CollectionContributionCleanupEventHandler implements IEventHandler<CardRemovedFromCollectionEvent> {
   constructor(
     private notificationRepository: INotificationRepository,
     private collectionRepository: ICollectionRepository,

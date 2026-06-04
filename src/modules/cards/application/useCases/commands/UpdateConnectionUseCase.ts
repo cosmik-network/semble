@@ -31,16 +31,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class UpdateConnectionUseCase
-  implements
-    UseCase<
-      UpdateConnectionDTO,
-      Result<
-        UpdateConnectionResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class UpdateConnectionUseCase implements UseCase<
+  UpdateConnectionDTO,
+  Result<
+    UpdateConnectionResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private connectionRepository: IConnectionRepository,
     private connectionPublisher: IConnectionPublisher,

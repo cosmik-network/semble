@@ -19,10 +19,10 @@ export type LoginWithAppPasswordResponse = Result<
   | AppError.UnexpectedError
 >;
 
-export class LoginWithAppPasswordUseCase
-  implements
-    UseCase<LoginWithAppPasswordDTO, Promise<LoginWithAppPasswordResponse>>
-{
+export class LoginWithAppPasswordUseCase implements UseCase<
+  LoginWithAppPasswordDTO,
+  Promise<LoginWithAppPasswordResponse>
+> {
   constructor(
     private appPasswordProcessor: IAppPasswordProcessor,
     private tokenService: ITokenService,

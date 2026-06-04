@@ -26,16 +26,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class UpdateNoteCardUseCase
-  implements
-    UseCase<
-      UpdateNoteCardDTO,
-      Result<
-        UpdateNoteCardResponseDTO,
-        ValidationError | AuthenticationError | AppError.UnexpectedError
-      >
-    >
-{
+export class UpdateNoteCardUseCase implements UseCase<
+  UpdateNoteCardDTO,
+  Result<
+    UpdateNoteCardResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private cardPublisher: ICardPublisher,

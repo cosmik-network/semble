@@ -30,6 +30,9 @@ RUN npm ci --include=dev
 # Copy application code
 COPY . .
 
+# Build workspace packages that the main bundle requires at runtime
+RUN npm run build:contract
+
 # Build application
 RUN npm run build
 

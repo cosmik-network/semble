@@ -51,9 +51,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetUrlCardsUseCase
-  implements UseCase<GetUrlCardsQuery, Result<GetUrlCardsResult>>
-{
+export class GetUrlCardsUseCase implements UseCase<
+  GetUrlCardsQuery,
+  Result<GetUrlCardsResult>
+> {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
     private identityResolver: IIdentityResolutionService,

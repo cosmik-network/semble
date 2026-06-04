@@ -229,8 +229,7 @@ export interface Collection {
 #### GetUrlCardViewResponse
 
 ```tsx
-export interface GetUrlCardViewResponse
-  extends UrlCardWithCollectionsAndLibraries {}
+export interface GetUrlCardViewResponse extends UrlCardWithCollectionsAndLibraries {}
 ```
 
 #### GetUrlCardsResponse

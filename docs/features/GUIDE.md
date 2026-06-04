@@ -79,9 +79,10 @@ export interface AddUrlToLibraryDTO {
   curatorId: string;
 }
 
-export class AddUrlToLibraryUseCase
-  implements UseCase<AddUrlToLibraryDTO, Result<ResponseDTO>>
-{
+export class AddUrlToLibraryUseCase implements UseCase<
+  AddUrlToLibraryDTO,
+  Result<ResponseDTO>
+> {
   constructor(
     private cardRepository: ICardRepository,
     private metadataService: IMetadataService,
@@ -111,9 +112,10 @@ export interface GetCollectionPageQuery {
   sortOrder?: SortOrder;
 }
 
-export class GetCollectionPageUseCase
-  implements UseCase<GetCollectionPageQuery, Result<GetCollectionPageResult>>
-{
+export class GetCollectionPageUseCase implements UseCase<
+  GetCollectionPageQuery,
+  Result<GetCollectionPageResult>
+> {
   constructor(
     private collectionRepo: ICollectionRepository,
     private cardQueryRepo: ICardQueryRepository,

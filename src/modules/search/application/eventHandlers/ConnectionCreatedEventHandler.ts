@@ -4,9 +4,7 @@ import { Result, ok } from '../../../../shared/core/Result';
 import { IndexUrlForSearchUseCase } from '../useCases/commands/IndexUrlForSearchUseCase';
 import { IConnectionRepository } from '../../../cards/domain/IConnectionRepository';
 
-export class ConnectionCreatedEventHandler
-  implements IEventHandler<ConnectionCreatedEvent>
-{
+export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(
     private indexUrlForSearchUseCase: IndexUrlForSearchUseCase,
     private connectionRepository: IConnectionRepository,

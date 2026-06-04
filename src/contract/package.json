@@ -1,0 +1,23 @@
+{
+  "name": "@semble/contract",
+  "version": "1.0.0",
+  "description": "ts-rest contract for the Semble API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@semble/types": "*",
+    "@ts-rest/core": "^3.51.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -5,15 +5,19 @@
   "main": "index.js",
   "workspaces": [
     "src/types",
+    "src/contract",
     "src/webapp",
-    "src/packages/semble-pds-client"
+    "src/packages/semble-pds-client",
+    "src/packages/sdk"
   ],
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
+    "build:webapp": "npm run build:contract && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
+    "build:contract": "npm run build:types && npm run build --workspace=@semble/contract",
+    "build:sdk": "npm run build:contract && npm run build --workspace=@semble.so/api",
     "dev:types": "npm run dev --workspace=@semble/types",
     "type-check": "tsc --noEmit",
     "start": "node dist/index.js",
@@ -42,6 +46,8 @@
     "dev:mock": "USE_MOCK_PERSISTENCE=true USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true USE_MOCK_VECTOR_DB=true npm run dev:app:inner",
     "dev:mock:pub:auth": "USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev",
     "dev": "bash ./scripts/dev-combined.sh",
+    "dev:tunnel": "TUNNEL=true bash ./scripts/dev-combined.sh",
+    "dev:mock:tunnel": "TUNNEL=true USE_MOCK_PERSISTENCE=true USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true USE_MOCK_VECTOR_DB=true npm run dev:app:inner",
     "migrate": "node dist/scripts/migrate.js",
     "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/* ./src/modules/atproto/infrastructure/lexicons/at/margin/*",
     "db:start": "docker run --name annos-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=annotations -p 5432:5432 -d postgres:14",
@@ -56,6 +62,7 @@
     "webapp:test:e2e": "cd src/webapp && npx playwright test",
     "webapp:test:e2e:report": "cd src/webapp && npx playwright show-report",
     "webapp:dev": "npm run build:types && cd src/webapp && npm run dev",
+    "webapp:dev:tunnel": "npm run build:types && cd src/webapp && npm run dev:tunnel",
     "webapp:extension:dev": "cd src/webapp && npm run dev:extension",
     "webapp:build": "cd src/webapp && npm run build",
     "webapp:start": "cd src/webapp && npm run start",
@@ -78,8 +85,10 @@
     "@atproto/sync": "^0.1.36",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
+    "@semble/contract": "*",
     "@semble/types": "*",
     "@sentry/node": "^10.42.0",
+    "@ts-rest/open-api": "^3.52.1",
     "@upstash/vector": "^1.2.2",
     "atpi": "^1.0.7",
     "bullmq": "^5.56.8",
@@ -87,7 +96,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "ioredis": "^5.6.1",
+    "ioredis": "^5.11.0",
     "jsonwebtoken": "^9.0.2",
     "postgres": "^3.4.5",
     "react-force-graph-2d": "^1.29.1",
@@ -134,5 +143,11 @@
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
     "vite": "^8.0.10"
+  },
+  "overrides": {
+    "bullmq": {
+      "ioredis": "$ioredis"
+    },
+    "ioredis": "$ioredis"
   }
 }

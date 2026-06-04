@@ -11,7 +11,7 @@ export class GetCollectionFollowersCountController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { collectionId } = req.params;
+      const { collectionId } = req.query as Record<string, string>;
 
       if (!collectionId) {
         return this.fail(res, 'Collection ID is required');

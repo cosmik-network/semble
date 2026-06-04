@@ -18,9 +18,10 @@ export interface ProcessMarginCollectionFirehoseEventDTO {
 
 const ENABLE_FIREHOSE_LOGGING = true;
 
-export class ProcessMarginCollectionFirehoseEventUseCase
-  implements UseCase<ProcessMarginCollectionFirehoseEventDTO, Result<void>>
-{
+export class ProcessMarginCollectionFirehoseEventUseCase implements UseCase<
+  ProcessMarginCollectionFirehoseEventDTO,
+  Result<void>
+> {
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private createCollectionUseCase: CreateCollectionUseCase,

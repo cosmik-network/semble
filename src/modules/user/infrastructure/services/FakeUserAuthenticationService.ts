@@ -8,9 +8,7 @@ import { DID } from '../../domain/value-objects/DID';
 import { Handle } from '../../domain/value-objects/Handle';
 import { User } from '../../domain/User';
 
-export class FakeUserAuthenticationService
-  implements IUserAuthenticationService
-{
+export class FakeUserAuthenticationService implements IUserAuthenticationService {
   constructor(private userRepository: IUserRepository) {}
 
   async validateUserCredentials(

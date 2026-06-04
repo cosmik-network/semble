@@ -11,9 +11,7 @@ import { InMemoryConnectionRepository } from './InMemoryConnectionRepository';
 import { UrlOrCardIdType } from '../../domain/value-objects/UrlOrCardId';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 
-export class InMemoryConnectionQueryRepository
-  implements IConnectionQueryRepository
-{
+export class InMemoryConnectionQueryRepository implements IConnectionQueryRepository {
   constructor(private connectionRepository: InMemoryConnectionRepository) {}
 
   async getForwardConnectionsForUrl(

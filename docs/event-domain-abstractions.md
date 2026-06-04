@@ -443,9 +443,7 @@ import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedT
 import { INotificationService } from '../ports/INotificationService';
 import { Result } from '../../../../shared/core/Result';
 
-export class CardAddedToLibraryEventHandler
-  implements IEventHandler<CardAddedToLibraryEvent>
-{
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(private notificationService: INotificationService) {}
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {

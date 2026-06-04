@@ -4,9 +4,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { INotificationRepository } from '../../domain/INotificationRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 
-export class UserUnfollowedTargetEventHandler
-  implements IEventHandler<UserUnfollowedTargetEvent>
-{
+export class UserUnfollowedTargetEventHandler implements IEventHandler<UserUnfollowedTargetEvent> {
   constructor(private notificationRepository: INotificationRepository) {}
 
   async handle(event: UserUnfollowedTargetEvent): Promise<Result<void>> {

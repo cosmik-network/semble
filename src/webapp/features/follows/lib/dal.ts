@@ -1,27 +1,13 @@
-import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
+import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { FollowTargetRequest } from '@semble/types';
 import { cache } from 'react';
-import { ApiError } from '@/api-client/errors';
 
 export const followTarget = cache(async (request: FollowTargetRequest) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
   if (!session) throw new Error('No session found');
   const client = createSembleClient();
-
-  try {
-    const response = await client.followTarget(request);
-    return response;
-  } catch (error) {
-    // Only logout on authentication errors
-    if (
-      error instanceof ApiError &&
-      (error.statusCode === 401 || error.statusCode === 403)
-    ) {
-      await logoutUser();
-    }
-    throw error;
-  }
+  return client.followTarget(request);
 });
 
 export const unfollowTarget = cache(
@@ -29,19 +15,7 @@ export const unfollowTarget = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
-
-    try {
-      await client.unfollowTarget(targetId, targetType);
-    } catch (error) {
-      // Only logout on authentication errors
-      if (
-        error instanceof ApiError &&
-        (error.statusCode === 401 || error.statusCode === 403)
-      ) {
-        await logoutUser();
-      }
-      throw error;
-    }
+    await client.unfollowTarget(targetId, targetType);
   },
 );
 
@@ -92,12 +66,6 @@ export const getCollectionFollowers = cache(
     return response;
   },
 );
-
-export const getFollowingCount = cache(async (identifier: string) => {
-  const client = createSembleClient();
-  const response = await client.getFollowingCount({ identifier });
-  return response;
-});
 
 export const getFollowersCount = cache(async (identifier: string) => {
   const client = createSembleClient();

@@ -47,16 +47,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class AddActivityToFeedUseCase
-  implements
-    UseCase<
-      AddActivityToFeedDTO,
-      Result<
-        AddActivityToFeedResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class AddActivityToFeedUseCase implements UseCase<
+  AddActivityToFeedDTO,
+  Result<
+    AddActivityToFeedResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private feedService: FeedService,
     private cardRepository: ICardRepository,

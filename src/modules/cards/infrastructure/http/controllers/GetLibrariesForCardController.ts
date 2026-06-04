@@ -10,7 +10,7 @@ export class GetLibrariesForCardController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { cardId } = req.params;
+      const { cardId } = req.query as Record<string, string>;
 
       if (!cardId) {
         return this.badRequest(res, 'Card ID is required');

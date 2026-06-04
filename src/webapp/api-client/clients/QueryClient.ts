@@ -1,4 +1,5 @@
 import { BaseClient } from './BaseClient';
+import { unwrap } from '../unwrap';
 import {
   GetUrlMetadataResponse,
   GetUrlCardsResponse,
@@ -42,7 +43,6 @@ import {
   GetFollowingCollectionsResponse,
   GetCollectionFollowersParams,
   GetCollectionFollowersResponse,
-  GetFollowingCountParams,
   GetFollowersCountParams,
   GetFollowingCollectionsCountParams,
   GetCollectionFollowersCountParams,
@@ -64,496 +64,421 @@ export class QueryClient extends BaseClient {
   async getUrlMetadata(
     params: GetUrlMetadataParams,
   ): Promise<GetUrlMetadataResponse> {
-    const queryParams = new URLSearchParams({ url: params.url });
-    if (params.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    return this.request<GetUrlMetadataResponse>(
-      'GET',
-      `/api/cards/metadata?${queryParams}`,
-    );
+    const res = await this.client.cards.urlMetadata({
+      query: { url: params.url, includeStats: params.includeStats },
+    });
+    return unwrap<GetUrlMetadataResponse>(res);
   }
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.urlType) searchParams.set('urlType', params.urlType);
-    if (params?.uncollected) searchParams.set('uncollected', 'true');
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/cards/my?${queryString}`
-      : '/api/cards/my';
-
-    return this.request<GetUrlCardsResponse>('GET', endpoint);
+    const res = await this.client.cards.myUrlCards({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        urlType: params?.urlType,
+        uncollected: params?.uncollected ? true : undefined,
+      },
+    });
+    return unwrap<GetUrlCardsResponse>(res);
   }
 
   async getUserUrlCards(
     params: GetUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-    if (params.uncollected) searchParams.set('uncollected', 'true');
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/cards/user/${params.identifier}?${queryString}`
-      : `/api/cards/user/${params.identifier}`;
-
-    return this.request<GetUrlCardsResponse>('GET', endpoint);
+    const res = await this.client.cards.cardsByUser({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        urlType: params.urlType,
+        uncollected: params.uncollected ? true : undefined,
+      },
+    });
+    return unwrap<GetUrlCardsResponse>(res);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
-    return this.request<GetUrlCardViewResponse>('GET', `/api/cards/${cardId}`);
+    const res = await this.client.cards.cardById({ query: { cardId } });
+    return unwrap<GetUrlCardViewResponse>(res);
   }
 
   async getLibrariesForCard(
     cardId: string,
   ): Promise<GetLibrariesForCardResponse> {
-    return this.request<GetLibrariesForCardResponse>(
-      'GET',
-      `/api/cards/${cardId}/libraries`,
-    );
+    const res = await this.client.cards.cardLibraries({ query: { cardId } });
+    return unwrap<GetLibrariesForCardResponse>(res);
   }
 
   async getMyProfile(params?: {
     includeStats?: boolean;
   }): Promise<GetProfileResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.request<GetProfileResponse>(
-      'GET',
-      `/api/users/me${queryString ? `?${queryString}` : ''}`,
-    );
+    const res = await this.client.users.myProfile({
+      query: { includeStats: params?.includeStats },
+    });
+    return unwrap<GetProfileResponse>(res);
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    const queryParams = new URLSearchParams();
-    if (params.includeStats !== undefined) {
-      queryParams.set('includeStats', params.includeStats.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.request<GetProfileResponse>(
-      'GET',
-      `/api/users/${params.identifier}${queryString ? `?${queryString}` : ''}`,
-    );
+    const res = await this.client.users.userProfile({
+      query: {
+        identifier: params.identifier,
+        includeStats: params.includeStats,
+      },
+    });
+    return unwrap<GetProfileResponse>(res);
   }
 
   async getCollectionPage(
     collectionId: string,
     params?: GetCollectionPageParams,
   ): Promise<GetCollectionPageResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.urlType) searchParams.set('urlType', params.urlType);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${collectionId}?${queryString}`
-      : `/api/collections/${collectionId}`;
-
-    return this.request<GetCollectionPageResponse>('GET', endpoint);
+    const res = await this.client.collections.collectionById({
+      query: {
+        collectionId,
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        urlType: params?.urlType,
+      },
+    });
+    return unwrap<GetCollectionPageResponse>(res);
   }
 
   async getCollectionPageByAtUri(
     params: GetCollectionPageByAtUriParams,
   ): Promise<GetCollectionPageResponse> {
-    const { handle, recordKey, ...queryParams } = params;
-    const searchParams = new URLSearchParams();
-
-    if (queryParams.page) searchParams.set('page', queryParams.page.toString());
-    if (queryParams.limit)
-      searchParams.set('limit', queryParams.limit.toString());
-    if (queryParams.sortBy) searchParams.set('sortBy', queryParams.sortBy);
-    if (queryParams.sortOrder)
-      searchParams.set('sortOrder', queryParams.sortOrder);
-    if (queryParams.urlType) searchParams.set('urlType', queryParams.urlType);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/at/${handle}/${recordKey}?${queryString}`
-      : `/api/collections/at/${handle}/${recordKey}`;
-
-    return this.request<GetCollectionPageResponse>('GET', endpoint);
+    const { handle, recordKey, page, limit, sortBy, sortOrder, urlType } =
+      params;
+    const res = await this.client.collections.collectionByAtUri({
+      query: { handle, recordKey, page, limit, sortBy, sortOrder, urlType },
+    });
+    return unwrap<GetCollectionPageResponse>(res);
   }
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.searchText) searchParams.set('searchText', params.searchText);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections?${queryString}`
-      : '/api/collections';
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const res = await this.client.collections.myCollections({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
+        searchText: params?.searchText,
+      },
+    });
+    return unwrap<GetCollectionsResponse>(res);
   }
 
   async getUserCollections(
     params: GetCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.searchText) searchParams.set('searchText', params.searchText);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/user/${params.identifier}?${queryString}`
-      : `/api/collections/user/${params.identifier}`;
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const res = await this.client.collections.collectionsByUser({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        searchText: params.searchText,
+      },
+    });
+    return unwrap<GetCollectionsResponse>(res);
   }
 
   async getUrlStatusForMyLibrary(
     params: GetUrlStatusForMyLibraryParams,
   ): Promise<GetUrlStatusForMyLibraryResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    return this.request<GetUrlStatusForMyLibraryResponse>(
-      'GET',
-      `/api/cards/library/status?${searchParams}`,
-    );
+    const res = await this.client.cards.urlLibraryStatus({
+      query: { url: params.url },
+    });
+    return unwrap<GetUrlStatusForMyLibraryResponse>(res);
   }
 
   async getLibrariesForUrl(
     params: GetLibrariesForUrlParams,
   ): Promise<GetLibrariesForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    return this.request<GetLibrariesForUrlResponse>(
-      'GET',
-      `/api/cards/libraries/url?${searchParams}`,
-    );
+    const res = await this.client.cards.librariesForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
+    });
+    return unwrap<GetLibrariesForUrlResponse>(res);
   }
 
   async getNoteCardsForUrl(
     params: GetNoteCardsForUrlParams,
   ): Promise<GetNoteCardsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    return this.request<GetNoteCardsForUrlResponse>(
-      'GET',
-      `/api/cards/notes/url?${searchParams}`,
-    );
+    const res = await this.client.cards.noteCardsForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
+    });
+    return unwrap<GetNoteCardsForUrlResponse>(res);
   }
 
   async getCollectionsForUrl(
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    return this.request<GetCollectionsForUrlResponse>(
-      'GET',
-      `/api/collections/url?${searchParams}`,
-    );
+    const res = await this.client.collections.collectionsForUrl({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
+    });
+    return unwrap<GetCollectionsForUrlResponse>(res);
   }
 
   async getSimilarUrlsForUrl(
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.threshold)
-      searchParams.set('threshold', params.threshold.toString());
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-
-    return this.request<GetSimilarUrlsForUrlResponse>(
-      'GET',
-      `/api/search/similar-urls?${searchParams}`,
-    );
+    const res = await this.client.search.similarUrls({
+      query: {
+        url: params.url,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        threshold: params.threshold,
+        urlType: params.urlType as any,
+      },
+    });
+    return unwrap<GetSimilarUrlsForUrlResponse>(res);
   }
 
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<SemanticSearchUrlsResponse> {
-    const searchParams = new URLSearchParams({ query: params.query });
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.threshold)
-      searchParams.set('threshold', params.threshold.toString());
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-    if (params.identifier) searchParams.set('identifier', params.identifier);
-
-    return this.request<SemanticSearchUrlsResponse>(
-      'GET',
-      `/api/search/semantic?${searchParams}`,
-    );
+    const res = await this.client.search.semantic({
+      query: {
+        query: params.query,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        threshold: params.threshold,
+        urlType: params.urlType as any,
+        identifier: params.identifier,
+      },
+    });
+    return unwrap<SemanticSearchUrlsResponse>(res);
   }
 
   async searchBskyPosts(
     params: SearchBskyPostsForUrlParams,
   ): Promise<SearchBskyPostsForUrlResponse> {
-    const searchParams = new URLSearchParams({ q: params.q });
-    if (params.sort) searchParams.set('sort', params.sort);
-    if (params.since) searchParams.set('since', params.since);
-    if (params.until) searchParams.set('until', params.until);
-    if (params.mentions) searchParams.set('mentions', params.mentions);
-    if (params.author) searchParams.set('author', params.author);
-    if (params.lang) searchParams.set('lang', params.lang);
-    if (params.domain) searchParams.set('domain', params.domain);
-    if (params.url) searchParams.set('url', params.url);
-    if (params.tag) {
-      params.tag.forEach((t) => searchParams.append('tag', t));
-    }
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
-    return this.request<SearchBskyPostsForUrlResponse>(
-      'GET',
-      `/api/search/bsky-posts?${searchParams}`,
-    );
+    const res = await this.client.search.bskyPosts({
+      query: {
+        q: params.q,
+        sort: params.sort,
+        since: params.since,
+        until: params.until,
+        mentions: params.mentions,
+        author: params.author,
+        lang: params.lang,
+        domain: params.domain,
+        url: params.url,
+        tag: params.tag,
+        limit: params.limit,
+        cursor: params.cursor,
+      },
+    });
+    return unwrap<SearchBskyPostsForUrlResponse>(res);
   }
 
   async searchAtProtoAccounts(
     params: SearchAtProtoAccountsParams,
   ): Promise<SearchAtProtoAccountsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.term) searchParams.set('term', params.term);
-    if (params.q) searchParams.set('q', params.q);
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
-    return this.request<SearchAtProtoAccountsResponse>(
-      'GET',
-      `/api/search/accounts?${searchParams}`,
-    );
+    const res = await this.client.search.atProtoAccounts({
+      query: {
+        term: params.term,
+        q: params.q,
+        limit: params.limit,
+        cursor: params.cursor,
+      },
+    });
+    return unwrap<SearchAtProtoAccountsResponse>(res);
   }
 
   async searchLeafletDocs(
     params: SearchLeafletDocsForUrlParams,
   ): Promise<SearchLeafletDocsForUrlResponse> {
-    const searchParams = new URLSearchParams({ url: params.url });
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.cursor) searchParams.set('cursor', params.cursor);
-
-    return this.request<SearchLeafletDocsForUrlResponse>(
-      'GET',
-      `/api/search/leaflet-docs?${searchParams}`,
-    );
+    const res = await this.client.search.leafletDocs({
+      query: { url: params.url, limit: params.limit, cursor: params.cursor },
+    });
+    return unwrap<SearchLeafletDocsForUrlResponse>(res);
   }
 
   async getOpenCollectionsWithContributor(
     params: GetOpenCollectionsWithContributorParams,
   ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/contributed/${params.identifier}?${queryString}`
-      : `/api/collections/contributed/${params.identifier}`;
-
-    return this.request<GetCollectionsResponse>('GET', endpoint);
+    const res = await this.client.collections.openWithContributor({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
+    });
+    return unwrap<GetCollectionsResponse>(res);
   }
 
-  // Follow query methods
   async getFollowingUsers(
     params: GetFollowingUsersParams,
   ): Promise<GetFollowingUsersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/following?${queryString}`
-      : `/api/users/${params.identifier}/following`;
-
-    return this.request<GetFollowingUsersResponse>('GET', endpoint);
+    const res = await this.client.users.followingUsers({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetFollowingUsersResponse>(res);
   }
 
   async getFollowers(
     params: GetFollowersParams,
   ): Promise<GetFollowersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/followers?${queryString}`
-      : `/api/users/${params.identifier}/followers`;
-
-    return this.request<GetFollowersResponse>('GET', endpoint);
+    const res = await this.client.users.userFollowers({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetFollowersResponse>(res);
   }
 
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/users/${params.identifier}/following-collections?${queryString}`
-      : `/api/users/${params.identifier}/following-collections`;
-
-    return this.request<GetFollowingCollectionsResponse>('GET', endpoint);
+    const res = await this.client.users.followingCollections({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetFollowingCollectionsResponse>(res);
   }
 
   async getCollectionFollowers(
     params: GetCollectionFollowersParams,
   ): Promise<GetCollectionFollowersResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${params.collectionId}/followers?${queryString}`
-      : `/api/collections/${params.collectionId}/followers`;
-
-    return this.request<GetCollectionFollowersResponse>('GET', endpoint);
-  }
-
-  async getFollowingCount(
-    params: GetFollowingCountParams,
-  ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      `/api/users/${params.identifier}/following/count`,
-    );
+    const res = await this.client.collections.collectionFollowers({
+      query: {
+        collectionId: params.collectionId,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetCollectionFollowersResponse>(res);
   }
 
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      `/api/users/${params.identifier}/followers/count`,
-    );
+    const res = await this.client.users.userFollowersCount({
+      query: { identifier: params.identifier },
+    });
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getFollowingCollectionsCount(
     params: GetFollowingCollectionsCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      `/api/users/${params.identifier}/following-collections/count`,
-    );
+    const res = await this.client.users.followingCollectionsCount({
+      query: { identifier: params.identifier },
+    });
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getCollectionFollowersCount(
     params: GetCollectionFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    return this.request<GetFollowCountResponse>(
-      'GET',
-      `/api/collections/${params.collectionId}/followers/count`,
-    );
+    const res = await this.client.collections.collectionFollowersCount({
+      query: { collectionId: params.collectionId },
+    });
+    return unwrap<GetFollowCountResponse>(res);
   }
 
   async getCollectionContributors(
     params: GetCollectionContributorsParams,
   ): Promise<GetCollectionContributorsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/collections/${params.collectionId}/contributors?${queryString}`
-      : `/api/collections/${params.collectionId}/contributors`;
-
-    return this.request<GetCollectionContributorsResponse>('GET', endpoint);
+    const res = await this.client.collections.collectionContributors({
+      query: {
+        collectionId: params.collectionId,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetCollectionContributorsResponse>(res);
   }
 
   async getConnectionsForUrl(
     params: GetConnectionsForUrlParams,
   ): Promise<GetConnectionsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.direction) searchParams.set('direction', params.direction);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
-    return this.request<GetConnectionsForUrlResponse>(
-      'GET',
-      `/api/connections/url?${searchParams}`,
-    );
+    const res = await this.client.connections.connectionsForUrl({
+      query: {
+        url: params.url,
+        direction: params.direction,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        connectionTypes: params.connectionTypes,
+      },
+    });
+    return unwrap<GetConnectionsForUrlResponse>(res);
   }
 
   async getConnections(
     params: GetConnectionsParams,
   ): Promise<GetConnectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.connectionTypes) {
-      searchParams.set('connectionTypes', params.connectionTypes.join(','));
-    }
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/connections/user/${params.identifier}?${queryString}`
-      : `/api/connections/user/${params.identifier}`;
-
-    return this.request<GetConnectionsResponse>('GET', endpoint);
+    const res = await this.client.connections.connectionsByUser({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        connectionTypes: params.connectionTypes,
+      },
+    });
+    return unwrap<GetConnectionsResponse>(res);
   }
 
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('searchQuery', params.searchQuery);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.urlType) searchParams.set('urlType', params.urlType);
-
-    return this.request<SearchUrlsResponse>(
-      'GET',
-      `/api/cards/search?${searchParams}`,
-    );
+    const res = await this.client.cards.searchCards({
+      query: {
+        searchQuery: params.searchQuery,
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        urlType: params.urlType,
+      },
+    });
+    return unwrap<SearchUrlsResponse>(res);
   }
 
   async getUserGraphData(params: {
@@ -561,53 +486,38 @@ export class QueryClient extends BaseClient {
     page?: number;
     limit?: number;
   }): Promise<GetGraphDataResponse> {
-    // Build query string with pagination parameters
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/graph/user/${params.identifier}?${queryString}`
-      : `/api/graph/user/${params.identifier}`;
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    const res = await this.client.graph.userGraphData({
+      query: {
+        identifier: params.identifier,
+        page: params.page,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetGraphDataResponse>(res);
   }
 
   async getUrlGraphData(
     params: GetUrlGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    // Build query string with url and depth parameters
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.depth) searchParams.set('depth', params.depth.toString());
-
-    const endpoint = `/api/graph/url?${searchParams.toString()}`;
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    const res = await this.client.graph.urlGraphData({
+      query: { url: params.url, depth: params.depth },
+    });
+    return unwrap<GetGraphDataResponse>(res);
   }
 
   async getGraphData(
     params?: GetGraphDataParams,
   ): Promise<GetGraphDataResponse> {
-    // Check if mock data should be used (for performance testing)
-    // Set NEXT_PUBLIC_USE_MOCK_GRAPH_DATA=true in .env.local to enable
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_GRAPH_DATA === 'true';
-    // const useMockData = true;
 
     if (useMockData) {
-      const { generateMockGraphData, MOCK_GRAPH_PRESETS } = await import(
-        './mockGraphData'
-      );
+      const { generateMockGraphData, MOCK_GRAPH_PRESETS } =
+        await import('./mockGraphData');
 
-      // You can change the preset here for different test scenarios
-      // Options: small, medium, large, extraLarge, denseSmall
       const mockData = generateMockGraphData(MOCK_GRAPH_PRESETS.large);
 
-      // Simulate network delay for realistic testing
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Apply pagination to mock data
       const page = params?.page || 1;
       const limit = params?.limit || 300;
       const offset = (page - 1) * limit;
@@ -634,16 +544,9 @@ export class QueryClient extends BaseClient {
       };
     }
 
-    // Build query string with pagination parameters
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString
-      ? `/api/graph/data?${queryString}`
-      : '/api/graph/data';
-
-    return this.request<GetGraphDataResponse>('GET', endpoint);
+    const res = await this.client.graph.graphData({
+      query: { page: params?.page, limit: params?.limit },
+    });
+    return unwrap<GetGraphDataResponse>(res);
   }
 }

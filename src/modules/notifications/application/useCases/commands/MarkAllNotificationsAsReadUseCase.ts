@@ -19,16 +19,13 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class MarkAllNotificationsAsReadUseCase
-  implements
-    UseCase<
-      MarkAllNotificationsAsReadDTO,
-      Result<
-        MarkAllNotificationsAsReadResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class MarkAllNotificationsAsReadUseCase implements UseCase<
+  MarkAllNotificationsAsReadDTO,
+  Result<
+    MarkAllNotificationsAsReadResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(private notificationRepository: INotificationRepository) {}
 
   async execute(

@@ -17,9 +17,10 @@ export type LogoutUseCaseResponse = Result<
   AppError.UnexpectedError
 >;
 
-export class LogoutUseCase
-  implements UseCase<LogoutDTO, Promise<LogoutUseCaseResponse>>
-{
+export class LogoutUseCase implements UseCase<
+  LogoutDTO,
+  Promise<LogoutUseCaseResponse>
+> {
   constructor(private tokenService: ITokenService) {}
 
   async execute(request: LogoutDTO): Promise<LogoutUseCaseResponse> {

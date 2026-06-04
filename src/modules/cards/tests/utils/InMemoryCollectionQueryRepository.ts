@@ -16,9 +16,7 @@ import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 
-export class InMemoryCollectionQueryRepository
-  implements ICollectionQueryRepository
-{
+export class InMemoryCollectionQueryRepository implements ICollectionQueryRepository {
   constructor(
     private collectionRepository: InMemoryCollectionRepository,
     private cardRepository?: InMemoryCardRepository,

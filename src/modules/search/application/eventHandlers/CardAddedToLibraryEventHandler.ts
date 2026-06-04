@@ -4,9 +4,7 @@ import { Result, ok } from '../../../../shared/core/Result';
 import { IndexUrlForSearchUseCase } from '../useCases/commands/IndexUrlForSearchUseCase';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
 
-export class CardAddedToLibraryEventHandler
-  implements IEventHandler<CardAddedToLibraryEvent>
-{
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(
     private indexUrlForSearchUseCase: IndexUrlForSearchUseCase,
     private cardRepository: ICardRepository,

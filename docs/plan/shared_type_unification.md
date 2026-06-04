@@ -567,8 +567,7 @@ export interface SortingParams {
 
 // Query parameter interfaces
 export interface GetCollectionsForUrlParams
-  extends PaginationParams,
-    SortingParams {
+  extends PaginationParams, SortingParams {
   url: string;
 }
 

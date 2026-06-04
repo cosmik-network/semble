@@ -31,9 +31,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetUserStatsUseCase
-  implements UseCase<GetUserStatsQuery, Result<GetUserStatsResult>>
-{
+export class GetUserStatsUseCase implements UseCase<
+  GetUserStatsQuery,
+  Result<GetUserStatsResult>
+> {
   constructor(private userStatsRepository: IUserStatsRepository) {}
 
   async execute(query: GetUserStatsQuery): Promise<Result<GetUserStatsResult>> {

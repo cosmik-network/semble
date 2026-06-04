@@ -3,8 +3,11 @@ import { URL } from '../../../cards/domain/value-objects/URL';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 import { IVectorDatabase, SemanticSearchUrlsParams } from '../IVectorDatabase';
-import { UrlView } from '@semble/types/api/responses';
-import { CardSortField, SortOrder } from '@semble/types/api/common';
+import { UrlView } from '@semble/types';
+import {
+  CardSortField,
+  SortOrder,
+} from '../../../cards/domain/ICardQueryRepository';
 import {
   UrlMetadata,
   UrlMetadataProps,

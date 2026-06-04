@@ -11,8 +11,7 @@ export class UpdateNoteCardController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { cardId } = req.params;
-      const { note } = req.body;
+      const { cardId, note } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {

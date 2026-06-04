@@ -11,8 +11,7 @@ export class UpdateConnectionController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { connectionId } = req.params;
-      const { note, removeNote, connectionType, swap } = req.body;
+      const { connectionId, note, removeNote, connectionType, swap } = req.body;
       const curatorId = req.did;
 
       if (!curatorId) {

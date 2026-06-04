@@ -8,8 +8,7 @@ import {
   SearchAtProtoAccountsResponse,
 } from '@semble/types';
 
-export interface SearchAtProtoAccountsRequest
-  extends SearchAtProtoAccountsParams {
+export interface SearchAtProtoAccountsRequest extends SearchAtProtoAccountsParams {
   userDid?: string; // Optional - if provided, use authenticated agent
 }
 
@@ -18,10 +17,10 @@ export type SearchAtProtoAccountsResult = Result<
   AppError.UnexpectedError
 >;
 
-export class SearchAtProtoAccountsUseCase
-  implements
-    UseCase<SearchAtProtoAccountsRequest, Promise<SearchAtProtoAccountsResult>>
-{
+export class SearchAtProtoAccountsUseCase implements UseCase<
+  SearchAtProtoAccountsRequest,
+  Promise<SearchAtProtoAccountsResult>
+> {
   constructor(private agentService: IAgentService) {}
 
   async execute(

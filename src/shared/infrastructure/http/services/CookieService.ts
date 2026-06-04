@@ -28,6 +28,11 @@ export class CookieService {
    * - prod: .semble.so (allows cookies across api.semble.so and semble.so)
    */
   private getCookieDomain(): string | undefined {
+    const tunnel = this.configService.getTunnelConfig();
+    if (tunnel.enabled) {
+      return tunnel.cookieDomain;
+    }
+
     const environment = this.configService.get().environment;
 
     switch (environment) {
@@ -47,10 +52,11 @@ export class CookieService {
   private getBaseCookieOptions(): Omit<CookieOptions, 'maxAge'> {
     const environment = this.configService.get().environment;
     const isProduction = environment === Environment.PROD;
+    const tunnelEnabled = this.configService.isTunnelMode();
 
     return {
       httpOnly: true,
-      secure: isProduction, // Only use secure cookies in production (requires HTTPS)
+      secure: isProduction || tunnelEnabled, // Tunnel serves HTTPS, so cookies must be Secure
       sameSite: 'lax', // 'lax' allows cookies on same-site navigation, better than 'strict' for auth flows
       path: '/',
       domain: this.getCookieDomain(),

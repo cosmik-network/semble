@@ -1,5 +1,5 @@
-import { useActionState, useOptimistic } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followTarget, unfollowTarget } from '../dal';
 import { followKeys } from '../followKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
@@ -36,54 +36,47 @@ function invalidateFollowQueries(
 
 export function useToggleFollow(initialIsFollowing: boolean) {
   const queryClient = useQueryClient();
+  const [confirmed, setConfirmed] = useState(initialIsFollowing);
+  const [optimistic, setOptimistic] = useState(initialIsFollowing);
 
-  const [isFollowing, toggleAction, isPending] = useActionState(
-    async (
-      currentIsFollowing: boolean,
-      { targetId, targetType }: ToggleFollowPayload,
-    ) => {
-      const intended = currentIsFollowing ? 'unfollow' : 'follow';
-      try {
-        if (currentIsFollowing) {
-          await unfollowTarget(targetId, targetType);
-        } else {
-          await followTarget({ targetId, targetType });
-        }
-        invalidateFollowQueries(queryClient, targetId, targetType);
-        const final = currentIsFollowing ? 'unfollowed' : 'followed';
-        console.log(
-          `[toggleFollow] intended: ${intended} | result: ${final} | match: ✅`,
-        );
+  const mutation = useMutation({
+    mutationFn: async ({
+      targetId,
+      targetType,
+      currentlyFollowing,
+    }: ToggleFollowPayload & { currentlyFollowing: boolean }) => {
+      if (currentlyFollowing) {
+        await unfollowTarget(targetId, targetType);
+      } else {
+        await followTarget({ targetId, targetType });
+      }
+      return !currentlyFollowing;
+    },
+    onSuccess: (next, vars) => {
+      setConfirmed(next);
+      setOptimistic(next);
+      invalidateFollowQueries(queryClient, vars.targetId, vars.targetType);
 
-        // Track follow event in PostHog (only on follow, not unfollow)
-        if (!currentIsFollowing && shouldCaptureAnalytics()) {
-          posthog.capture('target_followed', {
-            target_type: targetType.toLowerCase(),
-          });
-        }
-
-        return !currentIsFollowing;
-      } catch {
-        const final = currentIsFollowing ? 'followed' : 'unfollowed';
-        console.log(
-          `[toggleFollow] intended: ${intended} | result: ${final} (reverted) | match: ❌`,
-        );
-        return currentIsFollowing;
+      if (next && shouldCaptureAnalytics()) {
+        posthog.capture('target_followed', {
+          target_type: vars.targetType.toLowerCase(),
+        });
       }
     },
-    initialIsFollowing,
-  );
+    onError: () => {
+      setOptimistic(confirmed);
+      // 401 → logoutUser is handled by global MutationCache.onError in providers/tanstack.tsx
+    },
+  });
 
-  // useOptimistic gives immediate UI feedback during the transition.
-  // While isPending, optimisticIsFollowing flips instantly on click.
-  // When the action settles, it reverts to the confirmed isFollowing value.
-  const [optimisticIsFollowing, setOptimisticIsFollowing] =
-    useOptimistic(isFollowing);
+  const toggleAction = (payload: ToggleFollowPayload) => {
+    mutation.mutate({ ...payload, currentlyFollowing: confirmed });
+  };
 
   return {
-    isFollowing: optimisticIsFollowing,
+    isFollowing: optimistic,
     toggleAction,
-    isPending,
-    setOptimisticIsFollowing,
+    isPending: mutation.isPending,
+    setOptimisticIsFollowing: setOptimistic,
   };
 }

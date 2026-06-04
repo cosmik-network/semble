@@ -22,10 +22,10 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetLibrariesForCardUseCase
-  implements
-    UseCase<GetLibrariesForCardQuery, Result<GetLibrariesForCardResult>>
-{
+export class GetLibrariesForCardUseCase implements UseCase<
+  GetLibrariesForCardQuery,
+  Result<GetLibrariesForCardResult>
+> {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
