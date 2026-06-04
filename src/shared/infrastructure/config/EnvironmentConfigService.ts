@@ -59,6 +59,9 @@ export interface EnvironmentConfig {
     vectorUrl: string;
     vectorToken: string;
   };
+  huggingface: {
+    apiToken: string;
+  };
   workers: {
     redisUrl: string;
     redisConfig: {
@@ -191,6 +194,9 @@ export class EnvironmentConfigService {
         vectorUrl: process.env.UPSTASH_VECTOR_REST_URL || '',
         vectorToken: process.env.UPSTASH_VECTOR_REST_TOKEN || '',
       },
+      huggingface: {
+        apiToken: process.env.HUGGINGFACE_API_TOKEN || '',
+      },
       workers: {
         redisConfig: {
           host: process.env.REDIS_HOST || 'localhost',
@@ -279,6 +285,10 @@ export class EnvironmentConfigService {
 
   public getUpstashConfig() {
     return this.config.upstash;
+  }
+
+  public getHuggingFaceConfig() {
+    return this.config.huggingface;
   }
 
   public getWorkersConfig() {
