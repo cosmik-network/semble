@@ -1,6 +1,6 @@
 {
   "name": "@semble.so/api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A fully-typed Semble API client",
   "type": "module",
   "main": "./dist/index.cjs",

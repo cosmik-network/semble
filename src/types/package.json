@@ -2,17 +2,27 @@
   "name": "@semble/types",
   "version": "1.0.0",
   "description": "Shared TypeScript types for Semble API",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
+    "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
