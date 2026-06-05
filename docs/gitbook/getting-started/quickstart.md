@@ -1,8 +1,26 @@
 ---
 icon: bolt
+layout:
+  width: default
+  title:
+    visible: true
+  description:
+    visible: true
+  tableOfContents:
+    visible: true
+  outline:
+    visible: true
+  pagination:
+    visible: true
+  metadata:
+    visible: true
+  tags:
+    visible: true
+  actions:
+    visible: true
 metaLinks:
   alternates:
-    - https://app.gitbook.com/s/yE16Xb3IemPxJWydtPOj/getting-started/quickstart
+    - /broken/spaces/yE16Xb3IemPxJWydtPOj/pages/7FvWQMF0kTK7HGhlQfmo
 ---
 
 # Quickstart

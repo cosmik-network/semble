@@ -1,8 +1,26 @@
 ---
 icon: circle
+layout:
+  width: default
+  title:
+    visible: true
+  description:
+    visible: false
+  tableOfContents:
+    visible: true
+  outline:
+    visible: true
+  pagination:
+    visible: true
+  metadata:
+    visible: true
+  tags:
+    visible: true
+  actions:
+    visible: true
 metaLinks:
   alternates:
-    - https://app.gitbook.com/s/yE16Xb3IemPxJWydtPOj/
+    - /broken/spaces/yE16Xb3IemPxJWydtPOj/pages/LThc2RqOxBKU56Qt3TMy
 ---
 
 # Overview
