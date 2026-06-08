@@ -29,7 +29,7 @@ export const feedsContract = c.router(
       responses: { 200: GetGlobalFeedResponseSchema },
       summary: 'Get global feed',
       description:
-        'Returns a paginated activity feed across all users, ordered by recency.',
+        'Returns a paginated activity feed across all users, ordered by recency, with optional filters.',
     },
     gemFeed: {
       method: 'GET',

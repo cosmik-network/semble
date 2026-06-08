@@ -42,7 +42,8 @@ export const cardsContract = c.router(
       body: AddUrlToLibraryRequestSchema,
       responses: { 200: AddUrlToLibraryResponseSchema },
       summary: 'Add a URL to library',
-      description: "Saves a URL as a card in the authenticated user's library.",
+      description:
+        "Saves a URL as a URL card in the authenticated user's library.",
     },
     addCardToLibrary: {
       method: 'POST',
@@ -70,7 +71,8 @@ export const cardsContract = c.router(
       body: UpdateUrlCardAssociationsRequestSchema,
       responses: { 200: UpdateUrlCardAssociationsResponseSchema },
       summary: 'Update URL card associations',
-      description: 'Updates the URL and URL type associations for a card.',
+      description:
+        'Add or remove the card to/from collections. Add a note to the URL card or update the existing note.',
     },
     myUrlCards: {
       method: 'GET',
@@ -80,7 +82,7 @@ export const cardsContract = c.router(
         uncollected: z.coerce.boolean().optional(),
       }),
       responses: { 200: GetUrlCardsResponseSchema },
-      summary: 'List my library cards',
+      summary: 'List my library URL cards',
       description:
         "Returns a paginated list of URL cards in the authenticated user's library.",
     },
@@ -91,18 +93,18 @@ export const cardsContract = c.router(
         includeStats: z.coerce.boolean().optional(),
       }),
       responses: { 200: GetUrlMetadataResponseSchema },
-      summary: 'Get URL metadata',
+      summary: 'Get URL metadata and optional Semble stats',
       description:
-        'Fetches title, description, and other metadata for a given URL.',
+        'Fetches title, description, and other metadata for a given URL. Can optionally include aggregated Semble stats for the URL, such as total saves and collection counts.',
     },
     urlLibraryStatus: {
       method: 'GET',
       path: paths.urlLibraryStatus,
       query: GetUrlStatusForMyLibraryParamsSchema,
       responses: { 200: GetUrlStatusForMyLibraryResponseSchema },
-      summary: 'Get URL library status',
+      summary: 'Check if a given URL has been saved to your library',
       description:
-        "Returns whether a URL is already saved in the authenticated user's library.",
+        "Returns whether a URL is already saved in the authenticated user's library, along with all collections the user added it to.",
     },
     librariesForUrl: {
       method: 'GET',
@@ -111,8 +113,9 @@ export const cardsContract = c.router(
         url: z.string(),
       }),
       responses: { 200: GetLibrariesForUrlResponseSchema },
-      summary: 'Get libraries containing a URL',
-      description: 'Returns users who have saved a given URL to their library.',
+      summary: 'Get users who have saved a URL to their library',
+      description:
+        'Returns a paginated list of users who have saved a given URL to their library, including the URL Card of each user.',
     },
     noteCardsForUrl: {
       method: 'GET',
@@ -121,8 +124,9 @@ export const cardsContract = c.router(
         url: z.string(),
       }),
       responses: { 200: GetNoteCardsForUrlResponseSchema },
-      summary: 'Get note cards for a URL',
-      description: 'Returns all note cards that are attached to a given URL.',
+      summary: 'Get notes for a URL',
+      description:
+        'Returns a paginated list of all notes that are added to a given URL.',
     },
     searchCards: {
       method: 'GET',
@@ -133,7 +137,8 @@ export const cardsContract = c.router(
       }),
       responses: { 200: SearchUrlsResponseSchema },
       summary: 'Search cards',
-      description: 'Full-text search across card titles and URLs.',
+      description:
+        'Full-text search across URL Cards titles, descriptions and URLs.',
     },
     cardById: {
       method: 'GET',
@@ -151,14 +156,15 @@ export const cardsContract = c.router(
       summary: 'Get libraries for a card',
       description:
         'Returns users who have saved a specific card to their library.',
+      metadata: { internal: true } as const,
     },
     cardNote: {
       method: 'POST',
       path: paths.cardNote,
       body: UpdateNoteCardRequestSchema,
       responses: { 200: UpdateNoteCardResponseSchema },
-      summary: 'Update a note card',
-      description: 'Updates the text content of a note card.',
+      summary: 'Update a note added to a URL card',
+      description: 'Updates the content of a note added to a URL card.',
     },
     removeFromLibrary: {
       method: 'POST',
@@ -186,7 +192,7 @@ export const cardsContract = c.router(
         uncollected: z.coerce.boolean().optional(),
       }),
       responses: { 200: GetUrlCardsResponseSchema },
-      summary: "List a user's library cards",
+      summary: "List a user's URL cards",
       description:
         "Returns a paginated list of URL cards in a user's library, identified by handle or DID.",
     },

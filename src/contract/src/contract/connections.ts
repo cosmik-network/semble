@@ -37,7 +37,8 @@ export const connectionsContract = c.router(
       body: CreateConnectionRequestSchema,
       responses: { 200: CreateConnectionResponseSchema },
       summary: 'Create a connection',
-      description: 'Creates a typed link between two URLs or entities.',
+      description:
+        'Creates a typed link between two URLs with an optional note.',
     },
     connectionsByUser: {
       method: 'GET',
@@ -49,7 +50,7 @@ export const connectionsContract = c.router(
       responses: { 200: GetConnectionsResponseSchema },
       summary: "List a user's connections",
       description:
-        'Returns a paginated list of connections created by a user, identified by handle or DID.',
+        'Returns a paginated list of connections created by a user, identified by handle or DID. Filterable by connection type.',
     },
     updateConnection: {
       method: 'POST',
@@ -57,7 +58,8 @@ export const connectionsContract = c.router(
       body: UpdateConnectionRequestSchema,
       responses: { 200: UpdateConnectionResponseSchema },
       summary: 'Update a connection',
-      description: 'Updates the type or note on an existing connection.',
+      description:
+        'Updates the type, note, or direction of an existing connection.',
     },
     deleteConnection: {
       method: 'POST',

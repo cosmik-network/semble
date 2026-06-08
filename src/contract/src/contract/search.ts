@@ -41,7 +41,7 @@ export const searchContract = c.router(
       responses: { 200: SemanticSearchUrlsResponseSchema },
       summary: 'Semantic search',
       description:
-        'Returns URLs matching a natural-language query using vector search, optionally scoped to a user.',
+        'Returns URLs matching a natural-language query using vector search, optionally scoped to a user and filtered by type.',
     },
     bskyPosts: {
       method: 'GET',
