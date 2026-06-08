@@ -1,7 +1,12 @@
 {
   "name": "@semble.so/api",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A fully-typed Semble API client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cosmik-network/semble.git",
+    "directory": "src/packages/sdk"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
