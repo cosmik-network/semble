@@ -22,8 +22,7 @@ export const notificationsContract = c.router(
       }),
       responses: { 200: GetMyNotificationsResponseSchema },
       summary: 'List my notifications',
-      description:
-        "Returns the authenticated user's notifications, optionally filtered to unread only.",
+      description: "Returns the authenticated user's notifications.",
     },
     unreadCount: {
       method: 'GET',

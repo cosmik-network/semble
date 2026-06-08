@@ -56,7 +56,7 @@ export const collectionsContract = c.router(
       }),
       responses: { 200: GetCollectionsForUrlResponseSchema },
       summary: 'Get collections containing a URL',
-      description: 'Returns collections that contain a card for the given URL.',
+      description: 'Returns collections that contain a specific URL.',
     },
     searchCollections: {
       method: 'GET',
@@ -69,7 +69,7 @@ export const collectionsContract = c.router(
       responses: { 200: GetCollectionsResponseSchema },
       summary: 'Search collections',
       description:
-        'Full-text search across collection names, optionally filtered by user or access type.',
+        'Full-text search across collection names and descriptions, optionally filtered by user or access type.',
     },
     collectionById: {
       method: 'GET',
