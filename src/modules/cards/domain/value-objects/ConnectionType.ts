@@ -87,7 +87,7 @@ export class ConnectionType extends ValueObject<ConnectionTypeProps> {
   public static createFromString(type: string): Result<ConnectionType, Error> {
     const upperType = type.toUpperCase();
     if (!Object.values(ConnectionTypeEnum).includes(upperType as any)) {
-      return err(new Error(`Invalid connection type: ${type}`));
+      return ok(new ConnectionType({ value: ConnectionTypeEnum.RELATED }));
     }
     return ok(new ConnectionType({ value: upperType as ConnectionTypeEnum }));
   }
