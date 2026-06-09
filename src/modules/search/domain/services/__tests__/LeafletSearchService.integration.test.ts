@@ -10,7 +10,10 @@ describe.skip('LeafletSearchService', () => {
   beforeEach(() => {
     const testApiKey = process.env.IFRAMELY_API_KEY || 'test-api-key';
     const iframelyService = new IFramelyMetadataService(testApiKey);
-    const citoidService = new CitoidMetadataService();
+    const citoidService = new CitoidMetadataService(
+      process.env.CITOID_BASE_URL || '',
+      process.env.CITOID_API_KEY || '',
+    );
     metadataService = new CompositeMetadataService(
       iframelyService,
       citoidService,

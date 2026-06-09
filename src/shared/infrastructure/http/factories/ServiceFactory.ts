@@ -298,7 +298,11 @@ export class ServiceFactory {
     const baseIframelyService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
     );
-    const baseCitoidService = new CitoidMetadataService();
+    const citoidConfig = configService.getCitoidConfig();
+    const baseCitoidService = new CitoidMetadataService(
+      citoidConfig.baseUrl,
+      citoidConfig.apiKey,
+    );
 
     // Apply caching conditionally (similar to profile service)
     const useMockPersistence = configService.shouldUseMockPersistence();
