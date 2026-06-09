@@ -101,31 +101,6 @@ export class FollowTargetUseCase extends BaseUseCase<
             ),
           );
         }
-
-        const userResult = await this.userRepository.findByDID(
-          targetDidResult.value,
-        );
-        if (userResult.isErr()) {
-          return err(AppError.UnexpectedError.create(userResult.error));
-        }
-
-        if (!userResult.value) {
-          // User not in user table, check if they have at least 1 card
-          const cardsResult = await this.cardQueryRepository.getUrlCardsOfUser(
-            request.targetId,
-            {
-              page: 1,
-              limit: 1,
-              sortBy: CardSortField.CREATED_AT,
-              sortOrder: SortOrder.DESC,
-            },
-          );
-
-          if (cardsResult.totalCount === 0) {
-            return err(new ValidationError('Target user not found'));
-          }
-          // User has cards, allow follow to proceed
-        }
       } else if (targetType.value === 'COLLECTION') {
         const collectionIdResult = CollectionId.createFromString(
           request.targetId,
