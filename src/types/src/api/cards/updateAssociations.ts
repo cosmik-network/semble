@@ -5,7 +5,12 @@ export const UpdateUrlCardAssociationsRequestSchema = z.object({
   note: z.string().optional(),
   addToCollections: z.array(z.string()).optional(),
   removeFromCollections: z.array(z.string()).optional(),
-  viaCardId: z.string().optional(),
+  viaCardId: z
+    .string()
+    .optional()
+    .describe(
+      'The ID of the card that led to saving this URL. If included, the author of the viaCard will be notified.',
+    ),
 });
 export type UpdateUrlCardAssociationsRequest = z.infer<
   typeof UpdateUrlCardAssociationsRequestSchema

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedCardSortedParamsSchema,
   PaginationSchema,
   CardSortingSchema,
   UrlTypeSchema,
@@ -8,11 +8,10 @@ import {
 import { CollectionSchema } from '../../entities/collection';
 import { UrlCardSchema } from '../../entities/card';
 
-export const GetCollectionPageParamsSchema = PaginatedSortedParamsSchema.extend(
-  {
+export const GetCollectionPageParamsSchema =
+  PaginatedCardSortedParamsSchema.extend({
     urlType: UrlTypeSchema.optional(),
-  },
-);
+  });
 export type GetCollectionPageParams = z.infer<
   typeof GetCollectionPageParamsSchema
 >;

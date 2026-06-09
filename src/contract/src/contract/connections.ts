@@ -12,7 +12,7 @@ import {
   GetConnectionsForUrlResponseSchema,
   GetConnectionsResponseSchema,
 } from '@semble/types';
-import { CoercedPaginatedSortedQuery } from './shared';
+import { CoercedPaginatedConnectionSortedQuery } from './shared';
 
 const c = initContract();
 
@@ -21,7 +21,7 @@ export const connectionsContract = c.router(
     connectionsForUrl: {
       method: 'GET',
       path: paths.connectionsForUrl,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedConnectionSortedQuery.extend({
         url: z.string(),
         direction: z.enum(['forward', 'backward', 'both']).optional(),
         connectionTypes: z.array(ConnectionTypeSchema).optional(),
@@ -43,7 +43,7 @@ export const connectionsContract = c.router(
     connectionsByUser: {
       method: 'GET',
       path: paths.connectionsByUser,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedConnectionSortedQuery.extend({
         identifier: z.string(),
         connectionTypes: z.array(ConnectionTypeSchema).optional(),
       }),
