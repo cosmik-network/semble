@@ -28,7 +28,8 @@ export default function MinimalProfileHeaderContainer(props: Props) {
         top: 0,
         left: navbarOffset,
         right: 0,
-        zIndex: 2,
+        // Must sit above the sticky page Header (zIndex 100) it replaces
+        zIndex: 101,
         opacity: yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? 1 : 0,
         pointerEvents:
           yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? 'auto' : 'none',
