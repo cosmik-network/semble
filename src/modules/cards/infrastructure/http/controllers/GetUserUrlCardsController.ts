@@ -19,6 +19,7 @@ export class GetUserUrlCardsController extends Controller {
         sortOrder,
         urlType,
         uncollected,
+        searchText,
       } = req.query;
       const callerDid = req.did;
 
@@ -35,6 +36,7 @@ export class GetUserUrlCardsController extends Controller {
         sortOrder: sortOrder as SortOrder,
         urlType: urlType as any,
         uncollected: uncollected === 'true',
+        searchText: searchText as string | undefined,
       });
 
       if (result.isErr()) {

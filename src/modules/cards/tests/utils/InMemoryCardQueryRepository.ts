@@ -51,6 +51,27 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         );
       }
 
+      // Filter by tokenized searchText across title, description, and URL
+      if (options.searchText && options.searchText.trim().length > 0) {
+        const searchWords = options.searchText
+          .trim()
+          .toLowerCase()
+          .split(/\s+/);
+        userCards = userCards.filter((card) => {
+          const title =
+            card.content.urlContent?.metadata?.title?.toLowerCase() || '';
+          const description =
+            card.content.urlContent?.metadata?.description?.toLowerCase() || '';
+          const url = card.content.urlContent?.url.value.toLowerCase() || '';
+          return searchWords.every(
+            (word) =>
+              title.includes(word) ||
+              description.includes(word) ||
+              url.includes(word),
+          );
+        });
+      }
+
       // Filter out cards in collections if uncollected flag is set
       if (options.uncollected) {
         const allCollections = this.collectionRepository.getAllCollections();

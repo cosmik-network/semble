@@ -81,6 +81,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params?.sortOrder,
         urlType: params?.urlType,
         uncollected: params?.uncollected ? true : undefined,
+        searchText: params?.searchText,
       },
     });
     return unwrap<GetUrlCardsResponse>(res);
@@ -98,6 +99,7 @@ export class QueryClient extends BaseClient {
         sortOrder: params.sortOrder,
         urlType: params.urlType,
         uncollected: params.uncollected ? true : undefined,
+        searchText: params.searchText,
       },
     });
     return unwrap<GetUrlCardsResponse>(res);
