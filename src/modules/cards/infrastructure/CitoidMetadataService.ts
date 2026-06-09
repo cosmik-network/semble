@@ -145,21 +145,24 @@ interface CitoidErrorResponse {
 }
 
 export class CitoidMetadataService implements IMetadataService {
-  private readonly baseUrl =
-    'https://en.wikipedia.org/api/rest_v1/data/citation/zotero/';
   private readonly headers = {
     accept: 'application/json; charset=utf-8;',
   };
 
+  constructor(
+    private readonly baseUrl: string,
+    private readonly apiKey: string,
+  ) {}
+
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
     try {
-      // URL-encode the target URL
-      const encodedUrl = encodeURIComponent(url.value);
-      const fullUrl = this.baseUrl + encodedUrl;
-
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: this.headers,
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'x-api-key': this.apiKey,
+          'Content-Type': 'text/plain',
+        },
+        body: url.value,
       });
 
       if (!response.ok) {

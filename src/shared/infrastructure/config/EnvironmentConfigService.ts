@@ -55,6 +55,10 @@ export interface EnvironmentConfig {
   iframely: {
     apiKey: string;
   };
+  citoid: {
+    baseUrl: string;
+    apiKey: string;
+  };
   upstash: {
     vectorUrl: string;
     vectorToken: string;
@@ -190,6 +194,10 @@ export class EnvironmentConfigService {
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
       },
+      citoid: {
+        baseUrl: process.env.CITOID_BASE_URL || '',
+        apiKey: process.env.CITOID_API_KEY || '',
+      },
       upstash: {
         vectorUrl: process.env.UPSTASH_VECTOR_REST_URL || '',
         vectorToken: process.env.UPSTASH_VECTOR_REST_TOKEN || '',
@@ -281,6 +289,10 @@ export class EnvironmentConfigService {
 
   public getIFramelyApiKey(): string {
     return this.config.iframely.apiKey;
+  }
+
+  public getCitoidConfig() {
+    return this.config.citoid;
   }
 
   public getUpstashConfig() {

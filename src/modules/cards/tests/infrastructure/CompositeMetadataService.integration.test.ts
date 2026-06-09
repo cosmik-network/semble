@@ -9,7 +9,10 @@ describe('CompositeMetadataService Manual Tests', () => {
 
   beforeEach(() => {
     const iframelyService = new IFramelyMetadataService(testApiKey);
-    const citoidService = new CitoidMetadataService();
+    const citoidService = new CitoidMetadataService(
+      process.env.CITOID_BASE_URL || '',
+      process.env.CITOID_API_KEY || '',
+    );
     service = new CompositeMetadataService(iframelyService, citoidService);
   });
 

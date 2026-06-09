@@ -5,7 +5,10 @@ describe('CitoidMetadataService Integration Tests', () => {
   let service: CitoidMetadataService;
 
   beforeEach(() => {
-    service = new CitoidMetadataService();
+    service = new CitoidMetadataService(
+      process.env.CITOID_BASE_URL || '',
+      process.env.CITOID_API_KEY || '',
+    );
   });
 
   describe('fetchMetadata', () => {
