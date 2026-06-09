@@ -15,6 +15,7 @@ export const cardKeys = {
     sortOrder?: SortOrder,
     urlType?: UrlType,
     uncollected?: boolean,
+    searchText?: string,
   ) => [
     ...cardKeys.all(),
     'infinite',
@@ -24,6 +25,7 @@ export const cardKeys = {
     sortOrder,
     urlType,
     uncollected,
+    searchText,
   ],
   urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
     [...cardKeys.all(), 'metadata', url, options] as const,
