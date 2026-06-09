@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedCardSortedParamsSchema,
   UrlTypeSchema,
 } from '../../entities/common';
 
-export const GetUrlCardsParamsSchema = PaginatedSortedParamsSchema.extend({
+export const GetUrlCardsParamsSchema = PaginatedCardSortedParamsSchema.extend({
   identifier: z.string(),
   urlType: UrlTypeSchema.optional(),
   uncollected: z.boolean().optional(),

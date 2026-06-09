@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedConnectionSortedParamsSchema,
   PaginationSchema,
   ConnectionSortingSchema,
 } from '../../entities/common';
@@ -9,10 +9,11 @@ import {
   ConnectionWithSourceAndTargetSchema,
 } from '../../entities/connection';
 
-export const GetConnectionsParamsSchema = PaginatedSortedParamsSchema.extend({
-  identifier: z.string(),
-  connectionTypes: z.array(ConnectionTypeSchema).optional(),
-});
+export const GetConnectionsParamsSchema =
+  PaginatedConnectionSortedParamsSchema.extend({
+    identifier: z.string(),
+    connectionTypes: z.array(ConnectionTypeSchema).optional(),
+  });
 export type GetConnectionsParams = z.infer<typeof GetConnectionsParamsSchema>;
 
 export const GetConnectionsResponseSchema = z.object({

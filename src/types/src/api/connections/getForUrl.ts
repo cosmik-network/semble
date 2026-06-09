@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedConnectionSortedParamsSchema,
   PaginationSchema,
   ConnectionSortingSchema,
 } from '../../entities/common';
@@ -10,7 +10,7 @@ import {
 } from '../../entities/connection';
 
 export const GetConnectionsForUrlParamsSchema =
-  PaginatedSortedParamsSchema.extend({
+  PaginatedConnectionSortedParamsSchema.extend({
     url: z.string(),
     direction: z.enum(['forward', 'backward', 'both']).optional(),
     connectionTypes: z.array(ConnectionTypeSchema).optional(),

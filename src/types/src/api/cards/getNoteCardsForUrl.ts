@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedCardSortedParamsSchema,
   PaginationSchema,
   CardSortingSchema,
 } from '../../entities/common';
 import { UserSchema } from '../../entities/user';
 
 export const GetNoteCardsForUrlParamsSchema =
-  PaginatedSortedParamsSchema.extend({
+  PaginatedCardSortedParamsSchema.extend({
     url: z.string(),
   });
 export type GetNoteCardsForUrlParams = z.infer<
