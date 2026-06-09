@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedCardSortedParamsSchema,
   PaginationSchema,
   CardSortingSchema,
   UrlTypeSchema,
 } from '../../entities/common';
 import { UrlViewSchema } from '../../entities/connection';
 
-export const SearchUrlsParamsSchema = PaginatedSortedParamsSchema.extend({
+export const SearchUrlsParamsSchema = PaginatedCardSortedParamsSchema.extend({
   searchQuery: z.string(),
   urlType: UrlTypeSchema.optional(),
 });

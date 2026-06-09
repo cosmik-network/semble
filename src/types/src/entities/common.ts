@@ -47,6 +47,14 @@ export const CollectionSortFieldSchema = z.enum([
   'addedAt',
 ]);
 
+export const ConnectionSortField = {
+  CREATED_AT: 'createdAt',
+  UPDATED_AT: 'updatedAt',
+} as const;
+export type ConnectionSortField =
+  (typeof ConnectionSortField)[keyof typeof ConnectionSortField];
+export const ConnectionSortFieldSchema = z.enum(['createdAt', 'updatedAt']);
+
 export const BaseSortingSchema = z.object({
   sortOrder: SortOrderSchema,
 });
@@ -118,8 +126,34 @@ export const PaginatedSortedParamsSchema =
   PaginationParamsSchema.merge(SortingParamsSchema);
 export type PaginatedSortedParams = z.infer<typeof PaginatedSortedParamsSchema>;
 
+export const PaginatedCardSortedParamsSchema = PaginationParamsSchema.extend({
+  sortBy: CardSortFieldSchema.optional(),
+  sortOrder: SortOrderSchema.optional(),
+});
+export type PaginatedCardSortedParams = z.infer<
+  typeof PaginatedCardSortedParamsSchema
+>;
+
+export const PaginatedCollectionSortedParamsSchema =
+  PaginationParamsSchema.extend({
+    sortBy: CollectionSortFieldSchema.optional(),
+    sortOrder: SortOrderSchema.optional(),
+  });
+export type PaginatedCollectionSortedParams = z.infer<
+  typeof PaginatedCollectionSortedParamsSchema
+>;
+
+export const PaginatedConnectionSortedParamsSchema =
+  PaginationParamsSchema.extend({
+    sortBy: ConnectionSortFieldSchema.optional(),
+    sortOrder: SortOrderSchema.optional(),
+  });
+export type PaginatedConnectionSortedParams = z.infer<
+  typeof PaginatedConnectionSortedParamsSchema
+>;
+
 export const ConnectionSortingSchema = z.object({
-  sortBy: z.string(),
-  sortOrder: z.enum(['asc', 'desc']),
+  sortBy: ConnectionSortFieldSchema,
+  sortOrder: SortOrderSchema,
 });
 export type ConnectionSorting = z.infer<typeof ConnectionSortingSchema>;

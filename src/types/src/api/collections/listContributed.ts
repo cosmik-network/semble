@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { PaginatedSortedParamsSchema } from '../../entities/common';
+import { PaginatedCollectionSortedParamsSchema } from '../../entities/common';
 
 export const GetOpenCollectionsWithContributorParamsSchema =
-  PaginatedSortedParamsSchema.extend({
+  PaginatedCollectionSortedParamsSchema.extend({
     identifier: z.string(),
   });
 export type GetOpenCollectionsWithContributorParams = z.infer<

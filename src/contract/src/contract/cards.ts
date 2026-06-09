@@ -30,7 +30,7 @@ import {
   RemoveCardFromCollectionRequestSchema,
   RemoveCardFromCollectionResponseSchema,
 } from '@semble/types';
-import { CoercedPaginatedSortedQuery } from './shared';
+import { CoercedPaginatedCardSortedQuery } from './shared';
 
 const c = initContract();
 
@@ -77,7 +77,7 @@ export const cardsContract = c.router(
     myUrlCards: {
       method: 'GET',
       path: paths.myUrlCards,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),
       }),
@@ -109,7 +109,7 @@ export const cardsContract = c.router(
     librariesForUrl: {
       method: 'GET',
       path: paths.librariesForUrl,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         url: z.string(),
       }),
       responses: { 200: GetLibrariesForUrlResponseSchema },
@@ -120,7 +120,7 @@ export const cardsContract = c.router(
     noteCardsForUrl: {
       method: 'GET',
       path: paths.noteCardsForUrl,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         url: z.string(),
       }),
       responses: { 200: GetNoteCardsForUrlResponseSchema },
@@ -131,7 +131,7 @@ export const cardsContract = c.router(
     searchCards: {
       method: 'GET',
       path: paths.searchCards,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         searchQuery: z.string(),
         urlType: UrlTypeSchema.optional(),
       }),
@@ -186,7 +186,7 @@ export const cardsContract = c.router(
     cardsByUser: {
       method: 'GET',
       path: paths.cardsByUser,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         identifier: z.string(),
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),

@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import {
-  PaginatedSortedParamsSchema,
+  PaginatedCollectionSortedParamsSchema,
   PaginationSchema,
   CollectionSortingSchema,
 } from '../../entities/common';
 import { CollectionSchema } from '../../entities/collection';
 
 export const GetCollectionsForUrlParamsSchema =
-  PaginatedSortedParamsSchema.extend({
+  PaginatedCollectionSortedParamsSchema.extend({
     url: z.string(),
   });
 export type GetCollectionsForUrlParams = z.infer<

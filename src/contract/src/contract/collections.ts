@@ -23,7 +23,10 @@ import {
   GetCollectionContributorsParamsSchema,
   GetCollectionContributorsResponseSchema,
 } from '@semble/types';
-import { CoercedPaginatedSortedQuery } from './shared';
+import {
+  CoercedPaginatedCardSortedQuery,
+  CoercedPaginatedCollectionSortedQuery,
+} from './shared';
 
 const c = initContract();
 
@@ -32,7 +35,7 @@ export const collectionsContract = c.router(
     myCollections: {
       method: 'GET',
       path: paths.myCollections,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCollectionSortedQuery.extend({
         searchText: z.string().optional(),
       }),
       responses: { 200: GetCollectionsResponseSchema },
@@ -51,7 +54,7 @@ export const collectionsContract = c.router(
     collectionsForUrl: {
       method: 'GET',
       path: paths.collectionsForUrl,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCollectionSortedQuery.extend({
         url: z.string(),
       }),
       responses: { 200: GetCollectionsForUrlResponseSchema },
@@ -61,7 +64,7 @@ export const collectionsContract = c.router(
     searchCollections: {
       method: 'GET',
       path: paths.searchCollections,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCollectionSortedQuery.extend({
         searchText: z.string().optional(),
         identifier: z.string().optional(),
         accessType: CollectionAccessTypeSchema.optional(),
@@ -74,7 +77,7 @@ export const collectionsContract = c.router(
     collectionById: {
       method: 'GET',
       path: paths.collectionById,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         collectionId: z.string(),
         urlType: UrlTypeSchema.optional(),
       }),
@@ -104,7 +107,7 @@ export const collectionsContract = c.router(
     collectionsByUser: {
       method: 'GET',
       path: paths.collectionsByUser,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCollectionSortedQuery.extend({
         identifier: z.string(),
         searchText: z.string().optional(),
       }),
@@ -116,7 +119,7 @@ export const collectionsContract = c.router(
     collectionByAtUri: {
       method: 'GET',
       path: paths.collectionByAtUri,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCardSortedQuery.extend({
         handle: z.string(),
         recordKey: z.string(),
         urlType: UrlTypeSchema.optional(),
@@ -129,7 +132,7 @@ export const collectionsContract = c.router(
     openWithContributor: {
       method: 'GET',
       path: paths.openWithContributor,
-      query: CoercedPaginatedSortedQuery.extend({
+      query: CoercedPaginatedCollectionSortedQuery.extend({
         identifier: z.string(),
       }),
       responses: { 200: GetCollectionsResponseSchema },
