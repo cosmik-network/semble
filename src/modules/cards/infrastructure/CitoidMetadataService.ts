@@ -145,6 +145,8 @@ interface CitoidErrorResponse {
 }
 
 export class CitoidMetadataService implements IMetadataService {
+  private static readonly PUBLIC_BASE_URL =
+    'https://en.wikipedia.org/api/rest_v1/data/citation/zotero/';
   private readonly headers = {
     accept: 'application/json; charset=utf-8;',
   };
@@ -154,16 +156,29 @@ export class CitoidMetadataService implements IMetadataService {
     private readonly apiKey: string,
   ) {}
 
+  private get usePublicFallback(): boolean {
+    return !this.baseUrl || !this.apiKey;
+  }
+
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'x-api-key': this.apiKey,
-          'Content-Type': 'text/plain',
-        },
-        body: url.value,
-      });
+      const response = this.usePublicFallback
+        ? await fetch(
+            CitoidMetadataService.PUBLIC_BASE_URL +
+              encodeURIComponent(url.value),
+            {
+              method: 'GET',
+              headers: this.headers,
+            },
+          )
+        : await fetch(this.baseUrl, {
+            method: 'POST',
+            headers: {
+              'x-api-key': this.apiKey,
+              'Content-Type': 'text/plain',
+            },
+            body: url.value,
+          });
 
       if (!response.ok) {
         return err(
@@ -225,8 +240,10 @@ export class CitoidMetadataService implements IMetadataService {
 
   async isAvailable(): Promise<boolean> {
     try {
-      // Test with a simple URL to check if the service is available
-      const testUrl = this.baseUrl + encodeURIComponent('https://example.com');
+      const base = this.usePublicFallback
+        ? CitoidMetadataService.PUBLIC_BASE_URL
+        : this.baseUrl;
+      const testUrl = base + encodeURIComponent('https://example.com');
       const response = await fetch(testUrl, {
         method: 'HEAD',
         headers: this.headers,
