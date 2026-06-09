@@ -8,5 +8,6 @@ export const GetUrlCardsParamsSchema = PaginatedCardSortedParamsSchema.extend({
   identifier: z.string(),
   urlType: UrlTypeSchema.optional(),
   uncollected: z.boolean().optional(),
+  searchText: z.string().optional(),
 });
 export type GetUrlCardsParams = z.infer<typeof GetUrlCardsParamsSchema>;

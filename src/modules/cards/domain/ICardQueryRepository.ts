@@ -10,6 +10,7 @@ export interface CardQueryOptions {
   sortOrder: SortOrder;
   urlType?: UrlType;
   uncollected?: boolean;
+  searchText?: string;
 }
 
 export interface SearchUrlsOptions {

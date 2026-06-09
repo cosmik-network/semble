@@ -59,6 +59,20 @@ export class UrlCardQueryService {
         whereConditions.push(eq(cards.urlType, options.urlType));
       }
 
+      if (options.searchText && options.searchText.trim().length > 0) {
+        const searchWords = options.searchText.trim().split(/\s+/);
+        for (const word of searchWords) {
+          const pattern = `%${word}%`;
+          whereConditions.push(
+            sql`(
+              ${cards.contentData}->'metadata'->>'title' ILIKE ${pattern} OR
+              ${cards.contentData}->'metadata'->>'description' ILIKE ${pattern} OR
+              ${cards.url} ILIKE ${pattern}
+            )`,
+          );
+        }
+      }
+
       // For LIBRARY_COUNT sorting, we need to handle urlLibraryCount calculation and sorting separately
       if (sortBy === CardSortField.LIBRARY_COUNT) {
         // Get all URL cards for the user first

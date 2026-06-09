@@ -12,8 +12,15 @@ export class GetMyUrlCardsController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const callerDid = req.did;
-      const { page, limit, sortBy, sortOrder, urlType, uncollected } =
-        req.query;
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        uncollected,
+        searchText,
+      } = req.query;
 
       if (!callerDid) {
         return this.unauthorized(res);
@@ -28,6 +35,7 @@ export class GetMyUrlCardsController extends Controller {
         sortOrder: sortOrder as SortOrder,
         urlType: urlType as any,
         uncollected: uncollected === 'true',
+        searchText: searchText as string | undefined,
       });
 
       if (result.isErr()) {

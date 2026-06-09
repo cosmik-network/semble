@@ -80,11 +80,12 @@ export const cardsContract = c.router(
       query: CoercedPaginatedCardSortedQuery.extend({
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),
+        searchText: z.string().optional(),
       }),
       responses: { 200: GetUrlCardsResponseSchema },
       summary: 'List my library URL cards',
       description:
-        "Returns a paginated list of URL cards in the authenticated user's library.",
+        "Returns a paginated list of URL cards in the authenticated user's library. When `searchText` is provided, results are filtered to cards whose title, description, or URL match all whitespace-separated tokens (case-insensitive).",
     },
     urlMetadata: {
       method: 'GET',
@@ -190,11 +191,12 @@ export const cardsContract = c.router(
         identifier: z.string(),
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),
+        searchText: z.string().optional(),
       }),
       responses: { 200: GetUrlCardsResponseSchema },
       summary: "List a user's URL cards",
       description:
-        "Returns a paginated list of URL cards in a user's library, identified by handle or DID.",
+        "Returns a paginated list of URL cards in a user's library, identified by handle or DID. When `searchText` is provided, results are filtered to cards whose title, description, or URL match all whitespace-separated tokens (case-insensitive).",
     },
   },
   { strictStatusCodes: true },
