@@ -15,7 +15,7 @@ export default function CardsContainerSkeleton() {
       <Stack>
         <Group gap={'xs'} justify="space-between">
           <Skeleton w={96} h={36} radius={'xl'} />
-          <Skeleton w={100} h={36} radius={'xl'} />
+          <Skeleton w={160} h={36} radius={'xl'} />
         </Group>
 
         <Grid gap="xs">

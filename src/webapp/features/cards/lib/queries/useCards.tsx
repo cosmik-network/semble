@@ -10,6 +10,7 @@ interface Props {
   sortOrder?: SortOrder;
   urlType?: UrlType;
   uncollected?: boolean;
+  query?: string;
 }
 
 export default function useCards(props: Props) {
@@ -23,6 +24,7 @@ export default function useCards(props: Props) {
       props.sortOrder,
       props.urlType,
       props.uncollected,
+      props.query,
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
@@ -33,6 +35,7 @@ export default function useCards(props: Props) {
         cardSortOrder: props.sortOrder,
         urlType: props.urlType,
         uncollected: props.uncollected,
+        searchText: props.query,
       });
     },
     getNextPageParam: (lastPage) => {

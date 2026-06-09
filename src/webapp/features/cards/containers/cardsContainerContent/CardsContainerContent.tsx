@@ -18,6 +18,7 @@ import { getCardsSortParams } from '../../lib/utils';
 
 interface Props {
   handle: string;
+  query?: string;
 }
 
 export default function CardsContainerContent(props: Props) {
@@ -45,6 +46,7 @@ export default function CardsContainerContent(props: Props) {
     sortOrder: getCardsSortParams(sortBy).sortOrder,
     urlType: selectedUrlType,
     uncollected,
+    query: props.query,
   });
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
@@ -62,11 +64,13 @@ export default function CardsContainerContent(props: Props) {
       <Container px="xs" py={'xl'} size="xl">
         <ProfileEmptyTab
           message={
-            uncollected
-              ? 'No unsorted cards'
-              : selectedUrlType
-                ? `No ${selectedUrlType} cards`
-                : 'No cards'
+            props.query
+              ? 'No results'
+              : uncollected
+                ? 'No unsorted cards'
+                : selectedUrlType
+                  ? `No ${selectedUrlType} cards`
+                  : 'No cards'
           }
           icon={FaRegNoteSticky}
         />
