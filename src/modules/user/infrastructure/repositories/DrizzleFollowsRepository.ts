@@ -491,6 +491,70 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getSubscribers(
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>> {
+    try {
+      const results = await this.db
+        .select()
+        .from(follows)
+        .where(
+          and(
+            eq(follows.targetId, targetId),
+            eq(follows.targetType, targetType.value),
+            eq(follows.isSubscribed, true),
+          ),
+        );
+
+      const followEntities: Follow[] = [];
+
+      for (const row of results) {
+        const followerDIDResult = DID.create(row.followerId);
+        if (followerDIDResult.isErr()) {
+          console.error(
+            `Invalid follower DID: ${row.followerId}`,
+            followerDIDResult.error,
+          );
+          continue;
+        }
+
+        const targetTypeResult = FollowTargetType.create(
+          row.targetType as FollowTargetTypeEnum,
+        );
+        if (targetTypeResult.isErr()) {
+          console.error(
+            `Invalid target type: ${row.targetType}`,
+            targetTypeResult.error,
+          );
+          continue;
+        }
+
+        const followResult = Follow.create(
+          {
+            followerId: followerDIDResult.value,
+            targetId: row.targetId,
+            targetType: targetTypeResult.value,
+            createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
+          },
+          new UniqueEntityID(
+            `${row.followerId}:${row.targetId}:${row.targetType}`,
+          ),
+        );
+
+        if (followResult.isOk()) {
+          followEntities.push(followResult.value);
+        }
+      }
+
+      return ok(followEntities);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async getSubscriptions(
     followerId: string,
     targetType: FollowTargetType | undefined,

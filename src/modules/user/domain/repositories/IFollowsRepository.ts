@@ -184,6 +184,18 @@ export interface IFollowsRepository {
   ): Promise<Result<void>>;
 
   /**
+   * Get all subscribers (subscribed followers) of a target.
+   *
+   * @param targetId - ID of the target (user DID or collection UUID)
+   * @param targetType - Type of target
+   * @returns Array of Follow records where isSubscribed = true
+   */
+  getSubscribers(
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>>;
+
+  /**
    * Get paginated list of subscriptions for a user, ordered by subscribedAt DESC.
    *
    * @param followerId - DID of the follower

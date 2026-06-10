@@ -22,6 +22,7 @@ export const UserSchema = z.object({
   bannerUrl: z.string().optional(),
   description: z.string().optional(),
   isFollowing: z.boolean().optional(),
+  isSubscribed: z.boolean().optional(),
   followsYou: z.boolean().optional(),
   followerCount: z.number().optional(),
   followingCount: z.number().optional(),
@@ -42,7 +43,10 @@ export const ContributorUserSchema = UserSchema.extend({
 });
 export type ContributorUser = z.infer<typeof ContributorUserSchema>;
 
-export const UserProfileDTOSchema = UserSchema.omit({ isFollowing: true });
+export const UserProfileDTOSchema = UserSchema.omit({
+  isFollowing: true,
+  isSubscribed: true,
+});
 export type UserProfileDTO = z.infer<typeof UserProfileDTOSchema>;
 
 export const MinimalUserProfileSchema = UserProfileDTOSchema.omit({

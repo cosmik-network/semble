@@ -20,6 +20,7 @@ export class ProfileMapper {
       bannerUrl: profile.bannerUrl,
       description: profile.bio,
       isFollowing: profile.isFollowing,
+      isSubscribed: profile.isSubscribed,
       followsYou: profile.followsYou,
       followerCount: profile.followerCount,
       followingCount: profile.followingCount,

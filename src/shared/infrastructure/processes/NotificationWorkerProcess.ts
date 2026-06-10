@@ -4,14 +4,16 @@ import {
   WorkerServices,
 } from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
-import { CardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
-import { CardAddedToCollectionEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToCollectionEventHandler';
-import { CardRemovedFromLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardRemovedFromLibraryEventHandler';
-import { CollectionContributionEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionEventHandler';
-import { CollectionContributionCleanupEventHandler } from '../../../modules/notifications/application/eventHandlers/CollectionContributionCleanupEventHandler';
+import { CardActivityBundlingSaga } from '../../../modules/notifications/application/sagas/CardActivityBundlingSaga';
+import { CardActivityBufferingHandler } from '../../../modules/notifications/application/eventHandlers/CardActivityBufferingHandler';
+import { CardLibraryRemovalCleanupHandler } from '../../../modules/notifications/application/eventHandlers/CardLibraryRemovalCleanupHandler';
+import { CardCollectionRemovalCleanupHandler } from '../../../modules/notifications/application/eventHandlers/CardCollectionRemovalCleanupHandler';
+import { ViaCardBundleHandler } from '../../../modules/notifications/application/bundleHandlers/ViaCardBundleHandler';
+import { UrlMentionBundleHandler } from '../../../modules/notifications/application/bundleHandlers/UrlMentionBundleHandler';
+import { CollectionContributionBundleHandler } from '../../../modules/notifications/application/bundleHandlers/CollectionContributionBundleHandler';
+import { SubscriptionBundleHandler } from '../../../modules/notifications/application/bundleHandlers/SubscriptionBundleHandler';
 import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
 import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
-import { CardNotificationSaga } from '../../../modules/notifications/application/sagas/CardNotificationSaga';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -45,38 +47,55 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Create saga with proper use case dependency and state store from services
-    const cardNotificationSaga = new CardNotificationSaga(
-      useCases.createNotificationUseCase,
-      services.sagaStateStore,
+    // Bundle handlers — each represents one notification policy that consumes
+    // a CardActivityBundle and decides what notifications to write.
+    const viaCardBundleHandler = new ViaCardBundleHandler(
       repositories.cardRepository,
-      repositories.notificationRepository,
+      useCases.createNotificationUseCase,
+    );
+
+    const urlMentionBundleHandler = new UrlMentionBundleHandler(
+      repositories.cardRepository,
+      repositories.collectionRepository,
       repositories.userRepository,
       services.identityResolutionService,
-      repositories.collectionRepository,
       repositories.atUriResolutionService,
       this.configService,
+      useCases.createNotificationUseCase,
     );
 
-    const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
-      cardNotificationSaga,
-    );
-    const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
-      cardNotificationSaga,
-    );
-    const cardRemovedFromLibraryHandler =
-      new CardRemovedFromLibraryEventHandler(cardNotificationSaga);
-
-    // Collection contribution notification handlers (direct, no saga)
-    const collectionContributionHandler =
-      new CollectionContributionEventHandler(
+    const collectionContributionBundleHandler =
+      new CollectionContributionBundleHandler(
+        repositories.collectionRepository,
         useCases.createNotificationUseCase,
-        repositories.collectionRepository,
       );
-    const collectionContributionCleanupHandler =
-      new CollectionContributionCleanupEventHandler(
+
+    const subscriptionBundleHandler = new SubscriptionBundleHandler(
+      repositories.followsRepository,
+      repositories.cardRepository,
+      useCases.createNotificationUseCase,
+    );
+
+    const bundlingSaga = new CardActivityBundlingSaga(services.sagaStateStore, [
+      viaCardBundleHandler,
+      urlMentionBundleHandler,
+      collectionContributionBundleHandler,
+      subscriptionBundleHandler,
+    ]);
+
+    const cardActivityBufferingHandler = new CardActivityBufferingHandler(
+      bundlingSaga,
+    );
+
+    const cardLibraryRemovalCleanupHandler =
+      new CardLibraryRemovalCleanupHandler(
         repositories.notificationRepository,
-        repositories.collectionRepository,
+        bundlingSaga,
+      );
+
+    const cardCollectionRemovalCleanupHandler =
+      new CardCollectionRemovalCleanupHandler(
+        repositories.notificationRepository,
       );
 
     // Follow notification handlers
@@ -104,38 +123,30 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       repositories.notificationRepository,
     );
 
+    // Card add events all funnel into the bundling saga.
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
-      cardAddedToLibraryHandler,
+      cardActivityBufferingHandler,
     );
-
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
-      cardAddedToCollectionHandler,
+      cardActivityBufferingHandler,
     );
 
-    // Collection contribution handler also subscribes to CARD_ADDED_TO_COLLECTION
-    // Both handlers will process the event independently
-    await subscriber.subscribe(
-      EventNames.CARD_ADDED_TO_COLLECTION,
-      collectionContributionHandler,
-    );
-
+    // Removal events bypass the saga; cleanup is policy-specific.
     await subscriber.subscribe(
       EventNames.CARD_REMOVED_FROM_LIBRARY,
-      cardRemovedFromLibraryHandler,
+      cardLibraryRemovalCleanupHandler,
     );
-
     await subscriber.subscribe(
       EventNames.CARD_REMOVED_FROM_COLLECTION,
-      collectionContributionCleanupHandler,
+      cardCollectionRemovalCleanupHandler,
     );
 
     await subscriber.subscribe(
       EventNames.USER_FOLLOWED_TARGET,
       userFollowedTargetHandler,
     );
-
     await subscriber.subscribe(
       EventNames.USER_UNFOLLOWED_TARGET,
       userUnfollowedTargetHandler,
@@ -145,7 +156,6 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       EventNames.CONNECTION_CREATED,
       connectionCreatedHandler,
     );
-
     await subscriber.subscribe(
       EventNames.CONNECTION_REMOVED,
       connectionRemovedHandler,

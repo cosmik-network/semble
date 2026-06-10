@@ -407,6 +407,105 @@ export class NotificationService implements DomainService {
     }
   }
 
+  async createSubscribedUserAddedCardNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createSubscribedUserAddedCard(
+        recipientUserId,
+        actorUserId,
+        cardId,
+        collectionIds,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async createUserAddedCardToSubscribedCollectionNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult =
+        Notification.createUserAddedCardToSubscribedCollection(
+          recipientUserId,
+          actorUserId,
+          cardId,
+          collectionIds,
+        );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async createUserConnectedYourCollectionNotification(
     recipientUserId: CuratorId,
     actorUserId: CuratorId,

@@ -14,6 +14,8 @@ export enum NotificationType {
   USER_CONNECTED_YOUR_URL = 'USER_CONNECTED_YOUR_URL',
   USER_CONNECTED_YOUR_POST = 'USER_CONNECTED_YOUR_POST',
   USER_CONNECTED_YOUR_COLLECTION = 'USER_CONNECTED_YOUR_COLLECTION',
+  SUBSCRIBED_USER_ADDED_CARD = 'SUBSCRIBED_USER_ADDED_CARD',
+  USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION = 'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
 }
 export const NotificationTypeSchema = z.enum([
   'USER_ADDED_YOUR_CARD',
@@ -25,6 +27,8 @@ export const NotificationTypeSchema = z.enum([
   'USER_CONNECTED_YOUR_URL',
   'USER_CONNECTED_YOUR_POST',
   'USER_CONNECTED_YOUR_COLLECTION',
+  'SUBSCRIBED_USER_ADDED_CARD',
+  'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
 ]);
 
 export const BaseNotificationItemSchema = z.object({
@@ -43,6 +47,8 @@ export const CardCollectionNotificationItemSchema =
       z.literal(NotificationType.USER_ADDED_YOUR_BSKY_POST),
       z.literal(NotificationType.USER_ADDED_YOUR_COLLECTION),
       z.literal(NotificationType.USER_ADDED_TO_YOUR_COLLECTION),
+      z.literal(NotificationType.SUBSCRIBED_USER_ADDED_CARD),
+      z.literal(NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION),
     ]),
     card: UrlCardSchema,
     collections: z.array(CollectionSchema).optional(),

@@ -295,6 +295,54 @@ export class Notification extends AggregateRoot<NotificationProps> {
     });
   }
 
+  public static createSubscribedUserAddedCard(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Result<Notification> {
+    const typeResult = NotificationType.subscribedUserAddedCard();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: NotificationMetadata = {
+      cardId: cardId.getStringValue(),
+      collectionIds: collectionIds?.map((id) => id.getStringValue()),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata,
+    });
+  }
+
+  public static createUserAddedCardToSubscribedCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Result<Notification> {
+    const typeResult = NotificationType.userAddedCardToSubscribedCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: NotificationMetadata = {
+      cardId: cardId.getStringValue(),
+      collectionIds: collectionIds?.map((id) => id.getStringValue()),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata,
+    });
+  }
+
   public markAsRead(): void {
     this.props.read = true;
     this.props.updatedAt = new Date();

@@ -39,6 +39,8 @@ export interface GetCollectionPageResult {
   urlCards: CollectionPageUrlCardDTO[];
   cardCount: number;
   followerCount: number;
+  isFollowing?: boolean;
+  isSubscribed?: boolean;
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -207,8 +209,10 @@ export class GetCollectionPageUseCase implements UseCase<
 
       // Process follow status (already fetched in parallel above)
       let isFollowing: boolean | undefined = undefined;
+      let isSubscribed: boolean | undefined = undefined;
       if (followResult.isOk()) {
         isFollowing = followResult.value !== null;
+        isSubscribed = followResult.value?.isSubscribed ?? false;
       }
 
       // Process follower count (already fetched in parallel above)
@@ -235,6 +239,7 @@ export class GetCollectionPageUseCase implements UseCase<
         createdAt: collection.createdAt.toISOString(),
         updatedAt: collection.updatedAt.toISOString(),
         isFollowing,
+        isSubscribed,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(cardsResult.totalCount / limit),

@@ -13,6 +13,7 @@ export const CollectionSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   isFollowing: z.boolean().optional(),
+  isSubscribed: z.boolean().optional(),
   followerCount: z.number().optional(),
 });
 export type Collection = z.infer<typeof CollectionSchema>;
