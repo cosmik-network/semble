@@ -250,6 +250,62 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async setSubscription(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+    isSubscribed: boolean,
+    subscribedAt: Date | null,
+  ): Promise<Result<void>> {
+    try {
+      const key = `${followerId}:${targetId}:${targetType.value}`;
+      const follow = this.follows.get(key);
+      if (!follow) {
+        return ok(undefined);
+      }
+      if (isSubscribed) {
+        follow.markAsSubscribed(subscribedAt ?? new Date());
+      } else {
+        follow.markAsUnsubscribed();
+      }
+      return ok(undefined);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getSubscriptions(
+    followerId: string,
+    targetType: FollowTargetType | undefined,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>> {
+    try {
+      const allFollows: Follow[] = [];
+
+      for (const follow of this.follows.values()) {
+        if (follow.followerId.value !== followerId) continue;
+        if (!follow.isSubscribed) continue;
+        if (targetType && !follow.targetType.equals(targetType)) continue;
+        allFollows.push(follow);
+      }
+
+      // Sort by subscribedAt DESC, nulls last
+      allFollows.sort((a, b) => {
+        const aTime = a.subscribedAt?.getTime() ?? -Infinity;
+        const bTime = b.subscribedAt?.getTime() ?? -Infinity;
+        return bTime - aTime;
+      });
+
+      const totalCount = allFollows.length;
+      const offset = (options.page - 1) * options.limit;
+      const follows = allFollows.slice(offset, offset + options.limit);
+
+      return ok({ follows, totalCount });
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.follows.clear();

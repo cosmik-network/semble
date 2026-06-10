@@ -1,6 +1,14 @@
 import { initContract } from '@ts-rest/core';
 import { z } from 'zod';
-import { paths, GetGraphDataResponseSchema } from '@semble/types';
+import {
+  paths,
+  GetGraphDataResponseSchema,
+  SubscribeToTargetRequestSchema,
+  SubscribeToTargetResponseSchema,
+  UnsubscribeFromTargetRequestSchema,
+  GetMySubscriptionsParamsSchema,
+  GetMySubscriptionsResponseSchema,
+} from '@semble/types';
 
 const c = initContract();
 
@@ -45,6 +53,36 @@ export const graphContract = c.router(
       description:
         'Returns the connection graph centered on a given URL, up to the specified depth.',
       metadata: { internal: true } as const,
+    },
+    subscribeToTarget: {
+      method: 'POST',
+      path: paths.subscribeToTarget,
+      body: SubscribeToTargetRequestSchema,
+      responses: { 200: SubscribeToTargetResponseSchema },
+      summary: 'Subscribe to a user or collection',
+      description:
+        'Marks an existing follow as subscribed for the authenticated user. Requires that the user is already following the target.',
+    },
+    unsubscribeFromTarget: {
+      method: 'POST',
+      path: paths.unsubscribeFromTarget,
+      body: UnsubscribeFromTargetRequestSchema,
+      responses: { 200: z.object({ success: z.boolean() }) },
+      summary: 'Unsubscribe from a user or collection',
+      description:
+        'Clears the subscription flag on an existing follow. Idempotent.',
+    },
+    getMySubscriptions: {
+      method: 'GET',
+      path: paths.getMySubscriptions,
+      query: GetMySubscriptionsParamsSchema.extend({
+        page: z.coerce.number().optional(),
+        limit: z.coerce.number().optional(),
+      }),
+      responses: { 200: GetMySubscriptionsResponseSchema },
+      summary: 'List my subscriptions',
+      description:
+        "Returns the authenticated user's subscribed users and collections, ordered by subscribedAt DESC.",
     },
   },
   { strictStatusCodes: true },

@@ -119,6 +119,10 @@ export const paths = {
   graphData: '/network.cosmik.graphView.getData',
   userGraphData: '/network.cosmik.graphView.getUserData',
   urlGraphData: '/network.cosmik.graphView.getUrlData',
+  // subscriptions
+  subscribeToTarget: '/network.cosmik.graph.subscribe',
+  unsubscribeFromTarget: '/network.cosmik.graph.unsubscribe',
+  getMySubscriptions: '/network.cosmik.graph.getSubscriptions',
 } as const;
 
 export const routes = {
@@ -220,5 +224,14 @@ export const routes = {
     graphData: defineRoute(paths.graphData, 'GET', true),
     userGraphData: defineRoute(paths.userGraphData, 'GET', false),
     urlGraphData: defineRoute(paths.urlGraphData, 'GET', false),
+  },
+  subscriptions: {
+    subscribeToTarget: defineRoute(paths.subscribeToTarget, 'POST', true),
+    unsubscribeFromTarget: defineRoute(
+      paths.unsubscribeFromTarget,
+      'POST',
+      true,
+    ),
+    getMySubscriptions: defineRoute(paths.getMySubscriptions, 'GET', true),
   },
 } as const;

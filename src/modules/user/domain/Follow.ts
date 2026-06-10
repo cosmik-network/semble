@@ -14,6 +14,8 @@ export interface FollowProps {
   targetType: FollowTargetType;
   publishedRecordId?: PublishedRecordId;
   createdAt: Date;
+  isSubscribed?: boolean;
+  subscribedAt?: Date;
 }
 
 export class Follow extends AggregateRoot<FollowProps> {
@@ -41,8 +43,26 @@ export class Follow extends AggregateRoot<FollowProps> {
     return this.props.publishedRecordId;
   }
 
+  get isSubscribed(): boolean {
+    return this.props.isSubscribed ?? false;
+  }
+
+  get subscribedAt(): Date | undefined {
+    return this.props.subscribedAt;
+  }
+
   public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
+  }
+
+  public markAsSubscribed(at: Date = new Date()): void {
+    this.props.isSubscribed = true;
+    this.props.subscribedAt = at;
+  }
+
+  public markAsUnsubscribed(): void {
+    this.props.isSubscribed = false;
+    this.props.subscribedAt = undefined;
   }
 
   public markForRemoval(): Result<void> {

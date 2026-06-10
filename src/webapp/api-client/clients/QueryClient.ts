@@ -58,6 +58,8 @@ import {
   GetConnectionsForUrlParams,
   GetConnectionsForUrlResponse,
   GetUrlGraphDataParams,
+  GetMySubscriptionsParams,
+  GetMySubscriptionsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -505,6 +507,19 @@ export class QueryClient extends BaseClient {
       query: { url: params.url, depth: params.depth },
     });
     return unwrap<GetGraphDataResponse>(res);
+  }
+
+  async getMySubscriptions(
+    params?: GetMySubscriptionsParams,
+  ): Promise<GetMySubscriptionsResponse> {
+    const res = await this.client.graph.getMySubscriptions({
+      query: {
+        targetType: params?.targetType,
+        page: params?.page,
+        limit: params?.limit,
+      },
+    });
+    return unwrap<GetMySubscriptionsResponse>(res);
   }
 
   async getGraphData(

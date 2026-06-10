@@ -133,6 +133,8 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       target_type TEXT NOT NULL,
       published_record_id UUID REFERENCES published_records(id),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      is_subscribed BOOLEAN NOT NULL DEFAULT false,
+      subscribed_at TIMESTAMP WITH TIME ZONE,
       PRIMARY KEY (follower_id, target_id, target_type)
     )`,
 
@@ -340,6 +342,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_follows_follower_created_at ON follows(follower_id, created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_follower_subscribed ON follows(follower_id, is_subscribed, subscribed_at);
   `);
 
   // Connections table indexes

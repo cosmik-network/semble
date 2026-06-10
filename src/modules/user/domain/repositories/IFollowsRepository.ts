@@ -164,4 +164,36 @@ export interface IFollowsRepository {
       followedCollectionsCount: number;
     }>
   >;
+
+  /**
+   * Update the subscription state on an existing follow.
+   *
+   * @param followerId - DID of the follower
+   * @param targetId - ID of the target
+   * @param targetType - Type of target
+   * @param isSubscribed - New subscription state
+   * @param subscribedAt - Timestamp when subscribed (null when unsubscribing)
+   * @returns Success or error. Caller is responsible for ensuring the follow exists.
+   */
+  setSubscription(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+    isSubscribed: boolean,
+    subscribedAt: Date | null,
+  ): Promise<Result<void>>;
+
+  /**
+   * Get paginated list of subscriptions for a user, ordered by subscribedAt DESC.
+   *
+   * @param followerId - DID of the follower
+   * @param targetType - Optional type filter (USER or COLLECTION)
+   * @param options - Pagination options
+   * @returns Paginated list of subscribed Follow records and total count
+   */
+  getSubscriptions(
+    followerId: string,
+    targetType: FollowTargetType | undefined,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>>;
 }

@@ -169,6 +169,13 @@
       "when": 1780358678989,
       "tag": "0023_romantic_omega_flight",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1781121929251,
+      "tag": "0024_adorable_synch",
+      "breakpoints": true
     }
   ]
 }

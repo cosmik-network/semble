@@ -13,6 +13,8 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  SubscribeToTargetRequest,
+  SubscribeToTargetResponse,
   ListApiKeysResponse,
   CreateApiKeyRequest,
   CreateApiKeyResponse,
@@ -79,6 +81,23 @@ export class UserClient extends BaseClient {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
     const res = await this.client.users.unfollowTarget({
+      body: { targetId, targetType },
+    });
+    unwrap<unknown>(res);
+  }
+
+  async subscribeToTarget(
+    request: SubscribeToTargetRequest,
+  ): Promise<SubscribeToTargetResponse> {
+    const res = await this.client.graph.subscribeToTarget({ body: request });
+    return unwrap<SubscribeToTargetResponse>(res);
+  }
+
+  async unsubscribeFromTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    const res = await this.client.graph.unsubscribeFromTarget({
       body: { targetId, targetType },
     });
     unwrap<unknown>(res);

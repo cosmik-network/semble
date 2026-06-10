@@ -5,6 +5,7 @@ import {
   primaryKey,
   index,
   uuid,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { publishedRecords } from '../../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 
@@ -18,6 +19,8 @@ export const follows = pgTable(
       () => publishedRecords.id,
     ),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    isSubscribed: boolean('is_subscribed').notNull().default(false),
+    subscribedAt: timestamp('subscribed_at'),
   },
   (table) => ({
     pk: primaryKey({
@@ -31,6 +34,12 @@ export const follows = pgTable(
     followerCreatedAtIdx: index('idx_follows_follower_created_at').on(
       table.followerId,
       table.createdAt,
+    ),
+    // Index for GetMySubscriptions: filter by follower + isSubscribed, sorted by subscribedAt
+    followerSubscribedIdx: index('idx_follows_follower_subscribed').on(
+      table.followerId,
+      table.isSubscribed,
+      table.subscribedAt,
     ),
   }),
 );

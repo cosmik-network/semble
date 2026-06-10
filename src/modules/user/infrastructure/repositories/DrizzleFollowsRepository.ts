@@ -62,6 +62,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             targetId: row.targetId,
             targetType: targetTypeResult.value,
             createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -129,6 +131,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             targetId: row.targetId,
             targetType: targetTypeResult.value,
             createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -284,6 +288,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
           targetType: targetTypeVO.value,
           publishedRecordId,
           createdAt: row.follow.createdAt,
+          isSubscribed: row.follow.isSubscribed,
+          subscribedAt: row.follow.subscribedAt ?? undefined,
         },
         new UniqueEntityID(
           `${row.follow.followerId}:${row.follow.targetId}:${row.follow.targetType}`,
@@ -358,6 +364,8 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             targetId: row.targetId,
             targetType: targetTypeResult.value,
             createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -450,6 +458,115 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
       results.forEach((row) => followMap.set(row.targetId, true));
 
       return ok(followMap);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async setSubscription(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+    isSubscribed: boolean,
+    subscribedAt: Date | null,
+  ): Promise<Result<void>> {
+    try {
+      await this.db
+        .update(follows)
+        .set({
+          isSubscribed,
+          subscribedAt,
+        })
+        .where(
+          and(
+            eq(follows.followerId, followerId),
+            eq(follows.targetId, targetId),
+            eq(follows.targetType, targetType.value),
+          ),
+        );
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async getSubscriptions(
+    followerId: string,
+    targetType: FollowTargetType | undefined,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>> {
+    try {
+      const offset = (options.page - 1) * options.limit;
+
+      const conditions = [
+        eq(follows.followerId, followerId),
+        eq(follows.isSubscribed, true),
+      ];
+      if (targetType) {
+        conditions.push(eq(follows.targetType, targetType.value));
+      }
+
+      const countResult = await this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(follows)
+        .where(and(...conditions));
+
+      const totalCount = countResult[0]?.count ?? 0;
+
+      const results = await this.db
+        .select()
+        .from(follows)
+        .where(and(...conditions))
+        .orderBy(sql`${follows.subscribedAt} DESC NULLS LAST`)
+        .limit(options.limit)
+        .offset(offset);
+
+      const followEntities: Follow[] = [];
+
+      for (const row of results) {
+        const followerDIDResult = DID.create(row.followerId);
+        if (followerDIDResult.isErr()) {
+          console.error(
+            `Invalid follower DID: ${row.followerId}`,
+            followerDIDResult.error,
+          );
+          continue;
+        }
+
+        const targetTypeResult = FollowTargetType.create(
+          row.targetType as FollowTargetTypeEnum,
+        );
+        if (targetTypeResult.isErr()) {
+          console.error(
+            `Invalid target type: ${row.targetType}`,
+            targetTypeResult.error,
+          );
+          continue;
+        }
+
+        const followResult = Follow.create(
+          {
+            followerId: followerDIDResult.value,
+            targetId: row.targetId,
+            targetType: targetTypeResult.value,
+            createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
+          },
+          new UniqueEntityID(
+            `${row.followerId}:${row.targetId}:${row.targetType}`,
+          ),
+        );
+
+        if (followResult.isOk()) {
+          followEntities.push(followResult.value);
+        } else {
+          console.error('Failed to create Follow entity:', followResult.error);
+        }
+      }
+
+      return ok({ follows: followEntities, totalCount });
     } catch (error: any) {
       return err(error);
     }

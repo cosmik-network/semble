@@ -2,10 +2,16 @@ import { IRouter } from 'express';
 import { GetGraphDataController } from '../controllers/GetGraphDataController';
 import { GetUserGraphDataController } from '../controllers/GetUserGraphDataController';
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
+import { SubscribeToTargetController } from '../../../../user/infrastructure/http/controllers/SubscribeToTargetController';
+import { UnsubscribeFromTargetController } from '../../../../user/infrastructure/http/controllers/UnsubscribeFromTargetController';
+import { GetMySubscriptionsController } from '../../../../user/infrastructure/http/controllers/GetMySubscriptionsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 import { graphContract } from '@semble/contract';
-import { validateQuery } from 'src/shared/infrastructure/http/middleware/validateContract';
+import {
+  validateBody,
+  validateQuery,
+} from 'src/shared/infrastructure/http/middleware/validateContract';
 
 export function registerGraphRoutes(
   app: IRouter,
@@ -13,6 +19,9 @@ export function registerGraphRoutes(
   getGraphDataController: GetGraphDataController,
   getUserGraphDataController: GetUserGraphDataController,
   getUrlGraphDataController: GetUrlGraphDataController,
+  subscribeToTargetController: SubscribeToTargetController,
+  unsubscribeFromTargetController: UnsubscribeFromTargetController,
+  getMySubscriptionsController: GetMySubscriptionsController,
 ): void {
   app.get(
     routes.graph.graphData.path,
@@ -33,5 +42,26 @@ export function registerGraphRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(graphContract.urlGraphData.query),
     (req, res) => getUrlGraphDataController.execute(req, res),
+  );
+
+  app.post(
+    routes.subscriptions.subscribeToTarget.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(graphContract.subscribeToTarget.body),
+    (req, res) => subscribeToTargetController.execute(req, res),
+  );
+
+  app.post(
+    routes.subscriptions.unsubscribeFromTarget.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(graphContract.unsubscribeFromTarget.body),
+    (req, res) => unsubscribeFromTargetController.execute(req, res),
+  );
+
+  app.get(
+    routes.subscriptions.getMySubscriptions.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(graphContract.getMySubscriptions.query),
+    (req, res) => getMySubscriptionsController.execute(req, res),
   );
 }
