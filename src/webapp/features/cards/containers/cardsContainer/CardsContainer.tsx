@@ -55,7 +55,10 @@ export default function CardsContainer(props: Props) {
 
       <Container p="xs" size="xl">
         <Stack>
-          <Suspense key={suspenseKey} fallback={<CardsContainerContentSkeleton />}>
+          <Suspense
+            key={suspenseKey}
+            fallback={<CardsContainerContentSkeleton />}
+          >
             <CardsContainerContent
               handle={props.handle}
               query={debouncedSearch || undefined}
