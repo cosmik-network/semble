@@ -126,7 +126,9 @@ export class GetMyNotificationsUseCase implements UseCase<
           (n as any).connectionId !== undefined &&
           (n.type === 'USER_CONNECTED_YOUR_URL' ||
             n.type === 'USER_CONNECTED_YOUR_POST' ||
-            n.type === 'USER_CONNECTED_YOUR_COLLECTION'),
+            n.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
+            n.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
+            n.type === 'SUBSCRIBED_USER_MADE_CONNECTION'),
       );
 
       const connectionMap = new Map<string, any>();
@@ -217,7 +219,9 @@ export class GetMyNotificationsUseCase implements UseCase<
             metadata.connectionId !== undefined &&
             (notification.type === 'USER_CONNECTED_YOUR_URL' ||
               notification.type === 'USER_CONNECTED_YOUR_POST' ||
-              notification.type === 'USER_CONNECTED_YOUR_COLLECTION')
+              notification.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
+              notification.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
+              notification.type === 'SUBSCRIBED_USER_MADE_CONNECTION')
           ) {
             // Get the connection from the pre-fetched map
             const connection = connectionMap.get(metadata.connectionId);

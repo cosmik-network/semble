@@ -119,6 +119,11 @@ export const paths = {
   graphData: '/network.cosmik.graphView.getData',
   userGraphData: '/network.cosmik.graphView.getUserData',
   urlGraphData: '/network.cosmik.graphView.getUrlData',
+  // subscriptions
+  subscribeToTarget: '/network.cosmik.graph.subscribe',
+  unsubscribeFromTarget: '/network.cosmik.graph.unsubscribe',
+  updateSubscription: '/network.cosmik.graph.updateSubscription',
+  getMySubscriptions: '/network.cosmik.graph.getSubscriptions',
 } as const;
 
 export const routes = {
@@ -172,18 +177,6 @@ export const routes = {
     refreshToken: defineRoute(paths.refreshToken, 'POST', false),
     logout: defineRoute(paths.logout, 'POST', true),
     extensionTokens: defineRoute(paths.extensionTokens, 'GET', true),
-    followTarget: defineRoute(paths.followTarget, 'POST', true),
-    unfollowTarget: defineRoute(paths.unfollowTarget, 'POST', true),
-    followingUsers: defineRoute(paths.followingUsers, 'GET', false),
-    followers: defineRoute(paths.userFollowers, 'GET', false),
-    followingCollections: defineRoute(paths.followingCollections, 'GET', false),
-    followingCount: defineRoute(paths.followingCount, 'GET', false),
-    followersCount: defineRoute(paths.userFollowersCount, 'GET', false),
-    followingCollectionsCount: defineRoute(
-      paths.followingCollectionsCount,
-      'GET',
-      false,
-    ),
   },
   apiKeys: {
     listApiKeys: defineRoute(paths.listApiKeys, 'GET', true),
@@ -220,5 +213,27 @@ export const routes = {
     graphData: defineRoute(paths.graphData, 'GET', true),
     userGraphData: defineRoute(paths.userGraphData, 'GET', false),
     urlGraphData: defineRoute(paths.urlGraphData, 'GET', false),
+    followTarget: defineRoute(paths.followTarget, 'POST', true),
+    unfollowTarget: defineRoute(paths.unfollowTarget, 'POST', true),
+    followingUsers: defineRoute(paths.followingUsers, 'GET', false),
+    followers: defineRoute(paths.userFollowers, 'GET', false),
+    followingCollections: defineRoute(paths.followingCollections, 'GET', false),
+    followingCount: defineRoute(paths.followingCount, 'GET', false),
+    followersCount: defineRoute(paths.userFollowersCount, 'GET', false),
+    followingCollectionsCount: defineRoute(
+      paths.followingCollectionsCount,
+      'GET',
+      false,
+    ),
+  },
+  subscriptions: {
+    subscribeToTarget: defineRoute(paths.subscribeToTarget, 'POST', true),
+    unsubscribeFromTarget: defineRoute(
+      paths.unsubscribeFromTarget,
+      'POST',
+      true,
+    ),
+    updateSubscription: defineRoute(paths.updateSubscription, 'POST', true),
+    getMySubscriptions: defineRoute(paths.getMySubscriptions, 'GET', true),
   },
 } as const;

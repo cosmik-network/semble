@@ -13,6 +13,10 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  SubscribeToTargetRequest,
+  SubscribeToTargetResponse,
+  UpdateSubscriptionRequest,
+  UpdateSubscriptionResponse,
   ListApiKeysResponse,
   CreateApiKeyRequest,
   CreateApiKeyResponse,
@@ -70,7 +74,7 @@ export class UserClient extends BaseClient {
   async followTarget(
     request: FollowTargetRequest,
   ): Promise<FollowTargetResponse> {
-    const res = await this.client.users.followTarget({ body: request });
+    const res = await this.client.graph.followTarget({ body: request });
     return unwrap<FollowTargetResponse>(res);
   }
 
@@ -78,10 +82,34 @@ export class UserClient extends BaseClient {
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
-    const res = await this.client.users.unfollowTarget({
+    const res = await this.client.graph.unfollowTarget({
       body: { targetId, targetType },
     });
     unwrap<unknown>(res);
+  }
+
+  async subscribeToTarget(
+    request: SubscribeToTargetRequest,
+  ): Promise<SubscribeToTargetResponse> {
+    const res = await this.client.graph.subscribeToTarget({ body: request });
+    return unwrap<SubscribeToTargetResponse>(res);
+  }
+
+  async unsubscribeFromTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    const res = await this.client.graph.unsubscribeFromTarget({
+      body: { targetId, targetType },
+    });
+    unwrap<unknown>(res);
+  }
+
+  async updateSubscription(
+    request: UpdateSubscriptionRequest,
+  ): Promise<UpdateSubscriptionResponse> {
+    const res = await this.client.graph.updateSubscription({ body: request });
+    return unwrap<UpdateSubscriptionResponse>(res);
   }
 
   async listApiKeys(): Promise<ListApiKeysResponse> {

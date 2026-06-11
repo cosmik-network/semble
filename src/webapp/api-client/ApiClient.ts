@@ -88,6 +88,12 @@ import type {
   GetOpenCollectionsWithContributorParams,
   FollowTargetRequest,
   FollowTargetResponse,
+  SubscribeToTargetRequest,
+  SubscribeToTargetResponse,
+  UpdateSubscriptionRequest,
+  UpdateSubscriptionResponse,
+  GetMySubscriptionsParams,
+  GetMySubscriptionsResponse,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
   GetFollowersParams,
@@ -440,6 +446,31 @@ export class ApiClient {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
     return this.userClient.unfollowTarget(targetId, targetType);
+  }
+
+  async subscribeToTarget(
+    request: SubscribeToTargetRequest,
+  ): Promise<SubscribeToTargetResponse> {
+    return this.userClient.subscribeToTarget(request);
+  }
+
+  async unsubscribeFromTarget(
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+  ): Promise<void> {
+    return this.userClient.unsubscribeFromTarget(targetId, targetType);
+  }
+
+  async updateSubscription(
+    request: UpdateSubscriptionRequest,
+  ): Promise<UpdateSubscriptionResponse> {
+    return this.userClient.updateSubscription(request);
+  }
+
+  async getMySubscriptions(
+    params?: GetMySubscriptionsParams,
+  ): Promise<GetMySubscriptionsResponse> {
+    return this.queryClient.getMySubscriptions(params);
   }
 
   // API key operations - delegate to UserClient

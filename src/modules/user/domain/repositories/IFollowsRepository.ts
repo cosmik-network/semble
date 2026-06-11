@@ -1,6 +1,7 @@
 import { Result } from 'src/shared/core/Result';
 import { Follow } from '../Follow';
 import { FollowTargetType } from '../value-objects/FollowTargetType';
+import { SubscriptionScopeEnum } from '../value-objects/SubscriptionScope';
 
 export interface IFollowsRepository {
   /**
@@ -164,4 +165,62 @@ export interface IFollowsRepository {
       followedCollectionsCount: number;
     }>
   >;
+
+  /**
+   * Update the subscription state on an existing follow.
+   *
+   * @param followerId - DID of the follower
+   * @param targetId - ID of the target
+   * @param targetType - Type of target
+   * @param isSubscribed - New subscription state
+   * @param subscribedAt - Timestamp when subscribed (null when unsubscribing)
+   * @param scopes - Active scope set, or null when unsubscribing
+   * @returns Success or error. Caller is responsible for ensuring the follow exists.
+   */
+  setSubscription(
+    followerId: string,
+    targetId: string,
+    targetType: FollowTargetType,
+    isSubscribed: boolean,
+    subscribedAt: Date | null,
+    scopes: SubscriptionScopeEnum[] | null,
+  ): Promise<Result<void>>;
+
+  /**
+   * Get all subscribers (subscribed followers) of a target.
+   *
+   * @param targetId - ID of the target (user DID or collection UUID)
+   * @param targetType - Type of target
+   * @returns Array of Follow records where isSubscribed = true
+   */
+  getSubscribers(
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>>;
+
+  /**
+   * Get subscribers of a target that have opted into a specific scope.
+   *
+   * Used by notification handlers to fan out only to subscribers who want
+   * the given activity type.
+   */
+  getSubscribersForScope(
+    targetId: string,
+    targetType: FollowTargetType,
+    scope: SubscriptionScopeEnum,
+  ): Promise<Result<Follow[]>>;
+
+  /**
+   * Get paginated list of subscriptions for a user, ordered by subscribedAt DESC.
+   *
+   * @param followerId - DID of the follower
+   * @param targetType - Optional type filter (USER or COLLECTION)
+   * @param options - Pagination options
+   * @returns Paginated list of subscribed Follow records and total count
+   */
+  getSubscriptions(
+    followerId: string,
+    targetType: FollowTargetType | undefined,
+    options: { page: number; limit: number },
+  ): Promise<Result<{ follows: Follow[]; totalCount: number }>>;
 }
