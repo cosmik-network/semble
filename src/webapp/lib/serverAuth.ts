@@ -1,5 +1,5 @@
 import { ServerCookieAuthService } from '@/services/auth/CookieAuthService.server';
-import type { GetProfileResponse } from '@/api-client/ApiClient';
+import { routes, type GetProfileResponse } from '@/api-client/ApiClient';
 
 const ENABLE_AUTH_LOGGING = true;
 
@@ -30,14 +30,18 @@ export async function getServerAuthStatus(): Promise<{
     // Make direct API call with cookie header for server-side
     const baseUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-    const response = await fetch(`${baseUrl}/api/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `accessToken=${accessToken}`,
+    const route = routes;
+    const response = await fetch(
+      `${baseUrl}/api${route.users.myProfile.path}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `accessToken=${accessToken}`,
+        },
+        cache: 'no-store',
       },
-      cache: 'no-store',
-    });
+    );
 
     if (!response.ok) {
       if (ENABLE_AUTH_LOGGING) {
