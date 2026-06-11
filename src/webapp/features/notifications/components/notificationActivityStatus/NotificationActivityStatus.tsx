@@ -126,6 +126,25 @@ export default function NotificationActivityStatus(props: Props) {
             )}
           </Fragment>
         );
+      case NotificationType.SUBSCRIBED_USER_ADDED_CARD:
+      case NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION:
+        return (
+          <Fragment>
+            {userName}{' '}
+            {collections.length === 0 ? (
+              <Text span>added to library</Text>
+            ) : (
+              <Fragment>
+                <Text span>added to </Text>
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
+              </Fragment>
+            )}
+          </Fragment>
+        );
       case NotificationType.USER_ADDED_TO_YOUR_COLLECTION:
         return (
           <Fragment>
@@ -184,6 +203,36 @@ export default function NotificationActivityStatus(props: Props) {
         return (
           <Fragment>
             {userName} <Text span>connected your collection</Text>
+          </Fragment>
+        );
+      case NotificationType.SUBSCRIBED_USER_MADE_CONNECTION:
+        return (
+          <Fragment>
+            {userName} <Text span>made a connection</Text>
+          </Fragment>
+        );
+      case NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION:
+        return (
+          <Fragment>
+            {userName} <Text span>connected a subscribed collection</Text>
+          </Fragment>
+        );
+      case NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION:
+        return (
+          <Fragment>
+            {userName}{' '}
+            {collections.length === 0 ? (
+              <Text span>added a subscribed collection to their library</Text>
+            ) : (
+              <Fragment>
+                <Text span>added a subscribed collection to </Text>
+                {renderCollections(
+                  displayedCollections,
+                  remainingCollections,
+                  remainingCount,
+                )}
+              </Fragment>
+            )}
           </Fragment>
         );
       default:
