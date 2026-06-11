@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+export const SubscriptionScopeSchema = z.enum([
+  'CARD',
+  'CONNECTION',
+  'COLLECTION_SAVED',
+]);
+export type SubscriptionScope = z.infer<typeof SubscriptionScopeSchema>;
+
 export const LabelSchema = z.object({
   $type: z.literal('com.atproto.label.defs#label').optional(),
   ver: z.number().optional(),
@@ -22,6 +29,8 @@ export const UserSchema = z.object({
   bannerUrl: z.string().optional(),
   description: z.string().optional(),
   isFollowing: z.boolean().optional(),
+  isSubscribed: z.boolean().optional(),
+  subscriptionScopes: z.array(SubscriptionScopeSchema).optional(),
   followsYou: z.boolean().optional(),
   followerCount: z.number().optional(),
   followingCount: z.number().optional(),
@@ -42,7 +51,11 @@ export const ContributorUserSchema = UserSchema.extend({
 });
 export type ContributorUser = z.infer<typeof ContributorUserSchema>;
 
-export const UserProfileDTOSchema = UserSchema.omit({ isFollowing: true });
+export const UserProfileDTOSchema = UserSchema.omit({
+  isFollowing: true,
+  isSubscribed: true,
+  subscriptionScopes: true,
+});
 export type UserProfileDTO = z.infer<typeof UserProfileDTOSchema>;
 
 export const MinimalUserProfileSchema = UserProfileDTOSchema.omit({

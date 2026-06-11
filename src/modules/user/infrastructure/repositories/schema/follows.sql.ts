@@ -5,8 +5,11 @@ import {
   primaryKey,
   index,
   uuid,
+  boolean,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { publishedRecords } from '../../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
+import { SubscriptionScopeEnum } from '../../../domain/value-objects/SubscriptionScope';
 
 export const follows = pgTable(
   'follows',
@@ -18,6 +21,11 @@ export const follows = pgTable(
       () => publishedRecords.id,
     ),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    isSubscribed: boolean('is_subscribed').notNull().default(false),
+    subscribedAt: timestamp('subscribed_at'),
+    subscriptionScopes: jsonb('subscription_scopes').$type<
+      SubscriptionScopeEnum[]
+    >(),
   },
   (table) => ({
     pk: primaryKey({
@@ -31,6 +39,12 @@ export const follows = pgTable(
     followerCreatedAtIdx: index('idx_follows_follower_created_at').on(
       table.followerId,
       table.createdAt,
+    ),
+    // Index for GetMySubscriptions: filter by follower + isSubscribed, sorted by subscribedAt
+    followerSubscribedIdx: index('idx_follows_follower_subscribed').on(
+      table.followerId,
+      table.isSubscribed,
+      table.subscribedAt,
     ),
   }),
 );

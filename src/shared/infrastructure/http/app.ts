@@ -257,6 +257,10 @@ export const createExpressApp = (
       controllers.getGraphDataController,
       controllers.getUserGraphDataController,
       controllers.getUrlGraphDataController,
+      controllers.subscribeToTargetController,
+      controllers.unsubscribeFromTargetController,
+      controllers.updateSubscriptionController,
+      controllers.getMySubscriptionsController,
     );
 
     registerFeedRoutes(

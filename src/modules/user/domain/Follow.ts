@@ -7,6 +7,7 @@ import { FollowTargetType } from './value-objects/FollowTargetType';
 import { PublishedRecordId } from '../../cards/domain/value-objects/PublishedRecordId';
 import { UserUnfollowedTargetEvent } from './events/UserUnfollowedTargetEvent';
 import { UserFollowedTargetEvent } from './events/UserFollowedTargetEvent';
+import { SubscriptionScopeEnum } from './value-objects/SubscriptionScope';
 
 export interface FollowProps {
   followerId: DID;
@@ -14,6 +15,9 @@ export interface FollowProps {
   targetType: FollowTargetType;
   publishedRecordId?: PublishedRecordId;
   createdAt: Date;
+  isSubscribed?: boolean;
+  subscribedAt?: Date;
+  subscriptionScopes?: SubscriptionScopeEnum[];
 }
 
 export class Follow extends AggregateRoot<FollowProps> {
@@ -41,8 +45,45 @@ export class Follow extends AggregateRoot<FollowProps> {
     return this.props.publishedRecordId;
   }
 
+  get isSubscribed(): boolean {
+    return this.props.isSubscribed ?? false;
+  }
+
+  get subscribedAt(): Date | undefined {
+    return this.props.subscribedAt;
+  }
+
+  get subscriptionScopes(): SubscriptionScopeEnum[] | undefined {
+    return this.props.subscriptionScopes;
+  }
+
   public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
+  }
+
+  public markAsSubscribed(
+    scopes: SubscriptionScopeEnum[],
+    at: Date = new Date(),
+  ): void {
+    this.props.isSubscribed = true;
+    this.props.subscribedAt = at;
+    this.props.subscriptionScopes = scopes;
+  }
+
+  public markAsUnsubscribed(): void {
+    this.props.isSubscribed = false;
+    this.props.subscribedAt = undefined;
+    this.props.subscriptionScopes = undefined;
+  }
+
+  public updateSubscriptionScopes(scopes: SubscriptionScopeEnum[]): void {
+    this.props.subscriptionScopes = scopes;
+  }
+
+  public hasSubscriptionScope(scope: SubscriptionScopeEnum): boolean {
+    return (
+      this.isSubscribed && !!this.props.subscriptionScopes?.includes(scope)
+    );
   }
 
   public markForRemoval(): Result<void> {

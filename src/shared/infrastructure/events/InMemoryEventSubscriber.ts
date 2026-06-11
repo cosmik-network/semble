@@ -7,14 +7,17 @@ import { InMemoryEventPublisher } from './InMemoryEventPublisher';
 import { EventName } from './EventConfig';
 
 export class InMemoryEventSubscriber implements IEventSubscriber {
-  private handlers: Map<EventName, IEventHandler<any>> = new Map();
+  private handlers: Map<EventName, IEventHandler<any>[]> = new Map();
   private isStarted = false;
 
   async subscribe<T extends IDomainEvent>(
     eventType: EventName,
     handler: IEventHandler<T>,
   ): Promise<void> {
-    this.handlers.set(eventType, handler);
+    if (!this.handlers.has(eventType)) {
+      this.handlers.set(eventType, []);
+    }
+    this.handlers.get(eventType)!.push(handler);
 
     // Register with the static publisher
     InMemoryEventPublisher.addSubscriber(

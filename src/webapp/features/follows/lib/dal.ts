@@ -1,6 +1,6 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
-import { FollowTargetRequest } from '@semble/types';
+import { FollowTargetRequest, SubscriptionScope } from '@semble/types';
 import { cache } from 'react';
 
 export const followTarget = cache(async (request: FollowTargetRequest) => {
@@ -16,6 +16,41 @@ export const unfollowTarget = cache(
     if (!session) throw new Error('No session found');
     const client = createSembleClient();
     await client.unfollowTarget(targetId, targetType);
+  },
+);
+
+export const subscribeToTarget = cache(
+  async (
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+    scopes?: SubscriptionScope[],
+  ) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+    return client.subscribeToTarget({ targetId, targetType, scopes });
+  },
+);
+
+export const unsubscribeFromTarget = cache(
+  async (targetId: string, targetType: 'USER' | 'COLLECTION') => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+    await client.unsubscribeFromTarget(targetId, targetType);
+  },
+);
+
+export const updateSubscription = cache(
+  async (
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+    scopes: SubscriptionScope[],
+  ) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+    return client.updateSubscription({ targetId, targetType, scopes });
   },
 );
 

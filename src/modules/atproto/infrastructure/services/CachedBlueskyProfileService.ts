@@ -6,6 +6,7 @@ import {
 import { Result, ok } from 'src/shared/core/Result';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
+import { SubscriptionScope } from '@semble/types';
 
 export class CachedBlueskyProfileService implements IProfileService {
   private readonly CACHE_TTL_SECONDS = 3600 * 12; // 12 hours
@@ -58,6 +59,8 @@ export class CachedBlueskyProfileService implements IProfileService {
         try {
           const profileToCache = { ...profile };
           delete profileToCache.isFollowing;
+          delete profileToCache.isSubscribed;
+          delete profileToCache.subscriptionScopes;
           delete profileToCache.followsYou;
           await this.redis.setex(
             profileCacheKey,
@@ -72,6 +75,8 @@ export class CachedBlueskyProfileService implements IProfileService {
 
       // Add follow status if callerId is provided
       let isFollowing: boolean | undefined = undefined;
+      let isSubscribed: boolean | undefined = undefined;
+      let subscriptionScopes: SubscriptionScope[] | undefined = undefined;
       let followsYou: boolean | undefined = undefined;
       if (callerId && callerId !== userId) {
         const followResult =
@@ -83,6 +88,10 @@ export class CachedBlueskyProfileService implements IProfileService {
 
         if (followResult.isOk()) {
           isFollowing = followResult.value !== null;
+          isSubscribed = followResult.value?.isSubscribed ?? false;
+          subscriptionScopes = followResult.value?.subscriptionScopes as
+            | SubscriptionScope[]
+            | undefined;
         }
 
         // Check if the profile user follows the caller
@@ -101,6 +110,8 @@ export class CachedBlueskyProfileService implements IProfileService {
       return ok({
         ...profile,
         isFollowing,
+        isSubscribed,
+        subscriptionScopes,
         followsYou,
       });
     } catch (redisError) {

@@ -2,6 +2,7 @@ import { NotificationType } from '@semble/types';
 import { FaUserPlus } from 'react-icons/fa6';
 import { FiPlus } from 'react-icons/fi';
 import { BiLink } from 'react-icons/bi';
+import { MdNotificationsActive } from 'react-icons/md';
 import { IconType } from 'react-icons/lib';
 
 export const getNotificationTypeIcon = (
@@ -18,6 +19,12 @@ export const getNotificationTypeIcon = (
       return FiPlus;
     case NotificationType.USER_ADDED_YOUR_COLLECTION:
       return FiPlus;
+    case NotificationType.SUBSCRIBED_USER_ADDED_CARD:
+    case NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION:
+    case NotificationType.SUBSCRIBED_USER_MADE_CONNECTION:
+    case NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION:
+    case NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION:
+      return MdNotificationsActive;
     case NotificationType.USER_FOLLOWED_YOU:
       return FaUserPlus;
     case NotificationType.USER_FOLLOWED_YOUR_COLLECTION:

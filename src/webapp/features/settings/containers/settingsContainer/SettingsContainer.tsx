@@ -18,16 +18,18 @@ export default async function SettingsContainer() {
         <Suspense fallback={<AccountSummarySkeleton />}>
           <AccountSummary />
         </Suspense>
-        <Stack>
+        <Stack gap={'lg'}>
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
               Appearance
             </SettingItem>
-            <SettingItem href="/settings/advanced" icon={MdScience}>
-              Advanced
-            </SettingItem>
             <SettingItem href="/settings/feed" icon={MdEmojiNature}>
               Feed
+            </SettingItem>
+          </ButtonGroup>
+          <ButtonGroup orientation="vertical">
+            <SettingItem href="/settings/advanced" icon={MdScience}>
+              Advanced
             </SettingItem>
             <SettingItem href="/settings/api-keys" icon={MdKey}>
               API Keys
@@ -35,6 +37,8 @@ export default async function SettingsContainer() {
             {/*<SettingItem href="/settings/data-sync" icon={MdSync}>
               Data sync
             </SettingItem>*/}
+          </ButtonGroup>
+          <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
               Help
             </SettingItem>

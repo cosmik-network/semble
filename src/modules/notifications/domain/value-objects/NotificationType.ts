@@ -57,4 +57,28 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
   public static userConnectedYourCollection(): Result<NotificationType> {
     return this.create(NotificationTypeEnum.USER_CONNECTED_YOUR_COLLECTION);
   }
+
+  public static subscribedUserAddedCard(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.SUBSCRIBED_USER_ADDED_CARD);
+  }
+
+  public static userAddedCardToSubscribedCollection(): Result<NotificationType> {
+    return this.create(
+      NotificationTypeEnum.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION,
+    );
+  }
+
+  public static subscribedUserMadeConnection(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.SUBSCRIBED_USER_MADE_CONNECTION);
+  }
+
+  public static userAddedSubscribedCollection(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_ADDED_SUBSCRIBED_COLLECTION);
+  }
+
+  public static userConnectedSubscribedCollection(): Result<NotificationType> {
+    return this.create(
+      NotificationTypeEnum.USER_CONNECTED_SUBSCRIBED_COLLECTION,
+    );
+  }
 }

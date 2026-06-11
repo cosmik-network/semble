@@ -16,7 +16,7 @@ export interface BullMQEventSubscriberConfig {
 
 export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
-  private handlers: Map<EventName, IEventHandler<any>> = new Map();
+  private handlers: Map<EventName, IEventHandler<any>[]> = new Map();
   private config: BullMQEventSubscriberConfig;
 
   constructor(
@@ -30,7 +30,10 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     eventType: EventName,
     handler: IEventHandler<T>,
   ): Promise<void> {
-    this.handlers.set(eventType, handler);
+    if (!this.handlers.has(eventType)) {
+      this.handlers.set(eventType, []);
+    }
+    this.handlers.get(eventType)!.push(handler);
   }
 
   async start(): Promise<void> {
@@ -75,8 +78,8 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     const eventData = job.data;
     const eventType = eventData.eventType;
 
-    const handler = this.handlers.get(eventType);
-    if (!handler) {
+    const handlers = this.handlers.get(eventType);
+    if (!handlers || handlers.length === 0) {
       console.warn(
         `[${this.config.queueName}] No handler registered for event type: ${eventType}`,
       );
@@ -84,10 +87,31 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     }
 
     const event = this.reconstructEvent(eventData);
-    const result = await handler.handle(event);
 
-    if (result.isErr()) {
-      throw result.error;
+    // Run all handlers concurrently. A failure in one must not block others
+    // (matches InMemoryEventPublisher's per-handler isolation). Throw at the
+    // end so BullMQ retries the job if any handler failed.
+    const results = await Promise.allSettled(
+      handlers.map((h) => h.handle(event)),
+    );
+
+    const errors: unknown[] = [];
+    for (const r of results) {
+      if (r.status === 'rejected') {
+        errors.push(r.reason);
+      } else if (r.value.isErr()) {
+        errors.push(r.value.error);
+      }
+    }
+
+    if (errors.length > 0) {
+      for (const e of errors) {
+        console.error(
+          `[${this.config.queueName}] Handler error for ${eventType}:`,
+          e,
+        );
+      }
+      throw errors[0];
     }
   }
 

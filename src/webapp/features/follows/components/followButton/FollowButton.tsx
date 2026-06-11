@@ -13,6 +13,7 @@ interface Props extends Omit<
   targetHandle?: string;
   initialIsFollowing?: boolean;
   followText?: string;
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 export default function FollowButton({
@@ -21,6 +22,7 @@ export default function FollowButton({
   targetHandle,
   initialIsFollowing,
   followText,
+  onFollowChange,
   ...buttonProps
 }: Props) {
   const { isFollowing, toggleAction, setOptimisticIsFollowing } =
@@ -32,10 +34,12 @@ export default function FollowButton({
       color={isFollowing ? 'gray' : 'dark'}
       {...buttonProps}
       onClick={() => {
+        const next = !isFollowing;
         startTransition(() => {
-          setOptimisticIsFollowing(!isFollowing);
+          setOptimisticIsFollowing(next);
           toggleAction({ targetId, targetType });
         });
+        onFollowChange?.(next);
       }}
     >
       {isFollowing ? 'Following' : (followText ?? 'Follow')}

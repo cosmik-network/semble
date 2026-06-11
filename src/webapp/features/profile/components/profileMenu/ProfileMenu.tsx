@@ -16,6 +16,7 @@ import useMyProfile from '../../lib/queries/useMyProfile';
 import {
   MdOutlineBugReport,
   MdOutlineCollectionsBookmark,
+  MdOutlineInstallMobile,
   MdOutlineSmartphone,
   MdOutlineDarkMode,
   MdOutlineLightMode,
@@ -166,14 +167,22 @@ export default function ProfileMenu() {
               color="gray"
               leftSection={<TbStackForward size={22} />}
               component={Link}
-              href={
-                'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
-              }
+              href={'/ios-shortcut'}
               target="_blank"
             >
               Install iOS shortcut
             </Menu.Item>
           )}
+
+          <Menu.Item
+            color="gray"
+            leftSection={<MdOutlineInstallMobile size={22} />}
+            component={Link}
+            href={'/install-app'}
+            target="_blank"
+          >
+            Install app
+          </Menu.Item>
 
           <Menu.Item
             color="red"

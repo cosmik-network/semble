@@ -34,6 +34,7 @@ export * from './users/login';
 export * from './users/oauth';
 export * from './users/session';
 export * from './users/follow';
+export * from './users/subscriptions';
 export * from './users/apiKeys';
 
 export * from './feeds/global';

@@ -51,6 +51,10 @@ import { MarkNotificationsAsReadController } from '../../../../modules/notificat
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
 import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
 import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
+import { SubscribeToTargetController } from '../../../../modules/user/infrastructure/http/controllers/SubscribeToTargetController';
+import { UnsubscribeFromTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnsubscribeFromTargetController';
+import { UpdateSubscriptionController } from '../../../../modules/user/infrastructure/http/controllers/UpdateSubscriptionController';
+import { GetMySubscriptionsController } from '../../../../modules/user/infrastructure/http/controllers/GetMySubscriptionsController';
 import { GetFollowingUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingUsersController';
 import { GetFollowersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowersController';
 import { GetFollowingCollectionsController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingCollectionsController';
@@ -90,6 +94,10 @@ export interface Controllers {
   revokeApiKeyController: RevokeApiKeyController;
   followTargetController: FollowTargetController;
   unfollowTargetController: UnfollowTargetController;
+  subscribeToTargetController: SubscribeToTargetController;
+  unsubscribeFromTargetController: UnsubscribeFromTargetController;
+  updateSubscriptionController: UpdateSubscriptionController;
+  getMySubscriptionsController: GetMySubscriptionsController;
   getFollowingUsersController: GetFollowingUsersController;
   getFollowersController: GetFollowersController;
   getFollowingCollectionsController: GetFollowingCollectionsController;
@@ -212,6 +220,18 @@ export class ControllerFactory {
       ),
       unfollowTargetController: new UnfollowTargetController(
         useCases.unfollowTargetUseCase,
+      ),
+      subscribeToTargetController: new SubscribeToTargetController(
+        useCases.subscribeToTargetUseCase,
+      ),
+      unsubscribeFromTargetController: new UnsubscribeFromTargetController(
+        useCases.unsubscribeFromTargetUseCase,
+      ),
+      updateSubscriptionController: new UpdateSubscriptionController(
+        useCases.updateSubscriptionUseCase,
+      ),
+      getMySubscriptionsController: new GetMySubscriptionsController(
+        useCases.getMySubscriptionsUseCase,
       ),
       getFollowingUsersController: new GetFollowingUsersController(
         useCases.getFollowingUsersUseCase,

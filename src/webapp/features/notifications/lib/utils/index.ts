@@ -23,6 +23,8 @@ export const classifyNotification = (
     case NotificationType.USER_CONNECTED_YOUR_URL:
     case NotificationType.USER_CONNECTED_YOUR_POST:
     case NotificationType.USER_CONNECTED_YOUR_COLLECTION:
+    case NotificationType.SUBSCRIBED_USER_MADE_CONNECTION:
+    case NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION:
       return { kind: 'connection', item };
     case NotificationType.USER_FOLLOWED_YOU:
     case NotificationType.USER_FOLLOWED_YOUR_COLLECTION:
@@ -31,6 +33,9 @@ export const classifyNotification = (
     case NotificationType.USER_ADDED_YOUR_BSKY_POST:
     case NotificationType.USER_ADDED_YOUR_COLLECTION:
     case NotificationType.USER_ADDED_TO_YOUR_COLLECTION:
+    case NotificationType.SUBSCRIBED_USER_ADDED_CARD:
+    case NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION:
+    case NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION:
       return { kind: 'cardCollection', item };
   }
 };

@@ -13,6 +13,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 import { ProfileEnricher } from '../../services/ProfileEnricher';
+import { SubscriptionScope } from '@semble/types';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
@@ -39,6 +40,9 @@ export interface GetCollectionPageResult {
   urlCards: CollectionPageUrlCardDTO[];
   cardCount: number;
   followerCount: number;
+  isFollowing?: boolean;
+  isSubscribed?: boolean;
+  subscriptionScopes?: SubscriptionScope[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -207,8 +211,14 @@ export class GetCollectionPageUseCase implements UseCase<
 
       // Process follow status (already fetched in parallel above)
       let isFollowing: boolean | undefined = undefined;
+      let isSubscribed: boolean | undefined = undefined;
+      let subscriptionScopes: SubscriptionScope[] | undefined = undefined;
       if (followResult.isOk()) {
         isFollowing = followResult.value !== null;
+        isSubscribed = followResult.value?.isSubscribed ?? false;
+        subscriptionScopes = followResult.value?.subscriptionScopes as
+          | SubscriptionScope[]
+          | undefined;
       }
 
       // Process follower count (already fetched in parallel above)
@@ -235,6 +245,8 @@ export class GetCollectionPageUseCase implements UseCase<
         createdAt: collection.createdAt.toISOString(),
         updatedAt: collection.updatedAt.toISOString(),
         isFollowing,
+        isSubscribed,
+        subscriptionScopes,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(cardsResult.totalCount / limit),

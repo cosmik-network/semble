@@ -68,6 +68,10 @@ import { CreateNotificationUseCase } from '../../../../modules/notifications/app
 import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
 import { FollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/FollowTargetUseCase';
 import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
+import { SubscribeToTargetUseCase } from '../../../../modules/user/application/useCases/commands/SubscribeToTargetUseCase';
+import { UnsubscribeFromTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnsubscribeFromTargetUseCase';
+import { UpdateSubscriptionUseCase } from '../../../../modules/user/application/useCases/commands/UpdateSubscriptionUseCase';
+import { GetMySubscriptionsUseCase } from '../../../../modules/user/application/useCases/queries/GetMySubscriptionsUseCase';
 import { GetFollowingUsersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingUsersUseCase';
 import { GetFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersUseCase';
 import { GetFollowingCollectionsUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingCollectionsUseCase';
@@ -121,6 +125,10 @@ export interface UseCases {
   revokeApiKeyUseCase: RevokeApiKeyUseCase;
   followTargetUseCase: FollowTargetUseCase;
   unfollowTargetUseCase: UnfollowTargetUseCase;
+  subscribeToTargetUseCase: SubscribeToTargetUseCase;
+  unsubscribeFromTargetUseCase: UnsubscribeFromTargetUseCase;
+  updateSubscriptionUseCase: UpdateSubscriptionUseCase;
+  getMySubscriptionsUseCase: GetMySubscriptionsUseCase;
   getFollowingUsersUseCase: GetFollowingUsersUseCase;
   getFollowersUseCase: GetFollowersUseCase;
   getFollowingCollectionsUseCase: GetFollowingCollectionsUseCase;
@@ -275,6 +283,20 @@ export class UseCaseFactory {
         services.followPublisher,
         services.profileService,
         services.eventPublisher,
+      ),
+      subscribeToTargetUseCase: new SubscribeToTargetUseCase(
+        repositories.followsRepository,
+      ),
+      unsubscribeFromTargetUseCase: new UnsubscribeFromTargetUseCase(
+        repositories.followsRepository,
+      ),
+      updateSubscriptionUseCase: new UpdateSubscriptionUseCase(
+        repositories.followsRepository,
+      ),
+      getMySubscriptionsUseCase: new GetMySubscriptionsUseCase(
+        repositories.followsRepository,
+        services.profileService,
+        repositories.collectionRepository,
       ),
       getFollowingUsersUseCase: new GetFollowingUsersUseCase(
         repositories.followsRepository,

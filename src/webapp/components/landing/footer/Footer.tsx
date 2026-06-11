@@ -17,9 +17,7 @@ import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
-
-const IOS_SHORTCUT_HREF =
-  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6';
+import { IOS_SHORTCUT_URL } from '@/lib/consts/links';
 
 export default function Footer() {
   return (
@@ -103,7 +101,7 @@ export default function Footer() {
           </Button>
           <Button
             component="a"
-            href={IOS_SHORTCUT_HREF}
+            href={IOS_SHORTCUT_URL}
             target="_blank"
             variant="light"
             color="gray"
