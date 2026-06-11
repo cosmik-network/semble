@@ -349,7 +349,7 @@ export class QueryClient extends BaseClient {
   async getFollowingUsers(
     params: GetFollowingUsersParams,
   ): Promise<GetFollowingUsersResponse> {
-    const res = await this.client.users.followingUsers({
+    const res = await this.client.graph.followingUsers({
       query: {
         identifier: params.identifier,
         page: params.page,
@@ -362,7 +362,7 @@ export class QueryClient extends BaseClient {
   async getFollowers(
     params: GetFollowersParams,
   ): Promise<GetFollowersResponse> {
-    const res = await this.client.users.userFollowers({
+    const res = await this.client.graph.userFollowers({
       query: {
         identifier: params.identifier,
         page: params.page,
@@ -375,7 +375,7 @@ export class QueryClient extends BaseClient {
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
-    const res = await this.client.users.followingCollections({
+    const res = await this.client.graph.followingCollections({
       query: {
         identifier: params.identifier,
         page: params.page,
@@ -401,7 +401,7 @@ export class QueryClient extends BaseClient {
   async getFollowersCount(
     params: GetFollowersCountParams,
   ): Promise<GetFollowCountResponse> {
-    const res = await this.client.users.userFollowersCount({
+    const res = await this.client.graph.userFollowersCount({
       query: { identifier: params.identifier },
     });
     return unwrap<GetFollowCountResponse>(res);
@@ -410,7 +410,7 @@ export class QueryClient extends BaseClient {
   async getFollowingCollectionsCount(
     params: GetFollowingCollectionsCountParams,
   ): Promise<GetFollowCountResponse> {
-    const res = await this.client.users.followingCollectionsCount({
+    const res = await this.client.graph.followingCollectionsCount({
       query: { identifier: params.identifier },
     });
     return unwrap<GetFollowCountResponse>(res);

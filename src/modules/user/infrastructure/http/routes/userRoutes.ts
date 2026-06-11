@@ -21,7 +21,7 @@ import { CreateApiKeyController } from '../controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../controllers/RevokeApiKeyController';
 import { routes } from '@semble/types';
-import { usersContract } from '@semble/contract';
+import { usersContract, graphContract } from '@semble/contract';
 import {
   validateBody,
   validateQuery,
@@ -93,58 +93,58 @@ export function registerUserRoutes(
   );
 
   app.post(
-    routes.users.followTarget.path,
+    routes.graph.followTarget.path,
     authMiddleware.ensureAuthenticated(),
-    validateBody(usersContract.followTarget.body),
+    validateBody(graphContract.followTarget.body),
     (req, res) => followTargetController.execute(req, res),
   );
 
   app.post(
-    routes.users.unfollowTarget.path,
+    routes.graph.unfollowTarget.path,
     authMiddleware.ensureAuthenticated(),
-    validateBody(usersContract.unfollowTarget.body),
+    validateBody(graphContract.unfollowTarget.body),
     (req, res) => unfollowTargetController.execute(req, res),
   );
 
   app.get(
-    routes.users.followingUsers.path,
+    routes.graph.followingUsers.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.followingUsers.query),
+    validateQuery(graphContract.followingUsers.query),
     (req, res) => getFollowingUsersController.execute(req, res),
   );
 
   app.get(
-    routes.users.followers.path,
+    routes.graph.followers.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.userFollowers.query),
+    validateQuery(graphContract.userFollowers.query),
     (req, res) => getFollowersController.execute(req, res),
   );
 
   app.get(
-    routes.users.followingCollections.path,
+    routes.graph.followingCollections.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.followingCollections.query),
+    validateQuery(graphContract.followingCollections.query),
     (req, res) => getFollowingCollectionsController.execute(req, res),
   );
 
   app.get(
-    routes.users.followingCount.path,
+    routes.graph.followingCount.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.followingCount.query),
+    validateQuery(graphContract.followingCount.query),
     (req, res) => getFollowingCountController.execute(req, res),
   );
 
   app.get(
-    routes.users.followersCount.path,
+    routes.graph.followersCount.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.userFollowersCount.query),
+    validateQuery(graphContract.userFollowersCount.query),
     (req, res) => getFollowersCountController.execute(req, res),
   );
 
   app.get(
-    routes.users.followingCollectionsCount.path,
+    routes.graph.followingCollectionsCount.path,
     authMiddleware.optionalAuth(),
-    validateQuery(usersContract.followingCollectionsCount.query),
+    validateQuery(graphContract.followingCollectionsCount.query),
     (req, res) => getFollowingCollectionsCountController.execute(req, res),
   );
 

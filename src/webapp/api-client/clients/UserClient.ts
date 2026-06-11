@@ -74,7 +74,7 @@ export class UserClient extends BaseClient {
   async followTarget(
     request: FollowTargetRequest,
   ): Promise<FollowTargetResponse> {
-    const res = await this.client.users.followTarget({ body: request });
+    const res = await this.client.graph.followTarget({ body: request });
     return unwrap<FollowTargetResponse>(res);
   }
 
@@ -82,7 +82,7 @@ export class UserClient extends BaseClient {
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
-    const res = await this.client.users.unfollowTarget({
+    const res = await this.client.graph.unfollowTarget({
       body: { targetId, targetType },
     });
     unwrap<unknown>(res);
