@@ -27,8 +27,8 @@ import {
 import { ConnectionCreatedEventHandler } from 'src/modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionCreatedEventHandler as NotificationConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionRemovedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionRemovedEventHandler';
-import { ConnectionSubscriptionHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionSubscriptionHandler';
 import { CollectionUrlResolver } from 'src/modules/notifications/application/services/CollectionUrlResolver';
+import { BundleRecipientResolver } from 'src/modules/notifications/application/services/BundleRecipientResolver';
 
 export class InMemoryEventWorkerProcess implements IProcess {
   constructor(private configService: EnvironmentConfigService) {}
@@ -96,18 +96,21 @@ export class InMemoryEventWorkerProcess implements IProcess {
       this.configService,
     );
 
+    const bundleRecipientResolver = new BundleRecipientResolver(
+      repositories.cardRepository,
+      repositories.collectionRepository,
+      repositories.userRepository,
+      services.identityResolutionService,
+      repositories.atUriResolutionService,
+      this.configService,
+    );
+
     const subscriptionBundleHandler = new SubscriptionBundleHandler(
       repositories.followsRepository,
       repositories.cardRepository,
       useCases.createNotificationUseCase,
       collectionUrlResolver,
-    );
-
-    const connectionSubscriptionHandler = new ConnectionSubscriptionHandler(
-      repositories.connectionRepository,
-      repositories.followsRepository,
-      useCases.createNotificationUseCase,
-      collectionUrlResolver,
+      bundleRecipientResolver,
     );
 
     const notificationBundlingSaga = new CardActivityBundlingSaga(
@@ -157,6 +160,9 @@ export class InMemoryEventWorkerProcess implements IProcess {
         services.identityResolutionService,
         repositories.collectionRepository,
         repositories.atUriResolutionService,
+        repositories.followsRepository,
+        collectionUrlResolver,
+        useCases.createNotificationUseCase,
       );
 
     const connectionRemovedHandler = new ConnectionRemovedEventHandler(
@@ -219,11 +225,6 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       notificationConnectionCreatedHandler,
-    );
-
-    await subscriber.subscribe(
-      EventNames.CONNECTION_CREATED,
-      connectionSubscriptionHandler,
     );
 
     await subscriber.subscribe(

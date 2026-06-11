@@ -13,6 +13,13 @@ import { ICollectionRepository } from '../../../cards/domain/ICollectionReposito
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { DIDOrHandle } from '../../../atproto/domain/DIDOrHandle';
 import { DID } from '../../../atproto/domain/DID';
+import { IFollowsRepository } from '../../../user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
+import { SubscriptionScopeEnum } from '../../../user/domain/value-objects/SubscriptionScope';
+import { CollectionUrlResolver } from '../services/CollectionUrlResolver';
+import { CreateNotificationUseCase } from '../useCases/commands/CreateNotificationUseCase';
+import { NotificationType } from '@semble/types';
+import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
 
 export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(
@@ -24,6 +31,9 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
     private identityResolutionService: IIdentityResolutionService,
     private collectionRepository: ICollectionRepository,
     private atUriResolutionService: IAtUriResolutionService,
+    private followsRepository: IFollowsRepository,
+    private collectionUrlResolver: CollectionUrlResolver,
+    private createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
   async handle(event: ConnectionCreatedEvent): Promise<Result<void>> {
@@ -170,10 +180,96 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
       // Wait for all notifications to be created
       await Promise.all(notificationPromises);
 
+      // Subscription fan-out — exclude anyone who already got a more specific
+      // notification above (content owners + library-URL recipients) and the
+      // curator themselves.
+      const alreadyNotified = new Set<string>([curatorId.value]);
+      for (const owner of contentOwnerDids) alreadyNotified.add(owner);
+      for (const recipient of recipientUserIds) alreadyNotified.add(recipient);
+
+      await this.emitSubscriptionNotifications(
+        connection.source.url.value,
+        connection.target.url.value,
+        curatorId.value,
+        event.connectionId,
+        alreadyNotified,
+      );
+
       return ok(undefined);
     } catch (error) {
       console.error('Error handling ConnectionCreatedEvent:', error);
       return err(error as Error);
+    }
+  }
+
+  /**
+   * Fans out connection-scoped subscription notifications, skipping any
+   * recipient already targeted by a more specific notification above.
+   *
+   * - For each side of the connection that resolves to a Semble collection,
+   *   COLLECTION subscribers with CONNECTION scope →
+   *   USER_CONNECTED_SUBSCRIBED_COLLECTION.
+   * - USER subscribers with CONNECTION scope on the curator →
+   *   SUBSCRIBED_USER_MADE_CONNECTION.
+   */
+  private async emitSubscriptionNotifications(
+    sourceUrl: string,
+    targetUrl: string,
+    curatorId: string,
+    connectionId: ConnectionId,
+    alreadyNotified: Set<string>,
+  ): Promise<void> {
+    const connectionIdStr = connectionId.getStringValue();
+    const handled = new Set<string>(alreadyNotified);
+
+    // Collection-side fan-out first (more specific than user-CONNECTION).
+    for (const url of [sourceUrl, targetUrl]) {
+      const resolved = await this.collectionUrlResolver.resolve(url);
+      if (!resolved) continue;
+
+      // Collection author already gets USER_CONNECTED_YOUR_COLLECTION via the
+      // owner-notification pass above.
+      const localExcluded = new Set(handled);
+      localExcluded.add(resolved.authorDid);
+
+      const subs = await this.followsRepository.getSubscribersForScope(
+        resolved.collectionId,
+        FollowTargetType.COLLECTION,
+        SubscriptionScopeEnum.CONNECTION,
+      );
+      if (subs.isErr()) continue;
+      for (const follow of subs.value) {
+        const recipientId = follow.followerId.value;
+        if (localExcluded.has(recipientId)) continue;
+        if (handled.has(recipientId)) continue;
+        handled.add(recipientId);
+        await this.createNotificationUseCase.execute({
+          type: NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION,
+          recipientUserId: recipientId,
+          actorUserId: curatorId,
+          connectionId: connectionIdStr,
+        });
+      }
+    }
+
+    // User-CONNECTION fan-out.
+    const userSubs = await this.followsRepository.getSubscribersForScope(
+      curatorId,
+      FollowTargetType.USER,
+      SubscriptionScopeEnum.CONNECTION,
+    );
+    if (userSubs.isOk()) {
+      for (const follow of userSubs.value) {
+        const recipientId = follow.followerId.value;
+        if (handled.has(recipientId)) continue;
+        handled.add(recipientId);
+        await this.createNotificationUseCase.execute({
+          type: NotificationType.SUBSCRIBED_USER_MADE_CONNECTION,
+          recipientUserId: recipientId,
+          actorUserId: curatorId,
+          connectionId: connectionIdStr,
+        });
+      }
     }
   }
 

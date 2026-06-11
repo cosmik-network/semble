@@ -7,6 +7,7 @@ import { SubscriptionScopeEnum } from '../../../user/domain/value-objects/Subscr
 import { CreateNotificationUseCase } from '../useCases/commands/CreateNotificationUseCase';
 import { NotificationType } from '@semble/types';
 import { CollectionUrlResolver } from '../services/CollectionUrlResolver';
+import { BundleRecipientResolver } from '../services/BundleRecipientResolver';
 import {
   CardActivityBundle,
   ICardActivityBundleHandler,
@@ -22,7 +23,8 @@ import {
  * - USER subscribers with CARD scope on the actor → SUBSCRIBED_USER_ADDED_CARD.
  *
  * Dedup precedence per recipient: collection-CARD > COLLECTION_SAVED > user-CARD.
- * Excludes actor + via-card curator.
+ * Excludes actor and any recipient already receiving a specific notification
+ * from the other bundle handlers (via BundleRecipientResolver).
  */
 export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
   constructor(
@@ -30,11 +32,14 @@ export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
     private cardRepository: ICardRepository,
     private createNotificationUseCase: CreateNotificationUseCase,
     private collectionUrlResolver: CollectionUrlResolver,
+    private bundleRecipientResolver: BundleRecipientResolver,
   ) {}
 
   async handle(bundle: CardActivityBundle): Promise<Result<void>> {
     try {
-      const excluded = await this.buildExclusions(bundle);
+      const excluded =
+        await this.bundleRecipientResolver.resolveSpecificRecipients(bundle);
+      excluded.add(bundle.actorId);
       const handledRecipients = new Set<string>();
 
       // 1. Collection-CARD scope (highest specificity).
@@ -125,27 +130,6 @@ export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
       console.error('Error in SubscriptionBundleHandler:', error);
       return ok(undefined);
     }
-  }
-
-  private async buildExclusions(
-    bundle: CardActivityBundle,
-  ): Promise<Set<string>> {
-    const excluded = new Set<string>([bundle.actorId]);
-
-    const cardIdResult = CardId.createFromString(bundle.cardId);
-    if (cardIdResult.isErr()) return excluded;
-
-    const cardResult = await this.cardRepository.findById(cardIdResult.value);
-    if (cardResult.isOk() && cardResult.value && cardResult.value.viaCardId) {
-      const viaCardResult = await this.cardRepository.findById(
-        cardResult.value.viaCardId,
-      );
-      if (viaCardResult.isOk() && viaCardResult.value) {
-        excluded.add(viaCardResult.value.curatorId.value);
-      }
-    }
-
-    return excluded;
   }
 
   private async resolveCardUrlToCollection(cardId: string) {
