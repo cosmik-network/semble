@@ -1,5 +1,5 @@
 import { Result } from 'src/shared/core/Result';
-import { Label } from '@semble/types';
+import { Label, SubscriptionScope } from '@semble/types';
 
 export interface IProfileService {
   getProfile(userId: string, callerId?: string): Promise<Result<UserProfile>>;
@@ -14,6 +14,7 @@ export interface UserProfile {
   bio?: string;
   isFollowing?: boolean;
   isSubscribed?: boolean;
+  subscriptionScopes?: SubscriptionScope[];
   followsYou?: boolean;
   followerCount?: number;
   followingCount?: number;

@@ -27,6 +27,8 @@ import {
 import { ConnectionCreatedEventHandler } from 'src/modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionCreatedEventHandler as NotificationConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionRemovedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionRemovedEventHandler';
+import { ConnectionSubscriptionHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionSubscriptionHandler';
+import { CollectionUrlResolver } from 'src/modules/notifications/application/services/CollectionUrlResolver';
 
 export class InMemoryEventWorkerProcess implements IProcess {
   constructor(private configService: EnvironmentConfigService) {}
@@ -87,10 +89,25 @@ export class InMemoryEventWorkerProcess implements IProcess {
         repositories.collectionRepository,
         useCases.createNotificationUseCase,
       );
+    const collectionUrlResolver = new CollectionUrlResolver(
+      services.identityResolutionService,
+      repositories.atUriResolutionService,
+      repositories.collectionRepository,
+      this.configService,
+    );
+
     const subscriptionBundleHandler = new SubscriptionBundleHandler(
       repositories.followsRepository,
       repositories.cardRepository,
       useCases.createNotificationUseCase,
+      collectionUrlResolver,
+    );
+
+    const connectionSubscriptionHandler = new ConnectionSubscriptionHandler(
+      repositories.connectionRepository,
+      repositories.followsRepository,
+      useCases.createNotificationUseCase,
+      collectionUrlResolver,
     );
 
     const notificationBundlingSaga = new CardActivityBundlingSaga(
@@ -202,6 +219,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       notificationConnectionCreatedHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      connectionSubscriptionHandler,
     );
 
     await subscriber.subscribe(

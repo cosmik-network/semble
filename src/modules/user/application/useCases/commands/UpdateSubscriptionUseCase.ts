@@ -10,14 +10,14 @@ import {
   SubscriptionScopeEnum,
 } from '../../../domain/value-objects/SubscriptionScope';
 
-export interface SubscribeToTargetDTO {
+export interface UpdateSubscriptionDTO {
   followerId: string;
   targetId: string;
   targetType: 'USER' | 'COLLECTION';
-  scopes?: SubscriptionScopeEnum[];
+  scopes: SubscriptionScopeEnum[];
 }
 
-export interface SubscribeToTargetResponseDTO {
+export interface UpdateSubscriptionResponseDTO {
   followId: string;
   subscribedAt: string;
   scopes: SubscriptionScopeEnum[];
@@ -29,27 +29,27 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class NotFollowingError extends UseCaseError {
+export class NotSubscribedError extends UseCaseError {
   constructor() {
-    super('Must follow target before subscribing');
+    super('Not subscribed to target');
   }
 }
 
-export class SubscribeToTargetUseCase implements UseCase<
-  SubscribeToTargetDTO,
+export class UpdateSubscriptionUseCase implements UseCase<
+  UpdateSubscriptionDTO,
   Result<
-    SubscribeToTargetResponseDTO,
-    ValidationError | NotFollowingError | AppError.UnexpectedError
+    UpdateSubscriptionResponseDTO,
+    ValidationError | NotSubscribedError | AppError.UnexpectedError
   >
 > {
   constructor(private followsRepository: IFollowsRepository) {}
 
   async execute(
-    request: SubscribeToTargetDTO,
+    request: UpdateSubscriptionDTO,
   ): Promise<
     Result<
-      SubscribeToTargetResponseDTO,
-      ValidationError | NotFollowingError | AppError.UnexpectedError
+      UpdateSubscriptionResponseDTO,
+      ValidationError | NotSubscribedError | AppError.UnexpectedError
     >
   > {
     try {
@@ -74,6 +74,15 @@ export class SubscribeToTargetUseCase implements UseCase<
       }
       const targetType = targetTypeResult.value;
 
+      const scopesResult = SubscriptionScope.validForTarget(
+        request.scopes,
+        targetType,
+      );
+      if (scopesResult.isErr()) {
+        return err(new ValidationError(scopesResult.error.message));
+      }
+      const scopes = scopesResult.value;
+
       const existingFollowResult =
         await this.followsRepository.findByFollowerAndTarget(
           request.followerId,
@@ -86,26 +95,13 @@ export class SubscribeToTargetUseCase implements UseCase<
       }
 
       const follow = existingFollowResult.value;
-      if (!follow) {
-        return err(new NotFollowingError());
+      if (!follow || !follow.isSubscribed) {
+        return err(new NotSubscribedError());
       }
 
-      const requestedScopes =
-        request.scopes ?? SubscriptionScope.defaultForTarget(targetType);
-      const scopesResult = SubscriptionScope.validForTarget(
-        requestedScopes,
-        targetType,
-      );
-      if (scopesResult.isErr()) {
-        return err(new ValidationError(scopesResult.error.message));
-      }
-      const scopes = scopesResult.value;
+      follow.updateSubscriptionScopes(scopes);
 
-      // Preserve subscribedAt when already subscribed (just updating scopes).
-      const subscribedAt = follow.isSubscribed
-        ? (follow.subscribedAt ?? new Date())
-        : new Date();
-      follow.markAsSubscribed(scopes, subscribedAt);
+      const subscribedAt = follow.subscribedAt ?? new Date();
 
       const updateResult = await this.followsRepository.setSubscription(
         request.followerId,

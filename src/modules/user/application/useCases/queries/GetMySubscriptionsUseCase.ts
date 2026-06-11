@@ -7,6 +7,7 @@ import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType
 import { Collection, User } from '@semble/types';
 import { ProfileEnricher } from 'src/modules/cards/application/services/ProfileEnricher';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { SubscriptionScopeEnum } from '../../../domain/value-objects/SubscriptionScope';
 
 export interface GetMySubscriptionsQuery {
   userId: string; // DID of authenticated user
@@ -16,8 +17,18 @@ export interface GetMySubscriptionsQuery {
 }
 
 export type SubscriptionItem =
-  | { type: 'USER'; user: User; subscribedAt: string }
-  | { type: 'COLLECTION'; collection: Collection; subscribedAt: string };
+  | {
+      type: 'USER';
+      user: User;
+      subscribedAt: string;
+      scopes: SubscriptionScopeEnum[];
+    }
+  | {
+      type: 'COLLECTION';
+      collection: Collection;
+      subscribedAt: string;
+      scopes: SubscriptionScopeEnum[];
+    };
 
 export interface GetMySubscriptionsResult {
   items: SubscriptionItem[];
@@ -172,14 +183,15 @@ export class GetMySubscriptionsUseCase implements UseCase<
       const subscribedAt = (
         follow.subscribedAt ?? follow.createdAt
       ).toISOString();
+      const scopes = follow.subscriptionScopes ?? [];
       if (follow.targetType.value === 'USER') {
         const user = userMap.get(follow.targetId);
         if (!user) continue;
-        items.push({ type: 'USER', user, subscribedAt });
+        items.push({ type: 'USER', user, subscribedAt, scopes });
       } else if (follow.targetType.value === 'COLLECTION') {
         const collection = collectionMap.get(follow.targetId);
         if (!collection) continue;
-        items.push({ type: 'COLLECTION', collection, subscribedAt });
+        items.push({ type: 'COLLECTION', collection, subscribedAt, scopes });
       }
     }
 

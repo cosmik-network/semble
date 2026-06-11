@@ -1,0 +1,1 @@
+ALTER TABLE "follows" ADD COLUMN "subscription_scopes" jsonb;

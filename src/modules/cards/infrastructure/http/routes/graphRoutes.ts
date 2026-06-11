@@ -4,6 +4,7 @@ import { GetUserGraphDataController } from '../controllers/GetUserGraphDataContr
 import { GetUrlGraphDataController } from '../controllers/GetUrlGraphDataController';
 import { SubscribeToTargetController } from '../../../../user/infrastructure/http/controllers/SubscribeToTargetController';
 import { UnsubscribeFromTargetController } from '../../../../user/infrastructure/http/controllers/UnsubscribeFromTargetController';
+import { UpdateSubscriptionController } from '../../../../user/infrastructure/http/controllers/UpdateSubscriptionController';
 import { GetMySubscriptionsController } from '../../../../user/infrastructure/http/controllers/GetMySubscriptionsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
@@ -21,6 +22,7 @@ export function registerGraphRoutes(
   getUrlGraphDataController: GetUrlGraphDataController,
   subscribeToTargetController: SubscribeToTargetController,
   unsubscribeFromTargetController: UnsubscribeFromTargetController,
+  updateSubscriptionController: UpdateSubscriptionController,
   getMySubscriptionsController: GetMySubscriptionsController,
 ): void {
   app.get(
@@ -56,6 +58,13 @@ export function registerGraphRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(graphContract.unsubscribeFromTarget.body),
     (req, res) => unsubscribeFromTargetController.execute(req, res),
+  );
+
+  app.post(
+    routes.subscriptions.updateSubscription.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(graphContract.updateSubscription.body),
+    (req, res) => updateSubscriptionController.execute(req, res),
   );
 
   app.get(

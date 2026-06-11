@@ -78,6 +78,28 @@ export interface CreateUserConnectedYourCollectionNotificationDTO {
   connectionId: string;
 }
 
+export interface CreateSubscribedUserMadeConnectionNotificationDTO {
+  type: NotificationType.SUBSCRIBED_USER_MADE_CONNECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  connectionId: string;
+}
+
+export interface CreateUserAddedSubscribedCollectionNotificationDTO {
+  type: NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  cardId: string;
+  collectionIds?: string[];
+}
+
+export interface CreateUserConnectedSubscribedCollectionNotificationDTO {
+  type: NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION;
+  recipientUserId: string;
+  actorUserId: string;
+  connectionId: string;
+}
+
 export type CreateNotificationDTO =
   | CreateUserAddedYourCardNotificationDTO
   | CreateUserAddedToYourCollectionNotificationDTO
@@ -87,7 +109,10 @@ export type CreateNotificationDTO =
   | CreateUserAddedCardToSubscribedCollectionNotificationDTO
   | CreateUserConnectedYourUrlNotificationDTO
   | CreateUserConnectedYourPostNotificationDTO
-  | CreateUserConnectedYourCollectionNotificationDTO;
+  | CreateUserConnectedYourCollectionNotificationDTO
+  | CreateSubscribedUserMadeConnectionNotificationDTO
+  | CreateUserAddedSubscribedCollectionNotificationDTO
+  | CreateUserConnectedSubscribedCollectionNotificationDTO;
 
 export interface CreateNotificationResponseDTO {
   notificationId: string;
@@ -390,6 +415,70 @@ export class CreateNotificationUseCase implements UseCase<
             recipientId,
             actorId,
             connectionIdResult.value,
+          );
+      } else if (
+        request.type === NotificationType.SUBSCRIBED_USER_MADE_CONNECTION ||
+        request.type === NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION
+      ) {
+        const connectionIdResult = ConnectionId.createFromString(
+          request.connectionId,
+        );
+        if (connectionIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid connection ID: ${connectionIdResult.error.message}`,
+            ),
+          );
+        }
+
+        notificationResult =
+          request.type === NotificationType.SUBSCRIBED_USER_MADE_CONNECTION
+            ? await this.notificationService.createSubscribedUserMadeConnectionNotification(
+                recipientId,
+                actorId,
+                connectionIdResult.value,
+              )
+            : await this.notificationService.createUserConnectedSubscribedCollectionNotification(
+                recipientId,
+                actorId,
+                connectionIdResult.value,
+              );
+      } else if (
+        request.type === NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION
+      ) {
+        const cardIdResult = CardId.createFromString(request.cardId);
+        if (cardIdResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid card ID: ${cardIdResult.error.message}`,
+            ),
+          );
+        }
+        const cardId = cardIdResult.value;
+
+        let collectionIds: CollectionId[] | undefined;
+        if (request.collectionIds && request.collectionIds.length > 0) {
+          collectionIds = [];
+          for (const collectionIdStr of request.collectionIds) {
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
+            if (collectionIdResult.isErr()) {
+              return err(
+                new ValidationError(
+                  `Invalid collection ID: ${collectionIdResult.error.message}`,
+                ),
+              );
+            }
+            collectionIds.push(collectionIdResult.value);
+          }
+        }
+
+        notificationResult =
+          await this.notificationService.createUserAddedSubscribedCollectionNotification(
+            recipientId,
+            actorId,
+            cardId,
+            collectionIds,
           );
       } else {
         // Type exhaustiveness check

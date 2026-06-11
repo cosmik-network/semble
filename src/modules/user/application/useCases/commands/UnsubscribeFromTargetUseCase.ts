@@ -85,6 +85,7 @@ export class UnsubscribeFromTargetUseCase implements UseCase<
         targetType,
         false,
         null,
+        null,
       );
 
       if (updateResult.isErr()) {

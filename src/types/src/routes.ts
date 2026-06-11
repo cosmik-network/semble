@@ -122,6 +122,7 @@ export const paths = {
   // subscriptions
   subscribeToTarget: '/network.cosmik.graph.subscribe',
   unsubscribeFromTarget: '/network.cosmik.graph.unsubscribe',
+  updateSubscription: '/network.cosmik.graph.updateSubscription',
   getMySubscriptions: '/network.cosmik.graph.getSubscriptions',
 } as const;
 
@@ -232,6 +233,7 @@ export const routes = {
       'POST',
       true,
     ),
+    updateSubscription: defineRoute(paths.updateSubscription, 'POST', true),
     getMySubscriptions: defineRoute(paths.getMySubscriptions, 'GET', true),
   },
 } as const;

@@ -343,6 +343,74 @@ export class Notification extends AggregateRoot<NotificationProps> {
     });
   }
 
+  public static createSubscribedUserMadeConnection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.subscribedUserMadeConnection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
+  public static createUserAddedSubscribedCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    cardId: CardId,
+    collectionIds?: CollectionId[],
+  ): Result<Notification> {
+    const typeResult = NotificationType.userAddedSubscribedCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: NotificationMetadata = {
+      cardId: cardId.getStringValue(),
+      collectionIds: collectionIds?.map((id) => id.getStringValue()),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata,
+    });
+  }
+
+  public static createUserConnectedSubscribedCollection(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userConnectedSubscribedCollection();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
   public markAsRead(): void {
     this.props.read = true;
     this.props.updatedAt = new Date();

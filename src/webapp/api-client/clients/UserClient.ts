@@ -15,6 +15,8 @@ import {
   FollowTargetResponse,
   SubscribeToTargetRequest,
   SubscribeToTargetResponse,
+  UpdateSubscriptionRequest,
+  UpdateSubscriptionResponse,
   ListApiKeysResponse,
   CreateApiKeyRequest,
   CreateApiKeyResponse,
@@ -101,6 +103,13 @@ export class UserClient extends BaseClient {
       body: { targetId, targetType },
     });
     unwrap<unknown>(res);
+  }
+
+  async updateSubscription(
+    request: UpdateSubscriptionRequest,
+  ): Promise<UpdateSubscriptionResponse> {
+    const res = await this.client.graph.updateSubscription({ body: request });
+    return unwrap<UpdateSubscriptionResponse>(res);
   }
 
   async listApiKeys(): Promise<ListApiKeysResponse> {

@@ -70,6 +70,7 @@ import { FollowTargetUseCase } from '../../../../modules/user/application/useCas
 import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
 import { SubscribeToTargetUseCase } from '../../../../modules/user/application/useCases/commands/SubscribeToTargetUseCase';
 import { UnsubscribeFromTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnsubscribeFromTargetUseCase';
+import { UpdateSubscriptionUseCase } from '../../../../modules/user/application/useCases/commands/UpdateSubscriptionUseCase';
 import { GetMySubscriptionsUseCase } from '../../../../modules/user/application/useCases/queries/GetMySubscriptionsUseCase';
 import { GetFollowingUsersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowingUsersUseCase';
 import { GetFollowersUseCase } from '../../../../modules/user/application/useCases/queries/GetFollowersUseCase';
@@ -126,6 +127,7 @@ export interface UseCases {
   unfollowTargetUseCase: UnfollowTargetUseCase;
   subscribeToTargetUseCase: SubscribeToTargetUseCase;
   unsubscribeFromTargetUseCase: UnsubscribeFromTargetUseCase;
+  updateSubscriptionUseCase: UpdateSubscriptionUseCase;
   getMySubscriptionsUseCase: GetMySubscriptionsUseCase;
   getFollowingUsersUseCase: GetFollowingUsersUseCase;
   getFollowersUseCase: GetFollowersUseCase;
@@ -286,6 +288,9 @@ export class UseCaseFactory {
         repositories.followsRepository,
       ),
       unsubscribeFromTargetUseCase: new UnsubscribeFromTargetUseCase(
+        repositories.followsRepository,
+      ),
+      updateSubscriptionUseCase: new UpdateSubscriptionUseCase(
         repositories.followsRepository,
       ),
       getMySubscriptionsUseCase: new GetMySubscriptionsUseCase(

@@ -6,6 +6,8 @@ import {
   SubscribeToTargetRequestSchema,
   SubscribeToTargetResponseSchema,
   UnsubscribeFromTargetRequestSchema,
+  UpdateSubscriptionRequestSchema,
+  UpdateSubscriptionResponseSchema,
   GetMySubscriptionsParamsSchema,
   GetMySubscriptionsResponseSchema,
 } from '@semble/types';
@@ -71,6 +73,15 @@ export const graphContract = c.router(
       summary: 'Unsubscribe from a user or collection',
       description:
         'Clears the subscription flag on an existing follow. Idempotent.',
+    },
+    updateSubscription: {
+      method: 'POST',
+      path: paths.updateSubscription,
+      body: UpdateSubscriptionRequestSchema,
+      responses: { 200: UpdateSubscriptionResponseSchema },
+      summary: 'Update the scopes of an existing subscription',
+      description:
+        'Replaces the scope set on a subscription. Requires the caller to already be subscribed to the target.',
     },
     getMySubscriptions: {
       method: 'GET',

@@ -259,6 +259,7 @@ export const createExpressApp = (
       controllers.getUrlGraphDataController,
       controllers.subscribeToTargetController,
       controllers.unsubscribeFromTargetController,
+      controllers.updateSubscriptionController,
       controllers.getMySubscriptionsController,
     );
 

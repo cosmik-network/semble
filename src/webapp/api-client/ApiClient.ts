@@ -90,6 +90,8 @@ import type {
   FollowTargetResponse,
   SubscribeToTargetRequest,
   SubscribeToTargetResponse,
+  UpdateSubscriptionRequest,
+  UpdateSubscriptionResponse,
   GetMySubscriptionsParams,
   GetMySubscriptionsResponse,
   GetFollowingUsersParams,
@@ -457,6 +459,12 @@ export class ApiClient {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<void> {
     return this.userClient.unsubscribeFromTarget(targetId, targetType);
+  }
+
+  async updateSubscription(
+    request: UpdateSubscriptionRequest,
+  ): Promise<UpdateSubscriptionResponse> {
+    return this.userClient.updateSubscription(request);
   }
 
   async getMySubscriptions(

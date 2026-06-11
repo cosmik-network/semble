@@ -5,6 +5,7 @@ import {
   FollowTargetType,
   FollowTargetTypeEnum,
 } from '../../domain/value-objects/FollowTargetType';
+import { SubscriptionScopeEnum } from '../../domain/value-objects/SubscriptionScope';
 
 export class InMemoryFollowsRepository implements IFollowsRepository {
   private static instance: InMemoryFollowsRepository;
@@ -256,6 +257,7 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     targetType: FollowTargetType,
     isSubscribed: boolean,
     subscribedAt: Date | null,
+    scopes: SubscriptionScopeEnum[] | null,
   ): Promise<Result<void>> {
     try {
       const key = `${followerId}:${targetId}:${targetType.value}`;
@@ -264,7 +266,7 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
         return ok(undefined);
       }
       if (isSubscribed) {
-        follow.markAsSubscribed(subscribedAt ?? new Date());
+        follow.markAsSubscribed(scopes ?? [], subscribedAt ?? new Date());
       } else {
         follow.markAsUnsubscribed();
       }
@@ -285,6 +287,28 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
           follow.targetId === targetId &&
           follow.targetType.equals(targetType) &&
           follow.isSubscribed
+        ) {
+          subscribers.push(follow);
+        }
+      }
+      return ok(subscribers);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getSubscribersForScope(
+    targetId: string,
+    targetType: FollowTargetType,
+    scope: SubscriptionScopeEnum,
+  ): Promise<Result<Follow[]>> {
+    try {
+      const subscribers: Follow[] = [];
+      for (const follow of this.follows.values()) {
+        if (
+          follow.targetId === targetId &&
+          follow.targetType.equals(targetType) &&
+          follow.hasSubscriptionScope(scope)
         ) {
           subscribers.push(follow);
         }

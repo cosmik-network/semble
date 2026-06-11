@@ -13,6 +13,7 @@ import { publishedRecords } from '../../../cards/infrastructure/repositories/sch
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { UniqueEntityID } from 'src/shared/domain/UniqueEntityID';
 import { err, ok, Result } from 'src/shared/core/Result';
+import { SubscriptionScopeEnum } from '../../domain/value-objects/SubscriptionScope';
 
 export class DrizzleFollowsRepository implements IFollowsRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -64,6 +65,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             createdAt: row.createdAt,
             isSubscribed: row.isSubscribed,
             subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -133,6 +135,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             createdAt: row.createdAt,
             isSubscribed: row.isSubscribed,
             subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -290,6 +293,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
           createdAt: row.follow.createdAt,
           isSubscribed: row.follow.isSubscribed,
           subscribedAt: row.follow.subscribedAt ?? undefined,
+          subscriptionScopes: row.follow.subscriptionScopes ?? undefined,
         },
         new UniqueEntityID(
           `${row.follow.followerId}:${row.follow.targetId}:${row.follow.targetType}`,
@@ -366,6 +370,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             createdAt: row.createdAt,
             isSubscribed: row.isSubscribed,
             subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -469,6 +474,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     targetType: FollowTargetType,
     isSubscribed: boolean,
     subscribedAt: Date | null,
+    scopes: SubscriptionScopeEnum[] | null,
   ): Promise<Result<void>> {
     try {
       await this.db
@@ -476,6 +482,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
         .set({
           isSubscribed,
           subscribedAt,
+          subscriptionScopes: scopes,
         })
         .where(
           and(
@@ -538,6 +545,62 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             createdAt: row.createdAt,
             isSubscribed: row.isSubscribed,
             subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
+          },
+          new UniqueEntityID(
+            `${row.followerId}:${row.targetId}:${row.targetType}`,
+          ),
+        );
+
+        if (followResult.isOk()) {
+          followEntities.push(followResult.value);
+        }
+      }
+
+      return ok(followEntities);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getSubscribersForScope(
+    targetId: string,
+    targetType: FollowTargetType,
+    scope: SubscriptionScopeEnum,
+  ): Promise<Result<Follow[]>> {
+    try {
+      const results = await this.db
+        .select()
+        .from(follows)
+        .where(
+          and(
+            eq(follows.targetId, targetId),
+            eq(follows.targetType, targetType.value),
+            eq(follows.isSubscribed, true),
+            sql`${follows.subscriptionScopes} @> ${JSON.stringify([scope])}::jsonb`,
+          ),
+        );
+
+      const followEntities: Follow[] = [];
+
+      for (const row of results) {
+        const followerDIDResult = DID.create(row.followerId);
+        if (followerDIDResult.isErr()) continue;
+
+        const targetTypeResult = FollowTargetType.create(
+          row.targetType as FollowTargetTypeEnum,
+        );
+        if (targetTypeResult.isErr()) continue;
+
+        const followResult = Follow.create(
+          {
+            followerId: followerDIDResult.value,
+            targetId: row.targetId,
+            targetType: targetTypeResult.value,
+            createdAt: row.createdAt,
+            isSubscribed: row.isSubscribed,
+            subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,
@@ -617,6 +680,7 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
             createdAt: row.createdAt,
             isSubscribed: row.isSubscribed,
             subscribedAt: row.subscribedAt ?? undefined,
+            subscriptionScopes: row.subscriptionScopes ?? undefined,
           },
           new UniqueEntityID(
             `${row.followerId}:${row.targetId}:${row.targetType}`,

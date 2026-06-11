@@ -1,6 +1,7 @@
 import { Result } from 'src/shared/core/Result';
 import { Follow } from '../Follow';
 import { FollowTargetType } from '../value-objects/FollowTargetType';
+import { SubscriptionScopeEnum } from '../value-objects/SubscriptionScope';
 
 export interface IFollowsRepository {
   /**
@@ -173,6 +174,7 @@ export interface IFollowsRepository {
    * @param targetType - Type of target
    * @param isSubscribed - New subscription state
    * @param subscribedAt - Timestamp when subscribed (null when unsubscribing)
+   * @param scopes - Active scope set, or null when unsubscribing
    * @returns Success or error. Caller is responsible for ensuring the follow exists.
    */
   setSubscription(
@@ -181,6 +183,7 @@ export interface IFollowsRepository {
     targetType: FollowTargetType,
     isSubscribed: boolean,
     subscribedAt: Date | null,
+    scopes: SubscriptionScopeEnum[] | null,
   ): Promise<Result<void>>;
 
   /**
@@ -193,6 +196,18 @@ export interface IFollowsRepository {
   getSubscribers(
     targetId: string,
     targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>>;
+
+  /**
+   * Get subscribers of a target that have opted into a specific scope.
+   *
+   * Used by notification handlers to fan out only to subscribers who want
+   * the given activity type.
+   */
+  getSubscribersForScope(
+    targetId: string,
+    targetType: FollowTargetType,
+    scope: SubscriptionScopeEnum,
   ): Promise<Result<Follow[]>>;
 
   /**

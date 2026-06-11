@@ -135,6 +135,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       is_subscribed BOOLEAN NOT NULL DEFAULT false,
       subscribed_at TIMESTAMP WITH TIME ZONE,
+      subscription_scopes JSONB,
       PRIMARY KEY (follower_id, target_id, target_type)
     )`,
 

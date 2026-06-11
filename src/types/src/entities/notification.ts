@@ -16,6 +16,9 @@ export enum NotificationType {
   USER_CONNECTED_YOUR_COLLECTION = 'USER_CONNECTED_YOUR_COLLECTION',
   SUBSCRIBED_USER_ADDED_CARD = 'SUBSCRIBED_USER_ADDED_CARD',
   USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION = 'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
+  SUBSCRIBED_USER_MADE_CONNECTION = 'SUBSCRIBED_USER_MADE_CONNECTION',
+  USER_ADDED_SUBSCRIBED_COLLECTION = 'USER_ADDED_SUBSCRIBED_COLLECTION',
+  USER_CONNECTED_SUBSCRIBED_COLLECTION = 'USER_CONNECTED_SUBSCRIBED_COLLECTION',
 }
 export const NotificationTypeSchema = z.enum([
   'USER_ADDED_YOUR_CARD',
@@ -29,6 +32,9 @@ export const NotificationTypeSchema = z.enum([
   'USER_CONNECTED_YOUR_COLLECTION',
   'SUBSCRIBED_USER_ADDED_CARD',
   'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
+  'SUBSCRIBED_USER_MADE_CONNECTION',
+  'USER_ADDED_SUBSCRIBED_COLLECTION',
+  'USER_CONNECTED_SUBSCRIBED_COLLECTION',
 ]);
 
 export const BaseNotificationItemSchema = z.object({
@@ -49,6 +55,7 @@ export const CardCollectionNotificationItemSchema =
       z.literal(NotificationType.USER_ADDED_TO_YOUR_COLLECTION),
       z.literal(NotificationType.SUBSCRIBED_USER_ADDED_CARD),
       z.literal(NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION),
+      z.literal(NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION),
     ]),
     card: UrlCardSchema,
     collections: z.array(CollectionSchema).optional(),
@@ -76,6 +83,8 @@ export const ConnectionCreatedNotificationItemSchema =
       z.literal(NotificationType.USER_CONNECTED_YOUR_URL),
       z.literal(NotificationType.USER_CONNECTED_YOUR_POST),
       z.literal(NotificationType.USER_CONNECTED_YOUR_COLLECTION),
+      z.literal(NotificationType.SUBSCRIBED_USER_MADE_CONNECTION),
+      z.literal(NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION),
     ]),
     connection: ConnectionWithSourceAndTargetSchema,
   });

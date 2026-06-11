@@ -53,6 +53,7 @@ import { FollowTargetController } from '../../../../modules/user/infrastructure/
 import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
 import { SubscribeToTargetController } from '../../../../modules/user/infrastructure/http/controllers/SubscribeToTargetController';
 import { UnsubscribeFromTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnsubscribeFromTargetController';
+import { UpdateSubscriptionController } from '../../../../modules/user/infrastructure/http/controllers/UpdateSubscriptionController';
 import { GetMySubscriptionsController } from '../../../../modules/user/infrastructure/http/controllers/GetMySubscriptionsController';
 import { GetFollowingUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowingUsersController';
 import { GetFollowersController } from '../../../../modules/user/infrastructure/http/controllers/GetFollowersController';
@@ -95,6 +96,7 @@ export interface Controllers {
   unfollowTargetController: UnfollowTargetController;
   subscribeToTargetController: SubscribeToTargetController;
   unsubscribeFromTargetController: UnsubscribeFromTargetController;
+  updateSubscriptionController: UpdateSubscriptionController;
   getMySubscriptionsController: GetMySubscriptionsController;
   getFollowingUsersController: GetFollowingUsersController;
   getFollowersController: GetFollowersController;
@@ -224,6 +226,9 @@ export class ControllerFactory {
       ),
       unsubscribeFromTargetController: new UnsubscribeFromTargetController(
         useCases.unsubscribeFromTargetUseCase,
+      ),
+      updateSubscriptionController: new UpdateSubscriptionController(
+        useCases.updateSubscriptionUseCase,
       ),
       getMySubscriptionsController: new GetMySubscriptionsController(
         useCases.getMySubscriptionsUseCase,
