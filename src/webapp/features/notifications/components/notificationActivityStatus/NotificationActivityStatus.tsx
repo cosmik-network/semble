@@ -214,7 +214,8 @@ export default function NotificationActivityStatus(props: Props) {
       case NotificationType.USER_CONNECTED_SUBSCRIBED_COLLECTION:
         return (
           <Fragment>
-            {userName} <Text span>connected a subscribed collection</Text>
+            {userName}{' '}
+            <Text span>connected a collection you&apos;re subscribed to</Text>
           </Fragment>
         );
       case NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION:
@@ -222,10 +223,10 @@ export default function NotificationActivityStatus(props: Props) {
           <Fragment>
             {userName}{' '}
             {collections.length === 0 ? (
-              <Text span>added a subscribed collection to their library</Text>
+              <Text span>saved a collection you&apos;re subscribed to</Text>
             ) : (
               <Fragment>
-                <Text span>added a subscribed collection to </Text>
+                <Text span>added a collection you&apos;re subscribed to into </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
