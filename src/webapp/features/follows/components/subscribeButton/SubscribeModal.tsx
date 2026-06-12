@@ -100,7 +100,11 @@ function ScopeForm(props: ScopeFormProps) {
           onClick={() => props.onConfirm(selected)}
           data-autofocus
         >
-          {props.isSubscribed ? 'Save changes' : 'Subscribe'}
+          {!props.isSubscribed
+            ? 'Subscribe'
+            : selected.length === 0
+              ? 'Unsubscribe'
+              : 'Save changes'}
         </Button>
       </Group>
     </Stack>
