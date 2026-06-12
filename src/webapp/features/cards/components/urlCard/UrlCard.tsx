@@ -110,7 +110,11 @@ export default function UrlCard(props: Props) {
       onClick={handleNavigateToSemblePage}
       onAuxClick={handleAuxClick}
     >
-      <Stack justify="space-between" flex={1}>
+      <Stack
+        justify="space-between"
+        flex={1}
+        gap={settings.cardView === 'list' ? 'xs' : 'md'}
+      >
         {props.isPinnedInCollection && (
           <Group gap={5} c="dimmed">
             <BsPinFill size={12} />
@@ -134,7 +138,7 @@ export default function UrlCard(props: Props) {
           />
         )}
 
-        <Stack>
+        <Stack gap={settings.cardView === 'list' ? 'xs' : 'md'}>
           {props.showAuthor && props.cardAuthor && (
             <Group gap={'7'}>
               <Text fz={'xs'} c={'dimmed'} fw={500}>
