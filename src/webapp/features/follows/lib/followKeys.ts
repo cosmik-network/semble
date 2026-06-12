@@ -1,5 +1,11 @@
+import { FollowTargetType } from './types';
+
 export const followKeys = {
   all: () => ['follows'] as const,
+  followState: (targetType: FollowTargetType, targetId: string) =>
+    [...followKeys.all(), 'follow-state', targetType, targetId] as const,
+  subscriptionState: (targetType: FollowTargetType, targetId: string) =>
+    [...followKeys.all(), 'subscription-state', targetType, targetId] as const,
   followingUsers: (identifier: string, limit?: number) =>
     [...followKeys.all(), 'following-users', identifier, limit] as const,
   followers: (identifier: string, limit?: number) =>

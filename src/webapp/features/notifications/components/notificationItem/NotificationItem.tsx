@@ -63,7 +63,6 @@ export default function NotificationItem(props: Props) {
                 <FollowButton
                   targetId={notification.item.user.id}
                   targetType="USER"
-                  targetHandle={notification.item.user.handle}
                   initialIsFollowing={notification.item.user.isFollowing}
                 />
               ) : undefined

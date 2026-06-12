@@ -1,14 +1,17 @@
 'use client';
 
 import { ActionIcon, Tooltip } from '@mantine/core';
-import { MdNotificationAdd, MdNotificationsActive } from 'react-icons/md';
-import { useState } from 'react';
+import { useDisclosure } from '@mantine/hooks';
 import { SubscriptionScope } from '@semble/types';
+import { MdNotificationAdd, MdNotificationsActive } from 'react-icons/md';
 import SubscribeModal from './SubscribeModal';
+import { useSubscriptionState } from '../../lib/queries/useSubscriptionState';
+import { useSaveSubscription } from '../../lib/mutations/useSaveSubscription';
+import { FollowTargetType } from '../../lib/types';
 
 interface Props {
   targetId: string;
-  targetType: 'COLLECTION' | 'USER';
+  targetType: FollowTargetType;
   initialIsSubscribed?: boolean;
   initialScopes?: SubscriptionScope[];
 }
@@ -19,24 +22,31 @@ export default function SubscribeButton({
   initialIsSubscribed,
   initialScopes,
 }: Props) {
-  const [isSubscribed, setIsSubscribed] = useState(
-    initialIsSubscribed ?? false,
-  );
-  const [scopes, setScopes] = useState<SubscriptionScope[]>(
-    initialScopes ?? [],
-  );
-  const [opened, setOpened] = useState(false);
+  const target = { targetId, targetType };
+  const { isSubscribed, scopes } = useSubscriptionState(target, {
+    isSubscribed: initialIsSubscribed,
+    scopes: initialScopes,
+  });
+  const { saveSubscription } = useSaveSubscription(target);
+  const [opened, { open, close }] = useDisclosure(false);
+
+  const handleConfirm = (nextScopes: SubscriptionScope[]) => {
+    // optimistic: close right away, the bell reflects the new state
+    // immediately and rolls back with a toast if the request fails
+    close();
+    saveSubscription(nextScopes);
+  };
 
   return (
     <>
       <Tooltip label="Notification settings">
         <ActionIcon
           size="lg"
-          variant={isSubscribed ? 'filled' : 'light'}
-          color={isSubscribed ? 'tangerine' : 'gray'}
+          variant="light"
+          color="gray"
           radius="xl"
           aria-label="Notification settings"
-          onClick={() => setOpened(true)}
+          onClick={open}
         >
           {isSubscribed ? (
             <MdNotificationsActive size={18} />
@@ -48,15 +58,11 @@ export default function SubscribeButton({
 
       <SubscribeModal
         opened={opened}
-        onClose={() => setOpened(false)}
-        targetId={targetId}
+        onClose={close}
         targetType={targetType}
         isSubscribed={isSubscribed}
-        initialScopes={scopes}
-        onSubscribedChange={(next, nextScopes) => {
-          setIsSubscribed(next);
-          setScopes(next ? nextScopes : []);
-        }}
+        currentScopes={scopes}
+        onConfirm={handleConfirm}
       />
     </>
   );

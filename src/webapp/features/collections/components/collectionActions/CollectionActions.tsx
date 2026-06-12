@@ -8,15 +8,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
-import FollowButton from '@/features/follows/components/followButton/FollowButton';
-import SubscribeButton from '@/features/follows/components/subscribeButton/SubscribeButton';
+import FollowActions from '@/features/follows/components/followActions/FollowActions';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 interface Props {
   collection: Collection & {
@@ -29,8 +27,6 @@ function AuthenticatedCollectionActions({ collection }: Props) {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [showSaveToLibraryModal, setShowSaveToLibraryModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(collection.isFollowing);
-  const { data: featureFlags } = useFeatureFlags();
 
   const isAuthor = user?.handle === collection.author?.handle;
   const canAddCard =
@@ -87,21 +83,12 @@ function AuthenticatedCollectionActions({ collection }: Props) {
       </ActionIcon>
 
       {!isAuthor && (
-        <FollowButton
+        <FollowActions
           targetId={collection.id}
           targetType="COLLECTION"
-          targetHandle={collection.author.handle}
           initialIsFollowing={collection.isFollowing}
-          onFollowChange={setIsFollowing}
-        />
-      )}
-
-      {!isAuthor && isFollowing && featureFlags?.subscriptions && (
-        <SubscribeButton
-          targetId={collection.id}
-          targetType="COLLECTION"
           initialIsSubscribed={collection.isSubscribed}
-          initialScopes={collection.subscriptionScopes}
+          initialSubscriptionScopes={collection.subscriptionScopes}
         />
       )}
 

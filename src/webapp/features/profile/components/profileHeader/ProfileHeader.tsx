@@ -18,7 +18,7 @@ import { getProfile } from '../../lib/dal.server';
 import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import ProfileFollowActions from './ProfileFollowActions';
+import FollowActions from '@/features/follows/components/followActions/FollowActions';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
 import { IoSearch } from 'react-icons/io5';
@@ -66,12 +66,12 @@ export default async function ProfileHeader(props: Props) {
               />
               <Group gap={'xs'}>
                 {props.handle !== session?.handle && (
-                  <ProfileFollowActions
+                  <FollowActions
                     targetId={profile.id}
-                    targetHandle={props.handle}
+                    targetType="USER"
                     initialIsFollowing={profile.isFollowing}
                     initialIsSubscribed={profile.isSubscribed}
-                    initialScopes={profile.subscriptionScopes}
+                    initialSubscriptionScopes={profile.subscriptionScopes}
                   />
                 )}
                 <LinkActionIcon

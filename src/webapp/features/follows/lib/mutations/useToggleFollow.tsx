@@ -1,82 +1,109 @@
-import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { followTarget, unfollowTarget } from '../dal';
-import { followKeys } from '../followKeys';
+import { notifications } from '@mantine/notifications';
+import { BsExclamation } from 'react-icons/bs';
+import posthog from 'posthog-js';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
-import posthog from 'posthog-js';
-import { shouldCaptureAnalytics } from '@/features/analytics/utils';
+import { followTarget, unfollowTarget } from '../dal';
+import { followKeys } from '../followKeys';
+import { FollowTarget, SubscriptionState } from '../types';
 
-interface ToggleFollowPayload {
-  targetId: string;
-  targetType: 'USER' | 'COLLECTION';
-}
-
-function invalidateFollowQueries(
-  queryClient: ReturnType<typeof useQueryClient>,
-  targetId: string,
-  targetType: 'USER' | 'COLLECTION',
-) {
-  queryClient.invalidateQueries({ queryKey: followKeys.all() });
-  queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-  queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-
-  if (targetType === 'USER') {
-    queryClient.invalidateQueries({
-      queryKey: followKeys.followersCount(targetId),
-    });
-  } else if (targetType === 'COLLECTION') {
-    queryClient.invalidateQueries({
-      queryKey: followKeys.collectionFollowersCount(targetId),
-    });
-    queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
-  }
-}
-
-export function useToggleFollow(initialIsFollowing: boolean) {
+export function useToggleFollow(target: FollowTarget) {
   const queryClient = useQueryClient();
-  const [confirmed, setConfirmed] = useState(initialIsFollowing);
-  const [optimistic, setOptimistic] = useState(initialIsFollowing);
+
+  const followStateKey = followKeys.followState(
+    target.targetType,
+    target.targetId,
+  );
+  const subscriptionStateKey = followKeys.subscriptionState(
+    target.targetType,
+    target.targetId,
+  );
+  const mutationKey = [...followStateKey, 'toggle'];
+
+  // With rapid toggling, only the last in-flight mutation may roll back
+  // state or trigger invalidation — earlier ones have been superseded.
+  const isLastMutation = () => queryClient.isMutating({ mutationKey }) === 1;
 
   const mutation = useMutation({
-    mutationFn: async ({
-      targetId,
-      targetType,
-      currentlyFollowing,
-    }: ToggleFollowPayload & { currentlyFollowing: boolean }) => {
-      if (currentlyFollowing) {
-        await unfollowTarget(targetId, targetType);
+    mutationKey,
+    mutationFn: async (next: boolean) => {
+      if (next) {
+        await followTarget({
+          targetId: target.targetId,
+          targetType: target.targetType,
+        });
       } else {
-        await followTarget({ targetId, targetType });
+        await unfollowTarget(target.targetId, target.targetType);
       }
-      return !currentlyFollowing;
     },
-    onSuccess: (next, vars) => {
-      setConfirmed(next);
-      setOptimistic(next);
-      invalidateFollowQueries(queryClient, vars.targetId, vars.targetType);
+    onMutate: (next) => {
+      const previousFollow = queryClient.getQueryData<boolean>(followStateKey);
+      const previousSubscription =
+        queryClient.getQueryData<SubscriptionState>(subscriptionStateKey);
 
+      queryClient.setQueryData(followStateKey, next);
+      if (!next) {
+        // unfollowing also deletes the subscription server-side
+        queryClient.setQueryData<SubscriptionState>(subscriptionStateKey, {
+          isSubscribed: false,
+          scopes: [],
+        });
+      }
+
+      return { previousFollow, previousSubscription };
+    },
+    onError: (_error, _next, context) => {
+      if (isLastMutation()) {
+        queryClient.setQueryData(followStateKey, context?.previousFollow);
+        queryClient.setQueryData(
+          subscriptionStateKey,
+          context?.previousSubscription,
+        );
+      }
+      notifications.show({
+        message: 'Could not update follow',
+        position: 'top-center',
+        color: 'red',
+        title: 'Error',
+        icon: <BsExclamation />,
+      });
+      // 401 → logoutUser is handled by global MutationCache.onError in providers/tanstack.tsx
+    },
+    onSuccess: (_data, next) => {
       if (next && shouldCaptureAnalytics()) {
         posthog.capture('target_followed', {
-          target_type: vars.targetType.toLowerCase(),
+          target_type: target.targetType.toLowerCase(),
         });
       }
     },
-    onError: () => {
-      setOptimistic(confirmed);
-      // 401 → logoutUser is handled by global MutationCache.onError in providers/tanstack.tsx
+    onSettled: () => {
+      if (!isLastMutation()) return;
+
+      queryClient.invalidateQueries({ queryKey: followKeys.all() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
+      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+
+      if (target.targetType === 'USER') {
+        queryClient.invalidateQueries({
+          queryKey: followKeys.followersCount(target.targetId),
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: followKeys.collectionFollowersCount(target.targetId),
+        });
+        queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      }
     },
   });
 
-  const toggleAction = (payload: ToggleFollowPayload) => {
-    mutation.mutate({ ...payload, currentlyFollowing: confirmed });
+  const toggleFollow = () => {
+    const isFollowing =
+      queryClient.getQueryData<boolean>(followStateKey) ?? false;
+    mutation.mutate(!isFollowing);
   };
 
-  return {
-    isFollowing: optimistic,
-    toggleAction,
-    isPending: mutation.isPending,
-    setOptimisticIsFollowing: setOptimistic,
-  };
+  return { toggleFollow, isPending: mutation.isPending };
 }
