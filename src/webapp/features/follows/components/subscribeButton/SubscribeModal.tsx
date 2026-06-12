@@ -48,16 +48,10 @@ interface ScopeFormProps {
   onConfirm: (scopes: SubscriptionScope[]) => void;
 }
 
-function ScopeForm({
-  targetType,
-  isSubscribed,
-  currentScopes,
-  onCancel,
-  onConfirm,
-}: ScopeFormProps) {
-  const availableScopes = SCOPES_BY_TARGET_TYPE[targetType];
+function ScopeForm(props: ScopeFormProps) {
+  const availableScopes = SCOPES_BY_TARGET_TYPE[props.targetType];
   const [selected, setSelected] = useState<SubscriptionScope[]>(
-    isSubscribed ? currentScopes : availableScopes,
+    props.isSubscribed ? props.currentScopes : availableScopes,
   );
 
   const toggleScope = (scope: SubscriptionScope) => {
@@ -67,10 +61,10 @@ function ScopeForm({
   };
 
   const isUnchanged =
-    isSubscribed &&
-    selected.length === currentScopes.length &&
-    currentScopes.every((scope) => selected.includes(scope));
-  const isDisabled = isSubscribed ? isUnchanged : selected.length === 0;
+    props.isSubscribed &&
+    selected.length === props.currentScopes.length &&
+    props.currentScopes.every((scope) => selected.includes(scope));
+  const isDisabled = props.isSubscribed ? isUnchanged : selected.length === 0;
 
   return (
     <Stack>
@@ -88,7 +82,7 @@ function ScopeForm({
               <Stack gap={0}>
                 <Text>{SCOPE_COPY[scope].label}</Text>
                 <Text c="dimmed" fz="sm">
-                  {SCOPE_COPY[scope].description(targetType)}
+                  {SCOPE_COPY[scope].description(props.targetType)}
                 </Text>
               </Stack>
               <Checkbox.Indicator />
@@ -98,15 +92,15 @@ function ScopeForm({
       </Stack>
 
       <Group gap={'xs'} justify="flex-end">
-        <Button variant="light" color="gray" onClick={onCancel}>
+        <Button variant="light" color="gray" onClick={props.onCancel}>
           Cancel
         </Button>
         <Button
           disabled={isDisabled}
-          onClick={() => onConfirm(selected)}
+          onClick={() => props.onConfirm(selected)}
           data-autofocus
         >
-          {isSubscribed ? 'Save changes' : 'Subscribe'}
+          {props.isSubscribed ? 'Save changes' : 'Subscribe'}
         </Button>
       </Group>
     </Stack>
