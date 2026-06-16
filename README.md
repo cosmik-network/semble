@@ -1,3 +1,4 @@
+
 # Semble
 
 ![semble banner image](src/webapp/app/opengraph-image.jpg)
@@ -14,6 +15,8 @@ Learn more about Cosmik Network and Semble [here](https://blog.cosmik.network/).
 
 ## Citation
 
+[![DOI](https://zenodo.org/badge/979546235.svg)](https://doi.org/10.5281/zenodo.20618035)
+
 If you use Semble in your research or build on it, please cite it using the metadata in [`CITATION.cff`](./CITATION.cff) or the format below:
 
 ```bibtex
@@ -26,6 +29,5 @@ If you use Semble in your research or build on it, please cite it using the meta
   doi       = {10.5281/zenodo.20618035}
 }
 ```
-[![DOI](https://zenodo.org/badge/979546235.svg)](https://doi.org/10.5281/zenodo.20618035)
 
 
