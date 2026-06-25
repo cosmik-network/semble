@@ -5,8 +5,10 @@ import { useFollowState } from '../../lib/queries/useFollowState';
 import { useToggleFollow } from '../../lib/mutations/useToggleFollow';
 import { FollowTargetType } from '../../lib/types';
 
-interface Props
-  extends Omit<ButtonProps, 'onClick' | 'variant' | 'color' | 'children'> {
+interface Props extends Omit<
+  ButtonProps,
+  'onClick' | 'variant' | 'color' | 'children'
+> {
   targetId: string;
   targetType: FollowTargetType;
   initialIsFollowing?: boolean;

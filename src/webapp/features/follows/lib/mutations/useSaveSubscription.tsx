@@ -82,7 +82,11 @@ export function useSaveSubscription(target: FollowTarget) {
       // 401 → logoutUser is handled by global MutationCache.onError in providers/tanstack.tsx
     },
     onSuccess: (_data, { desiredScopes, wasSubscribed }) => {
-      if (!wasSubscribed && desiredScopes.length > 0 && shouldCaptureAnalytics()) {
+      if (
+        !wasSubscribed &&
+        desiredScopes.length > 0 &&
+        shouldCaptureAnalytics()
+      ) {
         posthog.capture('target_subscribed', {
           target_type: target.targetType.toLowerCase(),
         });

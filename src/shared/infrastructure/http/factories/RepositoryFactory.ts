@@ -59,10 +59,13 @@ import { DrizzleUserStatsRepository } from '../../../../modules/user/infrastruct
 import { IGraphQueryRepository } from '../../../../modules/cards/domain/IGraphQueryRepository';
 import { DrizzleGraphQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleGraphQueryRepository';
 import { InMemoryGraphQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryGraphQueryRepository';
+import { IProductAnalyticsQueryRepository } from '../../../../modules/analytics/domain/IProductAnalyticsQueryRepository';
+import { DrizzleProductAnalyticsQueryRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleProductAnalyticsQueryRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
   userStatsRepository: IUserStatsRepository;
+  productAnalyticsQueryRepository: IProductAnalyticsQueryRepository;
   tokenRepository: ITokenRepository;
   apiKeyRepository: IApiKeyRepository;
   cardRepository: ICardRepository;
@@ -133,10 +136,13 @@ export class RepositoryFactory {
         configService.getDatabaseConfig(),
       );
       const userStatsRepository = new DrizzleUserStatsRepository(db);
+      const productAnalyticsQueryRepository =
+        new DrizzleProductAnalyticsQueryRepository(db);
 
       return {
         userRepository,
         userStatsRepository,
+        productAnalyticsQueryRepository,
         tokenRepository,
         apiKeyRepository,
         cardRepository,
@@ -167,6 +173,8 @@ export class RepositoryFactory {
     return {
       userRepository: new DrizzleUserRepository(db),
       userStatsRepository: new DrizzleUserStatsRepository(db),
+      productAnalyticsQueryRepository:
+        new DrizzleProductAnalyticsQueryRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
       apiKeyRepository: new DrizzleApiKeyRepository(db),
       cardRepository: new DrizzleCardRepository(db),
