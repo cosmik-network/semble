@@ -144,6 +144,7 @@ export const createExpressApp = (
     statsRouter,
     services.statsApiKeyMiddleware,
     controllers.getUserStatsController,
+    repositories.productAnalyticsQueryRepository,
   );
   app.use('/api/stats', statsRouter);
 
