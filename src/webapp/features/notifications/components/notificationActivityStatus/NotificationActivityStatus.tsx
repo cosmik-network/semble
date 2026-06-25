@@ -226,7 +226,9 @@ export default function NotificationActivityStatus(props: Props) {
               <Text span>saved a collection you&apos;re subscribed to</Text>
             ) : (
               <Fragment>
-                <Text span>added a collection you&apos;re subscribed to into </Text>
+                <Text span>
+                  added a collection you&apos;re subscribed to into{' '}
+                </Text>
                 {renderCollections(
                   displayedCollections,
                   remainingCollections,
