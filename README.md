@@ -1,3 +1,4 @@
+
 # Semble
 
 ![semble banner image](src/webapp/app/opengraph-image.jpg)
@@ -11,3 +12,22 @@ Eventually, we will support _Collaborative Collections_, _Activity Feeds_ based 
 Semble is being built by [Cosmik Network](https://cosmik.network/). Get involved [here](https://cosmik.network/#connect).
 
 Learn more about Cosmik Network and Semble [here](https://blog.cosmik.network/).
+
+## Citation
+
+[![DOI](https://zenodo.org/badge/979546235.svg)](https://doi.org/10.5281/zenodo.20618035)
+
+If you use Semble in your research or build on it, please cite it using the metadata in [`CITATION.cff`](./CITATION.cff) or the format below:
+
+```bibtex
+@software{semble2025,
+  author    = {Finck, Wesley and Delfanazari, Pouria and Tamari, Ronen},
+  title     = {Semble: A social network for curating, connecting and discovering research built on the {AT} Protocol},
+  year      = {2025},
+  publisher = {Cosmik Network},
+  url       = {https://semble.so/},
+  doi       = {10.5281/zenodo.20618035}
+}
+```
+
+
