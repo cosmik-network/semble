@@ -10,6 +10,7 @@ import {
   enumerateWeekStarts,
   weekStartKey,
 } from './weekRange';
+import { EXCLUDED_ANALYTICS_USER_IDS } from './excludedUsers';
 
 interface FunnelRow {
   cohort_week_start: string | Date;
@@ -31,6 +32,14 @@ export class ActivationFunnelQueryService {
       ? sql`linked_at >= ${range.lowerBound.toISOString()}`
       : sql`TRUE`;
 
+    const excludedUsersCondition =
+      EXCLUDED_ANALYTICS_USER_IDS.length > 0
+        ? sql`id NOT IN (${sql.join(
+            EXCLUDED_ANALYTICS_USER_IDS.map((id) => sql`${id}`),
+            sql`, `,
+          )})`
+        : sql`TRUE`;
+
     const query = sql`
       WITH cohort AS (
         SELECT
@@ -40,6 +49,7 @@ export class ActivationFunnelQueryService {
         FROM users
         WHERE ${lowerCondition}
           AND linked_at < ${range.upperBoundExclusive.toISOString()}
+          AND ${excludedUsersCondition}
       ),
       r1 AS (
         SELECT DISTINCT c.user_id

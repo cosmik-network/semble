@@ -10,6 +10,7 @@ import {
   enumerateWeekStarts,
   weekStartKey,
 } from './weekRange';
+import { EXCLUDED_ANALYTICS_USER_IDS } from './excludedUsers';
 
 interface WacRow {
   week_start: string | Date;
@@ -28,6 +29,14 @@ export class WacQueryService {
     const lowerCondition = range.lowerBound
       ? sql`ts >= ${range.lowerBound.toISOString()}`
       : sql`TRUE`;
+
+    const excludedUsersCondition =
+      EXCLUDED_ANALYTICS_USER_IDS.length > 0
+        ? sql`user_id NOT IN (${sql.join(
+            EXCLUDED_ANALYTICS_USER_IDS.map((id) => sql`${id}`),
+            sql`, `,
+          )})`
+        : sql`TRUE`;
 
     const query = sql`
       WITH activity AS (
@@ -55,6 +64,7 @@ export class WacQueryService {
       FROM activity
       WHERE ${lowerCondition}
         AND ts < ${range.upperBoundExclusive.toISOString()}
+        AND ${excludedUsersCondition}
       GROUP BY week_start
       ORDER BY week_start
     `;
