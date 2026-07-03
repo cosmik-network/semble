@@ -14,6 +14,7 @@ import { registerFeedRoutes } from '../../../modules/feeds/infrastructure/http/r
 import { registerSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
 import { registerNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
 import { createTestRoutes } from './routes/testRoutes';
+import { createMcpRoutes } from '../../../modules/mcp/infrastructure/http/mcpRoutes';
 import {
   EnvironmentConfigService,
   Environment,
@@ -132,6 +133,65 @@ export const createExpressApp = (
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   </body>
 </html>`);
+  });
+
+  // MCP server (Streamable HTTP transport) — open CORS, no credentials; auth is
+  // the user's Semble API key as a Bearer token. Mounted before the /api router.
+  const apiBaseUrl = configService.getAtProtoConfig().baseUrl;
+  const mcpRouter = Router();
+  mcpRouter.use(
+    cors({
+      origin: '*',
+      credentials: false,
+      methods: ['GET', 'POST', 'DELETE'],
+      // The MCP session header must be exposed/allowed for the transport.
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-API-Key',
+        'Mcp-Session-Id',
+      ],
+      exposedHeaders: ['Mcp-Session-Id'],
+    }),
+  );
+  createMcpRoutes(
+    mcpRouter,
+    services.apiKeyService,
+    apiBaseUrl,
+    allowedOrigins,
+  );
+  app.use('/mcp', mcpRouter);
+
+  // MCP server card — enables one-click auto-discovery for MCP clients.
+  app.get('/.well-known/mcp.json', (req, res) => {
+    res.json({
+      name: 'semble',
+      description: 'Interact with your Semble cards, collections, and notes.',
+      icon: `${configService.getAppConfig().appUrl}/semble-icon-512x512.png`,
+      endpoint: `${apiBaseUrl}/mcp`,
+    });
+  });
+
+  // AI discovery document — links MCP, OpenAPI, and auth together.
+  app.get('/.well-known/ai', (req, res) => {
+    res.json({
+      aiendpoint: '1.0',
+      service: {
+        name: 'Semble',
+        description: 'Knowledge management platform built on the AT Protocol.',
+        url: configService.getAppConfig().appUrl,
+      },
+      auth: {
+        type: 'apiKey',
+        header: 'X-API-Key',
+        description: 'Pass your Semble API key in the X-API-Key header.',
+      },
+      meta: {
+        openapi_url: `${apiBaseUrl}/api/openapi.json`,
+        mcp_server_url: `${apiBaseUrl}/mcp`,
+        mcp_discovery_url: `${apiBaseUrl}/.well-known/mcp.json`,
+      },
+    });
   });
 
   // Test and stats routes — mounted before /api router to avoid prefix shadowing

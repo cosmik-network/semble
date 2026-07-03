@@ -85,6 +85,7 @@
     "@atproto/sync": "^0.1.36",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@semble/contract": "*",
     "@semble/types": "*",
     "@sentry/node": "^10.42.0",
