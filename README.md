@@ -1,4 +1,3 @@
-
 # Semble
 
 ![semble banner image](src/webapp/app/opengraph-image.jpg)
@@ -29,5 +28,3 @@ If you use Semble in your research or build on it, please cite it using the meta
   doi       = {10.5281/zenodo.20618035}
 }
 ```
-
-

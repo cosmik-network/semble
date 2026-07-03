@@ -278,7 +278,8 @@ All requests authenticate with a Semble API key sent as
   {
     uri: 'skill://semble/SKILL.md',
     name: 'Semble Agent Skill',
-    description: "Workflow instructions for using Semble's MCP tools effectively.",
+    description:
+      "Workflow instructions for using Semble's MCP tools effectively.",
     mimeType: 'text/markdown',
     read: () => SKILL_MD,
   },
@@ -301,7 +302,8 @@ export const resourceTemplates: McpResourceTemplate[] = [
   {
     uriTemplate: 'semble://collection/{collectionId}/full',
     name: 'Semble Collection (full)',
-    description: 'Full collection payload including its URL cards, for a given collection ID.',
+    description:
+      'Full collection payload including its URL cards, for a given collection ID.',
     mimeType: 'application/json',
     read: async (vars, client) => {
       const result = await client.get('/network.cosmik.collection.get', {

@@ -290,7 +290,10 @@ export const tools: McpTool[] = [
         .boolean()
         .optional()
         .describe('Only return cards not in any collection'),
-      searchText: z.string().optional().describe('Filter by title, description, or URL'),
+      searchText: z
+        .string()
+        .optional()
+        .describe('Filter by title, description, or URL'),
       sortBy: cardSortBy.optional(),
       sortOrder: sortOrder.optional(),
       page,
@@ -492,7 +495,7 @@ export const tools: McpTool[] = [
     name: 'update_collection',
     title: 'Update Collection',
     description:
-      "Use when the user asks to rename a collection, change its description, or change its access type. Note: name is required by the API even for partial edits — pass the existing name if unchanged.",
+      'Use when the user asks to rename a collection, change its description, or change its access type. Note: name is required by the API even for partial edits — pass the existing name if unchanged.',
     inputSchema: z.object({
       collectionId: z.string().describe('The collection ID'),
       name: z.string().describe('Collection name (required)'),
@@ -656,7 +659,7 @@ export const tools: McpTool[] = [
     name: 'list_contributed_collections',
     title: 'List Collections a User Contributed To',
     description:
-      'Use to find OPEN collections that a given user has contributed cards to. Takes the user\'s handle or DID.',
+      "Use to find OPEN collections that a given user has contributed cards to. Takes the user's handle or DID.",
     inputSchema: z.object({
       identifier: z.string().describe("The user's handle or DID"),
       sortBy: collectionSortBy.optional(),
@@ -848,17 +851,14 @@ export const tools: McpTool[] = [
       limit,
     }),
     handler: async (args, client) => {
-      const result = await client.get(
-        '/network.cosmik.connection.listByUser',
-        {
-          identifier: args.identifier,
-          connectionTypes: args.connectionTypes,
-          sortBy: args.sortBy,
-          sortOrder: args.sortOrder,
-          page: args.page ?? 1,
-          limit: args.limit ?? 10,
-        },
-      );
+      const result = await client.get('/network.cosmik.connection.listByUser', {
+        identifier: args.identifier,
+        connectionTypes: args.connectionTypes,
+        sortBy: args.sortBy,
+        sortOrder: args.sortOrder,
+        page: args.page ?? 1,
+        limit: args.limit ?? 10,
+      });
       return asText(result);
     },
   },
@@ -962,7 +962,7 @@ export const tools: McpTool[] = [
     name: 'get_following_feed',
     title: 'Get Following Feed',
     description:
-      "Use to see recent activity from accounts the authenticated user follows. Same filters as the global feed.",
+      'Use to see recent activity from accounts the authenticated user follows. Same filters as the global feed.',
     inputSchema: z.object({
       urlType: urlType.optional(),
       source: z
@@ -1099,11 +1099,14 @@ export const tools: McpTool[] = [
       limit,
     }),
     handler: async (args, client) => {
-      const result = await client.get('/network.cosmik.graph.getSubscriptions', {
-        targetType: args.targetType,
-        page: args.page ?? 1,
-        limit: args.limit ?? 10,
-      });
+      const result = await client.get(
+        '/network.cosmik.graph.getSubscriptions',
+        {
+          targetType: args.targetType,
+          page: args.page ?? 1,
+          limit: args.limit ?? 10,
+        },
+      );
       return asText(result);
     },
   },
@@ -1117,7 +1120,10 @@ export const tools: McpTool[] = [
     description:
       "Use to read the authenticated user's notifications. Optionally only unread ones. Notification types include USER_ADDED_YOUR_CARD, SUBSCRIBED_USER_ADDED_CARD, USER_FOLLOWED_YOU, and others.",
     inputSchema: z.object({
-      unreadOnly: z.boolean().optional().describe('Only return unread notifications'),
+      unreadOnly: z
+        .boolean()
+        .optional()
+        .describe('Only return unread notifications'),
       sortBy: z.string().optional().describe('Field to sort by'),
       sortOrder: sortOrder.optional(),
       page,
@@ -1140,24 +1146,28 @@ export const tools: McpTool[] = [
     description: 'Use to get the count of unread notifications.',
     inputSchema: z.object({}),
     handler: async (_args, client) => {
-      const result = await client.get('/network.cosmik.notification.getUnreadCount');
+      const result = await client.get(
+        '/network.cosmik.notification.getUnreadCount',
+      );
       return asText(result);
     },
   },
   {
     name: 'mark_notifications_read',
     title: 'Mark Notifications Read',
-    description:
-      'Use to mark specific notifications as read by their IDs.',
+    description: 'Use to mark specific notifications as read by their IDs.',
     inputSchema: z.object({
       notificationIds: z
         .array(z.string())
         .describe('IDs of the notifications to mark read'),
     }),
     handler: async (args, client) => {
-      const result = await client.post('/network.cosmik.notification.markRead', {
-        notificationIds: args.notificationIds,
-      });
+      const result = await client.post(
+        '/network.cosmik.notification.markRead',
+        {
+          notificationIds: args.notificationIds,
+        },
+      );
       return asText(result);
     },
   },
@@ -1167,7 +1177,10 @@ export const tools: McpTool[] = [
     description: 'Use to mark every notification as read.',
     inputSchema: z.object({}),
     handler: async (_args, client) => {
-      const result = await client.post('/network.cosmik.notification.markAllRead', {});
+      const result = await client.post(
+        '/network.cosmik.notification.markAllRead',
+        {},
+      );
       return asText(result);
     },
   },
