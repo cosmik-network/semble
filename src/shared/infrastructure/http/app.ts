@@ -136,7 +136,7 @@ export const createExpressApp = (
   });
 
   // MCP server (Streamable HTTP transport) — open CORS, no credentials; auth is
-  // the user's Semble API key as a Bearer token. Mounted before the /api router.
+  // the user's Semble API key as a X-API-Key header. Mounted before the /api router.
   const apiBaseUrl = configService.getAtProtoConfig().baseUrl;
   const mcpRouter = Router();
   mcpRouter.use(
