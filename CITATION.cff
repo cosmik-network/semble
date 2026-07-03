@@ -1,10 +1,10 @@
 cff-version: 1.2.0
-title: "Semble"
+title: 'Semble'
 version: 1.0.0
 type: software
-license: "MIT"
-abstract: "Semble is a social network for curating, connecting and discovering research built on the AT Protocol."
-message: "If you use this software, please cite it as below."
+license: 'MIT'
+abstract: 'Semble is a social network for curating, connecting and discovering research built on the AT Protocol.'
+message: 'If you use this software, please cite it as below.'
 authors:
   - given-names: Ronen
     family-names: Tamari
@@ -22,6 +22,6 @@ keywords:
   - research tools
   - curation
   - decentralized social network
-url: "https://semble.so/"
-repository-code: "https://github.com/cosmik-network/semble"
-doi: "10.5281/zenodo.20618035"
+url: 'https://semble.so/'
+repository-code: 'https://github.com/cosmik-network/semble'
+doi: '10.5281/zenodo.20618035'
