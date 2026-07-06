@@ -25,14 +25,12 @@ export default function FollowActions(props: Props) {
 
   return (
     <>
-      {isFollowing && featureFlags?.subscriptions && (
-        <SubscribeButton
-          targetId={props.targetId}
-          targetType={props.targetType}
-          initialIsSubscribed={props.initialIsSubscribed}
-          initialScopes={props.initialSubscriptionScopes}
-        />
-      )}
+      <SubscribeButton
+        targetId={props.targetId}
+        targetType={props.targetType}
+        initialIsSubscribed={props.initialIsSubscribed}
+        initialScopes={props.initialSubscriptionScopes}
+      />
       <FollowButton
         targetId={props.targetId}
         targetType={props.targetType}
