@@ -5,7 +5,7 @@ const PUBLICATION_ID =
 
 export default function EmailSubscribe() {
   return (
-    <Card p={'8'} radius={'xl'}>
+    <Card p={'8'} radius={'xl'} withBorder>
       <form action="https://leaflet.pub/api/subscribe_email" method="post">
         <Group gap={'xs'} wrap="nowrap">
           <input type="hidden" name="publication" value={PUBLICATION_ID} />
