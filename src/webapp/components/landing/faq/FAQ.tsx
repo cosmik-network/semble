@@ -62,7 +62,7 @@ export default function FAQ() {
       radius="lg"
       p={'xs'}
       w="100%"
-      maw={640}
+      maw={560}
       styles={{
         item: {
           backgroundColor:
