@@ -17,6 +17,7 @@ import {
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
+import CtaSignup from '@/assets/cta-signup.png';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
 import McpIcon from '@/assets/icons/mcp-icon.svg';
 import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
@@ -165,7 +166,7 @@ function Content(props: {
               <AuthButtons />
             </Stack>
 
-            <Stack gap={'xl'}>
+            <Stack gap={'8rem'}>
               <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails
@@ -206,7 +207,7 @@ function Content(props: {
                 <SimpleGrid
                   cols={{ base: 1, xs: 2, sm: 2, md: 2, lg: 4 }}
                   spacing={{ base: 'xs' }}
-                  mt={{ base: '3rem' }}
+                  mt={{ base: '1rem' }}
                 >
                   <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
                     <Stack justify="space-between" h="100%">
@@ -390,34 +391,48 @@ function Content(props: {
                 <FAQ />
               </Stack>
 
-              <Stack align="center" gap={'xs'}>
-                <Title order={2} ta={'center'} maw={400}>
-                  What matters to you, matters to the network
-                </Title>
-                <Text
-                  fw={600}
-                  fz={'xl'}
-                  c="#1F6144"
-                  ta={'center'}
-                  maw={340}
-                  darkHidden
-                >
-                  What will you save to Semble today?
-                </Text>
-                <Text
-                  fw={600}
-                  fz="xl"
-                  c="#1e4dd9"
-                  ta={'center'}
-                  maw={340}
-                  lightHidden
-                >
-                  What will you save to Semble today?
-                </Text>
-                <Button rightSection={<BiRightArrowAlt size={18} />}>
-                  Get Started
-                </Button>
-              </Stack>
+              <Box pos="relative" w="100%">
+                <Image
+                  src={CtaSignup.src}
+                  alt=""
+                  w="100%"
+                  h="auto"
+                  style={{ zIndex: 0 }}
+                />
+                <Center pos="absolute" inset={0} px="md">
+                  <Stack align="center" gap={'xs'}>
+                    <Title order={2} ta={'center'} maw={400}>
+                      What matters to you, matters to the network
+                    </Title>
+                    <Text
+                      fw={600}
+                      fz={'xl'}
+                      c="#1F6144"
+                      ta={'center'}
+                      maw={340}
+                      darkHidden
+                    >
+                      What will you save to Semble today?
+                    </Text>
+                    <Text
+                      fw={600}
+                      fz="xl"
+                      c="#1e4dd9"
+                      ta={'center'}
+                      maw={340}
+                      lightHidden
+                    >
+                      What will you save to Semble today?
+                    </Text>
+                    <LinkButton
+                      href="/signup"
+                      rightSection={<BiRightArrowAlt size={18} />}
+                    >
+                      Get Started
+                    </LinkButton>
+                  </Stack>
+                </Center>
+              </Box>
 
               <Stack align="center" gap={'xl'}>
                 <Stack gap={'xs'}>
@@ -441,7 +456,7 @@ function Content(props: {
                 <SimpleGrid
                   cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
                   spacing={{ base: 'xl' }}
-                  mt={{ base: '2rem' }}
+                  mt={{ base: '1rem' }}
                 >
                   {props.testimonials.map((testimonial) => (
                     <Stack key={testimonial.name} gap="xs" align="center">

@@ -19,8 +19,7 @@ export default function EmailSubscribe() {
             variant="unstyled"
             mx={'5'}
             flex={1}
-            miw={0}
-            maw={240}
+            w={{ base: 180, xs: 270 }}
           />
           <Button type="submit" size="xs" style={{ flexShrink: 0 }}>
             Get updates
