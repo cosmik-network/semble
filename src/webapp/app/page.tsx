@@ -10,6 +10,8 @@ import {
   Center,
   Group,
   Badge,
+  Button,
+  Avatar,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
@@ -18,15 +20,13 @@ import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
-import AnimatedTitle from '@/components/landing/animatedTitle/AnimatedTitle';
-import RecentActivity from '@/components/landing/recentActivity/RecentActivity';
-import RecentActivitySkeleton from '@/components/landing/recentActivity/Skeleton.RecentActivity';
 import Footer from '@/components/landing/footer/Footer';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
 import NavMenu from '@/components/landing/navMenu/NavMenu';
 import { LinkButton } from '@/components/link/MantineLink';
+import { BiRightArrowAlt } from 'react-icons/bi';
 
 export default async function Page() {
   return (
@@ -78,102 +78,195 @@ function Content() {
               >
                 Watch our talk at ATmosphereConf!
               </LinkButton>
-              <AnimatedTitle />
-
-              {/* light mode subtitle */}
-              <Title
-                order={2}
-                fw={600}
-                fz="xl"
-                c="#1F6144"
-                ta={'center'}
-                maw={450}
-                darkHidden
-              >
-                Follow your peers&apos; research trails. Surface and discover
-                new connections. Built on ATProto so you own your data.
+              <Title order={1} fw={700} fz="2.4rem" ta={'center'}>
+                Save what matters <br /> Make sense of it together
               </Title>
 
+              {/* light mode subtitle */}
+              <Text
+                fw={600}
+                fz={'xl'}
+                c="#1F6144"
+                ta={'center'}
+                maw={340}
+                darkHidden
+              >
+                Semble is a collaborative space for mapping the web, connecting
+                ideas, and building shared knowledge
+              </Text>
+
               {/* dark mode subtitle */}
-              <Title
-                order={2}
+              <Text
                 fw={600}
                 fz="xl"
                 c="#1e4dd9"
                 ta={'center'}
-                maw={450}
+                maw={340}
                 lightHidden
               >
-                Follow your peers&apos; research trails. Surface and discover
-                new connections. Built on ATProto so you own your data.
-              </Title>
+                Semble is a collaborative space for mapping the web, connecting
+                ideas, and building shared knowledge
+              </Text>
 
               <AuthButtons />
             </Stack>
 
-            <Box maw={750} w="100%">
-              <Suspense fallback={<RecentActivitySkeleton />}>
-                <RecentActivity />
-              </Suspense>
-            </Box>
+            <Stack gap={'xl'}>
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={380}>
+                  Turn bookmarks into knowledge trails
+                </Title>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Save links, connect related ideas, and curate collections on
+                  your own or collaboratively.
+                </Text>
+              </Stack>
 
-            <SimpleGrid
-              cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
-              spacing={{ base: 'xl' }}
-              mt={{ base: '1rem', xs: '5rem' }}
-            >
-              <Stack gap="xs">
-                <Image src={CurateIcon.src} alt="Curate icon" w={28} />
-                <Text>
-                  <Text fw={600} fz="lg" span>
-                    Curate your research trails.
-                  </Text>{' '}
-                  <Text fw={500} fz="lg" c="dark.2" span>
-                    Collect interesting links, add notes, and organize them into
-                    shareable collections. Build trails others can explore and
-                    extend.
-                  </Text>
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={400}>
+                  Find your way through the web with the people you trust.
+                </Title>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Save links, connect related ideas, and curate collections on
+                  your own or collaboratively.
+                </Text>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Tune your notifications to the interactions that matter to
+                  you. Explore a living map of the web that you helped create.
                 </Text>
               </Stack>
-              <Stack gap="xs">
-                <Image src={CommunityIcon.src} alt="Community icon" w={28} />
-                <Text>
-                  <Text fw={600} fz="lg" span>
-                    Connect with peers.
-                  </Text>{' '}
-                  <Text fw={500} fz="lg" c="dark.2" span>
-                    See what your peers are sharing and find new collaborators
-                    with shared interests. Experience research rabbit holes,
-                    together.
-                  </Text>
+
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={400}>
+                  Your workflow, your way.
+                </Title>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Integrate Semble into your existing knowledge workflows or
+                  create something entirely new.
+                </Text>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Use community-built plugins and automations, or tap the API to
+                  build your own — all on top of a living network.
                 </Text>
               </Stack>
-              <Stack gap="xs">
-                <Image src={DBIcon.src} alt="Database icon" w={28} />
-                <Text>
-                  <Text fw={600} fz="lg" span>
-                    Own your data.
-                  </Text>{' '}
-                  <Text fw={500} fz="lg" c="dark.2" span>
-                    Built on ATProto, new apps will come to you. No more
-                    rebuilding your social graph and data when apps pivot and
-                    shut down.
-                  </Text>
+
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={400}>
+                  What you make here stays yours
+                </Title>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Semble is built on the open social web, so your content,
+                  identity, and social connections are owned by you, not us.
+                </Text>
+                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  Use them in other apps, build on them however you want, and if
+                  you ever decide to leave, take everything with you.
                 </Text>
               </Stack>
-              <Stack gap="xs">
-                <Image src={BigPictureIcon.src} alt="Big picture icon" w={28} />
-                <Text>
-                  <Text fw={600} fz="lg" span>
-                    See the bigger picture.
-                  </Text>{' '}
-                  <Text fw={500} fz="lg" c="dark.2" span>
-                    Find what&apos;s relevant through your network. Get the
-                    extra context that matters before you dive into content.
-                  </Text>
-                </Text>
+
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={350}>
+                  Things you might be wondering about
+                </Title>
               </Stack>
-            </SimpleGrid>
+
+              <Stack align="center" gap={'xs'}>
+                <Title order={2} ta={'center'} maw={400}>
+                  What matters to you, matters to the network
+                </Title>
+                <Text
+                  fw={600}
+                  fz={'xl'}
+                  c="#1F6144"
+                  ta={'center'}
+                  maw={340}
+                  darkHidden
+                >
+                  What will you save to Semble today?
+                </Text>
+                <Text
+                  fw={600}
+                  fz="xl"
+                  c="#1e4dd9"
+                  ta={'center'}
+                  maw={340}
+                  lightHidden
+                >
+                  What will you save to Semble today?
+                </Text>
+                <Button rightSection={<BiRightArrowAlt size={18} />}>
+                  Get Started
+                </Button>
+              </Stack>
+
+              <Stack align="center" gap={'xl'}>
+                <Stack gap={'xs'}>
+                  <Title order={2} ta={'center'} maw={400}>
+                    What’s the word on Semble?
+                  </Title>
+                  <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
+                    We put them all in a collection, of course
+                  </Text>
+                </Stack>
+                <SimpleGrid
+                  cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
+                  spacing={{ base: 'xl' }}
+                >
+                  <Stack gap="xs" align="center">
+                    <Group gap={'xs'}>
+                      <Avatar src={CurateIcon.src} radius={'xl'} />
+                      <Text fw={600} fz="lg">
+                        Mark
+                      </Text>
+                    </Group>
+                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                      Becoming risky taking a *quick* look @semble.so of a
+                      morning...so many inviting rabbit holes to get drawn down!
+                    </Text>
+                  </Stack>
+
+                  <Stack gap="xs" align="center">
+                    <Group gap={'xs'}>
+                      <Avatar src={CurateIcon.src} radius={'xl'} />
+                      <Text fw={600} fz="lg">
+                        Brady Hawkins
+                      </Text>
+                    </Group>
+                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                      The articles that people are bookmarking on @semble.so are
+                      high quality. It's quickly becoming my go to place to
+                      consume dev content
+                    </Text>
+                  </Stack>
+
+                  <Stack gap="xs" align="center">
+                    <Group gap={'xs'}>
+                      <Avatar src={CurateIcon.src} radius={'xl'} />
+                      <Text fw={600} fz="lg">
+                        Victoria
+                      </Text>
+                    </Group>
+                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                      “I love seeing notifications about a new connection being
+                      added to a card on Semble. Sometimes I discover some cool
+                      stuff I haven't seen before.”
+                    </Text>
+                  </Stack>
+
+                  <Stack gap="xs" align="center">
+                    <Group gap={'xs'}>
+                      <Avatar src={CurateIcon.src} radius={'xl'} />
+                      <Text fw={600} fz="lg">
+                        Thoth
+                      </Text>
+                    </Group>
+                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                      Memex 2 is happening.
+                    </Text>
+                  </Stack>
+                </SimpleGrid>
+              </Stack>
+            </Stack>
 
             <Footer />
           </Stack>

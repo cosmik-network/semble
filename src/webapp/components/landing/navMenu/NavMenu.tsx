@@ -20,7 +20,7 @@ export default function NavMenu() {
               variant="unstyled"
               mx={'5'}
             />
-            <Button type="submit" size="xs" variant="light" color="blue">
+            <Button type="submit" size="xs">
               Get updates
             </Button>
           </Group>
