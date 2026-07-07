@@ -7,7 +7,7 @@ export default function EmailSubscribe() {
   return (
     <Card p={'8'} radius={'xl'}>
       <form action="https://leaflet.pub/api/subscribe_email" method="post">
-        <Group gap={'xs'}>
+        <Group gap={'xs'} wrap="nowrap">
           <input type="hidden" name="publication" value={PUBLICATION_ID} />
           <TextInput
             type="email"
@@ -18,9 +18,11 @@ export default function EmailSubscribe() {
             radius={'xl'}
             variant="unstyled"
             mx={'5'}
-            w={240}
+            flex={1}
+            miw={0}
+            maw={240}
           />
-          <Button type="submit" size="xs">
+          <Button type="submit" size="xs" style={{ flexShrink: 0 }}>
             Get updates
           </Button>
         </Group>
