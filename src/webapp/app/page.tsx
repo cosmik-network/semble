@@ -12,6 +12,8 @@ import {
   Badge,
   Button,
   Avatar,
+  Card,
+  ThemeIcon,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
@@ -19,6 +21,16 @@ import CurateIcon from '@/assets/icons/curate-icon.svg';
 import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
+import McpIcon from '@/assets/icons/mcp-icon.svg';
+import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
+import ClaudeIcon from '@/assets/icons/claude-icon.svg';
+import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
+import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
+import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
+import AirglowIcon from '@/assets/icons/airglow-icon.svg';
+import ChromeIcon from '@/assets/icons/chrome-icon.svg';
+import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
+import SafariIcon from '@/assets/icons/safari-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Footer from '@/components/landing/footer/Footer';
 import { Fragment, Suspense } from 'react';
@@ -27,6 +39,8 @@ import { IoArrowForward } from 'react-icons/io5';
 import NavMenu from '@/components/landing/navMenu/NavMenu';
 import { LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { IoMdCode, IoMdColorWand } from 'react-icons/io';
+import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
 
 export default async function Page() {
   return (
@@ -148,6 +162,171 @@ function Content() {
                   Use community-built plugins and automations, or tap the API to
                   build your own — all on top of a living network.
                 </Text>
+
+                <SimpleGrid
+                  cols={{ base: 1, xs: 2, sm: 2, md: 2, lg: 4 }}
+                  spacing={{ base: 'xs' }}
+                  mt={{ base: '1rem', xs: '5rem' }}
+                >
+                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                    <Stack justify="space-between" h="100%">
+                      <IoMdCode
+                        size={28}
+                        color="var(--mantine-color-green-6)"
+                      />
+
+                      <Stack gap="xs">
+                        <Text fw={600} fz="lg">
+                          API
+                        </Text>
+                        <Text>
+                          Integrate Semble with your own workflow. Ask your
+                          library questions with AI. Use it however you
+                          want{' '}
+                        </Text>
+
+                        <Group gap={'xs'}>
+                          <Image
+                            src={McpIcon.src}
+                            alt="MCP"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={ChatgptIcon.src}
+                            alt="ChatGPT"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={ClaudeIcon.src}
+                            alt="Claude"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                        </Group>
+                      </Stack>
+                    </Stack>
+                  </Card>
+
+                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                    <Stack justify="space-between" h="100%">
+                      <PiPlugsConnectedFill
+                        size={28}
+                        color="var(--mantine-color-green-6)"
+                      />
+
+                      <Stack gap="xs">
+                        <Text fw={600} fz="lg">
+                          Plugin
+                        </Text>
+                        <Text>
+                          Sync your links and notes to your Zotero or Obsidian
+                          vault, and keep curating without ever switching tabs
+                        </Text>
+
+                        <Group gap={'xs'}>
+                          <Image
+                            src={ZoteroIcon.src}
+                            alt="Zotero"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={ObsidianIcon.src}
+                            alt="Obsidian"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                        </Group>
+                      </Stack>
+                    </Stack>
+                  </Card>
+
+                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                    <Stack justify="space-between" h="100%">
+                      <IoMdColorWand
+                        size={28}
+                        color="var(--mantine-color-green-6)"
+                      />
+
+                      <Stack gap="xs">
+                        <Text fw={600} fz="lg">
+                          Automation
+                        </Text>
+                        <Text>
+                          Use Airglow to automate the busywork. Sync your
+                          Bluesky follows, or save links from posts you've liked
+                        </Text>
+
+                        <Group gap={'xs'}>
+                          <Image
+                            src={AirglowIcon.src}
+                            alt="Airglow"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={BlueskyIcon.src}
+                            alt="Bluesky"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                        </Group>
+                      </Stack>
+                    </Stack>
+                  </Card>
+
+                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                    <Stack justify="space-between" h="100%">
+                      <PiPuzzlePieceBold
+                        size={28}
+                        color="var(--mantine-color-green-6)"
+                      />
+
+                      <Stack gap="xs">
+                        <Text fw={600} fz="lg">
+                          Web extension
+                        </Text>
+                        <Text>
+                          Save from anywhere. Organize your links. Find related
+                          content. Discover new connections
+                        </Text>
+
+                        <Group gap={'xs'}>
+                          <Image
+                            src={ChromeIcon.src}
+                            alt="Chrome"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={FirefoxIcon.src}
+                            alt="Firefox"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                          <Image
+                            src={SafariIcon.src}
+                            alt="Safari"
+                            w={22}
+                            h={22}
+                            fit="contain"
+                          />
+                        </Group>
+                      </Stack>
+                    </Stack>
+                  </Card>
+                </SimpleGrid>
               </Stack>
 
               <Stack align="center" gap={'xs'}>
