@@ -13,14 +13,10 @@ import {
   Button,
   Avatar,
   Card,
-  ThemeIcon,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
-import CommunityIcon from '@/assets/icons/community-icon.svg';
-import DBIcon from '@/assets/icons/db-icon.svg';
-import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import McpIcon from '@/assets/icons/mcp-icon.svg';
 import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
@@ -37,13 +33,48 @@ import FAQ from '@/components/landing/faq/FAQ';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
-import NavMenu from '@/components/landing/navMenu/NavMenu';
+import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 import { LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
+import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
+
+const testimonials = [
+  {
+    name: 'Mark',
+    handle: 'uppy-hacker.bsky.social',
+    quote:
+      'Becoming risky taking a *quick* look @semble.so of a morning...so many inviting rabbit holes to get drawn down!',
+  },
+  {
+    name: 'Brady Hawkins',
+    handle: 'bradyhawkins.dev',
+    quote:
+      "The articles that people are bookmarking on @semble.so are high quality. It's quickly becoming my go to place to consume dev content",
+  },
+  {
+    name: 'Victoria',
+    handle: 'vicwalker.dev.br',
+    quote:
+      "“I love seeing notifications about a new connection being added to a card on Semble. Sometimes I discover some cool stuff I haven't seen before.”",
+  },
+  {
+    name: 'Thoth',
+    handle: 'thoth.ptnote.dev',
+    quote: 'Memex 2 is happening.',
+  },
+];
 
 export default async function Page() {
+  const profiles = await Promise.all(
+    testimonials.map((t) => getBlueskyProfile(t.handle)),
+  );
+  const testimonialsWithAvatars = testimonials.map((t, i) => ({
+    ...t,
+    avatar: profiles[i]?.avatar ?? null,
+  }));
+
   return (
     <Box component="section" pos="relative" h="100svh" w="100%">
       {/* light mode bg */}
@@ -58,13 +89,20 @@ export default async function Page() {
       />
 
       <Box pos="relative" style={{ zIndex: 1 }}>
-        <Content />
+        <Content testimonials={testimonialsWithAvatars} />
       </Box>
     </Box>
   );
 }
 
-function Content() {
+function Content(props: {
+  testimonials: {
+    name: string;
+    handle: string;
+    quote: string;
+    avatar: string | null;
+  }[];
+}) {
   return (
     <Fragment>
       <script async src="https://tally.so/widgets/embed.js" />
@@ -74,11 +112,11 @@ function Content() {
             <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
             <Badge size="xs">Alpha</Badge>
           </Stack>
-          <NavMenu />
+          <EmailSubscribe />
         </Group>
       </Container>
 
-      <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
+      <Center mih="100svh" py={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="sm" my="auto">
           <Stack gap="5rem" align="center">
             <Stack gap="xs" align="center" maw={700}>
@@ -344,7 +382,7 @@ function Content() {
                 </Text>
               </Stack>
 
-              <Stack align="center" gap={'xl'} w="100%">
+              <Stack align="center" gap={'md'} w="100%">
                 <Title order={2} ta={'center'} maw={350}>
                   Things you might be wondering about
                 </Title>
@@ -393,66 +431,40 @@ function Content() {
                   cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
                   spacing={{ base: 'xl' }}
                 >
-                  <Stack gap="xs" align="center">
-                    <Group gap={'xs'}>
-                      <Avatar src={CurateIcon.src} radius={'xl'} />
-                      <Text fw={600} fz="lg">
-                        Mark
-                      </Text>
-                    </Group>
-                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
-                      Becoming risky taking a *quick* look @semble.so of a
-                      morning...so many inviting rabbit holes to get drawn down!
-                    </Text>
-                  </Stack>
-
-                  <Stack gap="xs" align="center">
-                    <Group gap={'xs'}>
-                      <Avatar src={CurateIcon.src} radius={'xl'} />
-                      <Text fw={600} fz="lg">
-                        Brady Hawkins
-                      </Text>
-                    </Group>
-                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
-                      The articles that people are bookmarking on @semble.so are
-                      high quality. It's quickly becoming my go to place to
-                      consume dev content
-                    </Text>
-                  </Stack>
-
-                  <Stack gap="xs" align="center">
-                    <Group gap={'xs'}>
-                      <Avatar src={CurateIcon.src} radius={'xl'} />
-                      <Text fw={600} fz="lg">
-                        Victoria
-                      </Text>
-                    </Group>
-                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
-                      “I love seeing notifications about a new connection being
-                      added to a card on Semble. Sometimes I discover some cool
-                      stuff I haven't seen before.”
-                    </Text>
-                  </Stack>
-
-                  <Stack gap="xs" align="center">
-                    <Group gap={'xs'}>
-                      <Avatar src={CurateIcon.src} radius={'xl'} />
-                      <Text fw={600} fz="lg">
-                        Thoth
-                      </Text>
-                    </Group>
-                    <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
-                      Memex 2 is happening.
-                    </Text>
-                  </Stack>
+                  {props.testimonials.map((testimonial) => (
+                    <Stack key={testimonial.name} gap="xs" align="center">
+                      <Group gap={'xs'}>
+                        <Avatar
+                          src={testimonial.avatar ?? CurateIcon.src}
+                          alt={testimonial.name}
+                          radius={'xl'}
+                        />
+                        <Text fw={600} fz="lg">
+                          {testimonial.name}
+                        </Text>
+                      </Group>
+                      <Box
+                        p="md"
+                        style={{
+                          borderRadius: 'var(--mantine-radius-md)',
+                          background:
+                            'radial-gradient(50% 50% at 50% 50%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.12)) 0%, transparent 100%)',
+                        }}
+                      >
+                        <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                          {testimonial.quote}
+                        </Text>
+                      </Box>
+                    </Stack>
+                  ))}
                 </SimpleGrid>
               </Stack>
             </Stack>
-
-            <Footer />
           </Stack>
         </Container>
       </Center>
+
+      <Footer />
     </Fragment>
   );
 }
