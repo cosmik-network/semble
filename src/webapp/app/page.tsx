@@ -445,16 +445,24 @@ function Content(props: {
                 >
                   {props.testimonials.map((testimonial) => (
                     <Stack key={testimonial.name} gap="xs" align="center">
-                      <Group gap={'xs'}>
-                        <Avatar
-                          src={testimonial.avatar ?? CurateIcon.src}
-                          alt={testimonial.name}
-                          radius={'xl'}
-                        />
-                        <Text fw={600} fz="lg">
-                          {testimonial.name}
-                        </Text>
-                      </Group>
+                      <Anchor
+                        href={`https://bsky.app/profile/${testimonial.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        underline="never"
+                        c="inherit"
+                      >
+                        <Group gap={'xs'}>
+                          <Avatar
+                            src={testimonial.avatar ?? CurateIcon.src}
+                            alt={testimonial.name}
+                            radius={'xl'}
+                          />
+                          <Text fw={600} fz="lg">
+                            {testimonial.name}
+                          </Text>
+                        </Group>
+                      </Anchor>
                       <Box
                         p="md"
                         style={{
