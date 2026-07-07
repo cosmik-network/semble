@@ -33,6 +33,7 @@ import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
 import SafariIcon from '@/assets/icons/safari-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Footer from '@/components/landing/footer/Footer';
+import FAQ from '@/components/landing/faq/FAQ';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
@@ -179,7 +180,7 @@ function Content() {
                         <Text fw={600} fz="lg">
                           API
                         </Text>
-                        <Text>
+                        <Text c="dimmed">
                           Integrate Semble with your own workflow. Ask your
                           library questions with AI. Use it however you
                           want{' '}
@@ -223,7 +224,7 @@ function Content() {
                         <Text fw={600} fz="lg">
                           Plugin
                         </Text>
-                        <Text>
+                        <Text c="dimmed">
                           Sync your links and notes to your Zotero or Obsidian
                           vault, and keep curating without ever switching tabs
                         </Text>
@@ -259,7 +260,7 @@ function Content() {
                         <Text fw={600} fz="lg">
                           Automation
                         </Text>
-                        <Text>
+                        <Text c="dimmed">
                           Use Airglow to automate the busywork. Sync your
                           Bluesky follows, or save links from posts you've liked
                         </Text>
@@ -295,7 +296,7 @@ function Content() {
                         <Text fw={600} fz="lg">
                           Web extension
                         </Text>
-                        <Text>
+                        <Text c="dimmed">
                           Save from anywhere. Organize your links. Find related
                           content. Discover new connections
                         </Text>
@@ -343,10 +344,11 @@ function Content() {
                 </Text>
               </Stack>
 
-              <Stack align="center" gap={'xs'}>
+              <Stack align="center" gap={'xl'} w="100%">
                 <Title order={2} ta={'center'} maw={350}>
                   Things you might be wondering about
                 </Title>
+                <FAQ />
               </Stack>
 
               <Stack align="center" gap={'xs'}>
