@@ -24,16 +24,14 @@ export class RemoveCardFromCollectionController extends Controller {
         return this.badRequest(res, 'Card ID is required');
       }
 
-      if (!collectionIdsParam || typeof collectionIdsParam !== 'string') {
+      if (!collectionIdsParam || !Array.isArray(collectionIdsParam)) {
         return this.badRequest(
           res,
           'Collection IDs query parameter is required',
         );
       }
 
-      const collectionIds = collectionIdsParam
-        .split(',')
-        .filter((id) => id.trim() !== '');
+      const collectionIds = collectionIdsParam.filter((id) => id.trim() !== '');
 
       if (collectionIds.length === 0) {
         return this.badRequest(res, 'At least one collection ID is required');

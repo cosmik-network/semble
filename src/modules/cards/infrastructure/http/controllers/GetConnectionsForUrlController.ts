@@ -49,11 +49,9 @@ export class GetConnectionsForUrlController extends Controller {
       const sortOrder = (req.query.sortOrder as SortOrder) || SortOrder.DESC;
 
       // Parse connection types filter
-      let connectionTypes: ConnectionTypeEnum[] | undefined;
-      if (req.query.connectionTypes) {
-        const typesParam = req.query.connectionTypes as string;
-        connectionTypes = typesParam.split(',') as ConnectionTypeEnum[];
-      }
+      const connectionTypes = req.query.connectionTypes as
+        | ConnectionTypeEnum[]
+        | undefined;
 
       const result = await this.getConnectionsForUrlUseCase.execute({
         url,
