@@ -13,6 +13,7 @@ import {
   Button,
   Avatar,
   Card,
+  Anchor,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
@@ -424,7 +425,17 @@ function Content(props: {
                     What’s the word on Semble?
                   </Title>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
-                    We put them all in a collection, of course
+                    We put them all in{' '}
+                    <Anchor
+                      href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="lime"
+                      inherit
+                    >
+                      a collection
+                    </Anchor>
+                    , of course
                   </Text>
                 </Stack>
                 <SimpleGrid
