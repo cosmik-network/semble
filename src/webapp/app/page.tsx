@@ -206,7 +206,7 @@ function Content(props: {
                 <SimpleGrid
                   cols={{ base: 1, xs: 2, sm: 2, md: 2, lg: 4 }}
                   spacing={{ base: 'xs' }}
-                  mt={{ base: '1rem', xs: '5rem' }}
+                  mt={{ base: '3rem' }}
                 >
                   <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
                     <Stack justify="space-between" h="100%">
@@ -441,6 +441,7 @@ function Content(props: {
                 <SimpleGrid
                   cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
                   spacing={{ base: 'xl' }}
+                  mt={{ base: '2rem' }}
                 >
                   {props.testimonials.map((testimonial) => (
                     <Stack key={testimonial.name} gap="xs" align="center">
