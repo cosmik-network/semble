@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Accordion, Text } from '@mantine/core';
 import { FiPlus, FiMinus } from 'react-icons/fi';
 
@@ -52,6 +52,18 @@ const FAQS = [
 export default function FAQ() {
   const [value, setValue] = useState<string | null>(null);
 
+  useEffect(() => {
+    const openFromHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (FAQS.some((faq) => faq.value === hash)) {
+        setValue(hash);
+      }
+    };
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
+    return () => window.removeEventListener('hashchange', openFromHash);
+  }, []);
+
   return (
     <Accordion
       value={value}
@@ -76,7 +88,12 @@ export default function FAQ() {
       }}
     >
       {FAQS.map((faq) => (
-        <Accordion.Item key={faq.value} value={faq.value}>
+        <Accordion.Item
+          key={faq.value}
+          value={faq.value}
+          id={faq.value}
+          style={{ scrollMarginTop: '5rem' }}
+        >
           <Accordion.Control
             chevron={
               value === faq.value ? <FiMinus size={22} /> : <FiPlus size={22} />

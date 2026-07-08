@@ -395,8 +395,12 @@ function Content(props: {
                   What you make here stays yours
                 </Title>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Semble is built on the open social web, so your content,
-                  identity, and social connections are owned by you, not us.
+                  Semble is built on the{' '}
+                  <Anchor href="#open-social" c="lime" inherit>
+                    open social web
+                  </Anchor>
+                  , so your content, identity, and social connections are owned
+                  by you, not us.
                 </Text>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                   Use them in other apps, build on them however you want, and if
