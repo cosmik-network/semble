@@ -1,0 +1,192 @@
+/*
+ * Mobile-first: a readable vertical stack of the same cards.
+ * At the `md` breakpoint (62em) it becomes the absolutely-positioned
+ * radial composition.
+ */
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0.5rem 0;
+}
+
+.rings {
+  display: none;
+}
+
+/*
+ * Mobile connective motif: a dashed vertical "thread" running down the center
+ * behind the cards (peeking through the gaps like stitching). This is the
+ * vertical translation of the desktop orbit rings — same dashed stroke
+ * language, no absolute layout.
+ */
+.stage::before {
+  content: '';
+  position: absolute;
+  top: 3rem;
+  bottom: 3rem;
+  left: 50%;
+  width: 0;
+  border-left: 1.5px dashed
+    light-dark(var(--mantine-color-indigo-2), var(--mantine-color-dark-4));
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.node {
+  width: 100%;
+  max-width: 360px;
+  z-index: 1;
+}
+
+.center {
+  max-width: 340px;
+  z-index: 2;
+}
+
+/* A lone avatar reads as orphaned in a vertical stack. */
+.nodeAvatar {
+  display: none;
+}
+
+.floater {
+  animation: floatBob 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---- Radial layout (desktop) ---- */
+@media (min-width: 62em) {
+  .stage {
+    display: block;
+    max-width: 900px;
+    aspect-ratio: 900 / 680;
+    padding: 0;
+    /* The outer ring overflows the stage box by ~9% of its height top and
+       bottom. A proportional (%-of-width) margin keeps that overflow clear of
+       the text above/below at any width. */
+    margin: 7% auto;
+  }
+
+  /* The mobile thread gives way to the orbit rings on desktop. */
+  .stage::before {
+    display: none;
+  }
+
+  .rings {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    aspect-ratio: 1;
+    width: auto;
+    border-radius: 50%;
+    border: 2px dashed
+      light-dark(var(--mantine-color-indigo-1), var(--mantine-color-dark-3));
+    transform: translate(-50%, -50%);
+    animation: ringSpin linear infinite;
+  }
+
+  .ring[data-ring='1'] {
+    height: 56%;
+    animation-duration: 75s;
+  }
+
+  .ring[data-ring='2'] {
+    height: 88%;
+    animation-duration: 95s;
+    animation-direction: reverse;
+  }
+
+  .ring[data-ring='3'] {
+    height: 118%;
+    animation-duration: 130s;
+  }
+
+  .node {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    max-width: none;
+    transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  }
+
+  .center {
+    --x: 50%;
+    --y: 50%;
+    --w: 320px;
+  }
+
+  .nodeCollection {
+    --x: 66%;
+    --y: 13%;
+    --w: 290px;
+    --rot: 1.5deg;
+  }
+
+  .nodeFollow {
+    --x: 20%;
+    --y: 31%;
+    --w: 285px;
+    --rot: -7deg;
+  }
+
+  .nodeAvatar {
+    --x: 87%;
+    --y: 37%;
+    --w: auto;
+    display: block;
+  }
+
+  .nodeAdded {
+    --x: 27%;
+    --y: 76%;
+    --w: 265px;
+    --rot: 1deg;
+  }
+
+  .nodeLink {
+    --x: 71%;
+    --y: 80%;
+    --w: 300px;
+    opacity: 0.6;
+  }
+}
+
+@keyframes ringSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring,
+  .floater {
+    animation: none;
+  }
+}

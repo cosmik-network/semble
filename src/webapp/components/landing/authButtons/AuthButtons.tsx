@@ -36,17 +36,12 @@ export default function AuthButtons() {
 function UnauthenticatedButtons() {
   return (
     <Group gap="md">
-      <LinkButton href="/signup" size="lg">
-        Sign up
-      </LinkButton>
-
       <LinkButton
-        href="/login"
+        href="/signup"
         size="lg"
-        color="var(--mantine-color-dark-filled)"
         rightSection={<BiRightArrowAlt size={22} />}
       >
-        Log in
+        Sign up
       </LinkButton>
     </Group>
   );

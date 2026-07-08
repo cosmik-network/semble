@@ -33,15 +33,16 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import Footer from '@/components/landing/footer/Footer';
 import FAQ from '@/components/landing/faq/FAQ';
 import BrowserTabs from '@/components/landing/browserTabs/BrowserTabs';
+import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
-import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
-import { LinkButton } from '@/components/link/MantineLink';
+import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
+import Script from 'next/script';
 
 const testimonials = [
   {
@@ -108,14 +109,21 @@ function Content(props: {
 }) {
   return (
     <Fragment>
-      <script async src="https://tally.so/widgets/embed.js" />
+      <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
       <Container size="xl" p="sm" my="auto">
         <Group justify="space-between">
           <Stack gap={6} align="center">
             <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
             <Badge size="xs">Alpha</Badge>
           </Stack>
-          <EmailSubscribe />
+          <Group gap="lg">
+            <LinkAnchor href="/extension" c="inherit">
+              Get extension
+            </LinkAnchor>
+            <LinkButton href="/login" size="sm" variant="white" color="dark">
+              Log in
+            </LinkButton>
+          </Group>
         </Group>
       </Container>
 
@@ -176,13 +184,13 @@ function Content(props: {
                   Save links, connect related ideas, and curate collections on
                   your own or collaboratively.
                 </Text>
-                <Box
-                  mt="md"
-                  w="100%"
-                  py="lg"
-                  style={{ overflow: 'hidden' }}
-                >
-                  <BrowserTabs />
+                <Box mt="md" w="100%" py="lg" style={{ overflow: 'hidden' }}>
+                  <Stack align="center" gap={'xs'}>
+                    <Text fw={600} c={'tangerine'}>
+                      Every link you add becomes a starting point
+                    </Text>
+                    <BrowserTabs />
+                  </Stack>
                 </Box>
               </Stack>
 
@@ -198,6 +206,9 @@ function Content(props: {
                   Tune your notifications to the interactions that matter to
                   you. Explore a living map of the web that you helped create.
                 </Text>
+                <Box w="100%" mt={{ base: '1rem', md: '2rem' }}>
+                  <OrbitalHero />
+                </Box>
               </Stack>
 
               <Stack align="center" gap={'xs'}>

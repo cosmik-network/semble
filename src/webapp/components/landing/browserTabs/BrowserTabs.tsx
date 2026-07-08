@@ -17,7 +17,8 @@ export default function BrowserTabs() {
       mx="auto"
       style={{
         borderRadius: 'var(--mantine-radius-lg)',
-        background: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))',
+        background:
+          'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))',
       }}
     >
       <Group gap={2} justify="center" align="flex-end" wrap="nowrap">
