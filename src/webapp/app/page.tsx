@@ -396,7 +396,7 @@ function Content(props: {
                 </Title>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                   Semble is built on the{' '}
-                  <Anchor href="#open-social" c="lime" inherit>
+                  <Anchor component="a" href="#open-social" c="blue" inherit>
                     open social web
                   </Anchor>
                   , so your content, identity, and social connections are owned
@@ -469,7 +469,7 @@ function Content(props: {
                       href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"
                       target="_blank"
                       rel="noopener noreferrer"
-                      c="lime"
+                      c="blue"
                       inherit
                     >
                       a collection
