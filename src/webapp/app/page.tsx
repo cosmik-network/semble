@@ -32,6 +32,7 @@ import SafariIcon from '@/assets/icons/safari-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Footer from '@/components/landing/footer/Footer';
 import FAQ from '@/components/landing/faq/FAQ';
+import BrowserTabs from '@/components/landing/browserTabs/BrowserTabs';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoArrowForward } from 'react-icons/io5';
@@ -175,6 +176,14 @@ function Content(props: {
                   Save links, connect related ideas, and curate collections on
                   your own or collaboratively.
                 </Text>
+                <Box
+                  mt="md"
+                  w="100%"
+                  py="lg"
+                  style={{ overflow: 'hidden' }}
+                >
+                  <BrowserTabs />
+                </Box>
               </Stack>
 
               <Stack align="center" gap={'xs'}>
