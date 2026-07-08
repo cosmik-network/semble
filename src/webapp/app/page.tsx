@@ -116,7 +116,7 @@ function Content(props: {
             <Badge size="xs">Alpha</Badge>
           </Stack>
           <Group gap="lg">
-            <LinkAnchor href="/extension" c="inherit">
+            <LinkAnchor href="/extension" fw={500} c="inherit">
               Get extension
             </LinkAnchor>
             <LinkButton href="/login" size="sm" variant="white" color="dark">
