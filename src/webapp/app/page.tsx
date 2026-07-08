@@ -10,15 +10,12 @@ import {
   Center,
   Group,
   Badge,
-  Button,
-  Avatar,
   Card,
   Anchor,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CtaSignup from '@/assets/cta-signup.png';
-import CurateIcon from '@/assets/icons/curate-icon.svg';
 import McpIcon from '@/assets/icons/mcp-icon.svg';
 import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
@@ -33,6 +30,7 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import Footer from '@/components/landing/footer/Footer';
 import FAQ from '@/components/landing/faq/FAQ';
 import BrowserTabs from '@/components/landing/browserTabs/BrowserTabs';
+import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
@@ -192,6 +190,9 @@ function Content(props: {
                     <BrowserTabs />
                   </Stack>
                 </Box>
+                <Box w="100%">
+                  <KnowledgeTrail />
+                </Box>
               </Stack>
 
               <Stack align="center" gap={'xs'}>
@@ -229,7 +230,10 @@ function Content(props: {
                   spacing={{ base: 'xs' }}
                   mt={{ base: '1rem' }}
                 >
-                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                  <Card
+                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                    maw={350}
+                  >
                     <Stack justify="space-between" h="100%">
                       <IoMdCode
                         size={28}
@@ -273,7 +277,10 @@ function Content(props: {
                     </Stack>
                   </Card>
 
-                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                  <Card
+                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                    maw={350}
+                  >
                     <Stack justify="space-between" h="100%">
                       <PiPlugsConnectedFill
                         size={28}
@@ -309,7 +316,10 @@ function Content(props: {
                     </Stack>
                   </Card>
 
-                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                  <Card
+                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                    maw={350}
+                  >
                     <Stack justify="space-between" h="100%">
                       <IoMdColorWand
                         size={28}
@@ -345,7 +355,10 @@ function Content(props: {
                     </Stack>
                   </Card>
 
-                  <Card bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))">
+                  <Card
+                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                    maw={350}
+                  >
                     <Stack justify="space-between" h="100%">
                       <PiPuzzlePieceBold
                         size={28}
@@ -421,6 +434,8 @@ function Content(props: {
                   alt=""
                   w="100%"
                   h="auto"
+                  mih={380}
+                  fit="cover"
                   style={{ zIndex: 0 }}
                 />
                 <Center pos="absolute" inset={0} px="md">
@@ -433,7 +448,7 @@ function Content(props: {
                       fz={'xl'}
                       c="#1F6144"
                       ta={'center'}
-                      maw={340}
+                      maw={350}
                       darkHidden
                     >
                       What will you save to Semble today?
@@ -477,46 +492,6 @@ function Content(props: {
                     , of course
                   </Text>
                 </Stack>
-                <SimpleGrid
-                  cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
-                  spacing={{ base: 'xl' }}
-                  mt={{ base: '1rem' }}
-                >
-                  {props.testimonials.map((testimonial) => (
-                    <Stack key={testimonial.name} gap="xs" align="center">
-                      <Anchor
-                        href={`https://bsky.app/profile/${testimonial.handle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        underline="never"
-                        c="inherit"
-                      >
-                        <Group gap={'xs'}>
-                          <Avatar
-                            src={testimonial.avatar ?? CurateIcon.src}
-                            alt={testimonial.name}
-                            radius={'xl'}
-                          />
-                          <Text fw={600} fz="lg">
-                            {testimonial.name}
-                          </Text>
-                        </Group>
-                      </Anchor>
-                      <Box
-                        p="md"
-                        style={{
-                          borderRadius: 'var(--mantine-radius-md)',
-                          background:
-                            'radial-gradient(50% 50% at 50% 50%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.12)) 0%, transparent 100%)',
-                        }}
-                      >
-                        <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
-                          {testimonial.quote}
-                        </Text>
-                      </Box>
-                    </Stack>
-                  ))}
-                </SimpleGrid>
               </Stack>
             </Stack>
           </Stack>

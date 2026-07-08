@@ -21,7 +21,7 @@ export default function EmailSubscribe() {
             flex={1}
             w={{ base: 200, xs: 270 }}
           />
-          <Button type="submit" size="xs" style={{ flexShrink: 0 }}>
+          <Button type="submit" size="xs">
             Get updates
           </Button>
         </Group>

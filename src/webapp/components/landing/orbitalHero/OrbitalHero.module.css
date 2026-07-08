@@ -1,6 +1,6 @@
 /*
  * Mobile-first: a readable vertical stack of the same cards.
- * At the `md` breakpoint (62em) it becomes the absolutely-positioned
+ * At the `md` breakpoint (46em) it becomes the absolutely-positioned
  * radial composition.
  */
 
@@ -11,7 +11,7 @@
   align-items: center;
   gap: 1rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 320px;
   margin: 0 auto;
   padding: 0.5rem 0;
 }
@@ -41,12 +41,12 @@
 
 .node {
   width: 100%;
-  max-width: 360px;
+  max-width: 320px;
   z-index: 1;
 }
 
 .center {
-  max-width: 340px;
+  max-width: 320px;
   z-index: 2;
 }
 
@@ -71,7 +71,7 @@
 }
 
 /* ---- Radial layout (desktop) ---- */
-@media (min-width: 62em) {
+@media (min-width: 46em) {
   .stage {
     display: block;
     max-width: 900px;
@@ -110,18 +110,18 @@
 
   .ring[data-ring='1'] {
     height: 56%;
-    animation-duration: 75s;
+    animation-duration: 300s;
   }
 
   .ring[data-ring='2'] {
     height: 88%;
-    animation-duration: 95s;
+    animation-duration: 300s;
     animation-direction: reverse;
   }
 
   .ring[data-ring='3'] {
     height: 118%;
-    animation-duration: 130s;
+    animation-duration: 300;
   }
 
   .node {

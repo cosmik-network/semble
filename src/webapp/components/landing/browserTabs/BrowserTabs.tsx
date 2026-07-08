@@ -1,5 +1,6 @@
-import { ActionIcon, Box, Group, Text } from '@mantine/core';
+import { ActionIcon, Box, Group, SimpleGrid, Text } from '@mantine/core';
 import { IoClose } from 'react-icons/io5';
+import classes from './BrowserTabs.module.css';
 
 const tabs = [
   { name: 'The web is a knowledge graph', active: false },
@@ -14,20 +15,28 @@ export default function BrowserTabs() {
       py={6}
       w="100%"
       maw={800}
+      pos={'relative'}
       mx="auto"
       style={{
+        overflow: 'clip',
         borderRadius: 'var(--mantine-radius-lg)',
         background:
           'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))',
       }}
     >
-      <Group gap={2} justify="center" align="flex-end" wrap="nowrap">
+      <SimpleGrid
+        cols={{ base: 1, xs: 3 }}
+        spacing={2}
+        verticalSpacing={2}
+        style={{ alignItems: 'flex-end' }}
+      >
         {tabs.map((tab, i) => (
           <Box
             key={i}
+            className={tab.active ? classes.activeTab : undefined}
             px="sm"
             py={tab.active ? 'sm' : 'xs'}
-            w={200}
+            w="100%"
             style={{
               borderRadius: 'var(--mantine-radius-lg)',
               background: tab.active
@@ -80,7 +89,7 @@ export default function BrowserTabs() {
             </Group>
           </Box>
         ))}
-      </Group>
+      </SimpleGrid>
     </Box>
   );
 }

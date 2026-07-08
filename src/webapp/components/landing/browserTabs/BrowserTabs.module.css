@@ -1,0 +1,11 @@
+/* On mobile (single column) push the active tab to the bottom.
+   Reset at xs and up where the tabs sit in a 3-column row. */
+.activeTab {
+  order: 1;
+}
+
+@media (min-width: 36em) {
+  .activeTab {
+    order: 0;
+  }
+}

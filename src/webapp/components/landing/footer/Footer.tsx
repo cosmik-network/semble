@@ -55,6 +55,32 @@ export default function Footer() {
         style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
       />
 
+      {/* light mode top fade — keeps the top blending to white at any height */}
+      <Box
+        darkHidden
+        pos="absolute"
+        inset={0}
+        style={{
+          zIndex: 0,
+          background:
+            'linear-gradient(to bottom, var(--mantine-color-white) 0%, rgba(255, 255, 255, 0.6) 25%, transparent 60%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* dark mode top fade */}
+      <Box
+        lightHidden
+        pos="absolute"
+        inset={0}
+        style={{
+          zIndex: 0,
+          background:
+            'linear-gradient(to bottom, var(--mantine-color-body) 0%, transparent 60%)',
+          pointerEvents: 'none',
+        }}
+      />
+
       <Container size="xl" p="sm" w="100%" pos="relative" style={{ zIndex: 1 }}>
         <Stack align="center" gap="xs">
           <Box mb="xl">
