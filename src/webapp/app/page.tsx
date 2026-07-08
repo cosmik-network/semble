@@ -12,6 +12,7 @@ import {
   Badge,
   Card,
   Anchor,
+  Avatar,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
@@ -34,7 +35,7 @@ import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
-import { IoArrowForward } from 'react-icons/io5';
+import { IoPlayCircle } from 'react-icons/io5';
 import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
@@ -134,11 +135,11 @@ function Content(props: {
                 size="compact-sm"
                 leftSection={'🪿'}
                 variant="default"
-                rightSection={<IoArrowForward />}
+                rightSection={<IoPlayCircle />}
                 c="#4098FF"
                 bg={'blue.0'}
               >
-                Watch our talk at ATmosphereConf!
+                Watch: why we're building Semble
               </LinkButton>
               <Title order={1} fw={700} fz="2.4rem" ta={'center'}>
                 Save what matters <br /> Make sense of it together
@@ -474,7 +475,7 @@ function Content(props: {
               </Box>
 
               <Stack align="center" gap={'xl'}>
-                <Stack gap={'xs'}>
+                <Stack gap={'xs'} align="center">
                   <Title order={2} ta={'center'} maw={400}>
                     What’s the word on Semble?
                   </Title>
@@ -491,6 +492,47 @@ function Content(props: {
                     </Anchor>
                     , of course
                   </Text>
+
+                  <SimpleGrid
+                    cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}
+                    spacing={{ base: 'xl' }}
+                    mt={{ base: '1rem' }}
+                  >
+                    {props.testimonials.map((testimonial) => (
+                      <Stack key={testimonial.name} gap="xs" align="center">
+                        <Anchor
+                          href={`https://bsky.app/profile/${testimonial.handle}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="never"
+                          c="inherit"
+                        >
+                          <Group gap={'xs'}>
+                            <Avatar
+                              src={testimonial.avatar}
+                              alt={testimonial.name}
+                              radius={'xl'}
+                            />
+                            <Text fw={600} fz="lg">
+                              {testimonial.name}
+                            </Text>
+                          </Group>
+                        </Anchor>
+                        <Box
+                          p="md"
+                          style={{
+                            borderRadius: 'var(--mantine-radius-md)',
+                            background:
+                              'radial-gradient(50% 50% at 50% 50%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.12)) 0%, transparent 100%)',
+                          }}
+                        >
+                          <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
+                            {testimonial.quote}
+                          </Text>
+                        </Box>
+                      </Stack>
+                    ))}
+                  </SimpleGrid>
                 </Stack>
               </Stack>
             </Stack>
