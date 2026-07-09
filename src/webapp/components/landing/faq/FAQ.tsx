@@ -72,7 +72,6 @@ export default function FAQ() {
       chevronPosition="right"
       disableChevronRotation
       radius="lg"
-      p={'xs'}
       w="100%"
       maw={560}
       styles={{
@@ -80,9 +79,9 @@ export default function FAQ() {
           backgroundColor:
             'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))',
           border: 'none',
-          marginTop: 'var(--mantine-spacing-xs)',
+          marginTop: 'var(--mantine-spacing-xxs)',
         },
-        control: { paddingBlock: 'var(--mantine-spacing-xs)' },
+        control: { paddingBlock: 'var(--mantine-spacing-xxs)' },
         label: { fontWeight: 600 },
         chevron: { color: 'var(--mantine-color-tangerine-6)' },
       }}
@@ -92,7 +91,7 @@ export default function FAQ() {
           key={faq.value}
           value={faq.value}
           id={faq.value}
-          style={{ scrollMarginTop: '5rem' }}
+          style={{ scrollMarginTop: '1rem' }}
         >
           <Accordion.Control
             chevron={

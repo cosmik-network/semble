@@ -3,9 +3,9 @@ import { IoClose } from 'react-icons/io5';
 import classes from './BrowserTabs.module.css';
 
 const tabs = [
-  { name: 'The web is a knowledge graph', active: false },
-  { name: 'Turning bookmarks into trails', active: true },
-  { name: 'Mapping the web together', active: false },
+  { name: 'Sustainable Web Manifesto', active: false },
+  { name: 'Rewilding the internet', active: true },
+  { name: 'Internet for the People: The Fight for Our Digital Future', active: false },
 ];
 
 export default function BrowserTabs() {

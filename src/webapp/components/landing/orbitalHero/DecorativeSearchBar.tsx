@@ -24,7 +24,7 @@ export default function DecorativeSearchBar() {
     >
       <Group gap="xs" justify="space-between" wrap="nowrap" w="100%">
         <Text c="bright" fz="md" flex={1} lineClamp={1}>
-          cognitive science
+          digital gardens
         </Text>
         <ActionIcon
           size="lg"
