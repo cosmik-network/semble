@@ -118,10 +118,10 @@ function Content(props: {
             <HeaderSearchBar />
           </Box>
           <Group flex={1} justify="flex-end" gap="lg" wrap="nowrap">
-            <LinkAnchor href="/extension" fw={500} c="inherit">
+            <LinkAnchor href="/extension" fw={500} c="dark">
               Get extension
             </LinkAnchor>
-            <LinkButton href="/login" size="sm" variant="white" color="dark">
+            <LinkButton href="/login" size="sm" variant="filled" color="dark">
               Log in
             </LinkButton>
           </Group>
@@ -135,10 +135,9 @@ function Content(props: {
               <LinkButton
                 href={'https://atmosphereconf.org/event/OD6Gd0A'}
                 size="compact-sm"
-                leftSection={'🪿'}
                 variant="default"
                 rightSection={<IoPlayCircle />}
-                c="#4098FF"
+                c="blue"
                 bg={'blue.0'}
               >
                 Watch: why we're building Semble
@@ -229,13 +228,14 @@ function Content(props: {
                 </Text>
 
                 <SimpleGrid
-                  cols={{ base: 1, xs: 2, sm: 2, md: 2, lg: 4 }}
+                  cols={{ base: 1, xs: 2 }}
                   spacing={{ base: 'xs' }}
                   mt={{ base: '1rem' }}
+                  maw={900}
                 >
                   <Card
                     bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    maw={350}
+
                   >
                     <Stack justify="space-between" h="100%">
                       <IoMdCode
@@ -282,7 +282,7 @@ function Content(props: {
 
                   <Card
                     bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    maw={350}
+
                   >
                     <Stack justify="space-between" h="100%">
                       <PiPlugsConnectedFill
@@ -321,7 +321,6 @@ function Content(props: {
 
                   <Card
                     bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    maw={350}
                   >
                     <Stack justify="space-between" h="100%">
                       <IoMdColorWand
@@ -360,7 +359,6 @@ function Content(props: {
 
                   <Card
                     bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    maw={350}
                   >
                     <Stack justify="space-between" h="100%">
                       <PiPuzzlePieceBold
