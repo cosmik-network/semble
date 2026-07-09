@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Group, SimpleGrid, Text } from '@mantine/core';
+import { ActionIcon, Box, Group, Paper, SimpleGrid, Text } from '@mantine/core';
 import { IoClose } from 'react-icons/io5';
 import classes from './BrowserTabs.module.css';
 
@@ -10,7 +10,9 @@ const tabs = [
 
 export default function BrowserTabs() {
   return (
-    <Box
+    <Paper
+      withBorder
+      shadow='md'
       px="xs"
       py={6}
       w="100%"
@@ -90,6 +92,6 @@ export default function BrowserTabs() {
           </Box>
         ))}
       </SimpleGrid>
-    </Box>
+    </Paper>
   );
 }
