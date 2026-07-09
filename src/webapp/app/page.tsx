@@ -32,6 +32,7 @@ import FAQ from '@/components/landing/faq/FAQ';
 import BrowserTabs from '@/components/landing/browserTabs/BrowserTabs';
 import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
+import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
@@ -70,9 +71,10 @@ const testimonials = [
 ];
 
 export default async function Page() {
-  const profiles = await Promise.all(
-    testimonials.map((t) => getBlueskyProfile(t.handle)),
-  );
+  const [profiles, identityProfile] = await Promise.all([
+    Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
+    getBlueskyProfile('cosmiktesting.bsky.social'),
+  ]);
   const testimonialsWithAvatars = testimonials.map((t, i) => ({
     ...t,
     avatar: profiles[i]?.avatar ?? null,
@@ -92,7 +94,10 @@ export default async function Page() {
       />
 
       <Box pos="relative" style={{ zIndex: 1 }}>
-        <Content testimonials={testimonialsWithAvatars} />
+        <Content
+          testimonials={testimonialsWithAvatars}
+          identityAvatar={identityProfile?.avatar ?? null}
+        />
       </Box>
     </Box>
   );
@@ -105,6 +110,7 @@ function Content(props: {
     quote: string;
     avatar: string | null;
   }[];
+  identityAvatar: string | null;
 }) {
   return (
     <Fragment>
@@ -197,6 +203,7 @@ function Content(props: {
                 </Box>
               </Stack>
 
+              <Stack align="center" gap={'xl'}>
               <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={400}>
                   Find your way through the web with the people you trust.
@@ -208,13 +215,16 @@ function Content(props: {
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                   Tune your notifications to the interactions that matter to
                   you. Explore a living map of the web that you helped create.
-                </Text>
+                  </Text>
+              </Stack>
                 <Box w="100%" mt={{ base: '1rem', md: '2rem' }}>
                   <OrbitalHero />
                 </Box>
+
               </Stack>
 
-              <Stack align="center" gap={'xs'}>
+              <Stack align="center" gap={'xl'}>
+                <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={400}>
                   Your workflow, your way.
                 </Title>
@@ -226,6 +236,7 @@ function Content(props: {
                   Use community-built plugins and automations, or tap the API to
                   build your own — all on top of a living network.
                 </Text>
+                </Stack>
 
                 <SimpleGrid
                   cols={{ base: 1, xs: 2 }}
@@ -420,9 +431,12 @@ function Content(props: {
                   Use them in other apps, build on them however you want, and if
                   you ever decide to leave, take everything with you.
                 </Text>
+                <Box w="100%">
+                  <IdentityWeb avatar={props.identityAvatar} />
+                </Box>
               </Stack>
 
-              <Stack align="center" gap={'md'} w="100%">
+              <Stack align="center" gap={'xl'} w="100%">
                 <Title order={2} ta={'center'} maw={350}>
                   Things you might be wondering about
                 </Title>
@@ -475,7 +489,8 @@ function Content(props: {
               </Box>
 
               <Stack align="center" gap={'xl'}>
-                <Stack gap={'xs'} align="center">
+                <Stack gap={'xl'} align="center">
+                  <Stack gap={'xs'} align="center">
                   <Title order={2} ta={'center'} maw={400}>
                     What’s the word on Semble?
                   </Title>
@@ -491,7 +506,8 @@ function Content(props: {
                       a collection
                     </Anchor>
                     , of course
-                  </Text>
+                    </Text>
+                  </Stack>
 
                   <SimpleGrid
                     cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }}

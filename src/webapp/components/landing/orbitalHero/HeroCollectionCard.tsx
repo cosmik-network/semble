@@ -1,22 +1,30 @@
-import { AspectRatio, Box, Card, Group, Stack, Text } from '@mantine/core';
-import { heroCollection } from './mockData';
+'use client';
 
-// Mirrors CollectionCardPreview's thumbnail row (110px wide, 16:9) but with
-// static gradient tiles instead of a live-fetched card preview.
-const THUMBS = [
-  'linear-gradient(135deg, #4098FF 0%, #1e4dd9 100%)',
-  'linear-gradient(135deg, #E8352E 0%, #B01B15 100%)',
-  'linear-gradient(135deg, #F7B733 0%, #9C36B5 60%, #2F9E44 100%)',
-];
+import {
+  AspectRatio,
+  Box,
+  Card,
+  Center,
+  Group,
+  Image,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { useState } from 'react';
+import { heroCollection, heroCollectionCards } from './mockData';
 
 const CARD_WIDTH = 110;
 
 /**
  * Static stand-in for the real CollectionCard. The real one fetches its
  * thumbnail row via TanStack Query, which we don't want firing on the public
- * landing page, so this reproduces the layout with mock data.
+ * landing page, so this reproduces the layout with mock data — showing each
+ * essay's real og:image and falling back to the title text (like
+ * CollectionCardPreview) if an image fails to load.
  */
 export default function HeroCollectionCard() {
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
+
   return (
     <Card withBorder radius="lg" p="sm">
       <Stack gap="xs">
@@ -24,15 +32,36 @@ export default function HeroCollectionCard() {
           {heroCollection.name}
         </Text>
 
-        <Group gap="xs" grow wrap="nowrap">
-          {THUMBS.map((bg) => (
-            <Box key={bg} w={CARD_WIDTH} miw={CARD_WIDTH}>
-              <AspectRatio ratio={16 / 9}>
-                <Box style={{ background: bg, borderRadius: 'var(--mantine-radius-md)' }} />
-              </AspectRatio>
-            </Box>
-          ))}
-        </Group>
+        <Box style={{ overflow: 'hidden' }}>
+          <Group gap="xs" grow wrap="nowrap">
+            {heroCollectionCards.map((c) => (
+              <Box key={c.url} w={CARD_WIDTH} miw={CARD_WIDTH}>
+                <AspectRatio ratio={16 / 9}>
+                  {c.imageUrl && !failed[c.url] ? (
+                    <Image
+                      src={c.imageUrl}
+                      alt={`${c.title} preview image`}
+                      radius="md"
+                      fit="cover"
+                      draggable={false}
+                      onError={() =>
+                        setFailed((prev) => ({ ...prev, [c.url]: true }))
+                      }
+                    />
+                  ) : (
+                    <Card p="xs" radius="md" withBorder>
+                      <Center my="auto">
+                        <Text fz={8} fw={500} lineClamp={2}>
+                          {c.title}
+                        </Text>
+                      </Center>
+                    </Card>
+                  )}
+                </AspectRatio>
+              </Box>
+            ))}
+          </Group>
+        </Box>
 
         <Group justify="space-between" gap="xs">
           <Text c="gray" fz="sm">

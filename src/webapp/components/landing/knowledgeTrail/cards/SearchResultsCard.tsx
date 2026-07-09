@@ -1,19 +1,18 @@
-import { Box, Card, Group, Stack, Text } from '@mantine/core';
+import { Box, Card, Group, Image, Paper, Stack, Text } from '@mantine/core';
 import { searchResults } from '../mockData';
 
-// Tiny decorative "favicon"/preview tile shown at the end of each result row.
-function ResultThumb() {
+// Tiny favicon tile shown at the end of each result row. Falls back to a plain
+// tinted box (via the Box background) if the favicon fails to load.
+function ResultThumb({ src }: { src: string }) {
   return (
-    <Box
-      w={26}
-      h={26}
-      style={{
-        flexShrink: 0,
-        borderRadius: 'var(--mantine-radius-sm)',
-        background:
-          'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4))',
-      }}
-    />
+    <Paper
+      w={30}
+      h={30}
+      p={5}
+      bg={'gray.1'}
+    >
+      <Image src={src} alt="" w="100%" h="100%" fit="contain"  />
+    </Paper>
   );
 }
 
@@ -58,7 +57,7 @@ export default function SearchResultsCard() {
                 </Text>
               )}
             </Stack>
-            <ResultThumb />
+            <ResultThumb src={result.faviconUrl} />
           </Group>
         ))}
       </Stack>

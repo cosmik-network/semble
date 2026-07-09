@@ -57,7 +57,7 @@ const leo: User = {
   avatarUrl: initialAvatar('#E8590C', 'L'),
 };
 
-// "started following The Communal Aux"
+// "started following Digital Gardens"
 export const followCollection: Collection = {
   id: 'mock-collection-communal-aux',
   uri: 'at://did:plc:mock-author/network.cosmik.collection/communalaux',
@@ -119,9 +119,42 @@ export const linkCardContent: UrlMetadata = {
   siteName: 'Substack',
 };
 
-// "Cognitive Engineering" collection card
+// "Digital Gardens" collection card
 export const heroCollection = {
-  name: 'Cognitive Engineering',
+  name: 'Digital Gardens',
   cardCount: 21,
-  updatedAt: 'Updated 40m ago',
+  updatedAt: 'Updated 32m ago',
 };
+
+// The first few cards shown in the collection's thumbnail row. Real
+// digital-garden essays with their real og:image previews; falls back to the
+// title text (like CollectionCardPreview) if an image fails to load.
+export const heroCollectionCards: {
+  url: string;
+  title: string;
+  imageUrl: string;
+}[] = [
+  {
+    url: 'https://maggieappleton.com/garden-history',
+    title: 'A Brief History & Ethos of the Digital Garden',
+    imageUrl:
+      'https://res.cloudinary.com/dxj9qr5gj/image/upload/c_scale,f_auto,q_auto:best,w_1000/v1622719121/maggieappleton.com/notes/garden-history/garden-main_ayoaqo_shrink_szbgc7.png',
+    },
+    {
+      url: 'https://joelhooks.com/digital-garden',
+      title: 'My blog is a digital garden, not a blog',
+      imageUrl:
+        'https://res.cloudinary.com/badass-courses/image/upload/w_1200,h_630,c_fill,f_auto/w_1020,h_450,c_fit,co_rgb:FFFFFF,g_west,x_90,y_-40,l_text:Roboto_60_left_bold:my%20blog%20is%20a%20digital%20garden%20not%20a%20blog/v1731357274/social-image-templates/joelhooks-com_sbhjby.png',
+    },
+  {
+    url: 'https://tomcritchlow.com/2018/10/10/of-gardens-and-wikis/',
+    title: 'Of Gardens and Wikis',
+    imageUrl: 'https://tomcritchlow.com/images/green.png',
+  },
+  {
+    url: 'https://nesslabs.com/mind-garden',
+    title: 'Building a mind garden to grow your ideas',
+    imageUrl:
+      'https://nesslabs.com/wp-content/uploads/2020/04/mind-garden-banner.png',
+  },
+];

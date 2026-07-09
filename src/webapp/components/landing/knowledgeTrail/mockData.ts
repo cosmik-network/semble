@@ -13,21 +13,40 @@ export const interestAvatars = [
   { initial: 'K', color: '#9C36B5' },
 ];
 
-// "Discover relevant content" — decorative search-results rows. The last row is
-// "expanded" to show a real result title.
-export const searchResults = [
-  { domain: 'example.com' },
-  { domain: 'example2.com' },
-  { domain: 'example3.com' },
-  { domain: 'example4.com', title: 'On Digital Gardens' },
+// "Discover relevant content" — search-results rows for real digital-garden
+// pages. The last row is "expanded" to show the result title. `faviconUrl` uses
+// Google's favicon service so the thumb shows each site's real favicon.
+const favicon = (domain: string) =>
+  `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+export const searchResults: {
+  domain: string;
+  title?: string;
+  faviconUrl: string;
+}[] = [
+  {
+    domain: 'maggieappleton.com',
+    title: 'Digital Gardening for Non-Technical Folks',
+    faviconUrl: favicon('maggieappleton.com'),
+  },
+  {
+    domain: 'lefos.com',
+    title: 'Lefos, create your own garden on the internet.',
+    faviconUrl: favicon('lefos.com'),
+  },
+  {
+    domain: 'trcc.timrodenbroeker.de',
+    title: 'How I built myself a Digital Garden',
+    faviconUrl: favicon('trcc.timrodenbroeker.de'),
+  },
 ];
 
 // "Find new perspectives" — a note/annotation card.
 export const perspectiveNote = {
   quote:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vulputate imperdiet aliquam. Proin egestas sollicitudin eros id tristique.',
-  author: 'Pouria',
-  authorInitial: 'P',
+    "Notes from a wonderfully interdisciplinary Edinburgh workshop on 'Rewilding the Web', ranging coopetition and biological variety through the philosophy of self-organisation, polycrisis governance, protopian science fiction, and moderation seen through the lens of artisanal cheese",
+  author: 'Ailce',
+  authorInitial: 'A',
   authorColor: '#2F9E44',
   createdAt: '12m ago',
 };

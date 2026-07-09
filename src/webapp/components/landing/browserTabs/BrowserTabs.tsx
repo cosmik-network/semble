@@ -4,7 +4,7 @@ import classes from './BrowserTabs.module.css';
 
 const tabs = [
   { name: 'Sustainable Web Manifesto', active: false },
-  { name: 'Rewilding the internet', active: true },
+  { name: 'Rewilding the Web: my workshop report from Edinburgh', active: true },
   { name: 'Internet for the People: The Fight for Our Digital Future', active: false },
 ];
 

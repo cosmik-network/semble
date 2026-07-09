@@ -1,0 +1,188 @@
+/*
+ * Identity convergence diagram.
+ *
+ * Both breakpoints are positioned compositions with dashed connector lines
+ * fanning out from a center identity node to six app logos.
+ *  - Mobile (default): a portrait stage — three logos on top, three on the
+ *    bottom, lines fanning vertically.
+ *  - Desktop (>=46em): a landscape stage — three logos left, three right,
+ *    lines fanning horizontally.
+ */
+
+.stage {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 340 / 520;
+  margin: 0 auto;
+}
+
+/* Connector overlays. The mobile (vertical) SVG shows by default; the desktop
+   (horizontal) SVG takes over at the breakpoint. */
+.lines,
+.linesMobile {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.lines {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  stroke-width: 4;
+  stroke-dasharray: 7 7;
+  stroke-linecap: round;
+}
+
+/* Center identity node. */
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.identityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+/* Round avatar with a white ring so it lifts off the connector lines. */
+.avatar {
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px light-dark(#fff, var(--mantine-color-dark-6)),
+    0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.name {
+  font-weight: 700;
+  line-height: 1.1;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-dark-7), var(--mantine-color-gray-1));
+}
+
+/* The logos wrapper is transparent to layout; each chip positions absolutely. */
+.logos {
+  display: contents;
+}
+
+.node {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: light-dark(#fff, var(--mantine-color-dark-6));
+
+}
+
+.logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+/* Portrait marks (e.g. Anisota) read better with a bit more height. */
+.tall {
+  width: auto;
+  height: 40px;
+}
+
+/* Theme-conditional variants for logos that need a light/dark swap. */
+[data-mantine-color-scheme='dark'] .hideOnDark {
+  display: none;
+}
+[data-mantine-color-scheme='light'] .hideOnLight {
+  display: none;
+}
+
+/* Mobile vertical layout: top row (pos0–2) and bottom row (pos3–5). */
+.pos0 {
+  --x: 16%;
+  --y: 22%;
+}
+.pos1 {
+  --x: 50%;
+  --y: 22%;
+}
+.pos2 {
+  --x: 84%;
+  --y: 22%;
+}
+.pos3 {
+  --x: 16%;
+  --y: 78%;
+}
+.pos4 {
+  --x: 50%;
+  --y: 78%;
+}
+.pos5 {
+  --x: 84%;
+  --y: 78%;
+}
+
+/* ---- Landscape layout (desktop) ---- */
+@media (min-width: 46em) {
+  .stage {
+    max-width: 760px;
+    aspect-ratio: 1000 / 620;
+    margin: 1rem auto;
+  }
+
+  .linesMobile {
+    display: none;
+  }
+
+  .lines {
+    display: block;
+  }
+
+  /* Left column (pos0–2), top → bottom */
+  .pos0 {
+    --x: 20%;
+    --y: 18%;
+  }
+  .pos1 {
+    --x: 20%;
+    --y: 50%;
+  }
+  .pos2 {
+    --x: 20%;
+    --y: 82%;
+  }
+
+  /* Right column (pos3–5), top → bottom */
+  .pos3 {
+    --x: 80%;
+    --y: 18%;
+  }
+  .pos4 {
+    --x: 80%;
+    --y: 50%;
+  }
+  .pos5 {
+    --x: 80%;
+    --y: 82%;
+  }
+}
