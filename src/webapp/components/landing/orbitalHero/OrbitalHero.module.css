@@ -139,38 +139,62 @@
     --w: 320px;
   }
 
-  .nodeCollection {
-    --x: 66%;
+  /* Top band */
+  .nodeProfile {
+    --x: 15%;
     --y: 13%;
-    --w: 290px;
+    --w: 250px;
+    --rot: -2deg;
+  }
+
+  .nodeCollection {
+    --x: 68%;
+    --y: 12%;
+    --w: 280px;
     --rot: 1.5deg;
   }
 
+  /* Middle band */
   .nodeFollow {
-    --x: 20%;
-    --y: 31%;
-    --w: 285px;
-    --rot: -7deg;
+    --x: 17%;
+    --y: 42%;
+    --w: 280px;
+    --rot: -6deg;
   }
 
   .nodeAvatar {
-    --x: 87%;
-    --y: 37%;
+    --x: 88%;
+    --y: 28%;
     --w: auto;
     display: block;
   }
 
+  .nodeFollowCollection {
+    --x: 84%;
+    --y: 60%;
+    --w: 225px;
+    --rot: 2deg;
+  }
+
+  /* Bottom band */
   .nodeAdded {
-    --x: 27%;
-    --y: 76%;
-    --w: 265px;
+    --x: 18%;
+    --y: 78%;
+    --w: 255px;
     --rot: 1deg;
   }
 
+  .nodeFollowedYou {
+    --x: 50%;
+    --y: 86%;
+    --w: 265px;
+    --rot: -1deg;
+  }
+
   .nodeLink {
-    --x: 71%;
-    --y: 80%;
-    --w: 300px;
+    --x: 82%;
+    --y: 78%;
+    --w: 275px;
     opacity: 0.6;
   }
 }

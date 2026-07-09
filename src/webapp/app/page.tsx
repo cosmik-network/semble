@@ -9,7 +9,6 @@ import {
   Box,
   Center,
   Group,
-  Badge,
   Card,
   Anchor,
   Avatar,
@@ -27,12 +26,13 @@ import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
 import SafariIcon from '@/assets/icons/safari-icon.svg';
-import SembleLogo from '@/assets/semble-logo.svg';
+import SembleLogo from '@/assets/semble-logo-full.svg';
 import Footer from '@/components/landing/footer/Footer';
 import FAQ from '@/components/landing/faq/FAQ';
 import BrowserTabs from '@/components/landing/browserTabs/BrowserTabs';
 import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
+import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
@@ -110,12 +110,14 @@ function Content(props: {
     <Fragment>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
       <Container size="xl" p="sm" my="auto">
-        <Group justify="space-between">
-          <Stack gap={6} align="center">
-            <Image src={SembleLogo.src} alt="Semble logo" w={25} h="auto" />
-            <Badge size="xs">Alpha</Badge>
-          </Stack>
-          <Group gap="lg">
+        <Group justify="space-between" wrap="nowrap">
+          <Group flex={1}>
+            <Image src={SembleLogo.src} alt="Semble logo" w={110} h="auto" />
+          </Group>
+          <Box w={380} maw="100%" mx="lg" visibleFrom="sm">
+            <HeaderSearchBar />
+          </Box>
+          <Group flex={1} justify="flex-end" gap="lg" wrap="nowrap">
             <LinkAnchor href="/extension" fw={500} c="inherit">
               Get extension
             </LinkAnchor>
@@ -126,7 +128,7 @@ function Content(props: {
         </Group>
       </Container>
 
-      <Center mih="100svh" py={{ base: '2rem', xs: '5rem' }}>
+      <Center mih="100svh" pt={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="sm" my="auto">
           <Stack gap="5rem" align="center">
             <Stack gap="xs" align="center" maw={700}>
@@ -174,7 +176,7 @@ function Content(props: {
               <AuthButtons />
             </Stack>
 
-            <Stack gap={'8rem'}>
+            <Stack gap={'8rem'} mt={'xl'}>
               <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails

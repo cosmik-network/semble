@@ -40,6 +40,23 @@ const collectionAuthor: User = {
   handle: 'cosmik.network',
 };
 
+// A person you follow (rendered in a ProfileCard).
+export const followedPerson: User = {
+  id: 'did:plc:mock-nadia',
+  name: 'Nadia Kim',
+  handle: 'nadia.bsky.social',
+  avatarUrl: initialAvatar('#4098FF', 'N'),
+  description: 'Mapping the web, one connection at a time.',
+};
+
+// Someone who started following you (rendered as a notification).
+const leo: User = {
+  id: 'did:plc:mock-leo',
+  name: 'Leo Vargas',
+  handle: 'leov.bsky.social',
+  avatarUrl: initialAvatar('#E8590C', 'L'),
+};
+
 // "started following The Communal Aux"
 export const followCollection: Collection = {
   id: 'mock-collection-communal-aux',
@@ -78,6 +95,20 @@ export const addedCardNotification = {
   collections: [addedCollection],
   createdAt: '2026-06-15T00:00:00.000Z', // ~23d before the mocked "today"
   iconColor: 'tangerine',
+};
+
+// "Leo Vargas started following you"
+export const followedYouNotification = {
+  user: leo,
+  type: NotificationType.USER_FOLLOWED_YOU,
+  createdAt: '2026-07-04T00:00:00.000Z', // ~4d before the mocked "today"
+  iconColor: 'blue',
+};
+
+// Compact "collection you follow" card (name + card count + Following button).
+export const followedCollection = {
+  name: 'Design Systems',
+  cardCount: 18,
 };
 
 // Substack link card

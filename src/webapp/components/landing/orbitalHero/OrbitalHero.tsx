@@ -1,14 +1,34 @@
-import { Avatar, Card } from '@mantine/core';
+import { Avatar, Button, Card } from '@mantine/core';
 import NotificationActivityStatus from '@/features/notifications/components/notificationActivityStatus/NotificationActivityStatus';
 import LinkCardContent from '@/features/cards/components/urlCardContent/LinkCardContent';
+import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 import DecorativeSearchBar from './DecorativeSearchBar';
 import HeroCollectionCard from './HeroCollectionCard';
+import HeroFollowCollectionCard from './HeroFollowCollectionCard';
 import {
   addedCardNotification,
   followNotification,
+  followedPerson,
+  followedYouNotification,
   linkCardContent,
 } from './mockData';
 import styles from './OrbitalHero.module.css';
+
+// Decorative "Following" pill reused across the follow examples. Rendered as a
+// div (not an interactive button) so it stays purely presentational and avoids
+// invalid nested-interactive markup inside ProfileCard's link.
+const followingButton = (
+  <Button
+    component="div"
+    variant="light"
+    color="gray"
+    radius="xl"
+    size="xs"
+    style={{ flexShrink: 0 }}
+  >
+    Following
+  </Button>
+);
 
 /**
  * Decorative radial hero: a central (non-interactive) search bar surrounded by
@@ -69,6 +89,30 @@ export default function OrbitalHero() {
           <Card withBorder radius="lg" p="md">
             <LinkCardContent cardContent={linkCardContent} />
           </Card>
+        </div>
+      </div>
+
+      {/* Top-left: a person you follow */}
+      <div className={`${styles.node} ${styles.nodeProfile}`}>
+        <div className={styles.floater} style={{ animationDelay: '-0.8s' }}>
+          <ProfileCard profile={followedPerson}>{followingButton}</ProfileCard>
+        </div>
+      </div>
+
+      {/* Right: a collection you follow */}
+      <div className={`${styles.node} ${styles.nodeFollowCollection}`}>
+        <div className={styles.floater} style={{ animationDelay: '-2.2s' }}>
+          <HeroFollowCollectionCard />
+        </div>
+      </div>
+
+      {/* Bottom-center: "started following you" notification */}
+      <div className={`${styles.node} ${styles.nodeFollowedYou}`}>
+        <div className={styles.floater} style={{ animationDelay: '-3.8s' }}>
+          <NotificationActivityStatus
+            {...followedYouNotification}
+            followButton={followingButton}
+          />
         </div>
       </div>
     </div>

@@ -17,8 +17,9 @@ export default function DecorativeSearchBar() {
       withBorder
       style={{
         borderWidth: '1.5px',
-        borderColor: 'var(--mantine-color-tangerine-6)',
-        boxShadow: '0 6px 22px -6px rgba(255, 100, 0, 0.4)',
+        borderColor:
+          'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+        boxShadow: '0 6px 22px -6px rgba(0, 0, 0, 0.25)',
       }}
     >
       <Group gap="xs" justify="space-between" wrap="nowrap" w="100%">
@@ -30,6 +31,7 @@ export default function DecorativeSearchBar() {
           radius="xl"
           component="div"
           variant="transparent"
+          color="gray"
           aria-hidden
         >
           <IoSearch size={20} />

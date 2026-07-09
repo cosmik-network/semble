@@ -15,7 +15,7 @@ export default function TrailStop(props: {
 }) {
   return (
     <div className={styles.stop} data-index={props.index}>
-      <Text className={styles.label} c="tangerine" fw={700}>
+      <Text className={styles.label} c="dimmed" fw={700}>
         {props.label}
       </Text>
       <div className={styles.stopCard}>{props.children}</div>

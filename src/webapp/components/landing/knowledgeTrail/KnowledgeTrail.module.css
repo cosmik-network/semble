@@ -56,9 +56,28 @@
 }
 
 .label {
+  position: relative;
+  display: inline-block; /* shrink to text so the halo hugs it; .stop centers it */
   max-width: 320px;
   line-height: 1.25;
   text-align: center;
+  padding: 0.4rem 1rem;
+  isolation: isolate;
+}
+
+/* Soft halo so the centered dashed line stays legible behind the label
+   (mainly a mobile concern — on desktop the labels sit off the center line). */
+.label::before {
+  content: '';
+  position: absolute;
+  inset: -0.15rem -0.25rem;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(
+    62% 60% at 50% 50%,
+    light-dark(rgba(244, 250, 246, 0.97), rgba(8, 11, 22, 0.95)) 46%,
+    transparent 100%
+  );
 }
 
 .stopCard {
