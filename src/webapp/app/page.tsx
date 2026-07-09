@@ -16,6 +16,7 @@ import {
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CtaSignup from '@/assets/cta-signup.png';
+import CtaSignupDark from '@/assets/cta-signup-dark.png';
 import McpIcon from '@/assets/icons/mcp-icon.svg';
 import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
@@ -124,7 +125,7 @@ function Content(props: {
             <HeaderSearchBar />
           </Box>
           <Group flex={1} justify="flex-end" gap="lg" wrap="nowrap">
-            <LinkAnchor href="/extension" fw={500} c="dark">
+            <LinkAnchor href="/extension" fw={500} c="bright">
               Get extension
             </LinkAnchor>
             <LinkButton href="/login" size="sm" variant="filled" color="dark">
@@ -143,8 +144,12 @@ function Content(props: {
                 size="compact-sm"
                 variant="default"
                 rightSection={<IoPlayCircle />}
-                c="blue"
-                bg={'blue.0'}
+                style={{
+                  color:
+                    'light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-3))',
+                  backgroundColor:
+                    'light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6))',
+                }}
               >
                 Watch: why we're building Semble
               </LinkButton>
@@ -444,6 +449,7 @@ function Content(props: {
               </Stack>
 
               <Box pos="relative" w="100%">
+                {/* light mode cta bg */}
                 <Image
                   src={CtaSignup.src}
                   alt=""
@@ -451,12 +457,38 @@ function Content(props: {
                   h="auto"
                   mih={380}
                   fit="cover"
-                  style={{ zIndex: 0 }}
+                  style={{
+                    zIndex: 0,
+                    maskImage:
+                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
+                    WebkitMaskImage:
+                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
+                  }}
+                  darkHidden
+                />
+
+                {/* dark mode cta bg */}
+                <Image
+                  src={CtaSignupDark.src}
+                  alt=""
+                  w="100%"
+                  h="auto"
+                  mih={380}
+                  fit="cover"
+                  style={{
+                    zIndex: 0,
+                    maskImage:
+                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
+                    WebkitMaskImage:
+                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
+                  }}
+                  lightHidden
                 />
                 <Center pos="absolute" inset={0} px="md">
+                  <Stack align="center" gap={'xl'}>
                   <Stack align="center" gap={'xs'}>
                     <Title order={2} ta={'center'} maw={400}>
-                      What matters to you, matters to the network
+                      What matters to you, <br/> matters to the network
                     </Title>
                     <Text
                       fw={600}
@@ -478,8 +510,10 @@ function Content(props: {
                     >
                       What will you save to Semble today?
                     </Text>
+                  </Stack>
                     <LinkButton
                       href="/signup"
+                      size='lg'
                       rightSection={<BiRightArrowAlt size={18} />}
                     >
                       Get Started

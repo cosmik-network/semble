@@ -92,7 +92,7 @@
   justify-content: center;
   width: 64px;
   height: 64px;
-  background: light-dark(#fff, var(--mantine-color-dark-6));
+  background: light-dark(#fff, var(--mantine-color-body));
 
 }
 
