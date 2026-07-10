@@ -14,10 +14,13 @@ import {
  */
 
 // Small self-contained colored-initial avatar (avoids bundling image assets or
-// hitting the network). Rendered by Mantine's <Avatar src=... />.
+// hitting the network). Rendered by Mantine's <Avatar src=... />. Fills the
+// whole box with a solid rect so the Avatar's own `radius` (theme default `md`)
+// clips it into a rounded square — matching real avatars — rather than the SVG
+// baking in a circle.
 const initialAvatar = (bg: string, initial: string) =>
   `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="${bg}"/><text x="32" y="43" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="white" text-anchor="middle">${initial}</text></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/><text x="32" y="43" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="white" text-anchor="middle">${initial}</text></svg>`,
   )}`;
 
 const patrick: User = {
@@ -48,11 +51,11 @@ const leo: User = {
   avatarUrl: initialAvatar('#E8590C', 'L'),
 };
 
-// "started following Digital Gardens"
+// "started following Ways of Seeing"
 export const followCollection: Collection = {
-  id: 'mock-collection-communal-aux',
-  uri: 'at://did:plc:mock-author/network.cosmik.collection/communalaux',
-  name: 'The Communal Aux',
+  id: 'mock-collection-ways-of-seeing',
+  uri: 'at://did:plc:mock-author/network.cosmik.collection/waysofseeing',
+  name: 'Ways of Seeing',
   author: collectionAuthor,
   accessType: CollectionAccessType.OPEN,
   cardCount: 34,
@@ -60,11 +63,11 @@ export const followCollection: Collection = {
   updatedAt: '2026-05-01T00:00:00.000Z',
 };
 
-// "added your card to AT Codes"
+// "added your card to On Attention"
 export const addedCollection: Collection = {
-  id: 'mock-collection-at-codes',
-  uri: 'at://did:plc:mock-author/network.cosmik.collection/atcodes',
-  name: 'AT Codes',
+  id: 'mock-collection-on-attention',
+  uri: 'at://did:plc:mock-author/network.cosmik.collection/onattention',
+  name: 'On Attention',
   author: collectionAuthor,
   accessType: CollectionAccessType.OPEN,
   cardCount: 12,
@@ -96,50 +99,48 @@ export const followedYouNotification = {
   iconColor: 'blue',
 };
 
-// Substack link card
+// ACM paper link card
 export const linkCardContent: UrlMetadata = {
-  url: 'https://davidbessis.substack.com/p/attention-is-all-we-have',
-  title: 'Attention is all we have',
-  description: 'A conjectural theory of cognitive inequality',
-  siteName: 'Substack',
+  url: 'https://dl.acm.org/doi/10.1145/3757576',
+  title: 'Deep Storytelling',
+  description:
+    'Collective Sensemaking and Layers of Meaning in U.S. Elections',
+  siteName: 'ACM Digital Library',
 };
 
 // "Digital Gardens" collection card
 export const heroCollection = {
-  name: 'Digital Gardens',
+  name: 'Storytelling and sensemaking',
   cardCount: 21,
   updatedAt: 'Updated 32m ago',
 };
 
-// The first few cards shown in the collection's thumbnail row. Real
-// digital-garden essays with their real og:image previews; falls back to the
-// title text (like CollectionCardPreview) if an image fails to load.
+// The first few cards shown in the collection's thumbnail row. Essays on
+// creative reading, flânerie, and storytelling with their real og:image
+// previews; falls back to the title text (like CollectionCardPreview) if an
+// image fails to load.
 export const heroCollectionCards: {
   url: string;
   title: string;
   imageUrl: string;
 }[] = [
   {
-    url: 'https://maggieappleton.com/garden-history',
-    title: 'A Brief History & Ethos of the Digital Garden',
+    url: 'https://www.goodfire.ai/research/stories-in-space',
+    title: 'Meandering on Manifolds: The Neural Geometry of Stories Over Time',
     imageUrl:
-      'https://res.cloudinary.com/dxj9qr5gj/image/upload/c_scale,f_auto,q_auto:best,w_1000/v1622719121/maggieappleton.com/notes/garden-history/garden-main_ayoaqo_shrink_szbgc7.png',
+      'https://static.goodfire.ai/neural-geometry-agenda/wide_manifold_banner.webp',
     },
+  {
+    url: 'https://www.thepolisblog.org/2011/06/featured-quote-susan-sontag-on.html',
+    title: 'Susan Sontag on the Photographer as Flâneur',
+    imageUrl:
+      'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0F8YPCzoi9vZxDDW9Jz3hdmcL5fIPsiyXke3dOerT3FaJHJCrAlDhj4ZFv2WJVjuiYg469VJRicF1YSQJmm4hPc-dNv7InXx8pqFLbHb5M7qUrzJ59RtwnK1eFQeb8zecd4f1Jm-3JXSa/s640/riis+photo.jpg',
+  },
+
     {
-      url: 'https://joelhooks.com/digital-garden',
-      title: 'My blog is a digital garden, not a blog',
-      imageUrl:
-        'https://res.cloudinary.com/badass-courses/image/upload/w_1200,h_630,c_fill,f_auto/w_1020,h_450,c_fit,co_rgb:FFFFFF,g_west,x_90,y_-40,l_text:Roboto_60_left_bold:my%20blog%20is%20a%20digital%20garden%20not%20a%20blog/v1731357274/social-image-templates/joelhooks-com_sbhjby.png',
+      url: 'https://dl.acm.org/doi/full/10.1145/3800645.3812879',
+      title:
+        'The Flâneur and Turtle on-a-leash: Flânerie as a Metaphor for Human-AI Interaction',
+      imageUrl: '',
     },
-  {
-    url: 'https://tomcritchlow.com/2018/10/10/of-gardens-and-wikis/',
-    title: 'Of Gardens and Wikis',
-    imageUrl: 'https://tomcritchlow.com/images/green.png',
-  },
-  {
-    url: 'https://nesslabs.com/mind-garden',
-    title: 'Building a mind garden to grow your ideas',
-    imageUrl:
-      'https://nesslabs.com/wp-content/uploads/2020/04/mind-garden-banner.png',
-  },
 ];

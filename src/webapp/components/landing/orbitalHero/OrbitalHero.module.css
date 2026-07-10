@@ -14,6 +14,9 @@
   max-width: 320px;
   margin: 0 auto;
   padding: 0.5rem 0;
+  /* Purely decorative composition — the cards mirror real product UI but are
+     illustrative mocks, so nothing here is interactive or clickable. */
+  pointer-events: none;
 }
 
 .rings {
@@ -162,7 +165,6 @@
     --y: 50%;
     --w: 275px;
     --rot: -2deg;
-    opacity: 0.6;
   }
 
   /* Bottom band — one card anchoring the base. */
