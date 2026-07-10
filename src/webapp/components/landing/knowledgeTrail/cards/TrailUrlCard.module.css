@@ -1,0 +1,41 @@
+/*
+ * Styling for the "destination" URL card at the end of the knowledge trail.
+ * A tangerine gradient border (via the padding-box / border-box mask trick) sits
+ * over the card background, wrapped in a layered warm glow so the card reads as
+ * the place the whole trail leads to.
+ */
+.card {
+  position: relative;
+  /* Transparent border reveals the border-box gradient layer underneath. */
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(var(--mantine-color-body), var(--mantine-color-body))
+      padding-box,
+    linear-gradient(
+        140deg,
+        var(--mantine-color-tangerine-3) 0%,
+        var(--mantine-color-tangerine-5) 40%,
+        var(--mantine-color-tangerine-7) 100%
+      )
+      border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 10px -4px rgba(0, 0, 0, 0.18),
+    0 18px 48px -16px rgba(255, 110, 0, 0.5);
+}
+
+/* Soft ambient halo bleeding out behind the card. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 120% at 50% 50%,
+    rgba(255, 120, 0, 0.35) 0%,
+    rgba(255, 120, 0, 0) 70%
+  );
+  filter: blur(18px);
+  opacity: 0.7;
+}

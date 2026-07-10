@@ -89,6 +89,22 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'xl',
       },
+      // Custom `inverse` variant: fill inverts with the color scheme
+      // (dark bg / light text in light mode, and the reverse in dark mode),
+      // mirroring what `c="bright"` does for text.
+      vars: (_theme, props) => {
+        if (props.variant === 'inverse') {
+          return {
+            root: {
+              '--button-bg': 'var(--mantine-color-bright)',
+              '--button-hover': 'var(--mantine-color-bright)',
+              '--button-color': 'var(--mantine-color-body)',
+              '--button-bd': 'transparent',
+            },
+          };
+        }
+        return { root: {} };
+      },
     }),
     NavLink: NavLink.extend({
       styles: (theme) => ({

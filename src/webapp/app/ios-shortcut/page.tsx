@@ -17,7 +17,6 @@ import {
 } from 'react-icons/md';
 import GuideHeader from '@/components/guides/GuideHeader';
 import GuideFooter from '@/components/guides/GuideFooter';
-import { IOS_SHORTCUT_URL } from '@/lib/consts/links';
 
 export default function IosShortcutPage() {
   return (
@@ -52,7 +51,9 @@ export default function IosShortcutPage() {
             </Stack>
             <Button
               component="a"
-              href={IOS_SHORTCUT_URL}
+              href={
+                'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
+              }
               target="_blank"
               size="lg"
               leftSection={<TbStackForward size={22} />}

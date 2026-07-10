@@ -1,0 +1,53 @@
+/* Shared full-cover shadow layer. Sits behind all page content, confined to the
+   "bland gap" between the hero (top 100svh) and the footer via a vertical mask.
+   Never interactive. */
+.layer {
+  position: absolute;
+  inset: 0;
+  /* sits behind the in-flow content of the wrapper it lives in, above the hero bg */
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* fade in below the hero, fade out into the footer */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 100svh,
+    #000 calc(100% - 480px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 100svh,
+    #000 calc(100% - 480px),
+    transparent 100%
+  );
+}
+
+/* Var-driven scatter with per-instance scale (via width), rotation and flip. */
+.item {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg))
+    scaleX(var(--flip, 1));
+}
+
+/* A blurred foliage silhouette reads as a soft, dappled cast shadow. Light mode:
+   warm brown/sepia at very low alpha (shadow on the light bg). Dark mode: faint
+   cool light at very low alpha (light filtering through canopy). */
+.branch {
+  display: block;
+  width: var(--w, 440px);
+  height: auto;
+  color: light-dark(rgba(88, 64, 41, 0.035), rgba(214, 226, 255, 0.03));
+  filter: blur(8px);
+}
+
+/* Gutters only exist on wider viewports; thin the herd on small screens. */
+@media (max-width: 48em) {
+  .itemEdge {
+    display: none;
+  }
+}
