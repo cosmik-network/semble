@@ -144,14 +144,6 @@ export default function Footer() {
 
           <Group justify="center" gap="lg" mb="md" wrap="wrap">
             <Anchor
-              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Give Feedback
-            </Anchor>
-            <Anchor
               href={
                 'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
               }
@@ -176,6 +168,14 @@ export default function Footer() {
               fw={600}
             >
               Blog
+            </Anchor>
+            <Anchor
+              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Give Feedback
             </Anchor>
             <Anchor
               href="https://github.com/cosmik-network/semble/issues"
