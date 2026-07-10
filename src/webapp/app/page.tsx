@@ -35,6 +35,7 @@ import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
 import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
+import TreeShadows from '@/components/landing/treeShadows/TreeShadows';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
@@ -97,6 +98,8 @@ export default async function Page() {
       />
 
       <Box pos="relative" style={{ zIndex: 1 }}>
+        {/* subtle tree shadows filling the gap between hero and footer */}
+        <TreeShadows />
         <Content
           testimonials={testimonialsWithAvatars}
           identityAvatar={identityProfile?.avatar ?? null}
