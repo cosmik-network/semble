@@ -1,14 +1,11 @@
-import { Avatar, Button, Card } from '@mantine/core';
+import { Button, Card } from '@mantine/core';
 import NotificationActivityStatus from '@/features/notifications/components/notificationActivityStatus/NotificationActivityStatus';
 import LinkCardContent from '@/features/cards/components/urlCardContent/LinkCardContent';
-import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 import DecorativeSearchBar from './DecorativeSearchBar';
 import HeroCollectionCard from './HeroCollectionCard';
-import HeroFollowCollectionCard from './HeroFollowCollectionCard';
 import {
   addedCardNotification,
   followNotification,
-  followedPerson,
   followedYouNotification,
   linkCardContent,
 } from './mockData';
@@ -51,6 +48,13 @@ export default function OrbitalHero() {
         <DecorativeSearchBar />
       </div>
 
+      {/* Top-left: "started following" notification */}
+      <div className={`${styles.node} ${styles.nodeFollow}`}>
+        <div className={styles.floater} style={{ animationDelay: '-1.6s' }}>
+          <NotificationActivityStatus {...followNotification} />
+        </div>
+      </div>
+
       {/* Top-right: collection card */}
       <div className={`${styles.node} ${styles.nodeCollection}`}>
         <div className={styles.floater} style={{ animationDelay: '0s' }}>
@@ -58,51 +62,19 @@ export default function OrbitalHero() {
         </div>
       </div>
 
-      {/* Left: "started following" notification */}
-      <div className={`${styles.node} ${styles.nodeFollow}`}>
-        <div className={styles.floater} style={{ animationDelay: '-1.6s' }}>
-          <NotificationActivityStatus {...followNotification} />
-        </div>
-      </div>
-
-      {/* Right: standalone avatar */}
-      <div className={`${styles.node} ${styles.nodeAvatar}`}>
-        <div className={styles.floater} style={{ animationDelay: '-2.8s' }}>
-          <Card radius="xl" p={4} withBorder shadow="sm" w="fit-content">
-            <Avatar color="blue" variant="filled" radius="xl" size={46}>
-              P
-            </Avatar>
-          </Card>
-        </div>
-      </div>
-
-      {/* Bottom-left: "added your card" notification */}
+      {/* Middle-left: "added your card" notification */}
       <div className={`${styles.node} ${styles.nodeAdded}`}>
         <div className={styles.floater} style={{ animationDelay: '-3.4s' }}>
           <NotificationActivityStatus {...addedCardNotification} />
         </div>
       </div>
 
-      {/* Bottom-right: link card (faded) */}
+      {/* Middle-right: link card (faded) */}
       <div className={`${styles.node} ${styles.nodeLink}`}>
         <div className={styles.floater} style={{ animationDelay: '-4.2s' }}>
           <Card withBorder radius="lg" p="md">
             <LinkCardContent cardContent={linkCardContent} />
           </Card>
-        </div>
-      </div>
-
-      {/* Top-left: a person you follow */}
-      <div className={`${styles.node} ${styles.nodeProfile}`}>
-        <div className={styles.floater} style={{ animationDelay: '-0.8s' }}>
-          <ProfileCard profile={followedPerson}>{followingButton}</ProfileCard>
-        </div>
-      </div>
-
-      {/* Right: a collection you follow */}
-      <div className={`${styles.node} ${styles.nodeFollowCollection}`}>
-        <div className={styles.floater} style={{ animationDelay: '-2.2s' }}>
-          <HeroFollowCollectionCard />
         </div>
       </div>
 

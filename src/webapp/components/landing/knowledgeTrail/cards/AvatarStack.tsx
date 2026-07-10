@@ -13,10 +13,12 @@ export default function AvatarStack() {
         {interestAvatars.map((a) => (
           <Avatar
             key={a.initial}
+            src={a.src}
             variant="filled"
             color={a.color}
             size="lg"
             radius="lg"
+            alt=""
           >
             {a.initial}
           </Avatar>

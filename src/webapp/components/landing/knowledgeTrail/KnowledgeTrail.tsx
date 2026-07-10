@@ -29,7 +29,7 @@ export default function KnowledgeTrail() {
         <SearchResultsCard />
       </TrailStop>
 
-      <TrailStop index={3} label="Find new perspectives">
+      <TrailStop index={3} label="Find new perspectives or add yours">
         <PerspectiveNoteCard />
       </TrailStop>
 

@@ -5,12 +5,16 @@
  * the API. Mirrors the approach used by `orbitalHero/mockData.ts`.
  */
 
-// "See who shares your interest" — overlapping avatars (rendered with the
-// initial as the Avatar's children, colored via the `color` prop).
+// "See who shares your interest" — overlapping avatars, each showing a stock
+// person photo (the initial/color act as the fallback while the image loads).
+import RandomPerson1 from '@/assets/random-person.jpeg';
+import RandomPerson2 from '@/assets/random-person-2.jpeg';
+import RandomPerson3 from '@/assets/random-person-3.jpeg';
+
 export const interestAvatars = [
-  { initial: 'A', color: '#2F9E44' },
-  { initial: 'M', color: '#1e4dd9' },
-  { initial: 'K', color: '#9C36B5' },
+  { initial: 'A', color: '#2F9E44', src: RandomPerson1.src },
+  { initial: 'M', color: '#1e4dd9', src: RandomPerson2.src },
+  { initial: 'K', color: '#9C36B5', src: RandomPerson3.src },
 ];
 
 // "Discover relevant content" — search-results rows for real digital-garden
@@ -67,10 +71,10 @@ export const trailCollection = {
 
 // The glowing URL card at the end of the trail.
 export const trailUrlCard = {
-  domain: 'www.example.com',
-  title: 'Title of this card',
+  domain: 'anil.recoil.org',
+  title: 'Rewilding the Web: my workshop report from Edinburgh',
   description:
-    'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-  libraryCount: 22,
-  connectionCount: 22,
+    "Notes from a wonderfully interdisciplinary Edinburgh workshop on 'Rewilding the Web', ranging coopetition and biological variety through the philosophy of self-organisation, polycrisis governance, protopian science fiction, and moderation seen through the lens of artisanal cheese.",
+  libraryCount: 3,
+  connectionCount: 5,
 };
