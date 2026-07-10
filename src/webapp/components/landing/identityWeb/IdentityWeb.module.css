@@ -41,11 +41,15 @@
   stroke-linecap: round;
 }
 
-/* Center identity node. */
+/* Center identity node. On mobile it sits slightly below the midpoint so the
+   top and bottom connector lines read equal length: the top line-ends stop
+   short of their labels (y≈174) while the bottom line-ends are clipped by their
+   logo chips (y≈374), so the avatar sits at the midpoint of those two visible
+   ends (y≈274 → 52.7%). Desktop resets it to the true center. */
 .center {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 52.7%;
   transform: translate(-50%, -50%);
   z-index: 2;
 }
@@ -59,12 +63,8 @@
   text-align: center;
 }
 
-/* Round avatar with a white ring so it lifts off the connector lines. */
 .avatar {
   border-radius: 50%;
-  box-shadow:
-    0 0 0 4px light-dark(#fff, var(--mantine-color-dark-6)),
-    0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 .name {
@@ -87,6 +87,13 @@
   z-index: 1;
 }
 
+/* Each app node is an anchor opening the app in a new tab. */
+.link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
 .chip {
   display: flex;
   align-items: center;
@@ -100,6 +107,32 @@
   width: 34px;
   height: 34px;
   object-fit: contain;
+}
+
+/* App name under each chip. Positioned absolutely so the chip stays centered on
+   its connector-line endpoint regardless of label height. Size / weight / color
+   come from the Mantine <Text> props (size / fw / c="dimmed"); the uppercase
+   tracking here gives it a crisper, more refined micro-label look.
+   The negative margin pulls the label up tight to the logo, closing the dead
+   space between the 34px mark and the 64px chip edge. */
+.label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: -2px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  /* Body-coloured backdrop, opaque behind the text and fading to transparent at
+     the edges, so the dashed connector lines (which run through the label band
+     on mobile) are masked without a hard rectangular edge. */
+  padding: 1px 10px;
+  background: radial-gradient(
+    closest-side,
+    var(--mantine-color-body) 60%,
+    transparent 100%
+  );
 }
 
 /* Portrait marks (e.g. Anisota) read better with a bit more height. */
@@ -156,6 +189,12 @@
 
   .lines {
     display: block;
+  }
+
+  /* Avatar returns to the true center to align with the horizontal converge
+     point of the desktop lines. */
+  .center {
+    top: 50%;
   }
 
   /* Left column (pos0–2), top → bottom */
