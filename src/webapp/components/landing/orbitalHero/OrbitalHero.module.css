@@ -170,12 +170,19 @@
     --rot: -2deg;
   }
 
-  /* Bottom band — one card anchoring the base. */
+  /* Bottom band — a pair anchoring the base. */
+  .nodeConnected {
+    --x: 30%;
+    --y: 88%;
+    --w: 285px;
+    --rot: -1.5deg;
+  }
+
   .nodeFollowedYou {
-    --x: 50%;
+    --x: 72%;
     --y: 87%;
     --w: 285px;
-    --rot: -1deg;
+    --rot: 1.5deg;
   }
 }
 
