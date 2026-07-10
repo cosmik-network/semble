@@ -5,6 +5,9 @@ import {
   type Collection,
   type UrlMetadata,
 } from '@/api-client';
+import RandomPerson5 from '@/assets/random-person-5.jpeg';
+import RandomPerson6 from '@/assets/random-person-6.jpeg';
+import RandomPerson7 from '@/assets/random-person-7.jpeg';
 
 /**
  * Static mock data for the decorative orbital hero on the landing page.
@@ -13,28 +16,18 @@ import {
  * the composition mirrors the real product UI without touching the API.
  */
 
-// Small self-contained colored-initial avatar (avoids bundling image assets or
-// hitting the network). Rendered by Mantine's <Avatar src=... />. Fills the
-// whole box with a solid rect so the Avatar's own `radius` (theme default `md`)
-// clips it into a rounded square — matching real avatars — rather than the SVG
-// baking in a circle.
-const initialAvatar = (bg: string, initial: string) =>
-  `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/><text x="32" y="43" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="white" text-anchor="middle">${initial}</text></svg>`,
-  )}`;
-
 const patrick: User = {
   id: 'did:plc:mock-patrick',
-  name: 'Patrick Singletary',
-  handle: 'patrick.bsky.social',
-  avatarUrl: initialAvatar('#2F9E44', 'P'),
+  name: 'Alice Martin',
+  handle: 'alice.bsky.social',
+  avatarUrl: RandomPerson5.src,
 };
 
 const victoria: User = {
   id: 'did:plc:mock-victoria',
-  name: 'Victoria',
-  handle: 'vicwalker.dev.br',
-  avatarUrl: initialAvatar('#9C36B5', 'V'),
+  name: 'Olivia Kim',
+  handle: 'olivia.bsky.social',
+  avatarUrl: RandomPerson6.src,
 };
 
 const collectionAuthor: User = {
@@ -46,9 +39,9 @@ const collectionAuthor: User = {
 // Someone who started following you (rendered as a notification).
 const leo: User = {
   id: 'did:plc:mock-leo',
-  name: 'Leo Vargas',
-  handle: 'leov.bsky.social',
-  avatarUrl: initialAvatar('#E8590C', 'L'),
+  name: 'Ava Jensen',
+  handle: 'ava.bsky.social',
+  avatarUrl: RandomPerson7.src,
 };
 
 // "started following Ways of Seeing"

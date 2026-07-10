@@ -10,6 +10,7 @@
 import RandomPerson1 from '@/assets/random-person.jpeg';
 import RandomPerson2 from '@/assets/random-person-2.jpeg';
 import RandomPerson3 from '@/assets/random-person-3.jpeg';
+import RandomPerson4 from '@/assets/random-person-4.jpeg';
 
 export const interestAvatars = [
   { initial: 'A', color: '#2F9E44', src: RandomPerson1.src },
@@ -53,6 +54,7 @@ export const perspectiveNote = {
   author: 'Ailce',
   authorInitial: 'A',
   authorColor: '#2F9E44',
+  authorAvatar: RandomPerson4.src,
   createdAt: '12m ago',
 };
 

@@ -100,59 +100,60 @@ export default function ConnectionBuilderCard() {
 
         <Divider orientation="vertical" size="md" h={14} mx="auto" />
 
-        {/* Selector + open picker as one unit (stand-in for the real combobox in
-            its open state): the selected relation on top, the full list below. */}
-        <Paper withBorder radius="lg" shadow="sm" p={6}>
-          <Stack gap={8} align="center">
-            <Button
-              component="div"
-              color="green"
-              size="sm"
-              radius="xl"
-              w="fit-content"
-              leftSection={ActiveIcon ? <ActiveIcon size={16} /> : null}
-              rightSection={<LuChevronsUpDown size={16} />}
-            >
-              {activeType?.label ?? 'Select a relation'}
-            </Button>
+        {/* Type selector (non-interactive stand-in for the real combobox target) */}
+        <Button
+          component="div"
+          color="green"
+          size="sm"
+          radius="xl"
+          w="fit-content"
+          mx="auto"
+          leftSection={ActiveIcon ? <ActiveIcon size={16} /> : null}
+          rightSection={<LuChevronsUpDown size={16} />}
+        >
+          {activeType?.label ?? 'Select a relation'}
+        </Button>
 
-            <ScrollArea.Autosize type="always" mah={96} w="100%">
-          <Stack gap={0} pr="sm">
-            {CONNECTION_TYPES.map((type) => {
-              const Icon = type.icon;
-              const isActive = type.value === connectionExample.activeType;
-              return (
-                <Group
-                  key={type.value}
-                  gap="sm"
-                  wrap="nowrap"
-                  px="xs"
-                  py={5}
-                  style={{
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    background: isActive
-                      ? 'var(--mantine-color-green-light)'
-                      : undefined,
-                  }}
-                >
-                  <Icon size={16} color="var(--mantine-color-green-6)" />
-                  <Text
-                    fz="sm"
-                    c="bright"
-                    fw={isActive ? 600 : 500}
-                    style={{ flex: 1 }}
+        <Divider orientation="vertical" size="md" h={14} mx="auto" />
+
+        {/* Open picker — every relation, active one highlighted */}
+        <Paper withBorder radius="md" shadow="sm" p={4}>
+          <ScrollArea.Autosize type="always" mah={96}>
+            <Stack gap={0} pr="sm">
+              {CONNECTION_TYPES.map((type) => {
+                const Icon = type.icon;
+                const isActive = type.value === connectionExample.activeType;
+                return (
+                  <Group
+                    key={type.value}
+                    gap="sm"
+                    wrap="nowrap"
+                    px="xs"
+                    py={5}
+                    style={{
+                      borderRadius: 'var(--mantine-radius-sm)',
+                      background: isActive
+                        ? 'var(--mantine-color-green-light)'
+                        : undefined,
+                    }}
                   >
-                    {type.label}
-                  </Text>
-                  {isActive && (
-                    <BsCheck size={18} color="var(--mantine-color-green-6)" />
-                  )}
-                </Group>
-              );
-            })}
-          </Stack>
-            </ScrollArea.Autosize>
-          </Stack>
+                    <Icon size={16} color="var(--mantine-color-green-6)" />
+                    <Text
+                      fz="sm"
+                      c="bright"
+                      fw={isActive ? 600 : 500}
+                      style={{ flex: 1 }}
+                    >
+                      {type.label}
+                    </Text>
+                    {isActive && (
+                      <BsCheck size={18} color="var(--mantine-color-green-6)" />
+                    )}
+                  </Group>
+                );
+              })}
+            </Stack>
+          </ScrollArea.Autosize>
         </Paper>
 
         <Stack align="center" gap={0}>

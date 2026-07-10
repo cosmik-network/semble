@@ -18,9 +18,11 @@ export default function PerspectiveNoteCard() {
         </Text>
         <Group gap="xs" wrap="nowrap">
           <Avatar
+            src={perspectiveNote.authorAvatar}
             color='grape'
             size="sm"
             radius="md"
+            alt=""
           >
             {perspectiveNote.authorInitial}
           </Avatar>

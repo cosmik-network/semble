@@ -53,10 +53,8 @@
   z-index: 2;
 }
 
-.floater {
-  animation: floatBob 6s ease-in-out infinite;
-  will-change: transform;
-}
+/* No float on mobile — the cards sit in a static vertical stack. The bob is a
+   desktop-only flourish (applied inside the radial-layout media query below). */
 
 @keyframes floatBob {
   0%,
@@ -129,6 +127,11 @@
     width: var(--w);
     max-width: none;
     transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  }
+
+  .floater {
+    animation: floatBob 6s ease-in-out infinite;
+    will-change: transform;
   }
 
   .center {
