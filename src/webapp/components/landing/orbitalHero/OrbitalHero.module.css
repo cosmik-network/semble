@@ -134,21 +134,21 @@
   .center {
     --x: 50%;
     --y: 50%;
-    --w: 320px;
+    --w: 340px;
   }
 
   /* Top band — a card on each side above the search bar. */
   .nodeFollow {
     --x: 27%;
     --y: 15%;
-    --w: 280px;
+    --w: 300px;
     --rot: -4deg;
   }
 
   .nodeCollection {
     --x: 71%;
     --y: 13%;
-    --w: 280px;
+    --w: 300px;
     --rot: 1.5deg;
   }
 
@@ -156,14 +156,14 @@
   .nodeAdded {
     --x: 13%;
     --y: 55%;
-    --w: 255px;
+    --w: 275px;
     --rot: 1deg;
   }
 
   .nodeLink {
     --x: 87%;
     --y: 50%;
-    --w: 275px;
+    --w: 295px;
     --rot: -2deg;
   }
 
@@ -171,7 +171,7 @@
   .nodeFollowedYou {
     --x: 50%;
     --y: 87%;
-    --w: 265px;
+    --w: 285px;
     --rot: -1deg;
   }
 }
