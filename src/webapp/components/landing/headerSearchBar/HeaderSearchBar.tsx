@@ -8,7 +8,12 @@ import { useRef, useState, useTransition } from 'react';
 import { track } from '@vercel/analytics';
 import posthog from 'posthog-js';
 
-const SUBJECTS = ['Data cooperatives', 'Hypertext', 'open source AI'];
+const SUBJECTS = [
+  'AI for science',
+  'Data cooperatives',
+  'Hypertext',
+  'open source AI',
+];
 
 export default function HeaderSearchBar() {
   const router = useRouter();
