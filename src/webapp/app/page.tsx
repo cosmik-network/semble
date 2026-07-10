@@ -42,6 +42,7 @@ import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
+import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Script from 'next/script';
 
 const testimonials = [
@@ -71,9 +72,10 @@ const testimonials = [
 ];
 
 export default async function Page() {
-  const [profiles, identityProfile] = await Promise.all([
+  const [profiles, identityProfile, session] = await Promise.all([
     Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
     getBlueskyProfile('cosmiktesting.bsky.social'),
+    verifySessionOnServer(),
   ]);
   const testimonialsWithAvatars = testimonials.map((t, i) => ({
     ...t,
@@ -97,6 +99,7 @@ export default async function Page() {
         <Content
           testimonials={testimonialsWithAvatars}
           identityAvatar={identityProfile?.avatar ?? null}
+          isAuthenticated={!!session}
         />
       </Box>
     </Box>
@@ -111,6 +114,7 @@ function Content(props: {
     avatar: string | null;
   }[];
   identityAvatar: string | null;
+  isAuthenticated: boolean;
 }) {
   return (
     <Fragment>
@@ -147,9 +151,11 @@ function Content(props: {
             {/*<LinkAnchor href="/extension" fw={500} c="bright">
               Get extension
             </LinkAnchor>*/}
-            <LinkButton href="/login" size="sm" variant="inverse">
-              Log in
-            </LinkButton>
+            {!props.isAuthenticated && (
+              <LinkButton href="/login" size="sm" variant="inverse">
+                Log in
+              </LinkButton>
+            )}
           </Group>
         </Group>
       </Container>
