@@ -13,6 +13,7 @@ import {
   Anchor,
   Avatar,
   Button,
+  Badge,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
@@ -213,6 +214,9 @@ function Content(props: {
 
             <Stack gap={'9rem'} mt={'5rem'}>
               <Stack align="center" gap={'xs'}>
+                <Badge variant="default" color="tangerine">
+                  Capture
+                </Badge>
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails
                 </Title>
@@ -235,6 +239,9 @@ function Content(props: {
 
               <Stack align="center" gap={'xl'}>
               <Stack align="center" gap={'xs'}>
+                <Badge variant="default" color="blue">
+                  Discover
+                </Badge>
                 <Title order={2} ta={'center'} maw={400}>
                   Find your way through the web with the people you trust
                 </Title>
@@ -255,6 +262,9 @@ function Content(props: {
 
               <Stack align="center" gap={'xl'}>
                 <Stack align="center" gap={'xs'}>
+                <Badge variant="default" color="green">
+                  Extend
+                </Badge>
                 <Title order={2} ta={'center'} maw={400}>
                   Your workflow, your way
                 </Title>
@@ -444,9 +454,14 @@ function Content(props: {
                       />
 
                       <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          Web extension
-                        </Text>
+                        <Group gap="xs" wrap="nowrap">
+                          <Text fw={600} fz="lg">
+                            Web extension
+                          </Text>
+                          <Badge variant="light" color="gray" size="sm">
+                            Coming soon
+                          </Badge>
+                        </Group>
                         <Text c="dimmed">
                           Save from anywhere. Organize your links. Find related
                           content. Discover new connections
@@ -482,6 +497,9 @@ function Content(props: {
               </Stack>
 
               <Stack align="center" gap={'xs'}>
+                <Badge variant="default" color="grape">
+                  Yours to keep
+                </Badge>
                 <Title order={2} ta={'center'} maw={400}>
                   What you make here stays yours
                 </Title>
@@ -503,9 +521,14 @@ function Content(props: {
               </Stack>
 
               <Stack align="center" gap={'xl'} w="100%">
-                <Title order={2} ta={'center'} maw={350}>
-                  Things you might be wondering about
-                </Title>
+                <Stack align="center" gap={'xs'}>
+                  <Badge variant="default" color="gray">
+                    FAQ
+                  </Badge>
+                  <Title order={2} ta={'center'} maw={350}>
+                    Things you might be wondering about
+                  </Title>
+                </Stack>
                 <FAQ />
               </Stack>
 
