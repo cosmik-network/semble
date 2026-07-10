@@ -11,14 +11,11 @@ import {
   Text,
 } from '@mantine/core';
 import { FaBluesky, FaDiscord, FaGithub } from 'react-icons/fa6';
-import { RiArrowRightUpLine } from 'react-icons/ri';
-import { IoPhonePortraitOutline } from 'react-icons/io5';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import FooterBG from '@/assets/footer-bg.png';
-import DarkBG from '@/assets/semble-bg-dark.png';
-import { IOS_SHORTCUT_URL } from '@/lib/consts/links';
+import FooterDarkBG from '@/assets/footer-bg-dark.png';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 
 export default function Footer() {
@@ -26,7 +23,7 @@ export default function Footer() {
     <Box
       component="footer"
       pt={{ base: '3rem', md: '5rem' }}
-      pb={{ base: '1.5rem', md: '2rem' }}
+      pb={'0'}
       mt="xl"
       pos="relative"
       style={{
@@ -44,15 +41,27 @@ export default function Footer() {
         pos="absolute"
         inset={0}
         style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
+
       />
 
       {/* dark mode bg */}
       <BackgroundImage
-        src={DarkBG.src}
+        src={FooterDarkBG.src}
         lightHidden
         pos="absolute"
         inset={0}
         style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
+      />
+
+      {/* darkening overlay */}
+      <Box
+        pos="absolute"
+        inset={0}
+        style={{
+          zIndex: 0,
+          background: 'rgba(0, 0, 0, 0.1)',
+          pointerEvents: 'none',
+        }}
       />
 
       {/* light mode top fade — keeps the top blending to white at any height */}
@@ -132,6 +141,36 @@ export default function Footer() {
             >
               <FaDiscord size={22} />
             </ActionIcon>
+          </Group>
+
+          <Group justify="center" gap="lg" mb="md" wrap="wrap">
+            <Anchor
+              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              User input
+            </Anchor>
+            <Anchor href={"https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6"} target="_blank" c="white" fw={600}>
+              iOS shortcut
+            </Anchor>
+            <Anchor
+              href="https://docs.cosmik.network/semble"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Semble docs
+            </Anchor>
+            <Anchor
+              href="https://blog.cosmik.network/"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Blog
+            </Anchor>
           </Group>
 
           <Stack align="center" gap="0">
