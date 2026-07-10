@@ -1,0 +1,175 @@
+/*
+ * Mobile-first: a single centered column of trail stops, each with its label
+ * stacked on top of the card, over a straight-ish dashed thread running down
+ * the center (the "trail"). At the `md` breakpoint (46em) it becomes a two-
+ * column layout with the stops flanking the dashed line, alternating sides.
+ *
+ * The dashed thread reuses the connective "stitching" language from
+ * OrbitalHero, but in tangerine and gently waving to match the design mock.
+ */
+
+.trail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.5rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+}
+
+/*
+ * The central dashed wave. Rendered as a repeating SVG tile so it is
+ * height-independent (the section grows with its content) and stays crisp.
+ * The tile is one gentle full wave over 340px, so the ~1470px trail shows only
+ * ~4 waves. The dash pattern (9.48 + 8 = 17.48) divides the ~349.5px tile path
+ * length into exactly 20 cycles, so dashes flow seamlessly across tiles.
+ */
+.line {
+  position: absolute;
+  /* Extend up past the trail's top edge so the dashed line visually connects
+     to the bottom of the browser tabs sitting just above this section. */
+  top: -2.25rem;
+  bottom: 0;
+  left: 50%;
+  width: 60px;
+  transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: repeat-y;
+  background-position: center top;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='340' viewBox='0 0 60 340' fill='none'%3E%3Cpath d='M30 0 C52 39 52 131 30 170 C8 209 8 301 30 340' stroke='%23ff6400' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='9.48 8'/%3E%3C/svg%3E");
+}
+
+.stop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* Centers the label + component blocks over one another so the label sits
+     centered above its component. Card content keeps its own text alignment. */
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.label {
+  position: relative;
+  display: inline-block; /* shrink to text so the halo hugs it; .stop centers it */
+  max-width: 320px;
+  line-height: 1.25;
+  text-align: center;
+  padding: 0.4rem 1rem;
+  isolation: isolate;
+}
+
+/* Soft halo so the centered dashed line stays legible behind the label
+   (mainly a mobile concern — on desktop the labels sit off the center line).
+   The trail sits below the hero's background image, over the flat page
+   background, so the halo uses `--mantine-color-body` itself: it's invisible
+   against the background yet opaque enough to mask the dashed trail line. */
+.label::before {
+  content: '';
+  position: absolute;
+  inset: -0.15rem -0.25rem;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(
+    62% 60% at 50% 50%,
+    var(--mantine-color-body) 46%,
+    color-mix(in srgb, var(--mantine-color-body) 60%, transparent) 72%,
+    transparent 100%
+  );
+}
+
+.stopCard {
+  width: 100%;
+  max-width: 340px;
+}
+
+/* Give each stop (label + preview card) a slight, alternating tilt so the trail
+   feels hand-placed rather than rigidly aligned. The final URL card is
+   intentionally left upright. */
+.stop[data-index='1'] {
+  transform: rotate(-1deg);
+}
+.stop[data-index='2'] {
+  transform: rotate(0.75deg);
+}
+.stop[data-index='3'] {
+  transform: rotate(-0.75deg);
+}
+.stop[data-index='4'] {
+  transform: rotate(1deg);
+}
+.stop[data-index='5'] {
+  transform: rotate(-0.75deg);
+}
+
+.finalCard {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  margin: calc(12rem) auto 0 auto;
+}
+
+/* Closing caption — lives outside `.trail` so the dashed line ends at the card
+   above it rather than running behind the text. */
+.finalCaption {
+  margin: 1.25rem auto 0 auto;
+  max-width: 460px;
+}
+
+/* ---- Two-column trail (desktop) ---- */
+@media (min-width: 46em) {
+  .trail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 5rem;
+    row-gap: 3rem;
+    align-items: center;
+    max-width: 940px;
+    /* Keep the same breathing room above the first stop as the mobile layout,
+       so it isn't tight against the browser tabs above. */
+    padding-top: 1.5rem;
+  }
+
+  /* Slightly stronger tilt on desktop (still capped at 2deg); mobile keeps a
+     subtler version via the base rules above. */
+  .stop[data-index='1'] {
+    grid-column: 1;
+    grid-row: 1;
+    transform: rotate(-2deg);
+  }
+  .stop[data-index='2'] {
+    grid-column: 2;
+    grid-row: 2;
+    transform: rotate(1.5deg);
+  }
+  .stop[data-index='3'] {
+    grid-column: 1;
+    grid-row: 3;
+    transform: rotate(-1.5deg);
+  }
+  .stop[data-index='4'] {
+    grid-column: 2;
+    grid-row: 4;
+    transform: rotate(2deg);
+  }
+  .stop[data-index='5'] {
+    grid-column: 1;
+    grid-row: 5;
+    transform: rotate(-1.5deg);
+  }
+  .finalCard {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  /* Each stop (label + component) is centered within its half so the label
+     sits centered over its component, matching the design mock. `.left` /
+     `.right` only pick the column (set above via data-index). */
+}

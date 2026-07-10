@@ -3,6 +3,8 @@
 import {
   ActionIcon,
   type ActionIconProps,
+  Anchor,
+  type AnchorProps,
   Avatar,
   type AvatarProps,
   Badge,
@@ -25,6 +27,10 @@ type AsNextLink<P> = PolymorphicComponentProps<typeof NextLink, P>;
 
 export function LinkActionIcon(props: AsNextLink<ActionIconProps>) {
   return <ActionIcon component={NextLink} {...props} />;
+}
+
+export function LinkAnchor(props: AsNextLink<AnchorProps>) {
+  return <Anchor component={NextLink} {...props} />;
 }
 
 export function LinkAvatar(props: AsNextLink<AvatarProps>) {

@@ -1,5 +1,6 @@
 import { createSembleClient } from '@/services/client.apiClient';
 import { AtpAgent } from '@atproto/api';
+import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 
 interface Params {
@@ -29,6 +30,24 @@ export const getBlueskyPost = cache(async (uri: string) => {
 
   return post.data;
 });
+
+export const getBlueskyProfile = unstable_cache(
+  async (handle: string) => {
+    const agent = new AtpAgent({ service: 'https://public.api.bsky.app' });
+
+    try {
+      const res = await agent.getProfile({ actor: handle });
+      return res.success ? res.data : null;
+    } catch (err: any) {
+      if (err?.status === 404 || err?.error === 'NotFound') {
+        return null;
+      }
+      throw err;
+    }
+  },
+  ['bluesky-profile'],
+  { revalidate: 86400 },
+);
 
 export const searchBlueskyUsers = cache(
   async (query: string, params?: Params) => {
