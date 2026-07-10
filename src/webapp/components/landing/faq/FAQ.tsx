@@ -13,8 +13,23 @@ const FAQS: {
   {
     value: 'what-is-semble',
     question: 'What is Semble?',
-    answer:
-      'Semble is a social app for saving, connecting, and curating content. You save links, group them into collections, and draw connections between related ones. Because other people are doing the same, every link you save opens onto what others have saved and connected around it. See a quick intro video here.',
+    answer: (
+      <>
+        Semble is a social app for saving, connecting, and curating content. You
+        save links, group them into collections, and draw connections between
+        related ones. Because other people are doing the same, every link you save
+        opens onto what others have saved and connected around it. See a quick
+        intro video{' '}
+        <Anchor
+          href="https://docs.cosmik.network/semble"
+          target="_blank"
+          c="blue"
+        >
+          here
+        </Anchor>
+        .
+      </>
+    ),
   },
   {
     value: 'content-types',
