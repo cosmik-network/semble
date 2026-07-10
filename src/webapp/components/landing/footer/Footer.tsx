@@ -149,7 +149,7 @@ export default function Footer() {
               c="white"
               fw={600}
             >
-              User input
+              Feature Request
             </Anchor>
             <Anchor
               href={

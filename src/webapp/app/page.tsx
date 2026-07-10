@@ -218,7 +218,7 @@ function Content(props: {
             <Stack gap={'9rem'} mt={'5rem'}>
               <Stack align="center" gap={'xs'}>
                 <Badge variant="default" color="tangerine">
-                  Capture
+                  Curate
                 </Badge>
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails
@@ -249,8 +249,8 @@ function Content(props: {
                     Find your way through the web with the people you trust
                   </Title>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                    Save links, connect related ideas, and curate collections on
-                    your own or collaboratively.
+                    Find high-quality search results powered by the community.
+                    Follow and discover interesting curators and collections.
                   </Text>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                     Tune your notifications to the interactions that matter to

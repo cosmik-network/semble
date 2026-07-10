@@ -1,10 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Accordion, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
+import { Accordion, Anchor, Text } from '@mantine/core';
 import { FiPlus, FiMinus } from 'react-icons/fi';
 
-const FAQS = [
+const FAQS: {
+  value: string;
+  question: string;
+  answer: ReactNode;
+}[] = [
   {
     value: 'what-is-semble',
     question: 'What is Semble?',
@@ -17,17 +22,30 @@ const FAQS = [
     answer:
       "Any link! Some link types are better supported than others right now: for example, you can save links to PDFs and images, but metadata and in-app viewing for them are still on the roadmap. If there's a format you'd like better supported, add a request to our public board.",
   },
-  {
-    value: 'for-researchers',
-    question: 'Is Semble for researchers?',
-    answer:
-      "We get asked this a lot, probably because Semble has a research-y feel and some research-specific features. We do love research and think Semble has an important role to play in the next evolution of open science. But at the same time, we mean \"research\" in a broad sense: the everyday work of making sense of things. It belongs to everyone, and it's something we're better at together. Whenever you follow a question, save what you find, and connect it to what others have gathered, you're taking part. Semble is for all sensemakers, whatever we're trying to understand.",
-  },
+  // {
+  //   value: 'for-researchers',
+  //   question: 'Is Semble for researchers?',
+  //   answer:
+  //     "We get asked this a lot, probably because Semble has a research-y feel and some research-specific features. We do love research and think Semble has an important role to play in the next evolution of open science. But at the same time, we mean \"research\" in a broad sense: the everyday work of making sense of things. It belongs to everyone, and it's something we're better at together. Whenever you follow a question, save what you find, and connect it to what others have gathered, you're taking part. Semble is for all sensemakers, whatever we're trying to understand.",
+  // },
   {
     value: 'open-social',
     question: 'What is open social?',
-    answer:
-      "Open social means Semble is built on an open protocol (AT Protocol, the protocol Bluesky is built on) rather than a closed platform. Your data and social connections live in a store you control instead of inside one company's app, so they stay yours and can move with you across other apps built on the same protocol. It's why you can join Semble with an account you already have and bring your existing connections along. The ecosystem of apps built on the AT Protocol is called the ATmosphere, it’s a wonderful and active community building a new open web.",
+    answer: (
+      <>
+        Open social means Semble is built on an open protocol (
+        <Anchor href="https://atproto.com/" target="_blank" c="blue">
+          AT Protocol
+        </Anchor>
+        , the protocol Bluesky is built on) rather than a closed platform. Your
+        data and social connections live in a store you control instead of inside
+        one company's app, so they stay yours and can move with you across other
+        apps built on the same protocol. It's why you can join Semble with an
+        account you already have and bring your existing connections along. The
+        ecosystem of apps built on the AT Protocol is called the ATmosphere, it’s
+        a wonderful and active community building a new open web.
+      </>
+    ),
   },
   {
     value: 'private-data',
