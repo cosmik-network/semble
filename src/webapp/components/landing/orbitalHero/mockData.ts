@@ -5,6 +5,7 @@ import {
   type Collection,
   type UrlMetadata,
 } from '@/api-client';
+import RandomPerson2 from '@/assets/random-person-2.jpeg';
 import RandomPerson5 from '@/assets/random-person-5.jpeg';
 import RandomPerson6 from '@/assets/random-person-6.jpeg';
 import RandomPerson7 from '@/assets/random-person-7.jpeg';
@@ -42,6 +43,14 @@ const leo: User = {
   name: 'Ava Jensen',
   handle: 'ava.bsky.social',
   avatarUrl: RandomPerson7.src,
+};
+
+// Someone who connected one of your cards (rendered as a notification).
+const noah: User = {
+  id: 'did:plc:mock-noah',
+  name: 'Noah Bennett',
+  handle: 'noah.bsky.social',
+  avatarUrl: RandomPerson2.src,
 };
 
 // "started following Ways of Seeing"
@@ -90,6 +99,14 @@ export const followedYouNotification = {
   type: NotificationType.USER_FOLLOWED_YOU,
   createdAt: '2026-07-04T00:00:00.000Z', // ~4d before the mocked "today"
   iconColor: 'blue',
+};
+
+// "Noah Bennett connected a card in your library"
+export const connectedCardNotification = {
+  user: noah,
+  type: NotificationType.USER_CONNECTED_YOUR_URL,
+  createdAt: '2026-07-07T00:00:00.000Z', // ~1d before the mocked "today"
+  iconColor: 'green', // matches NotificationItem's connection styling
 };
 
 // ACM paper link card

@@ -5,6 +5,7 @@ import DecorativeSearchBar from './DecorativeSearchBar';
 import HeroCollectionCard from './HeroCollectionCard';
 import {
   addedCardNotification,
+  connectedCardNotification,
   followNotification,
   followedYouNotification,
   linkCardContent,
@@ -78,7 +79,14 @@ export default function OrbitalHero() {
         </div>
       </div>
 
-      {/* Bottom-center: "started following you" notification */}
+      {/* Bottom-left: "connected a card in your library" notification */}
+      <div className={`${styles.node} ${styles.nodeConnected}`}>
+        <div className={styles.floater} style={{ animationDelay: '-2.4s' }}>
+          <NotificationActivityStatus {...connectedCardNotification} />
+        </div>
+      </div>
+
+      {/* Bottom-right: "started following you" notification */}
       <div className={`${styles.node} ${styles.nodeFollowedYou}`}>
         <div className={styles.floater} style={{ animationDelay: '-3.8s' }}>
           <NotificationActivityStatus
