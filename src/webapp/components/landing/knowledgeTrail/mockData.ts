@@ -56,6 +56,24 @@ export const perspectiveNote = {
   createdAt: '12m ago',
 };
 
+// "Follow the thoughtful connections others have made" — a mini stand-in for the
+// real Add-Connection form: two links joined by a connection type, with the type
+// picker shown open. Reuses the Google favicon service for each link's real
+// favicon. `activeType` must match a value in CONNECTION_TYPES.
+export const connectionExample = {
+  source: {
+    domain: 'maggieappleton.com',
+    title: 'Digital Gardening for Non-Technical Folks',
+    faviconUrl: favicon('maggieappleton.com'),
+  },
+  target: {
+    domain: 'anil.recoil.org',
+    title: 'Rewilding the Web: my workshop report from Edinburgh',
+    faviconUrl: favicon('anil.recoil.org'),
+  },
+  activeType: 'SUPPORTS',
+} as const;
+
 // "Find related collections" — a collection card. The thumbnail row shows each
 // essay's real og:image preview, falling back to the title text (like
 // CollectionCardPreview / HeroCollectionCard) if an image fails to load.

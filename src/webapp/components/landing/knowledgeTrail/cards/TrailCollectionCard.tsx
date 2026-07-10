@@ -25,7 +25,12 @@ export default function TrailCollectionCard() {
   const [failed, setFailed] = useState<Record<string, boolean>>({});
 
   return (
-    <Card withBorder radius="lg" p="sm">
+    <Card
+      withBorder
+      radius="lg"
+      p="sm"
+      style={{ boxShadow: '0 8px 24px -12px rgba(0, 0, 0, 0.25)' }}
+    >
       <Stack gap="xs">
         <Stack gap={0}>
           <Text c="dimmed" fz="sm" lineClamp={1}>

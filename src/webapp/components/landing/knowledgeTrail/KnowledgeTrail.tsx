@@ -5,7 +5,7 @@ import TrailStop from './TrailStop';
 import AvatarStack from './cards/AvatarStack';
 import SearchResultsCard from './cards/SearchResultsCard';
 import PerspectiveNoteCard from './cards/PerspectiveNoteCard';
-import ConnectionsGraph from './cards/ConnectionsGraph';
+import ConnectionBuilderCard from './cards/ConnectionBuilderCard';
 import TrailCollectionCard from './cards/TrailCollectionCard';
 import TrailUrlCard from './cards/TrailUrlCard';
 
@@ -35,11 +35,8 @@ export default function KnowledgeTrail() {
           <PerspectiveNoteCard />
         </TrailStop>
 
-        <TrailStop
-          index={4}
-          label="Follow the thoughtful connections others have made"
-        >
-          <ConnectionsGraph />
+        <TrailStop index={4} label="Link ideas with meaningful connections">
+          <ConnectionBuilderCard />
         </TrailStop>
 
         <TrailStop index={5} label="Find related collections">

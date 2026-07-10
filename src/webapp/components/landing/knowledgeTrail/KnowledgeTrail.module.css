@@ -83,21 +83,6 @@
 .stopCard {
   width: 100%;
   max-width: 340px;
-  animation: trailBob 7s ease-in-out infinite;
-  will-change: transform;
-}
-
-.stop[data-index='2'] .stopCard {
-  animation-delay: -1.4s;
-}
-.stop[data-index='3'] .stopCard {
-  animation-delay: -2.8s;
-}
-.stop[data-index='4'] .stopCard {
-  animation-delay: -4.2s;
-}
-.stop[data-index='5'] .stopCard {
-  animation-delay: -5.6s;
 }
 
 .finalCard {
@@ -113,16 +98,6 @@
 .finalCaption {
   margin: 1.25rem auto 0 auto;
   max-width: 460px;
-}
-
-@keyframes trailBob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
 }
 
 /* ---- Two-column trail (desktop) ---- */
@@ -167,10 +142,4 @@
   /* Each stop (label + component) is centered within its half so the label
      sits centered over its component, matching the design mock. `.left` /
      `.right` only pick the column (set above via data-index). */
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stopCard {
-    animation: none;
-  }
 }

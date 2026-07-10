@@ -6,7 +6,12 @@ import { perspectiveNote } from '../mockData';
  */
 export default function PerspectiveNoteCard() {
   return (
-    <Card withBorder radius="lg" p="md">
+    <Card
+      withBorder
+      radius="lg"
+      p="md"
+      style={{ boxShadow: '0 8px 24px -12px rgba(0, 0, 0, 0.25)' }}
+    >
       <Stack gap="sm">
         <Text c="bright" fz="sm" lineClamp={4}>
           {perspectiveNote.quote}

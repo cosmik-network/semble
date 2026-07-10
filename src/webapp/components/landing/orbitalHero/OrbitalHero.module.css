@@ -1,6 +1,6 @@
 /*
  * Mobile-first: a readable vertical stack of the same cards.
- * At the `md` breakpoint (46em) it becomes the absolutely-positioned
+ * At the `md` breakpoint (59em) it becomes the absolutely-positioned
  * radial composition.
  */
 
@@ -69,7 +69,7 @@
 }
 
 /* ---- Radial layout (desktop) ---- */
-@media (min-width: 46em) {
+@media (min-width: 59em) {
   .stage {
     display: block;
     max-width: 900px;

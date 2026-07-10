@@ -116,17 +116,37 @@ function Content(props: {
     <Fragment>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
       <Container size="xl" p="sm" my="auto">
-        <Group justify="space-between" wrap="nowrap">
-          <Group flex={1}>
-            <Image src={SembleLogo.src} alt="Semble logo" w={110} h="auto" />
+        <Group justify="space-between" wrap="nowrap" gap="sm">
+          {/* md+: flex={1} makes left/right spacers equal so the search bar is
+              perfectly centered (original look). Below md they shrink to their
+              content so the buttons never clip and the search bar gives up space. */}
+          <Group flex={{ base: '0 0 auto', md: 1 }}>
+            <Image
+              src={SembleLogo.src}
+              alt="Semble logo"
+              w={110}
+              h="auto"
+              style={{ flexShrink: 0 }}
+            />
           </Group>
-          <Box w={380} maw="100%" mx="lg" visibleFrom="sm">
+          <Box
+            flex={{ base: 1, md: '0 0 auto' }}
+            w={380}
+            maw="100%"
+            mx="md"
+            visibleFrom="sm"
+          >
             <HeaderSearchBar />
           </Box>
-          <Group flex={1} justify="flex-end" gap="lg" wrap="nowrap">
-            <LinkAnchor href="/extension" fw={500} c="bright">
+          <Group
+            flex={{ base: '0 0 auto', md: 1 }}
+            justify="flex-end"
+            wrap="nowrap"
+            style={{ flexShrink: 0 }}
+          >
+            {/*<LinkAnchor href="/extension" fw={500} c="bright">
               Get extension
-            </LinkAnchor>
+            </LinkAnchor>*/}
             <LinkButton href="/login" size="sm" variant="inverse">
               Log in
             </LinkButton>
@@ -210,7 +230,7 @@ function Content(props: {
               <Stack align="center" gap={'xl'}>
               <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={400}>
-                  Find your way through the web with the people you trust.
+                  Find your way through the web with the people you trust
                 </Title>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                   Save links, connect related ideas, and curate collections on
@@ -230,7 +250,7 @@ function Content(props: {
               <Stack align="center" gap={'xl'}>
                 <Stack align="center" gap={'xs'}>
                 <Title order={2} ta={'center'} maw={400}>
-                  Your workflow, your way.
+                  Your workflow, your way
                 </Title>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
                   Integrate Semble into your existing knowledge workflows or
