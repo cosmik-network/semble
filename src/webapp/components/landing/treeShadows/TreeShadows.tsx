@@ -14,7 +14,7 @@ export default function TreeShadows() {
       {BRANCHES.map((b, i) => (
         <div
           key={i}
-          className={`${classes.item} ${b.edge ? classes.itemEdge : ''}`}
+          className={classes.item}
           style={{
             ['--x' as string]: b.x,
             ['--y' as string]: b.y,
@@ -31,19 +31,18 @@ export default function TreeShadows() {
 }
 
 // Scattered into the left/right gutters at varied heights, sizes, rotation and
-// horizontal flip so no two branches read alike. `edge` ones drop out on small
-// screens where the gutters disappear.
+// horizontal flip so no two branches read alike. On small screens they all scale
+// down (see CSS) so they stay subtle instead of dropping out.
 const BRANCHES: {
   x: string;
   y: string;
   w: number;
   rot: number;
   flip?: boolean;
-  edge?: boolean;
 }[] = [
-  { x: '0%', y: '22%', w: 1400, rot: -12, edge: true },
-  { x: '100%', y: '40%', w: 1560, rot: 8, flip: true, edge: true },
-  { x: '4%', y: '52%', w: 1280, rot: 20, edge: true },
+  { x: '0%', y: '22%', w: 1400, rot: -12 },
+  { x: '100%', y: '40%', w: 1560, rot: 8, flip: true },
+  { x: '4%', y: '52%', w: 1280, rot: 20 },
   { x: '96%', y: '82%', w: 1160, rot: -6, flip: true },
 ];
 

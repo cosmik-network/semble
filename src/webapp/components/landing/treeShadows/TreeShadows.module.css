@@ -45,9 +45,15 @@
   filter: blur(8px);
 }
 
-/* Gutters only exist on wider viewports; thin the herd on small screens. */
+/* Gutters shrink on small screens: rather than dropping the branches, scale them
+   down so the large gutter silhouettes stay subtle instead of dominating the
+   narrow viewport. Blur stays constant, so scaled-down branches read even softer. */
 @media (max-width: 48em) {
-  .itemEdge {
-    display: none;
+  .item {
+    transform: translate(-50%, -50%) rotate(var(--rot, 0deg))
+      scaleX(var(--flip, 1)) scale(0.5);
+  }
+  .branch {
+    color: light-dark(rgba(88, 64, 41, 0.03), rgba(214, 226, 255, 0.025));
   }
 }
