@@ -18,14 +18,13 @@ const FAQS: {
         Semble is a social app for saving, connecting, and curating content. You
         save links, group them into collections, and draw connections between
         related ones. Because other people are doing the same, every link you save
-        opens onto what others have saved and connected around it. See a quick
-        intro video{' '}
+        opens onto what others have saved and connected around it.{' '}
         <Anchor
           href="https://docs.cosmik.network/semble"
           target="_blank"
           c="blue"
         >
-          here
+          See a quick intro video
         </Anchor>
         .
       </>
