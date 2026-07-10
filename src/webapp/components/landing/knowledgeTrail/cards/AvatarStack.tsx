@@ -9,7 +9,7 @@ import { interestAvatars } from '../mockData';
 export default function AvatarStack() {
   return (
     <Group justify="center">
-      <AvatarGroup spacing="md">
+      <AvatarGroup spacing="sm">
         {interestAvatars.map((a) => (
           <Avatar
             key={a.initial}
@@ -19,6 +19,7 @@ export default function AvatarStack() {
             size="lg"
             radius="lg"
             alt=""
+            style={{ borderWidth: 3 }}
           >
             {a.initial}
           </Avatar>
