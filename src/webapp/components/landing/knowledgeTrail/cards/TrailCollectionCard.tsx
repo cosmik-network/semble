@@ -1,14 +1,29 @@
-import { AspectRatio, Box, Card, Group, Stack, Text } from '@mantine/core';
+'use client';
+
+import {
+  AspectRatio,
+  Box,
+  Card,
+  Center,
+  Group,
+  Image,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { useState } from 'react';
 import { trailCollection } from '../mockData';
 
 const CARD_WIDTH = 90;
 
 /**
  * Decorative collection card for the "Find related collections" trail stop.
- * Mirrors the layout of `orbitalHero/HeroCollectionCard` with static gradient
- * thumbnail tiles instead of a live-fetched preview.
+ * Mirrors the layout of `orbitalHero/HeroCollectionCard`, showing each essay's
+ * real og:image preview and falling back to the title text (like
+ * CollectionCardPreview) if an image fails to load.
  */
 export default function TrailCollectionCard() {
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
+
   return (
     <Card withBorder radius="lg" p="sm">
       <Stack gap="xs">
@@ -22,15 +37,29 @@ export default function TrailCollectionCard() {
         </Stack>
 
         <Group gap="xs" grow wrap="nowrap">
-          {trailCollection.thumbs.map((bg) => (
-            <Box key={bg} w={CARD_WIDTH} miw={CARD_WIDTH}>
+          {trailCollection.cards.map((c) => (
+            <Box key={c.url} w={CARD_WIDTH} miw={CARD_WIDTH}>
               <AspectRatio ratio={16 / 9}>
-                <Box
-                  style={{
-                    background: bg,
-                    borderRadius: 'var(--mantine-radius-md)',
-                  }}
-                />
+                {c.imageUrl && !failed[c.url] ? (
+                  <Image
+                    src={c.imageUrl}
+                    alt={`${c.title} preview image`}
+                    radius="md"
+                    fit="cover"
+                    draggable={false}
+                    onError={() =>
+                      setFailed((prev) => ({ ...prev, [c.url]: true }))
+                    }
+                  />
+                ) : (
+                  <Card p="xs" radius="md" withBorder>
+                    <Center my="auto">
+                      <Text fz={8} fw={500} lineClamp={2}>
+                        {c.title}
+                      </Text>
+                    </Center>
+                  </Card>
+                )}
               </AspectRatio>
             </Box>
           ))}

@@ -45,28 +45,38 @@ export const searchResults: {
   },
 ];
 
-// "Find new perspectives" — a note/annotation card.
+// "Find new perspectives" — a note/annotation card. A reader's personal take on
+// the "Rewilding the Web" report (https://anil.recoil.org/notes/rewilding-the-web-report).
 export const perspectiveNote = {
   quote:
-    "Notes from a wonderfully interdisciplinary Edinburgh workshop on 'Rewilding the Web', ranging coopetition and biological variety through the philosophy of self-organisation, polycrisis governance, protopian science fiction, and moderation seen through the lens of artisanal cheese",
+    "The 'rewilding' framing finally names what feels off about the platform web — we've been tending monocultures. The artisanal-cheese aside is doing more work than it looks: healthy systems need friction and slow ferment, not frictionless scale. Makes me want to compost my link hoard into something that's actually alive.",
   author: 'Ailce',
   authorInitial: 'A',
   authorColor: '#2F9E44',
   createdAt: '12m ago',
 };
 
-// "Find related collections" — a collection card.
+// "Find related collections" — a collection card. The thumbnail row shows each
+// essay's real og:image preview, falling back to the title text (like
+// CollectionCardPreview / HeroCollectionCard) if an image fails to load.
 export const trailCollection = {
   name: 'Digital Gardens',
   subtitle: 'Ecological Media',
   cardCount: 4,
   updatedAt: 'Updated 40m ago',
-  // Mirrors HeroCollectionCard's gradient thumbnail tiles.
-  thumbs: [
-    'linear-gradient(135deg, #4098FF 0%, #1e4dd9 100%)',
-    'linear-gradient(135deg, #E8352E 0%, #B01B15 100%)',
-    'linear-gradient(135deg, #F7B733 0%, #9C36B5 60%, #2F9E44 100%)',
-  ],
+  cards: [
+    {
+      url: 'https://www.elysian.press/p/the-internet-has-no-benches',
+      title: 'The Internet has no benches',
+      imageUrl:
+        'https://substackcdn.com/image/fetch/$s_!u3zA!,w_1200,h_675,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F229cb337-8eb1-4814-b575-1db3a3242aad_2688x1792.png',
+    },
+    {
+      url: 'https://www.wayfinders.network/blog/philosophy/',
+      title: 'WayFinder Philosophy',
+      imageUrl: 'https://wayfinders.network/blog/philosophy/featured.jpg',
+    },
+  ] as { url: string; title: string; imageUrl: string }[],
 };
 
 // The glowing URL card at the end of the trail.
@@ -75,6 +85,7 @@ export const trailUrlCard = {
   title: 'Rewilding the Web: my workshop report from Edinburgh',
   description:
     "Notes from a wonderfully interdisciplinary Edinburgh workshop on 'Rewilding the Web', ranging coopetition and biological variety through the philosophy of self-organisation, polycrisis governance, protopian science fiction, and moderation seen through the lens of artisanal cheese.",
+  imageUrl: 'https://anil.recoil.org/images/rewilding-web-ed-6.640.webp',
   libraryCount: 3,
   connectionCount: 5,
 };
