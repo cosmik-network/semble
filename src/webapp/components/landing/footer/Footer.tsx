@@ -28,7 +28,7 @@ export default function Footer() {
       pos="relative"
       style={{
         overflow: 'hidden',
-        minHeight: 'clamp(300px, 42vw, 720px)',
+        minHeight: 'clamp(280px, 32vw, 420px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
