@@ -1,4 +1,5 @@
-import { Box } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
+import { Fragment } from 'react';
 import styles from './KnowledgeTrail.module.css';
 import TrailStop from './TrailStop';
 import AvatarStack from './cards/AvatarStack';
@@ -18,35 +19,44 @@ import TrailUrlCard from './cards/TrailUrlCard';
  */
 export default function KnowledgeTrail() {
   return (
-    <Box className={styles.trail}>
-      <span className={styles.line} aria-hidden="true" />
+    <Fragment>
+      <Box className={styles.trail}>
+        <span className={styles.line} aria-hidden="true" />
 
-      <TrailStop index={1} label="See who shares your interest">
-        <AvatarStack />
-      </TrailStop>
+        <TrailStop index={1} label="See who shares your interest">
+          <AvatarStack />
+        </TrailStop>
 
-      <TrailStop index={2} label="Discover relevant content">
-        <SearchResultsCard />
-      </TrailStop>
+        <TrailStop index={2} label="Discover relevant content">
+          <SearchResultsCard />
+        </TrailStop>
 
-      <TrailStop index={3} label="Find new perspectives or add yours">
-        <PerspectiveNoteCard />
-      </TrailStop>
+        <TrailStop index={3} label="Find new perspectives or add yours">
+          <PerspectiveNoteCard />
+        </TrailStop>
 
-      <TrailStop
-        index={4}
-        label="Follow the thoughtful connections others have made"
-      >
-        <ConnectionsGraph />
-      </TrailStop>
+        <TrailStop
+          index={4}
+          label="Follow the thoughtful connections others have made"
+        >
+          <ConnectionsGraph />
+        </TrailStop>
 
-      <TrailStop index={5} label="Find related collections">
-        <TrailCollectionCard />
-      </TrailStop>
+        <TrailStop index={5} label="Find related collections">
+          <TrailCollectionCard />
+        </TrailStop>
 
-      <div className={styles.finalCard}>
-        <TrailUrlCard />
-      </div>
-    </Box>
+        {/* The trail (dashed line) ends here at the destination card. The card
+            body is opaque, so the line stops behind it — the closing caption
+            sits outside `.trail` so no line runs behind it. */}
+        <div className={styles.finalCard}>
+          <TrailUrlCard />
+        </div>
+      </Box>
+
+      <Text className={styles.finalCaption} fw={600} c="tangerine" ta="center">
+        ...and ends up richer than you found it
+      </Text>
+    </Fragment>
   );
 }

@@ -197,7 +197,7 @@ function Content(props: {
                 <Box mt="md" w="100%" py="lg" style={{ overflow: 'hidden' }}>
                   <Stack align="center" gap={'xs'}>
                     <Text fw={600} c={'tangerine'}>
-                      Every link you add becomes a starting point
+                      Every link you add becomes a starting point...
                     </Text>
                     <BrowserTabs />
                   </Stack>

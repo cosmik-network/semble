@@ -15,6 +15,7 @@ import { FiPlus } from 'react-icons/fi';
 import { TbPlugConnected } from 'react-icons/tb';
 import { BsThreeDots } from 'react-icons/bs';
 import { trailUrlCard } from '../mockData';
+import styles from './TrailUrlCard.module.css';
 
 /**
  * The glowing URL card at the end of the trail. Decorative stand-in for a real
@@ -28,16 +29,7 @@ export default function TrailUrlCard() {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <Card
-      radius="lg"
-      p="sm"
-      withBorder
-      style={{
-        borderWidth: '1.5px',
-        borderColor: 'var(--mantine-color-tangerine-6)',
-        boxShadow: '0 10px 40px -10px rgba(255, 100, 0, 0.45)',
-      }}
-    >
+    <Card radius="lg" p="sm" withBorder className={styles.card}>
       <Stack justify="space-between" gap="md">
         {/* Mirrors LinkCardContent */}
         <Group justify="space-between" align="start" gap="lg" wrap="nowrap">

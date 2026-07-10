@@ -108,6 +108,13 @@
   margin: 3rem auto 0 auto;
 }
 
+/* Closing caption — lives outside `.trail` so the dashed line ends at the card
+   above it rather than running behind the text. */
+.finalCaption {
+  margin: 1.25rem auto 0 auto;
+  max-width: 460px;
+}
+
 @keyframes trailBob {
   0%,
   100% {
@@ -127,7 +134,9 @@
     row-gap: 3rem;
     align-items: center;
     max-width: 940px;
-    padding-top: 0;
+    /* Keep the same breathing room above the first stop as the mobile layout,
+       so it isn't tight against the browser tabs above. */
+    padding-top: 1.5rem;
   }
 
   .stop[data-index='1'] {
