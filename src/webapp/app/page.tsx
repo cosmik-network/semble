@@ -12,13 +12,12 @@ import {
   Card,
   Anchor,
   Avatar,
+  Button,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
 import CtaSignup from '@/assets/cta-signup.png';
 import CtaSignupDark from '@/assets/cta-signup-dark.png';
-import McpIcon from '@/assets/icons/mcp-icon.svg';
-import ChatgptIcon from '@/assets/icons/chatgpt-icon.svg';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
 import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
 import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
@@ -238,8 +237,17 @@ function Content(props: {
                   create something entirely new.
                 </Text>
                 <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Use community-built plugins and automations, or tap the API to
-                  build your own — all on top of a living network.
+                  Use community-built plugins and automations, or {' '}
+                  <Anchor
+                    href="https://docs.cosmik.network/semble-api"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    c="blue"
+                    inherit
+                  >
+                    tap the API
+                  </Anchor>{' '}
+                  to build your own — all on top of a living network.
                 </Text>
                 </Stack>
 
@@ -270,27 +278,26 @@ function Content(props: {
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Image
-                            src={McpIcon.src}
-                            alt="MCP"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={ChatgptIcon.src}
-                            alt="ChatGPT"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={ClaudeIcon.src}
-                            alt="Claude"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Button
+                            component="a"
+                            href="https://www.npmjs.com/package/@semble.so/claude-plugin"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={ClaudeIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Claude plugin
+                          </Button>
                         </Group>
                       </Stack>
                     </Stack>
@@ -316,13 +323,26 @@ function Content(props: {
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Image
-                            src={ZoteroIcon.src}
-                            alt="Zotero"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Button
+                            component="a"
+                            href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={ZoteroIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Zotero plugin
+                          </Button>
                           <Image
                             src={ObsidianIcon.src}
                             alt="Obsidian"
@@ -355,13 +375,26 @@ function Content(props: {
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Image
-                            src={AirglowIcon.src}
-                            alt="Airglow"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Button
+                            component="a"
+                            href="https://airglow.run/automations/all?q=semble"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={AirglowIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Airglow automations
+                          </Button>
                           <Image
                             src={BlueskyIcon.src}
                             alt="Bluesky"
