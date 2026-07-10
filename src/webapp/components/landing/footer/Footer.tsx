@@ -149,7 +149,7 @@ export default function Footer() {
               c="white"
               fw={600}
             >
-              Feature Request
+              Give Feedback
             </Anchor>
             <Anchor
               href={
@@ -176,6 +176,14 @@ export default function Footer() {
               fw={600}
             >
               Blog
+            </Anchor>
+            <Anchor
+              href="https://github.com/cosmik-network/semble/issues"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Submit an Issue
             </Anchor>
           </Group>
 
