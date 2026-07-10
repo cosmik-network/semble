@@ -1,4 +1,4 @@
-import { Avatar } from '@mantine/core';
+import { Avatar, Text } from '@mantine/core';
 import MarginLogo from '@/assets/margin-logo.svg';
 import SembleIcon from '@/assets/icon.svg';
 import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
@@ -93,8 +93,8 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
             id="identityFadeMobile"
             gradientUnits="userSpaceOnUse"
             cx="170"
-            cy="260"
-            r="150"
+            cy="274"
+            r="100"
           >
             <stop offset="0" stopColor="black" />
             <stop offset="0.4" stopColor="black" />
@@ -111,25 +111,30 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
           </mask>
         </defs>
         <g mask="url(#identityFadeMaskMobile)">
-          {/* Top row — each line meets the center at its own x (no convergence). */}
-          <path className={styles.line} d="M150 225 C150 169, 55 169, 55 114" />
+          {/* Top row — lines run up toward the app's label (which sits on the
+              center-facing side of the logo), stopping short of it to leave the
+              same gap the bottom row's lines leave before their logos. Mirror of
+              the bottom row across the avatar (y=274) so both read equal length
+              (the bottom lines are visually clipped by their logo chips at
+              y≈374, which mirrors the top lines' visible end at y=174). */}
+          <path className={styles.line} d="M150 239 C150 207, 55 207, 55 174" />
           <path
             className={styles.line}
-            d="M170 225 C170 169, 170 169, 170 114"
+            d="M170 239 C170 207, 170 207, 170 174"
           />
           <path
             className={styles.line}
-            d="M190 225 C190 169, 285 169, 285 114"
+            d="M190 239 C190 207, 285 207, 285 174"
           />
           {/* Bottom row */}
-          <path className={styles.line} d="M150 295 C150 350, 55 350, 55 406" />
+          <path className={styles.line} d="M150 309 C150 358, 55 358, 55 406" />
           <path
             className={styles.line}
-            d="M170 295 C170 350, 170 350, 170 406"
+            d="M170 309 C170 358, 170 358, 170 406"
           />
           <path
             className={styles.line}
-            d="M190 295 C190 350, 285 350, 285 406"
+            d="M190 309 C190 358, 285 358, 285 406"
           />
         </g>
       </svg>
@@ -138,6 +143,7 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
       <div className={styles.center}>
         <div className={styles.identityCard}>
           <Avatar
+            className={styles.avatar}
             src={avatar ?? undefined}
             variant="filled"
             radius="xl"
@@ -149,31 +155,73 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
 
       {/* App-logo chips. Order maps to .pos0–.pos5 (left column, then right). */}
       <div className={styles.logos}>
-        <div className={`${styles.node} ${styles.pos0}`}>
+        <a
+          className={`${styles.node} ${styles.pos0} ${styles.link}`}
+          href="https://margin.at"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Margin"
+        >
           <div className={styles.chip}>
             <img className={styles.logo} src={MarginLogo.src} alt="Margin" />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Margin
+          </Text>
+        </a>
 
-        <div className={`${styles.node} ${styles.pos1}`}>
+        <a
+          className={`${styles.node} ${styles.pos1} ${styles.link}`}
+          href="https://semble.so"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Semble"
+        >
           <div className={styles.chip}>
             <img className={styles.logo} src={SembleIcon.src} alt="Semble" />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Semble
+          </Text>
+        </a>
 
-        <div className={`${styles.node} ${styles.pos2}`}>
+        <a
+          className={`${styles.node} ${styles.pos2} ${styles.link}`}
+          href="https://bsky.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Bluesky"
+        >
           <div className={styles.chip}>
             <img className={styles.logo} src={BlueskyIcon.src} alt="Bluesky" />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Bluesky
+          </Text>
+        </a>
 
-        <div className={`${styles.node} ${styles.pos3}`}>
+        <a
+          className={`${styles.node} ${styles.pos3} ${styles.link}`}
+          href="https://leaflet.pub"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Leaflet"
+        >
           <div className={styles.chip}>
             <img className={styles.logo} src={LeafletIcon.src} alt="Leaflet" />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Leaflet
+          </Text>
+        </a>
 
-        <div className={`${styles.node} ${styles.pos4}`}>
+        <a
+          className={`${styles.node} ${styles.pos4} ${styles.link}`}
+          href="https://blacksky.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Blacksky"
+        >
           <div className={styles.chip}>
             {/* Blacksky mark swaps for its white variant in dark mode. */}
             <img
@@ -188,9 +236,18 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
               aria-hidden="true"
             />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Blacksky
+          </Text>
+        </a>
 
-        <div className={`${styles.node} ${styles.pos5}`}>
+        <a
+          className={`${styles.node} ${styles.pos5} ${styles.link}`}
+          href="https://anisota.net"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Anisota"
+        >
           <div className={styles.chip}>
             {/* Anisota mark swaps for its white variant in dark mode. */}
             <img
@@ -205,7 +262,10 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
               aria-hidden="true"
             />
           </div>
-        </div>
+          <Text className={styles.label} size="0.65rem" fw={600} c="dimmed">
+            Anisota
+          </Text>
+        </a>
       </div>
     </div>
   );
