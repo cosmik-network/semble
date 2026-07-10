@@ -167,7 +167,7 @@ export default function Footer() {
               c="white"
               fw={600}
             >
-              Semble docs
+              Semble Docs
             </Anchor>
             <Anchor
               href="https://blog.cosmik.network/"
