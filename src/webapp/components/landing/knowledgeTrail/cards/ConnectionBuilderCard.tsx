@@ -25,53 +25,49 @@ const typeByValue = new Map(CONNECTION_TYPES.map((t) => [t.value, t]));
 // One end of the connection — a compact link preview (favicon + domain + title),
 // mirroring SearchResultsCard's favicon tile. Falls back to a globe icon if the
 // remote favicon fails to load.
-function LinkRow(props: {
-  domain: string;
-  title: string;
-  faviconUrl: string;
-}) {
+function LinkRow(props: { domain: string; title: string; faviconUrl: string }) {
   const [failed, setFailed] = useState(false);
 
   return (
     <Card withBorder radius="lg" p="xs">
-        <Group gap="sm" wrap="nowrap">
-          <Paper
-            withBorder
-            radius="md"
-            bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
-            w={35}
-            h={35}
-            style={{
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}
-          >
-            {failed ? (
-              <TbWorld size={14} color="var(--mantine-color-gray-5)" />
-            ) : (
-              <Image
-                src={props.faviconUrl}
-                alt=""
-                w={16}
-                h={16}
-                fit="contain"
-                onError={() => setFailed(true)}
-              />
-            )}
-          </Paper>
-          <Stack gap={0} style={{ overflow: 'hidden' }}>
-            <Text c="gray" fz="xs" lineClamp={1}>
-              {props.domain}
-            </Text>
-            <Text c="bright" fw={500} fz="sm" lineClamp={1}>
-              {props.title}
-            </Text>
-          </Stack>
-        </Group>
-      </Card>
+      <Group gap="sm" wrap="nowrap">
+        <Paper
+          withBorder
+          radius="md"
+          bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
+          w={35}
+          h={35}
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          {failed ? (
+            <TbWorld size={14} color="var(--mantine-color-gray-5)" />
+          ) : (
+            <Image
+              src={props.faviconUrl}
+              alt=""
+              w={16}
+              h={16}
+              fit="contain"
+              onError={() => setFailed(true)}
+            />
+          )}
+        </Paper>
+        <Stack gap={0} style={{ overflow: 'hidden' }}>
+          <Text c="gray" fz="xs" lineClamp={1}>
+            {props.domain}
+          </Text>
+          <Text c="bright" fw={500} fz="sm" lineClamp={1}>
+            {props.title}
+          </Text>
+        </Stack>
+      </Group>
+    </Card>
   );
 }
 

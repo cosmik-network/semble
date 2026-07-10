@@ -4,15 +4,21 @@ import classes from './BrowserTabs.module.css';
 
 const tabs = [
   { name: 'Sustainable Web Manifesto', active: false },
-  { name: 'Rewilding the Web: my workshop report from Edinburgh', active: true },
-  { name: 'Internet for the People: The Fight for Our Digital Future', active: false },
+  {
+    name: 'Rewilding the Web: my workshop report from Edinburgh',
+    active: true,
+  },
+  {
+    name: 'Internet for the People: The Fight for Our Digital Future',
+    active: false,
+  },
 ];
 
 export default function BrowserTabs() {
   return (
     <Paper
       withBorder
-      shadow='md'
+      shadow="md"
       px="xs"
       py={6}
       w="100%"

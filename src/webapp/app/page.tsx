@@ -241,53 +241,52 @@ function Content(props: {
               </Stack>
 
               <Stack align="center" gap={'xl'}>
-              <Stack align="center" gap={'xs'}>
-                <Badge variant="default" color="blue">
-                  Discover
-                </Badge>
-                <Title order={2} ta={'center'} maw={400}>
-                  Find your way through the web with the people you trust
-                </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Save links, connect related ideas, and curate collections on
-                  your own or collaboratively.
-                </Text>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Tune your notifications to the interactions that matter to
-                  you. Explore a living map of the web that you helped create.
+                <Stack align="center" gap={'xs'}>
+                  <Badge variant="default" color="blue">
+                    Discover
+                  </Badge>
+                  <Title order={2} ta={'center'} maw={400}>
+                    Find your way through the web with the people you trust
+                  </Title>
+                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                    Save links, connect related ideas, and curate collections on
+                    your own or collaboratively.
                   </Text>
-              </Stack>
+                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                    Tune your notifications to the interactions that matter to
+                    you. Explore a living map of the web that you helped create.
+                  </Text>
+                </Stack>
                 <Box w="100%" mt={{ base: '1rem', md: '2rem' }}>
                   <OrbitalHero />
                 </Box>
-
               </Stack>
 
               <Stack align="center" gap={'xl'}>
                 <Stack align="center" gap={'xs'}>
-                <Badge variant="default" color="green">
-                  Extend
-                </Badge>
-                <Title order={2} ta={'center'} maw={400}>
-                  Your workflow, your way
-                </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Integrate Semble into your existing knowledge workflows or
-                  create something entirely new.
-                </Text>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                  Use community-built plugins and automations, or {' '}
-                  <Anchor
-                    href="https://docs.cosmik.network/semble-api"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    c="blue"
-                    inherit
-                  >
-                    tap the API
-                  </Anchor>{' '}
-                  to build your own — all on top of a living network.
-                </Text>
+                  <Badge variant="default" color="green">
+                    Extend
+                  </Badge>
+                  <Title order={2} ta={'center'} maw={400}>
+                    Your workflow, your way
+                  </Title>
+                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                    Integrate Semble into your existing knowledge workflows or
+                    create something entirely new.
+                  </Text>
+                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                    Use community-built plugins and automations, or{' '}
+                    <Anchor
+                      href="https://docs.cosmik.network/semble-api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="blue"
+                      inherit
+                    >
+                      tap the API
+                    </Anchor>{' '}
+                    to build your own — all on top of a living network.
+                  </Text>
                 </Stack>
 
                 <SimpleGrid
@@ -573,34 +572,34 @@ function Content(props: {
                 />
                 <Center pos="absolute" inset={0} px="md">
                   <Stack align="center" gap={'xl'}>
-                  <Stack align="center" gap={'xs'}>
-                    <Title order={2} ta={'center'} maw={400}>
-                      What matters to you, <br/> matters to the network
-                    </Title>
-                    <Text
-                      fw={600}
-                      fz={'xl'}
-                      c="#1F6144"
-                      ta={'center'}
-                      maw={350}
-                      darkHidden
-                    >
-                      What will you save to Semble today?
-                    </Text>
-                    <Text
-                      fw={600}
-                      fz="xl"
-                      c="#1e4dd9"
-                      ta={'center'}
-                      maw={340}
-                      lightHidden
-                    >
-                      What will you save to Semble today?
-                    </Text>
-                  </Stack>
+                    <Stack align="center" gap={'xs'}>
+                      <Title order={2} ta={'center'} maw={400}>
+                        What matters to you, <br /> matters to the network
+                      </Title>
+                      <Text
+                        fw={600}
+                        fz={'xl'}
+                        c="#1F6144"
+                        ta={'center'}
+                        maw={350}
+                        darkHidden
+                      >
+                        What will you save to Semble today?
+                      </Text>
+                      <Text
+                        fw={600}
+                        fz="xl"
+                        c="#1e4dd9"
+                        ta={'center'}
+                        maw={340}
+                        lightHidden
+                      >
+                        What will you save to Semble today?
+                      </Text>
+                    </Stack>
                     <LinkButton
                       href="/signup"
-                      size='lg'
+                      size="lg"
                       rightSection={<BiRightArrowAlt size={18} />}
                     >
                       Get Started
@@ -612,21 +611,21 @@ function Content(props: {
               <Stack align="center" gap={'xl'}>
                 <Stack gap={'xl'} align="center">
                   <Stack gap={'xs'} align="center">
-                  <Title order={2} ta={'center'} maw={400}>
-                    What’s the word on Semble?
-                  </Title>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
-                    We put them all in{' '}
-                    <Anchor
-                      href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      c="blue"
-                      inherit
-                    >
-                      a collection
-                    </Anchor>
-                    , of course
+                    <Title order={2} ta={'center'} maw={400}>
+                      What’s the word on Semble?
+                    </Title>
+                    <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
+                      We put them all in{' '}
+                      <Anchor
+                        href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        c="blue"
+                        inherit
+                      >
+                        a collection
+                      </Anchor>
+                      , of course
                     </Text>
                   </Stack>
 

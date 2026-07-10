@@ -41,7 +41,6 @@ export default function Footer() {
         pos="absolute"
         inset={0}
         style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
-
       />
 
       {/* dark mode bg */}
@@ -152,7 +151,14 @@ export default function Footer() {
             >
               User input
             </Anchor>
-            <Anchor href={"https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6"} target="_blank" c="white" fw={600}>
+            <Anchor
+              href={
+                'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
+              }
+              target="_blank"
+              c="white"
+              fw={600}
+            >
               iOS shortcut
             </Anchor>
             <Anchor

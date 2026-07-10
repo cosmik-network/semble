@@ -96,8 +96,7 @@ export const followedYouNotification = {
 export const linkCardContent: UrlMetadata = {
   url: 'https://dl.acm.org/doi/10.1145/3757576',
   title: 'Deep Storytelling',
-  description:
-    'Collective Sensemaking and Layers of Meaning in U.S. Elections',
+  description: 'Collective Sensemaking and Layers of Meaning in U.S. Elections',
   siteName: 'ACM Digital Library',
 };
 
@@ -122,7 +121,7 @@ export const heroCollectionCards: {
     title: 'Meandering on Manifolds: The Neural Geometry of Stories Over Time',
     imageUrl:
       'https://static.goodfire.ai/neural-geometry-agenda/wide_manifold_banner.webp',
-    },
+  },
   {
     url: 'https://www.thepolisblog.org/2011/06/featured-quote-susan-sontag-on.html',
     title: 'Susan Sontag on the Photographer as Flâneur',
@@ -130,10 +129,10 @@ export const heroCollectionCards: {
       'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0F8YPCzoi9vZxDDW9Jz3hdmcL5fIPsiyXke3dOerT3FaJHJCrAlDhj4ZFv2WJVjuiYg469VJRicF1YSQJmm4hPc-dNv7InXx8pqFLbHb5M7qUrzJ59RtwnK1eFQeb8zecd4f1Jm-3JXSa/s640/riis+photo.jpg',
   },
 
-    {
-      url: 'https://dl.acm.org/doi/full/10.1145/3800645.3812879',
-      title:
-        'The Flâneur and Turtle on-a-leash: Flânerie as a Metaphor for Human-AI Interaction',
-      imageUrl: '',
-    },
+  {
+    url: 'https://dl.acm.org/doi/full/10.1145/3800645.3812879',
+    title:
+      'The Flâneur and Turtle on-a-leash: Flânerie as a Metaphor for Human-AI Interaction',
+    imageUrl: '',
+  },
 ];

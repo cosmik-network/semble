@@ -53,13 +53,31 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
         <g mask="url(#identityFadeMaskDesktop)">
           {/* Left column — each line meets the center at its own height (no
               convergence to a single point). */}
-          <path className={styles.line} d="M450 285 C320 285, 320 112, 200 112" />
-          <path className={styles.line} d="M450 310 C320 310, 320 310, 200 310" />
-          <path className={styles.line} d="M450 335 C320 335, 320 508, 200 508" />
+          <path
+            className={styles.line}
+            d="M450 285 C320 285, 320 112, 200 112"
+          />
+          <path
+            className={styles.line}
+            d="M450 310 C320 310, 320 310, 200 310"
+          />
+          <path
+            className={styles.line}
+            d="M450 335 C320 335, 320 508, 200 508"
+          />
           {/* Right column */}
-          <path className={styles.line} d="M550 285 C680 285, 680 112, 800 112" />
-          <path className={styles.line} d="M550 310 C680 310, 680 310, 800 310" />
-          <path className={styles.line} d="M550 335 C680 335, 680 508, 800 508" />
+          <path
+            className={styles.line}
+            d="M550 285 C680 285, 680 112, 800 112"
+          />
+          <path
+            className={styles.line}
+            d="M550 310 C680 310, 680 310, 800 310"
+          />
+          <path
+            className={styles.line}
+            d="M550 335 C680 335, 680 508, 800 508"
+          />
         </g>
       </svg>
 
@@ -95,12 +113,24 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
         <g mask="url(#identityFadeMaskMobile)">
           {/* Top row — each line meets the center at its own x (no convergence). */}
           <path className={styles.line} d="M150 225 C150 169, 55 169, 55 114" />
-          <path className={styles.line} d="M170 225 C170 169, 170 169, 170 114" />
-          <path className={styles.line} d="M190 225 C190 169, 285 169, 285 114" />
+          <path
+            className={styles.line}
+            d="M170 225 C170 169, 170 169, 170 114"
+          />
+          <path
+            className={styles.line}
+            d="M190 225 C190 169, 285 169, 285 114"
+          />
           {/* Bottom row */}
           <path className={styles.line} d="M150 295 C150 350, 55 350, 55 406" />
-          <path className={styles.line} d="M170 295 C170 350, 170 350, 170 406" />
-          <path className={styles.line} d="M190 295 C190 350, 285 350, 285 406" />
+          <path
+            className={styles.line}
+            d="M170 295 C170 350, 170 350, 170 406"
+          />
+          <path
+            className={styles.line}
+            d="M190 295 C190 350, 285 350, 285 406"
+          />
         </g>
       </svg>
 

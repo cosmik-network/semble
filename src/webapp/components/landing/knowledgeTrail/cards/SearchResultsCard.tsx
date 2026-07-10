@@ -5,13 +5,8 @@ import { searchResults } from '../mockData';
 // tinted box (via the Box background) if the favicon fails to load.
 function ResultThumb({ src }: { src: string }) {
   return (
-    <Paper
-      w={30}
-      h={30}
-      p={5}
-      bg={'gray.1'}
-    >
-      <Image src={src} alt="" w="100%" h="100%" fit="contain"  />
+    <Paper w={30} h={30} p={5} bg={'gray.1'}>
+      <Image src={src} alt="" w="100%" h="100%" fit="contain" />
     </Paper>
   );
 }

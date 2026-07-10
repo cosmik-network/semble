@@ -62,7 +62,8 @@
 /* Round avatar with a white ring so it lifts off the connector lines. */
 .avatar {
   border-radius: 50%;
-  box-shadow: 0 0 0 4px light-dark(#fff, var(--mantine-color-dark-6)),
+  box-shadow:
+    0 0 0 4px light-dark(#fff, var(--mantine-color-dark-6)),
     0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
@@ -93,7 +94,6 @@
   width: 64px;
   height: 64px;
   background: light-dark(#fff, var(--mantine-color-body));
-
 }
 
 .logo {
