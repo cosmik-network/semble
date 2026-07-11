@@ -6,9 +6,9 @@ import { getDomain } from '@/lib/utils/link';
  * degrades through a fallback chain: embed image -> favicon + title -> domain.
  */
 export type CollageTile =
-  | { kind: 'image'; dataUri: string }
+  | { kind: 'image'; dataUri: string; title?: string; domain: string }
   | { kind: 'favicon'; dataUri: string; title: string; domain: string }
-  | { kind: 'domain'; domain: string };
+  | { kind: 'domain'; title?: string; domain: string };
 
 // Per-image network budget. `next/og` fetches images while generating the
 // image, so a slow host must never be allowed to hang the whole response.
@@ -87,6 +87,9 @@ export function normalizeEmbedImageUrl(url: string): string {
 
 async function buildTileForCard(card: UrlCard): Promise<CollageTile> {
   const domain = shortenDomain(card.url);
+  // Prefer the page title on every tile kind; fall back to the domain only when
+  // there's no title at all.
+  const title = card.cardContent.title || undefined;
 
   try {
     // 1. Embed image
@@ -94,7 +97,7 @@ async function buildTileForCard(card: UrlCard): Promise<CollageTile> {
       const dataUri = await fetchImageAsDataUri(
         normalizeEmbedImageUrl(card.cardContent.imageUrl),
       );
-      if (dataUri) return { kind: 'image', dataUri };
+      if (dataUri) return { kind: 'image', dataUri, title, domain };
     }
 
     // 2. Favicon + page title
@@ -103,7 +106,7 @@ async function buildTileForCard(card: UrlCard): Promise<CollageTile> {
       return {
         kind: 'favicon',
         dataUri: faviconDataUri,
-        title: card.cardContent.title || domain,
+        title: title || domain,
         domain,
       };
     }
@@ -112,7 +115,7 @@ async function buildTileForCard(card: UrlCard): Promise<CollageTile> {
   }
 
   // 3. Shortened domain
-  return { kind: 'domain', domain };
+  return { kind: 'domain', title, domain };
 }
 
 /**

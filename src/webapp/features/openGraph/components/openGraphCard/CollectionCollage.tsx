@@ -12,155 +12,176 @@ const BOX_HEIGHT = 410;
 // 1 to MAX_TILES.
 const MAX_TILES = 5;
 
-type Placement = { top: number; left: number; size: number; rotate: number };
+type Placement = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  rotate: number;
+};
 
-// A balanced, centered arrangement per tile count (1-5) instead of filling a
-// fixed path — one card sits centered, two are paired, etc. Fewer cards get
-// larger tiles so they fill the space. The last entry in each layout paints on
-// top (satori paints in DOM order); we feed text tiles there for readability.
+// Rectangular link cards fanned into a loosely-rotated vertical stack. Fewer
+// cards get taller tiles so they fill the space. The last entry in each layout
+// paints on top (satori paints in DOM order).
 const LAYOUTS: Record<number, Placement[]> = {
-  1: [{ top: 85, left: 110, size: 240, rotate: -3 }],
+  1: [{ top: 167, left: 55, width: 350, height: 76, rotate: -1 }],
   2: [
-    { top: 95, left: 25, size: 200, rotate: -5 },
-    { top: 110, left: 235, size: 200, rotate: 5 },
+    { top: 131, left: 50, width: 354, height: 74, rotate: -1.5 },
+    { top: 207, left: 54, width: 352, height: 74, rotate: 1 },
   ],
   3: [
-    { top: 15, left: 40, size: 180, rotate: -6 },
-    { top: 25, left: 240, size: 180, rotate: 5 },
-    { top: 195, left: 140, size: 180, rotate: 3 },
+    { top: 97, left: 54, width: 352, height: 72, rotate: -1.5 },
+    { top: 171, left: 48, width: 354, height: 72, rotate: 1 },
+    { top: 247, left: 56, width: 348, height: 72, rotate: -1 },
   ],
   4: [
-    { top: 10, left: 35, size: 180, rotate: -5 },
-    { top: 20, left: 240, size: 180, rotate: 4 },
-    { top: 200, left: 25, size: 180, rotate: 4 },
-    { top: 195, left: 250, size: 180, rotate: -4 },
+    { top: 64, left: 54, width: 352, height: 70, rotate: -1.5 },
+    { top: 136, left: 48, width: 354, height: 70, rotate: 1 },
+    { top: 210, left: 56, width: 350, height: 70, rotate: -1 },
+    { top: 284, left: 50, width: 352, height: 70, rotate: 1.5 },
   ],
   5: [
-    { top: 6, left: 20, size: 180, rotate: -6 },
-    { top: 12, left: 255, size: 180, rotate: 5 },
-    { top: 200, left: 15, size: 180, rotate: 4 },
-    { top: 205, left: 258, size: 180, rotate: -5 },
-    { top: 108, left: 138, size: 185, rotate: 2 },
+    { top: 28, left: 54, width: 350, height: 68, rotate: -1.5 },
+    { top: 98, left: 48, width: 352, height: 68, rotate: 1 },
+    { top: 170, left: 56, width: 348, height: 68, rotate: -1 },
+    { top: 242, left: 50, width: 352, height: 68, rotate: 1 },
+    { top: 314, left: 54, width: 350, height: 68, rotate: -1.5 },
   ],
 };
 
-// Shared frame for every tile: white border + soft shadow so rotated tiles read
-// as a collage rather than a flat grid.
-function frameStyle(size: number) {
+// Shared frame for every tile: white mat + hairline border + soft shadow so
+// rotated tiles read as a collage rather than a flat grid. The hairline ring
+// (first box-shadow) defines the card edge against light backgrounds, matching
+// the subtle border on the real UrlCard.
+function frameStyle(width: number, height: number) {
   return {
-    width: size,
-    height: size,
-    borderRadius: 18,
-    border: '5px solid #ffffff',
-    boxShadow: '0 8px 22px rgba(15, 23, 42, 0.2)',
+    width,
+    height,
+    borderRadius: 20,
+    border: '3px solid #ffffff',
+    boxShadow:
+      '0 0 0 1px rgba(15, 23, 42, 0.08), 0 8px 22px rgba(15, 23, 42, 0.2)',
     overflow: 'hidden',
     display: 'flex',
+    backgroundColor: '#ffffff',
   } as const;
 }
 
-function renderTile(tile: CollageTile, size: number) {
-  const frame = frameStyle(size);
-  const pad = size >= 220 ? 24 : 18;
-  const textMax = size - pad * 2 - 8;
-  const large = size >= 220;
+// Each tile is a horizontal link card: a text column (domain + title) on the
+// left and a square image/favicon thumbnail on the right.
+function renderTile(tile: CollageTile, width: number, height: number) {
+  const frame = frameStyle(width, height);
+  const large = height >= 72;
+  const padV = large ? 4 : 3;
+  const padH = large ? 10 : 8;
+  const gap = 8;
+  // A square thumbnail, inset from the tile edges rather than full-bleed.
+  const hasThumb = tile.kind === 'image' || tile.kind === 'favicon';
+  const thumb = Math.round(height * 0.55);
+  const thumbArea = hasThumb ? thumb + padH + gap : 0;
+  const textWidth = width - padH - thumbArea - (hasThumb ? 0 : padH);
 
-  if (tile.kind === 'image') {
-    return (
-      <div style={frame}>
-        <img
-          src={tile.dataUri}
-          width={size}
-          height={size}
-          style={{ width: size, height: size, objectFit: 'cover' }}
-        />
-      </div>
-    );
-  }
-
-  if (tile.kind === 'favicon') {
-    return (
-      <div
+  const textBlock = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        justifyContent: 'center',
+        paddingTop: padV,
+        paddingBottom: padV,
+        paddingLeft: padH,
+        paddingRight: hasThumb ? gap : padH,
+        gap: 5,
+      }}
+    >
+      <p
         style={{
-          ...frame,
-          backgroundColor: '#ffffff',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: pad,
-          gap: 12,
+          fontSize: large ? 15 : 13,
+          color: '#868e96',
+          margin: 0,
+          maxWidth: textWidth,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
         }}
+      >
+        {truncateText(tile.domain, 30)}
+      </p>
+      {tile.title && (
+        <p
+          style={{
+            fontSize: large ? 20 : 17,
+            lineHeight: 1.2,
+            color: '#343a40',
+            margin: 0,
+            maxWidth: textWidth,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {truncateText(tile.title, 44)}
+        </p>
+      )}
+    </div>
+  );
+
+  let thumbBlock = null;
+  if (tile.kind === 'image') {
+    thumbBlock = (
+      <div
+        style={{ display: 'flex', alignItems: 'center', paddingRight: padH }}
       >
         <img
           src={tile.dataUri}
-          width={Math.round(size * 0.3)}
-          height={Math.round(size * 0.3)}
+          width={thumb}
+          height={thumb}
+          style={{
+            width: thumb,
+            height: thumb,
+            objectFit: 'cover',
+            borderRadius: 10,
+          }}
         />
+      </div>
+    );
+  } else if (tile.kind === 'favicon') {
+    thumbBlock = (
+      <div
+        style={{ display: 'flex', alignItems: 'center', paddingRight: padH }}
+      >
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
+            width: thumb,
+            height: thumb,
             alignItems: 'center',
-            gap: 6,
+            justifyContent: 'center',
+            backgroundColor: '#f1f3f5',
+            borderRadius: 10,
           }}
         >
-          <p
-            style={{
-              fontSize: large ? 26 : 22,
-              lineHeight: 1.15,
-              color: '#343a40',
-              textAlign: 'center',
-              margin: 0,
-              display: 'block',
-              WebkitLineClamp: 2,
-              lineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              maxWidth: textMax,
-              wordBreak: 'break-word',
-            }}
-          >
-            {truncateText(tile.title, 48)}
-          </p>
-          <p style={{ fontSize: large ? 18 : 16, color: '#868e96', margin: 0 }}>
-            {truncateText(tile.domain, 24)}
-          </p>
+          <img
+            src={tile.dataUri}
+            width={Math.round(thumb * 0.5)}
+            height={Math.round(thumb * 0.5)}
+          />
         </div>
       </div>
     );
   }
 
-  // domain
   return (
-    <div
-      style={{
-        ...frame,
-        backgroundColor: '#ffffff',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: pad,
-      }}
-    >
-      <p
-        style={{
-          fontSize: large ? 32 : 26,
-          lineHeight: 1.2,
-          color: '#868e96',
-          textAlign: 'center',
-          margin: 0,
-          maxWidth: textMax,
-          wordBreak: 'break-word',
-        }}
-      >
-        {truncateText(tile.domain, 28)}
-      </p>
+    <div style={frame}>
+      {textBlock}
+      {thumbBlock}
     </div>
   );
 }
 
 export default function CollectionCollage(props: Props) {
-  // Paint image tiles first (background) and text-fallback tiles last, so an
-  // overlapping tile on top never obscures readable favicon/domain text.
+  // Order image tiles first so, where the fanned cards overlap, the text-only
+  // fallback tiles paint on top and stay readable.
   const tiles = [...props.tiles]
     .sort((a, b) => (a.kind === 'image' ? 0 : 1) - (b.kind === 'image' ? 0 : 1))
     .slice(0, MAX_TILES);
@@ -189,7 +210,7 @@ export default function CollectionCollage(props: Props) {
             transform: `rotate(${layout[i].rotate}deg)`,
           }}
         >
-          {renderTile(tile, layout[i].size)}
+          {renderTile(tile, layout[i].width, layout[i].height)}
         </div>
       ))}
     </div>
