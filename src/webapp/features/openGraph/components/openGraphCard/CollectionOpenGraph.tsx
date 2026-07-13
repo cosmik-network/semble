@@ -98,10 +98,10 @@ export default async function CollectionOpenGraph(props: Props) {
 
       <div style={{ display: 'flex', gap: 25 }}>
         {collection.cardCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <p
               style={{
-                fontSize: 24,
+                fontSize: 28,
                 lineHeight: 1,
                 color: '#495057',
                 margin: 0,
@@ -111,7 +111,7 @@ export default async function CollectionOpenGraph(props: Props) {
             </p>
             <p
               style={{
-                fontSize: 24,
+                fontSize: 28,
                 lineHeight: 1,
                 color: '#868e96',
                 margin: 0,
@@ -123,10 +123,10 @@ export default async function CollectionOpenGraph(props: Props) {
         )}
 
         {collection.followerCount && collection.followerCount > 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <p
               style={{
-                fontSize: 24,
+                fontSize: 28,
                 lineHeight: 1,
                 color: '#495057',
                 margin: 0,
@@ -136,7 +136,7 @@ export default async function CollectionOpenGraph(props: Props) {
             </p>
             <p
               style={{
-                fontSize: 24,
+                fontSize: 28,
                 lineHeight: 1,
                 color: '#868e96',
                 margin: 0,

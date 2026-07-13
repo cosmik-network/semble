@@ -87,7 +87,7 @@ export default async function Image(props: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#495057',
                     margin: 0,
@@ -97,7 +97,7 @@ export default async function Image(props: Props) {
                 </p>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#868e96',
                     margin: 0,
@@ -111,7 +111,7 @@ export default async function Image(props: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#495057',
                     margin: 0,
@@ -121,7 +121,7 @@ export default async function Image(props: Props) {
                 </p>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#868e96',
                     margin: 0,
@@ -135,7 +135,7 @@ export default async function Image(props: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#495057',
                     margin: 0,
@@ -145,7 +145,7 @@ export default async function Image(props: Props) {
                 </p>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#868e96',
                     margin: 0,
@@ -159,7 +159,7 @@ export default async function Image(props: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#495057',
                     margin: 0,
@@ -169,7 +169,7 @@ export default async function Image(props: Props) {
                 </p>
                 <p
                   style={{
-                    fontSize: 30,
+                    fontSize: 28,
                     lineHeight: 1,
                     color: '#868e96',
                     margin: 0,
