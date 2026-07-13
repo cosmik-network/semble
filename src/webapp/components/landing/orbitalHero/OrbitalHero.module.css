@@ -1,7 +1,7 @@
 /*
- * Mobile-first: a readable vertical stack of the same cards.
- * At the `md` breakpoint (59em) it becomes the absolutely-positioned
- * radial composition.
+ * Mobile-first: a readable vertical stack of the same cards. Full width below
+ * the `xs` breakpoint, capped at 400px from `xs` up, and at the `md`
+ * breakpoint (59em) it becomes the absolutely-positioned radial composition.
  */
 
 .stage {
@@ -11,7 +11,6 @@
   align-items: center;
   gap: 1rem;
   width: 100%;
-  max-width: 320px;
   margin: 0 auto;
   padding: 0.5rem 0;
   /* Purely decorative composition — the cards mirror real product UI but are
@@ -44,13 +43,23 @@
 
 .node {
   width: 100%;
-  max-width: 320px;
   z-index: 1;
 }
 
 .center {
-  max-width: 320px;
+  /* In the stacked view the search bar reads better narrower than the cards;
+     the md media query below restores the fixed orbit width (--w). */
+  width: 80%;
   z-index: 2;
+}
+
+/* From `xs` up there's room to spare — cap the stack so the cards keep their
+   card-like proportions. (The nodes are width: 100% of the stage, so capping
+   the stage caps them all.) */
+@media (min-width: 36em) {
+  .stage {
+    max-width: 400px;
+  }
 }
 
 /* No float on mobile — the cards sit in a static vertical stack. The bob is a
@@ -117,7 +126,7 @@
 
   .ring[data-ring='3'] {
     height: 118%;
-    animation-duration: 300;
+    animation-duration: 300s;
   }
 
   .node {
