@@ -155,6 +155,30 @@ export default async function Image(props: Props) {
                 </p>
               </div>
             )}
+            {profile.followerCount !== undefined && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#495057',
+                    margin: 0,
+                  }}
+                >
+                  {abbreviateNumber(profile.followerCount)}
+                </p>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#868e96',
+                    margin: 0,
+                  }}
+                >
+                  {profile.followerCount === 1 ? 'follower' : 'followers'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
