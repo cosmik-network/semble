@@ -18,20 +18,30 @@ export default async function Image(props: Props) {
 
   return await OpenGraphCard({
     children: (
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          flexGrow: 1,
+        }}
+      >
         {profile.avatarUrl && (
           <img
             src={profile.avatarUrl + '@jpeg'}
             width={140}
             height={140}
             alt={`${handle}'s avatar`}
-            style={{ borderRadius: '20px', marginTop: 'auto' }}
+            style={{ borderRadius: '20px' }}
           />
         )}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
+            alignItems: 'center',
             gap: 10,
             marginTop: '35px',
           }}
@@ -47,6 +57,7 @@ export default async function Image(props: Props) {
               overflow: 'hidden',
               maxWidth: '900',
               wordBreak: 'break-word',
+              textAlign: 'center',
               margin: 0,
             }}
           >
@@ -64,45 +75,85 @@ export default async function Image(props: Props) {
           </p>
 
           {/* stats */}
-          <div style={{ display: 'flex', gap: 40, marginTop: 40 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 40,
+              marginTop: 40,
+            }}
+          >
             {profile.urlCardCount !== undefined && (
-              <p
-                style={{
-                  fontSize: 30,
-                  lineHeight: 1,
-                  color: '#495057',
-                  margin: 0,
-                }}
-              >
-                {abbreviateNumber(profile.urlCardCount)}{' '}
-                {profile.urlCardCount === 1 ? 'card' : 'cards'}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#495057',
+                    margin: 0,
+                  }}
+                >
+                  {abbreviateNumber(profile.urlCardCount)}
+                </p>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#868e96',
+                    margin: 0,
+                  }}
+                >
+                  {profile.urlCardCount === 1 ? 'card' : 'cards'}
+                </p>
+              </div>
             )}
             {profile.collectionCount !== undefined && (
-              <p
-                style={{
-                  fontSize: 30,
-                  lineHeight: 1,
-                  color: '#495057',
-                  margin: 0,
-                }}
-              >
-                {abbreviateNumber(profile.collectionCount)}{' '}
-                {profile.collectionCount === 1 ? 'collection' : 'collections'}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#495057',
+                    margin: 0,
+                  }}
+                >
+                  {abbreviateNumber(profile.collectionCount)}
+                </p>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#868e96',
+                    margin: 0,
+                  }}
+                >
+                  {profile.collectionCount === 1 ? 'collection' : 'collections'}
+                </p>
+              </div>
             )}
             {profile.connectionCount !== undefined && (
-              <p
-                style={{
-                  fontSize: 30,
-                  lineHeight: 1,
-                  color: '#495057',
-                  margin: 0,
-                }}
-              >
-                {abbreviateNumber(profile.connectionCount)}{' '}
-                {profile.connectionCount === 1 ? 'connection' : 'connections'}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#495057',
+                    margin: 0,
+                  }}
+                >
+                  {abbreviateNumber(profile.connectionCount)}
+                </p>
+                <p
+                  style={{
+                    fontSize: 30,
+                    lineHeight: 1,
+                    color: '#868e96',
+                    margin: 0,
+                  }}
+                >
+                  {profile.connectionCount === 1 ? 'connection' : 'connections'}
+                </p>
+              </div>
             )}
           </div>
         </div>
