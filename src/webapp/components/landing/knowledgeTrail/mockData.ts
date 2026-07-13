@@ -10,7 +10,6 @@
 import RandomPerson1 from '@/assets/random-person.jpeg';
 import RandomPerson2 from '@/assets/random-person-2.jpeg';
 import RandomPerson3 from '@/assets/random-person-3.jpeg';
-import RandomPerson4 from '@/assets/random-person-4.jpeg';
 
 export const interestAvatars = [
   { initial: 'A', color: '#2F9E44', src: RandomPerson1.src },
@@ -45,18 +44,6 @@ export const searchResults: {
     faviconUrl: favicon('trcc.timrodenbroeker.de'),
   },
 ];
-
-// "Find new perspectives" — a note/annotation card. A reader's personal take on
-// the "Rewilding the Web" report (https://anil.recoil.org/notes/rewilding-the-web-report).
-export const perspectiveNote = {
-  quote:
-    "The 'rewilding' framing finally names what feels off about the platform web — we've been tending monocultures. The artisanal-cheese aside is doing more work than it looks: healthy systems need friction and slow ferment, not frictionless scale. Makes me want to compost my link hoard into something that's actually alive.",
-  author: 'Ailce',
-  authorInitial: 'A',
-  authorColor: '#2F9E44',
-  authorAvatar: RandomPerson4.src,
-  createdAt: '12m ago',
-};
 
 // "Follow the thoughtful connections others have made" — a mini stand-in for the
 // real Add-Connection form: two links joined by a connection type, with the type
