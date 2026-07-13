@@ -57,7 +57,7 @@ function frameStyle(width: number, height: number) {
   return {
     width,
     height,
-    borderRadius: 20,
+    borderRadius: 14,
     border: '3px solid #ffffff',
     boxShadow:
       '0 0 0 1px rgba(15, 23, 42, 0.08), 0 8px 22px rgba(15, 23, 42, 0.2)',
@@ -140,7 +140,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
             width: thumb,
             height: thumb,
             objectFit: 'cover',
-            borderRadius: 10,
+            borderRadius: 8,
           }}
         />
       </div>
@@ -158,7 +158,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#f1f3f5',
-            borderRadius: 10,
+            borderRadius: 8,
           }}
         >
           <img

@@ -145,7 +145,16 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {abbreviateNumber(metadata.libraries ?? 0)}{' '}
+                      {abbreviateNumber(metadata.libraries ?? 0)}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 28,
+                        lineHeight: 1,
+                        color: '#868e96',
+                        margin: 0,
+                      }}
+                    >
                       {metadata.libraries === 1 ? 'save' : 'saves'}
                     </p>
                   </div>
@@ -177,7 +186,16 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {abbreviateNumber(metadata.collections ?? 0)}{' '}
+                      {abbreviateNumber(metadata.collections ?? 0)}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 28,
+                        lineHeight: 1,
+                        color: '#868e96',
+                        margin: 0,
+                      }}
+                    >
                       {metadata.collections === 1
                         ? 'collection'
                         : 'collections'}
@@ -212,7 +230,16 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {abbreviateNumber(metadata.connections ?? 0)}{' '}
+                      {abbreviateNumber(metadata.connections ?? 0)}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 28,
+                        lineHeight: 1,
+                        color: '#868e96',
+                        margin: 0,
+                      }}
+                    >
                       {metadata.connections === 1
                         ? 'connection'
                         : 'connections'}
@@ -247,7 +274,16 @@ export async function GET(request: NextRequest) {
                         margin: 0,
                       }}
                     >
-                      {abbreviateNumber(metadata.notes ?? 0)}{' '}
+                      {abbreviateNumber(metadata.notes ?? 0)}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 28,
+                        lineHeight: 1,
+                        color: '#868e96',
+                        margin: 0,
+                      }}
+                    >
                       {metadata.notes === 1 ? 'note' : 'notes'}
                     </p>
                   </div>
