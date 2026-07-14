@@ -1,11 +1,14 @@
 import { CollageTile } from '../../lib/utils/collage';
-import { truncateText } from '@/lib/utils/text';
+import { abbreviateNumber, truncateText } from '@/lib/utils/text';
 
 interface Props {
   tiles: CollageTile[];
+  // Total cards in the collection; when it exceeds the rendered tiles a "+N"
+  // badge is overlaid on the stack.
+  totalCount?: number;
 }
 
-const BOX_WIDTH = 460;
+const BOX_WIDTH = 430;
 const BOX_HEIGHT = 410;
 
 // Max tiles we render. LAYOUTS must define an arrangement for every count from
@@ -189,6 +192,8 @@ export default function CollectionCollage(props: Props) {
   if (tiles.length === 0) return null;
 
   const layout = LAYOUTS[tiles.length];
+  const extraCount = Math.max(0, (props.totalCount ?? 0) - tiles.length);
+  const lastPlacement = layout[tiles.length - 1];
 
   return (
     <div
@@ -213,6 +218,33 @@ export default function CollectionCollage(props: Props) {
           {renderTile(tile, layout[i].width, layout[i].height)}
         </div>
       ))}
+      {extraCount > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: lastPlacement.top + lastPlacement.height - 16,
+            right: 16,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '9px 16px',
+            borderRadius: 999,
+            backgroundColor: '#ffffff',
+            boxShadow:
+              '0 0 0 1px rgba(15, 23, 42, 0.08), 0 8px 22px rgba(15, 23, 42, 0.2)',
+          }}
+        >
+          <p
+            style={{
+              fontSize: 20,
+              lineHeight: 1,
+              color: '#495057',
+              margin: 0,
+            }}
+          >
+            +{abbreviateNumber(extraCount)} more
+          </p>
+        </div>
+      )}
     </div>
   );
 }
