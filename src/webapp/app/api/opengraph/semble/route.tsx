@@ -1,10 +1,19 @@
 import { NextRequest } from 'next/server';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
+import {
+  fetchImageAsDataUri,
+  getFaviconUrl,
+  normalizeEmbedImageUrl,
+} from '@/features/openGraph/lib/utils/collage';
 import { abbreviateNumber, truncateText } from '@/lib/utils/text';
 import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 
-export const runtime = 'edge';
+// Node runtime is required: fetchImageAsDataUri uses Buffer to base64-encode
+// the pre-fetched thumbnail. Do not switch to 'edge'.
+export const runtime = 'nodejs';
+
+const THUMB_SIZE = 225;
 
 interface Metadata {
   title?: string;
@@ -51,15 +60,41 @@ export async function GET(request: NextRequest) {
     metadata.connections !== undefined ||
     metadata.notes !== undefined;
 
+  // Thumbnail fallback chain, mirroring UrlCard: embed image -> favicon.
+  // Pre-fetched as a data URI so a broken image can't break the whole render.
+  let thumb: { kind: 'image' | 'favicon'; dataUri: string } | null = null;
+  if (url) {
+    if (metadata.imageUrl) {
+      const dataUri = await fetchImageAsDataUri(
+        normalizeEmbedImageUrl(metadata.imageUrl),
+      );
+      if (dataUri) thumb = { kind: 'image', dataUri };
+    }
+    if (!thumb) {
+      const dataUri = await fetchImageAsDataUri(
+        getFaviconUrl(metadata.domain || getDomain(url)),
+      );
+      if (dataUri) thumb = { kind: 'favicon', dataUri };
+    }
+  }
+
   const imageResponse = await OpenGraphCard({
     children: (
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 40,
+        }}
+      >
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
+            flex: 1,
             gap: 10,
-            marginTop: 35,
           }}
         >
           {metadata && url && (
@@ -292,6 +327,36 @@ export async function GET(request: NextRequest) {
             </div>
           )}
         </div>
+
+        {/* thumbnail, top-aligned with the metadata like UrlCard */}
+        {thumb &&
+          (thumb.kind === 'image' ? (
+            <img
+              src={thumb.dataUri}
+              width={THUMB_SIZE}
+              height={THUMB_SIZE}
+              style={{
+                width: THUMB_SIZE,
+                height: THUMB_SIZE,
+                objectFit: 'cover',
+                borderRadius: 24,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                width: THUMB_SIZE,
+                height: THUMB_SIZE,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f1f3f5',
+                borderRadius: 24,
+              }}
+            >
+              <img src={thumb.dataUri} width={96} height={96} />
+            </div>
+          ))}
       </div>
     ),
   });
