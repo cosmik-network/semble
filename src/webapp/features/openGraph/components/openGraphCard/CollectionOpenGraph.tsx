@@ -99,6 +99,17 @@ export default async function CollectionOpenGraph(props: Props) {
       <div style={{ display: 'flex', gap: 40, marginTop: 40 }}>
         {collection.cardCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* FaRegNoteSticky icon (navbar "Cards"); 448x512 viewBox, so
+                width is scaled to keep the aspect ratio at 36px tall */}
+            <svg
+              viewBox="0 0 448 512"
+              width="31.5"
+              height="36"
+              fill="#15aabf"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z" />
+            </svg>
             <p
               style={{
                 fontSize: 28,
@@ -124,6 +135,17 @@ export default async function CollectionOpenGraph(props: Props) {
 
         {collection.followerCount !== undefined && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* MdOutlinePeopleAlt icon */}
+            <svg
+              viewBox="0 0 24 24"
+              width="36"
+              height="36"
+              fill="#15aabf"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M16.67 13.13C18.04 14.06 19 15.32 19 17v3h4v-3c0-2.18-3.57-3.47-6.33-3.87zM15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4c-.47 0-.91.1-1.33.24a5.98 5.98 0 0 1 0 7.52c.42.14.86.24 1.33.24zM9 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zM9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm6 5H3v-.99C3.2 16.29 6.3 15 9 15s5.8 1.29 6 2v1z" />
+            </svg>
             <p
               style={{
                 fontSize: 28,
