@@ -152,9 +152,13 @@ function Content(props: {
             wrap="nowrap"
             style={{ flexShrink: 0 }}
           >
-            {/*<LinkAnchor href="/extension" fw={500} c="bright">
-              Get extension
-            </LinkAnchor>*/}
+            <LinkAnchor
+              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+              fw={500}
+              c="bright"
+            >
+              Get Extension
+            </LinkAnchor>
             {!props.isAuthenticated && (
               <LinkButton href="/login" size="sm" variant="inverse">
                 Log in
@@ -456,41 +460,61 @@ function Content(props: {
                       />
 
                       <Stack gap="xs">
-                        <Group gap="xs" wrap="nowrap">
-                          <Text fw={600} fz="lg">
-                            Web extension
-                          </Text>
-                          <Badge variant="light" color="gray" size="sm">
-                            Coming soon
-                          </Badge>
-                        </Group>
+                        <Text fw={600} fz="lg">
+                          Web extension
+                        </Text>
+
                         <Text c="dimmed">
                           Save from anywhere. Organize your links. Find related
                           content. Discover new connections
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Image
-                            src={ChromeIcon.src}
-                            alt="Chrome"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={FirefoxIcon.src}
-                            alt="Firefox"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={SafariIcon.src}
-                            alt="Safari"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Button
+                            component="a"
+                            href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={ChromeIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Chrome extension
+                          </Button>
+                          <Badge
+                            variant="light"
+                            color="gray"
+                            size="lg"
+                            leftSection={
+                              <Group gap={4} wrap="nowrap">
+                                <Image
+                                  src={FirefoxIcon.src}
+                                  alt="Firefox"
+                                  w={14}
+                                  h={14}
+                                  fit="contain"
+                                />
+                                <Image
+                                  src={SafariIcon.src}
+                                  alt="Safari"
+                                  w={14}
+                                  h={14}
+                                  fit="contain"
+                                />
+                              </Group>
+                            }
+                          >
+                            Coming soon
+                          </Badge>
                         </Group>
                       </Stack>
                     </Stack>
