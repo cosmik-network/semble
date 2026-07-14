@@ -138,7 +138,7 @@ function Content(props: {
             />
           </Group>
           <Box
-            flex={{ base: 1, md: '0 0 auto' }}
+            flex={{ base: '0 1 auto', md: '0 0 auto' }}
             w={380}
             maw="100%"
             mx="md"
