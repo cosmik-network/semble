@@ -5,16 +5,17 @@
  * the API. Mirrors the approach used by `orbitalHero/mockData.ts`.
  */
 
-// "See who shares your interest" — overlapping avatars, each showing a stock
-// person photo (the initial/color act as the fallback while the image loads).
-import RandomPerson1 from '@/assets/random-person.jpeg';
-import RandomPerson2 from '@/assets/random-person-2.jpeg';
-import RandomPerson3 from '@/assets/random-person-3.jpeg';
+// "See who shares your interest" — overlapping avatars, each showing a
+// pre-generated boringavatars.com SVG (the initial/color act as the fallback
+// while the image loads).
+import InterestAvatarA from '@/assets/avatars/interest-a.svg';
+import InterestAvatarM from '@/assets/avatars/interest-m.svg';
+import InterestAvatarK from '@/assets/avatars/interest-k.svg';
 
 export const interestAvatars = [
-  { initial: 'A', color: '#2F9E44', src: RandomPerson1.src },
-  { initial: 'M', color: '#1e4dd9', src: RandomPerson2.src },
-  { initial: 'K', color: '#9C36B5', src: RandomPerson3.src },
+  { initial: 'A', color: '#2F9E44', src: InterestAvatarA.src },
+  { initial: 'M', color: '#1e4dd9', src: InterestAvatarM.src },
+  { initial: 'K', color: '#9C36B5', src: InterestAvatarK.src },
 ];
 
 // "Discover relevant content" — search-results rows for real digital-garden

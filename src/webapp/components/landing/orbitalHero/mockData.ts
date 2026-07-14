@@ -5,10 +5,10 @@ import {
   type Collection,
   type UrlMetadata,
 } from '@/api-client';
-import RandomPerson2 from '@/assets/random-person-2.jpeg';
-import RandomPerson5 from '@/assets/random-person-5.jpeg';
-import RandomPerson6 from '@/assets/random-person-6.jpeg';
-import RandomPerson7 from '@/assets/random-person-7.jpeg';
+import AliceAvatar from '@/assets/avatars/alice.svg';
+import OliviaAvatar from '@/assets/avatars/olivia.svg';
+import AvaAvatar from '@/assets/avatars/ava.svg';
+import NoahAvatar from '@/assets/avatars/noah.svg';
 
 /**
  * Static mock data for the decorative orbital hero on the landing page.
@@ -21,14 +21,14 @@ const patrick: User = {
   id: 'did:plc:mock-patrick',
   name: 'Alice Martin',
   handle: 'alice.bsky.social',
-  avatarUrl: RandomPerson5.src,
+  avatarUrl: AliceAvatar.src,
 };
 
 const victoria: User = {
   id: 'did:plc:mock-victoria',
   name: 'Olivia Kim',
   handle: 'olivia.bsky.social',
-  avatarUrl: RandomPerson6.src,
+  avatarUrl: OliviaAvatar.src,
 };
 
 const collectionAuthor: User = {
@@ -42,7 +42,7 @@ const leo: User = {
   id: 'did:plc:mock-leo',
   name: 'Ava Jensen',
   handle: 'ava.bsky.social',
-  avatarUrl: RandomPerson7.src,
+  avatarUrl: AvaAvatar.src,
 };
 
 // Someone who connected one of your cards (rendered as a notification).
@@ -50,7 +50,7 @@ const noah: User = {
   id: 'did:plc:mock-noah',
   name: 'Noah Bennett',
   handle: 'noah.bsky.social',
-  avatarUrl: RandomPerson2.src,
+  avatarUrl: NoahAvatar.src,
 };
 
 // "started following Ways of Seeing"
