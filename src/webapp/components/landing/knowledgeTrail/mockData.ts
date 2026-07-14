@@ -48,8 +48,9 @@ export const searchResults: {
 
 // "Follow the thoughtful connections others have made" — a mini stand-in for the
 // real Add-Connection form: two links joined by a connection type, with the type
-// picker shown open. Reuses the Google favicon service for each link's real
-// favicon. `activeType` must match a value in CONNECTION_TYPES.
+// picker shown open and the curator's note filled in. Reuses the Google favicon
+// service for each link's real favicon. `activeType` must match a value in
+// CONNECTION_TYPES.
 export const connectionExample = {
   source: {
     domain: 'maggieappleton.com',
@@ -62,6 +63,7 @@ export const connectionExample = {
     faviconUrl: favicon('anil.recoil.org'),
   },
   activeType: 'SUPPORTS',
+  note: "You can't rewild the web without more gardeners. Maggie's guide lowers the barrier for the non-technical ones.",
 } as const;
 
 // "Find related collections" — a collection card. The thumbnail row shows each
