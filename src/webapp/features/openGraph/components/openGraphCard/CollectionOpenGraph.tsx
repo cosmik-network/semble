@@ -100,11 +100,14 @@ export default async function CollectionOpenGraph(props: Props) {
         {collection.cardCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* FaRegNoteSticky icon (navbar "Cards"); 448x512 viewBox, so
-                width is scaled to keep the aspect ratio at 36px tall */}
+                width is scaled to keep the aspect ratio. Height is 28 (not the
+                followers icon's 36) because the sticky-note glyph fills far more
+                of its viewBox than the people glyph does — at 28 the rendered
+                glyph is 24px tall, matching the followers icon. */}
             <svg
               viewBox="0 0 448 512"
-              width="31.5"
-              height="36"
+              width="24.5"
+              height="28"
               fill="#15aabf"
               xmlns="http://www.w3.org/2000/svg"
             >
