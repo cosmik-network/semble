@@ -7,7 +7,16 @@ import {
   IoMdInformationCircle,
 } from 'react-icons/io';
 import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutItem';
-import { MdEmojiNature, MdKey, MdScience, MdSync } from 'react-icons/md';
+import {
+  MdEmojiNature,
+  MdKey,
+  MdScience,
+  MdSync,
+  MdOutlineCollectionsBookmark,
+  MdOutlineInstallMobile,
+} from 'react-icons/md';
+import { TbStackForward } from 'react-icons/tb';
+import { PiPuzzlePieceBold } from 'react-icons/pi';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
 
@@ -37,6 +46,32 @@ export default async function SettingsContainer() {
             {/*<SettingItem href="/settings/data-sync" icon={MdSync}>
               Data sync
             </SettingItem>*/}
+          </ButtonGroup>
+          <ButtonGroup orientation="vertical">
+            <SettingItem
+              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+              openInNewTab
+              icon={PiPuzzlePieceBold}
+            >
+              Browser extension
+            </SettingItem>
+            <SettingItem
+              href="/bookmarklet"
+              openInNewTab
+              icon={MdOutlineCollectionsBookmark}
+            >
+              Install bookmarklet
+            </SettingItem>
+            <SettingItem href="/ios-shortcut" openInNewTab icon={TbStackForward}>
+              Install iOS shortcut
+            </SettingItem>
+            <SettingItem
+              href="/install-app"
+              openInNewTab
+              icon={MdOutlineInstallMobile}
+            >
+              Install the app
+            </SettingItem>
           </ButtonGroup>
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
