@@ -14,18 +14,17 @@ import {
 import { useMantineColorScheme } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import {
-  MdOutlineBugReport,
-  MdOutlineCollectionsBookmark,
   MdOutlineInstallMobile,
   MdOutlineSmartphone,
   MdOutlineDarkMode,
   MdOutlineLightMode,
 } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
+import { PiPuzzlePieceBold } from 'react-icons/pi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { IoMdLogOut } from 'react-icons/io';
+import { IoMdLogOut, IoMdHelpCircleOutline } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { useOs } from '@mantine/hooks';
 import { BsThreeDots } from 'react-icons/bs';
@@ -143,23 +142,23 @@ export default function ProfileMenu() {
           </Menu.Item>
 
           <Menu.Item
-            component="a"
-            href="https://tangled.org/@cosmik.network/semble/issues"
-            target="_blank"
-            leftSection={<MdOutlineBugReport size={22} />}
             color="gray"
+            leftSection={<IoMdHelpCircleOutline size={22} />}
+            component={Link}
+            href={'/settings/help'}
+            onClick={toggleMobile}
           >
-            Submit an issue
+            Help
           </Menu.Item>
 
           <Menu.Item
-            color="gray"
-            leftSection={<MdOutlineCollectionsBookmark size={22} />}
-            component={Link}
-            href={'/bookmarklet'}
+            component="a"
+            href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
             target="_blank"
+            leftSection={<PiPuzzlePieceBold size={22} />}
+            color="gray"
           >
-            Install bookmarklet
+            Browser extension
           </Menu.Item>
 
           {os === 'ios' && (
