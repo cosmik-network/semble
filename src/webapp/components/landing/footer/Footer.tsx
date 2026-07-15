@@ -144,6 +144,14 @@ export default function Footer() {
 
           <Group justify="center" gap="lg" mb="md" wrap="wrap">
             <Anchor
+              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Chrome extension
+            </Anchor>
+            <Anchor
               href={
                 'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
               }
