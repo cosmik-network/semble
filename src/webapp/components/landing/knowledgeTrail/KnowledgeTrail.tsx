@@ -4,7 +4,6 @@ import styles from './KnowledgeTrail.module.css';
 import TrailStop from './TrailStop';
 import AvatarStack from './cards/AvatarStack';
 import SearchResultsCard from './cards/SearchResultsCard';
-import PerspectiveNoteCard from './cards/PerspectiveNoteCard';
 import ConnectionBuilderCard from './cards/ConnectionBuilderCard';
 import TrailCollectionCard from './cards/TrailCollectionCard';
 import TrailUrlCard from './cards/TrailUrlCard';
@@ -31,15 +30,11 @@ export default function KnowledgeTrail() {
           <SearchResultsCard />
         </TrailStop>
 
-        <TrailStop index={3} label="Find new perspectives or add yours">
-          <PerspectiveNoteCard />
-        </TrailStop>
-
-        <TrailStop index={4} label="Link ideas with meaningful connections">
+        <TrailStop index={3} label="Link ideas with meaningful connections">
           <ConnectionBuilderCard />
         </TrailStop>
 
-        <TrailStop index={5} label="Find related collections">
+        <TrailStop index={4} label="Find related collections">
           <TrailCollectionCard />
         </TrailStop>
 

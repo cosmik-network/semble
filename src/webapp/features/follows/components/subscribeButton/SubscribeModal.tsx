@@ -29,14 +29,58 @@ export default function SubscribeModal(props: Props) {
       centered
     >
       {/* children unmount on close, so the form re-seeds itself every open */}
-      <ScopeForm
-        targetType={props.targetType}
-        isSubscribed={props.isSubscribed}
-        currentScopes={props.currentScopes}
-        onCancel={props.onClose}
-        onConfirm={props.onConfirm}
-      />
+      {props.targetType === 'COLLECTION' ? (
+        <ConfirmForm
+          isSubscribed={props.isSubscribed}
+          onCancel={props.onClose}
+          onConfirm={props.onConfirm}
+        />
+      ) : (
+        <ScopeForm
+          targetType={props.targetType}
+          isSubscribed={props.isSubscribed}
+          currentScopes={props.currentScopes}
+          onCancel={props.onClose}
+          onConfirm={props.onConfirm}
+        />
+      )}
     </Modal>
+  );
+}
+
+interface ConfirmFormProps {
+  isSubscribed: boolean;
+  onCancel: () => void;
+  onConfirm: (scopes: SubscriptionScope[]) => void;
+}
+
+// Collections are all-or-nothing: subscribing enables every collection
+// notification, unsubscribing disables them. No per-scope toggles.
+function ConfirmForm(props: ConfirmFormProps) {
+  const handleConfirm = () =>
+    props.onConfirm(props.isSubscribed ? [] : SCOPES_BY_TARGET_TYPE.COLLECTION);
+
+  return (
+    <Stack>
+      <Text c="dimmed" fz="sm">
+        {props.isSubscribed
+          ? "You're subscribed to this collection."
+          : 'Get notified about new cards, connections, and saves to this collection.'}
+      </Text>
+
+      <Group gap={'xs'} justify="flex-end">
+        <Button variant="light" color="gray" onClick={props.onCancel}>
+          Cancel
+        </Button>
+        <Button
+          color={props.isSubscribed ? 'red' : undefined}
+          onClick={handleConfirm}
+          data-autofocus
+        >
+          {props.isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+        </Button>
+      </Group>
+    </Stack>
   );
 }
 

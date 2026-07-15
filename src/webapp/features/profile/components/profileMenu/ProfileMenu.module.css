@@ -5,3 +5,13 @@
     background-color: var(--mantine-color-gray-light);
   }
 }
+
+/* Theme row is not clickable (only the segmented control is), so no hover feedback */
+.themeItem {
+  cursor: default;
+
+  &:hover,
+  &[data-hovered] {
+    background-color: transparent;
+  }
+}

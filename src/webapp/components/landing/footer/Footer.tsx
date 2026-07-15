@@ -144,12 +144,12 @@ export default function Footer() {
 
           <Group justify="center" gap="lg" mb="md" wrap="wrap">
             <Anchor
-              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
+              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
               target="_blank"
               c="white"
               fw={600}
             >
-              Give Feedback
+              Chrome extension
             </Anchor>
             <Anchor
               href={
@@ -176,6 +176,14 @@ export default function Footer() {
               fw={600}
             >
               Blog
+            </Anchor>
+            <Anchor
+              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
+              target="_blank"
+              c="white"
+              fw={600}
+            >
+              Give Feedback
             </Anchor>
             <Anchor
               href="https://github.com/cosmik-network/semble/issues"

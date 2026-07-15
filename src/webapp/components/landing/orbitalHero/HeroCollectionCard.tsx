@@ -32,7 +32,10 @@ export default function HeroCollectionCard() {
           {heroCollection.name}
         </Text>
 
-        <Box style={{ overflow: 'hidden' }}>
+        {/* contain: inline-size zeroes this row's min-content contribution —
+            without it the fixed 110px thumbnails force the whole page wider
+            than small viewports (the ancestor Stacks are shrink-to-fit). */}
+        <Box style={{ overflow: 'hidden', contain: 'inline-size' }}>
           <Group gap="xs" grow wrap="nowrap">
             {heroCollectionCards.map((c) => (
               <Box key={c.url} w={CARD_WIDTH} miw={CARD_WIDTH}>

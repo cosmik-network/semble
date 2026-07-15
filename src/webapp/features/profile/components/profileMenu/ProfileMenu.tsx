@@ -10,22 +10,17 @@ import {
   Text,
   UnstyledButton,
   Stack,
+  SegmentedControl,
 } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
-import {
-  MdOutlineBugReport,
-  MdOutlineCollectionsBookmark,
-  MdOutlineInstallMobile,
-  MdOutlineSmartphone,
-  MdOutlineDarkMode,
-  MdOutlineLightMode,
-} from 'react-icons/md';
+import { MdOutlineInstallMobile, MdOutlineColorLens } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
+import { PiPuzzlePieceBold } from 'react-icons/pi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { IoMdLogOut } from 'react-icons/io';
+import { IoMdLogOut, IoMdHelpCircleOutline } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { useOs } from '@mantine/hooks';
 import { BsThreeDots } from 'react-icons/bs';
@@ -34,26 +29,6 @@ import { sanitizeText } from '@/lib/utils/text';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '../botLabel/BotLabel';
 
-const schemes = ['light', 'dark', 'auto'] as const;
-type ColorScheme = (typeof schemes)[number];
-
-const schemeConfig: Record<
-  ColorScheme,
-  { icon: React.ReactNode; label: string; next: ColorScheme }
-> = {
-  light: {
-    icon: <MdOutlineLightMode size={22} />,
-    label: 'Light',
-    next: 'dark',
-  },
-  dark: { icon: <MdOutlineDarkMode size={22} />, label: 'Dark', next: 'auto' },
-  auto: {
-    icon: <MdOutlineSmartphone size={22} />,
-    label: 'Auto',
-    next: 'light',
-  },
-};
-
 export default function ProfileMenu() {
   const router = useRouter();
   const os = useOs();
@@ -61,8 +36,6 @@ export default function ProfileMenu() {
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-
-  const current = schemeConfig[colorScheme as ColorScheme] ?? schemeConfig.auto;
 
   const handleLogout = async () => {
     try {
@@ -134,32 +107,47 @@ export default function ProfileMenu() {
           <Menu.Divider />
 
           <Menu.Item
+            component="div"
             color="gray"
             closeMenuOnClick={false}
-            leftSection={current.icon}
-            onClick={() => setColorScheme(current.next)}
+            className={styles.themeItem}
+            leftSection={<MdOutlineColorLens size={22} />}
+            rightSection={
+              <SegmentedControl
+                size="xs"
+                value={colorScheme}
+                onChange={(value) =>
+                  setColorScheme(value as 'light' | 'dark' | 'auto')
+                }
+                data={[
+                  { label: 'Light', value: 'light' },
+                  { label: 'Dark', value: 'dark' },
+                  { label: 'Auto', value: 'auto' },
+                ]}
+              />
+            }
           >
-            Theme: {current.label}
+            Theme
+          </Menu.Item>
+
+          <Menu.Item
+            color="gray"
+            leftSection={<IoMdHelpCircleOutline size={22} />}
+            component={Link}
+            href={'/settings/help'}
+            onClick={toggleMobile}
+          >
+            Help
           </Menu.Item>
 
           <Menu.Item
             component="a"
-            href="https://tangled.org/@cosmik.network/semble/issues"
+            href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
             target="_blank"
-            leftSection={<MdOutlineBugReport size={22} />}
+            leftSection={<PiPuzzlePieceBold size={22} />}
             color="gray"
           >
-            Submit an issue
-          </Menu.Item>
-
-          <Menu.Item
-            color="gray"
-            leftSection={<MdOutlineCollectionsBookmark size={22} />}
-            component={Link}
-            href={'/bookmarklet'}
-            target="_blank"
-          >
-            Install bookmarklet
+            Browser extension
           </Menu.Item>
 
           {os === 'ios' && (

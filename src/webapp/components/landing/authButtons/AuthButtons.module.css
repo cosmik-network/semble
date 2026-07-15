@@ -1,0 +1,8 @@
+.exploreLink {
+  color: var(--mantine-color-bright);
+  transition: color 100ms ease;
+}
+
+.exploreLink:hover {
+  color: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-4));
+}

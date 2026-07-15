@@ -74,9 +74,10 @@ function LinkRow(props: { domain: string; title: string; faviconUrl: string }) {
 /**
  * Decorative mini connect-form for the "Follow the thoughtful connections others
  * have made" trail stop. Mirrors the real AddConnectionForm layout — From link →
- * green connection-type selector with its picker shown open → To link — so it
- * shows an actual connection plus the full range of relations a curator can pick.
- * Reuses the real CONNECTION_TYPES config; entirely non-interactive.
+ * green connection-type selector with its picker shown open → To link → filled-in
+ * note — so it shows an actual connection plus the full range of relations a
+ * curator can pick. Reuses the real CONNECTION_TYPES config; entirely
+ * non-interactive.
  */
 export default function ConnectionBuilderCard() {
   const activeType = typeByValue.get(connectionExample.activeType);
@@ -165,6 +166,19 @@ export default function ConnectionBuilderCard() {
         </Stack>
 
         <LinkRow {...connectionExample.target} />
+
+        {/* Note — labelled filled box like the real form's note textarea, with
+            the app's gray italic note styling */}
+        <Stack gap={2} mt="sm">
+          <Text fz="sm" fw={500} c="dimmed">
+            Note
+          </Text>
+          <Paper radius="md" p="xs" bg="var(--mantine-color-default-hover)">
+            <Text fz="sm" fw={500} fs="italic" c="gray">
+              {connectionExample.note}
+            </Text>
+          </Paper>
+        </Stack>
       </Stack>
     </Card>
   );

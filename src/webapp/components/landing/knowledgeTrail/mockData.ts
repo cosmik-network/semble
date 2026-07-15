@@ -5,17 +5,17 @@
  * the API. Mirrors the approach used by `orbitalHero/mockData.ts`.
  */
 
-// "See who shares your interest" — overlapping avatars, each showing a stock
-// person photo (the initial/color act as the fallback while the image loads).
-import RandomPerson1 from '@/assets/random-person.jpeg';
-import RandomPerson2 from '@/assets/random-person-2.jpeg';
-import RandomPerson3 from '@/assets/random-person-3.jpeg';
-import RandomPerson4 from '@/assets/random-person-4.jpeg';
+// "See who shares your interest" — overlapping avatars, each showing a
+// pre-generated boringavatars.com SVG (the initial/color act as the fallback
+// while the image loads).
+import InterestAvatarA from '@/assets/avatars/interest-a.svg';
+import InterestAvatarM from '@/assets/avatars/interest-m.svg';
+import InterestAvatarK from '@/assets/avatars/interest-k.svg';
 
 export const interestAvatars = [
-  { initial: 'A', color: '#2F9E44', src: RandomPerson1.src },
-  { initial: 'M', color: '#1e4dd9', src: RandomPerson2.src },
-  { initial: 'K', color: '#9C36B5', src: RandomPerson3.src },
+  { initial: 'A', color: '#2F9E44', src: InterestAvatarA.src },
+  { initial: 'M', color: '#1e4dd9', src: InterestAvatarM.src },
+  { initial: 'K', color: '#9C36B5', src: InterestAvatarK.src },
 ];
 
 // "Discover relevant content" — search-results rows for real digital-garden
@@ -46,22 +46,11 @@ export const searchResults: {
   },
 ];
 
-// "Find new perspectives" — a note/annotation card. A reader's personal take on
-// the "Rewilding the Web" report (https://anil.recoil.org/notes/rewilding-the-web-report).
-export const perspectiveNote = {
-  quote:
-    "The 'rewilding' framing finally names what feels off about the platform web — we've been tending monocultures. The artisanal-cheese aside is doing more work than it looks: healthy systems need friction and slow ferment, not frictionless scale. Makes me want to compost my link hoard into something that's actually alive.",
-  author: 'Ailce',
-  authorInitial: 'A',
-  authorColor: '#2F9E44',
-  authorAvatar: RandomPerson4.src,
-  createdAt: '12m ago',
-};
-
 // "Follow the thoughtful connections others have made" — a mini stand-in for the
 // real Add-Connection form: two links joined by a connection type, with the type
-// picker shown open. Reuses the Google favicon service for each link's real
-// favicon. `activeType` must match a value in CONNECTION_TYPES.
+// picker shown open and the curator's note filled in. Reuses the Google favicon
+// service for each link's real favicon. `activeType` must match a value in
+// CONNECTION_TYPES.
 export const connectionExample = {
   source: {
     domain: 'maggieappleton.com',
@@ -74,6 +63,7 @@ export const connectionExample = {
     faviconUrl: favicon('anil.recoil.org'),
   },
   activeType: 'SUPPORTS',
+  note: "You can't rewild the web without more gardeners. Maggie's guide lowers the barrier for the non-technical ones.",
 } as const;
 
 // "Find related collections" — a collection card. The thumbnail row shows each

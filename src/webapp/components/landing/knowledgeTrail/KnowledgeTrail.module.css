@@ -104,9 +104,6 @@
 .stop[data-index='4'] {
   transform: rotate(1deg);
 }
-.stop[data-index='5'] {
-  transform: rotate(-0.75deg);
-}
 
 .finalCard {
   position: relative;
@@ -158,11 +155,6 @@
     grid-column: 2;
     grid-row: 4;
     transform: rotate(2deg);
-  }
-  .stop[data-index='5'] {
-    grid-column: 1;
-    grid-row: 5;
-    transform: rotate(-1.5deg);
   }
   .finalCard {
     grid-column: 1 / -1;

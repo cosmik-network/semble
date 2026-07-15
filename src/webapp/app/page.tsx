@@ -22,7 +22,6 @@ import CtaSignupDark from '@/assets/cta-signup-dark.png';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
 import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
 import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
-import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
 import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
@@ -138,7 +137,7 @@ function Content(props: {
             />
           </Group>
           <Box
-            flex={{ base: 1, md: '0 0 auto' }}
+            flex={{ base: '0 1 auto', md: '0 0 auto' }}
             w={380}
             maw="100%"
             mx="md"
@@ -152,9 +151,13 @@ function Content(props: {
             wrap="nowrap"
             style={{ flexShrink: 0 }}
           >
-            {/*<LinkAnchor href="/extension" fw={500} c="bright">
-              Get extension
-            </LinkAnchor>*/}
+            <LinkAnchor
+              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+              fw={500}
+              c="bright"
+            >
+              Get Extension
+            </LinkAnchor>
             {!props.isAuthenticated && (
               <LinkButton href="/login" size="sm" variant="inverse">
                 Log in
@@ -381,13 +384,27 @@ function Content(props: {
                           >
                             Zotero plugin
                           </Button>
-                          <Image
-                            src={ObsidianIcon.src}
-                            alt="Obsidian"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Anchor
+                            href="https://docs.cosmik.network/semble-api"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            c="dimmed"
+                            fz="sm"
+                            fw={500}
+                            underline="never"
+                          >
+                            <Group gap={6} wrap="nowrap">
+                              <Image
+                                src={ObsidianIcon.src}
+                                alt=""
+                                w={14}
+                                h={14}
+                                fit="contain"
+                              />
+                              Build with the API
+                              <BiRightArrowAlt size={14} />
+                            </Group>
+                          </Anchor>
                         </Group>
                       </Stack>
                     </Stack>
@@ -433,13 +450,6 @@ function Content(props: {
                           >
                             Airglow automations
                           </Button>
-                          <Image
-                            src={BlueskyIcon.src}
-                            alt="Bluesky"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
                         </Group>
                       </Stack>
                     </Stack>
@@ -456,41 +466,61 @@ function Content(props: {
                       />
 
                       <Stack gap="xs">
-                        <Group gap="xs" wrap="nowrap">
-                          <Text fw={600} fz="lg">
-                            Web extension
-                          </Text>
-                          <Badge variant="light" color="gray" size="sm">
-                            Coming soon
-                          </Badge>
-                        </Group>
+                        <Text fw={600} fz="lg">
+                          Web extension
+                        </Text>
+
                         <Text c="dimmed">
                           Save from anywhere. Organize your links. Find related
                           content. Discover new connections
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Image
-                            src={ChromeIcon.src}
-                            alt="Chrome"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={FirefoxIcon.src}
-                            alt="Firefox"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
-                          <Image
-                            src={SafariIcon.src}
-                            alt="Safari"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Button
+                            component="a"
+                            href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={ChromeIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Chrome extension
+                          </Button>
+                          <Badge
+                            variant="light"
+                            color="gray"
+                            size="lg"
+                            leftSection={
+                              <Group gap={4} wrap="nowrap">
+                                <Image
+                                  src={FirefoxIcon.src}
+                                  alt="Firefox"
+                                  w={14}
+                                  h={14}
+                                  fit="contain"
+                                />
+                                <Image
+                                  src={SafariIcon.src}
+                                  alt="Safari"
+                                  w={14}
+                                  h={14}
+                                  fit="contain"
+                                />
+                              </Group>
+                            }
+                          >
+                            Coming soon
+                          </Badge>
                         </Group>
                       </Stack>
                     </Stack>
