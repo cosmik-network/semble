@@ -110,6 +110,7 @@ export default function ProfileMenu() {
             component="div"
             color="gray"
             closeMenuOnClick={false}
+            className={styles.themeItem}
             leftSection={<MdOutlineColorLens size={22} />}
             rightSection={
               <SegmentedControl
