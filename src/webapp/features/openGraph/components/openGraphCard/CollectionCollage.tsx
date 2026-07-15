@@ -44,11 +44,11 @@ const LAYOUTS: Record<number, Placement[]> = {
     { top: 284, left: 50, width: 352, height: 70, rotate: 1.5 },
   ],
   5: [
-    { top: 28, left: 54, width: 350, height: 68, rotate: -1.5 },
-    { top: 98, left: 48, width: 352, height: 68, rotate: 1 },
-    { top: 170, left: 56, width: 348, height: 68, rotate: -1 },
-    { top: 242, left: 50, width: 352, height: 68, rotate: 1 },
-    { top: 314, left: 54, width: 350, height: 68, rotate: -1.5 },
+    { top: 51, left: 53, width: 350, height: 68, rotate: -1.1 },
+    { top: 111, left: 50, width: 352, height: 68, rotate: 0.8 },
+    { top: 171, left: 55, width: 348, height: 68, rotate: -0.6 },
+    { top: 231, left: 51, width: 352, height: 68, rotate: 0.9 },
+    { top: 291, left: 53, width: 350, height: 68, rotate: -1.1 },
   ],
 };
 
@@ -63,7 +63,7 @@ function frameStyle(width: number, height: number) {
     borderRadius: 14,
     border: '3px solid #ffffff',
     boxShadow:
-      '0 0 0 1px rgba(15, 23, 42, 0.08), 0 8px 22px rgba(15, 23, 42, 0.2)',
+      '0 0 0 1px rgba(15, 23, 42, 0.08), 0 10px 28px rgba(15, 23, 42, 0.28)',
     overflow: 'hidden',
     display: 'flex',
     backgroundColor: '#ffffff',
@@ -230,7 +230,7 @@ export default function CollectionCollage(props: Props) {
             borderRadius: 999,
             backgroundColor: '#ffffff',
             boxShadow:
-              '0 0 0 1px rgba(15, 23, 42, 0.08), 0 8px 22px rgba(15, 23, 42, 0.2)',
+              '0 0 0 1px rgba(15, 23, 42, 0.08), 0 10px 28px rgba(15, 23, 42, 0.28)',
           }}
         >
           <p
