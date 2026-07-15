@@ -71,8 +71,16 @@ const FAQS: {
   {
     value: 'mobile-app',
     question: 'Is there a mobile app?',
-    answer:
-      'Not yet, but you can install Semble on your phone as a progressive web app (PWA), which gives the best mobile experience for now. See our docs for the installation guide.',
+    answer: (
+      <>
+        Not yet, but you can{' '}
+        <Anchor href="/install-app" target="_blank" c="blue">
+          install Semble on your phone
+        </Anchor>{' '}
+        as a progressive web app (PWA), which gives the best mobile experience
+        for now.
+      </>
+    ),
   },
   {
     value: 'is-free',
