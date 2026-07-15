@@ -17,8 +17,8 @@ const FAQS: {
       <>
         Semble is a social app for saving, connecting, and curating content. You
         save links, group them into collections, and draw connections between
-        related ones. Because other people are doing the same, every link you save
-        opens onto what others have saved and connected around it.{' '}
+        related ones. Because other people are doing the same, every link you
+        save opens onto what others have saved and connected around it.{' '}
         <Anchor
           href="https://docs.cosmik.network/semble"
           target="_blank"
@@ -52,12 +52,13 @@ const FAQS: {
           AT Protocol
         </Anchor>
         , the protocol Bluesky is built on) rather than a closed platform. Your
-        data and social connections live in a store you control instead of inside
-        one company's app, so they stay yours and can move with you across other
-        apps built on the same protocol. It's why you can join Semble with an
-        account you already have and bring your existing connections along. The
-        ecosystem of apps built on the AT Protocol is called the ATmosphere, it’s
-        a wonderful and active community building a new open web.
+        data and social connections live in a store you control instead of
+        inside one company's app, so they stay yours and can move with you
+        across other apps built on the same protocol. It's why you can join
+        Semble with an account you already have and bring your existing
+        connections along. The ecosystem of apps built on the AT Protocol is
+        called the ATmosphere, it’s a wonderful and active community building a
+        new open web.
       </>
     ),
   },

@@ -62,7 +62,11 @@ export default async function SettingsContainer() {
             >
               Install bookmarklet
             </SettingItem>
-            <SettingItem href="/ios-shortcut" openInNewTab icon={TbStackForward}>
+            <SettingItem
+              href="/ios-shortcut"
+              openInNewTab
+              icon={TbStackForward}
+            >
               Install iOS shortcut
             </SettingItem>
             <SettingItem
