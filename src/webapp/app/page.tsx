@@ -22,7 +22,6 @@ import CtaSignupDark from '@/assets/cta-signup-dark.png';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
 import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
 import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
-import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
 import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
@@ -360,8 +359,8 @@ function Content(props: {
                           Plugin
                         </Text>
                         <Text c="dimmed">
-                          Sync your links and notes to your Zotero or Obsidian
-                          vault, and keep curating without ever switching tabs
+                          Sync your links and notes to your Zotero or Obsidian vault, and
+                          keep curating without ever switching tabs
                         </Text>
 
                         <Group gap={'xs'}>
@@ -385,13 +384,27 @@ function Content(props: {
                           >
                             Zotero plugin
                           </Button>
-                          <Image
-                            src={ObsidianIcon.src}
-                            alt="Obsidian"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
+                          <Anchor
+                            href="https://docs.cosmik.network/semble-api"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            c="dimmed"
+                            fz="sm"
+                            fw={500}
+                            underline="never"
+                          >
+                            <Group gap={6} wrap="nowrap">
+                              <Image
+                                src={ObsidianIcon.src}
+                                alt=""
+                                w={14}
+                                h={14}
+                                fit="contain"
+                              />
+                              Build with the API
+                              <BiRightArrowAlt size={14} />
+                            </Group>
+                          </Anchor>
                         </Group>
                       </Stack>
                     </Stack>
@@ -437,13 +450,6 @@ function Content(props: {
                           >
                             Airglow automations
                           </Button>
-                          <Image
-                            src={BlueskyIcon.src}
-                            alt="Bluesky"
-                            w={22}
-                            h={22}
-                            fit="contain"
-                          />
                         </Group>
                       </Stack>
                     </Stack>
