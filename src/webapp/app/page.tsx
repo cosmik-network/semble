@@ -359,8 +359,8 @@ function Content(props: {
                           Plugin
                         </Text>
                         <Text c="dimmed">
-                          Sync your links and notes to your Zotero or Obsidian vault, and
-                          keep curating without ever switching tabs
+                          Sync your links and notes to your Zotero or Obsidian
+                          vault, and keep curating without ever switching tabs
                         </Text>
 
                         <Group gap={'xs'}>
