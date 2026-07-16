@@ -62,6 +62,8 @@ function PreviewCard(props: { card: UrlCard }) {
   );
 }
 
+const FADE_WIDTH = 28;
+
 export default function CollectionCardPreview(props: Props) {
   const scroller = useScroller();
 
@@ -75,6 +77,17 @@ export default function CollectionCardPreview(props: Props) {
 
   if (cards.length === 0) return null;
 
+  // Fade the overflowing edges (left/right) instead of cutting them off,
+  // toggled by whether there's more content to scroll in each direction.
+  const maskImage =
+    scroller.canScrollStart || scroller.canScrollEnd
+      ? `linear-gradient(to right, ${
+          scroller.canScrollStart ? 'transparent' : '#000'
+        }, #000 ${FADE_WIDTH}px, #000 calc(100% - ${FADE_WIDTH}px), ${
+          scroller.canScrollEnd ? 'transparent' : '#000'
+        })`
+      : undefined;
+
   return (
     <Box
       ref={scroller.ref}
@@ -83,6 +96,8 @@ export default function CollectionCardPreview(props: Props) {
         overflowX: 'auto',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
+        maskImage,
+        WebkitMaskImage: maskImage,
       }}
     >
       <Group gap={'xs'} grow={cards.length > 2} wrap="nowrap" align="start">
