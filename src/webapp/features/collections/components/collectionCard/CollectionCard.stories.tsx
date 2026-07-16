@@ -111,7 +111,7 @@ function QueryCacheSeed({
   const rkey = getRecordKey(collection.uri!!);
 
   useEffect(() => {
-    const queryKey = collectionKeys.infinite(rkey, 4);
+    const queryKey = collectionKeys.infinite(rkey, 6);
 
     queryClient.setQueryData(queryKey, {
       pages: [buildMockCollectionPage(collection)],
