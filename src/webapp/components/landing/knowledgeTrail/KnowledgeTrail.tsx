@@ -2,7 +2,7 @@ import { Box, Text } from '@mantine/core';
 import { Fragment } from 'react';
 import styles from './KnowledgeTrail.module.css';
 import TrailStop from './TrailStop';
-import AvatarStack from './cards/AvatarStack';
+import SharedInterestCard from './cards/SharedInterestCard';
 import SearchResultsCard from './cards/SearchResultsCard';
 import ConnectionBuilderCard from './cards/ConnectionBuilderCard';
 import TrailCollectionCard from './cards/TrailCollectionCard';
@@ -23,7 +23,7 @@ export default function KnowledgeTrail() {
         <span className={styles.line} aria-hidden="true" />
 
         <TrailStop index={1} label="See who shares your interest">
-          <AvatarStack />
+          <SharedInterestCard />
         </TrailStop>
 
         <TrailStop index={2} label="Discover relevant content">
