@@ -19,8 +19,8 @@ import NoahAvatar from '@/assets/avatars/noah.svg';
 
 const patrick: User = {
   id: 'did:plc:mock-patrick',
-  name: 'Alice Martin',
-  handle: 'alice.bsky.social',
+  name: 'Mei Nakamura',
+  handle: 'mei.bsky.social',
   avatarUrl: AliceAvatar.src,
 };
 
@@ -93,7 +93,7 @@ export const addedCardNotification = {
   iconColor: 'tangerine',
 };
 
-// "Leo Vargas started following you"
+// "Ava Jensen started following you"
 export const followedYouNotification = {
   user: leo,
   type: NotificationType.USER_FOLLOWED_YOU,
