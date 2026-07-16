@@ -8,7 +8,7 @@ interface Props {
   totalCount?: number;
 }
 
-const BOX_WIDTH = 430;
+const BOX_WIDTH = 470;
 const BOX_HEIGHT = 410;
 
 // Max tiles we render. LAYOUTS must define an arrangement for every count from
@@ -32,28 +32,28 @@ type Placement = {
 // centered in BOX_HEIGHT, rotations walk the same -1.1/0.8/-0.6/0.9/-1.1
 // sequence, and lefts stay within a 50-55 band.
 const LAYOUTS: Record<number, Placement[]> = {
-  1: [{ top: 167, left: 53, width: 350, height: 76, rotate: -1.1 }],
+  1: [{ top: 159, left: 53, width: 400, height: 92, rotate: -1.1 }],
   2: [
-    { top: 135, left: 53, width: 354, height: 74, rotate: -1.1 },
-    { top: 201, left: 50, width: 352, height: 74, rotate: 0.8 },
+    { top: 119, left: 53, width: 404, height: 90, rotate: -1.1 },
+    { top: 201, left: 50, width: 402, height: 90, rotate: 0.8 },
   ],
   3: [
-    { top: 105, left: 53, width: 352, height: 72, rotate: -1.1 },
-    { top: 169, left: 50, width: 354, height: 72, rotate: 0.8 },
-    { top: 233, left: 55, width: 348, height: 72, rotate: -0.6 },
+    { top: 81, left: 53, width: 402, height: 88, rotate: -1.1 },
+    { top: 161, left: 50, width: 404, height: 88, rotate: 0.8 },
+    { top: 241, left: 55, width: 398, height: 88, rotate: -0.6 },
   ],
   4: [
-    { top: 77, left: 53, width: 352, height: 70, rotate: -1.1 },
-    { top: 139, left: 50, width: 354, height: 70, rotate: 0.8 },
-    { top: 201, left: 55, width: 350, height: 70, rotate: -0.6 },
-    { top: 263, left: 51, width: 352, height: 70, rotate: 0.9 },
+    { top: 45, left: 53, width: 402, height: 86, rotate: -1.1 },
+    { top: 123, left: 50, width: 404, height: 86, rotate: 0.8 },
+    { top: 201, left: 55, width: 400, height: 86, rotate: -0.6 },
+    { top: 279, left: 51, width: 402, height: 86, rotate: 0.9 },
   ],
   5: [
-    { top: 51, left: 53, width: 350, height: 68, rotate: -1.1 },
-    { top: 111, left: 50, width: 352, height: 68, rotate: 0.8 },
-    { top: 171, left: 55, width: 348, height: 68, rotate: -0.6 },
-    { top: 231, left: 51, width: 352, height: 68, rotate: 0.9 },
-    { top: 291, left: 53, width: 350, height: 68, rotate: -1.1 },
+    { top: 11, left: 53, width: 400, height: 84, rotate: -1.1 },
+    { top: 87, left: 50, width: 402, height: 84, rotate: 0.8 },
+    { top: 163, left: 55, width: 398, height: 84, rotate: -0.6 },
+    { top: 239, left: 51, width: 402, height: 84, rotate: 0.9 },
+    { top: 315, left: 53, width: 400, height: 84, rotate: -1.1 },
   ],
 };
 
@@ -105,7 +105,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
     >
       <p
         style={{
-          fontSize: large ? 15 : 13,
+          fontSize: large ? 17 : 13,
           color: '#868e96',
           margin: 0,
           maxWidth: textWidth,
@@ -118,7 +118,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
       {tile.title && (
         <p
           style={{
-            fontSize: large ? 20 : 17,
+            fontSize: large ? 22 : 17,
             lineHeight: 1.2,
             color: '#343a40',
             margin: 0,
