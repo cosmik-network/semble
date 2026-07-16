@@ -24,6 +24,17 @@
     0 18px 48px -16px rgba(255, 110, 0, 0.5);
 }
 
+/* Inline curator note — same background as the real NoteCardInline. */
+.note {
+  @mixin light {
+    background-color: var(--mantine-color-gray-1);
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-4);
+  }
+}
+
 /* Soft ambient halo bleeding out behind the card. */
 .card::before {
   content: '';

@@ -3,6 +3,7 @@
 import {
   ActionIcon,
   AspectRatio,
+  Avatar,
   Button,
   Card,
   Group,
@@ -14,6 +15,7 @@ import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { TbPlugConnected } from 'react-icons/tb';
 import { BsThreeDots } from 'react-icons/bs';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
 import { trailUrlCard } from '../mockData';
 import styles from './TrailUrlCard.module.css';
 
@@ -58,6 +60,30 @@ export default function TrailUrlCard() {
           )}
         </Group>
 
+        {/* Mirrors NoteCardInline (your own note, shown expanded) */}
+        <Card radius="md" p="xs" className={styles.note}>
+          <Stack gap="xs">
+            <Group gap={5}>
+              <Avatar
+                src={trailUrlCard.note.author.src}
+                variant="filled"
+                color={trailUrlCard.note.author.color}
+                size="xs"
+                radius="sm"
+                alt=""
+              >
+                {trailUrlCard.note.author.initial}
+              </Avatar>
+              <Text fz="xs" fw={600} c="bright">
+                {trailUrlCard.note.author.name}
+              </Text>
+            </Group>
+            <Text fw={500} fz="sm" fs="italic" c="gray">
+              {trailUrlCard.note.text}
+            </Text>
+          </Stack>
+        </Card>
+
         {/* Mirrors UrlCardActions */}
         <Group justify="space-between">
           <Group gap="xs">
@@ -79,6 +105,9 @@ export default function TrailUrlCard() {
             >
               {trailUrlCard.connectionCount}
             </Button>
+            <ActionIcon variant="light" color="gray" radius="xl">
+              <MdOutlineStickyNote2 />
+            </ActionIcon>
           </Group>
           <ActionIcon variant="light" color="gray" radius="xl">
             <BsThreeDots size={18} />
