@@ -6,10 +6,14 @@ import {
   Text,
   Image,
   Box,
+  Stack,
 } from '@mantine/core';
 import { useScroller } from '@mantine/hooks';
+import { BiWorld } from 'react-icons/bi';
+import { getDomain } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { useState } from 'react';
+import { UrlCard } from '@semble/types';
 
 interface Props {
   rkey: string;
@@ -18,9 +22,50 @@ interface Props {
 
 const CARD_WIDTH = 110;
 
+function PreviewCard(props: { card: UrlCard }) {
+  const [imageError, setImageError] = useState(false);
+  const cardContent = props.card.cardContent;
+  const domain = getDomain(cardContent.url);
+  const hasImage = cardContent.imageUrl && !imageError;
+
+  return (
+    <Box w={CARD_WIDTH} miw={CARD_WIDTH}>
+      <AspectRatio ratio={16 / 9}>
+        {hasImage ? (
+          <Image
+            src={cardContent.imageUrl}
+            alt={`${cardContent.url} social preview image`}
+            radius={'md'}
+            fit="cover"
+            draggable={false}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <Card p={'xs'} radius={'md'} withBorder>
+            <Center my={'auto'}>
+              <BiWorld size={24} color="var(--mantine-color-dimmed)" />
+            </Center>
+          </Card>
+        )}
+      </AspectRatio>
+      <Stack gap={0} mt={6}>
+        <Text c={'gray'} fz={11} lineClamp={1}>
+          {domain}
+        </Text>
+        {cardContent.title && (
+          <Text c={'bright'} fz={12} fw={500} lineClamp={2}>
+            {cardContent.title}
+          </Text>
+        )}
+      </Stack>
+    </Box>
+  );
+}
+
+const FADE_WIDTH = 28;
+
 export default function CollectionCardPreview(props: Props) {
   const scroller = useScroller();
-  const [imageError, setImageError] = useState(false);
 
   const { data } = useCollection({
     rkey: props.rkey,
@@ -32,6 +77,17 @@ export default function CollectionCardPreview(props: Props) {
 
   if (cards.length === 0) return null;
 
+  // Fade the overflowing edges (left/right) instead of cutting them off,
+  // toggled by whether there's more content to scroll in each direction.
+  const maskImage =
+    scroller.canScrollStart || scroller.canScrollEnd
+      ? `linear-gradient(to right, ${
+          scroller.canScrollStart ? 'transparent' : '#000'
+        }, #000 ${FADE_WIDTH}px, #000 calc(100% - ${FADE_WIDTH}px), ${
+          scroller.canScrollEnd ? 'transparent' : '#000'
+        })`
+      : undefined;
+
   return (
     <Box
       ref={scroller.ref}
@@ -40,36 +96,13 @@ export default function CollectionCardPreview(props: Props) {
         overflowX: 'auto',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
+        maskImage,
+        WebkitMaskImage: maskImage,
       }}
     >
-      <Group gap={'xs'} grow={cards.length > 2} wrap="nowrap">
+      <Group gap={'xs'} grow={cards.length > 2} wrap="nowrap" align="start">
         {cards.map((c) => (
-          <Box key={c.id} w={CARD_WIDTH} miw={CARD_WIDTH}>
-            {c.cardContent.imageUrl && !imageError ? (
-              <AspectRatio ratio={16 / 9}>
-                <Image
-                  src={c.cardContent.imageUrl}
-                  alt={`${c.cardContent.url} social preview image`}
-                  radius={'md'}
-                  fit="cover"
-                  draggable={false}
-                  onError={() => setImageError(true)}
-                />
-              </AspectRatio>
-            ) : (
-              <AspectRatio ratio={16 / 9}>
-                <Card p={'xs'} radius={'md'} withBorder>
-                  <Center my={'auto'}>
-                    <Text fz={8} fw={500} lineClamp={2}>
-                      {c.cardContent.title ??
-                        c.cardContent.description ??
-                        c.cardContent.url}
-                    </Text>
-                  </Center>
-                </Card>
-              </AspectRatio>
-            )}
-          </Box>
+          <PreviewCard key={c.id} card={c} />
         ))}
       </Group>
     </Box>

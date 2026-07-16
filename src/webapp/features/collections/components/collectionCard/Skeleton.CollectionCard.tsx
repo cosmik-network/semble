@@ -1,11 +1,5 @@
-import {
-  AspectRatio,
-  Card,
-  Grid,
-  Skeleton,
-  Stack,
-  GridCol,
-} from '@mantine/core';
+import { Card, Skeleton, Stack } from '@mantine/core';
+import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
 
 export default function CollectionCardSkeleton() {
   return (
@@ -18,15 +12,8 @@ export default function CollectionCardSkeleton() {
           <Stack gap={5}>
             <Skeleton w={'100%'} h={14} />
           </Stack>
-          <Grid gap={'xs'}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <GridCol key={i} span={3}>
-                <AspectRatio ratio={16 / 9}>
-                  <Skeleton radius={'md'} mih={45} w={'100%'} />
-                </AspectRatio>
-              </GridCol>
-            ))}
-          </Grid>
+          {/* Preview strip — single source of truth with the loaded card */}
+          <CollectionCardPreviewSkeleton />
         </Stack>
         {/* Collection metadata */}
         <Skeleton w={'80%'} h={16} />
