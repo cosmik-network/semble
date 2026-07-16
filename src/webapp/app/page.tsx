@@ -230,7 +230,7 @@ function Content(props: {
                   Save links, connect related ideas, and curate collections on
                   your own or collaboratively.
                 </Text>
-                <Box mt="md" w="100%" py="lg" style={{ overflow: 'hidden' }}>
+                <Box mt="md" w="100%" py="lg">
                   <Stack align="center" gap={'xs'}>
                     <Text fw={600} c={'tangerine'}>
                       Every link you add becomes a starting point...
