@@ -34,7 +34,7 @@ export default function SharedInterestCard() {
                 variant="filled"
                 color={curator.color}
                 size="md"
-                radius="xl"
+                radius="md"
                 alt=""
               >
                 {curator.initial}
