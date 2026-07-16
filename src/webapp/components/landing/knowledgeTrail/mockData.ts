@@ -115,6 +115,12 @@ export const trailCollection = {
       title: 'WayFinder Philosophy',
       imageUrl: 'https://wayfinders.network/blog/philosophy/featured.jpg',
     },
+    {
+      url: 'https://hapgood.us/2015/10/17/the-garden-and-the-stream-a-technopastoral/',
+      title: 'The Garden and the Stream: A Technopastoral',
+      imageUrl:
+        'https://hapgood.us/wp-content/uploads/2015/10/t_d4424f37-afe9-7065-bc7f-13540c92ce85.jpg',
+    },
   ] as { url: string; title: string; imageUrl: string }[],
 };
 
