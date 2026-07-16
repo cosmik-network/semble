@@ -26,7 +26,6 @@ export default function BrowserTabs() {
       pos={'relative'}
       mx="auto"
       style={{
-        overflow: 'clip',
         borderRadius: 'var(--mantine-radius-lg)',
         background:
           'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))',

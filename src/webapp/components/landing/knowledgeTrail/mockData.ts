@@ -5,17 +5,45 @@
  * the API. Mirrors the approach used by `orbitalHero/mockData.ts`.
  */
 
-// "See who shares your interest" — overlapping avatars, each showing a
-// pre-generated boringavatars.com SVG (the initial/color act as the fallback
-// while the image loads).
+// "See who shares your interest" — mirrors the URL page's "Added by" tab
+// (ProfileCard rows): curators who saved the same link, each with the relative
+// time they added it and, like the real card, an occasional "Follows you"
+// badge. Avatars are pre-generated boringavatars.com SVGs (the initial/color
+// act as the fallback while the image loads). Handles use whimsical TLDs that
+// don't exist (checked against the IANA root zone) so they read as playful
+// rather than as real accounts — worth re-checking if ICANN ever mints them.
 import InterestAvatarA from '@/assets/avatars/interest-a.svg';
 import InterestAvatarM from '@/assets/avatars/interest-m.svg';
 import InterestAvatarK from '@/assets/avatars/interest-k.svg';
 
-export const interestAvatars = [
-  { initial: 'A', color: '#2F9E44', src: InterestAvatarA.src },
-  { initial: 'M', color: '#1e4dd9', src: InterestAvatarM.src },
-  { initial: 'K', color: '#9C36B5', src: InterestAvatarK.src },
+export const interestCurators = [
+  {
+    name: 'Amara Okafor',
+    handle: 'amara.rabbithole',
+    addedAt: '2h ago',
+    followsYou: false,
+    initial: 'A',
+    color: '#2F9E44',
+    src: InterestAvatarA.src,
+  },
+  {
+    name: 'Mateo Rivera',
+    handle: 'mateo.treehouse',
+    addedAt: '1d ago',
+    followsYou: false,
+    initial: 'M',
+    color: '#1e4dd9',
+    src: InterestAvatarM.src,
+  },
+  {
+    name: 'Keiko Tanaka',
+    handle: 'keiko.moonbase',
+    addedAt: '3d ago',
+    followsYou: true,
+    initial: 'K',
+    color: '#9C36B5',
+    src: InterestAvatarK.src,
+  },
 ];
 
 // "Discover relevant content" — search-results rows for real digital-garden
