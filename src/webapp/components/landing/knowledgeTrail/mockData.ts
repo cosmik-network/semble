@@ -15,6 +15,7 @@
 import InterestAvatarA from '@/assets/avatars/interest-a.svg';
 import InterestAvatarM from '@/assets/avatars/interest-m.svg';
 import InterestAvatarK from '@/assets/avatars/interest-k.svg';
+import YouAvatar from '@/assets/avatars/you.svg';
 
 export const interestCurators = [
   {
@@ -117,7 +118,9 @@ export const trailCollection = {
   ] as { url: string; title: string; imageUrl: string }[],
 };
 
-// The glowing URL card at the end of the trail.
+// The glowing URL card at the end of the trail. The note mirrors
+// NoteCardInline on a real UrlCard — it's YOUR note (the viewer's), the kind
+// of note-to-self you'd leave when saving the link to your library.
 export const trailUrlCard = {
   domain: 'anil.recoil.org',
   title: 'Rewilding the Web: my workshop report from Edinburgh',
@@ -126,4 +129,13 @@ export const trailUrlCard = {
   imageUrl: 'https://anil.recoil.org/images/rewilding-web-ed-6.640.webp',
   libraryCount: 3,
   connectionCount: 5,
+  note: {
+    author: {
+      name: 'You',
+      initial: 'Y',
+      color: '#F76707',
+      src: YouAvatar.src,
+    },
+    text: "Humpbacks turned bubble-play into a hunting technique — Nave's case that 'useless' variety is what resilience is made of. Best argument yet against optimising all the play out of a network.",
+  },
 };
