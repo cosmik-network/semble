@@ -15,8 +15,8 @@ import {
   MdOutlineCollectionsBookmark,
   MdOutlineInstallMobile,
 } from 'react-icons/md';
-import { TbStackForward } from 'react-icons/tb';
-import { PiPuzzlePieceBold } from 'react-icons/pi';
+import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
+import { FiChrome } from 'react-icons/fi';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
 
@@ -51,9 +51,16 @@ export default async function SettingsContainer() {
             <SettingItem
               href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
               openInNewTab
-              icon={PiPuzzlePieceBold}
+              icon={FiChrome}
             >
-              Browser extension
+              Chrome extension
+            </SettingItem>
+            <SettingItem
+              href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+              openInNewTab
+              icon={TbBrandFirefox}
+            >
+              Firefox extension
             </SettingItem>
             <SettingItem
               href="/bookmarklet"
