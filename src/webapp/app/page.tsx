@@ -44,6 +44,7 @@ import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
 import { TbStackForward } from 'react-icons/tb';
+import { MdOutlineInstallMobile } from 'react-icons/md';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Script from 'next/script';
@@ -75,9 +76,8 @@ const testimonials = [
 ];
 
 export default async function Page() {
-  const [profiles, identityProfile, session] = await Promise.all([
+  const [profiles, session] = await Promise.all([
     Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
-    getBlueskyProfile('cosmiktesting.bsky.social'),
     verifySessionOnServer(),
   ]);
   const testimonialsWithAvatars = testimonials.map((t, i) => ({
@@ -103,7 +103,6 @@ export default async function Page() {
         <TreeShadows />
         <Content
           testimonials={testimonialsWithAvatars}
-          identityAvatar={identityProfile?.avatar ?? null}
           isAuthenticated={!!session}
         />
       </Box>
@@ -118,7 +117,6 @@ function Content(props: {
     quote: string;
     avatar: string | null;
   }[];
-  identityAvatar: string | null;
   isAuthenticated: boolean;
 }) {
   return (
@@ -555,7 +553,7 @@ function Content(props: {
                   you ever decide to leave, take everything with you.
                 </Text>
                 <Box w="100%">
-                  <IdentityWeb avatar={props.identityAvatar} />
+                  <IdentityWeb />
                 </Box>
               </Stack>
 
@@ -711,6 +709,25 @@ function Content(props: {
                           style={{ verticalAlign: '-3px', marginRight: 4 }}
                         />
                         iOS shortcut
+                      </Anchor>{' '}
+                      or the{' '}
+                      <Anchor
+                        href="/install-app"
+                        target="_blank"
+                        c="light-dark(#1F6144, #1e4dd9)"
+                        inherit
+                        underline="always"
+                        style={{
+                          textUnderlineOffset: 5,
+                          textDecorationThickness: 1,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <MdOutlineInstallMobile
+                          size={17}
+                          style={{ verticalAlign: '-3px', marginRight: 4 }}
+                        />
+                        web app
                       </Anchor>
                       .
                     </Text>
