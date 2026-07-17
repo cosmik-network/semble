@@ -43,6 +43,7 @@ import { LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
+import { TbStackForward } from 'react-icons/tb';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Script from 'next/script';
@@ -640,6 +641,79 @@ function Content(props: {
                     >
                       Get Started
                     </LinkButton>
+
+                    <Text fw={600} fz="lg" ta="center" maw={440}>
+                      Take Semble with you — get the extension for{' '}
+                      <Anchor
+                        href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        c="light-dark(#1F6144, #1e4dd9)"
+                        inherit
+                        underline="always"
+                        style={{
+                          textUnderlineOffset: 5,
+                          textDecorationThickness: 1,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <Image
+                          src={ChromeIcon.src}
+                          alt=""
+                          w={17}
+                          h={17}
+                          fit="contain"
+                          display="inline-block"
+                          style={{ verticalAlign: '-3px', marginRight: 4 }}
+                        />
+                        Chrome
+                      </Anchor>{' '}
+                      or{' '}
+                      <Anchor
+                        href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        c="light-dark(#1F6144, #1e4dd9)"
+                        inherit
+                        underline="always"
+                        style={{
+                          textUnderlineOffset: 5,
+                          textDecorationThickness: 1,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <Image
+                          src={FirefoxIcon.src}
+                          alt=""
+                          w={17}
+                          h={17}
+                          fit="contain"
+                          display="inline-block"
+                          style={{ verticalAlign: '-3px', marginRight: 4 }}
+                        />
+                        Firefox
+                      </Anchor>
+                      , or save on the go with the{' '}
+                      <Anchor
+                        href="/ios-shortcut"
+                        target="_blank"
+                        c="light-dark(#1F6144, #1e4dd9)"
+                        inherit
+                        underline="always"
+                        style={{
+                          textUnderlineOffset: 5,
+                          textDecorationThickness: 1,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <TbStackForward
+                          size={17}
+                          style={{ verticalAlign: '-3px', marginRight: 4 }}
+                        />
+                        iOS shortcut
+                      </Anchor>
+                      .
+                    </Text>
                   </Stack>
                 </Center>
               </Box>
