@@ -7,6 +7,7 @@ import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import AnisotaLogo from '@/assets/icons/anisota-logo.svg';
 import AnisotaLogoWhite from '@/assets/icons/anisota-logo-white.svg';
+import YouAvatar from '@/assets/avatars/you.svg';
 import styles from './IdentityWeb.module.css';
 
 /**
@@ -16,7 +17,7 @@ import styles from './IdentityWeb.module.css';
  * right) connected by bezier curves; below the `md` breakpoint it collapses to
  * the identity chip above a simple grid of logo chips.
  */
-export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
+export default function IdentityWeb() {
   return (
     <div className={styles.stage}>
       {/* Dashed connector curves (desktop only) */}
@@ -144,7 +145,7 @@ export default function IdentityWeb({ avatar }: { avatar?: string | null }) {
         <div className={styles.identityCard}>
           <Avatar
             className={styles.avatar}
-            src={avatar ?? undefined}
+            src={YouAvatar.src}
             variant="filled"
             radius="xl"
             size={'lg'}

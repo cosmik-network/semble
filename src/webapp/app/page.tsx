@@ -75,9 +75,8 @@ const testimonials = [
 ];
 
 export default async function Page() {
-  const [profiles, identityProfile, session] = await Promise.all([
+  const [profiles, session] = await Promise.all([
     Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
-    getBlueskyProfile('cosmiktesting.bsky.social'),
     verifySessionOnServer(),
   ]);
   const testimonialsWithAvatars = testimonials.map((t, i) => ({
@@ -103,7 +102,6 @@ export default async function Page() {
         <TreeShadows />
         <Content
           testimonials={testimonialsWithAvatars}
-          identityAvatar={identityProfile?.avatar ?? null}
           isAuthenticated={!!session}
         />
       </Box>
@@ -118,7 +116,6 @@ function Content(props: {
     quote: string;
     avatar: string | null;
   }[];
-  identityAvatar: string | null;
   isAuthenticated: boolean;
 }) {
   return (
@@ -555,7 +552,7 @@ function Content(props: {
                   you ever decide to leave, take everything with you.
                 </Text>
                 <Box w="100%">
-                  <IdentityWeb avatar={props.identityAvatar} />
+                  <IdentityWeb />
                 </Box>
               </Stack>
 

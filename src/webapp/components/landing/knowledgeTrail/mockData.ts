@@ -139,7 +139,7 @@ export const trailUrlCard = {
     author: {
       name: 'You',
       initial: 'Y',
-      color: '#F76707',
+      color: '#D6009E',
       src: YouAvatar.src,
     },
     text: "Humpbacks turned bubble-play into a hunting technique — Nave's case that 'useless' variety is what resilience is made of. Best argument yet against optimising all the play out of a network.",
