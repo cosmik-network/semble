@@ -34,11 +34,12 @@ import KnowledgeTrail from '@/components/landing/knowledgeTrail/KnowledgeTrail';
 import OrbitalHero from '@/components/landing/orbitalHero/OrbitalHero';
 import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
+import GetExtensionMenu from '@/components/landing/getExtensionMenu/GetExtensionMenu';
 import TreeShadows from '@/components/landing/treeShadows/TreeShadows';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
-import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
+import { LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdCode, IoMdColorWand } from 'react-icons/io';
 import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
@@ -151,13 +152,7 @@ function Content(props: {
             wrap="nowrap"
             style={{ flexShrink: 0 }}
           >
-            <LinkAnchor
-              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-              fw={500}
-              c="bright"
-            >
-              Get Extension
-            </LinkAnchor>
+            <GetExtensionMenu />
             {!props.isAuthenticated && (
               <LinkButton href="/login" size="sm" variant="inverse">
                 Log in
@@ -496,27 +491,38 @@ function Content(props: {
                           >
                             Chrome extension
                           </Button>
+                          <Button
+                            component="a"
+                            href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={FirefoxIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Firefox extension
+                          </Button>
                           <Badge
                             variant="light"
                             color="gray"
                             size="lg"
                             leftSection={
-                              <Group gap={4} wrap="nowrap">
-                                <Image
-                                  src={FirefoxIcon.src}
-                                  alt="Firefox"
-                                  w={14}
-                                  h={14}
-                                  fit="contain"
-                                />
-                                <Image
-                                  src={SafariIcon.src}
-                                  alt="Safari"
-                                  w={14}
-                                  h={14}
-                                  fit="contain"
-                                />
-                              </Group>
+                              <Image
+                                src={SafariIcon.src}
+                                alt="Safari"
+                                w={14}
+                                h={14}
+                                fit="contain"
+                              />
                             }
                           >
                             Coming soon

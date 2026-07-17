@@ -15,8 +15,8 @@ import {
 import { useMantineColorScheme } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import { MdOutlineInstallMobile, MdOutlineColorLens } from 'react-icons/md';
-import { TbStackForward } from 'react-icons/tb';
-import { PiPuzzlePieceBold } from 'react-icons/pi';
+import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
+import { FiChrome } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -144,10 +144,20 @@ export default function ProfileMenu() {
             component="a"
             href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
             target="_blank"
-            leftSection={<PiPuzzlePieceBold size={22} />}
+            leftSection={<FiChrome size={22} />}
             color="gray"
           >
-            Browser extension
+            Chrome extension
+          </Menu.Item>
+
+          <Menu.Item
+            component="a"
+            href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+            target="_blank"
+            leftSection={<TbBrandFirefox size={22} />}
+            color="gray"
+          >
+            Firefox extension
           </Menu.Item>
 
           {os === 'ios' && (

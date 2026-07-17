@@ -142,58 +142,70 @@ export default function Footer() {
             </ActionIcon>
           </Group>
 
-          <Group justify="center" gap="lg" mb="md" wrap="wrap">
-            <Anchor
-              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Chrome extension
-            </Anchor>
-            <Anchor
-              href={
-                'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
-              }
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              iOS shortcut
-            </Anchor>
-            <Anchor
-              href="https://docs.cosmik.network/semble"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Semble Docs
-            </Anchor>
-            <Anchor
-              href="https://blog.cosmik.network/"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Blog
-            </Anchor>
-            <Anchor
-              href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Give Feedback
-            </Anchor>
-            <Anchor
-              href="https://github.com/cosmik-network/semble/issues"
-              target="_blank"
-              c="white"
-              fw={600}
-            >
-              Submit an Issue
-            </Anchor>
-          </Group>
+          <Stack align="center" gap="xs" mb="md">
+            <Group justify="center" gap="lg" wrap="wrap">
+              <Anchor
+                href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Chrome extension
+              </Anchor>
+              <Anchor
+                href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Firefox extension
+              </Anchor>
+              <Anchor
+                href={
+                  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
+                }
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                iOS shortcut
+              </Anchor>
+            </Group>
+            <Group justify="center" gap="lg" wrap="wrap">
+              <Anchor
+                href="https://docs.cosmik.network/semble"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Semble Docs
+              </Anchor>
+              <Anchor
+                href="https://blog.cosmik.network/"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Blog
+              </Anchor>
+              <Anchor
+                href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Give Feedback
+              </Anchor>
+              <Anchor
+                href="https://github.com/cosmik-network/semble/issues"
+                target="_blank"
+                c="white"
+                fw={600}
+              >
+                Submit an Issue
+              </Anchor>
+            </Group>
+          </Stack>
 
           <Stack align="center" gap="0">
             <Text c="white" fw={600} ta="center">
