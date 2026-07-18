@@ -34,7 +34,7 @@ export class GetCollectionPageByAtUriController extends Controller {
       if (result.isErr()) {
         const error = result.error;
         if (error.name === 'CollectionNotFoundError') {
-          return this.notFound(res, error.message);
+          return this.notFound(res, error.message, 'COLLECTION_NOT_FOUND');
         }
         return this.fail(res, error);
       }

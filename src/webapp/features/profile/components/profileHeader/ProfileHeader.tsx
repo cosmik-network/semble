@@ -15,6 +15,8 @@ import {
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal.server';
+import { notFound } from 'next/navigation';
+import { isNotFoundApiError } from '@/api-client/errors';
 import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
@@ -33,7 +35,14 @@ interface Props {
 export default async function ProfileHeader(props: Props) {
   const [session, profile] = await Promise.all([
     verifySessionOnServer(),
-    getProfile(props.handle),
+    getProfile(props.handle).catch((error: unknown) => {
+      // A handle that can't be resolved (bad handle, deleted account) returns a
+      // 404 — render the profile "not found" page instead of a generic error.
+      if (isNotFoundApiError(error, 'PROFILE_NOT_FOUND')) {
+        notFound();
+      }
+      throw error;
+    }),
   ]);
 
   return (

@@ -24,7 +24,14 @@ export class GetUserProfileController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error);
+        const error = result.error;
+        if (error.name === 'ProfileNotFoundError') {
+          return this.notFound(res, error.message, 'PROFILE_NOT_FOUND');
+        }
+        if (error.name === 'ValidationError') {
+          return this.badRequest(res, error.message);
+        }
+        return this.fail(res, error);
       }
 
       return this.ok(res, result.value);
