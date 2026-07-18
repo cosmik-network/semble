@@ -46,7 +46,10 @@ export abstract class Controller {
     return Controller.jsonResponse(res, 403, message || 'Forbidden');
   }
 
-  public notFound(res: Response, message?: string) {
+  public notFound(res: Response, message?: string, code?: string) {
+    if (code) {
+      return res.status(404).json({ message: message || 'Not found', code });
+    }
     return Controller.jsonResponse(res, 404, message || 'Not found');
   }
 
