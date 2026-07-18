@@ -17,3 +17,15 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+/**
+ * Returns true when the error is a 404 ApiError, optionally matching a specific
+ * error `code` (e.g. 'PROFILE_NOT_FOUND', 'COLLECTION_NOT_FOUND').
+ */
+export function isNotFoundApiError(err: unknown, code?: string): boolean {
+  return (
+    err instanceof ApiError &&
+    err.statusCode === 404 &&
+    (!code || err.code === code)
+  );
+}

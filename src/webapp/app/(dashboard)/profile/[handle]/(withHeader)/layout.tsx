@@ -7,6 +7,7 @@ import { Fragment, Suspense } from 'react';
 import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
 import BackButton from '@/components/navigation/backButton/BackButton';
 import { getProfile } from '@/features/profile/lib/dal';
+import { isNotFoundApiError } from '@/api-client/errors';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -15,7 +16,16 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-  const profile = await getProfile(handle);
+  // Don't throw here — ProfileHeader renders the not-found page for missing
+  // profiles. Fall back to minimal metadata so metadata generation never fails.
+  const profile = await getProfile(handle).catch((error: unknown) => {
+    if (isNotFoundApiError(error, 'PROFILE_NOT_FOUND')) return null;
+    throw error;
+  });
+
+  if (!profile) {
+    return { title: 'Profile not found — Semble' };
+  }
 
   return {
     title: {

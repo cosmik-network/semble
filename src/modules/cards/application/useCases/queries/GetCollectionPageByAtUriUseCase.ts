@@ -53,11 +53,9 @@ export class GetCollectionPageByAtUriUseCase implements UseCase<
       identifierResult.value,
     );
     if (didResult.isErr()) {
-      return err(
-        new Error(
-          `Failed to resolve handle to DID: ${didResult.error.message}`,
-        ),
-      );
+      // A handle that can't be resolved means the collection's owner doesn't
+      // exist, so the collection itself can't be found.
+      return err(new CollectionNotFoundError('Collection not found'));
     }
 
     // Construct the AT URI using the resolved DID

@@ -31,6 +31,13 @@ export class ValidationError extends Error {
   }
 }
 
+export class ProfileNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProfileNotFoundError';
+  }
+}
+
 export class GetProfileUseCase implements UseCase<
   GetMyProfileQuery,
   Result<GetMyProfileResult>
@@ -62,7 +69,7 @@ export class GetProfileUseCase implements UseCase<
     );
     if (didResult.isErr()) {
       return err(
-        new ValidationError(
+        new ProfileNotFoundError(
           `Could not resolve user identifier: ${didResult.error.message}`,
         ),
       );

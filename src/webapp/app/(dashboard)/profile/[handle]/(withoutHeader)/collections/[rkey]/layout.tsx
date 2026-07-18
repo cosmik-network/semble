@@ -1,7 +1,9 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
+import { isNotFoundApiError } from '@/api-client/errors';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Fragment, Suspense } from 'react';
 import CollectionHeader from '@/features/collections/components/collectionHeader/CollectionHeader';
 import CollectionHeaderSkeleton from '@/features/collections/components/collectionHeader/Skeleton.CollectionHeader';
@@ -20,6 +22,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const collection = await getCollectionPageByAtUri({
     recordKey: rkey,
     handle: handle,
+  }).catch((error: unknown) => {
+    // Unresolvable handle / missing collection → render the not-found page.
+    if (isNotFoundApiError(error, 'COLLECTION_NOT_FOUND')) notFound();
+    throw error;
   });
 
   return {
