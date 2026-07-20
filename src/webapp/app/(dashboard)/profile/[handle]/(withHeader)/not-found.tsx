@@ -7,7 +7,7 @@ export default function ProfileNotFound() {
         <Title order={1} fz="h2">
           Profile not found
         </Title>
-        <Text c="gray" ta="center">
+        <Text fz={'lg'} fw={500} c={'dimmed'} ta={'center'} maw={300}>
           We couldn&apos;t find a profile for that handle. It may have been
           changed or the account no longer exists.
         </Text>
