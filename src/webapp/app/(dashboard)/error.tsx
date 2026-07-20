@@ -2,10 +2,10 @@
 
 import {
   BackgroundImage,
+  Button,
   Center,
   Stack,
   Image,
-  Badge,
   Text,
   Group,
   Container,
@@ -13,10 +13,14 @@ import {
 import SembleLogo from '@/assets/semble-logo.svg';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.png';
-import { BiRightArrowAlt } from 'react-icons/bi';
 import { LinkButton } from '@/components/link/MantineLink';
 
-export default function Error() {
+interface Props {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+export default function Error(props: Props) {
   return (
     <>
       {/* light mode background */}
@@ -27,10 +31,8 @@ export default function Error() {
         pos={'fixed'}
         top={0}
         left={0}
-        style={{ zIndex: 102 }}
-      >
-        <Content />
-      </BackgroundImage>
+        style={{ zIndex: 102, filter: 'grayscale(1)' }}
+      />
 
       {/* dark mode background */}
       <BackgroundImage
@@ -40,20 +42,20 @@ export default function Error() {
         pos={'fixed'}
         top={0}
         left={0}
-        style={{ zIndex: 102 }}
-      >
-        <Content />
-      </BackgroundImage>
-    </>
-  );
-}
+        style={{ zIndex: 102, filter: 'grayscale(1)' }}
+      />
 
-function Content() {
-  return (
-    <Center h={'100svh'} py={{ base: '2rem', xs: '5rem' }}>
-      <Container size={'xl'} p={'md'} my={'auto'}>
-        <Stack>
-          <Stack align="center" gap={'xs'}>
+      <Center
+        h={'100svh'}
+        py={{ base: '2rem', xs: '5rem' }}
+        pos={'fixed'}
+        top={0}
+        left={0}
+        w={'100%'}
+        style={{ zIndex: 103 }}
+      >
+        <Container size={'sm'} p={'md'} my={'auto'}>
+          <Stack align="center">
             <Image
               src={SembleLogo.src}
               alt="Semble logo"
@@ -61,39 +63,33 @@ function Content() {
               h={64.5}
               mx={'auto'}
             />
-            <Badge size="sm">Alpha</Badge>
+
+            <Stack gap={'xs'}>
+              <Text fz={'h1'} fw={600} ta={'center'}>
+                Something went wrong
+              </Text>
+              <Text
+                fz={'lg'}
+                fw={500}
+                c={'dimmed'}
+                ta={'center'}
+                maw={300}
+                mx={'auto'}
+              >
+                An unexpected error occurred. Please try again.
+              </Text>
+            </Stack>
+
+            <Group justify="center" gap="xs" mt={'lg'}>
+              <Button onClick={props.reset}>Try again</Button>
+
+              <LinkButton href="/home" variant="default">
+                Go home
+              </LinkButton>
+            </Group>
           </Stack>
-
-          <Stack>
-            <Text fz={'h1'} fw={600} ta={'center'}>
-              A social knowledge network for research
-            </Text>
-            <Text fz={'h3'} fw={600} c={'#1e4dd9'} ta={'center'} lightHidden>
-              Follow your peers’ research trails. Surface and discover new
-              connections. Built on ATProto so you own your data.
-            </Text>
-            <Text fz={'h3'} fw={600} c={'#1F6144'} ta={'center'} darkHidden>
-              Follow your peers’ research trails. Surface and discover new
-              connections. Built on ATProto so you own your data.
-            </Text>
-          </Stack>
-
-          <Group justify="center" gap="md" mt={'lg'}>
-            <LinkButton href="/signup" size="lg">
-              Sign up
-            </LinkButton>
-
-            <LinkButton
-              href="/login"
-              size="lg"
-              color="var(--mantine-color-dark-filled)"
-              rightSection={<BiRightArrowAlt size={22} />}
-            >
-              Log in
-            </LinkButton>
-          </Group>
-        </Stack>
-      </Container>
-    </Center>
+        </Container>
+      </Center>
+    </>
   );
 }
