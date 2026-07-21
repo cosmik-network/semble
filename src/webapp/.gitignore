@@ -26,3 +26,12 @@ android/app/build/
 android/capacitor-cordova-android-plugins/
 *.xcuserstate
 .DS_Store
+
+ios/capacitor-cordova-ios-plugins/sources/.gitkeep
+ios/capacitor-cordova-ios-plugins/resources/.gitkeep
+ios/capacitor-cordova-ios-plugins/CordovaPluginsResources.podspec
+ios/App/CapApp-SPM/.swiftpm/xcode/xcuserdata/weswalla.xcuserdatad/xcschemes/xcschememanagement.plist
+ios/App/App.xcodeproj/xcuserdata/weswalla.xcuserdatad/xcschemes/xcschememanagement.plist
+
+android/local.properties
+android/app/src/main/assets/capacitor.plugins.json
