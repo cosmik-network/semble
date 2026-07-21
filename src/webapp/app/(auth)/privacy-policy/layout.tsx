@@ -5,7 +5,7 @@ import { LinkButton } from '@/components/link/MantineLink';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Semble',
-  description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
+  description: `A place for mapping the web, connecting ideas, and building shared knowledge.`,
 };
 
 interface Props {

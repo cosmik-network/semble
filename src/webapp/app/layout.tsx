@@ -20,8 +20,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Semble — A social knowledge network for research',
-  description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
+  title: 'Semble — Make sense of the web, together',
+  description: `A place for mapping the web, connecting ideas, and building shared knowledge.`,
   appleWebApp: {
     title: 'Semble',
     capable: true,
