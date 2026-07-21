@@ -4,6 +4,8 @@ import {
   LoginWithAppPasswordRequest,
   InitiateOAuthSignInRequest,
   CompleteOAuthSignInRequest,
+  ExchangeAuthCodeRequest,
+  ExchangeAuthCodeResponse,
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
   LoginWithAppPasswordResponse,
@@ -38,9 +40,16 @@ export class UserClient extends BaseClient {
     request?: InitiateOAuthSignInRequest,
   ): Promise<InitiateOAuthSignInResponse> {
     const res = await this.client.users.initiateOAuth({
-      query: { handle: request?.handle },
+      query: { handle: request?.handle, client: request?.client },
     });
     return unwrap<InitiateOAuthSignInResponse>(res);
+  }
+
+  async exchangeAuthCode(
+    request: ExchangeAuthCodeRequest,
+  ): Promise<ExchangeAuthCodeResponse> {
+    const res = await this.client.users.exchangeToken({ body: request });
+    return unwrap<ExchangeAuthCodeResponse>(res);
   }
 
   async completeOAuthSignIn(

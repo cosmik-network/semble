@@ -8,6 +8,7 @@ import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/co
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
 import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
+import { ExchangeAuthCodeController } from '../controllers/ExchangeAuthCodeController';
 import { FollowTargetController } from '../controllers/FollowTargetController';
 import { UnfollowTargetController } from '../controllers/UnfollowTargetController';
 import { GetFollowingUsersController } from '../controllers/GetFollowingUsersController';
@@ -50,6 +51,7 @@ export function registerUserRoutes(
   createApiKeyController: CreateApiKeyController,
   updateApiKeyController: UpdateApiKeyController,
   revokeApiKeyController: RevokeApiKeyController,
+  exchangeAuthCodeController: ExchangeAuthCodeController,
 ): void {
   app.get(
     routes.users.initiateOAuth.path,
@@ -77,6 +79,12 @@ export function registerUserRoutes(
     routes.users.refreshToken.path,
     validateBody(usersContract.refreshToken.body),
     (req, res) => refreshAccessTokenController.execute(req, res),
+  );
+
+  app.post(
+    routes.users.exchangeToken.path,
+    validateBody(usersContract.exchangeToken.body),
+    (req, res) => exchangeAuthCodeController.execute(req, res),
   );
 
   app.get(

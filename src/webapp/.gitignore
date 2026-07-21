@@ -9,3 +9,20 @@ node_modules/
 
 *storybook.log
 storybook-static
+
+# Capacitor — commit native source, ignore build outputs & generated copies
+ios/App/App/public/
+ios/App/Pods/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/DerivedData/
+ios/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/res/xml/config.xml
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+*.xcuserstate
+.DS_Store

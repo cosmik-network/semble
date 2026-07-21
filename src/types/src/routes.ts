@@ -80,6 +80,7 @@ export const paths = {
   refreshToken: '/network.cosmik.server.refreshSession',
   logout: '/network.cosmik.server.deleteSession',
   extensionTokens: '/network.cosmik.server.getExtensionTokens',
+  exchangeToken: '/network.cosmik.server.exchangeToken',
   followTarget: '/network.cosmik.graph.follow',
   unfollowTarget: '/network.cosmik.graph.unfollow',
   followingUsers: '/network.cosmik.graph.getFollowing',
@@ -177,6 +178,7 @@ export const routes = {
     refreshToken: defineRoute(paths.refreshToken, 'POST', false),
     logout: defineRoute(paths.logout, 'POST', true),
     extensionTokens: defineRoute(paths.extensionTokens, 'GET', true),
+    exchangeToken: defineRoute(paths.exchangeToken, 'POST', false),
   },
   apiKeys: {
     listApiKeys: defineRoute(paths.listApiKeys, 'GET', true),

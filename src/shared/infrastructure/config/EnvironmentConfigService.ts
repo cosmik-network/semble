@@ -51,6 +51,10 @@ export interface EnvironmentConfig {
   };
   app: {
     appUrl: string;
+    // Custom URL scheme for the Capacitor native app deep link, e.g.
+    // 'com.semble.app'. The OAuth callback redirects native clients to
+    // `${nativeScheme}://auth?code=...`.
+    nativeScheme: string;
   };
   iframely: {
     apiKey: string;
@@ -190,6 +194,7 @@ export class EnvironmentConfigService {
         appUrl: tunnelEnabled
           ? tunnelFrontendUrl
           : process.env.APP_URL || 'http://127.0.0.1:4000',
+        nativeScheme: process.env.NATIVE_APP_SCHEME || 'com.semble.app',
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',

@@ -9,6 +9,8 @@ import {
   InitiateOAuthSignInResponseSchema,
   CompleteOAuthSignInRequestSchema,
   CompleteOAuthSignInResponseSchema,
+  ExchangeAuthCodeRequestSchema,
+  ExchangeAuthCodeResponseSchema,
   LoginWithAppPasswordRequestSchema,
   LoginWithAppPasswordResponseSchema,
   RefreshAccessTokenRequestSchema,
@@ -95,6 +97,16 @@ export const usersContract = c.router(
       summary: 'Logout',
       description:
         "Invalidates the authenticated user's session and clears auth cookies.",
+      metadata: { internal: true } as const,
+    },
+    exchangeToken: {
+      method: 'POST',
+      path: paths.exchangeToken,
+      body: ExchangeAuthCodeRequestSchema,
+      responses: { 200: ExchangeAuthCodeResponseSchema },
+      summary: 'Exchange a native auth code for tokens',
+      description:
+        'Exchanges the one-time code delivered to a Capacitor client via deep link for a session TokenPair. Single-use and short-lived.',
       metadata: { internal: true } as const,
     },
     extensionTokens: {

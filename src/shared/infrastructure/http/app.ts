@@ -49,6 +49,11 @@ export const createExpressApp = (
           appUrl,
           'http://localhost:3000',
           'http://127.0.0.1:3000',
+          // Capacitor native WebView origins (iOS uses capacitor://localhost,
+          // Android uses https://localhost) so the Bearer-token API calls from
+          // the native app aren't blocked by CORS during local testing.
+          'capacitor://localhost',
+          'https://localhost',
         ];
         if (tunnel.enabled) {
           origins.push(tunnel.frontendUrl, tunnel.backendUrl);
@@ -264,6 +269,7 @@ export const createExpressApp = (
       controllers.createApiKeyController,
       controllers.updateApiKeyController,
       controllers.revokeApiKeyController,
+      controllers.exchangeAuthCodeController,
     );
 
     registerCardsModuleRoutes(

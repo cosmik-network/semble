@@ -9,10 +9,11 @@ export class InitiateOAuthSignInController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { handle } = req.query;
+      const { handle, client } = req.query;
 
       const result = await this.initiateOAuthSignInUseCase.execute({
         handle: handle as string | undefined,
+        client: client === 'native' ? 'native' : undefined,
       });
 
       if (result.isErr()) {

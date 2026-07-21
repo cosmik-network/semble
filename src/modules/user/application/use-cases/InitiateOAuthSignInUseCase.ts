@@ -5,8 +5,14 @@ import { IOAuthProcessor } from '../services/IOAuthProcessor';
 import { Handle } from '../../domain/value-objects/Handle';
 import { InitiateOAuthSignInErrors } from './errors/InitiateOAuthSignInErrors';
 
+// appState value threaded through the OAuth flow to signal a Capacitor client.
+// The callback controller branches on this to hand tokens back via deep link
+// instead of setting cookies.
+export const NATIVE_APP_STATE = 'native';
+
 export interface InitiateOAuthSignInDTO {
   handle?: string;
+  client?: 'native';
 }
 
 export type InitiateOAuthSignInResponse = Result<
@@ -40,9 +46,13 @@ export class InitiateOAuthSignInUseCase implements UseCase<
         );
       }
 
-      // Generate auth URL
+      // Generate auth URL, threading native-client intent into the OAuth
+      // app state so the callback can hand tokens back via deep link.
+      const appState =
+        request.client === 'native' ? NATIVE_APP_STATE : undefined;
       const authUrlResult = await this.oauthProcessor.generateAuthUrl(
         request.handle,
+        appState,
       );
 
       if (authUrlResult.isErr()) {

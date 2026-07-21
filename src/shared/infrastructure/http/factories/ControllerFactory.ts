@@ -33,6 +33,7 @@ import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
+import { ExchangeAuthCodeController } from 'src/modules/user/infrastructure/http/controllers/ExchangeAuthCodeController';
 import { ListApiKeysController } from '../../../../modules/user/infrastructure/http/controllers/ListApiKeysController';
 import { CreateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/UpdateApiKeyController';
@@ -88,6 +89,7 @@ export interface Controllers {
   getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
+  exchangeAuthCodeController: ExchangeAuthCodeController;
   listApiKeysController: ListApiKeysController;
   createApiKeyController: CreateApiKeyController;
   updateApiKeyController: UpdateApiKeyController;
@@ -189,6 +191,7 @@ export class ControllerFactory {
       completeOAuthSignInController: new CompleteOAuthSignInController(
         useCases.completeOAuthSignInUseCase,
         cookieService,
+        services.nativeAuthCodeStore,
       ),
       getMyProfileController: new GetMyProfileController(
         useCases.getProfileUseCase,
@@ -202,6 +205,9 @@ export class ControllerFactory {
       ),
       generateExtensionTokensController: new GenerateExtensionTokensController(
         useCases.generateExtensionTokensUseCase,
+      ),
+      exchangeAuthCodeController: new ExchangeAuthCodeController(
+        useCases.exchangeAuthCodeUseCase,
       ),
       listApiKeysController: new ListApiKeysController(
         useCases.listApiKeysUseCase,

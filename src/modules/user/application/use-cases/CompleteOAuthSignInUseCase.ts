@@ -11,8 +11,14 @@ import { Handle } from '../../domain/value-objects/Handle';
 import { CompleteOAuthSignInErrors } from './errors/CompleteOAuthSignInErrors';
 import { IUserAuthenticationService } from '../../domain/services/IUserAuthenticationService';
 
+export interface CompleteOAuthSignInResult {
+  tokenPair: TokenPair;
+  // Opaque app state round-tripped through the OAuth flow (e.g. 'native').
+  appState?: string;
+}
+
 export type CompleteOAuthSignInResponse = Result<
-  TokenPair,
+  CompleteOAuthSignInResult,
   | CompleteOAuthSignInErrors.InvalidCallbackParamsError
   | CompleteOAuthSignInErrors.AuthenticationFailedError
   | CompleteOAuthSignInErrors.TokenGenerationError
@@ -101,7 +107,10 @@ export class CompleteOAuthSignInUseCase implements UseCase<
         );
       }
 
-      return ok(tokenResult.value);
+      return ok({
+        tokenPair: tokenResult.value,
+        appState: authResult.value.appState,
+      });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }

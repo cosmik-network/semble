@@ -23,6 +23,8 @@ import type {
   LoginWithAppPasswordRequest,
   InitiateOAuthSignInRequest,
   CompleteOAuthSignInRequest,
+  ExchangeAuthCodeRequest,
+  ExchangeAuthCodeResponse,
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
   GetUrlMetadataParams,
@@ -417,6 +419,12 @@ export class ApiClient {
     request: CompleteOAuthSignInRequest,
   ): Promise<CompleteOAuthSignInResponse> {
     return this.userClient.completeOAuthSignIn(request);
+  }
+
+  async exchangeAuthCode(
+    request: ExchangeAuthCodeRequest,
+  ): Promise<ExchangeAuthCodeResponse> {
+    return this.userClient.exchangeAuthCode(request);
   }
 
   async refreshAccessToken(

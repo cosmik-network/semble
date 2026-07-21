@@ -6,6 +6,8 @@ import { useForm } from '@mantine/form';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createSembleClient } from '@/services/client.apiClient';
+import { isNativeApp } from '@/lib/native/platform';
+import { startNativeOAuth } from '@/lib/native/auth';
 import OAuthLoginForm from './OAuthLoginForm';
 import AppPasswordLoginForm from './AppPasswordLoginForm';
 
@@ -33,6 +35,14 @@ export default function LoginForm() {
     try {
       setIsLoading(true);
       setError('');
+
+      // Native (Capacitor) build: open the system browser and let the deep-link
+      // handler (registered in NativeAuthBridge) complete sign-in via token
+      // exchange. The web build redirects in-place and completes via cookies.
+      if (isNativeApp()) {
+        await startNativeOAuth(form.values.handle.trimEnd());
+        return;
+      }
 
       const { authUrl } = await client.initiateOAuthSignIn({
         handle: form.values.handle.trimEnd(),

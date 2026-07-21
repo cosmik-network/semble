@@ -26,6 +26,7 @@ import { GetProfileUseCase } from 'src/modules/cards/application/useCases/querie
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
+import { ExchangeAuthCodeUseCase } from 'src/modules/user/application/use-cases/ExchangeAuthCodeUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
 import { GetFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetFollowingFeedUseCase';
@@ -119,6 +120,7 @@ export interface UseCases {
   getProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
+  exchangeAuthCodeUseCase: ExchangeAuthCodeUseCase;
   listApiKeysUseCase: ListApiKeysUseCase;
   createApiKeyUseCase: CreateApiKeyUseCase;
   updateApiKeyUseCase: UpdateApiKeyUseCase;
@@ -257,6 +259,9 @@ export class UseCaseFactory {
       ),
       generateExtensionTokensUseCase: new GenerateExtensionTokensUseCase(
         services.tokenService,
+      ),
+      exchangeAuthCodeUseCase: new ExchangeAuthCodeUseCase(
+        services.nativeAuthCodeStore,
       ),
       listApiKeysUseCase: new ListApiKeysUseCase(repositories.apiKeyRepository),
       createApiKeyUseCase: new CreateApiKeyUseCase(

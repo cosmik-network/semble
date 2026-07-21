@@ -23,6 +23,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     recordKey: rkey,
     handle: handle,
   }).catch((error: unknown) => {
+    // TEMP DIAGNOSTIC — remove after debugging native 404
+    console.log('[DIAG collection layout] error:', {
+      name: (error as any)?.name,
+      status: (error as any)?.statusCode,
+      code: (error as any)?.code,
+      message: (error as any)?.message,
+      apiBase: process.env.NEXT_PUBLIC_API_BASE_URL,
+    });
     // Unresolvable handle / missing collection → render the not-found page.
     if (isNotFoundApiError(error, 'COLLECTION_NOT_FOUND')) notFound();
     throw error;

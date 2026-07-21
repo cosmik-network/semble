@@ -13,7 +13,10 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
     this.client = client;
   }
 
-  async generateAuthUrl(handle: string): Promise<Result<string>> {
+  async generateAuthUrl(
+    handle: string,
+    appState?: string,
+  ): Promise<Result<string>> {
     const maxRetries = 3;
     const retryDelay = 1000; // 1 second
 
@@ -21,6 +24,8 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
       try {
         const url = await this.client.authorize(handle, {
           scope: this.client.clientMetadata.scope,
+          // atproto lib round-trips this string back to us in callback().
+          ...(appState !== undefined ? { state: appState } : {}),
         });
         return ok(url.toString());
       } catch (error: any) {
@@ -52,10 +57,11 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
       searchParams.append('state', params.state);
       searchParams.append('iss', params.iss);
 
-      const { session } = await this.client.callback(searchParams);
+      const { session, state } = await this.client.callback(searchParams);
 
       return ok({
         did: session.did,
+        appState: state ?? undefined,
       });
     } catch (error: any) {
       return err(error);

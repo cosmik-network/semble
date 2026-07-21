@@ -47,6 +47,8 @@ import { TbStackForward } from 'react-icons/tb';
 import { MdOutlineInstallMobile } from 'react-icons/md';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { isNativeRequest } from '@/lib/native/platform.server';
+import { redirect } from 'next/navigation';
 import Script from 'next/script';
 
 const testimonials = [
@@ -76,6 +78,12 @@ const testimonials = [
 ];
 
 export default async function Page() {
+  // The native app has no use for the marketing landing page — send it straight
+  // to /login, which routes on to /home once the client confirms the session.
+  if (await isNativeRequest()) {
+    redirect('/login');
+  }
+
   const [profiles, session] = await Promise.all([
     Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
     verifySessionOnServer(),

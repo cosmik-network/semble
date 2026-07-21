@@ -63,6 +63,9 @@ import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/in
 import { CachedATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/CachedATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
+import { INativeAuthCodeStore } from 'src/modules/user/application/services/INativeAuthCodeStore';
+import { RedisNativeAuthCodeStore } from 'src/modules/user/infrastructure/services/RedisNativeAuthCodeStore';
+import { InMemoryNativeAuthCodeStore } from 'src/modules/user/infrastructure/services/InMemoryNativeAuthCodeStore';
 import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
 import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateStore';
@@ -113,6 +116,7 @@ export interface WebAppServices extends SharedServices {
   cardPublisher: ICardPublisher;
   authMiddleware: AuthMiddleware;
   statsApiKeyMiddleware: StatsApiKeyMiddleware;
+  nativeAuthCodeStore: INativeAuthCodeStore;
 }
 
 // Worker specific services (includes subscribers)
@@ -182,6 +186,16 @@ export class ServiceFactory {
       configService.getStatsConfig().apiKey,
     );
 
+    // One-time code store for the Capacitor (native) OAuth token handoff.
+    // Must be Redis in production (callback and exchange can hit different
+    // instances); in-memory is only for local dev / mock persistence.
+    const nativeAuthCodeStore: INativeAuthCodeStore =
+      configService.shouldUseMockPersistence()
+        ? new InMemoryNativeAuthCodeStore()
+        : new RedisNativeAuthCodeStore(
+            RedisFactory.createConnection(configService.getRedisConfig()),
+          );
+
     return {
       ...sharedServices,
       oauthProcessor,
@@ -189,6 +203,7 @@ export class ServiceFactory {
       cardPublisher,
       authMiddleware,
       statsApiKeyMiddleware,
+      nativeAuthCodeStore,
     };
   }
 

@@ -13,6 +13,12 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
+import { isNativeApp } from '@/lib/native/platform';
+import {
+  initNativeAuth,
+  logoutNativeSession,
+  registerNativeAuthDeepLinkHandler,
+} from '@/lib/native/auth';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
@@ -49,7 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    await ClientCookieAuthService.clearTokens();
+    if (isNativeApp()) {
+      // Native build has no cookie session; revoke + clear the local token store.
+      await logoutNativeSession();
+    } else {
+      await ClientCookieAuthService.clearTokens();
+    }
     queryClient.clear();
     router.push('/login');
   }, [queryClient, router]);
@@ -68,10 +79,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await query.refetch();
   }, [query.refetch]);
 
+  // Native (Capacitor) startup: hydrate the token store and listen for the
+  // OAuth deep link. On successful token exchange, refresh auth and route home.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    (async () => {
+      await initNativeAuth();
+      if (cancelled) return;
+      cleanup = registerNativeAuthDeepLinkHandler(async () => {
+        await refreshAuth();
+        router.push('/home');
+      });
+    })();
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [refreshAuth, router]);
+
   useEffect(() => {
     // Handle other auth errors
     if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.isError, query.isLoading, pathname, logout]);
+
+  // Native only: the server no longer redirects unauthenticated native requests
+  // to /login (it can't see the Bearer token), so the client enforces it. Once
+  // the session query resolves with no user, bounce off protected routes.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    const publicPaths = ['/', '/login'];
+    if (
+      !query.isLoading &&
+      !query.isFetching &&
+      !query.data &&
+      !publicPaths.includes(pathname)
+    ) {
+      router.push('/login');
+    }
+  }, [query.isLoading, query.isFetching, query.data, pathname, router]);
 
   // Set super properties for anonymous tracking (no PII)
   useEffect(() => {

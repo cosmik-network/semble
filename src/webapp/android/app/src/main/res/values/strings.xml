@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Semble</string>
+    <string name="title_activity_main">Semble</string>
+    <string name="package_name">com.semble.app</string>
+    <string name="custom_url_scheme">com.semble.app</string>
+</resources>

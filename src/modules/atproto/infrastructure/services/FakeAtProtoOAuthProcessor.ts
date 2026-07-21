@@ -10,10 +10,15 @@ import { configService } from 'src/shared/infrastructure/config';
 export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
   constructor(private tokenService: ITokenService) {}
 
-  async generateAuthUrl(handle?: string): Promise<Result<string>> {
+  async generateAuthUrl(
+    handle?: string,
+    appState?: string,
+  ): Promise<Result<string>> {
     try {
-      // Encode the handle in the state parameter so we can decode it later
-      const state = this.encodeState(handle || '');
+      // Encode the handle + appState in the state parameter so we can decode
+      // both later (the real atproto lib round-trips a separate state string,
+      // but the mock reuses the OAuth `state` param for handle transport).
+      const state = this.encodeState(handle || '', appState);
       const baseUrl = configService.getAtProtoConfig().baseUrl;
       const mockUrl = `${baseUrl}/api${paths.oauthCallback}?code=mockCode&state=${state}&iss=mockIssuer`;
       return ok(mockUrl);
@@ -24,8 +29,8 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
 
   async processCallback(params: OAuthCallbackDTO): Promise<Result<AuthResult>> {
     try {
-      // Decode handle from the state parameter
-      const handle = this.decodeState(params.state);
+      // Decode handle + appState from the state parameter
+      const { handle, appState } = this.decodeState(params.state);
 
       // Get mock data based on handle
       const mockData = this.getMockDataForHandle(handle);
@@ -33,24 +38,28 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
       return ok({
         did: mockData.did,
         handle: mockData.handle,
+        appState,
       });
     } catch (error: any) {
       return err(error);
     }
   }
 
-  private encodeState(handle: string): string {
-    // Simple base64 encoding of the handle for the mock state
-    return Buffer.from(handle).toString('base64');
+  private encodeState(handle: string, appState?: string): string {
+    // Base64 encode a JSON payload carrying both handle and appState.
+    return Buffer.from(JSON.stringify({ handle, appState })).toString('base64');
   }
 
-  private decodeState(state: string): string {
+  private decodeState(state: string): { handle: string; appState?: string } {
     try {
-      // Decode the handle from the base64 state
-      return Buffer.from(state, 'base64').toString('utf8');
+      const decoded = Buffer.from(state, 'base64').toString('utf8');
+      const parsed = JSON.parse(decoded);
+      return { handle: parsed.handle, appState: parsed.appState };
     } catch (error) {
       // If decoding fails, default to the first account
-      return process.env.BSKY_HANDLE_1 || 'alice.bsky.social';
+      return {
+        handle: process.env.BSKY_HANDLE_1 || 'alice.bsky.social',
+      };
     }
   }
 
