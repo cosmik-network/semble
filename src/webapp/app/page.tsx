@@ -55,23 +55,28 @@ const testimonials = [
     handle: 'uppy-hacker.bsky.social',
     quote:
       'Becoming risky taking a *quick* look @semble.so of a morning...so many inviting rabbit holes to get drawn down!',
+    postUrl:
+      'https://bsky.app/profile/uppy-hacker.bsky.social/post/3mfncyruev22l',
   },
   {
     name: 'Brady Hawkins',
     handle: 'bradyhawkins.dev',
     quote:
       "The articles that people are bookmarking on @semble.so are high quality. It's quickly becoming my go to place to consume dev content",
+    postUrl: 'https://bsky.app/profile/bradyhawkins.dev/post/3mgnax5m5222w',
   },
   {
     name: 'Victoria',
     handle: 'vicwalker.dev.br',
     quote:
       "“I love seeing notifications about a new connection being added to a card on Semble. Sometimes I discover some cool stuff I haven't seen before.”",
+    postUrl: 'https://bsky.app/profile/vicwalker.dev.br/post/3mk2guqehac23',
   },
   {
     name: 'Thoth',
     handle: 'thoth.ptnote.dev',
     quote: 'Memex 2 is happening.',
+    postUrl: 'https://bsky.app/profile/thoth.ptnote.dev/post/3mj3owskr6s2t',
   },
 ];
 
@@ -115,6 +120,7 @@ function Content(props: {
     name: string;
     handle: string;
     quote: string;
+    postUrl: string;
     avatar: string | null;
   }[];
   isAuthenticated: boolean;
@@ -763,25 +769,21 @@ function Content(props: {
                   >
                     {props.testimonials.map((testimonial) => (
                       <Stack key={testimonial.name} gap="xs" align="center">
+                        <Group gap={'xs'}>
+                          <Avatar
+                            src={testimonial.avatar}
+                            alt={testimonial.name}
+                            radius={'xl'}
+                          />
+                          <Text fw={600} fz="lg">
+                            {testimonial.name}
+                          </Text>
+                        </Group>
                         <Anchor
-                          href={`https://bsky.app/profile/${testimonial.handle}`}
+                          href={testimonial.postUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           underline="never"
-                          c="inherit"
-                        >
-                          <Group gap={'xs'}>
-                            <Avatar
-                              src={testimonial.avatar}
-                              alt={testimonial.name}
-                              radius={'xl'}
-                            />
-                            <Text fw={600} fz="lg">
-                              {testimonial.name}
-                            </Text>
-                          </Group>
-                        </Anchor>
-                        <Box
                           p="md"
                           style={{
                             borderRadius: 'var(--mantine-radius-md)',
@@ -792,7 +794,7 @@ function Content(props: {
                           <Text fs={'italic'} fw={500} c={'lime'} ta={'center'}>
                             {testimonial.quote}
                           </Text>
-                        </Box>
+                        </Anchor>
                       </Stack>
                     ))}
                   </SimpleGrid>
