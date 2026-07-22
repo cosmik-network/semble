@@ -286,8 +286,8 @@ function Content(props: {
                       inherit
                     >
                       community-built plugins and automations
-                    </Anchor>
-                    {' '} or{' '}
+                    </Anchor>{' '}
+                    or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
                       target="_blank"
