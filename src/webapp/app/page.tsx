@@ -533,7 +533,7 @@ function Content(props: {
                               />
                             }
                           >
-                            Safari soon
+                            Safari coming soon
                           </Button>
                         </Group>
                       </Stack>
