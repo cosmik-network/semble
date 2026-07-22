@@ -277,7 +277,17 @@ function Content(props: {
                     create something entirely new.
                   </Text>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                    Use community-built plugins and automations, or{' '}
+                    Use{' '}
+                    <Anchor
+                      href="https://semble.so/profile/semble.so/collections/3mrbbmxuv3m2f"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="blue"
+                      inherit
+                    >
+                      community-built plugins and automations
+                    </Anchor>
+                    {' '} or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
                       target="_blank"
