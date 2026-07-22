@@ -246,6 +246,9 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
             description: collection.description?.value,
             accessType: collection.accessType,
             authorId: collection.authorId.value,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
           };
         },
       );

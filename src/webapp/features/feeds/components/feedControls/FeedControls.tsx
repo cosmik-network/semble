@@ -79,7 +79,7 @@ export default function FeedControls() {
   return (
     <Group gap={'xs'} justify="space-between" wrap="nowrap">
       <Scroller>
-        <Menu width={200} position="bottom-start" shadow='md'>
+        <Menu width={200} position="bottom-start" shadow="md">
           <Menu.Target>
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
               {selectedSource?.label}

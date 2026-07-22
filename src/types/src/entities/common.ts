@@ -10,6 +10,10 @@ export const PaginationSchema = z.object({
 export type Pagination = z.infer<typeof PaginationSchema>;
 
 export const FeedPaginationSchema = PaginationSchema.extend({
+  // Total counts are expensive to compute over the ever-growing feed tables
+  // and are not consumed by feed UIs, so they are optional for feeds.
+  totalPages: z.number().optional(),
+  totalCount: z.number().optional(),
   nextCursor: z.string().optional(),
 });
 export type FeedPagination = z.infer<typeof FeedPaginationSchema>;

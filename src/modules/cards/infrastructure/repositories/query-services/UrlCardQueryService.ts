@@ -6,8 +6,10 @@ import {
   countDistinct,
   inArray,
   and,
+  isNotNull,
   sql,
   or,
+  SQL,
 } from 'drizzle-orm';
 import { UrlType } from '../../../domain/value-objects/UrlType';
 import { UrlCardView } from '../../../domain/ICardQueryRepository';
@@ -951,149 +953,14 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // For LIBRARY_COUNT sorting, we need to handle urlLibraryCount calculation and sorting separately
-      if (sortBy === CardSortField.LIBRARY_COUNT) {
-        // Get all URL cards with this URL and their library memberships first
-        const allLibrariesQuery = this.db
-          .select({
-            userId: libraryMemberships.userId,
-            cardId: cards.id,
-            url: cards.url,
-            contentData: cards.contentData,
-            libraryCount: cards.libraryCount,
-            createdAt: cards.createdAt,
-            updatedAt: cards.updatedAt,
-          })
-          .from(libraryMemberships)
-          .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
-          .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+      // LIBRARY_COUNT sorting is a no-op here: every row shares the same URL,
+      // so the URL-level library count is identical for all rows and ordering
+      // falls through to the tiebreaker (updatedAt DESC) - the default sort.
+      const orderByClause =
+        sortBy === CardSortField.LIBRARY_COUNT
+          ? desc(cards.updatedAt)
+          : orderDirection(this.getSortColumn(sortBy));
 
-        const allLibrariesResult = await allLibrariesQuery;
-
-        // Get urlLibraryCount for this URL
-        const urlLibraryCountQuery = this.db
-          .select({
-            count: countDistinct(libraryMemberships.userId),
-          })
-          .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
-          .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
-
-        const urlLibraryCountResult = await urlLibraryCountQuery;
-        const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
-
-        // Add urlLibraryCount to each result
-        const librariesWithCount = allLibrariesResult.map((lib) => ({
-          ...lib,
-          urlLibraryCount,
-        }));
-
-        // Sort by urlLibraryCount with secondary sort by updatedAt
-        librariesWithCount.sort((a, b) => {
-          // Primary sort: urlLibraryCount
-          const libraryCountDiff =
-            sortOrder === SortOrder.ASC
-              ? a.urlLibraryCount - b.urlLibraryCount
-              : b.urlLibraryCount - a.urlLibraryCount;
-
-          // If library counts are equal, sort by updatedAt (default sort)
-          if (libraryCountDiff === 0) {
-            return b.updatedAt.getTime() - a.updatedAt.getTime(); // DESC order for updatedAt
-          }
-
-          return libraryCountDiff;
-        });
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const librariesResult = librariesWithCount.slice(
-          startIndex,
-          startIndex + limit,
-        );
-
-        // Get total count (needed even if current page is empty)
-        const totalCount = allLibrariesResult.length;
-
-        if (librariesResult.length === 0) {
-          return {
-            items: [],
-            totalCount,
-            hasMore: false,
-          };
-        }
-
-        const cardIds = librariesResult.map((lib) => lib.cardId);
-
-        // Get notes for these cards
-        const notesQuery = this.db
-          .select({
-            id: cards.id,
-            parentCardId: cards.parentCardId,
-            contentData: cards.contentData,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.type, CardTypeEnum.NOTE),
-              inArray(cards.parentCardId, cardIds),
-            ),
-          );
-
-        const notesResult = await notesQuery;
-
-        const hasMore = startIndex + librariesResult.length < totalCount;
-
-        const items: LibraryForUrlDTO[] = librariesResult.map((lib) => {
-          const note = notesResult.find((n) => n.parentCardId === lib.cardId);
-
-          return {
-            userId: lib.userId,
-            card: {
-              id: lib.cardId,
-              url: lib.url || '',
-              cardContent: {
-                url: lib.contentData?.url,
-                title: lib.contentData?.metadata?.title,
-                description: lib.contentData?.metadata?.description,
-                author: lib.contentData?.metadata?.author,
-                publishedDate: lib.contentData?.metadata?.publishedDate
-                  ? new Date(lib.contentData.metadata.publishedDate)
-                  : undefined,
-                siteName: lib.contentData?.metadata?.siteName,
-                imageUrl: lib.contentData?.metadata?.imageUrl,
-                type: lib.contentData?.metadata?.type,
-                retrievedAt: lib.contentData?.metadata?.retrievedAt
-                  ? new Date(lib.contentData.metadata.retrievedAt)
-                  : undefined,
-                doi: lib.contentData?.metadata?.doi,
-                isbn: lib.contentData?.metadata?.isbn,
-              },
-              libraryCount: lib.libraryCount,
-              urlLibraryCount: lib.urlLibraryCount,
-              urlInLibrary: true, // By definition, if it's in this result, it's in a library
-              createdAt: lib.createdAt,
-              updatedAt: lib.updatedAt,
-              note: note
-                ? {
-                    id: note.id,
-                    text: note.contentData?.text || '',
-                  }
-                : undefined,
-            },
-          };
-        });
-
-        return {
-          items,
-          totalCount,
-          hasMore,
-        };
-      }
-
-      // Standard sorting for other fields
       const librariesQuery = this.db
         .select({
           userId: libraryMemberships.userId,
@@ -1112,7 +979,7 @@ export class UrlCardQueryService {
           eq(cards.publishedRecordId, publishedRecords.id),
         )
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)))
-        .orderBy(orderDirection(this.getSortColumn(sortBy)))
+        .orderBy(orderByClause)
         .limit(limit)
         .offset(offset);
 
@@ -1763,22 +1630,22 @@ export class UrlCardQueryService {
       }
 
       // 5. Get sample card metadata for each URL (one card per URL)
-      // We'll get the most recently updated card for each URL
+      // DISTINCT ON keeps only the most recently updated card per URL
       const sampleCardsQuery = this.db
-        .select({
+        .selectDistinctOn([cards.url], {
           url: cards.url,
           contentData: cards.contentData,
         })
         .from(cards)
         .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .orderBy(desc(cards.updatedAt));
+        .orderBy(asc(cards.url), desc(cards.updatedAt));
 
       const sampleCardsResult = await sampleCardsQuery;
 
-      // Build map of URL to sample card (keep first occurrence per URL)
+      // Build map of URL to sample card
       const sampleCardMap = new Map<string, any>();
       sampleCardsResult.forEach((row) => {
-        if (row.url && !sampleCardMap.has(row.url)) {
+        if (row.url) {
           sampleCardMap.set(row.url, row.contentData);
         }
       });
@@ -1890,181 +1757,107 @@ export class UrlCardQueryService {
         );
       }
 
+      // Exclude cards without a URL (they were skipped by the previous
+      // JS-side dedup and are ignored by COUNT(DISTINCT url))
+      whereConditions.push(isNotNull(cards.url));
+
       const whereClause = and(...whereConditions);
 
-      // For LIBRARY_COUNT sorting, we need special handling
-      if (sortBy === CardSortField.LIBRARY_COUNT) {
-        // First, get all matching URL cards
-        let allMatchingCardsQuery;
-
-        if (collectionId) {
-          // Join collection_cards when filtering by collection
-          allMatchingCardsQuery = this.db
-            .select({
-              url: cards.url,
-              contentData: cards.contentData,
-              updatedAt: cards.updatedAt,
-            })
+      // Count distinct matching URLs (shared by all sort paths)
+      const totalCountQuery = collectionId
+        ? this.db
+            .select({ count: countDistinct(cards.url) })
             .from(cards)
             .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
             .where(whereClause)
-            .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
-        } else {
-          allMatchingCardsQuery = this.db
-            .select({
-              url: cards.url,
-              contentData: cards.contentData,
-              updatedAt: cards.updatedAt,
-            })
+        : this.db
+            .select({ count: countDistinct(cards.url) })
             .from(cards)
-            .where(whereClause)
-            .orderBy(desc(cards.updatedAt)); // Order by updatedAt to get most recent per URL
-        }
+            .where(whereClause);
 
-        const allMatchingCards = await allMatchingCardsQuery;
-
-        if (allMatchingCards.length === 0) {
-          return {
-            items: [],
-            totalCount: 0,
-            hasMore: false,
-          };
-        }
-
-        // Deduplicate by URL - keep first (most recent) occurrence
-        const urlMap = new Map<string, { contentData: any; updatedAt: Date }>();
-        allMatchingCards.forEach((card) => {
-          if (card.url && !urlMap.has(card.url)) {
-            urlMap.set(card.url, {
-              contentData: card.contentData,
-              updatedAt: card.updatedAt,
-            });
-          }
-        });
-
-        const uniqueUrls = Array.from(urlMap.keys());
-
-        // Calculate urlLibraryCount for sorting
-        const urlLibraryCountsQuery = this.db
-          .select({
-            url: cards.url,
-            count: countDistinct(libraryMemberships.userId),
-          })
-          .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
-          .where(
-            and(
-              eq(cards.type, CardTypeEnum.URL),
-              inArray(cards.url, uniqueUrls),
-            ),
-          )
-          .groupBy(cards.url);
-
-        const urlLibraryCounts = await urlLibraryCountsQuery;
-
-        // Create map of URL to library count
-        const countMap = new Map<string, number>();
-        urlLibraryCounts.forEach((row) => {
-          if (row.url) {
-            countMap.set(row.url, row.count);
-          }
-        });
-
-        // Build items with library counts
-        const itemsWithCounts = uniqueUrls.map((url) => {
-          const cardData = urlMap.get(url)!;
-          return {
-            url,
-            contentData: cardData.contentData,
-            updatedAt: cardData.updatedAt,
-            libraryCount: countMap.get(url) || 0,
-          };
-        });
-
-        // Sort by library count
-        itemsWithCounts.sort((a, b) => {
-          const comparison = a.libraryCount - b.libraryCount;
-          return sortOrder === SortOrder.ASC ? comparison : -comparison;
-        });
-
-        // Apply pagination
-        const paginatedItems = itemsWithCounts.slice(offset, offset + limit);
-
-        // Map to result DTOs
-        const items: UrlSearchResultDTO[] = paginatedItems.map((item) => ({
-          url: item.url,
-          contentData: item.contentData,
-          updatedAt: item.updatedAt,
-        }));
-
-        return {
-          items,
-          totalCount: uniqueUrls.length,
-          hasMore: offset + paginatedItems.length < uniqueUrls.length,
-        };
-      }
-
-      // For other sort fields (CREATED_AT, UPDATED_AT), sort in SQL
-      const sortColumn = this.getSortColumn(sortBy);
+      // Determine which column drives the per-URL representative card and sort
+      const sortColumn =
+        sortBy === CardSortField.CREATED_AT ? cards.createdAt : cards.updatedAt;
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // Get distinct URLs with most recent card data using a subquery approach
-      // First, get all matching cards ordered by updatedAt
-      let matchingCardsQuery;
+      // Deduplicate by URL in SQL. For LIBRARY_COUNT sorting the representative
+      // card per URL is the most recently updated one; for other sorts it is
+      // the first card in the requested sort direction.
+      const distinctSelection = {
+        url: cards.url,
+        contentData: cards.contentData,
+        createdAt: cards.createdAt,
+        updatedAt: cards.updatedAt,
+      };
+      const distinctOrderBy =
+        sortBy === CardSortField.LIBRARY_COUNT
+          ? [asc(cards.url), desc(cards.updatedAt)]
+          : [asc(cards.url), orderDirection(sortColumn)];
 
-      if (collectionId) {
-        // Join collection_cards when filtering by collection
-        matchingCardsQuery = this.db
-          .select({
-            url: cards.url,
-            contentData: cards.contentData,
-            updatedAt: cards.updatedAt,
-          })
-          .from(cards)
-          .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
-          .where(whereClause)
-          .orderBy(orderDirection(sortColumn));
+      const matchingUrls = (
+        collectionId
+          ? this.db
+              .selectDistinctOn([cards.url], distinctSelection)
+              .from(cards)
+              .innerJoin(collectionCards, eq(cards.id, collectionCards.cardId))
+              .where(whereClause)
+              .orderBy(...distinctOrderBy)
+          : this.db
+              .selectDistinctOn([cards.url], distinctSelection)
+              .from(cards)
+              .where(whereClause)
+              .orderBy(...distinctOrderBy)
+      ).as('matching_urls');
+
+      // Outer ORDER BY over the deduplicated URLs
+      let outerOrderBy: SQL[];
+      if (sortBy === CardSortField.LIBRARY_COUNT) {
+        // URL-level library count (distinct users across all cards with the URL)
+        const urlLibraryCountExpr = sql<number>`(
+          SELECT COUNT(DISTINCT ${libraryMemberships.userId})
+          FROM ${libraryMemberships}
+          INNER JOIN ${cards} ON ${cards.id} = ${libraryMemberships.cardId}
+          WHERE ${cards.type} = ${CardTypeEnum.URL}
+            AND ${cards.url} = ${matchingUrls.url}
+        )`;
+        outerOrderBy = [
+          sortOrder === SortOrder.ASC
+            ? asc(urlLibraryCountExpr)
+            : desc(urlLibraryCountExpr),
+          desc(matchingUrls.updatedAt),
+        ];
       } else {
-        matchingCardsQuery = this.db
-          .select({
-            url: cards.url,
-            contentData: cards.contentData,
-            updatedAt: cards.updatedAt,
-          })
-          .from(cards)
-          .where(whereClause)
-          .orderBy(orderDirection(sortColumn));
+        const outerSortColumn =
+          sortBy === CardSortField.CREATED_AT
+            ? matchingUrls.createdAt
+            : matchingUrls.updatedAt;
+        outerOrderBy = [orderDirection(outerSortColumn)];
       }
 
-      const matchingCards = await matchingCardsQuery;
+      const pageQuery = this.db
+        .select({
+          url: matchingUrls.url,
+          contentData: matchingUrls.contentData,
+          updatedAt: matchingUrls.updatedAt,
+        })
+        .from(matchingUrls)
+        .orderBy(...outerOrderBy)
+        .limit(limit)
+        .offset(offset);
 
-      // Deduplicate by URL - keep first occurrence (most recent due to order)
-      const urlMap = new Map<string, { contentData: any; updatedAt: Date }>();
-      matchingCards.forEach((card) => {
-        if (card.url && !urlMap.has(card.url)) {
-          urlMap.set(card.url, {
-            contentData: card.contentData,
-            updatedAt: card.updatedAt,
-          });
-        }
-      });
+      const [pageResult, totalCountResult] = await Promise.all([
+        pageQuery,
+        totalCountQuery,
+      ]);
 
-      // Convert to array and paginate
-      const uniqueUrls = Array.from(urlMap.entries());
-      const paginatedUrls = uniqueUrls.slice(offset, offset + limit);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
 
       // Map to result DTOs
-      const items: UrlSearchResultDTO[] = paginatedUrls.map(([url, data]) => ({
-        url,
-        contentData: data.contentData,
-        updatedAt: data.updatedAt,
+      const items: UrlSearchResultDTO[] = pageResult.map((row) => ({
+        url: row.url!,
+        contentData: row.contentData,
+        updatedAt: row.updatedAt,
       }));
-
-      // Get total count by counting unique URLs
-      const totalCount = uniqueUrls.length;
 
       return {
         items,

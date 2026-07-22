@@ -304,6 +304,95 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async findByFollowerAndTargets(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>> {
+    try {
+      if (targetIds.length === 0) {
+        return ok([]);
+      }
+
+      const results = await this.db
+        .select({
+          follow: follows,
+          publishedRecord: publishedRecords,
+        })
+        .from(follows)
+        .leftJoin(
+          publishedRecords,
+          eq(follows.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(
+            eq(follows.followerId, followerId),
+            inArray(follows.targetId, targetIds),
+            eq(follows.targetType, targetType.value),
+          ),
+        );
+
+      const followEntities: Follow[] = [];
+
+      for (const row of results) {
+        const followerDid = DID.create(row.follow.followerId);
+        if (followerDid.isErr()) {
+          console.error(
+            `Invalid follower DID: ${row.follow.followerId}`,
+            followerDid.error,
+          );
+          continue;
+        }
+
+        const targetTypeVO = FollowTargetType.create(
+          row.follow.targetType as FollowTargetTypeEnum,
+        );
+        if (targetTypeVO.isErr()) {
+          console.error(
+            `Invalid target type: ${row.follow.targetType}`,
+            targetTypeVO.error,
+          );
+          continue;
+        }
+
+        // Reconstruct publishedRecordId if present
+        let publishedRecordId: PublishedRecordId | undefined;
+        if (row.publishedRecord) {
+          publishedRecordId = PublishedRecordId.create({
+            uri: row.publishedRecord.uri,
+            cid: row.publishedRecord.cid,
+          });
+        }
+
+        const followResult = Follow.create(
+          {
+            followerId: followerDid.value,
+            targetId: row.follow.targetId,
+            targetType: targetTypeVO.value,
+            publishedRecordId,
+            createdAt: row.follow.createdAt,
+            isSubscribed: row.follow.isSubscribed,
+            subscribedAt: row.follow.subscribedAt ?? undefined,
+            subscriptionScopes: row.follow.subscriptionScopes ?? undefined,
+          },
+          new UniqueEntityID(
+            `${row.follow.followerId}:${row.follow.targetId}:${row.follow.targetType}`,
+          ),
+        );
+
+        if (followResult.isOk()) {
+          followEntities.push(followResult.value);
+        } else {
+          console.error('Failed to create Follow entity:', followResult.error);
+        }
+      }
+
+      return ok(followEntities);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async getFollowing(
     followerId: string,
     targetType: FollowTargetType,
@@ -312,32 +401,32 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     try {
       const offset = (options.page - 1) * options.limit;
 
-      // Get total count
-      const countResult = await this.db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(follows)
-        .where(
-          and(
-            eq(follows.followerId, followerId),
-            eq(follows.targetType, targetType.value),
+      // Run count and page queries in parallel
+      const [countResult, results] = await Promise.all([
+        this.db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(follows)
+          .where(
+            and(
+              eq(follows.followerId, followerId),
+              eq(follows.targetType, targetType.value),
+            ),
           ),
-        );
+        this.db
+          .select()
+          .from(follows)
+          .where(
+            and(
+              eq(follows.followerId, followerId),
+              eq(follows.targetType, targetType.value),
+            ),
+          )
+          .orderBy(sql`${follows.createdAt} DESC`)
+          .limit(options.limit)
+          .offset(offset),
+      ]);
 
       const totalCount = countResult[0]?.count ?? 0;
-
-      // Get paginated results
-      const results = await this.db
-        .select()
-        .from(follows)
-        .where(
-          and(
-            eq(follows.followerId, followerId),
-            eq(follows.targetType, targetType.value),
-          ),
-        )
-        .orderBy(sql`${follows.createdAt} DESC`)
-        .limit(options.limit)
-        .offset(offset);
 
       const followEntities: Follow[] = [];
 
@@ -634,20 +723,22 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
         conditions.push(eq(follows.targetType, targetType.value));
       }
 
-      const countResult = await this.db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(follows)
-        .where(and(...conditions));
+      // Run count and page queries in parallel
+      const [countResult, results] = await Promise.all([
+        this.db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(follows)
+          .where(and(...conditions)),
+        this.db
+          .select()
+          .from(follows)
+          .where(and(...conditions))
+          .orderBy(sql`${follows.subscribedAt} DESC NULLS LAST`)
+          .limit(options.limit)
+          .offset(offset),
+      ]);
 
       const totalCount = countResult[0]?.count ?? 0;
-
-      const results = await this.db
-        .select()
-        .from(follows)
-        .where(and(...conditions))
-        .orderBy(sql`${follows.subscribedAt} DESC NULLS LAST`)
-        .limit(options.limit)
-        .offset(offset);
 
       const followEntities: Follow[] = [];
 

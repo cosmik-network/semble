@@ -81,6 +81,16 @@ export interface IFollowsRepository {
   ): Promise<Result<Follow | null>>;
 
   /**
+   * Batch variant of findByFollowerAndTarget: returns the Follow records that
+   * exist for the given follower against any of the target ids.
+   */
+  findByFollowerAndTargets(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>>;
+
+  /**
    * Get paginated list of entities that a user follows.
    *
    * @param followerId - DID of the follower

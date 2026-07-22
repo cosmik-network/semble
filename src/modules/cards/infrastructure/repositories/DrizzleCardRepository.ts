@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { ICardRepository } from '../../domain/ICardRepository';
 import { Card } from '../../domain/Card';
@@ -18,51 +18,45 @@ export class DrizzleCardRepository implements ICardRepository {
     try {
       const cardId = id.getStringValue();
 
-      const cardResult = await this.db
-        .select()
-        .from(cards)
-        .where(eq(cards.id, cardId))
-        .limit(1);
+      // Fetch the card (with its published record folded in via LEFT JOIN)
+      // and its library memberships concurrently
+      const [cardResult, membershipResults] = await Promise.all([
+        this.db
+          .select({
+            card: cards,
+            publishedRecord: publishedRecords,
+          })
+          .from(cards)
+          .leftJoin(
+            publishedRecords,
+            eq(cards.publishedRecordId, publishedRecords.id),
+          )
+          .where(eq(cards.id, cardId))
+          .limit(1),
+        this.db
+          .select({
+            userId: libraryMemberships.userId,
+            addedAt: libraryMemberships.addedAt,
+            publishedRecordUri: publishedRecords.uri,
+            publishedRecordCid: publishedRecords.cid,
+          })
+          .from(libraryMemberships)
+          .leftJoin(
+            publishedRecords,
+            eq(libraryMemberships.publishedRecordId, publishedRecords.id),
+          )
+          .where(eq(libraryMemberships.cardId, cardId)),
+      ]);
 
-      if (cardResult.length === 0) {
+      if (cardResult.length === 0 || !cardResult[0]) {
         return ok(null);
       }
 
-      const result = cardResult[0];
+      const result = cardResult[0].card;
+      const publishedRecord = cardResult[0].publishedRecord;
+
       if (!result) {
         return ok(null);
-      }
-
-      // Get library memberships for this card with published record details
-      const membershipResults = await this.db
-        .select({
-          userId: libraryMemberships.userId,
-          addedAt: libraryMemberships.addedAt,
-          publishedRecordUri: publishedRecords.uri,
-          publishedRecordCid: publishedRecords.cid,
-        })
-        .from(libraryMemberships)
-        .leftJoin(
-          publishedRecords,
-          eq(libraryMemberships.publishedRecordId, publishedRecords.id),
-        )
-        .where(eq(libraryMemberships.cardId, cardId));
-
-      // Get published record if it exists
-      let publishedRecord = null;
-      if (result.publishedRecordId) {
-        const publishedRecordResult = await this.db
-          .select({
-            uri: publishedRecords.uri,
-            cid: publishedRecords.cid,
-          })
-          .from(publishedRecords)
-          .where(eq(publishedRecords.id, result.publishedRecordId))
-          .limit(1);
-
-        if (publishedRecordResult.length > 0) {
-          publishedRecord = publishedRecordResult[0];
-        }
       }
 
       const cardDTO: CardDTO = {
@@ -221,28 +215,85 @@ export class DrizzleCardRepository implements ICardRepository {
             },
           });
 
-        // Handle library memberships - replace all memberships
-        await tx
-          .delete(libraryMemberships)
+        // Handle library memberships - diff against existing rows instead of
+        // deleting and reinserting everything
+        const desiredMemberships = membershipData.map((membership) => ({
+          cardId: membership.cardId,
+          userId: membership.userId,
+          addedAt: membership.addedAt,
+          publishedRecordId: membership.publishedRecordId
+            ? membershipPublishedRecordMap.get(membership.publishedRecordId) ||
+              membership.publishedRecordId
+            : null,
+        }));
+
+        const existingMemberships = await tx
+          .select({
+            userId: libraryMemberships.userId,
+            addedAt: libraryMemberships.addedAt,
+            publishedRecordId: libraryMemberships.publishedRecordId,
+          })
+          .from(libraryMemberships)
           .where(eq(libraryMemberships.cardId, cardData.id));
 
-        if (membershipData.length > 0) {
-          const membershipDataWithMappedRecords = membershipData.map(
-            (membership) => ({
-              cardId: membership.cardId,
-              userId: membership.userId,
-              addedAt: membership.addedAt,
-              publishedRecordId: membership.publishedRecordId
-                ? membershipPublishedRecordMap.get(
-                    membership.publishedRecordId,
-                  ) || membership.publishedRecordId
-                : null,
-            }),
-          );
+        const desiredByUserId = new Map(
+          desiredMemberships.map((m) => [m.userId, m]),
+        );
+        const existingByUserId = new Map(
+          existingMemberships.map((m) => [m.userId, m]),
+        );
 
+        // Delete memberships that no longer exist
+        const userIdsToDelete = existingMemberships
+          .filter((m) => !desiredByUserId.has(m.userId))
+          .map((m) => m.userId);
+
+        if (userIdsToDelete.length > 0) {
           await tx
-            .insert(libraryMemberships)
-            .values(membershipDataWithMappedRecords);
+            .delete(libraryMemberships)
+            .where(
+              and(
+                eq(libraryMemberships.cardId, cardData.id),
+                inArray(libraryMemberships.userId, userIdsToDelete),
+              ),
+            );
+        }
+
+        // Insert new memberships
+        const membershipsToInsert = desiredMemberships.filter(
+          (m) => !existingByUserId.has(m.userId),
+        );
+
+        if (membershipsToInsert.length > 0) {
+          await tx.insert(libraryMemberships).values(membershipsToInsert);
+        }
+
+        // Update memberships whose data changed
+        const membershipsToUpdate = desiredMemberships.filter((m) => {
+          const existing = existingByUserId.get(m.userId);
+          if (!existing) {
+            return false;
+          }
+          return (
+            existing.addedAt.getTime() !== m.addedAt.getTime() ||
+            (existing.publishedRecordId ?? null) !==
+              (m.publishedRecordId ?? null)
+          );
+        });
+
+        for (const membership of membershipsToUpdate) {
+          await tx
+            .update(libraryMemberships)
+            .set({
+              addedAt: membership.addedAt,
+              publishedRecordId: membership.publishedRecordId,
+            })
+            .where(
+              and(
+                eq(libraryMemberships.cardId, cardData.id),
+                eq(libraryMemberships.userId, membership.userId),
+              ),
+            );
         }
       });
 
@@ -269,9 +320,17 @@ export class DrizzleCardRepository implements ICardRepository {
     try {
       const urlValue = url.value;
 
+      // Fetch the card with its published record folded in via LEFT JOIN
       const cardResult = await this.db
-        .select()
+        .select({
+          card: cards,
+          publishedRecord: publishedRecords,
+        })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(
           and(
             eq(cards.url, urlValue),
@@ -281,11 +340,13 @@ export class DrizzleCardRepository implements ICardRepository {
         )
         .limit(1);
 
-      if (cardResult.length === 0) {
+      if (cardResult.length === 0 || !cardResult[0]) {
         return ok(null);
       }
 
-      const result = cardResult[0];
+      const result = cardResult[0].card;
+      const publishedRecord = cardResult[0].publishedRecord;
+
       if (!result) {
         return ok(null);
       }
@@ -304,23 +365,6 @@ export class DrizzleCardRepository implements ICardRepository {
           eq(libraryMemberships.publishedRecordId, publishedRecords.id),
         )
         .where(eq(libraryMemberships.cardId, result.id));
-
-      // Get published record if it exists
-      let publishedRecord = null;
-      if (result.publishedRecordId) {
-        const publishedRecordResult = await this.db
-          .select({
-            uri: publishedRecords.uri,
-            cid: publishedRecords.cid,
-          })
-          .from(publishedRecords)
-          .where(eq(publishedRecords.id, result.publishedRecordId))
-          .limit(1);
-
-        if (publishedRecordResult.length > 0) {
-          publishedRecord = publishedRecordResult[0];
-        }
-      }
 
       const cardDTO: CardDTO = {
         id: result.id,
@@ -370,9 +414,17 @@ export class DrizzleCardRepository implements ICardRepository {
     try {
       const urlValue = url.value;
 
+      // Fetch the card with its published record folded in via LEFT JOIN
       const cardResult = await this.db
-        .select()
+        .select({
+          card: cards,
+          publishedRecord: publishedRecords,
+        })
         .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(
           and(
             eq(cards.url, urlValue),
@@ -382,11 +434,13 @@ export class DrizzleCardRepository implements ICardRepository {
         )
         .limit(1);
 
-      if (cardResult.length === 0) {
+      if (cardResult.length === 0 || !cardResult[0]) {
         return ok(null);
       }
 
-      const result = cardResult[0];
+      const result = cardResult[0].card;
+      const publishedRecord = cardResult[0].publishedRecord;
+
       if (!result) {
         return ok(null);
       }
@@ -405,23 +459,6 @@ export class DrizzleCardRepository implements ICardRepository {
           eq(libraryMemberships.publishedRecordId, publishedRecords.id),
         )
         .where(eq(libraryMemberships.cardId, result.id));
-
-      // Get published record if it exists
-      let publishedRecord = null;
-      if (result.publishedRecordId) {
-        const publishedRecordResult = await this.db
-          .select({
-            uri: publishedRecords.uri,
-            cid: publishedRecords.cid,
-          })
-          .from(publishedRecords)
-          .where(eq(publishedRecords.id, result.publishedRecordId))
-          .limit(1);
-
-        if (publishedRecordResult.length > 0) {
-          publishedRecord = publishedRecordResult[0];
-        }
-      }
 
       const cardDTO: CardDTO = {
         id: result.id,

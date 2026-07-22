@@ -106,6 +106,28 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async findByFollowerAndTargets(
+    followerId: string,
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>> {
+    try {
+      const matches: Follow[] = [];
+
+      for (const targetId of targetIds) {
+        const key = `${followerId}:${targetId}:${targetType.value}`;
+        const follow = this.follows.get(key);
+        if (follow) {
+          matches.push(follow);
+        }
+      }
+
+      return ok(matches);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async getFollowing(
     followerId: string,
     targetType: FollowTargetType,

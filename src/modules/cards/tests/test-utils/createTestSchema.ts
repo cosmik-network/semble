@@ -232,8 +232,33 @@ export async function createTestSchema(db: PostgresJsDatabase) {
 
   // Covering index for finding collections containing a card - avoids table lookups
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection 
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection
     ON collection_cards(card_id) INCLUDE (collection_id)
+  `);
+  // Indexes for AT-URI resolution joins from published_records
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_published_record_id
+    ON cards(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collections_published_record_id
+    ON collections(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_published_record_id
+    ON collection_cards(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_connections_published_record_id
+    ON connections(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_published_record_id
+    ON follows(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_library_memberships_published_record_id
+    ON library_memberships(published_record_id) WHERE published_record_id IS NOT NULL
   `);
   // Feed activities indexes
   await db.execute(sql`
@@ -283,7 +308,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_user_id, created_at DESC);
   `);
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx ON notifications(recipient_user_id, read);
+    CREATE INDEX IF NOT EXISTS notifications_recipient_unread_partial_idx ON notifications(recipient_user_id) WHERE read = false;
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_actor_idx ON notifications(actor_user_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_metadata_card_id_idx ON notifications((metadata->>'cardId'));
   `);
 
   // Cards table indexes
@@ -335,7 +366,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
   `);
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+    CREATE INDEX IF NOT EXISTS idx_follows_target_created_at ON follows(target_id, target_type, created_at DESC);
   `);
   // New indexes for stats query optimization
   await db.execute(sql`
