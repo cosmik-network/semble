@@ -21,7 +21,6 @@ import CtaSignup from '@/assets/cta-signup.png';
 import CtaSignupDark from '@/assets/cta-signup-dark.png';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
 import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
-import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
 import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
@@ -278,7 +277,17 @@ function Content(props: {
                     create something entirely new.
                   </Text>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                    Use community-built plugins and automations, or{' '}
+                    Use{' '}
+                    <Anchor
+                      href="https://semble.so/profile/semble.so/collections/3mrbbmxuv3m2f"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="blue"
+                      inherit
+                    >
+                      community-built plugins and automations
+                    </Anchor>{' '}
+                    or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
                       target="_blank"
@@ -318,26 +327,18 @@ function Content(props: {
                           want{' '}
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
-                            href="https://www.npmjs.com/package/@semble.so/claude-plugin"
+                            href="https://docs.cosmik.network/semble-api"
                             target="_blank"
                             rel="noopener noreferrer"
                             size="compact-sm"
                             radius="xl"
                             variant="default"
-                            leftSection={
-                              <Image
-                                src={ClaudeIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
+                            rightSection={<BiRightArrowAlt size={16} />}
                           >
-                            Claude plugin
+                            API docs
                           </Button>
                         </Group>
                       </Stack>
@@ -356,14 +357,15 @@ function Content(props: {
 
                       <Stack gap="xs">
                         <Text fw={600} fz="lg">
-                          Plugin
+                          Plugins
                         </Text>
                         <Text c="dimmed">
-                          Sync your links and notes to your Zotero or Obsidian
-                          vault, and keep curating without ever switching tabs
+                          Community-built plugins and automations — sync your
+                          links to Zotero, or use Airglow to sync your Bluesky
+                          follows and save links from posts you've liked
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
@@ -376,60 +378,14 @@ function Content(props: {
                               <Image
                                 src={ZoteroIcon.src}
                                 alt=""
-                                w={16}
-                                h={16}
+                                w={14}
+                                h={14}
                                 fit="contain"
                               />
                             }
                           >
                             Zotero plugin
                           </Button>
-                          <Anchor
-                            href="https://docs.cosmik.network/semble-api"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            c="dimmed"
-                            fz="sm"
-                            fw={500}
-                            underline="never"
-                          >
-                            <Group gap={6} wrap="nowrap">
-                              <Image
-                                src={ObsidianIcon.src}
-                                alt=""
-                                w={14}
-                                h={14}
-                                fit="contain"
-                              />
-                              Build with the API
-                              <BiRightArrowAlt size={14} />
-                            </Group>
-                          </Anchor>
-                        </Group>
-                      </Stack>
-                    </Stack>
-                  </Card>
-
-                  <Card
-                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    radius={'lg'}
-                  >
-                    <Stack justify="space-between" h="100%">
-                      <IoMdColorWand
-                        size={28}
-                        color="var(--mantine-color-green-6)"
-                      />
-
-                      <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          Automation
-                        </Text>
-                        <Text c="dimmed">
-                          Use Airglow to automate the busywork. Sync your
-                          Bluesky follows, or save links from posts you've liked
-                        </Text>
-
-                        <Group gap={'xs'}>
                           <Button
                             component="a"
                             href="https://airglow.run/automations/all?q=semble"
@@ -460,6 +416,52 @@ function Content(props: {
                     radius={'lg'}
                   >
                     <Stack justify="space-between" h="100%">
+                      <IoMdColorWand
+                        size={28}
+                        color="var(--mantine-color-green-6)"
+                      />
+
+                      <Stack gap="xs">
+                        <Text fw={600} fz="lg">
+                          MCP
+                        </Text>
+                        <Text c="dimmed">
+                          Connect Semble to Claude and other AI tools over MCP.
+                          Ask your library questions and act on it right in your
+                          assistant
+                        </Text>
+
+                        <Group gap={'xs'} mt="sm">
+                          <Button
+                            component="a"
+                            href="https://www.npmjs.com/package/@semble.so/claude-plugin"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            leftSection={
+                              <Image
+                                src={ClaudeIcon.src}
+                                alt=""
+                                w={16}
+                                h={16}
+                                fit="contain"
+                              />
+                            }
+                          >
+                            Claude plugin
+                          </Button>
+                        </Group>
+                      </Stack>
+                    </Stack>
+                  </Card>
+
+                  <Card
+                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                    radius={'lg'}
+                  >
+                    <Stack justify="space-between" h="100%">
                       <PiPuzzlePieceBold
                         size={28}
                         color="var(--mantine-color-green-6)"
@@ -475,7 +477,7 @@ function Content(props: {
                           content. Discover new connections
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
@@ -494,7 +496,7 @@ function Content(props: {
                               />
                             }
                           >
-                            Chrome extension
+                            Chrome
                           </Button>
                           <Button
                             component="a"
@@ -514,24 +516,25 @@ function Content(props: {
                               />
                             }
                           >
-                            Firefox extension
+                            Firefox
                           </Button>
-                          <Badge
-                            variant="light"
-                            color="gray"
-                            size="lg"
+                          <Button
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            disabled
                             leftSection={
                               <Image
                                 src={SafariIcon.src}
-                                alt="Safari"
-                                w={14}
-                                h={14}
+                                alt=""
+                                w={16}
+                                h={16}
                                 fit="contain"
                               />
                             }
                           >
-                            Coming soon
-                          </Badge>
+                            Safari coming soon
+                          </Button>
                         </Group>
                       </Stack>
                     </Stack>
