@@ -2,13 +2,13 @@
 
 import {
   Anchor,
+  Box,
   Button,
+  Card,
   Container,
   Group,
   Image,
-  List,
-  ListItem,
-  Paper,
+  SimpleGrid,
   Stack,
   Text,
   ThemeIcon,
@@ -19,13 +19,17 @@ import {
 import { CodeHighlight } from '@mantine/code-highlight';
 import {
   MdOutlineFileDownload,
-  MdOutlineExtension,
   MdOutlineKey,
+  MdOutlineBookmarkAdd,
+  MdOutlineTravelExplore,
+  MdOutlineNotificationsActive,
 } from 'react-icons/md';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { FaNpm, FaGithub } from 'react-icons/fa6';
+import { PiPlugsConnectedFill } from 'react-icons/pi';
+import { TbHandClick } from 'react-icons/tb';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
-import GuideHeader from '@/components/guides/GuideHeader';
+import SembleLogo from '@/assets/semble-logo.svg';
 import GuideFooter from '@/components/guides/GuideFooter';
 import { LinkButton } from '@/components/link/MantineLink';
 
@@ -34,76 +38,164 @@ const marketplaceInstallCode = `/plugin marketplace add https://raw.githubuserco
 
 const npmInstallCode = `/plugin install npm:@semble.so/claude-plugin`;
 
-const examplePrompts = [
-  '"Save this URL to my AI-safety collection and add a note."',
-  '"Research what Semble has on discourse graphs — find the key papers, curators, and collections."',
-  '"Catch me up on Semble — what happened in my network this week?"',
-  '"Connect this paper to that one as SUPPORTS."',
+const useCases = [
+  {
+    title: 'Save & annotate',
+    icon: (
+      <MdOutlineBookmarkAdd size={28} color="var(--mantine-color-green-6)" />
+    ),
+    prompt:
+      'Save this URL to my AI-safety collection and add a note on why it matters.',
+  },
+  {
+    title: 'Deep research',
+    icon: (
+      <MdOutlineTravelExplore size={28} color="var(--mantine-color-green-6)" />
+    ),
+    prompt:
+      'Research what Semble has on discourse graphs — papers, curators, collections.',
+  },
+  {
+    title: 'Catch up',
+    icon: (
+      <MdOutlineNotificationsActive
+        size={28}
+        color="var(--mantine-color-green-6)"
+      />
+    ),
+    prompt:
+      'Catch me up on Semble — what happened across my network this past week?',
+  },
+  {
+    title: 'Connect ideas',
+    icon: (
+      <PiPlugsConnectedFill size={28} color="var(--mantine-color-green-6)" />
+    ),
+    prompt:
+      "Connect this paper to that one as SUPPORTS, and note why they're related.",
+  },
 ];
 
 export default function McpPage() {
   return (
     <Container size="xs" p="md" py="xl">
       <Stack gap="xl">
-        <GuideHeader
-          title="Semble for Claude"
-          subtitle="Save links, build collections, and explore your knowledge network from any conversation."
-        />
+        <Stack align="center" gap="lg" pos="relative" py="md">
+          {/* soft glow behind the hero, matching the landing page accents */}
+          <Box
+            pos="absolute"
+            inset={0}
+            style={{
+              background:
+                'radial-gradient(60% 70% at 50% 30%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.14)) 0%, transparent 100%)',
+              pointerEvents: 'none',
+            }}
+          />
 
-        <Paper radius="lg" p="xl" bg="var(--mantine-color-default-hover)">
-          <Stack align="center" gap="lg">
+          <Group gap="md" style={{ position: 'relative' }}>
             <ThemeIcon
-              size={72}
+              size={68}
               radius="lg"
               variant="white"
               style={{
                 border: '1px solid var(--mantine-color-default-border)',
+                transform: 'rotate(-6deg)',
+                boxShadow: 'var(--mantine-shadow-sm)',
+              }}
+            >
+              <Image
+                src={SembleLogo.src}
+                alt="Semble"
+                w={30}
+                h={40}
+                fit="contain"
+              />
+            </ThemeIcon>
+            <Text component="span" fz={26} lh={1} aria-hidden>
+              🤝
+            </Text>
+            <ThemeIcon
+              size={68}
+              radius="lg"
+              variant="white"
+              style={{
+                border: '1px solid var(--mantine-color-default-border)',
+                transform: 'rotate(6deg)',
+                boxShadow: 'var(--mantine-shadow-sm)',
               }}
             >
               <Image
                 src={ClaudeIcon.src}
                 alt="Claude"
-                w={36}
-                h={36}
+                w={34}
+                h={34}
                 fit="contain"
               />
             </ThemeIcon>
-            <Stack gap={4} align="center">
-              <Title order={3} ta="center">
-                Bring Semble into Claude
-              </Title>
-              <Text c="dimmed" fw={500} ta="center" maw={370}>
-                The Semble plugin gives Claude the full Semble toolkit — cards,
-                collections, typed connections, feeds, notifications, semantic
-                search, and your social graph.
-              </Text>
-            </Stack>
-            <Group gap="xs">
-              <Button
-                component="a"
-                href="https://www.npmjs.com/package/@semble.so/claude-plugin"
-                target="_blank"
-                rel="noopener noreferrer"
-                radius="xl"
-                variant="default"
-                leftSection={<FaNpm size={18} />}
-              >
-                View on npm
-              </Button>
-              <Button
-                component="a"
-                href="https://github.com/cosmik-network/semble-claude-plugin"
-                target="_blank"
-                rel="noopener noreferrer"
-                radius="xl"
-                variant="default"
-                leftSection={<FaGithub size={16} />}
-              >
-                GitHub
-              </Button>
-            </Group>
+          </Group>
+
+          <Stack gap="xs" align="center" style={{ position: 'relative' }}>
+            <Title order={1} fw={700} fz="2.4rem" ta="center">
+              Semble for Claude
+            </Title>
+
+            {/* light mode subtitle */}
+            <Text fw={600} fz="xl" c="#1F6144" ta="center" maw={420} darkHidden>
+              Save links, build collections, and explore your knowledge network
+              — right from your conversations
+            </Text>
+
+            {/* dark mode subtitle */}
+            <Text
+              fw={600}
+              fz="xl"
+              c="#1e4dd9"
+              ta="center"
+              maw={420}
+              lightHidden
+            >
+              Save links, build collections, and explore your knowledge network
+              — right from your conversations
+            </Text>
           </Stack>
-        </Paper>
+
+          <Group gap="xs" style={{ position: 'relative' }}>
+            <Button
+              component="a"
+              href="https://www.npmjs.com/package/@semble.so/claude-plugin"
+              target="_blank"
+              rel="noopener noreferrer"
+              radius="xl"
+              variant="default"
+              leftSection={<FaNpm size={18} />}
+            >
+              View on npm
+            </Button>
+            <Button
+              component="a"
+              href="https://github.com/cosmik-network/semble-claude-plugin"
+              target="_blank"
+              rel="noopener noreferrer"
+              radius="xl"
+              variant="default"
+              leftSection={<FaGithub size={16} />}
+            >
+              GitHub
+            </Button>
+          </Group>
+
+          <Text
+            c="dimmed"
+            fw={500}
+            ta="center"
+            maw={420}
+            style={{ position: 'relative' }}
+          >
+            The plugin gives Claude the full Semble toolkit — cards,
+            collections, typed connections, feeds, semantic search, and your
+            social graph.
+          </Text>
+        </Stack>
 
         <Stack gap="md">
           <Stack gap={4}>
@@ -187,7 +279,7 @@ export default function McpPage() {
               </Text>
             </TimelineItem>
             <TimelineItem
-              bullet={<MdOutlineExtension size={20} />}
+              bullet={<TbHandClick size={20} />}
               title="Open it"
             >
               <Text c="dimmed" fw={500}>
@@ -210,20 +302,34 @@ export default function McpPage() {
           <Stack gap={4}>
             <Title order={3}>What you can do</Title>
             <Text c="dimmed" fw={500}>
-              Once installed, just ask. Claude picks the right tools and skills
-              automatically, and confirms before any write — saving,
-              connecting, following, or deleting.
+              Once installed, just ask:
             </Text>
           </Stack>
-          <List spacing="sm" c="dimmed" fw={500}>
-            {examplePrompts.map((prompt) => (
-              <ListItem key={prompt}>
-                <Text fs="italic" fw={500} c="dimmed">
-                  {prompt}
-                </Text>
-              </ListItem>
+          <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="xs">
+            {useCases.map((useCase) => (
+              <Card
+                key={useCase.title}
+                bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                radius="lg"
+              >
+                <Stack justify="space-between" h="100%" gap="md">
+                  {useCase.icon}
+                  <Stack gap="xs">
+                    <Text fw={600} fz="lg">
+                      {useCase.title}
+                    </Text>
+                    <Text c="dimmed" fs="italic">
+                      “{useCase.prompt}”
+                    </Text>
+                  </Stack>
+                </Stack>
+              </Card>
             ))}
-          </List>
+          </SimpleGrid>
+          <Text c="dimmed" fw={500} fz="sm">
+            Claude picks the right tools and skills automatically, and confirms
+            before any write — saving, connecting, following, or deleting.
+          </Text>
         </Stack>
 
         <GuideFooter />
