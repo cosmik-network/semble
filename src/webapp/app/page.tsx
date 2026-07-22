@@ -317,7 +317,7 @@ function Content(props: {
                           want{' '}
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://docs.cosmik.network/semble-api"
@@ -351,10 +351,11 @@ function Content(props: {
                         </Text>
                         <Text c="dimmed">
                           Community-built plugins and automations — sync your
-                          links to Zotero, or automate the busywork with Airglow
+                          links to Zotero, or use Airglow to sync your Bluesky
+                          follows and save links from posts you've liked
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
@@ -420,7 +421,7 @@ function Content(props: {
                           assistant
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://www.npmjs.com/package/@semble.so/claude-plugin"
@@ -466,7 +467,7 @@ function Content(props: {
                           content. Discover new connections
                         </Text>
 
-                        <Group gap={'xs'}>
+                        <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
                             href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
@@ -485,7 +486,7 @@ function Content(props: {
                               />
                             }
                           >
-                            Chrome extension
+                            Chrome
                           </Button>
                           <Button
                             component="a"
@@ -505,24 +506,25 @@ function Content(props: {
                               />
                             }
                           >
-                            Firefox extension
+                            Firefox
                           </Button>
-                          <Badge
-                            variant="light"
-                            color="gray"
-                            size="lg"
+                          <Button
+                            size="compact-sm"
+                            radius="xl"
+                            variant="default"
+                            disabled
                             leftSection={
                               <Image
                                 src={SafariIcon.src}
-                                alt="Safari"
-                                w={14}
-                                h={14}
+                                alt=""
+                                w={16}
+                                h={16}
                                 fit="contain"
                               />
                             }
                           >
-                            Coming soon
-                          </Badge>
+                            Safari soon
+                          </Button>
                         </Group>
                       </Stack>
                     </Stack>
