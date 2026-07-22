@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Stack,
   Text,
-  ThemeIcon,
   Timeline,
   TimelineItem,
   Title,
@@ -87,51 +86,31 @@ export default function McpPage() {
             inset={0}
             style={{
               background:
-                'radial-gradient(60% 70% at 50% 30%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.14)) 0%, transparent 100%)',
+                'radial-gradient(closest-side at 50% 40%, light-dark(#EFFFD8, rgba(30, 77, 217, 0.14)) 0%, transparent 100%)',
               pointerEvents: 'none',
             }}
           />
 
           <Group gap="md" style={{ position: 'relative' }}>
-            <ThemeIcon
-              size={68}
-              radius="lg"
-              variant="white"
-              style={{
-                border: '1px solid var(--mantine-color-default-border)',
-                transform: 'rotate(-6deg)',
-                boxShadow: 'var(--mantine-shadow-sm)',
-              }}
-            >
-              <Image
-                src={SembleLogo.src}
-                alt="Semble"
-                w={30}
-                h={40}
-                fit="contain"
-              />
-            </ThemeIcon>
+            <Image
+              src={SembleLogo.src}
+              alt="Semble"
+              w="auto"
+              h={44}
+              fit="contain"
+              style={{ transform: 'rotate(-6deg)' }}
+            />
             <Text component="span" fz={26} lh={1} aria-hidden>
               🤝
             </Text>
-            <ThemeIcon
-              size={68}
-              radius="lg"
-              variant="white"
-              style={{
-                border: '1px solid var(--mantine-color-default-border)',
-                transform: 'rotate(6deg)',
-                boxShadow: 'var(--mantine-shadow-sm)',
-              }}
-            >
-              <Image
-                src={ClaudeIcon.src}
-                alt="Claude"
-                w={34}
-                h={34}
-                fit="contain"
-              />
-            </ThemeIcon>
+            <Image
+              src={ClaudeIcon.src}
+              alt="Claude"
+              w={44}
+              h={44}
+              fit="contain"
+              style={{ transform: 'rotate(6deg)' }}
+            />
           </Group>
 
           <Stack gap="xs" align="center" style={{ position: 'relative' }}>
@@ -326,9 +305,10 @@ export default function McpPage() {
               </Card>
             ))}
           </SimpleGrid>
-          <Text c="dimmed" fw={500} fz="sm">
-            Claude picks the right tools and skills automatically, and confirms
-            before any write — saving, connecting, following, or deleting.
+          <Text fw={500} c="dimmed" ta="center" maw={420} mx="auto" mt="xs">
+            Claude picks the right tools and skills automatically, and
+            confirms before any write — saving, connecting, following, or
+            deleting.
           </Text>
         </Stack>
 
