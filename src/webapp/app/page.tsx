@@ -319,11 +319,8 @@ function Content(props: {
                         </Text>
 
                         <Group gap={'xs'}>
-                          <Button
-                            component="a"
-                            href="https://www.npmjs.com/package/@semble.so/claude-plugin"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <LinkButton
+                            href="/mcp"
                             size="compact-sm"
                             radius="xl"
                             variant="default"
@@ -338,7 +335,7 @@ function Content(props: {
                             }
                           >
                             Claude plugin
-                          </Button>
+                          </LinkButton>
                         </Group>
                       </Stack>
                     </Stack>

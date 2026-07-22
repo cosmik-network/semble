@@ -25,7 +25,7 @@ interface Props {
 async function loadShiki() {
   const { createHighlighter } = await import('shiki');
   const shiki = await createHighlighter({
-    langs: ['html', 'css', 'js', 'ts', 'tsx', 'json'],
+    langs: ['html', 'css', 'js', 'ts', 'tsx', 'json', 'bash'],
     themes: [],
   });
 
