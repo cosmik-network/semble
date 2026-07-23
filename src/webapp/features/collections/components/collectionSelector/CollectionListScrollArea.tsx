@@ -7,8 +7,9 @@ import { useScrollFade } from '@/hooks/useScrollFade';
 // Total height of a selector tab panel (search input + collection list).
 // Fixed so the modal keeps the same height across loading, loaded, and
 // few-collections states; the scroll area flexes to fill whatever the
-// search row doesn't use.
-export const COLLECTION_PANEL_HEIGHT = 284;
+// search row doesn't use. Capped to a fraction of the viewport so the
+// modal doesn't overflow short screens (e.g. iPhone SE).
+export const COLLECTION_PANEL_HEIGHT = 'min(284px, 32dvh)';
 
 interface Props {
   children: ReactNode;

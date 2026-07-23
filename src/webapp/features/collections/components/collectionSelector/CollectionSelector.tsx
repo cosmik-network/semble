@@ -8,6 +8,7 @@ import {
   FocusTrap,
   Tabs,
   ThemeIcon,
+  Scroller,
   Loader,
   Text,
   Tooltip,
@@ -41,25 +42,34 @@ export default function CollectionSelector(props: Props) {
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'} keepMounted={false}>
         <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
-          <Tabs.Tab classNames={classes} value="myCollections">
-            My Collections
-          </Tabs.Tab>
-          <Tabs.Tab
-            classNames={classes}
-            leftSection={
-              <ThemeIcon
-                variant="light"
-                radius={'xl'}
-                size={'xs'}
-                color="green"
-              >
-                <FaSeedling size={8} />
-              </ThemeIcon>
-            }
-            value="openCollections"
+          {/* Stretched so tabs grow to fill the row when there is room,
+              while still scrolling horizontally on overflow */}
+          <Scroller
+            styles={{
+              root: { flex: 1, minWidth: 0 },
+              content: { minWidth: '100%' },
+            }}
           >
-            Open Collections
-          </Tabs.Tab>
+            <Tabs.Tab classNames={classes} value="myCollections">
+              My Collections
+            </Tabs.Tab>
+            <Tabs.Tab
+              classNames={classes}
+              leftSection={
+                <ThemeIcon
+                  variant="light"
+                  radius={'xl'}
+                  size={'xs'}
+                  color="green"
+                >
+                  <FaSeedling size={8} />
+                </ThemeIcon>
+              }
+              value="openCollections"
+            >
+              Open Collections
+            </Tabs.Tab>
+          </Scroller>
         </Tabs.List>
 
         <Tabs.Panel value="myCollections">
