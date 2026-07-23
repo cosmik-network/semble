@@ -1,6 +1,5 @@
 import { cache } from 'react';
 import { createSembleClient } from '@/services/client.apiClient';
-import { verifySessionOnClient } from '@/lib/auth/dal';
 
 /**
  * Fetch a specific page of graph data from the backend
@@ -11,10 +10,6 @@ import { verifySessionOnClient } from '@/lib/auth/dal';
  */
 export const getGraphDataPage = cache(
   async (page: number = 1, limit: number = 300) => {
-    // Verify authentication - graph data is personalized
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
-
     const client = createSembleClient();
     const response = await client.getGraphData({ page, limit });
 
@@ -41,10 +36,6 @@ export const getGraphData = cache(async () => {
  * @param depth - Number of edge hops to traverse (1-5, defaults to 1)
  */
 export const getUrlGraphData = cache(async (url: string, depth: number = 1) => {
-  // Verify authentication - graph data is personalized
-  const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
-
   const client = createSembleClient();
   const response = await client.getUrlGraphData({ url, depth });
 

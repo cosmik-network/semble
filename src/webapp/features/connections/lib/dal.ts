@@ -1,4 +1,3 @@
-import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
   GetConnectionsForUrlParams,
@@ -17,8 +16,6 @@ export const createConnection = cache(
     connectionType?: ConnectionType;
     note?: string;
   }) => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
     try {
@@ -44,8 +41,6 @@ export const searchUrls = cache(async (params: SearchUrlsParams) => {
 
 export const updateConnection = cache(
   async (request: UpdateConnectionRequest) => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
     try {
@@ -59,8 +54,6 @@ export const updateConnection = cache(
 
 export const deleteConnection = cache(
   async (request: DeleteConnectionRequest) => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
 
     try {

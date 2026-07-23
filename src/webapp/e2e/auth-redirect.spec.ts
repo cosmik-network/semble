@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 /**
  * Auth redirect tests.
  *
- * /home and /notifications have server-side guards (verifySessionOnServer).
- * /settings/* and /profile (bare) redirect via the client-side useAuth fallback.
+ * All four routes are gated by proxy.ts (cookie-presence check at the edge);
+ * /home and /notifications additionally guard via verifySessionOnServer.
  */
 
 const protectedRoutes = ['/home', '/notifications', '/settings', '/profile'];

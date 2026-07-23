@@ -1,19 +1,14 @@
-import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { FollowTargetRequest, SubscriptionScope } from '@semble/types';
 import { cache } from 'react';
 
 export const followTarget = cache(async (request: FollowTargetRequest) => {
-  const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   return client.followTarget(request);
 });
 
 export const unfollowTarget = cache(
   async (targetId: string, targetType: 'USER' | 'COLLECTION') => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     await client.unfollowTarget(targetId, targetType);
   },
@@ -25,8 +20,6 @@ export const subscribeToTarget = cache(
     targetType: 'USER' | 'COLLECTION',
     scopes?: SubscriptionScope[],
   ) => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     return client.subscribeToTarget({ targetId, targetType, scopes });
   },
@@ -34,8 +27,6 @@ export const subscribeToTarget = cache(
 
 export const unsubscribeFromTarget = cache(
   async (targetId: string, targetType: 'USER' | 'COLLECTION') => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     await client.unsubscribeFromTarget(targetId, targetType);
   },
@@ -47,8 +38,6 @@ export const updateSubscription = cache(
     targetType: 'USER' | 'COLLECTION',
     scopes: SubscriptionScope[],
   ) => {
-    const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     return client.updateSubscription({ targetId, targetType, scopes });
   },

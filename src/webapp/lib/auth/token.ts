@@ -1,5 +1,31 @@
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 
+const decodePayload = (
+  token: string | null | undefined,
+): Record<string, unknown> | null => {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return JSON.parse(Buffer.from(parts[1], 'base64').toString());
+  } catch {
+    return null;
+  }
+};
+
+// Unverified decode — the webapp has no JWT secret. Only for UX gating;
+// the backend verifies the signature on every data request.
+export const decodeDid = (token: string | null | undefined): string | null => {
+  const payload = decodePayload(token);
+  return payload && typeof payload.did === 'string' ? payload.did : null;
+};
+
+export const isTokenExpired = (token: string | null | undefined): boolean => {
+  const payload = decodePayload(token);
+  if (!payload || typeof payload.exp !== 'number') return true;
+  return Date.now() >= payload.exp * 1000;
+};
+
 export const isTokenExpiringSoon = (
   token: string | null | undefined,
 ): boolean => {
