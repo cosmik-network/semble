@@ -8,7 +8,6 @@ import {
   FocusTrap,
   Tabs,
   ThemeIcon,
-  Scroller,
   Loader,
   Text,
   Tooltip,
@@ -20,6 +19,7 @@ import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { BsTrash2Fill } from 'react-icons/bs';
+import { COLLECTION_PANEL_HEIGHT } from './CollectionListScrollArea';
 
 interface Props {
   isOpen: boolean;
@@ -41,33 +41,35 @@ export default function CollectionSelector(props: Props) {
       <FocusTrap.InitialFocus />
       <Tabs defaultValue={'myCollections'} keepMounted={false}>
         <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
-          <Scroller>
-            <Tabs.Tab classNames={classes} value="myCollections">
-              My Collections
-            </Tabs.Tab>
-            <Tabs.Tab
-              classNames={classes}
-              leftSection={
-                <ThemeIcon
-                  variant="light"
-                  radius={'xl'}
-                  size={'xs'}
-                  color="green"
-                >
-                  <FaSeedling size={8} />
-                </ThemeIcon>
-              }
-              value="openCollections"
-            >
-              Open Collections
-            </Tabs.Tab>
-          </Scroller>
+          <Tabs.Tab classNames={classes} value="myCollections">
+            My Collections
+          </Tabs.Tab>
+          <Tabs.Tab
+            classNames={classes}
+            leftSection={
+              <ThemeIcon
+                variant="light"
+                radius={'xl'}
+                size={'xs'}
+                color="green"
+              >
+                <FaSeedling size={8} />
+              </ThemeIcon>
+            }
+            value="openCollections"
+          >
+            Open Collections
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="myCollections">
           <Suspense
             fallback={
-              <Stack align="center" gap="xs">
+              <Stack
+                align="center"
+                justify="center"
+                h={COLLECTION_PANEL_HEIGHT}
+              >
                 <Loader color="gray" />
               </Stack>
             }
@@ -82,7 +84,11 @@ export default function CollectionSelector(props: Props) {
         <Tabs.Panel value="openCollections">
           <Suspense
             fallback={
-              <Stack align="center" gap="xs">
+              <Stack
+                align="center"
+                justify="center"
+                h={COLLECTION_PANEL_HEIGHT}
+              >
                 <Loader color="gray" />
               </Stack>
             }
