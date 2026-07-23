@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   CloseButton,
-  ScrollArea,
   Stack,
   TextInput,
   Text,
@@ -20,6 +19,9 @@ import CollectionSelectorError from '../collectionSelector/Error.CollectionSelec
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection } from '@semble/types';
+import CollectionListScrollArea, {
+  COLLECTION_PANEL_HEIGHT,
+} from '../collectionSelector/CollectionListScrollArea';
 
 interface Props {
   selectedCollections: Collection[];
@@ -68,7 +70,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
   return (
     <Fragment>
       <Stack gap="xl">
-        <Stack gap={'sm'}>
+        <Stack gap={'sm'} h={COLLECTION_PANEL_HEIGHT}>
           <TextInput
             placeholder="Search for collections"
             value={search}
@@ -86,8 +88,8 @@ export default function CollectionSelectorMyCollections(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={195} type="auto">
-            <Stack gap="xs">
+          <CollectionListScrollArea>
+            <Stack gap="xxs">
               <Button
                 variant="light"
                 color="grape"
@@ -101,7 +103,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
               </Button>
 
               {search ? (
-                <Stack gap={'xs'}>
+                <Stack gap={'xxs'}>
                   {searchedCollections.isPending && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
@@ -158,7 +160,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
                 </Stack>
               )}
             </Stack>
-          </ScrollArea.Autosize>
+          </CollectionListScrollArea>
         </Stack>
       </Stack>
 

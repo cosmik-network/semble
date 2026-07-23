@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   CloseButton,
-  ScrollArea,
   Stack,
   TextInput,
   Text,
@@ -21,6 +20,9 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Collection, CollectionAccessType } from '@semble/types';
 import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
 import { useAuth } from '@/hooks/useAuth';
+import CollectionListScrollArea, {
+  COLLECTION_PANEL_HEIGHT,
+} from '../collectionSelector/CollectionListScrollArea';
 
 interface Props {
   selectedCollections: Collection[];
@@ -104,7 +106,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
   return (
     <Fragment>
       <Stack gap="xl">
-        <Stack gap={'sm'}>
+        <Stack gap={'sm'} h={COLLECTION_PANEL_HEIGHT}>
           <TextInput
             placeholder="Search for open collections"
             value={search}
@@ -122,8 +124,8 @@ export default function CollectionSelectorOpenCollections(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={195} type="auto">
-            <Stack gap="xs">
+          <CollectionListScrollArea>
+            <Stack gap="xxs">
               <Button
                 variant="light"
                 color="grape"
@@ -137,7 +139,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
               </Button>
 
               {search ? (
-                <Stack gap={'xs'}>
+                <Stack gap={'xxs'}>
                   {isLoading && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
@@ -199,7 +201,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                 </Stack>
               )}
             </Stack>
-          </ScrollArea.Autosize>
+          </CollectionListScrollArea>
         </Stack>
       </Stack>
 

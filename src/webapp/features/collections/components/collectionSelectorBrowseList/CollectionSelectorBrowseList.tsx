@@ -14,7 +14,7 @@ export default function CollectionSelectorBrowseList(props: Props) {
   const hasSelectedCollections = props.selectedCollections.length > 0;
 
   return (
-    <Stack gap={'xs'}>
+    <Stack gap={'xxs'}>
       {/* selected collections */}
       {hasSelectedCollections && (
         <Fragment>
