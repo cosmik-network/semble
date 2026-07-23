@@ -322,9 +322,9 @@ function Content(props: {
                           API
                         </Text>
                         <Text c="dimmed">
-                          Integrate Semble with your own workflow. Ask your
-                          library questions with AI. Use it however you
-                          want{' '}
+                          Integrate Semble with your own workflow. Showcase your
+                          collections on your website. Build your own client or
+                          something completely new{' '}
                         </Text>
 
                         <Group gap={'xs'} mt="sm">
