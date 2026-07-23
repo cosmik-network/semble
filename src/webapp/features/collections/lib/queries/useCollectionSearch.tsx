@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { getMyCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import { CollectionSortField } from '@semble/types';
@@ -12,15 +12,23 @@ interface Props {
 }
 
 export default function useCollectionSearch(props: Props) {
-  // TODO: replace with infinite suspense query
-  const collections = useQuery({
-    queryKey: collectionKeys.search(props.query),
-    queryFn: () =>
+  const limit = props.params?.limit ?? 10;
+
+  const collections = useInfiniteQuery({
+    queryKey: collectionKeys.search(props.query, limit),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
       getMyCollections({
-        limit: props.params?.limit ?? 10,
+        limit,
+        page: pageParam,
         ...getCollectionsSortParams(CollectionSortField.UPDATED_AT),
         searchText: props.query || undefined,
       }),
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.hasMore
+        ? lastPage.pagination.currentPage + 1
+        : undefined;
+    },
     enabled: !!props.query,
   });
 

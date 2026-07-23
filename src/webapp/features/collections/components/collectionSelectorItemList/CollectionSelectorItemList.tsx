@@ -11,7 +11,7 @@ interface Props {
 
 export default function CollectionSelectorItemList(props: Props) {
   return (
-    <Stack gap={'xs'}>
+    <Stack gap={'xxs'}>
       {props.collections.map((c) => (
         <CollectionSelectorItem
           key={c.id}

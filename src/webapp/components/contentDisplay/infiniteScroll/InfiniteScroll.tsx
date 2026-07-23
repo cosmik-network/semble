@@ -13,6 +13,7 @@ interface Props {
   loadMore: () => void;
   loader?: ReactNode;
   manualLoadButton?: boolean;
+  hideEndIndicator?: boolean;
 }
 
 export default function InfiniteScroll(props: Props) {
@@ -51,11 +52,14 @@ export default function InfiniteScroll(props: Props) {
         )}
       </Center>
 
-      {!props.hasMore && !isLoading && props.dataLength !== 0 && (
-        <Center mt={'xl'}>
-          <Divider variant="dashed" label="The end" w={120} />
-        </Center>
-      )}
+      {!props.hasMore &&
+        !isLoading &&
+        props.dataLength !== 0 &&
+        !props.hideEndIndicator && (
+          <Center mt={'xl'}>
+            <Divider variant="dashed" label="The end" w={120} />
+          </Center>
+        )}
     </Stack>
   );
 }

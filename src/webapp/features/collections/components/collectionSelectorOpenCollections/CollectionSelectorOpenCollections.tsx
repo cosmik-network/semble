@@ -2,8 +2,6 @@ import {
   Alert,
   Button,
   CloseButton,
-  Divider,
-  ScrollArea,
   Stack,
   TextInput,
   Text,
@@ -11,15 +9,20 @@ import {
 } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
+import CollectionSelectorBrowseList from '../collectionSelectorBrowseList/CollectionSelectorBrowseList';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection, CollectionAccessType } from '@semble/types';
 import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
 import { useAuth } from '@/hooks/useAuth';
+import CollectionListScrollArea, {
+  COLLECTION_PANEL_HEIGHT,
+} from '../collectionSelector/CollectionListScrollArea';
 
 interface Props {
   selectedCollections: Collection[];
@@ -65,8 +68,14 @@ export default function CollectionSelectorOpenCollections(props: Props) {
       ? userCollections
       : searchResults;
 
+  // Query backing the currently displayed list, used for pagination
+  const listQuery = search
+    ? searchedCollections
+    : userCollections.length > 0
+      ? userContributedCollections
+      : searchedCollections;
+
   const hasCollections = allCollections.length > 0;
-  const hasSelectedCollections = props.selectedCollections.length > 0;
 
   // filter out selected from all to avoid duplication
   const unselectedCollections = allCollections.filter(
@@ -85,9 +94,10 @@ export default function CollectionSelectorOpenCollections(props: Props) {
     }
   };
 
-  // Determine which query is active
-  const activeQuery = search ? searchedCollections : userContributedCollections;
-  const isLoading = activeQuery.isPending;
+  // Loading state of the query backing the displayed list. Covers the
+  // fallback case where contributed collections are empty and global open
+  // collections are still being fetched.
+  const isLoading = listQuery.isPending;
 
   if (searchedCollections.error || userContributedCollections.error) {
     return <CollectionSelectorError />;
@@ -96,7 +106,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
   return (
     <Fragment>
       <Stack gap="xl">
-        <Stack gap={'sm'}>
+        <Stack gap={'sm'} h={COLLECTION_PANEL_HEIGHT}>
           <TextInput
             placeholder="Search for open collections"
             value={search}
@@ -114,8 +124,8 @@ export default function CollectionSelectorOpenCollections(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={195} type="auto">
-            <Stack gap="xs">
+          <CollectionListScrollArea>
+            <Stack gap="xxs">
               <Button
                 variant="light"
                 color="grape"
@@ -129,7 +139,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
               </Button>
 
               {search ? (
-                <Stack gap={'xs'}>
+                <Stack gap={'xxs'}>
                   {isLoading && (
                     <Stack align="center">
                       <Text fw={500} c="gray">
@@ -146,11 +156,20 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                     />
                   ) : (
                     !isLoading && (
-                      <CollectionSelectorItemList
-                        collections={allCollections}
-                        selectedCollections={props.selectedCollections}
-                        onChange={handleCollectionChange}
-                      />
+                      <InfiniteScroll
+                        dataLength={allCollections.length}
+                        hasMore={!!listQuery.hasNextPage}
+                        isInitialLoading={isLoading}
+                        isLoading={listQuery.isFetchingNextPage}
+                        loadMore={() => listQuery.fetchNextPage()}
+                        hideEndIndicator
+                      >
+                        <CollectionSelectorItemList
+                          collections={allCollections}
+                          selectedCollections={props.selectedCollections}
+                          onChange={handleCollectionChange}
+                        />
+                      </InfiniteScroll>
                     )
                   )}
                 </Stack>
@@ -159,41 +178,21 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                   <Loader color="gray" />
                 </Stack>
               ) : hasCollections ? (
-                <Stack gap={'xs'}>
-                  {/* selected collections */}
-                  {hasSelectedCollections && (
-                    <Fragment>
-                      <Text fw={600} fz={'sm'} c={'gray'}>
-                        Selected Collections ({props.selectedCollections.length}
-                        )
-                      </Text>
-                      <CollectionSelectorItemList
-                        collections={props.selectedCollections}
-                        selectedCollections={props.selectedCollections}
-                        onChange={handleCollectionChange}
-                      />
-                      {unselectedCollections.length > 0 && (
-                        <Divider variant="dashed" my="xs" />
-                      )}
-                    </Fragment>
-                  )}
-
-                  {/* remaining collections */}
-                  {unselectedCollections.length > 0 ? (
-                    <CollectionSelectorItemList
-                      collections={unselectedCollections}
-                      selectedCollections={props.selectedCollections}
-                      onChange={handleCollectionChange}
-                    />
-                  ) : (
-                    !hasSelectedCollections && (
-                      <Alert
-                        color="gray"
-                        title="No open collections available"
-                      />
-                    )
-                  )}
-                </Stack>
+                <InfiniteScroll
+                  dataLength={allCollections.length}
+                  hasMore={!!listQuery.hasNextPage}
+                  isInitialLoading={false}
+                  isLoading={listQuery.isFetchingNextPage}
+                  loadMore={() => listQuery.fetchNextPage()}
+                  hideEndIndicator
+                >
+                  <CollectionSelectorBrowseList
+                    selectedCollections={props.selectedCollections}
+                    unselectedCollections={unselectedCollections}
+                    onChange={handleCollectionChange}
+                    emptyMessage="No open collections available"
+                  />
+                </InfiniteScroll>
               ) : (
                 <Stack align="center" gap="xs">
                   <Text fz="lg" fw={600} c="gray">
@@ -202,7 +201,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
                 </Stack>
               )}
             </Stack>
-          </ScrollArea.Autosize>
+          </CollectionListScrollArea>
         </Stack>
       </Stack>
 
