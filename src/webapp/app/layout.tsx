@@ -31,6 +31,8 @@ export const metadata: Metadata = {
   other: {
     'apple-mobile-web-app-capable': 'yes',
     'mobile-web-app-capable': 'yes',
+    // DID for the semble.so atproto account
+    'at:me': 'at://did:plc:k7wclckeajmuibxbamtbejjg',
   },
 };
 
