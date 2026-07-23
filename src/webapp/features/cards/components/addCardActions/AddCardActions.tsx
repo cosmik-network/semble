@@ -14,11 +14,10 @@ import {
   Textarea,
   VisuallyHidden,
 } from '@mantine/core';
-import { BsExclamation, BsTrash2Fill } from 'react-icons/bs';
+import { BsExclamation } from 'react-icons/bs';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 
 interface Props {
-  cardId?: string;
   note?: string;
   noteId?: string;
   onUpdateNote: Dispatch<SetStateAction<string | undefined>>;
@@ -27,13 +26,11 @@ interface Props {
 
 export default function AddCardActions(props: Props) {
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
-  const [showDeleteCardWarning, setShowDeleteCardWarning] = useState(false);
   const [noteMode, setNoteMode] = useState(false);
   const [note, setNote] = useState(props.note);
   const MAX_NOTE_LENGTH = 500;
 
   const removeNote = useRemoveCardFromLibrary();
-  const removeCard = useRemoveCardFromLibrary();
 
   const handleDeleteNote = () => {
     if (!props.noteId) return;
@@ -42,26 +39,6 @@ export default function AddCardActions(props: Props) {
       onError: () => {
         notifications.show({
           message: 'Could not delete note',
-          color: 'red',
-          autoClose: 5000,
-          withCloseButton: true,
-          position: 'top-center',
-          icon: <BsExclamation />,
-        });
-      },
-      onSettled: () => {
-        props.onClose();
-      },
-    });
-  };
-
-  const handleDeleteCard = () => {
-    if (!props.cardId) return;
-
-    removeCard.mutate(props.cardId, {
-      onError: () => {
-        notifications.show({
-          message: 'Could not delete card',
           color: 'red',
           autoClose: 5000,
           withCloseButton: true,
@@ -159,69 +136,31 @@ export default function AddCardActions(props: Props) {
             </Button>
           </Group>
         </Group>
-      ) : showDeleteCardWarning ? (
-        <Group justify="space-between" gap={'xs'}>
-          <Text>Delete card?</Text>
-          <Group gap={'xs'}>
-            <Button
-              color="red"
-              size="xs"
-              onClick={handleDeleteCard}
-              loading={removeCard.isPending}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="light"
-              color="gray"
-              size="xs"
-              onClick={() => setShowDeleteCardWarning(false)}
-            >
-              Cancel
-            </Button>
-          </Group>
-        </Group>
       ) : (
-        <Group gap={'xs'} justify="space-between">
-          <Group gap={'xs'}>
-            <Button
-              variant="light"
-              size="xs"
-              color="gray"
-              leftSection={<MdOutlineStickyNote2 />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNoteMode(true);
-              }}
-            >
-              {note ? 'Edit note' : 'Add note'}
-            </Button>
-            {props.noteId && (
-              <Button
-                variant="light"
-                color="red"
-                size="xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteWarning(true);
-                }}
-              >
-                Delete note
-              </Button>
-            )}
-          </Group>
-          {props.cardId && (
+        <Group gap={'xs'}>
+          <Button
+            variant="light"
+            size="xs"
+            color="gray"
+            leftSection={<MdOutlineStickyNote2 />}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNoteMode(true);
+            }}
+          >
+            {note ? 'Edit note' : 'Add note'}
+          </Button>
+          {props.noteId && (
             <Button
               variant="light"
               color="red"
               size="xs"
-              leftSection={<BsTrash2Fill />}
               onClick={(e) => {
                 e.stopPropagation();
-                setShowDeleteCardWarning(true);
+                setShowDeleteWarning(true);
               }}
             >
-              Delete card
+              Delete note
             </Button>
           )}
         </Group>

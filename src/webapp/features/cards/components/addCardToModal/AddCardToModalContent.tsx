@@ -6,6 +6,9 @@ import { useState, useEffect } from 'react';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import AddCardActions from '../addCardActions/AddCardActions';
+import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
+import { notifications } from '@mantine/notifications';
+import { BsExclamation } from 'react-icons/bs';
 
 interface Props {
   onClose: () => void;
@@ -48,6 +51,29 @@ export default function AddCardToModalContent(props: Props) {
   useEffect(() => {
     setSelectedCollections(cardStatus.data.collections ?? []);
   }, [cardStatus.data.collections]);
+
+  const removeCard = useRemoveCardFromLibrary();
+
+  const handleDeleteCard = () => {
+    const cardId = cardStatus.data.card?.id;
+    if (!cardId) return;
+
+    removeCard.mutate(cardId, {
+      onError: () => {
+        notifications.show({
+          message: 'Could not delete card',
+          color: 'red',
+          autoClose: 5000,
+          withCloseButton: true,
+          position: 'top-center',
+          icon: <BsExclamation />,
+        });
+      },
+      onSettled: () => {
+        props.onClose();
+      },
+    });
+  };
 
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +143,6 @@ export default function AddCardToModalContent(props: Props) {
   return (
     <Stack>
       <AddCardActions
-        cardId={cardStatus.data.card?.id}
         note={isMyCard ? note : cardStatus.data.card?.note?.text}
         noteId={cardStatus.data.card?.note?.id}
         onUpdateNote={setNote}
@@ -133,6 +158,8 @@ export default function AddCardToModalContent(props: Props) {
         }}
         onSave={handleUpdateCard}
         isSaving={props.isSaving}
+        onDeleteCard={cardStatus.data.card ? handleDeleteCard : undefined}
+        isDeletingCard={removeCard.isPending}
         selectedCollections={selectedCollections}
         onSelectedCollectionsChange={setSelectedCollections}
       />
