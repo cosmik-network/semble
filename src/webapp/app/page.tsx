@@ -434,7 +434,7 @@ function Content(props: {
                         <Group gap={'xs'} mt="sm">
                           <Button
                             component="a"
-                            href="https://www.npmjs.com/package/@semble.so/claude-plugin"
+                            href="https://docs.cosmik.network/semble-mcp"
                             target="_blank"
                             rel="noopener noreferrer"
                             size="compact-sm"
