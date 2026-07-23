@@ -14,7 +14,7 @@ export default function GemsOfYearBanner() {
   const hasGemsCollection =
     !isLoadingSearchResults &&
     searchResults &&
-    searchResults.collections.length > 0;
+    searchResults.pages.some((page) => (page.collections ?? []).length > 0);
 
   return (
     <>
