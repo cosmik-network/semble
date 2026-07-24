@@ -126,17 +126,19 @@ export default function CollectionSelectorOpenCollections(props: Props) {
 
           <CollectionListScrollArea>
             <Stack gap="xxs">
-              <Button
-                variant="light"
-                color="grape"
-                radius="md"
-                leftSection={<FiPlus size={22} />}
-                onClick={() => setIsDrawerOpen(true)}
-              >
-                {search
-                  ? `Create new collection "${search}"`
-                  : 'Create new open collection'}
-              </Button>
+              {(search || !hasCollections) && (
+                <Button
+                  variant="light"
+                  color="grape"
+                  radius="md"
+                  leftSection={<FiPlus size={22} />}
+                  onClick={() => setIsDrawerOpen(true)}
+                >
+                  {search
+                    ? `Create new collection "${search}"`
+                    : 'Create new open collection'}
+                </Button>
+              )}
 
               {search ? (
                 <Stack gap={'xxs'}>
