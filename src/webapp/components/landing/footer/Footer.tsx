@@ -17,6 +17,7 @@ import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import FooterBG from '@/assets/footer-bg.webp';
 import FooterDarkBG from '@/assets/footer-bg-dark.webp';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
+import ThemeToggle from '@/components/landing/themeToggle/ThemeToggle';
 
 export default function Footer() {
   return (
@@ -140,6 +141,20 @@ export default function Footer() {
             >
               <FaDiscord size={22} />
             </ActionIcon>
+
+            {/* dot separator — a fixed-size element, so it can't collapse or
+                mis-align the way a stretched vertical rule does */}
+            <Box
+              w={4}
+              h={4}
+              mx="sm"
+              style={{
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+              }}
+            />
+
+            <ThemeToggle />
           </Group>
 
           <Stack align="center" gap="xs" mb="md">
