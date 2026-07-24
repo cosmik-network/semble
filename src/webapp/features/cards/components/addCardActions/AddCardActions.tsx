@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import useRemoveCardFromLibrary from '../../lib/mutations/useRemoveCardFromLibrary';
 import { notifications } from '@mantine/notifications';
 import {
+  ActionIcon,
   Button,
   Card,
   Flex,
@@ -12,9 +13,10 @@ import {
   Stack,
   Text,
   Textarea,
+  Tooltip,
   VisuallyHidden,
 } from '@mantine/core';
-import { BsExclamation } from 'react-icons/bs';
+import { BsExclamation, BsTrash2Fill } from 'react-icons/bs';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 
 interface Props {
@@ -54,13 +56,7 @@ export default function AddCardActions(props: Props) {
 
   if (noteMode) {
     return (
-      <Card
-        withBorder
-        component="article"
-        p={'xs'}
-        radius={'lg'}
-        style={{ cursor: 'pointer' }}
-      >
+      <Card withBorder component="article" p={'xs'} radius={'lg'}>
         <Stack gap={'xs'}>
           <Stack gap={0}>
             <Flex justify="space-between">
@@ -78,7 +74,8 @@ export default function AddCardActions(props: Props) {
               variant="filled"
               size="md"
               rows={3}
-              maxLength={500}
+              maxLength={MAX_NOTE_LENGTH}
+              aria-describedby="note-char-remaining"
               value={note}
               onChange={(e) => setNote(e.currentTarget.value)}
             />
@@ -86,85 +83,86 @@ export default function AddCardActions(props: Props) {
               {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
             </VisuallyHidden>
           </Stack>
-          <Group gap={'xs'} grow>
-            <Button
-              variant="light"
-              color="gray"
-              onClick={() => {
-                setNoteMode(false);
-                setNote(props.note);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                props.onUpdateNote(note);
-                setNoteMode(false);
-              }}
-              disabled={note?.trimEnd() === ''}
-            >
-              Ok
-            </Button>
-          </Group>
+          {showDeleteWarning ? (
+            <Group justify="space-between" gap={'xs'} wrap="nowrap">
+              <Text fw={500} c="red">
+                Delete note?
+              </Text>
+              <Group gap={'xs'} wrap="nowrap">
+                <Button
+                  variant="light"
+                  color="gray"
+                  disabled={removeNote.isPending}
+                  onClick={() => setShowDeleteWarning(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="red"
+                  onClick={handleDeleteNote}
+                  loading={removeNote.isPending}
+                >
+                  Delete
+                </Button>
+              </Group>
+            </Group>
+          ) : (
+            <Group gap={'xs'} wrap="nowrap">
+              {props.noteId && (
+                <Tooltip label="Delete note">
+                  <ActionIcon
+                    size={36}
+                    radius="xl"
+                    variant="light"
+                    color="red"
+                    aria-label="Delete note"
+                    onClick={() => setShowDeleteWarning(true)}
+                  >
+                    <BsTrash2Fill size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+              <Button
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  setNoteMode(false);
+                  setNote(props.note);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                style={{ flex: 1 }}
+                onClick={() => {
+                  props.onUpdateNote(note);
+                  setNoteMode(false);
+                }}
+                disabled={note?.trimEnd() === ''}
+              >
+                Ok
+              </Button>
+            </Group>
+          )}
         </Stack>
       </Card>
     );
   }
 
   return (
-    <Stack gap={'xs'}>
-      {showDeleteWarning ? (
-        <Group justify="space-between" gap={'xs'}>
-          <Text>Delete note?</Text>
-          <Group gap={'xs'}>
-            <Button
-              size="xs"
-              color="red"
-              onClick={handleDeleteNote}
-              loading={removeNote.isPending}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="light"
-              color="gray"
-              size="xs"
-              onClick={() => setShowDeleteWarning(false)}
-            >
-              Cancel
-            </Button>
-          </Group>
-        </Group>
-      ) : (
-        <Group gap={'xs'}>
-          <Button
-            variant="light"
-            size="xs"
-            color="gray"
-            leftSection={<MdOutlineStickyNote2 />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNoteMode(true);
-            }}
-          >
-            {note ? 'Edit note' : 'Add note'}
-          </Button>
-          {props.noteId && (
-            <Button
-              variant="light"
-              color="red"
-              size="xs"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDeleteWarning(true);
-              }}
-            >
-              Delete note
-            </Button>
-          )}
-        </Group>
-      )}
-    </Stack>
+    <Button
+      variant="light"
+      size="xs"
+      color="gray"
+      w="fit-content"
+      leftSection={<MdOutlineStickyNote2 />}
+      onClick={(e) => {
+        e.stopPropagation();
+        setShowDeleteWarning(false);
+        setNoteMode(true);
+      }}
+    >
+      {note ? 'Edit note' : 'Add note'}
+    </Button>
   );
 }
