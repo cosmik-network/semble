@@ -16,9 +16,9 @@ import {
   Badge,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
-import DarkBG from '@/assets/semble-bg-dark.png';
-import CtaSignup from '@/assets/cta-signup.png';
-import CtaSignupDark from '@/assets/cta-signup-dark.png';
+import DarkBG from '@/assets/semble-bg-dark.webp';
+import CtaSignup from '@/assets/cta-signup.webp';
+import CtaSignupDark from '@/assets/cta-signup-dark.webp';
 import ClaudeIcon from '@/assets/icons/claude-icon.svg';
 import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
 import AirglowIcon from '@/assets/icons/airglow-icon.svg';

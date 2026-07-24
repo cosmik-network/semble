@@ -7,7 +7,7 @@ import {
   Title,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
-import DarkBG from '@/assets/semble-bg-dark.png';
+import DarkBG from '@/assets/semble-bg-dark.webp';
 import ExpandedSearchBar from '../../components/searchBar/ExpandedSearchBar';
 
 function Content() {

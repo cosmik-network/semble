@@ -1,6 +1,6 @@
 import CollectionSearchResultsContainer from '@/features/search/containers/collectionSearchResultsContainer/CollectionSearchResultsContainer';
 import CollectionSearchResultsContainerSkeleton from '@/features/search/containers/collectionSearchResultsContainer/Skeleton.CollectionSearchResultsContainer';
-import { CollectionAccessType, UrlType } from '@semble/types';
+import { CollectionAccessType } from '@semble/types';
 import { Suspense } from 'react';
 
 interface Props {
@@ -17,7 +17,7 @@ export default async function Page(props: Props) {
   return (
     <Suspense
       fallback={<CollectionSearchResultsContainerSkeleton />}
-      key={query + handle + accessType}
+      key={`${query}|${handle ?? ''}|${accessType ?? ''}`}
     >
       <CollectionSearchResultsContainer
         query={query}

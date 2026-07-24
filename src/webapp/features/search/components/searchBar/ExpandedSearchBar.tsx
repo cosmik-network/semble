@@ -10,8 +10,8 @@ import {
   TextInput,
 } from '@mantine/core';
 import { IoSearch } from 'react-icons/io5';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { BiCollection } from 'react-icons/bi';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
@@ -19,10 +19,6 @@ import { SearchFilters } from '../searchFilters/SearchFilters';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
 import { track } from '@vercel/analytics';
 import posthog from 'posthog-js';
-
-interface Props {
-  query?: string;
-}
 
 const icons: Record<string, React.ReactNode> = {
   cards: <FaRegNoteSticky />,
@@ -37,22 +33,16 @@ const renderSelectOption: SelectProps['renderOption'] = ({ option }) => (
   </Group>
 );
 
-export default function SearchBar(props: Props) {
+export default function ExpandedSearchBar() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const searchParams = useSearchParams();
-  const [search, setSearch] = useState(props.query ?? '');
+  const [search, setSearch] = useState('');
   const [searchType, setSearchType] = useState<string | null>('cards');
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const getPlaceholderText = () => {
     if (!searchType) return 'Find cards, collections, and more';
 
-    const handle = searchParams.get('handle');
-
-    return handle && ['cards', 'collections'].includes(searchType)
-      ? `Search for @${handle}'s ${searchType}`
-      : `Search for ${searchType.toLowerCase()}`;
+    return `Search for ${searchType.toLowerCase()}`;
   };
 
   const onSearch = () => {
@@ -60,15 +50,6 @@ export default function SearchBar(props: Props) {
 
     if (search) {
       params.set('query', search);
-    }
-
-    // preserve handle (and urlType) for cards + collections
-    if (searchType === 'cards' || searchType === 'collections') {
-      const handle = searchParams.get('handle');
-      const urlType = searchParams.get('urlType');
-
-      if (handle) params.set('handle', handle);
-      if (urlType) params.set('urlType', urlType);
     }
 
     // build route based on selected type
@@ -82,6 +63,7 @@ export default function SearchBar(props: Props) {
   return (
     <Card p={'xs'} radius="lg" w="100%" withBorder>
       <form
+        role="search"
         onSubmit={(e) => {
           e.preventDefault();
           if (search) onSearch();
@@ -89,7 +71,8 @@ export default function SearchBar(props: Props) {
       >
         <Stack justify="space-between">
           <TextInput
-            ref={inputRef}
+            autoFocus
+            aria-label="Search"
             variant="unstyled"
             placeholder={getPlaceholderText()}
             flex={1}
