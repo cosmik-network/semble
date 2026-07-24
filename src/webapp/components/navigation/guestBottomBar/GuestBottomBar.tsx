@@ -1,5 +1,6 @@
 import { AppShellFooter, Avatar, Group } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { BiSearch } from 'react-icons/bi';
 import BottomBarItem from '../bottomBarItem/BottomBarItem';
 
 export default function GuestBottomBar() {
@@ -11,6 +12,7 @@ export default function GuestBottomBar() {
           title="Explore"
           icon={MdOutlineEmojiNature}
         />
+        <BottomBarItem href="/search" title="Search" icon={BiSearch} />
         <BottomBarItem href="/login" title="Log in" icon={<Avatar />} />
       </Group>
     </AppShellFooter>
