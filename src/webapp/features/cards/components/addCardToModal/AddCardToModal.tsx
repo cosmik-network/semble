@@ -1,6 +1,6 @@
 import type { UrlCard } from '@semble/types';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { Modal, Stack, Text } from '@mantine/core';
+import { Modal, Stack } from '@mantine/core';
 import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
@@ -29,20 +29,6 @@ export default function AddCardToModal(props: Props) {
   const updateCardAssociations = useUpdateCardAssociations(
     props.analyticsContext,
   );
-
-  const count = props.urlLibraryCount ?? 0;
-
-  const subtitle = (() => {
-    if (count === 0) return 'Not saved by anyone yet';
-
-    if (props.isInYourLibrary) {
-      if (count === 1) return 'Saved by you';
-      return `Saved by you and ${count - 1} other${count - 1 > 1 ? 's' : ''}`;
-    } else {
-      if (count === 1) return 'Saved by 1 person';
-      return `Saved by ${count} people`;
-    }
-  })();
 
   const handleSubmit = (data: {
     isAddingNewCard: boolean;
@@ -100,14 +86,7 @@ export default function AddCardToModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title={
-        <Stack gap={0}>
-          <Text fw={600}>Add or update</Text>
-          <Text c="gray" fw={500}>
-            {subtitle}
-          </Text>
-        </Stack>
-      }
+      title="Save card"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}
@@ -117,6 +96,8 @@ export default function AddCardToModal(props: Props) {
           url={props.url}
           title={props.cardContent?.title}
           imageUrl={props.cardContent?.imageUrl}
+          libraryCount={props.urlLibraryCount}
+          isInYourLibrary={props.isInYourLibrary}
         />
         <Suspense fallback={<CollectionSelectorSkeleton />}>
           <AddCardToModalContent
