@@ -180,6 +180,8 @@ function Content(props: {
                     'light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-3))',
                   backgroundColor:
                     'light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6))',
+                  borderColor:
+                    'light-dark(var(--mantine-color-blue-2), rgba(35, 175, 237, 0.25))',
                 }}
               >
                 Watch: why we're building Semble
