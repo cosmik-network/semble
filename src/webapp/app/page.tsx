@@ -277,17 +277,7 @@ function Content(props: {
                     create something entirely new.
                   </Text>
                   <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
-                    Use{' '}
-                    <Anchor
-                      href="https://semble.so/profile/semble.so/collections/3mrbbmxuv3m2f"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      c="blue"
-                      inherit
-                    >
-                      community-built plugins and automations
-                    </Anchor>{' '}
-                    or{' '}
+                    Use community-built plugins and automations or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
                       target="_blank"
@@ -301,245 +291,271 @@ function Content(props: {
                   </Text>
                 </Stack>
 
-                <SimpleGrid
-                  cols={{ base: 1, xs: 2 }}
-                  spacing={{ base: 'xs' }}
-                  mt={{ base: '1rem' }}
-                  maw={900}
-                >
-                  <Card
-                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    radius={'lg'}
+                <Stack gap={'md'} align='center'>
+                  <SimpleGrid
+                    cols={{ base: 1, xs: 2 }}
+                    spacing={{ base: 'xs' }}
+                    mt={{ base: '1rem' }}
+                    maw={900}
                   >
-                    <Stack justify="space-between" h="100%">
-                      <IoMdCode
-                        size={28}
-                        color="var(--mantine-color-green-6)"
-                      />
+                    <Card
+                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                      radius={'lg'}
+                    >
+                      <Stack justify="space-between" h="100%">
+                        <IoMdCode
+                          size={28}
+                          color="var(--mantine-color-green-6)"
+                        />
 
-                      <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          API
-                        </Text>
-                        <Text c="dimmed">
-                          Integrate Semble with your own workflow. Showcase your
-                          collections on your website. Build your own client or
-                          something completely new{' '}
-                        </Text>
+                        <Stack gap="xs">
+                          <Text fw={600} fz="lg">
+                            API
+                          </Text>
+                          <Text c="dimmed">
+                            Integrate Semble with your own workflow. Showcase
+                            your collections on your website. Build your own
+                            client or something completely new{' '}
+                          </Text>
 
-                        <Group gap={'xs'} mt="sm">
-                          <Button
-                            component="a"
-                            href="https://docs.cosmik.network/semble-api"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            rightSection={<BiRightArrowAlt size={16} />}
-                          >
-                            API docs
-                          </Button>
-                        </Group>
+                          <Group gap={'xs'} mt="sm">
+                            <Button
+                              component="a"
+                              href="https://docs.cosmik.network/semble-api"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              rightSection={<BiRightArrowAlt size={16} />}
+                            >
+                              API docs
+                            </Button>
+                          </Group>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Card>
+                    </Card>
 
-                  <Card
-                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    radius={'lg'}
-                  >
-                    <Stack justify="space-between" h="100%">
-                      <PiPlugsConnectedFill
-                        size={28}
-                        color="var(--mantine-color-green-6)"
-                      />
+                    <Card
+                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                      radius={'lg'}
+                    >
+                      <Stack justify="space-between" h="100%">
+                        <PiPlugsConnectedFill
+                          size={28}
+                          color="var(--mantine-color-green-6)"
+                        />
 
-                      <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          Plugins
-                        </Text>
-                        <Text c="dimmed">
-                          Community-built plugins and automations — sync your
-                          links to Zotero, or use Airglow to sync your Bluesky
-                          follows and save links from posts you've liked
-                        </Text>
+                        <Stack gap="xs">
+                          <Text fw={600} fz="lg">
+                            Plugins
+                          </Text>
+                          <Text c="dimmed">
+                            Community-built plugins and automations — sync your
+                            links to Zotero, or use Airglow to sync your Bluesky
+                            follows and save links from posts you've liked
+                          </Text>
 
-                        <Group gap={'xs'} mt="sm">
-                          <Button
-                            component="a"
-                            href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            leftSection={
-                              <Image
-                                src={ZoteroIcon.src}
-                                alt=""
-                                w={14}
-                                h={14}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Zotero plugin
-                          </Button>
-                          <Button
-                            component="a"
-                            href="https://airglow.run/automations/all?q=semble"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            leftSection={
-                              <Image
-                                src={AirglowIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Airglow automations
-                          </Button>
-                        </Group>
+                          <Group gap={'xs'} mt="sm">
+                            <Button
+                              component="a"
+                              href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              leftSection={
+                                <Image
+                                  src={ZoteroIcon.src}
+                                  alt=""
+                                  w={14}
+                                  h={14}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Zotero plugin
+                            </Button>
+                            <Button
+                              component="a"
+                              href="https://airglow.run/automations/all?q=semble"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              leftSection={
+                                <Image
+                                  src={AirglowIcon.src}
+                                  alt=""
+                                  w={16}
+                                  h={16}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Airglow automations
+                            </Button>
+                          </Group>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Card>
+                    </Card>
 
-                  <Card
-                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    radius={'lg'}
-                  >
-                    <Stack justify="space-between" h="100%">
-                      <IoMdColorWand
-                        size={28}
-                        color="var(--mantine-color-green-6)"
-                      />
+                    <Card
+                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                      radius={'lg'}
+                    >
+                      <Stack justify="space-between" h="100%">
+                        <IoMdColorWand
+                          size={28}
+                          color="var(--mantine-color-green-6)"
+                        />
 
-                      <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          MCP
-                        </Text>
-                        <Text c="dimmed">
-                          Connect Semble to Claude and other AI tools over MCP.
-                          Ask your library questions and act on it right in your
-                          assistant
-                        </Text>
+                        <Stack gap="xs">
+                          <Text fw={600} fz="lg">
+                            MCP
+                          </Text>
+                          <Text c="dimmed">
+                            Connect Semble to Claude and other AI tools over
+                            MCP. Ask your library questions and act on it right
+                            in your assistant
+                          </Text>
 
-                        <Group gap={'xs'} mt="sm">
-                          <Button
-                            component="a"
-                            href="https://docs.cosmik.network/semble-mcp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            leftSection={
-                              <Image
-                                src={ClaudeIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Claude plugin
-                          </Button>
-                        </Group>
+                          <Group gap={'xs'} mt="sm">
+                            <Button
+                              component="a"
+                              href="https://docs.cosmik.network/semble-mcp"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              leftSection={
+                                <Image
+                                  src={ClaudeIcon.src}
+                                  alt=""
+                                  w={16}
+                                  h={16}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Claude plugin
+                            </Button>
+                          </Group>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Card>
+                    </Card>
 
-                  <Card
-                    bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                    radius={'lg'}
-                  >
-                    <Stack justify="space-between" h="100%">
-                      <PiPuzzlePieceBold
-                        size={28}
-                        color="var(--mantine-color-green-6)"
-                      />
+                    <Card
+                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
+                      radius={'lg'}
+                    >
+                      <Stack justify="space-between" h="100%">
+                        <PiPuzzlePieceBold
+                          size={28}
+                          color="var(--mantine-color-green-6)"
+                        />
 
-                      <Stack gap="xs">
-                        <Text fw={600} fz="lg">
-                          Web extension
-                        </Text>
+                        <Stack gap="xs">
+                          <Text fw={600} fz="lg">
+                            Web extension
+                          </Text>
 
-                        <Text c="dimmed">
-                          Save from anywhere. Organize your links. Find related
-                          content. Discover new connections
-                        </Text>
+                          <Text c="dimmed">
+                            Save from anywhere. Organize your links. Find
+                            related content. Discover new connections
+                          </Text>
 
-                        <Group gap={'xs'} mt="sm">
-                          <Button
-                            component="a"
-                            href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            leftSection={
-                              <Image
-                                src={ChromeIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Chrome
-                          </Button>
-                          <Button
-                            component="a"
-                            href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            leftSection={
-                              <Image
-                                src={FirefoxIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Firefox
-                          </Button>
-                          <Button
-                            size="compact-sm"
-                            radius="xl"
-                            variant="default"
-                            disabled
-                            leftSection={
-                              <Image
-                                src={SafariIcon.src}
-                                alt=""
-                                w={16}
-                                h={16}
-                                fit="contain"
-                              />
-                            }
-                          >
-                            Safari coming soon
-                          </Button>
-                        </Group>
+                          <Group gap={'xs'} mt="sm">
+                            <Button
+                              component="a"
+                              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              leftSection={
+                                <Image
+                                  src={ChromeIcon.src}
+                                  alt=""
+                                  w={16}
+                                  h={16}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Chrome
+                            </Button>
+                            <Button
+                              component="a"
+                              href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              leftSection={
+                                <Image
+                                  src={FirefoxIcon.src}
+                                  alt=""
+                                  w={16}
+                                  h={16}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Firefox
+                            </Button>
+                            <Button
+                              size="compact-sm"
+                              radius="xl"
+                              variant="default"
+                              disabled
+                              leftSection={
+                                <Image
+                                  src={SafariIcon.src}
+                                  alt=""
+                                  w={16}
+                                  h={16}
+                                  fit="contain"
+                                />
+                              }
+                            >
+                              Safari coming soon
+                            </Button>
+                          </Group>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Card>
-                </SimpleGrid>
+                    </Card>
+                  </SimpleGrid>
+
+                  <Text fw={500} fz="sm" c="gray" ta="center" maw={400}>
+                    See what people are building in the{' '}
+                    <Anchor
+                      href="https://semble.so/profile/semble.so/collections/3mrbbmxuv3m2f"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="blue"
+                      inherit
+                    >
+                      Community Contributions
+                    </Anchor>{' '}
+                    and{' '}
+                    <Anchor
+                      href="https://semble.so/profile/cosmik.network/collections/3m55qi4wrlr2h"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="blue"
+                      inherit
+                    >
+                      Community Tinkering
+                    </Anchor>{' '}
+                    collections
+                  </Text>
+                </Stack>
               </Stack>
 
               <Stack align="center" gap={'xs'}>
