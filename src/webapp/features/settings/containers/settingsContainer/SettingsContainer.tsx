@@ -1,6 +1,7 @@
 import { ButtonGroup, Container, Stack } from '@mantine/core';
 import AccountSummary from '../../components/accountSummary/AccountSummary';
 import SettingItem from '../../components/settingItem/SettingItem';
+import SettingItemGroup from '../../components/settingItemGroup/SettingItemGroup';
 import {
   IoMdColorPalette,
   IoMdHelpCircle,
@@ -47,7 +48,10 @@ export default async function SettingsContainer() {
               Data sync
             </SettingItem>*/}
           </ButtonGroup>
-          <ButtonGroup orientation="vertical">
+          <SettingItemGroup
+            label="Install"
+            icon={<MdOutlineInstallMobile size={26} />}
+          >
             <SettingItem
               href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
               openInNewTab
@@ -83,7 +87,7 @@ export default async function SettingsContainer() {
             >
               Install the app
             </SettingItem>
-          </ButtonGroup>
+          </SettingItemGroup>
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
               Help
