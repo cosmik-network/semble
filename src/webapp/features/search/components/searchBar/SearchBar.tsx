@@ -52,6 +52,7 @@ export default function SearchBar(props: Props) {
   return (
     <Card pr="6" py="6" radius="lg" w="100%" withBorder>
       <form
+        role="search"
         onSubmit={(e) => {
           e.preventDefault();
           if (search) onSearch();
@@ -60,6 +61,7 @@ export default function SearchBar(props: Props) {
         <Group gap="xs" justify="space-between" wrap="nowrap" w="100%">
           <TextInput
             ref={inputRef}
+            aria-label="Search"
             variant="unstyled"
             placeholder={getPlaceholderText()}
             flex={1}

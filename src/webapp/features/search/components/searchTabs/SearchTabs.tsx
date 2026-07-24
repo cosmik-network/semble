@@ -6,23 +6,21 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import { MdOutlinePeopleAlt } from 'react-icons/md';
 import SearchBar from '../searchBar/SearchBar';
 import SearchTabItem from '../searchTabItem/SearchTabItem';
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 
 export default function SearchTabs() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const router = useRouter();
 
   const query = searchParams.get('query') || '';
 
+  // Derived from the pathname on every render, so browser back/forward and any
+  // navigation that doesn't originate from a tab click stay in sync.
   const activeTab = pathname.includes('/collections')
     ? 'collections'
     : pathname.includes('/profiles')
       ? 'profiles'
       : 'cards';
-
-  const [optimisticTab, setOptimisticTab] = useState(activeTab);
 
   const buildTabHref = (tabValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -30,18 +28,10 @@ export default function SearchTabs() {
   };
 
   return (
-    <Tabs
-      value={optimisticTab}
-      keepMounted={false}
-      onChange={(value) => {
-        if (!value || value === activeTab) return;
-
-        setOptimisticTab(value);
-        router.push(buildTabHref(value));
-      }}
-    >
+    <Tabs value={activeTab} keepMounted={false}>
       <Stack gap="xs">
-        <SearchBar query={query} />
+        {/* remount on query change so the input never shows a stale value */}
+        <SearchBar key={query} query={query} />
 
         <TabsList>
           <Scroller>
@@ -49,16 +39,19 @@ export default function SearchTabs() {
               <SearchTabItem
                 value="cards"
                 label="Cards"
+                href={buildTabHref('cards')}
                 icon={<FaRegNoteSticky />}
               />
               <SearchTabItem
                 value="collections"
                 label="Collections"
+                href={buildTabHref('collections')}
                 icon={<BiCollection />}
               />
               <SearchTabItem
                 value="profiles"
                 label="Profiles"
+                href={buildTabHref('profiles')}
                 icon={<MdOutlinePeopleAlt />}
               />
             </Group>
