@@ -74,7 +74,7 @@ export default async function ProfileHeader(props: Props) {
                 }}
               />
               <Group gap={'xs'}>
-                {profile.id !== session?.did && (
+                {props.handle !== session?.handle && (
                   <FollowActions
                     targetId={profile.id}
                     targetType="USER"
