@@ -72,7 +72,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
       <Stack gap="xl">
         <Stack gap={'sm'} h={COLLECTION_PANEL_HEIGHT}>
           <TextInput
-            placeholder="Search for collections"
+            placeholder="Search or create a collection"
             value={search}
             onChange={(e) => setSearch(e.currentTarget.value)}
             size="md"
@@ -90,17 +90,19 @@ export default function CollectionSelectorMyCollections(props: Props) {
 
           <CollectionListScrollArea>
             <Stack gap="xxs">
-              <Button
-                variant="light"
-                color="grape"
-                radius="md"
-                leftSection={<FiPlus size={22} />}
-                onClick={() => setIsDrawerOpen(true)}
-              >
-                {search
-                  ? `Create new collection "${search}"`
-                  : 'Create new collection'}
-              </Button>
+              {(search || !hasCollections) && (
+                <Button
+                  variant="light"
+                  color="grape"
+                  radius="md"
+                  leftSection={<FiPlus size={22} />}
+                  onClick={() => setIsDrawerOpen(true)}
+                >
+                  {search
+                    ? `Create new collection "${search}"`
+                    : 'Create new collection'}
+                </Button>
+              )}
 
               {search ? (
                 <Stack gap={'xxs'}>
