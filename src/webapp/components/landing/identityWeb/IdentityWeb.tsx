@@ -2,7 +2,7 @@ import { Avatar, Text } from '@mantine/core';
 import MarginLogo from '@/assets/margin-logo.svg';
 import SembleIcon from '@/assets/icon.svg';
 import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
-import LeafletIcon from '@/assets/icons/leaflet-icon.png';
+import LeafletIcon from '@/assets/icons/leaflet-icon.webp';
 import BlackskyLogo from '@/assets/icons/blacksky-logo.svg';
 import BlackskyLogoWhite from '@/assets/icons/blacksky-logo-white.svg';
 import AnisotaLogo from '@/assets/icons/anisota-logo.svg';

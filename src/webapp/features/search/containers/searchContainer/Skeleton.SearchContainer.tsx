@@ -1,6 +1,6 @@
 import { BackgroundImage, Center, Loader, Stack } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
-import DarkBG from '@/assets/semble-bg-dark.png';
+import DarkBG from '@/assets/semble-bg-dark.webp';
 
 export default function SearchContainerSkeleton() {
   return (

@@ -14,8 +14,8 @@ import { FaBluesky, FaDiscord, FaGithub } from 'react-icons/fa6';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
-import FooterBG from '@/assets/footer-bg.png';
-import FooterDarkBG from '@/assets/footer-bg-dark.png';
+import FooterBG from '@/assets/footer-bg.webp';
+import FooterDarkBG from '@/assets/footer-bg-dark.webp';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 
 export default function Footer() {
