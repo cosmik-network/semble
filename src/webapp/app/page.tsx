@@ -291,7 +291,7 @@ function Content(props: {
                   </Text>
                 </Stack>
 
-                <Stack gap={'md'} align='center'>
+                <Stack gap={'md'} align="center">
                   <SimpleGrid
                     cols={{ base: 1, xs: 2 }}
                     spacing={{ base: 'xs' }}
