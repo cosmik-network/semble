@@ -16,16 +16,20 @@ import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import FooterBG from '@/assets/footer-bg.webp';
 import FooterDarkBG from '@/assets/footer-bg-dark.webp';
-import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 import ThemeToggle from '@/components/landing/themeToggle/ThemeToggle';
+import BlogUpdates from '../blogUpdates/BlogUpdates';
 
 export default function Footer() {
+  // mt={0}: the blog + subscribe block above this is meant to read as the
+  // footer's top band, so the only space between them is this Box's top padding
+  // — which falls inside the top fade below, where the background is still body
+  // colour rather than the photo.
   return (
     <Box
       component="footer"
       pt={{ base: '3rem', md: '5rem' }}
       pb={'0'}
-      mt="xl"
+      mt={0}
       pos="relative"
       style={{
         overflow: 'hidden',
@@ -35,6 +39,10 @@ export default function Footer() {
         justifyContent: 'flex-end',
       }}
     >
+      <Box pos="relative" style={{ zIndex: 1 }}>
+        <BlogUpdates />
+      </Box>
+
       {/* light mode bg */}
       <BackgroundImage
         src={FooterBG.src}
@@ -92,9 +100,6 @@ export default function Footer() {
 
       <Container size="xl" p="sm" w="100%" pos="relative" style={{ zIndex: 1 }}>
         <Stack align="center" gap="xs">
-          <Box mb="xl">
-            <EmailSubscribe />
-          </Box>
           <Group gap="0">
             <ActionIcon
               component="a"
