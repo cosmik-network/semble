@@ -91,13 +91,14 @@ const FAQS: {
 ];
 
 export default function FAQ() {
-  const [value, setValue] = useState<string | null>(null);
+  const [value, setValue] = useState<string[]>([]);
 
   useEffect(() => {
     const openFromHash = () => {
       const hash = window.location.hash.replace('#', '');
       if (FAQS.some((faq) => faq.value === hash)) {
-        setValue(hash);
+        // Add to the open set so deep-linking never collapses other items
+        setValue((v) => (v.includes(hash) ? v : [...v, hash]));
       }
     };
     openFromHash();
@@ -107,11 +108,13 @@ export default function FAQ() {
 
   return (
     <Accordion
+      multiple
       value={value}
       onChange={setValue}
       variant="separated"
       chevronPosition="right"
       disableChevronRotation
+      transitionDuration={200}
       radius="lg"
       w="100%"
       maw={560}
@@ -136,7 +139,11 @@ export default function FAQ() {
         >
           <Accordion.Control
             chevron={
-              value === faq.value ? <FiMinus size={22} /> : <FiPlus size={22} />
+              value.includes(faq.value) ? (
+                <FiMinus size={22} />
+              ) : (
+                <FiPlus size={22} />
+              )
             }
           >
             {faq.question}
