@@ -1,5 +1,6 @@
 import { Group, TextInput, Button, Card } from '@mantine/core';
 import { COSMIK_BLOG_PUBLICATION_URI } from '@/features/platforms/leaflet/lib/blog';
+import styles from './EmailSubscribe.module.css';
 
 export default function EmailSubscribe() {
   // 3px so the pill hugs the Subscribe button — same reasoning as the hero's
@@ -16,9 +17,10 @@ export default function EmailSubscribe() {
             name="publication"
             value={COSMIK_BLOG_PUBLICATION_URI}
           />
-          {/* size="xs" shrinks height + padding, but font-size is pinned to
-              16px: below that, iOS Safari zooms the whole page when the field
-              takes focus. size alone would drag it down to 12px. */}
+          {/* size="xs" shrinks height + padding but would also drag the font
+              down to 12px, so the CSS module pins it: 14px on desktop, 16px on
+              touch devices, where anything smaller makes iOS Safari zoom the
+              page on focus. */}
           {/* miw={0} overrides the flex-item min-width:auto floor (~an input's
               20-char intrinsic width) so the field, not the pill, is what
               shrinks on narrow screens. */}
@@ -33,7 +35,7 @@ export default function EmailSubscribe() {
             mx={6}
             flex={1}
             miw={0}
-            styles={{ input: { fontSize: 14 } }}
+            classNames={{ input: styles.input }}
           />
           <Button type="submit" size="xs" flex="0 0 auto">
             Subscribe
