@@ -14,7 +14,7 @@ export default function TrailStop(props: {
   children: ReactNode;
 }) {
   return (
-    <div className={styles.stop} data-index={props.index}>
+    <div className={styles.stop} data-index={props.index} data-trail-reveal>
       <Text className={styles.label} c="dimmed" fw={700}>
         {props.label}
       </Text>

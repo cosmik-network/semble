@@ -18,6 +18,8 @@
   max-width: 400px;
   margin: 0 auto;
   padding-top: 1.5rem;
+  /* How much of the line is drawn (0–1); set on scroll by KnowledgeTrail.tsx. */
+  --trail-progress: 0;
 }
 
 /*
@@ -53,6 +55,7 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
+  transform: rotate(var(--tilt, 0deg));
 }
 
 .label {
@@ -91,18 +94,22 @@
 
 /* Give each stop (label + preview card) a slight, alternating tilt so the trail
    feels hand-placed rather than rigidly aligned. The final URL card is
-   intentionally left upright. */
+   intentionally left upright.
+
+   The angle is held in `--tilt` (consumed by `.stop` above) rather than applied
+   directly, so the scroll reveal below can add its own translate without
+   clobbering the rotation. */
 .stop[data-index='1'] {
-  transform: rotate(-1deg);
+  --tilt: -1deg;
 }
 .stop[data-index='2'] {
-  transform: rotate(0.75deg);
+  --tilt: 0.75deg;
 }
 .stop[data-index='3'] {
-  transform: rotate(-0.75deg);
+  --tilt: -0.75deg;
 }
 .stop[data-index='4'] {
-  transform: rotate(1deg);
+  --tilt: 1deg;
 }
 
 .finalCard {
@@ -110,7 +117,7 @@
   z-index: 1;
   width: 100%;
   max-width: 460px;
-  margin: calc(12rem) auto 0 auto;
+  margin: calc(9rem) auto 0 auto;
 }
 
 /* Closing caption — lives outside `.trail` so the dashed line ends at the card
@@ -139,22 +146,22 @@
   .stop[data-index='1'] {
     grid-column: 1;
     grid-row: 1;
-    transform: rotate(-2deg);
+    --tilt: -2deg;
   }
   .stop[data-index='2'] {
     grid-column: 2;
     grid-row: 2;
-    transform: rotate(1.5deg);
+    --tilt: 1.5deg;
   }
   .stop[data-index='3'] {
     grid-column: 1;
     grid-row: 3;
-    transform: rotate(-1.5deg);
+    --tilt: -1.5deg;
   }
   .stop[data-index='4'] {
     grid-column: 2;
     grid-row: 4;
-    transform: rotate(2deg);
+    --tilt: 2deg;
   }
   .finalCard {
     grid-column: 1 / -1;
@@ -164,4 +171,51 @@
   /* Each stop (label + component) is centered within its half so the label
      sits centered over its component, matching the design mock. `.left` /
      `.right` only pick the column (set above via data-index). */
+}
+
+/* ---- Scroll-driven reveal ----
+   Gated on `data-animate`, set on mount, so no-JS and reduced-motion get the
+   trail fully drawn. The 90px gradient tail softens the line's leading edge. */
+.trail[data-animate='true'] .line {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--trail-progress) * 100%),
+    transparent calc(var(--trail-progress) * 100% + 90px)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--trail-progress) * 100%),
+    transparent calc(var(--trail-progress) * 100% + 90px)
+  );
+}
+
+/* Stops start slightly low and transparent, then settle as they scroll in.
+   `--tilt` is preserved so the hand-placed rotation survives the animation. */
+.trail[data-animate='true'] .stop,
+.trail[data-animate='true'] .finalCard {
+  opacity: 0;
+  transform: translateY(20px) rotate(var(--tilt, 0deg));
+  transition:
+    opacity 550ms ease,
+    transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.trail[data-animate='true'] .stop[data-revealed='true'],
+.trail[data-animate='true'] .finalCard[data-revealed='true'] {
+  opacity: 1;
+  transform: translateY(0) rotate(var(--tilt, 0deg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trail[data-animate='true'] .line {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .trail[data-animate='true'] .stop,
+  .trail[data-animate='true'] .finalCard {
+    opacity: 1;
+    transform: rotate(var(--tilt, 0deg));
+    transition: none;
+  }
 }
