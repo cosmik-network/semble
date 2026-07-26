@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar, Box, Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Box, Card, Group } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import classes from './AuthButtons.module.css';
@@ -35,31 +35,29 @@ export default function AuthButtons() {
 }
 
 function UnauthenticatedButtons() {
+  // The pill hugs the Sign up button: 3px of padding on its side, more on the
+  // right so the bare link isn't crowded against the border. Padding on the
+  // button's side any larger and the pill reads chunky rather than snug.
   return (
-    <Card radius={'50'} py={'xxs'} pl={'xxs'} pr={'md'} withBorder>
-      <Group gap="md">
+    <Card radius={999} py={3} pl={3} pr={'sm'} withBorder>
+      <Group gap="sm">
         <LinkButton href="/signup" size="md">
           Sign up
         </LinkButton>
-        <Stack gap={0}>
-          <Text fw={600} fz={'sm'} c={'gray'}>
-            Want to look first?
-          </Text>
-          <LinkAnchor
-            href="/explore"
-            target="_blank"
-            rel="noopener noreferrer"
-            fw={600}
-            fz={'sm'}
-            underline="never"
-            className={classes.exploreLink}
-          >
-            <Group gap={4} wrap="nowrap" align="center">
-              Explore
-              <BiRightArrowAlt size={16} />
-            </Group>
-          </LinkAnchor>
-        </Stack>
+        <LinkAnchor
+          href="/explore"
+          target="_blank"
+          rel="noopener noreferrer"
+          fw={600}
+          fz={'sm'}
+          underline="never"
+          className={classes.exploreLink}
+        >
+          <Group gap={4} wrap="nowrap" align="center">
+            Explore first
+            <BiRightArrowAlt size={16} />
+          </Group>
+        </LinkAnchor>
       </Group>
     </Card>
   );
