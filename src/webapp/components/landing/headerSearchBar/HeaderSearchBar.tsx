@@ -45,7 +45,8 @@ export default function HeaderSearchBar() {
   };
 
   return (
-    <Card pr="4" py="2" pl="xs" radius="lg" w="100%" withBorder>
+    /* 30px `xs` input + the card's 1px top/bottom border = 32px tall. */
+    <Card pr={3} py={0} pl="xs" radius="xl" w="100%" withBorder>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -57,7 +58,7 @@ export default function HeaderSearchBar() {
             <TextInput
               variant="unstyled"
               flex={1}
-              size="md"
+              size="xs"
               value={search}
               onChange={(e) => setSearch(e.currentTarget.value)}
             />
@@ -65,8 +66,8 @@ export default function HeaderSearchBar() {
               <Text
                 pos="absolute"
                 inset={0}
-                fz="md"
-                fw={600}
+                fz="sm"
+                fw={500}
                 c="dimmed"
                 lineClamp={1}
                 style={{
@@ -92,7 +93,7 @@ export default function HeaderSearchBar() {
           </Box>
           <ActionIcon
             type="submit"
-            size="lg"
+            size={26}
             radius="xl"
             disabled={!search}
             loading={isPending}
@@ -101,7 +102,7 @@ export default function HeaderSearchBar() {
               posthog.capture('Search: header search button clicked');
             }}
           >
-            <IoSearch size={20} />
+            <IoSearch size={14} />
           </ActionIcon>
         </Group>
       </form>
