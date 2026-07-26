@@ -1,5 +1,9 @@
 .main {
   overscroll-behavior: none;
+  /* Chrome's scroll anchoring compensates frame-by-frame while a collapse
+     animates open, scrolling the page down and dragging the clicked element
+     (e.g. an FAQ question) upward out of view. */
+  overflow-anchor: none;
 }
 
 .option {
