@@ -25,35 +25,49 @@
   );
 }
 
-/* Var-driven scatter with per-instance scale (via width), rotation and flip. */
+/* Var-driven scatter with per-instance size (--w), rotation, flip and scale.
+   --s is the only knob the media query touches, so the transform is authored
+   once and can't drift between breakpoints. */
 .item {
+  --s: 1;
   position: absolute;
   left: var(--x);
   top: var(--y);
   transform: translate(-50%, -50%) rotate(var(--rot, 0deg))
-    scaleX(var(--flip, 1));
+    scaleX(var(--flip, 1)) scale(var(--s));
 }
 
 /* A blurred foliage silhouette reads as a soft, dappled cast shadow. Light mode:
-   warm brown/sepia at very low alpha (shadow on the light bg). Dark mode: faint
-   cool light at very low alpha (light filtering through canopy). */
+   warm brown/sepia at low alpha (shadow on the light bg). Dark mode: faint cool
+   light at low alpha (light filtering through canopy).
+
+   The blur is a fraction of --w rather than a fixed px: these silhouettes are
+   1160-1560px wide, so a flat 8px was ~0.5% of the artwork and barely softened
+   the leaf edges at all. At ~1.2% the gaps between leaf blobs smear into actual
+   dappling, which is the whole effect. Spreading the ink that far drops the peak
+   alpha, so the base alpha goes up to compensate — the previous 0.035 landed
+   ~6/255 off the page background, faint enough to band on 8-bit displays. */
 .branch {
   display: block;
   width: var(--w, 440px);
+  /* explicit, so sizing never depends on intrinsic-ratio resolution of the SVG */
+  aspect-ratio: 1;
   height: auto;
-  color: light-dark(rgba(88, 64, 41, 0.035), rgba(214, 226, 255, 0.03));
-  filter: blur(8px);
+  color: light-dark(rgba(88, 64, 41, 0.07), rgba(214, 226, 255, 0.055));
+  filter: blur(calc(var(--w, 440px) * 0.012));
 }
 
 /* Gutters shrink on small screens: rather than dropping the branches, scale them
    down so the large gutter silhouettes stay subtle instead of dominating the
-   narrow viewport. Blur stays constant, so scaled-down branches read even softer. */
+   narrow viewport. The transform scales the already-filtered result, so the blur
+   shrinks with the artwork and the softness reads identically — the branches get
+   smaller, not softer. Alpha is trimmed separately to keep them subtle on a
+   narrow viewport, where they cover proportionally more of the screen. */
 @media (max-width: 48em) {
   .item {
-    transform: translate(-50%, -50%) rotate(var(--rot, 0deg))
-      scaleX(var(--flip, 1)) scale(0.5);
+    --s: 0.5;
   }
   .branch {
-    color: light-dark(rgba(88, 64, 41, 0.03), rgba(214, 226, 255, 0.025));
+    color: light-dark(rgba(88, 64, 41, 0.06), rgba(214, 226, 255, 0.045));
   }
 }
