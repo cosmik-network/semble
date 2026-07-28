@@ -40,7 +40,11 @@ export default function ThemeToggle() {
       color="white"
       radius="xl"
       size="xl"
-      aria-label={`Color scheme: ${current}. Switch to ${next}`}
+      aria-label={
+        mounted
+          ? `Color scheme: ${current}. Switch to ${next}`
+          : 'Change color scheme'
+      }
     >
       {mounted ? (
         <Icon size={22} />
