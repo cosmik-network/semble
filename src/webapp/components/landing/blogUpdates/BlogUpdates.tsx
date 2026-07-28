@@ -1,8 +1,9 @@
-import { Anchor, Divider, Group, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Group, Stack, Text, Title } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
 import { FiArrowUpRight } from 'react-icons/fi';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 import { getCosmikBlogPosts } from '@/features/platforms/leaflet/lib/dal';
+import styles from './BlogUpdates.module.css';
 
 const POST_COUNT = 3;
 
@@ -49,40 +50,42 @@ async function BlogPosts() {
       {/* mb on the list rather than mt on the form: the form has to keep its
           own spacing when there are no posts and this block doesn't render. */}
       <Stack gap={0} w="100%" mb="lg">
-        {posts.map((post, index) => (
-          <Fragment key={post.url}>
-            {/* No color: Divider's default is the theme's border colour, which
-                already tracks the colour scheme. */}
-            {index > 0 && <Divider />}
-            <Anchor
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              display="block"
-              py="xs"
-              c="bright"
-              underline="hover"
-            >
-              {/* The date is nowrap and sits opposite the title, so a long title
-                  wraps against it instead of pushing it off. */}
-              <Group justify="space-between" wrap="nowrap" gap="md">
-                <Text fw={600} fz="sm" lh={1.35}>
-                  {post.title}
+        {posts.map((post) => (
+          <Anchor
+            key={post.url}
+            className={styles.link}
+            href={post.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            display="block"
+            py="xs"
+            c="bright"
+            underline="hover"
+          >
+            {/* The date is nowrap and sits opposite the title, so a long title
+                wraps against it instead of pushing it off. */}
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text fw={600} fz="sm" lh={1.35}>
+                {post.title}
+              </Text>
+              <Group gap={6} wrap="nowrap" flex="0 0 auto">
+                <Text
+                  fw={600}
+                  fz="xs"
+                  c="dimmed"
+                  component="time"
+                  dateTime={post.publishedAt}
+                >
+                  {formatPublishedAt(post.publishedAt)}
                 </Text>
-                <Group gap={6} wrap="nowrap" flex="0 0 auto">
-                  <Text
-                    fw={600}
-                    fz="xs"
-                    c="dimmed"
-                    component="time"
-                    dateTime={post.publishedAt}
-                  >
-                    {formatPublishedAt(post.publishedAt)}
-                  </Text>
-                </Group>
+                <FiArrowUpRight
+                  className={styles.arrow}
+                  size={14}
+                  aria-hidden="true"
+                />
               </Group>
-            </Anchor>
-          </Fragment>
+            </Group>
+          </Anchor>
         ))}
       </Stack>
     </Fragment>

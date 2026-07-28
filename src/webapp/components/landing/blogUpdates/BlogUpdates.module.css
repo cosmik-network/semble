@@ -1,0 +1,16 @@
+/* No border and no surface: the footer paints a photo behind this block, and a
+   card outline cuts across it. Spacing alone separates the rows. */
+
+/* Sits at rest, leans out on hover — the only cue that the link leaves the
+   site, so it stays visible (not hidden) when the pointer is elsewhere. */
+.arrow {
+  opacity: 0.5;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+
+.link:hover .arrow {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
