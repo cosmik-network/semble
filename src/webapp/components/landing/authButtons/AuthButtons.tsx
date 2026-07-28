@@ -39,7 +39,7 @@ function UnauthenticatedButtons() {
   // right so the bare link isn't crowded against the border. Padding on the
   // button's side any larger and the pill reads chunky rather than snug.
   return (
-    <Card radius={999} py={3} pl={3} pr={'sm'} withBorder>
+    <Card radius={999} p={'xxs'} pr={'sm'} withBorder>
       <Group gap="sm">
         <LinkButton href="/signup" size="md">
           Sign up
@@ -53,7 +53,7 @@ function UnauthenticatedButtons() {
           underline="never"
           className={classes.exploreLink}
         >
-          <Group gap={4} wrap="nowrap" align="center">
+          <Group gap={'xs'} wrap="nowrap" align="center">
             Explore first
             <BiRightArrowAlt size={16} />
           </Group>
