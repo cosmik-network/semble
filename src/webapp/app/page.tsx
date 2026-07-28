@@ -130,7 +130,17 @@ export default async function Page() {
   }));
 
   return (
-    <Box component="section" pos="relative" h="100svh" w="100%">
+    // overflowAnchor: Chrome's scroll anchoring compensates frame-by-frame while
+    // a collapse animates open, dragging the clicked FAQ question up out of
+    // view. Scoped to this page rather than <body> — the feeds need anchoring to
+    // hold position while off-screen cards resolve and resize.
+    <Box
+      component="section"
+      pos="relative"
+      h="100svh"
+      w="100%"
+      style={{ overflowAnchor: 'none' }}
+    >
       {/* light mode bg */}
       <BackgroundImage src={BG.src} darkHidden h="100svh" pos={'absolute'} />
 
