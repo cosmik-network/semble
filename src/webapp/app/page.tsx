@@ -85,10 +85,11 @@ const testimonials = [
     postUrl: 'https://bsky.app/profile/vicwalker.dev.br/post/3mk2guqehac23',
   },
   {
-    name: 'Thoth',
-    handle: 'thoth.ptnote.dev',
-    quote: 'Memex 2 is happening.',
-    postUrl: 'https://bsky.app/profile/thoth.ptnote.dev/post/3mj3owskr6s2t',
+    name: 'Rafael M Batista',
+    handle: 'rafmbatista.bsky.social',
+    quote: `Products like @margin.at and @semble.so have the potential to change scientific publishing as we know it today. These are early-stage products but they're clearly ahead of the curve when it comes to new ways to organize and share knowledge.`,
+    postUrl:
+      'https://bsky.app/profile/rafmbatista.bsky.social/post/3mrknotr77s2l',
   },
 ];
 
