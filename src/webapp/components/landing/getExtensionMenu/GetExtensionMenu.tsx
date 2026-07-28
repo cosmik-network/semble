@@ -8,10 +8,7 @@ export default function GetExtensionMenu() {
   return (
     <Menu shadow="sm">
       <Menu.Target>
-        {/* `fz`/`fw` match the adjacent `size="sm"` header buttons — Anchor's
-            default `md` (16px) left this link a step larger than everything
-            else in the bar. */}
-        <Anchor component="button" fz="sm" fw={600} c="bright">
+        <Anchor component="button" fw={500} c="bright">
           Get Extension
         </Anchor>
       </Menu.Target>
