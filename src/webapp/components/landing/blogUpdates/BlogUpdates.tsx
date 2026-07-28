@@ -1,5 +1,6 @@
 import { Anchor, Divider, Group, Stack, Text, Title } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
+import { FiArrowUpRight } from 'react-icons/fi';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 import { getCosmikBlogPosts } from '@/features/platforms/leaflet/lib/dal';
 
@@ -42,13 +43,17 @@ async function BlogPosts() {
   return (
     <Fragment>
       <Title order={3} fz="lg" ta="center">
-        Hear from the team
+        Notes from the team
       </Title>
 
-      <Stack gap={0} w="100%">
+      {/* mb on the list rather than mt on the form: the form has to keep its
+          own spacing when there are no posts and this block doesn't render. */}
+      <Stack gap={0} w="100%" mb="lg">
         {posts.map((post, index) => (
           <Fragment key={post.url}>
-            {index > 0 && <Divider color="gray.5" />}
+            {/* No color: Divider's default is the theme's border colour, which
+                already tracks the colour scheme. */}
+            {index > 0 && <Divider />}
             <Anchor
               href={post.url}
               target="_blank"
@@ -58,21 +63,23 @@ async function BlogPosts() {
               c="bright"
               underline="hover"
             >
-              {/* Date is nowrap and sits opposite the title, so a long title
+              {/* The date is nowrap and sits opposite the title, so a long title
                   wraps against it instead of pushing it off. */}
               <Group justify="space-between" wrap="nowrap" gap="md">
                 <Text fw={600} fz="sm" lh={1.35}>
                   {post.title}
                 </Text>
-                <Text
-                  fz="xs"
-                  c="dimmed"
-                  style={{ whiteSpace: 'nowrap' }}
-                  component="time"
-                  dateTime={post.publishedAt}
-                >
-                  {formatPublishedAt(post.publishedAt)}
-                </Text>
+                <Group gap={6} wrap="nowrap" flex="0 0 auto">
+                  <Text
+                    fw={600}
+                    fz="xs"
+                    c="dimmed"
+                    component="time"
+                    dateTime={post.publishedAt}
+                  >
+                    {formatPublishedAt(post.publishedAt)}
+                  </Text>
+                </Group>
               </Group>
             </Anchor>
           </Fragment>
