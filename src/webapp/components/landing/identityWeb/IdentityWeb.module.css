@@ -93,7 +93,7 @@
   --nudge: 0px;
   --card-ml: 0px;
   --card-ty: 0;
-  --card-align: center;
+  --card-align: left;
   position: absolute;
   left: var(--x);
   top: var(--y);
@@ -281,7 +281,7 @@
   --card-pr: 12px;
   --card-pb: 12px;
   --card-pl: 12px;
-  --card-align: center;
+  --card-align: left;
   --clip-t: 0px;
   --clip-r: calc(var(--card-w) / 2 + var(--nudge) - var(--chip) / 2);
   --clip-b: calc(100% - var(--chip));
@@ -303,7 +303,7 @@
   --card-pr: 12px;
   --card-pb: calc(var(--chip) + 4px);
   --card-pl: 12px;
-  --card-align: center;
+  --card-align: left;
   --clip-t: calc(100% - var(--chip));
   --clip-r: calc(var(--card-w) / 2 + var(--nudge) - var(--chip) / 2);
   --clip-b: 0px;
@@ -415,7 +415,9 @@
     --card-pr: calc(var(--chip) / 2 + 40px);
     --card-pb: 12px;
     --card-pl: 14px;
-    --card-align: right;
+    /* Left-aligned like every other card — the ragged edge falls on the gutter
+       side, which the padding-right already keeps clear of the mark. */
+    --card-align: left;
     --clip-t: calc(50% - var(--chip) / 2);
     --clip-r: 0px;
     --clip-b: calc(50% - var(--chip) / 2);

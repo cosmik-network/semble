@@ -114,7 +114,7 @@ function AppCard({
     <div className={styles.cardWrap} aria-hidden="true">
       <div className={styles.card}>
         <div className={styles.cardBody}>
-          <Text className={styles.cardKind} size="0.6rem" fw={600} c="dimmed">
+          <Text className={styles.cardKind} size="0.6rem" fw={600} c="grape">
             {desc}
           </Text>
           <Text className={styles.cardTagline} size="xs" fw={700} mt={2}>
