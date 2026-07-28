@@ -250,7 +250,7 @@ function Content(props: {
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails
                 </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Save links, connect related ideas, and curate collections on
                   your own or collaboratively.
                 </Text>
@@ -275,11 +275,11 @@ function Content(props: {
                   <Title order={2} ta={'center'} maw={400}>
                     Find your way through the web with the people you trust
                   </Title>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Find high-quality search results powered by the community.
                     Follow and discover interesting curators and collections.
                   </Text>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Tune your notifications to the interactions that matter to
                     you. Explore a living map of the web that you helped create.
                   </Text>
@@ -297,11 +297,11 @@ function Content(props: {
                   <Title order={2} ta={'center'} maw={400}>
                     Your workflow, your way
                   </Title>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Integrate Semble into your existing knowledge workflows or
                     create something entirely new.
                   </Text>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Use community-built plugins and automations or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
@@ -590,7 +590,7 @@ function Content(props: {
                 <Title order={2} ta={'center'} maw={400}>
                   What you make here stays yours
                 </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Semble is built on the{' '}
                   <Anchor component="a" href="#open-social" c="blue" inherit>
                     open social web
@@ -598,7 +598,7 @@ function Content(props: {
                   , so your content, identity, and social connections are owned
                   by you, not us.
                 </Text>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Use them in other apps, build on them however you want, and if
                   you ever decide to leave, take everything with you.
                 </Text>
@@ -779,7 +779,7 @@ function Content(props: {
                     <Title order={2} ta={'center'} maw={400}>
                       What’s the word on Semble?
                     </Title>
-                    <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
+                    <Text fw={500} fz="lg" c="dimmed" ta={'center'}>
                       We put them all in{' '}
                       <Anchor
                         href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"
