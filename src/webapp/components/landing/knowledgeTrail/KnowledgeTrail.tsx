@@ -31,6 +31,19 @@ export default function KnowledgeTrail() {
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    const stops = Array.from(
+      trail.querySelectorAll<HTMLElement>('[data-trail-reveal]'),
+    );
+
+    // Reveal what's on screen before `data-animate` hides the rest, so both
+    // writes land in one task and nothing already painted blinks out.
+    for (const stop of stops) {
+      const rect = stop.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        stop.dataset.revealed = 'true';
+      }
+    }
+
     trail.dataset.animate = 'true';
 
     let frame = 0;
@@ -66,9 +79,9 @@ export default function KnowledgeTrail() {
       { rootMargin: '0px 0px -12% 0px', threshold: 0.25 },
     );
 
-    trail
-      .querySelectorAll('[data-trail-reveal]')
-      .forEach((el) => observer.observe(el));
+    for (const stop of stops) {
+      if (!stop.dataset.revealed) observer.observe(stop);
+    }
 
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
