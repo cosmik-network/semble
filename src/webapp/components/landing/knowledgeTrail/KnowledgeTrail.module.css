@@ -60,7 +60,7 @@
 
 .label {
   position: relative;
-  display: inline-block; /* shrink to text so the halo hugs it; .stop centers it */
+  display: inline-block;
   max-width: 320px;
   line-height: 1.25;
   text-align: center;
@@ -68,11 +68,10 @@
   isolation: isolate;
 }
 
-/* Soft halo so the centered dashed line stays legible behind the label
-   (mainly a mobile concern — on desktop the labels sit off the center line).
-   The trail sits below the hero's background image, over the flat page
-   background, so the halo uses `--mantine-color-body` itself: it's invisible
-   against the background yet opaque enough to mask the dashed trail line. */
+/* In the mobile layout the stops are one centered column and the dashed line
+   runs straight down the middle, behind each label. The halo masks it with
+   `--mantine-color-body`, so the line reads as broken rather than crossed out.
+   Switched off with the two-column layout below. */
 .label::before {
   content: '';
   position: absolute;
@@ -129,6 +128,12 @@
 
 /* ---- Two-column trail (desktop) ---- */
 @media (min-width: 46em) {
+  /* The stops sit in two columns clear of the center line, so the label halo
+     has nothing to mask and only punches a hole in the tree shadows behind it. */
+  .label::before {
+    content: none;
+  }
+
   .trail {
     display: grid;
     grid-template-columns: 1fr 1fr;
