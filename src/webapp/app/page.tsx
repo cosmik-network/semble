@@ -35,7 +35,7 @@ import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
 import GetExtensionMenu from '@/components/landing/getExtensionMenu/GetExtensionMenu';
 import TreeShadows from '@/components/landing/treeShadows/TreeShadows';
-import { Fragment, Suspense } from 'react';
+import { Fragment } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
 import { LinkButton } from '@/components/link/MantineLink';
@@ -47,6 +47,19 @@ import { MdOutlineInstallMobile } from 'react-icons/md';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Script from 'next/script';
+
+// CTA artwork. Drawn as a CSS background rather than an <img> so the browser
+// skips the layer for the inactive colour scheme — a hidden <img> still fetches
+// its src, a background on a display:none element does not.
+const CTA_MASK =
+  'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)';
+const ctaArtwork = (src: string) => ({
+  backgroundImage: `url(${src})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  maskImage: CTA_MASK,
+  WebkitMaskImage: CTA_MASK,
+});
 
 const testimonials = [
   {
@@ -72,10 +85,11 @@ const testimonials = [
     postUrl: 'https://bsky.app/profile/vicwalker.dev.br/post/3mk2guqehac23',
   },
   {
-    name: 'Thoth',
-    handle: 'thoth.ptnote.dev',
-    quote: 'Memex 2 is happening.',
-    postUrl: 'https://bsky.app/profile/thoth.ptnote.dev/post/3mj3owskr6s2t',
+    name: 'Rafael M Batista',
+    handle: 'rafmbatista.bsky.social',
+    quote: `Products like @margin.at and @semble.so have the potential to change scientific publishing as we know it today. These are early-stage products but they're clearly ahead of the curve when it comes to new ways to organize and share knowledge.`,
+    postUrl:
+      'https://bsky.app/profile/rafmbatista.bsky.social/post/3mrknotr77s2l',
   },
 ];
 
@@ -90,7 +104,17 @@ export default async function Page() {
   }));
 
   return (
-    <Box component="section" pos="relative" h="100svh" w="100%">
+    // overflowAnchor: Chrome's scroll anchoring compensates frame-by-frame while
+    // a collapse animates open, dragging the clicked FAQ question up out of
+    // view. Scoped to this page rather than <body> — the feeds need anchoring to
+    // hold position while off-screen cards resolve and resize.
+    <Box
+      component="section"
+      pos="relative"
+      h="100svh"
+      w="100%"
+      style={{ overflowAnchor: 'none' }}
+    >
       {/* light mode bg */}
       <BackgroundImage src={BG.src} darkHidden h="100svh" pos={'absolute'} />
 
@@ -227,7 +251,7 @@ function Content(props: {
                 <Title order={2} ta={'center'} maw={380}>
                   Turn bookmarks into knowledge trails
                 </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Save links, connect related ideas, and curate collections on
                   your own or collaboratively.
                 </Text>
@@ -252,11 +276,11 @@ function Content(props: {
                   <Title order={2} ta={'center'} maw={400}>
                     Find your way through the web with the people you trust
                   </Title>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Find high-quality search results powered by the community.
                     Follow and discover interesting curators and collections.
                   </Text>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Tune your notifications to the interactions that matter to
                     you. Explore a living map of the web that you helped create.
                   </Text>
@@ -274,11 +298,11 @@ function Content(props: {
                   <Title order={2} ta={'center'} maw={400}>
                     Your workflow, your way
                   </Title>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Integrate Semble into your existing knowledge workflows or
                     create something entirely new.
                   </Text>
-                  <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                  <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                     Use community-built plugins and automations or{' '}
                     <Anchor
                       href="https://docs.cosmik.network/semble-api"
@@ -567,7 +591,7 @@ function Content(props: {
                 <Title order={2} ta={'center'} maw={400}>
                   What you make here stays yours
                 </Title>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Semble is built on the{' '}
                   <Anchor component="a" href="#open-social" c="blue" inherit>
                     open social web
@@ -575,7 +599,7 @@ function Content(props: {
                   , so your content, identity, and social connections are owned
                   by you, not us.
                 </Text>
-                <Text fw={500} fz="lg" c="dark.2" ta={'center'} maw={300}>
+                <Text fw={500} fz="lg" c="dimmed" ta={'center'} maw={300}>
                   Use them in other apps, build on them however you want, and if
                   you ever decide to leave, take everything with you.
                 </Text>
@@ -596,170 +620,158 @@ function Content(props: {
                 <FAQ />
               </Stack>
 
+              {/* The artwork is an absolute layer behind the copy, so the
+                  section is sized by its content instead of by a fixed image
+                  box — it survives the copy growing or shrinking. */}
               <Box pos="relative" w="100%">
                 {/* light mode cta bg */}
-                <Image
-                  src={CtaSignup.src}
-                  alt=""
-                  w="100%"
-                  h="auto"
-                  mih={380}
-                  fit="cover"
-                  style={{
-                    zIndex: 0,
-                    maskImage:
-                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
-                    WebkitMaskImage:
-                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
-                  }}
+                <Box
+                  pos="absolute"
+                  inset={0}
                   darkHidden
+                  style={{
+                    ...ctaArtwork(CtaSignup.src),
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                  }}
                 />
 
                 {/* dark mode cta bg */}
-                <Image
-                  src={CtaSignupDark.src}
-                  alt=""
-                  w="100%"
-                  h="auto"
-                  mih={380}
-                  fit="cover"
-                  style={{
-                    zIndex: 0,
-                    maskImage:
-                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
-                    WebkitMaskImage:
-                      'radial-gradient(ellipse 60% 55% at 50% 50%, black 15%, transparent 80%)',
-                  }}
+                <Box
+                  pos="absolute"
+                  inset={0}
                   lightHidden
+                  style={{
+                    ...ctaArtwork(CtaSignupDark.src),
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                  }}
                 />
-                <Center pos="absolute" inset={0} px="md">
-                  <Stack align="center" gap={'xl'}>
-                    <Stack align="center" gap={'xs'}>
-                      <Title order={2} ta={'center'} maw={400}>
-                        What matters to you, <br /> matters to the network
-                      </Title>
-                      <Text
-                        fw={600}
-                        fz={'xl'}
-                        c="#1F6144"
-                        ta={'center'}
-                        maw={350}
-                        darkHidden
-                      >
-                        What will you save to Semble today?
-                      </Text>
-                      <Text
-                        fw={600}
-                        fz="xl"
-                        c="#1e4dd9"
-                        ta={'center'}
-                        maw={340}
-                        lightHidden
-                      >
-                        What will you save to Semble today?
-                      </Text>
-                    </Stack>
-                    <LinkButton
-                      href="/signup"
-                      size="lg"
-                      rightSection={<BiRightArrowAlt size={18} />}
-                    >
-                      Get Started
-                    </LinkButton>
 
-                    <Text fw={600} fz="lg" ta="center" maw={440}>
-                      Take Semble with you — get the extension for{' '}
-                      <Anchor
-                        href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        c="light-dark(#1F6144, #1e4dd9)"
-                        inherit
-                        underline="always"
-                        style={{
-                          textUnderlineOffset: 5,
-                          textDecorationThickness: 1,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <Image
-                          src={ChromeIcon.src}
-                          alt=""
-                          w={17}
-                          h={17}
-                          fit="contain"
-                          display="inline-block"
-                          style={{ verticalAlign: '-3px', marginRight: 4 }}
-                        />
-                        Chrome
-                      </Anchor>{' '}
-                      or{' '}
-                      <Anchor
-                        href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        c="light-dark(#1F6144, #1e4dd9)"
-                        inherit
-                        underline="always"
-                        style={{
-                          textUnderlineOffset: 5,
-                          textDecorationThickness: 1,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <Image
-                          src={FirefoxIcon.src}
-                          alt=""
-                          w={17}
-                          h={17}
-                          fit="contain"
-                          display="inline-block"
-                          style={{ verticalAlign: '-3px', marginRight: 4 }}
-                        />
-                        Firefox
-                      </Anchor>
-                      , or save on the go with the{' '}
-                      <Anchor
-                        href="/ios-shortcut"
-                        target="_blank"
-                        c="light-dark(#1F6144, #1e4dd9)"
-                        inherit
-                        underline="always"
-                        style={{
-                          textUnderlineOffset: 5,
-                          textDecorationThickness: 1,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <TbStackForward
-                          size={17}
-                          style={{ verticalAlign: '-3px', marginRight: 4 }}
-                        />
-                        iOS shortcut
-                      </Anchor>{' '}
-                      or the{' '}
-                      <Anchor
-                        href="/install-app"
-                        target="_blank"
-                        c="light-dark(#1F6144, #1e4dd9)"
-                        inherit
-                        underline="always"
-                        style={{
-                          textUnderlineOffset: 5,
-                          textDecorationThickness: 1,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <MdOutlineInstallMobile
-                          size={17}
-                          style={{ verticalAlign: '-3px', marginRight: 4 }}
-                        />
-                        web app
-                      </Anchor>
-                      .
-                    </Text>
-                  </Stack>
-                </Center>
+                {/* justify="center" so the copy sits centred in the artwork's
+                    380px like it did as an overlay. */}
+                <Stack
+                  align="center"
+                  justify="center"
+                  gap={'xl'}
+                  pos="relative"
+                  px="md"
+                  py={{ base: '2.5rem', sm: '4rem' }}
+                  mih={380}
+                  style={{ zIndex: 1 }}
+                >
+                  <Title order={2} ta={'center'} maw={400}>
+                    What matters to you, <br /> matters to the network
+                  </Title>
+
+                  {/* Wider than the title: this is four link chips whose
+                      icon+label pairs can't break (whiteSpace: nowrap), so a
+                      narrow measure forces ragged lines around them. */}
+                  <Text
+                    fw={600}
+                    fz="lg"
+                    ta="center"
+                    maw={{ base: '100%', sm: 560 }}
+                  >
+                    Take Semble with you — get the extension for{' '}
+                    <Anchor
+                      href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="light-dark(#1F6144, #1e4dd9)"
+                      inherit
+                      underline="always"
+                      style={{
+                        textUnderlineOffset: 5,
+                        textDecorationThickness: 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <Image
+                        src={ChromeIcon.src}
+                        alt=""
+                        w={17}
+                        h={17}
+                        fit="contain"
+                        display="inline-block"
+                        style={{ verticalAlign: '-3px', marginRight: 4 }}
+                      />
+                      Chrome
+                    </Anchor>{' '}
+                    or{' '}
+                    <Anchor
+                      href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      c="light-dark(#1F6144, #1e4dd9)"
+                      inherit
+                      underline="always"
+                      style={{
+                        textUnderlineOffset: 5,
+                        textDecorationThickness: 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <Image
+                        src={FirefoxIcon.src}
+                        alt=""
+                        w={17}
+                        h={17}
+                        fit="contain"
+                        display="inline-block"
+                        style={{ verticalAlign: '-3px', marginRight: 4 }}
+                      />
+                      Firefox
+                    </Anchor>
+                    , or save on the go with the{' '}
+                    <Anchor
+                      href="/ios-shortcut"
+                      target="_blank"
+                      c="light-dark(#1F6144, #1e4dd9)"
+                      inherit
+                      underline="always"
+                      style={{
+                        textUnderlineOffset: 5,
+                        textDecorationThickness: 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <TbStackForward
+                        size={17}
+                        style={{ verticalAlign: '-3px', marginRight: 4 }}
+                      />
+                      iOS shortcut
+                    </Anchor>{' '}
+                    or the{' '}
+                    <Anchor
+                      href="/install-app"
+                      target="_blank"
+                      c="light-dark(#1F6144, #1e4dd9)"
+                      inherit
+                      underline="always"
+                      style={{
+                        textUnderlineOffset: 5,
+                        textDecorationThickness: 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <MdOutlineInstallMobile
+                        size={17}
+                        style={{ verticalAlign: '-3px', marginRight: 4 }}
+                      />
+                      web app
+                    </Anchor>
+                    .
+                  </Text>
+
+                  <LinkButton
+                    href="/signup"
+                    size="lg"
+                    rightSection={<BiRightArrowAlt size={18} />}
+                  >
+                    Get Started
+                  </LinkButton>
+                </Stack>
               </Box>
 
               <Stack align="center" gap={'xl'}>
@@ -768,7 +780,7 @@ function Content(props: {
                     <Title order={2} ta={'center'} maw={400}>
                       What’s the word on Semble?
                     </Title>
-                    <Text fw={500} fz="lg" c="dark.2" ta={'center'}>
+                    <Text fw={500} fz="lg" c="dimmed" ta={'center'}>
                       We put them all in{' '}
                       <Anchor
                         href="https://semble.so/profile/cosmik.network/collections/3m53smjjk7527"

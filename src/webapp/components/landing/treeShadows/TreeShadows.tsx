@@ -33,6 +33,10 @@ export default function TreeShadows() {
 // Scattered into the left/right gutters at varied heights, sizes, rotation and
 // horizontal flip so no two branches read alike. On small screens they all scale
 // down (see CSS) so they stay subtle instead of dropping out.
+//
+// `y` is in svh, not %, on purpose: the layer spans the whole page, so a
+// percentage would re-place every branch whenever page height changes (opening
+// an FAQ answer visibly slid them down). svh depends only on the viewport.
 const BRANCHES: {
   x: string;
   y: string;
@@ -40,10 +44,10 @@ const BRANCHES: {
   rot: number;
   flip?: boolean;
 }[] = [
-  { x: '0%', y: '22%', w: 1400, rot: -12 },
-  { x: '100%', y: '40%', w: 1560, rot: 8, flip: true },
-  { x: '4%', y: '52%', w: 1280, rot: 20 },
-  { x: '96%', y: '82%', w: 1160, rot: -6, flip: true },
+  { x: '0%', y: '215svh', w: 1400, rot: -12 },
+  { x: '100%', y: '390svh', w: 1560, rot: 8, flip: true },
+  { x: '4%', y: '510svh', w: 1280, rot: 20 },
+  { x: '96%', y: '800svh', w: 1160, rot: -6, flip: true },
 ];
 
 /* Hand-authored foliage silhouette: a curved stem with sub-branches and

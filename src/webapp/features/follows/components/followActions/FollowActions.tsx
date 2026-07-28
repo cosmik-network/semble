@@ -1,7 +1,6 @@
 'use client';
 
 import { SubscriptionScope } from '@semble/types';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import FollowButton from '../followButton/FollowButton';
 import SubscribeButton from '../subscribeButton/SubscribeButton';
 import { useFollowState } from '../../lib/queries/useFollowState';
@@ -21,11 +20,10 @@ export default function FollowActions(props: Props) {
     { targetId: props.targetId, targetType: props.targetType },
     props.initialIsFollowing,
   );
-  const { data: featureFlags } = useFeatureFlags();
 
   return (
     <>
-      {isFollowing && featureFlags?.subscriptions && (
+      {isFollowing && (
         <SubscribeButton
           targetId={props.targetId}
           targetType={props.targetType}
