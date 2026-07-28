@@ -35,9 +35,6 @@ export default function AuthButtons() {
 }
 
 function UnauthenticatedButtons() {
-  // The pill hugs the Sign up button: 3px of padding on its side, more on the
-  // right so the bare link isn't crowded against the border. Padding on the
-  // button's side any larger and the pill reads chunky rather than snug.
   return (
     <Card radius={999} p={'xxs'} pr={'sm'} withBorder>
       <Group gap="sm">
