@@ -97,6 +97,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  vectorDatabase: IVectorDatabase;
   leafletSearchService: ILeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
@@ -507,6 +508,7 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      vectorDatabase,
       leafletSearchService,
       cardLibraryService,
       cardCollectionService,

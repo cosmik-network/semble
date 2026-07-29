@@ -177,6 +177,14 @@ export interface UrlLibraryInfo {
   };
 }
 
+// Batch URL ranking stats used for recommendation scoring
+export interface UrlRankingStats {
+  urlCardCount: number; // URL cards with this URL
+  noteCount: number; // NOTE cards with this URL
+  collectionCount: number; // distinct collections containing URL cards with this URL
+  connectionCount: number; // connections where this URL is source or target
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
@@ -221,6 +229,10 @@ export interface ICardQueryRepository {
     urls: string[],
     callingUserId?: string,
   ): Promise<Map<string, UrlLibraryInfo>>;
+
+  getBatchUrlRankingStats(
+    urls: string[],
+  ): Promise<Map<string, UrlRankingStats>>;
 
   searchUrls(
     options: SearchUrlsOptions,

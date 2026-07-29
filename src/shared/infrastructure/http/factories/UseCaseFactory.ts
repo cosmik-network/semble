@@ -43,6 +43,7 @@ import { GetConnectionsUseCase } from '../../../../modules/cards/application/use
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
+import { RecommendedCardsUseCase } from '../../../../modules/search/application/useCases/queries/RecommendedCardsUseCase';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
@@ -182,6 +183,7 @@ export interface UseCases {
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
   semanticSearchUrlsUseCase: SemanticSearchUrlsUseCase;
+  recommendedCardsUseCase: RecommendedCardsUseCase;
   searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
   searchAtProtoAccountsUseCase: SearchAtProtoAccountsUseCase;
   searchLeafletDocsForUrlUseCase: SearchLeafletDocsForUrlUseCase;
@@ -540,6 +542,10 @@ export class UseCaseFactory {
       semanticSearchUrlsUseCase: new SemanticSearchUrlsUseCase(
         services.searchService,
         services.identityResolutionService,
+      ),
+      recommendedCardsUseCase: new RecommendedCardsUseCase(
+        services.vectorDatabase,
+        repositories.cardQueryRepository,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
         services.atProtoAgentService,

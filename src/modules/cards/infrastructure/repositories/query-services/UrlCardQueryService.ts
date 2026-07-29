@@ -23,6 +23,7 @@ import {
   CardSortField,
   SortOrder,
   UrlLibraryInfo,
+  UrlRankingStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
 } from '../../../domain/ICardQueryRepository';
@@ -1596,6 +1597,127 @@ export class UrlCardQueryService {
       return resultMap;
     } catch (error) {
       console.error('Error in getBatchUrlCardViews:', error);
+      throw error;
+    }
+  }
+
+  async getBatchUrlRankingStats(
+    urls: string[],
+  ): Promise<Map<string, UrlRankingStats>> {
+    try {
+      if (urls.length === 0) {
+        return new Map();
+      }
+
+      const urlCardCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: count(),
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const noteCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: count(),
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.NOTE), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const collectionCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(collectionCards.collectionId),
+        })
+        .from(collectionCards)
+        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const sourceConnectionCountsQuery = this.db
+        .select({
+          url: connections.sourceValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.sourceType, 'URL'),
+            inArray(connections.sourceValue, urls),
+          ),
+        )
+        .groupBy(connections.sourceValue);
+
+      const targetConnectionCountsQuery = this.db
+        .select({
+          url: connections.targetValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.targetType, 'URL'),
+            inArray(connections.targetValue, urls),
+          ),
+        )
+        .groupBy(connections.targetValue);
+
+      const [
+        urlCardCounts,
+        noteCounts,
+        collectionCounts,
+        sourceConnectionCounts,
+        targetConnectionCounts,
+      ] = await Promise.all([
+        urlCardCountsQuery,
+        noteCountsQuery,
+        collectionCountsQuery,
+        sourceConnectionCountsQuery,
+        targetConnectionCountsQuery,
+      ]);
+
+      const resultMap = new Map<string, UrlRankingStats>();
+      for (const url of urls) {
+        resultMap.set(url, {
+          urlCardCount: 0,
+          noteCount: 0,
+          collectionCount: 0,
+          connectionCount: 0,
+        });
+      }
+
+      urlCardCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.urlCardCount = Number(row.count);
+        }
+      });
+      noteCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.noteCount = Number(row.count);
+        }
+      });
+      collectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.collectionCount = Number(row.count);
+        }
+      });
+      sourceConnectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.connectionCount += Number(row.count);
+        }
+      });
+      targetConnectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.connectionCount += Number(row.count);
+        }
+      });
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchUrlRankingStats:', error);
       throw error;
     }
   }

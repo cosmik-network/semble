@@ -11,6 +11,7 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   UrlLibraryInfo,
+  UrlRankingStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
@@ -827,6 +828,44 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         urlConnectionCount,
         urlIsConnected,
         metadata,
+      });
+    }
+
+    return resultMap;
+  }
+
+  async getBatchUrlRankingStats(
+    urls: string[],
+  ): Promise<Map<string, UrlRankingStats>> {
+    const resultMap = new Map<string, UrlRankingStats>();
+    const allCards = this.cardRepository.getAllCards();
+    const allCollections = this.collectionRepository.getAllCollections();
+
+    for (const url of urls) {
+      const urlCards = allCards.filter(
+        (card) => card.isUrlCard && card.url?.value === url,
+      );
+      const urlCardIds = new Set(
+        urlCards.map((card) => card.cardId.getStringValue()),
+      );
+
+      const noteCount = allCards.filter(
+        (card) => card.isNoteCard && card.url?.value === url,
+      ).length;
+
+      const collectionCount = allCollections.filter((collection) =>
+        collection.cardLinks.some((link) =>
+          urlCardIds.has(link.cardId.getStringValue()),
+        ),
+      ).length;
+
+      const connectionCount = await this.getUrlConnectionCount(url);
+
+      resultMap.set(url, {
+        urlCardCount: urlCards.length,
+        noteCount,
+        collectionCount,
+        connectionCount,
       });
     }
 
