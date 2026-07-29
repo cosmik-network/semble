@@ -10,6 +10,8 @@ import {
   SearchAtProtoAccountsResponseSchema,
   SearchLeafletDocsForUrlResponseSchema,
   RecommendedUrlsResponseSchema,
+  RecommendedUsersResponseSchema,
+  RecommendedCollectionsResponseSchema,
 } from '@semble/types';
 import { CoercedPaginatedSortedQuery } from './shared';
 
@@ -106,6 +108,32 @@ export const searchContract = c.router(
       summary: 'Recommended URLs',
       description:
         'Returns URLs recommended for a set of query strings, ranked by network activity (saves, notes, collections, connections) with randomized ordering, excluding URLs the calling user already saved.',
+      metadata: { internal: true } as const,
+    },
+    recommendedUsers: {
+      method: 'GET',
+      path: paths.recommendedUsers,
+      query: z.object({
+        // A single ?urls=x arrives as a string; repeated params arrive as an array
+        urls: z.union([z.string(), z.array(z.string())]),
+      }),
+      responses: { 200: RecommendedUsersResponseSchema },
+      summary: 'Recommended users',
+      description:
+        'Returns users recommended for a set of URLs — users who saved or connected those URLs, plus Semble users the caller follows on Bluesky — ranked by activity, followers, recency, and Bluesky follow status, excluding users the caller already follows.',
+      metadata: { internal: true } as const,
+    },
+    recommendedCollections: {
+      method: 'GET',
+      path: paths.recommendedCollections,
+      query: z.object({
+        // A single ?urls=x arrives as a string; repeated params arrive as an array
+        urls: z.union([z.string(), z.array(z.string())]),
+      }),
+      responses: { 200: RecommendedCollectionsResponseSchema },
+      summary: 'Recommended collections',
+      description:
+        'Returns collections containing any of the given URLs, ranked by card count, follower count, update recency, and whether the caller follows the collection author on Bluesky.',
       metadata: { internal: true } as const,
     },
   },

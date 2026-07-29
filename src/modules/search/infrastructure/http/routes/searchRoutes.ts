@@ -3,6 +3,8 @@ import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsFor
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
 import { RecommendedCardsController } from '../controllers/RecommendedCardsController';
+import { RecommendedUsersController } from '../../../../user/infrastructure/http/controllers/RecommendedUsersController';
+import { RecommendedCollectionsController } from '../../../../cards/infrastructure/http/controllers/RecommendedCollectionsController';
 import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../controllers/SearchLeafletDocsForUrlController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
@@ -19,6 +21,8 @@ export function registerSearchRoutes(
   searchAtProtoAccountsController: SearchAtProtoAccountsController,
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController,
   recommendedCardsController: RecommendedCardsController,
+  recommendedUsersController: RecommendedUsersController,
+  recommendedCollectionsController: RecommendedCollectionsController,
 ): void {
   app.get(
     routes.search.similarUrls.path,
@@ -60,5 +64,19 @@ export function registerSearchRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(searchContract.recommended.query),
     (req, res) => recommendedCardsController.execute(req, res),
+  );
+
+  app.get(
+    routes.search.recommendedUsers.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(searchContract.recommendedUsers.query),
+    (req, res) => recommendedUsersController.execute(req, res),
+  );
+
+  app.get(
+    routes.search.recommendedCollections.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(searchContract.recommendedCollections.query),
+    (req, res) => recommendedCollectionsController.execute(req, res),
   );
 }

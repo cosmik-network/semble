@@ -131,6 +131,18 @@ export interface IFollowsRepository {
   ): Promise<Result<number>>;
 
   /**
+   * Get follower counts for multiple targets in a single query.
+   *
+   * @param targetIds - Array of target IDs (user DIDs or collection UUIDs)
+   * @param targetType - Type of targets (USER or COLLECTION)
+   * @returns Map of targetId -> follower count (targets with no followers map to 0)
+   */
+  getBatchFollowersCount(
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, number>>>;
+
+  /**
    * Check if a follower follows multiple targets in a single query.
    *
    * @param followerId - DID of the follower

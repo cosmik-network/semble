@@ -44,6 +44,8 @@ import { IndexUrlForSearchUseCase } from '../../../../modules/search/application
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { RecommendedCardsUseCase } from '../../../../modules/search/application/useCases/queries/RecommendedCardsUseCase';
+import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
+import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
@@ -184,6 +186,8 @@ export interface UseCases {
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
   semanticSearchUrlsUseCase: SemanticSearchUrlsUseCase;
   recommendedCardsUseCase: RecommendedCardsUseCase;
+  recommendedUsersUseCase: RecommendedUsersUseCase;
+  recommendedCollectionsUseCase: RecommendedCollectionsUseCase;
   searchBskyPostsForUrlUseCase: SearchBskyPostsForUrlUseCase;
   searchAtProtoAccountsUseCase: SearchAtProtoAccountsUseCase;
   searchLeafletDocsForUrlUseCase: SearchLeafletDocsForUrlUseCase;
@@ -546,6 +550,18 @@ export class UseCaseFactory {
       recommendedCardsUseCase: new RecommendedCardsUseCase(
         services.vectorDatabase,
         repositories.cardQueryRepository,
+      ),
+      recommendedUsersUseCase: new RecommendedUsersUseCase(
+        repositories.cardQueryRepository,
+        repositories.followsRepository,
+        services.bskyFollowsService,
+        services.profileService,
+      ),
+      recommendedCollectionsUseCase: new RecommendedCollectionsUseCase(
+        repositories.collectionQueryRepository,
+        repositories.followsRepository,
+        services.bskyFollowsService,
+        services.profileService,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
         services.atProtoAgentService,

@@ -34,6 +34,14 @@ export class InMemoryUserRepository implements IUserRepository {
     }
   }
 
+  async findExistingDIDs(dids: string[]): Promise<Result<string[]>> {
+    try {
+      return ok(dids.filter((did) => this.users.has(did)));
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   // Helper method for testing
   clear(): void {
     this.users.clear();

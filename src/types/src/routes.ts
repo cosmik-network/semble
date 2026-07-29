@@ -116,6 +116,8 @@ export const paths = {
   atProtoAccounts: '/network.cosmik.search.getAccounts',
   leafletDocs: '/network.cosmik.search.getLeafletDocs',
   recommended: '/network.cosmik.search.getRecommended',
+  recommendedUsers: '/network.cosmik.search.getRecommendedUsers',
+  recommendedCollections: '/network.cosmik.search.getRecommendedCollections',
   // graph (graphView namespace to avoid collision with social graph)
   graphData: '/network.cosmik.graphView.getData',
   userGraphData: '/network.cosmik.graphView.getUserData',
@@ -210,6 +212,12 @@ export const routes = {
     atProtoAccounts: defineRoute(paths.atProtoAccounts, 'GET', false),
     leafletDocs: defineRoute(paths.leafletDocs, 'GET', false),
     recommended: defineRoute(paths.recommended, 'GET', false),
+    recommendedUsers: defineRoute(paths.recommendedUsers, 'GET', true),
+    recommendedCollections: defineRoute(
+      paths.recommendedCollections,
+      'GET',
+      true,
+    ),
   },
   graph: {
     graphData: defineRoute(paths.graphData, 'GET', true),

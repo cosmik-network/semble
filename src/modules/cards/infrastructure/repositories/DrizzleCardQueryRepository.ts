@@ -11,6 +11,7 @@ import {
   UrlCardView,
   UrlLibraryInfo,
   UrlRankingStats,
+  UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
@@ -109,6 +110,16 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     urls: string[],
   ): Promise<Map<string, UrlRankingStats>> {
     return this.urlCardQueryService.getBatchUrlRankingStats(urls);
+  }
+
+  async getUsersForUrls(urls: string[]): Promise<string[]> {
+    return this.urlCardQueryService.getUsersForUrls(urls);
+  }
+
+  async getBatchUserActivityStats(
+    userIds: string[],
+  ): Promise<Map<string, UserActivityStats>> {
+    return this.urlCardQueryService.getBatchUserActivityStats(userIds);
   }
 
   async searchUrls(

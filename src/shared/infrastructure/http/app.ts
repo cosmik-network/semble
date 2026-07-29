@@ -341,6 +341,8 @@ export const createExpressApp = (
       controllers.searchAtProtoAccountsController,
       controllers.searchLeafletDocsForUrlController,
       controllers.recommendedCardsController,
+      controllers.recommendedUsersController,
+      controllers.recommendedCollectionsController,
     );
 
     registerNotificationRoutes(

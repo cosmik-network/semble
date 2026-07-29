@@ -177,6 +177,14 @@ export interface UrlLibraryInfo {
   };
 }
 
+// Batch user activity stats used for user recommendation scoring
+export interface UserActivityStats {
+  cardCount: number; // cards authored by the user
+  collectionCount: number; // collections created by the user
+  connectionCount: number; // connections curated by the user
+  lastActivityAt: Date | null; // most recent card, collection add, or connection
+}
+
 // Batch URL ranking stats used for recommendation scoring
 export interface UrlRankingStats {
   urlCardCount: number; // URL cards with this URL
@@ -233,6 +241,16 @@ export interface ICardQueryRepository {
   getBatchUrlRankingStats(
     urls: string[],
   ): Promise<Map<string, UrlRankingStats>>;
+
+  /**
+   * Get distinct DIDs of users who saved any of the URLs as URL cards
+   * or made connections with any of the URLs (as source or target)
+   */
+  getUsersForUrls(urls: string[]): Promise<string[]>;
+
+  getBatchUserActivityStats(
+    userIds: string[],
+  ): Promise<Map<string, UserActivityStats>>;
 
   searchUrls(
     options: SearchUrlsOptions,

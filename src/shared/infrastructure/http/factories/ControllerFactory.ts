@@ -24,6 +24,8 @@ import { GetFollowingFeedController } from '../../../../modules/feeds/infrastruc
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
 import { RecommendedCardsController } from '../../../../modules/search/infrastructure/http/controllers/RecommendedCardsController';
+import { RecommendedUsersController } from '../../../../modules/user/infrastructure/http/controllers/RecommendedUsersController';
+import { RecommendedCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/RecommendedCollectionsController';
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
@@ -155,6 +157,8 @@ export interface Controllers {
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   semanticSearchUrlsController: SemanticSearchUrlsController;
   recommendedCardsController: RecommendedCardsController;
+  recommendedUsersController: RecommendedUsersController;
+  recommendedCollectionsController: RecommendedCollectionsController;
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   searchAtProtoAccountsController: SearchAtProtoAccountsController;
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController;
@@ -403,6 +407,12 @@ export class ControllerFactory {
       ),
       recommendedCardsController: new RecommendedCardsController(
         useCases.recommendedCardsUseCase,
+      ),
+      recommendedUsersController: new RecommendedUsersController(
+        useCases.recommendedUsersUseCase,
+      ),
+      recommendedCollectionsController: new RecommendedCollectionsController(
+        useCases.recommendedCollectionsUseCase,
       ),
       searchBskyPostsForUrlController: new SearchBskyPostsForUrlController(
         useCases.searchBskyPostsForUrlUseCase,
