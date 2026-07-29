@@ -2,6 +2,7 @@ import { IRouter } from 'express';
 import { GetSimilarUrlsForUrlController } from '../controllers/GetSimilarUrlsForUrlController';
 import { SearchBskyPostsForUrlController } from '../controllers/SearchBskyPostsForUrlController';
 import { SemanticSearchUrlsController } from '../controllers/SemanticSearchUrlsController';
+import { RecommendedCardsController } from '../controllers/RecommendedCardsController';
 import { SearchAtProtoAccountsController } from '../controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../controllers/SearchLeafletDocsForUrlController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
@@ -17,6 +18,7 @@ export function registerSearchRoutes(
   semanticSearchUrlsController: SemanticSearchUrlsController,
   searchAtProtoAccountsController: SearchAtProtoAccountsController,
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController,
+  recommendedCardsController: RecommendedCardsController,
 ): void {
   app.get(
     routes.search.similarUrls.path,
@@ -51,5 +53,12 @@ export function registerSearchRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(searchContract.leafletDocs.query),
     (req, res) => searchLeafletDocsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.search.recommended.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(searchContract.recommended.query),
+    (req, res) => recommendedCardsController.execute(req, res),
   );
 }

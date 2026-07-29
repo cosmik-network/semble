@@ -57,6 +57,7 @@ export * from './search/bskyPosts';
 export * from './search/accounts';
 export * from './search/leaflet';
 export * from './search/searchUrls';
+export * from './search/recommended';
 
 export * from './graph/getData';
 export * from './graph/getUserData';

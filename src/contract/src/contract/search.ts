@@ -9,6 +9,7 @@ import {
   SearchBskyPostsForUrlResponseSchema,
   SearchAtProtoAccountsResponseSchema,
   SearchLeafletDocsForUrlResponseSchema,
+  RecommendedUrlsResponseSchema,
 } from '@semble/types';
 import { CoercedPaginatedSortedQuery } from './shared';
 
@@ -92,6 +93,19 @@ export const searchContract = c.router(
       summary: 'Search Leaflet documents for a URL',
       description:
         'Returns Leaflet documents that reference or annotate a given URL.',
+      metadata: { internal: true } as const,
+    },
+    recommended: {
+      method: 'GET',
+      path: paths.recommended,
+      query: z.object({
+        // A single ?queries=x arrives as a string; repeated params arrive as an array
+        queries: z.union([z.string(), z.array(z.string())]),
+      }),
+      responses: { 200: RecommendedUrlsResponseSchema },
+      summary: 'Recommended URLs',
+      description:
+        'Returns URLs recommended for a set of query strings, ranked by network activity (saves, notes, collections, connections) with randomized ordering, excluding URLs the calling user already saved.',
       metadata: { internal: true } as const,
     },
   },
