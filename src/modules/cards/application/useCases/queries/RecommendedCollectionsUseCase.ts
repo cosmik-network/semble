@@ -2,7 +2,7 @@ import { err, ok, Result } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import { AppError } from 'src/shared/core/AppError';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
-import { CollectionDTO } from '@semble/types';
+import { CollectionDTO, User } from '@semble/types';
 import {
   ICollectionQueryRepository,
   CollectionQueryResultDTO,
@@ -12,7 +12,10 @@ import { IProfileService } from 'src/modules/cards/domain/services/IProfileServi
 import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
-import { BskyFollowsService } from 'src/modules/user/application/services/BskyFollowsService';
+import {
+  BskyFollowsService,
+  BskyFollowedProfile,
+} from 'src/modules/user/application/services/BskyFollowsService';
 
 export interface RecommendedCollectionsRankingConfig {
   cardCountWeight: number;
@@ -102,9 +105,9 @@ export class RecommendedCollectionsUseCase implements UseCase<
       ]);
 
       // Best-effort: recommendations still work if the Bluesky lookup fails
-      let bskyFollowedDids = new Set<string>();
+      let bskyFollowedProfiles = new Map<string, BskyFollowedProfile>();
       if (bskyFollowedResult.isOk()) {
-        bskyFollowedDids = bskyFollowedResult.value;
+        bskyFollowedProfiles = bskyFollowedResult.value;
       } else {
         console.warn(
           `RecommendedCollectionsUseCase: failed to fetch Bluesky follows: ${bskyFollowedResult.error.message}`,
@@ -153,33 +156,44 @@ export class RecommendedCollectionsUseCase implements UseCase<
           score: this.computeRankKey(
             collection,
             followerCounts.get(collection.id) || 0,
-            bskyFollowedDids.has(collection.authorId),
+            bskyFollowedProfiles.has(collection.authorId),
           ),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, MAX_RESULTS);
 
-      // 5. Enrich author profiles
-      const profileEnricher = new ProfileEnricher(this.profileService);
+      // 5. Enrich author profiles. Bluesky-followed authors already carry
+      // profile data from getFollows, so only fetch the rest.
       const authorIds = [
         ...new Set(ranked.map(({ collection }) => collection.authorId)),
       ];
-      const profileMapResult = await profileEnricher.buildProfileMap(
-        authorIds,
-        undefined,
-        {
-          skipFailures: true,
-          mapToUser: false,
-        },
+      const authorIdsNeedingProfiles = authorIds.filter(
+        (did) => !bskyFollowedProfiles.has(did),
       );
-      if (profileMapResult.isErr()) {
-        return err(AppError.UnexpectedError.create(profileMapResult.error));
+
+      let profileMap = new Map<string, User>();
+      if (authorIdsNeedingProfiles.length > 0) {
+        const profileEnricher = new ProfileEnricher(this.profileService);
+        const profileMapResult = await profileEnricher.buildProfileMap(
+          authorIdsNeedingProfiles,
+          undefined,
+          {
+            skipFailures: true,
+            mapToUser: false,
+          },
+        );
+        if (profileMapResult.isErr()) {
+          return err(AppError.UnexpectedError.create(profileMapResult.error));
+        }
+        profileMap = profileMapResult.value;
       }
-      const profileMap = profileMapResult.value;
 
       const collections: RecommendedCollection[] = ranked
         .map(({ collection }): RecommendedCollection | null => {
-          const profile = profileMap.get(collection.authorId);
+          const bskyProfile = bskyFollowedProfiles.get(collection.authorId);
+          const profile = bskyProfile
+            ? this.toAuthorProfile(bskyProfile)
+            : profileMap.get(collection.authorId);
           if (!profile) return null;
 
           return {
@@ -194,7 +208,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
             author: profile,
             isFollowing: followingMap.get(collection.id) || false,
             followerCount: followerCounts.get(collection.id) || 0,
-            authorFollowedOnBsky: bskyFollowedDids.has(collection.authorId),
+            authorFollowedOnBsky: bskyFollowedProfiles.has(collection.authorId),
           };
         })
         .filter(
@@ -206,6 +220,16 @@ export class RecommendedCollectionsUseCase implements UseCase<
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  private toAuthorProfile(bskyProfile: BskyFollowedProfile): User {
+    return {
+      id: bskyProfile.did,
+      name: bskyProfile.displayName || bskyProfile.handle,
+      handle: bskyProfile.handle,
+      avatarUrl: bskyProfile.avatarUrl,
+      description: bskyProfile.description,
+    };
   }
 
   private computeRankKey(

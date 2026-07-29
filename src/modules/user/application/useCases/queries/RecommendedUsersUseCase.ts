@@ -11,7 +11,10 @@ import { IFollowsRepository } from '../../../domain/repositories/IFollowsReposit
 import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType';
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { ProfileEnricher } from 'src/modules/cards/application/services/ProfileEnricher';
-import { BskyFollowsService } from '../../services/BskyFollowsService';
+import {
+  BskyFollowsService,
+  BskyFollowedProfile,
+} from '../../services/BskyFollowsService';
 
 export interface RecommendedUsersRankingConfig {
   cardWeight: number;
@@ -94,9 +97,9 @@ export class RecommendedUsersUseCase implements UseCase<
       ]);
 
       // Best-effort: recommendations still work if the Bluesky lookup fails
-      let bskyFollowedDids = new Set<string>();
+      let bskyFollowedProfiles = new Map<string, BskyFollowedProfile>();
       if (bskyFollowedResult.isOk()) {
-        bskyFollowedDids = bskyFollowedResult.value;
+        bskyFollowedProfiles = bskyFollowedResult.value;
       } else {
         console.warn(
           `RecommendedUsersUseCase: failed to fetch Bluesky follows: ${bskyFollowedResult.error.message}`,
@@ -105,13 +108,13 @@ export class RecommendedUsersUseCase implements UseCase<
 
       // 2. Combine and dedupe, excluding the calling user
       const candidateIds = Array.from(
-        new Set([...urlUserIds, ...bskyFollowedDids]),
+        new Set([...urlUserIds, ...bskyFollowedProfiles.keys()]),
       ).filter((did) => did !== query.callingUserId);
 
       if (candidateIds.length === 0) {
         return ok({
           users: [],
-          bskyFollowedSembleUserCount: bskyFollowedDids.size,
+          bskyFollowedSembleUserCount: bskyFollowedProfiles.size,
         });
       }
 
@@ -133,7 +136,7 @@ export class RecommendedUsersUseCase implements UseCase<
       if (unfollowedIds.length === 0) {
         return ok({
           users: [],
-          bskyFollowedSembleUserCount: bskyFollowedDids.size,
+          bskyFollowedSembleUserCount: bskyFollowedProfiles.size,
         });
       }
 
@@ -157,41 +160,63 @@ export class RecommendedUsersUseCase implements UseCase<
           score: this.computeScore(
             activityStatsMap.get(did),
             followerCounts.get(did) || 0,
-            bskyFollowedDids.has(did),
+            bskyFollowedProfiles.has(did),
           ),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, MAX_RESULTS);
 
-      // 6. Enrich with profiles
-      const profileEnricher = new ProfileEnricher(this.profileService);
-      const profileMapResult = await profileEnricher.buildProfileMap(
-        ranked.map((r) => r.did),
-        query.callingUserId,
-        {
-          skipFailures: true,
-          mapToUser: true,
-        },
-      );
-      if (profileMapResult.isErr()) {
-        return err(AppError.UnexpectedError.create(profileMapResult.error));
+      // 6. Enrich with profiles. Bluesky-followed candidates already carry
+      // profile data from getFollows, so only fetch the rest.
+      const didsNeedingProfiles = ranked
+        .map((r) => r.did)
+        .filter((did) => !bskyFollowedProfiles.has(did));
+
+      let profileMap = new Map<string, User>();
+      if (didsNeedingProfiles.length > 0) {
+        const profileEnricher = new ProfileEnricher(this.profileService);
+        const profileMapResult = await profileEnricher.buildProfileMap(
+          didsNeedingProfiles,
+          query.callingUserId,
+          {
+            skipFailures: true,
+            mapToUser: true,
+          },
+        );
+        if (profileMapResult.isErr()) {
+          return err(AppError.UnexpectedError.create(profileMapResult.error));
+        }
+        profileMap = profileMapResult.value;
       }
-      const profileMap = profileMapResult.value;
 
       const users: RecommendedUser[] = ranked
         .map(({ did }) => {
+          const bskyProfile = bskyFollowedProfiles.get(did);
+          if (bskyProfile) {
+            return {
+              id: bskyProfile.did,
+              name: bskyProfile.displayName || bskyProfile.handle,
+              handle: bskyProfile.handle,
+              avatarUrl: bskyProfile.avatarUrl,
+              description: bskyProfile.description,
+              // Candidates the caller already follows on Semble were dropped above
+              isFollowing: false,
+              followsOnBsky: true,
+            };
+          }
+
           const profile = profileMap.get(did);
           if (!profile) return null;
           return {
             ...profile,
-            followsOnBsky: bskyFollowedDids.has(did),
+            followsOnBsky: false,
           };
         })
         .filter((user): user is RecommendedUser => user !== null);
 
       return ok({
         users,
-        bskyFollowedSembleUserCount: bskyFollowedDids.size,
+        bskyFollowedSembleUserCount: bskyFollowedProfiles.size,
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
