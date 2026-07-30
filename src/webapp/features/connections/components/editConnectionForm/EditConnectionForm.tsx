@@ -418,7 +418,7 @@ export default function EditConnectionForm(props: Props) {
           </VisuallyHidden>
         </Stack>
 
-        <Group justify="space-between" gap={'xs'} grow>
+        <Group gap={'xs'} wrap="nowrap">
           <Button
             variant="light"
             size="md"
@@ -427,7 +427,12 @@ export default function EditConnectionForm(props: Props) {
           >
             Cancel
           </Button>
-          <Button type="submit" size="md" loading={updateConnection.isPending}>
+          <Button
+            type="submit"
+            size="md"
+            style={{ flex: 1 }}
+            loading={updateConnection.isPending}
+          >
             Update
           </Button>
         </Group>

@@ -92,6 +92,7 @@ export default function AddCardActions(props: Props) {
                 <Button
                   variant="light"
                   color="gray"
+                  size="md"
                   disabled={removeNote.isPending}
                   onClick={() => setShowDeleteWarning(false)}
                 >
@@ -99,6 +100,7 @@ export default function AddCardActions(props: Props) {
                 </Button>
                 <Button
                   color="red"
+                  size="md"
                   onClick={handleDeleteNote}
                   loading={removeNote.isPending}
                 >
@@ -125,6 +127,7 @@ export default function AddCardActions(props: Props) {
               <Button
                 variant="light"
                 color="gray"
+                size="md"
                 onClick={() => {
                   setNoteMode(false);
                   setNote(props.note);
@@ -133,6 +136,7 @@ export default function AddCardActions(props: Props) {
                 Cancel
               </Button>
               <Button
+                size="md"
                 style={{ flex: 1 }}
                 onClick={() => {
                   props.onUpdateNote(note);
