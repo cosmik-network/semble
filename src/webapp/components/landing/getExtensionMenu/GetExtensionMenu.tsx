@@ -8,7 +8,7 @@ export default function GetExtensionMenu() {
   return (
     <Menu shadow="sm">
       <Menu.Target>
-        <Anchor component="button" fw={500} c="bright">
+        <Anchor component="button" fw={600} c="bright">
           Get Extension
         </Anchor>
       </Menu.Target>
