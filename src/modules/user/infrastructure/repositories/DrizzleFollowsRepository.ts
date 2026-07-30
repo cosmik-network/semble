@@ -433,6 +433,40 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getBatchFollowersCount(
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, number>>> {
+    try {
+      const countMap = new Map<string, number>();
+      targetIds.forEach((id) => countMap.set(id, 0));
+
+      if (targetIds.length === 0) {
+        return ok(countMap);
+      }
+
+      const results = await this.db
+        .select({
+          targetId: follows.targetId,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(follows)
+        .where(
+          and(
+            inArray(follows.targetId, targetIds),
+            eq(follows.targetType, targetType.value),
+          ),
+        )
+        .groupBy(follows.targetId);
+
+      results.forEach((row) => countMap.set(row.targetId, Number(row.count)));
+
+      return ok(countMap);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async checkFollowingMultiple(
     followerId: string,
     targetIds: string[],

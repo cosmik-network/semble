@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { User } from '../../domain/User';
 import { DID } from '../../domain/value-objects/DID';
@@ -53,6 +53,23 @@ export class DrizzleUserRepository implements IUserRepository {
       }
 
       return ok(userResult.value);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async findExistingDIDs(dids: string[]): Promise<Result<string[]>> {
+    try {
+      if (dids.length === 0) {
+        return ok([]);
+      }
+
+      const result = await this.db
+        .select({ id: users.id })
+        .from(users)
+        .where(inArray(users.id, dids));
+
+      return ok(result.map((row) => row.id));
     } catch (error: any) {
       return err(error);
     }

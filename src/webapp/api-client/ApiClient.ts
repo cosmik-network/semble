@@ -77,6 +77,12 @@ import type {
   SearchAtProtoAccountsResponse,
   SearchLeafletDocsForUrlParams,
   SearchLeafletDocsForUrlResponse,
+  RecommendedUrlsParams,
+  RecommendedUrlsResponse,
+  RecommendedUsersParams,
+  RecommendedUsersResponse,
+  RecommendedCollectionsParams,
+  RecommendedCollectionsResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -281,6 +287,24 @@ export class ApiClient {
     params: SearchLeafletDocsForUrlParams,
   ): Promise<SearchLeafletDocsForUrlResponse> {
     return this.queryClient.searchLeafletDocs(params);
+  }
+
+  async getRecommendedUrls(
+    params: RecommendedUrlsParams,
+  ): Promise<RecommendedUrlsResponse> {
+    return this.queryClient.getRecommendedUrls(params);
+  }
+
+  async getRecommendedUsers(
+    params: RecommendedUsersParams,
+  ): Promise<RecommendedUsersResponse> {
+    return this.queryClient.getRecommendedUsers(params);
+  }
+
+  async getRecommendedCollections(
+    params: RecommendedCollectionsParams,
+  ): Promise<RecommendedCollectionsResponse> {
+    return this.queryClient.getRecommendedCollections(params);
   }
 
   // Follow query operations - delegate to QueryClient

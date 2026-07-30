@@ -11,6 +11,8 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   UrlLibraryInfo,
+  UrlRankingStats,
+  UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
@@ -828,6 +830,143 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         urlIsConnected,
         metadata,
       });
+    }
+
+    return resultMap;
+  }
+
+  async getBatchUrlRankingStats(
+    urls: string[],
+  ): Promise<Map<string, UrlRankingStats>> {
+    const resultMap = new Map<string, UrlRankingStats>();
+    const allCards = this.cardRepository.getAllCards();
+    const allCollections = this.collectionRepository.getAllCollections();
+
+    for (const url of urls) {
+      const urlCards = allCards.filter(
+        (card) => card.isUrlCard && card.url?.value === url,
+      );
+      const urlCardIds = new Set(
+        urlCards.map((card) => card.cardId.getStringValue()),
+      );
+
+      const noteCount = allCards.filter(
+        (card) => card.isNoteCard && card.url?.value === url,
+      ).length;
+
+      const collectionCount = allCollections.filter((collection) =>
+        collection.cardLinks.some((link) =>
+          urlCardIds.has(link.cardId.getStringValue()),
+        ),
+      ).length;
+
+      const connectionCount = await this.getUrlConnectionCount(url);
+
+      resultMap.set(url, {
+        urlCardCount: urlCards.length,
+        noteCount,
+        collectionCount,
+        connectionCount,
+      });
+    }
+
+    return resultMap;
+  }
+
+  async getUsersForUrls(urls: string[]): Promise<string[]> {
+    const userIds = new Set<string>();
+    const urlSet = new Set(urls);
+    const allCards = this.cardRepository.getAllCards();
+
+    allCards.forEach((card) => {
+      if (card.isUrlCard && card.url && urlSet.has(card.url.value)) {
+        userIds.add(card.curatorId.value);
+      }
+    });
+
+    if (this.connectionRepository) {
+      for (const url of urls) {
+        const urlResult = URL.create(url);
+        if (urlResult.isErr()) continue;
+        const urlOrCardIdResult = UrlOrCardId.createFromUrl(urlResult.value);
+        if (urlOrCardIdResult.isErr()) continue;
+
+        const [sourceResult, targetResult] = await Promise.all([
+          this.connectionRepository.findBySource(urlOrCardIdResult.value),
+          this.connectionRepository.findByTarget(urlOrCardIdResult.value),
+        ]);
+        if (sourceResult.isOk()) {
+          sourceResult.value.forEach((conn) =>
+            userIds.add(conn.curatorId.value),
+          );
+        }
+        if (targetResult.isOk()) {
+          targetResult.value.forEach((conn) =>
+            userIds.add(conn.curatorId.value),
+          );
+        }
+      }
+    }
+
+    return Array.from(userIds);
+  }
+
+  async getBatchUserActivityStats(
+    userIds: string[],
+  ): Promise<Map<string, UserActivityStats>> {
+    const resultMap = new Map<string, UserActivityStats>();
+    const allCards = this.cardRepository.getAllCards();
+    const allCollections = this.collectionRepository.getAllCollections();
+
+    for (const userId of userIds) {
+      const stats: UserActivityStats = {
+        cardCount: 0,
+        collectionCount: 0,
+        connectionCount: 0,
+        lastActivityAt: null,
+      };
+
+      const updateLatest = (date: Date) => {
+        if (!stats.lastActivityAt || date > stats.lastActivityAt) {
+          stats.lastActivityAt = date;
+        }
+      };
+
+      allCards.forEach((card) => {
+        if (card.curatorId.value === userId) {
+          stats.cardCount++;
+          updateLatest(card.createdAt);
+        }
+      });
+
+      allCollections.forEach((collection) => {
+        if (collection.authorId.value === userId) {
+          stats.collectionCount++;
+        }
+        collection.cardLinks.forEach((link) => {
+          if (link.addedBy.value === userId) {
+            updateLatest(link.addedAt);
+          }
+        });
+      });
+
+      if (this.connectionRepository) {
+        const curatorIdResult = CuratorId.create(userId);
+        if (curatorIdResult.isOk()) {
+          const connectionsResult =
+            await this.connectionRepository.findByCuratorId(
+              curatorIdResult.value,
+            );
+          if (connectionsResult.isOk()) {
+            stats.connectionCount = connectionsResult.value.length;
+            connectionsResult.value.forEach((conn) =>
+              updateLatest(conn.createdAt),
+            );
+          }
+        }
+      }
+
+      resultMap.set(userId, stats);
     }
 
     return resultMap;
