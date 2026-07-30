@@ -130,7 +130,7 @@ export default function NoteCardModalContent(props: Props) {
           </VisuallyHidden>
         </Stack>
 
-        <Group gap={'xs'} grow>
+        <Group gap={'xs'} wrap="nowrap">
           <Button
             variant="light"
             color="gray"
@@ -142,6 +142,7 @@ export default function NoteCardModalContent(props: Props) {
             Cancel
           </Button>
           <Button
+            style={{ flex: 1 }}
             onClick={handleUpdateNote}
             loading={updateNote.isPending}
             disabled={note?.trimEnd() === ''}

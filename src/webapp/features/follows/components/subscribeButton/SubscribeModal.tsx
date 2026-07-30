@@ -25,6 +25,7 @@ export default function SubscribeModal(props: Props) {
       opened={props.opened}
       onClose={props.onClose}
       title="Notification settings"
+      size="sm"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
     >
@@ -68,11 +69,13 @@ function ConfirmForm(props: ConfirmFormProps) {
           : 'Get notified about new cards, connections, and saves to this collection.'}
       </Text>
 
-      <Group gap={'xs'} justify="flex-end">
-        <Button variant="light" color="gray" onClick={props.onCancel}>
+      <Group gap={'xs'} wrap="nowrap">
+        <Button variant="light" color="gray" size="md" onClick={props.onCancel}>
           Cancel
         </Button>
         <Button
+          size="md"
+          style={{ flex: 1 }}
           color={props.isSubscribed ? 'red' : undefined}
           onClick={handleConfirm}
           data-autofocus
@@ -135,11 +138,13 @@ function ScopeForm(props: ScopeFormProps) {
         ))}
       </Stack>
 
-      <Group gap={'xs'} justify="flex-end">
-        <Button variant="light" color="gray" onClick={props.onCancel}>
+      <Group gap={'xs'} wrap="nowrap">
+        <Button variant="light" color="gray" size="md" onClick={props.onCancel}>
           Cancel
         </Button>
         <Button
+          size="md"
+          style={{ flex: 1 }}
           disabled={isDisabled}
           onClick={() => props.onConfirm(selected)}
           data-autofocus

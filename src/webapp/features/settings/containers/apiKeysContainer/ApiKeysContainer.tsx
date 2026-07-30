@@ -212,17 +212,18 @@ export default function ApiKeysContainer() {
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             data-autofocus
           />
-          <Group justify="end" gap={'xs'}>
+          <Group gap={'xs'} wrap="nowrap">
             <Button
               variant="light"
               color="gray"
-              size="sm"
+              size="md"
               onClick={closeCreate}
             >
               Cancel
             </Button>
             <Button
-              size="sm"
+              size="md"
+              style={{ flex: 1 }}
               onClick={handleCreate}
               disabled={!keyName.trim() || isCreating}
               loading={isCreating}
@@ -251,12 +252,13 @@ export default function ApiKeysContainer() {
             onKeyDown={(e) => e.key === 'Enter' && handleEditConfirm()}
             data-autofocus
           />
-          <Group justify="end" gap={'xs'}>
-            <Button variant="light" color="gray" size="sm" onClick={closeEdit}>
+          <Group gap={'xs'} wrap="nowrap">
+            <Button variant="light" color="gray" size="md" onClick={closeEdit}>
               Cancel
             </Button>
             <Button
-              size="sm"
+              size="md"
+              style={{ flex: 1 }}
               onClick={handleEditConfirm}
               disabled={!editName.trim() || isUpdating}
               loading={isUpdating}
@@ -336,19 +338,27 @@ export default function ApiKeysContainer() {
           <Text fz="sm" fw={500} c="gray">
             This key will stop working immediately and cannot be recovered.
           </Text>
-          <Button variant="subtle" size="md" color="gray" onClick={closeRevoke}>
-            Cancel
-          </Button>
-          <Button
-            color="red"
-            size="md"
-            onClick={handleRevokeConfirm}
-            data-autofocus
-            loading={isRevoking}
-            disabled={isRevoking}
-          >
-            Revoke key
-          </Button>
+          <Group gap="xs" wrap="nowrap">
+            <Button
+              variant="light"
+              size="md"
+              color="gray"
+              onClick={closeRevoke}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              size="md"
+              style={{ flex: 1 }}
+              onClick={handleRevokeConfirm}
+              data-autofocus
+              loading={isRevoking}
+              disabled={isRevoking}
+            >
+              Revoke key
+            </Button>
+          </Group>
         </Stack>
       </Modal>
     </Container>
