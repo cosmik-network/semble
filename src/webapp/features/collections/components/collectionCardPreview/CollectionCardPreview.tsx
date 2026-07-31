@@ -32,14 +32,17 @@ function PreviewCard(props: { card: UrlCard }) {
     <Box w={CARD_WIDTH} miw={CARD_WIDTH}>
       <AspectRatio ratio={16 / 9}>
         {hasImage ? (
-          <Image
-            src={cardContent.imageUrl}
-            alt={`${cardContent.url} social preview image`}
-            radius={'md'}
-            fit="cover"
-            draggable={false}
-            onError={() => setImageError(true)}
-          />
+          <Card p={0} radius={'md'} withBorder>
+            <Image
+              src={cardContent.imageUrl}
+              alt={`${cardContent.url} social preview image`}
+              w={'100%'}
+              h={'100%'}
+              fit="cover"
+              draggable={false}
+              onError={() => setImageError(true)}
+            />
+          </Card>
         ) : (
           <Card p={'xs'} radius={'md'} withBorder>
             <Center my={'auto'}>

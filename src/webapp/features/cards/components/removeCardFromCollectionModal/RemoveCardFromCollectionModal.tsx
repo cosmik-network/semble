@@ -1,4 +1,4 @@
-import { Button, Stack, Modal } from '@mantine/core';
+import { Button, Group, Modal } from '@mantine/core';
 import useRemoveCardFromCollections from '../../lib/mutations/useRemoveCardFromCollections';
 import { notifications } from '@mantine/notifications';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
@@ -48,19 +48,20 @@ export default function RemoveCardFromCollectionModal(props: Props) {
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Stack>
-        <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>
+      <Group gap="xs" wrap="nowrap">
+        <Button variant="light" size="md" color="gray" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
           color="red"
           size="md"
+          style={{ flex: 1 }}
           onClick={handleRemoveCardFromCollection}
           loading={removeCardFromCollection.isPending}
         >
           Remove
         </Button>
-      </Stack>
+      </Group>
     </Modal>
   );
 }

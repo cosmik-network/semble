@@ -60,6 +60,12 @@ import {
   GetUrlGraphDataParams,
   GetMySubscriptionsParams,
   GetMySubscriptionsResponse,
+  RecommendedUrlsParams,
+  RecommendedUrlsResponse,
+  RecommendedUsersParams,
+  RecommendedUsersResponse,
+  RecommendedCollectionsParams,
+  RecommendedCollectionsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -329,6 +335,33 @@ export class QueryClient extends BaseClient {
       query: { url: params.url, limit: params.limit, cursor: params.cursor },
     });
     return unwrap<SearchLeafletDocsForUrlResponse>(res);
+  }
+
+  async getRecommendedUrls(
+    params: RecommendedUrlsParams,
+  ): Promise<RecommendedUrlsResponse> {
+    const res = await this.client.search.recommended({
+      query: { queries: params.queries },
+    });
+    return unwrap<RecommendedUrlsResponse>(res);
+  }
+
+  async getRecommendedUsers(
+    params: RecommendedUsersParams,
+  ): Promise<RecommendedUsersResponse> {
+    const res = await this.client.search.recommendedUsers({
+      query: { urls: params.urls },
+    });
+    return unwrap<RecommendedUsersResponse>(res);
+  }
+
+  async getRecommendedCollections(
+    params: RecommendedCollectionsParams,
+  ): Promise<RecommendedCollectionsResponse> {
+    const res = await this.client.search.recommendedCollections({
+      query: { urls: params.urls },
+    });
+    return unwrap<RecommendedCollectionsResponse>(res);
   }
 
   async getOpenCollectionsWithContributor(

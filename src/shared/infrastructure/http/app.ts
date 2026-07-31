@@ -340,6 +340,9 @@ export const createExpressApp = (
       controllers.semanticSearchUrlsController,
       controllers.searchAtProtoAccountsController,
       controllers.searchLeafletDocsForUrlController,
+      controllers.recommendedCardsController,
+      controllers.recommendedUsersController,
+      controllers.recommendedCollectionsController,
     );
 
     registerNotificationRoutes(

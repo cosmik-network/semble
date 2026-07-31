@@ -579,6 +579,58 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     }
   }
 
+  async getCollectionsForUrls(
+    urls: string[],
+  ): Promise<CollectionQueryResultDTO[]> {
+    try {
+      if (urls.length === 0) {
+        return [];
+      }
+
+      // Find all distinct collections containing URL cards with these URLs
+      const collectionsResult = await this.db
+        .selectDistinct({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          accessType: collections.accessType,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          authorId: collections.authorId,
+          cardCount: collections.cardCount,
+          uri: publishedRecords.uri,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)));
+
+      return collectionsResult.map((raw) =>
+        CollectionMapper.toQueryResult({
+          id: raw.id,
+          uri: raw.uri,
+          name: raw.name,
+          description: raw.description,
+          accessType: raw.accessType,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+          authorId: raw.authorId,
+          cardCount: raw.cardCount,
+        }),
+      );
+    } catch (error) {
+      console.error('Error in getCollectionsForUrls:', error);
+      throw error;
+    }
+  }
+
   async getCollectionCountForUrl(url: string): Promise<number> {
     try {
       // Count distinct collections that contain cards with this URL

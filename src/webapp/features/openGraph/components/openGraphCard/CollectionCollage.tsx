@@ -15,6 +15,9 @@ const BOX_HEIGHT = 410;
 // 1 to MAX_TILES.
 const MAX_TILES = 5;
 
+// Without this a white og:image vanishes against the tile's white mat.
+const THUMB_BORDER = '1px solid #dee2e6';
+
 type Placement = {
   top: number;
   left: number;
@@ -149,6 +152,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
             height: thumb,
             objectFit: 'cover',
             borderRadius: 8,
+            border: THUMB_BORDER,
           }}
         />
       </div>
@@ -167,6 +171,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
             justifyContent: 'center',
             backgroundColor: '#f1f3f5',
             borderRadius: 8,
+            border: THUMB_BORDER,
           }}
         >
           <img

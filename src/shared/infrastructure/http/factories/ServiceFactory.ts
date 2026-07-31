@@ -80,6 +80,7 @@ import { IAtProtoRepoService } from '../../../../modules/atproto/application/IAt
 import { ATProtoRepoService } from '../../../../modules/atproto/infrastructure/services/ATProtoRepoService';
 import { FakeAtProtoRepoService } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoRepoService';
 import { DistributedLockServiceFactory } from '../../locking/DistributedLockServiceFactory';
+import { BskyFollowsService } from '../../../../modules/user/application/services/BskyFollowsService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -97,6 +98,8 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  vectorDatabase: IVectorDatabase;
+  bskyFollowsService: BskyFollowsService;
   leafletSearchService: ILeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
@@ -415,6 +418,11 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
+    const bskyFollowsService = new BskyFollowsService(
+      atProtoAgentService,
+      repositories.userRepository,
+    );
+
     // Create LeafletSearchService with caching
     let leafletSearchService: ILeafletSearchService;
 
@@ -507,6 +515,8 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      vectorDatabase,
+      bskyFollowsService,
       leafletSearchService,
       cardLibraryService,
       cardCollectionService,

@@ -47,15 +47,16 @@ export default function ImageCard(props: Props) {
 
           {props.cardContent.imageUrl && (
             <Fragment>
-              <Image
-                src={props.cardContent.imageUrl}
-                alt={props.cardContent.title || 'Card image'}
-                w="100%"
-                mah={400}
-                radius="md"
-                fit="cover"
-                onClick={() => setLightboxOpened(true)}
-              />
+              <Card p={0} radius="md" withBorder>
+                <Image
+                  src={props.cardContent.imageUrl}
+                  alt={props.cardContent.title || 'Card image'}
+                  w="100%"
+                  mah={400}
+                  fit="cover"
+                  onClick={() => setLightboxOpened(true)}
+                />
+              </Card>
               <Lightbox
                 images={[{ src: props.cardContent.imageUrl }]}
                 opened={lightboxOpened}
