@@ -12,9 +12,9 @@ import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { ProfileEnricher } from 'src/modules/cards/application/services/ProfileEnricher';
 import {
-  BskyFollowsService,
+  IBskyFollowsService,
   BskyFollowedProfile,
-} from '../../services/BskyFollowsService';
+} from '../../services/IBskyFollowsService';
 
 export interface RecommendedUsersRankingConfig {
   cardWeight: number;
@@ -67,7 +67,7 @@ export class RecommendedUsersUseCase implements UseCase<
   constructor(
     private cardQueryRepository: ICardQueryRepository,
     private followsRepository: IFollowsRepository,
-    private bskyFollowsService: BskyFollowsService,
+    private bskyFollowsService: IBskyFollowsService,
     private profileService: IProfileService,
     config?: Partial<RecommendedUsersRankingConfig>,
   ) {

@@ -81,6 +81,9 @@ import { ATProtoRepoService } from '../../../../modules/atproto/infrastructure/s
 import { FakeAtProtoRepoService } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoRepoService';
 import { DistributedLockServiceFactory } from '../../locking/DistributedLockServiceFactory';
 import { BskyFollowsService } from '../../../../modules/user/application/services/BskyFollowsService';
+import { IBskyFollowsService } from '../../../../modules/user/application/services/IBskyFollowsService';
+import { CachedBskyFollowsService } from '../../../../modules/user/infrastructure/services/CachedBskyFollowsService';
+import { FakeBskyFollowsService } from '../../../../modules/user/infrastructure/services/FakeBskyFollowsService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -99,7 +102,7 @@ export interface SharedServices {
   cookieService: CookieService;
   searchService: SearchService;
   vectorDatabase: IVectorDatabase;
-  bskyFollowsService: BskyFollowsService;
+  bskyFollowsService: IBskyFollowsService;
   leafletSearchService: ILeafletSearchService;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
@@ -418,10 +421,28 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
-    const bskyFollowsService = new BskyFollowsService(
-      atProtoAgentService,
-      repositories.userRepository,
-    );
+    // Bsky Follows Service (fake in mock mode, cached when persistence available)
+    let bskyFollowsService: IBskyFollowsService;
+    if (useMockAuth) {
+      bskyFollowsService = new FakeBskyFollowsService(
+        repositories.userRepository,
+      );
+    } else {
+      const baseBskyFollowsService = new BskyFollowsService(
+        atProtoAgentService,
+        repositories.userRepository,
+      );
+      if (useMockPersistence) {
+        bskyFollowsService = baseBskyFollowsService;
+      } else {
+        const redisConfig = configService.getRedisConfig();
+        const redis = RedisFactory.createConnection(redisConfig);
+        bskyFollowsService = new CachedBskyFollowsService(
+          baseBskyFollowsService,
+          redis,
+        );
+      }
+    }
 
     // Create LeafletSearchService with caching
     let leafletSearchService: ILeafletSearchService;
