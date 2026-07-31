@@ -15,9 +15,7 @@ const BOX_HEIGHT = 410;
 // 1 to MAX_TILES.
 const MAX_TILES = 5;
 
-// Without this a white or light og:image is invisible against the tile's white
-// mat. #dee2e6 is Mantine gray-3, matching the in-app thumbnails. 1px because
-// these thumbnails are ~48px, the same size the app borders at 1px.
+// Without this a white og:image vanishes against the tile's white mat.
 const THUMB_BORDER = '1px solid #dee2e6';
 
 type Placement = {

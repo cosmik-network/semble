@@ -14,12 +14,8 @@ import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 export const runtime = 'nodejs';
 
 const THUMB_SIZE = 225;
-// Keeps a white or light og:image from bleeding into the card background.
-// #dee2e6 is Mantine gray-3, what --mantine-color-default-border resolves to
-// in light mode, so this matches the in-app thumbnails. 2px rather than 1px
-// because OG images are almost always viewed downscaled.
-// Note: the border goes on the <img> itself. Satori renders corner artifacts
-// when clipping an image with overflow:hidden on a rounded wrapper.
+// Goes on the <img>, not a rounded wrapper: Satori leaves corner artifacts
+// when clipping with overflow:hidden. #dee2e6 is the app's light-mode border.
 const THUMB_BORDER = '2px solid #dee2e6';
 
 interface Metadata {
