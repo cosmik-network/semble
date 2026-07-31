@@ -169,14 +169,22 @@ export default function UrlSearchInput(props: Props) {
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
       <Group gap={'xs'} align="center" wrap="nowrap">
         {urlView.metadata.imageUrl && (
-          <Image
-            src={urlView.metadata.imageUrl}
-            alt={urlView.metadata.title || 'URL thumbnail'}
+          <Card
+            p={0}
+            radius="sm"
+            withBorder
             w={35}
             h={35}
-            radius="sm"
-            fit="cover"
-          />
+            style={{ flexShrink: 0 }}
+          >
+            <Image
+              src={urlView.metadata.imageUrl}
+              alt={urlView.metadata.title || 'URL thumbnail'}
+              w={'100%'}
+              h={'100%'}
+              fit="cover"
+            />
+          </Card>
         )}
         <Stack gap={0}>
           <Text fw={500} c={'bright'} lineClamp={1} size="sm">
@@ -340,14 +348,22 @@ export default function UrlSearchInput(props: Props) {
                     <Combobox.Option key={card.url} value={card.url} p={5}>
                       <Group gap={'xs'} align="center" wrap="nowrap">
                         {card.cardContent.imageUrl && (
-                          <Image
-                            src={card.cardContent.imageUrl}
-                            alt={card.cardContent.title || 'URL thumbnail'}
+                          <Card
+                            p={0}
+                            radius="sm"
+                            withBorder
                             w={35}
                             h={35}
-                            radius="sm"
-                            fit="cover"
-                          />
+                            style={{ flexShrink: 0 }}
+                          >
+                            <Image
+                              src={card.cardContent.imageUrl}
+                              alt={card.cardContent.title || 'URL thumbnail'}
+                              w={'100%'}
+                              h={'100%'}
+                              fit="cover"
+                            />
+                          </Card>
                         )}
                         <Stack gap={0}>
                           <Text fw={500} c={'bright'} lineClamp={1} size="sm">

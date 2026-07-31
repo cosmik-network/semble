@@ -57,13 +57,22 @@ function MockCardPreview() {
         </Text>
       </Stack>
       <AspectRatio ratio={1 / 1}>
-        <Image
-          src={MOCK_CARD_CONTENT.imageUrl}
-          alt="Mock card preview"
+        <Card
+          p={0}
           radius="md"
+          withBorder
           w={60}
           h={60}
-        />
+          style={{ flexShrink: 0 }}
+        >
+          <Image
+            src={MOCK_CARD_CONTENT.imageUrl}
+            alt="Mock card preview"
+            w={'100%'}
+            h={'100%'}
+            fit="cover"
+          />
+        </Card>
       </AspectRatio>
     </Group>
   );

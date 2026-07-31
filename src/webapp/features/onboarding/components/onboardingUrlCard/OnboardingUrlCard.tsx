@@ -36,15 +36,15 @@ export default function OnboardingUrlCard(props: Props) {
     >
       <Group wrap="nowrap" align="flex-start" gap={'sm'}>
         {metadata.imageUrl && (
-          <Image
-            src={metadata.imageUrl}
-            alt={metadata.title ?? urlView.url}
-            radius={'md'}
-            w={80}
-            h={80}
-            fit="cover"
-            flex={'0 0 auto'}
-          />
+          <Card p={0} radius={'md'} withBorder w={80} h={80} flex={'0 0 auto'}>
+            <Image
+              src={metadata.imageUrl}
+              alt={metadata.title ?? urlView.url}
+              w={'100%'}
+              h={'100%'}
+              fit="cover"
+            />
+          </Card>
         )}
 
         <Stack gap={4} flex={1} miw={0}>

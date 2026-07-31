@@ -188,13 +188,22 @@ export default function EditConnectionForm(props: Props) {
                   <Skeleton width={45} height={45} radius={'md'} />
                 ) : (
                   sourceUrlMetadata?.metadata?.imageUrl && (
-                    <Image
-                      src={sourceUrlMetadata.metadata.imageUrl}
-                      alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+                    <Card
+                      p={0}
                       radius={'md'}
+                      withBorder
                       w={45}
                       h={45}
-                    />
+                      style={{ flexShrink: 0 }}
+                    >
+                      <Image
+                        src={sourceUrlMetadata.metadata.imageUrl}
+                        alt={`${sourceUrlMetadata.metadata.title} social preview image`}
+                        w={'100%'}
+                        h={'100%'}
+                        fit="cover"
+                      />
+                    </Card>
                   )
                 )}
                 <Stack gap={0}>
@@ -347,13 +356,22 @@ export default function EditConnectionForm(props: Props) {
                 <Skeleton width={45} height={45} radius={'md'} />
               ) : (
                 targetUrlMetadata?.metadata?.imageUrl && (
-                  <Image
-                    src={targetUrlMetadata.metadata.imageUrl}
-                    alt={`${targetUrlMetadata.metadata.title} social preview image`}
+                  <Card
+                    p={0}
                     radius={'md'}
+                    withBorder
                     w={45}
                     h={45}
-                  />
+                    style={{ flexShrink: 0 }}
+                  >
+                    <Image
+                      src={targetUrlMetadata.metadata.imageUrl}
+                      alt={`${targetUrlMetadata.metadata.title} social preview image`}
+                      w={'100%'}
+                      h={'100%'}
+                      fit="cover"
+                    />
+                  </Card>
                 )
               )}
               <Stack gap={0}>
