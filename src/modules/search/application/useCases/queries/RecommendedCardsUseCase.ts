@@ -237,12 +237,25 @@ export class RecommendedCardsUseCase implements UseCase<
       });
 
       // 5. Rank with weighted score plus randomness
-      const ranked = candidateUrls
+      const rankedAll = candidateUrls
         .map((url) => ({
           url,
           rankKey: this.computeRankKey(rankingStatsMap.get(url)),
         }))
-        .sort((a, b) => b.rankKey - a.rankKey)
+        .sort((a, b) => b.rankKey - a.rankKey);
+
+      // Drop URLs whose metadata (title + description) duplicates one already
+      // kept, so results vary rather than surfacing near-identical entries.
+      // Iterating in ranked order keeps the highest-ranked of each duplicate set.
+      const seenMetadata = new Set<string>();
+      const ranked = rankedAll
+        .filter(({ url }) => {
+          const metadataKey = this.getMetadataKey(uniqueResults.get(url)!);
+          if (metadataKey === null) return true;
+          if (seenMetadata.has(metadataKey)) return false;
+          seenMetadata.add(metadataKey);
+          return true;
+        })
         .slice(0, MAX_RESULTS);
 
       // 6. Build UrlViews from vector metadata + library info
@@ -275,6 +288,18 @@ export class RecommendedCardsUseCase implements UseCase<
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  /**
+   * Builds a dedup key from a result's title + description so entries with
+   * identical metadata collapse to one. Returns null when both are empty, so
+   * metadata-less results aren't all treated as duplicates of each other.
+   */
+  private getMetadataKey(result: UrlSearchResult): string | null {
+    const title = result.metadata.title?.trim().toLowerCase() ?? '';
+    const description = result.metadata.description?.trim().toLowerCase() ?? '';
+    if (!title && !description) return null;
+    return `${title} ${description}`;
   }
 
   private computeRankKey(stats: UrlRankingStats | undefined): number {
