@@ -1,8 +1,15 @@
 import { createSembleClient } from '@/services/client.apiClient';
 
-export const getRecommendedUrls = async (queries: string[]) => {
+export const getRecommendedUrls = async (
+  queries: string[],
+  params?: { page?: number; limit?: number },
+) => {
   const client = createSembleClient();
-  return client.getRecommendedUrls({ queries });
+  return client.getRecommendedUrls({
+    queries,
+    page: params?.page,
+    limit: params?.limit,
+  });
 };
 
 export const getRecommendedUsers = async (urls: string[]) => {

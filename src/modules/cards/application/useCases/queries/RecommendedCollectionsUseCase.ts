@@ -13,9 +13,9 @@ import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
 import {
-  BskyFollowsService,
+  IBskyFollowsService,
   BskyFollowedProfile,
-} from 'src/modules/user/application/services/BskyFollowsService';
+} from 'src/modules/user/application/services/IBskyFollowsService';
 
 export interface RecommendedCollectionsRankingConfig {
   cardCountWeight: number;
@@ -72,7 +72,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private followsRepository: IFollowsRepository,
-    private bskyFollowsService: BskyFollowsService,
+    private bskyFollowsService: IBskyFollowsService,
     private profileService: IProfileService,
     config?: Partial<RecommendedCollectionsRankingConfig>,
   ) {
@@ -126,31 +126,42 @@ export class RecommendedCollectionsUseCase implements UseCase<
         return ok({ collections: [] });
       }
 
-      const collectionIds = candidates.map((c) => c.id);
+      const candidateIds = candidates.map((c) => c.id);
 
-      // 3. Fetch follower counts and the caller's follow status in parallel
-      const [followerCountsResult, followingResult] = await Promise.all([
-        this.followsRepository.getBatchFollowersCount(
-          collectionIds,
-          FollowTargetType.COLLECTION,
-        ),
-        this.followsRepository.checkFollowingMultiple(
+      // 3. Drop collections the calling user already follows on Semble
+      const followingResult =
+        await this.followsRepository.checkFollowingMultiple(
           query.callingUserId,
-          collectionIds,
+          candidateIds,
           FollowTargetType.COLLECTION,
-        ),
-      ]);
-      if (followerCountsResult.isErr()) {
-        return err(AppError.UnexpectedError.create(followerCountsResult.error));
-      }
+        );
       if (followingResult.isErr()) {
         return err(AppError.UnexpectedError.create(followingResult.error));
       }
-      const followerCounts = followerCountsResult.value;
       const followingMap = followingResult.value;
+      const unfollowedCandidates = candidates.filter(
+        (c) => !followingMap.get(c.id),
+      );
 
-      // 4. Score with randomness, sort, take top N
-      const ranked = candidates
+      if (unfollowedCandidates.length === 0) {
+        return ok({ collections: [] });
+      }
+
+      const collectionIds = unfollowedCandidates.map((c) => c.id);
+
+      // 4. Fetch follower counts for the remaining candidates
+      const followerCountsResult =
+        await this.followsRepository.getBatchFollowersCount(
+          collectionIds,
+          FollowTargetType.COLLECTION,
+        );
+      if (followerCountsResult.isErr()) {
+        return err(AppError.UnexpectedError.create(followerCountsResult.error));
+      }
+      const followerCounts = followerCountsResult.value;
+
+      // 5. Score with randomness, sort, take top N
+      const ranked = unfollowedCandidates
         .map((collection) => ({
           collection,
           score: this.computeRankKey(
@@ -162,7 +173,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
         .sort((a, b) => b.score - a.score)
         .slice(0, MAX_RESULTS);
 
-      // 5. Enrich author profiles. Bluesky-followed authors already carry
+      // 6. Enrich author profiles. Bluesky-followed authors already carry
       // profile data from getFollows, so only fetch the rest.
       const authorIds = [
         ...new Set(ranked.map(({ collection }) => collection.authorId)),
@@ -206,7 +217,8 @@ export class RecommendedCollectionsUseCase implements UseCase<
             updatedAt: collection.updatedAt.toISOString(),
             cardCount: collection.cardCount,
             author: profile,
-            isFollowing: followingMap.get(collection.id) || false,
+            // Collections the caller already follows were excluded above
+            isFollowing: false,
             followerCount: followerCounts.get(collection.id) || 0,
             authorFollowedOnBsky: bskyFollowedProfiles.has(collection.authorId),
           };

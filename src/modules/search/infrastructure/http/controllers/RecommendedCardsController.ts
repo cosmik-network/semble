@@ -10,7 +10,7 @@ export class RecommendedCardsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { queries } = req.query;
+      const { queries, page, limit } = req.query;
 
       // A single ?queries=x arrives as a string; repeated params arrive as an array
       const queryList = (Array.isArray(queries) ? queries : [queries]).filter(
@@ -24,6 +24,8 @@ export class RecommendedCardsController extends Controller {
       const result = await this.recommendedCardsUseCase.execute({
         queries: queryList,
         callingUserId: req.did, // Pass through the authenticated user's DID
+        page: page !== undefined ? Number(page) : undefined,
+        limit: limit !== undefined ? Number(limit) : undefined,
       });
 
       if (result.isErr()) {

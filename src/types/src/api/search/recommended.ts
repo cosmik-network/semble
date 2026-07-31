@@ -2,14 +2,18 @@ import { z } from 'zod';
 import { UrlViewSchema } from '../../entities/connection';
 import { UserSchema } from '../../entities/user';
 import { CollectionSchema } from '../../entities/collection';
+import { PaginationSchema } from '../../entities/common';
 
 export const RecommendedUrlsParamsSchema = z.object({
   queries: z.array(z.string()),
+  page: z.number().optional(),
+  limit: z.number().optional(),
 });
 export type RecommendedUrlsParams = z.infer<typeof RecommendedUrlsParamsSchema>;
 
 export const RecommendedUrlsResponseSchema = z.object({
   urls: z.array(UrlViewSchema),
+  pagination: PaginationSchema,
 });
 export type RecommendedUrlsResponse = z.infer<
   typeof RecommendedUrlsResponseSchema
