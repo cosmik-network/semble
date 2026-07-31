@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
+import { authKeys } from '@/lib/auth/authKeys';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [queryClient, router]);
 
   const query = useQuery<GetProfileResponse | null>({
-    queryKey: ['authenticated user'],
+    queryKey: authKeys.session(),
     queryFn: async () => {
       const session = await verifySessionOnClient();
       return session;
