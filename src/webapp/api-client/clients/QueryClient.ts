@@ -341,7 +341,11 @@ export class QueryClient extends BaseClient {
     params: RecommendedUrlsParams,
   ): Promise<RecommendedUrlsResponse> {
     const res = await this.client.search.recommended({
-      query: { queries: params.queries },
+      query: {
+        queries: params.queries,
+        page: params.page,
+        limit: params.limit,
+      },
     });
     return unwrap<RecommendedUrlsResponse>(res);
   }

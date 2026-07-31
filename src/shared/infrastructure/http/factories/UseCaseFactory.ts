@@ -44,6 +44,7 @@ import { IndexUrlForSearchUseCase } from '../../../../modules/search/application
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { RecommendedCardsUseCase } from '../../../../modules/search/application/useCases/queries/RecommendedCardsUseCase';
+import { RedisFactory } from '../../redis/RedisFactory';
 import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
 import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
@@ -208,6 +209,15 @@ export class UseCaseFactory {
     repositories: Repositories,
     services: Services,
   ): UseCases {
+    // Redis connection for caching the recommended-cards ranked set.
+    // Skipped under mock persistence (ranking is recomputed per request).
+    const recommendedCardsRedis =
+      services.configService.shouldUseMockPersistence()
+        ? undefined
+        : RedisFactory.createConnection(
+            services.configService.getRedisConfig(),
+          );
+
     const getCollectionPageUseCase = new GetCollectionPageUseCase(
       repositories.collectionRepository,
       repositories.cardQueryRepository,
@@ -550,6 +560,7 @@ export class UseCaseFactory {
       recommendedCardsUseCase: new RecommendedCardsUseCase(
         services.vectorDatabase,
         repositories.cardQueryRepository,
+        recommendedCardsRedis,
       ),
       recommendedUsersUseCase: new RecommendedUsersUseCase(
         repositories.cardQueryRepository,

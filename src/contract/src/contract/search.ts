@@ -103,11 +103,13 @@ export const searchContract = c.router(
       query: z.object({
         // A single ?queries=x arrives as a string; repeated params arrive as an array
         queries: z.union([z.string(), z.array(z.string())]),
+        page: z.coerce.number().optional(),
+        limit: z.coerce.number().optional(),
       }),
       responses: { 200: RecommendedUrlsResponseSchema },
       summary: 'Recommended URLs',
       description:
-        'Returns URLs recommended for a set of query strings, ranked by network activity (saves, notes, collections, connections) with randomized ordering, excluding URLs the calling user already saved.',
+        'Returns URLs recommended for a set of query strings, ranked by network activity (saves, notes, collections, connections) with randomized ordering, excluding URLs the calling user already saved. Paginated over a cached ranked set.',
       metadata: { internal: true } as const,
     },
     recommendedUsers: {
