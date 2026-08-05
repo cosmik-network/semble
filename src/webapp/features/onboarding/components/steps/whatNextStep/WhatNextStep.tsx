@@ -156,12 +156,22 @@ export default function WhatNextStep(props: Props) {
       </Stack>
 
       {/* Composer is the drawer itself. ComposerDrawer is the global FAB
-          wrapper and must not be used here. */}
-      <Composer
-        isOpen={composerOpen}
-        onClose={composer.close}
-        initialMode="card"
-      />
+          wrapper and must not be used here.
+
+          The boundary is defence in depth. Composer runs useMyCollections —
+          a suspense query — at the top of its body, not inside its Drawer, so
+          it suspends even while closed. app/onboarding/page.tsx prefetches
+          that key, but without a local boundary any future un-prefetched
+          suspense query in this subtree would suspend to the page-level
+          boundary and blank the entire screen. Degrade to a missing drawer
+          instead. */}
+      <Suspense fallback={null}>
+        <Composer
+          isOpen={composerOpen}
+          onClose={composer.close}
+          initialMode="card"
+        />
+      </Suspense>
 
       <CreateCollectionDrawer
         isOpen={collectionOpen}
