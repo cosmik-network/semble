@@ -8,17 +8,25 @@ interface Props {
   recommendations: ReturnType<typeof useRecommendedCards>;
   selectedUrls: string[];
   onToggleUrl: (url: string) => void;
+  hasTopics: boolean;
 }
 
 export default function SaveCardsStep(props: Props) {
   const {
     data,
-    isPending,
+    isPending: queryIsPending,
     isError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = props.recommendations;
+
+  // The query is `enabled: queries.length > 0`, so with no stored topics it
+  // sits at isPending: true forever — no fetch ever starts. Gate on whether
+  // topics exist, mirroring stage 3's hasUrls/isPending pattern, so a
+  // deep-link with no topics falls through to the empty state below instead
+  // of spinning forever.
+  const isPending = props.hasTopics && queryIsPending;
 
   const urls = data?.pages.flatMap((page) => page.urls) ?? [];
 

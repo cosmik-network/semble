@@ -15,6 +15,7 @@ import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import TopicsStep from '../../components/steps/topicsStep/TopicsStep';
 import SaveCardsStep from '../../components/steps/saveCardsStep/SaveCardsStep';
+import FollowStep from '../../components/steps/followStep/FollowStep';
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
 import { FALLBACK_TOPICS } from '../../lib/topics';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
@@ -187,9 +188,11 @@ export default function OnboardingFlow(props: Props) {
             recommendations={recommendations}
             selectedUrls={selectedUrls}
             onToggleUrl={selection.toggle}
+            hasTopics={progress.topics.length > 0}
           />
         )}
-        {currentStep !== 1 && currentStep !== 2 && (
+        {currentStep === 3 && <FollowStep urls={progress.seedUrls} />}
+        {currentStep !== 1 && currentStep !== 2 && currentStep !== 3 && (
           <Text c={'dimmed'}>
             Stage {currentStep} of {TOTAL_STEPS}: {STEPS[currentStep - 1].label}
           </Text>
