@@ -2,23 +2,21 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from 'src/modules/atproto/application/IAgentService';
 import { DID } from 'src/modules/atproto/domain/DID';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import {
+  IBskyFollowsService,
+  BskyFollowedProfile,
+} from './IBskyFollowsService';
+
+// Re-exported for backwards compatibility with existing imports
+export type { BskyFollowedProfile } from './IBskyFollowsService';
 
 const MAX_BSKY_FOLLOWS = 1000;
 const BSKY_FOLLOWS_PAGE_SIZE = 100; // app.bsky.graph.getFollows max per page
 
-// Profile data already returned by getFollows — lets callers skip profile fetches
-export interface BskyFollowedProfile {
-  did: string;
-  handle: string;
-  displayName?: string;
-  avatarUrl?: string;
-  description?: string;
-}
-
 /**
  * Resolves which of the accounts a user follows on Bluesky are Semble users.
  */
-export class BskyFollowsService {
+export class BskyFollowsService implements IBskyFollowsService {
   constructor(
     private agentService: IAgentService,
     private userRepository: IUserRepository,

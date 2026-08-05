@@ -1,8 +1,9 @@
+import Redis from 'ioredis';
 import { Result, ok, err } from '../../../../../shared/core/Result';
 import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
-import { UrlView } from '@semble/types';
+import { UrlView, Pagination } from '@semble/types';
 import {
   IVectorDatabase,
   UrlSearchResult,
@@ -31,14 +32,22 @@ export const DEFAULT_RANKING_CONFIG: RecommendationRankingConfig = {
 
 const VECTOR_SEARCH_LIMIT = 100;
 const MAX_RESULTS = 100;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
+const CACHE_KEY_PREFIX = 'recommended-cards:';
+const CACHE_TTL_SECONDS = 3600; // 1 hour
 
 export interface RecommendedCardsQuery {
   queries: string[];
   callingUserId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface RecommendedCardsResult {
   urls: UrlView[];
+  pagination: Pagination;
 }
 
 export class ValidationError extends UseCaseError {
@@ -56,6 +65,9 @@ export class RecommendedCardsUseCase implements UseCase<
   constructor(
     private vectorDatabase: IVectorDatabase,
     private cardQueryRepository: ICardQueryRepository,
+    // Optional Redis cache for the ranked set. When absent (e.g. mock mode),
+    // the ranking is recomputed on every request.
+    private redis?: Redis,
     config?: Partial<RecommendationRankingConfig>,
   ) {
     this.config = { ...DEFAULT_RANKING_CONFIG, ...config };
@@ -75,6 +87,106 @@ export class RecommendedCardsUseCase implements UseCase<
         return err(new ValidationError('At least one query is required'));
       }
 
+      const page = Math.max(query.page || 1, 1);
+      const limit = Math.min(
+        Math.max(query.limit || DEFAULT_LIMIT, 1),
+        MAX_LIMIT,
+      );
+
+      // Build (or read from cache) the full ranked list, then paginate over it.
+      // The ranked order is stable per (queries, user) so pages don't reshuffle.
+      const rankedResult = await this.getRankedUrls(
+        queries,
+        query.callingUserId,
+      );
+      if (rankedResult.isErr()) {
+        return err(rankedResult.error);
+      }
+      const allUrls = rankedResult.value;
+
+      const totalCount = allUrls.length;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedUrls = allUrls.slice(startIndex, endIndex);
+
+      return ok({
+        urls: paginatedUrls,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalCount,
+          hasMore: endIndex < totalCount,
+          limit,
+        },
+      });
+    } catch (error) {
+      return err(AppError.UnexpectedError.create(error));
+    }
+  }
+
+  /**
+   * Returns the full ranked list of recommended URLs for the given queries and
+   * caller. Reads from Redis when available; otherwise (or on a cache miss)
+   * runs the expensive vector search + ranking and caches the result.
+   */
+  private async getRankedUrls(
+    queries: string[],
+    callingUserId?: string,
+  ): Promise<Result<UrlView[], ValidationError | AppError.UnexpectedError>> {
+    const cacheKey = this.getCacheKey(queries, callingUserId);
+
+    if (this.redis) {
+      try {
+        const cached = await this.redis.get(cacheKey);
+        if (cached) {
+          return ok(JSON.parse(cached) as UrlView[]);
+        }
+      } catch (cacheError) {
+        console.warn(
+          `Redis error reading recommended cards cache for ${cacheKey}:`,
+          cacheError,
+        );
+      }
+    }
+
+    const rankedResult = await this.computeRankedUrls(queries, callingUserId);
+    if (rankedResult.isErr()) {
+      return rankedResult;
+    }
+
+    if (this.redis) {
+      try {
+        await this.redis.setex(
+          cacheKey,
+          CACHE_TTL_SECONDS,
+          JSON.stringify(rankedResult.value),
+        );
+      } catch (cacheError) {
+        console.warn(
+          `Redis error writing recommended cards cache for ${cacheKey}:`,
+          cacheError,
+        );
+      }
+    }
+
+    return rankedResult;
+  }
+
+  private getCacheKey(queries: string[], callingUserId?: string): string {
+    // Sort queries so ordering doesn't fragment the cache; scope to the caller
+    // because the ranked set filters out URLs they've already saved.
+    const normalizedQueries = [...queries].sort().join('|');
+    return `${CACHE_KEY_PREFIX}${callingUserId ?? 'anon'}:${normalizedQueries}`;
+  }
+
+  /**
+   * Runs the parallel vector searches, ranking, and UrlView assembly.
+   */
+  private async computeRankedUrls(
+    queries: string[],
+    callingUserId?: string,
+  ): Promise<Result<UrlView[], ValidationError | AppError.UnexpectedError>> {
+    try {
       // 1. Run parallel semantic searches for each query string
       const searchResults = await Promise.all(
         queries.map((q) =>
@@ -108,32 +220,42 @@ export class RecommendedCardsUseCase implements UseCase<
 
       const urls = Array.from(uniqueResults.keys());
       if (urls.length === 0) {
-        return ok({ urls: [] });
+        return ok([]);
       }
 
       // 3. Batch fetch ranking stats and library info
       const [rankingStatsMap, urlLibraryInfoMap] = await Promise.all([
         this.cardQueryRepository.getBatchUrlRankingStats(urls),
-        this.cardQueryRepository.getBatchUrlLibraryInfo(
-          urls,
-          query.callingUserId,
-        ),
+        this.cardQueryRepository.getBatchUrlLibraryInfo(urls, callingUserId),
       ]);
 
       // 4. Drop URLs the calling user has already saved or connected
       const candidateUrls = urls.filter((url) => {
-        if (!query.callingUserId) return true;
+        if (!callingUserId) return true;
         const libraryInfo = urlLibraryInfoMap.get(url);
         return !libraryInfo?.urlInLibrary && !libraryInfo?.urlIsConnected;
       });
 
       // 5. Rank with weighted score plus randomness
-      const ranked = candidateUrls
+      const rankedAll = candidateUrls
         .map((url) => ({
           url,
           rankKey: this.computeRankKey(rankingStatsMap.get(url)),
         }))
-        .sort((a, b) => b.rankKey - a.rankKey)
+        .sort((a, b) => b.rankKey - a.rankKey);
+
+      // Drop URLs whose metadata (title + description) duplicates one already
+      // kept, so results vary rather than surfacing near-identical entries.
+      // Iterating in ranked order keeps the highest-ranked of each duplicate set.
+      const seenMetadata = new Set<string>();
+      const ranked = rankedAll
+        .filter(({ url }) => {
+          const metadataKey = this.getMetadataKey(uniqueResults.get(url)!);
+          if (metadataKey === null) return true;
+          if (seenMetadata.has(metadataKey)) return false;
+          seenMetadata.add(metadataKey);
+          return true;
+        })
         .slice(0, MAX_RESULTS);
 
       // 6. Build UrlViews from vector metadata + library info
@@ -162,10 +284,22 @@ export class RecommendedCardsUseCase implements UseCase<
         };
       });
 
-      return ok({ urls: urlViews });
+      return ok(urlViews);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  /**
+   * Builds a dedup key from a result's title + description so entries with
+   * identical metadata collapse to one. Returns null when both are empty, so
+   * metadata-less results aren't all treated as duplicates of each other.
+   */
+  private getMetadataKey(result: UrlSearchResult): string | null {
+    const title = result.metadata.title?.trim().toLowerCase() ?? '';
+    const description = result.metadata.description?.trim().toLowerCase() ?? '';
+    if (!title && !description) return null;
+    return `${title} ${description}`;
   }
 
   private computeRankKey(stats: UrlRankingStats | undefined): number {

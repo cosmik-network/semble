@@ -15,8 +15,8 @@ import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import OnboardingUrlCard from '../onboardingUrlCard/OnboardingUrlCard';
 import { CardSaveSource } from '@/features/analytics/types';
 
-// How many recommended cards to show at once
-const VISIBLE_CARDS = 10;
+// How many recommended cards to fetch per page
+const PAGE_SIZE = 10;
 // How many top links to carry forward when the user selects none
 const FALLBACK_URL_COUNT = 5;
 
@@ -27,8 +27,16 @@ interface Props {
 }
 
 export default function CardsPane(props: Props) {
-  const { data, isPending, isError } = useRecommendedCards({
+  const {
+    data,
+    isPending,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecommendedCards({
     queries: props.topics,
+    limit: PAGE_SIZE,
   });
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,8 +45,8 @@ export default function CardsPane(props: Props) {
     pagePath: '/onboarding',
   });
 
-  const urls = data?.urls ?? [];
-  const visibleUrls = urls.slice(0, VISIBLE_CARDS);
+  const urls = data?.pages.flatMap((page) => page.urls) ?? [];
+  const visibleUrls = urls;
 
   const toggleUrl = (url: string) => {
     setSelectedUrls((current) =>
@@ -111,6 +119,18 @@ export default function CardsPane(props: Props) {
             onToggle={toggleUrl}
           />
         ))}
+
+        {hasNextPage && (
+          <Button
+            variant="subtle"
+            color="gray"
+            onClick={() => fetchNextPage()}
+            loading={isFetchingNextPage}
+            disabled={isSaving}
+          >
+            Show more
+          </Button>
+        )}
       </Stack>
 
       <Group justify="space-between">

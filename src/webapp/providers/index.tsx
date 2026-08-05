@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthProvider } from '@/hooks/useAuth';
+import { HydrationBoundary, type DehydratedState } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import MantineProvider from './mantine';
 import TanStackQueryProvider from './tanstack';
@@ -12,6 +13,12 @@ import { PostHogProvider } from 'posthog-js/react';
 
 interface Props {
   children: React.ReactNode;
+  /**
+   * Server-dehydrated query cache. Hydrated above AuthProvider so its
+   * `['authenticated user']` query sees the session on its very first render
+   * instead of starting a client fetch.
+   */
+  dehydratedState?: DehydratedState;
 }
 
 export default function Providers(props: Props) {
@@ -39,15 +46,17 @@ export default function Providers(props: Props) {
   return (
     <PostHogProvider client={posthog}>
       <TanStackQueryProvider>
-        <AuthProvider>
-          <MantineProvider>
-            <SettingsProvider>
-              <NavbarProvider>
-                <NavHistoryProvider>{props.children}</NavHistoryProvider>
-              </NavbarProvider>
-            </SettingsProvider>
-          </MantineProvider>
-        </AuthProvider>
+        <HydrationBoundary state={props.dehydratedState}>
+          <AuthProvider>
+            <MantineProvider>
+              <SettingsProvider>
+                <NavbarProvider>
+                  <NavHistoryProvider>{props.children}</NavHistoryProvider>
+                </NavbarProvider>
+              </SettingsProvider>
+            </MantineProvider>
+          </AuthProvider>
+        </HydrationBoundary>
       </TanStackQueryProvider>
     </PostHogProvider>
   );
