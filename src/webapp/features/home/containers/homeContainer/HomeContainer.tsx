@@ -10,10 +10,15 @@ import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCar
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
 import { LinkButton } from '@/components/link/MantineLink';
 
-export default function HomeContainer() {
+interface Props {
+  onboardingBanner?: React.ReactNode;
+}
+
+export default function HomeContainer(props: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
+        {props.onboardingBanner}
         <Stack gap={50}>
           {/* Explore */}
           <Stack>
