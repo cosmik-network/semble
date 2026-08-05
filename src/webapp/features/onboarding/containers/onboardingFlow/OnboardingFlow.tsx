@@ -122,6 +122,14 @@ export default function OnboardingFlow(props: Props) {
       (_url, index) => results[index].status === 'fulfilled',
     );
 
+    // The selection lives here, in the container, which stays mounted across
+    // stages — so without this, Back to stage 2 shows the same cards still
+    // checked and Continue saves them a second time, re-firing the
+    // 'card_saved' analytics event and inflating onboarding conversion.
+    // Drop exactly what saved; anything that failed stays checked so Back is
+    // a real retry.
+    selection.setSelection(selectedUrls.filter((url) => !saved.includes(url)));
+
     if (saved.length < selectedUrls.length) {
       notifications.show({
         color: 'yellow',
@@ -188,15 +196,23 @@ export default function OnboardingFlow(props: Props) {
           currentStep={currentStep}
           showStepper
           exitLabel="Exit setup"
-          onExit={() => changeStatus('dismissed')}
+          onExit={() => {
+            // Once earned, `completed` is permanent. A completed user reaches
+            // this by "Start setup over" → walk to stage 2 → Exit setup, or
+            // by pressing browser Back after finishing at stage 4. Both
+            // statuses hide the banner today, but onboardingStatus.ts is the
+            // swap point for server-persisted completion and `completed` is
+            // the field product and analytics will read once that lands.
+            if (status !== 'completed') {
+              changeStatus('dismissed');
+            }
+          }}
         />
       }
       footer={
         <OnboardingFooter
           backHref={
-            currentStep > 1
-              ? `/onboarding?step=${currentStep - 1}`
-              : undefined
+            currentStep > 1 ? `/onboarding?step=${currentStep - 1}` : undefined
           }
           onSkip={footerProps.onSkip}
           onContinue={footerProps.onContinue}
