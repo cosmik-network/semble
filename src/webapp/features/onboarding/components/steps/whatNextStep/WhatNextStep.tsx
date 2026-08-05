@@ -31,19 +31,25 @@ export default function WhatNextStep(props: Props) {
   // it `open()` would misdescribe what happened.
   const [createdCollection, setCreatedCollection] = useState(false);
 
-  // Stage 4 fails open: if stats can't load, unlock everything rather than
-  // show a screen of locked doors.
-  const cardCount = stats.isError ? 2 : (stats.data?.urlCardCount ?? 0);
+  // Honest count — never synthesized. Each tile below accounts for
+  // stats.isError itself, so a broken stats query can't silently pose as
+  // "this user has 2 cards" for one decision while meaning "0" for another.
+  const cardCount = stats.data?.urlCardCount ?? 0;
 
-  // Latch the save tile's visibility on the first render that has real data.
-  // This is React's "adjust state while rendering" pattern — the condition
-  // makes it run at most once, so it cannot loop.
+  // Latch the save tile's visibility on the first render that has real data
+  // (success or error). This is React's "adjust state while rendering"
+  // pattern — the condition makes it run at most once, so it cannot loop.
+  // On error we can't know the real count, so we fail open: seed the latch
+  // to visible rather than hidden. A dimmed door with no explanation is
+  // worse than the tile just being there.
   const [showSaveTile, setShowSaveTile] = useState<boolean | null>(null);
   if (showSaveTile === null && !stats.isPending) {
-    setShowSaveTile(cardCount === 0);
+    setShowSaveTile(stats.isError || cardCount === 0);
   }
 
-  const canConnect = cardCount >= 2;
+  // Same fail-open reasoning for the connect tile: an error unlocks it
+  // outright rather than leaving it dimmed behind a hint that may be wrong.
+  const canConnect = stats.isError || cardCount >= 2;
 
   if (stats.isPending) {
     return (
