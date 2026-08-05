@@ -107,6 +107,10 @@ export class DrizzleFeedRepository implements IFeedRepository {
           notInArray(feedActivities.actorId, KNOWN_BOT_DIDS),
         );
       }
+      // Filter by actor DIDs if provided (empty array = no filter)
+      if (options.actorIds && options.actorIds.length > 0) {
+        whereConditions.push(inArray(feedActivities.actorId, options.actorIds));
+      }
 
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId

@@ -19,6 +19,13 @@ const querySchema = z.object({
       if (!val) return undefined;
       return Array.isArray(val) ? val : [val];
     }),
+  actorIds: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
   includeKnownBots: z
     .union([z.boolean(), z.string()])
     .optional()
@@ -53,6 +60,7 @@ export class GetGlobalFeedController extends Controller {
         urlType: params.urlType,
         source: params.source,
         activityTypes: params.activityTypes,
+        actorIds: params.actorIds,
         includeKnownBots: params.includeKnownBots,
       });
 
