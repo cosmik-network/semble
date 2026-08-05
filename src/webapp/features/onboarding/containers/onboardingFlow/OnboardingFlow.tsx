@@ -21,6 +21,7 @@ import useRecommendedCards from '../../lib/queries/useRecommendedCards';
 import { FALLBACK_TOPICS } from '../../lib/topics';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { CardSaveSource } from '@/features/analytics/types';
+import { LinkAnchor } from '@/components/link/MantineLink';
 
 interface Props {
   initialStatus: OnboardingStatus;
@@ -41,7 +42,7 @@ interface FooterStageProps {
 export default function OnboardingFlow(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { progress, update } = useOnboardingProgress();
+  const { progress, update, clear } = useOnboardingProgress();
   const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -160,6 +161,51 @@ export default function OnboardingFlow(props: Props) {
         : currentStep < TOTAL_STEPS
           ? { onContinue: () => goToStep(currentStep + 1) }
           : {};
+
+  // The presence of ?step= means "in the flow". That is what keeps the
+  // returning view stable across a refresh mid-restart.
+  const isReturning =
+    searchParams.get('step') === null &&
+    (status === 'completed' || status === 'dismissed');
+
+  if (isReturning) {
+    return (
+      <Stack h={'100svh'} gap={0}>
+        <OnboardingHeader
+          currentStep={1}
+          showStepper={false}
+          exitLabel="Go home"
+          onExit={() => {}}
+        />
+
+        <Container
+          size={'md'}
+          flex={1}
+          w={'100%'}
+          py={'xl'}
+          px={'md'}
+          style={{ overflowY: 'auto' }}
+        >
+          <Stack gap={'lg'}>
+            <WhatNextStep
+              variant="returning"
+              onComplete={() => changeStatus('completed')}
+            />
+
+            {/* Start over deliberately leaves status alone: bailing halfway
+                on a repeat run must not put the banner back on /home. */}
+            <LinkAnchor
+              href="/onboarding?step=1"
+              fz={'sm'}
+              onClick={() => clear()}
+            >
+              Start setup over
+            </LinkAnchor>
+          </Stack>
+        </Container>
+      </Stack>
+    );
+  }
 
   return (
     <Stack h={'100svh'} gap={0}>
