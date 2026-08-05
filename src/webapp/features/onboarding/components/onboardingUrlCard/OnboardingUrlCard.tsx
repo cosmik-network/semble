@@ -25,6 +25,10 @@ export default function OnboardingUrlCard(props: Props) {
         <Checkbox
           checked={props.selected}
           onChange={() => props.onToggle(props.urlView.url)}
+          // The Card's onClick also toggles. Without this, a click on the
+          // checkbox bubbles to the Card and fires a second toggle, netting
+          // out to no change — the labelled control would do nothing.
+          onClick={(event) => event.stopPropagation()}
           aria-label={`Select ${metadata.title ?? props.urlView.url}`}
           mt={2}
         />

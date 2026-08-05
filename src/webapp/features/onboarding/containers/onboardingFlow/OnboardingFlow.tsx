@@ -24,6 +24,18 @@ interface Props {
   initialStatus: OnboardingStatus;
 }
 
+/**
+ * One footer config per stage, computed once and handed to OnboardingFooter
+ * as a single object. Stages 3 and 4 add a branch here, not to four separate
+ * ternary chains kept in sync by hand.
+ */
+interface FooterStageProps {
+  onSkip?: () => void;
+  onContinue?: () => void;
+  continueLabel?: string;
+  continueDisabled?: boolean;
+}
+
 export default function OnboardingFlow(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -112,6 +124,41 @@ export default function OnboardingFlow(props: Props) {
     goToStep(3);
   };
 
+  // isLoading (isPending && isFetching, per TanStack Query v5) is true only
+  // while the first page is actively in flight. It's false before topics
+  // arrive (the query is disabled, not fetching) and false once the query
+  // settles either way — so gating on it blocks a premature Continue without
+  // ever trapping anyone: an error still frees the button, same as an empty
+  // topic list never blocks it in the first place.
+  const footerProps: FooterStageProps =
+    currentStep === 1
+      ? {
+          onSkip: () => {
+            update({ topics: FALLBACK_TOPICS });
+            goToStep(2);
+          },
+          onContinue: () => goToStep(2),
+          continueDisabled: progress.topics.length === 0,
+        }
+      : currentStep === 2
+        ? {
+            onSkip: () => {
+              update({ seedUrls: fallbackUrls });
+              goToStep(3);
+            },
+            onContinue: handleSaveCardsContinue,
+            continueLabel:
+              selectedUrls.length > 0
+                ? selectedUrls.length === 1
+                  ? 'Save 1 card and continue'
+                  : `Save ${selectedUrls.length} cards and continue`
+                : undefined,
+            continueDisabled: recommendations.isLoading,
+          }
+        : currentStep < TOTAL_STEPS
+          ? { onContinue: () => goToStep(currentStep + 1) }
+          : {};
+
   return (
     <Stack h={'100svh'} gap={0}>
       <OnboardingHeader
@@ -153,34 +200,10 @@ export default function OnboardingFlow(props: Props) {
         backHref={
           currentStep > 1 ? `/onboarding?step=${currentStep - 1}` : undefined
         }
-        onSkip={
-          currentStep === 1
-            ? () => {
-                update({ topics: FALLBACK_TOPICS });
-                goToStep(2);
-              }
-            : currentStep === 2
-              ? () => {
-                  update({ seedUrls: fallbackUrls });
-                  goToStep(3);
-                }
-              : undefined
-        }
-        onContinue={
-          currentStep === 2
-            ? handleSaveCardsContinue
-            : currentStep < TOTAL_STEPS
-              ? () => goToStep(currentStep + 1)
-              : undefined
-        }
-        continueLabel={
-          currentStep === 2 && selectedUrls.length > 0
-            ? selectedUrls.length === 1
-              ? 'Save 1 card and continue'
-              : `Save ${selectedUrls.length} cards and continue`
-            : undefined
-        }
-        continueDisabled={currentStep === 1 && progress.topics.length === 0}
+        onSkip={footerProps.onSkip}
+        onContinue={footerProps.onContinue}
+        continueLabel={footerProps.continueLabel}
+        continueDisabled={footerProps.continueDisabled}
         continueLoading={isSaving}
       />
     </Stack>
