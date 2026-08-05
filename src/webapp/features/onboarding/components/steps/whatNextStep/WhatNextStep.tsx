@@ -106,6 +106,7 @@ export default function WhatNextStep(props: Props) {
               locked={!canConnect}
               lockedHint="Save 2 cards to connect them."
               onClick={connectTile.toggle}
+              expanded={canConnect && connectExpanded}
             >
               {canConnect && connectExpanded && user?.handle && (
                 <Suspense
