@@ -11,14 +11,16 @@ import RecentCollectionsSkeleton from '../../components/recentCollections/Skelet
 import { LinkButton } from '@/components/link/MantineLink';
 
 interface Props {
-  onboardingBanner?: React.ReactNode;
+  /** Slot above the page content. HomeContainer does not know or care what
+   * goes in it — today it is the onboarding CTA, tomorrow it may not be. */
+  banner?: React.ReactNode;
 }
 
 export default function HomeContainer(props: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        {props.onboardingBanner}
+        {props.banner}
         <Stack gap={50}>
           {/* Explore */}
           <Stack>

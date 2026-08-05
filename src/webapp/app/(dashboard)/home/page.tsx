@@ -66,7 +66,7 @@ export default async function Page() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <HomeContainer
-        onboardingBanner={
+        banner={
           showBanner ? (
             <HomeOnboardingBanner initialStatus={onboardingStatus} />
           ) : undefined
