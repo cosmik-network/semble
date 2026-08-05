@@ -9,6 +9,7 @@ interface Props {
   source?: ActivitySource;
   activityTypes?: ActivityType[];
   includeKnownBots?: boolean;
+  actorIds?: string[];
 }
 
 export default function useGlobalFeed(props?: Props) {
@@ -21,6 +22,7 @@ export default function useGlobalFeed(props?: Props) {
       props?.source,
       props?.activityTypes,
       props?.includeKnownBots,
+      props?.actorIds,
     ),
     staleTime: 10000,
     initialPageParam: 1,
@@ -32,6 +34,7 @@ export default function useGlobalFeed(props?: Props) {
         source: props?.source,
         activityTypes: props?.activityTypes,
         includeKnownBots: props?.includeKnownBots,
+        actorIds: props?.actorIds,
       });
     },
     getNextPageParam: (lastPage) => {
