@@ -36,6 +36,7 @@ interface Props {
   analyticsContext?: CardSaveAnalyticsContext;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
+  connectTooltipOpen?: boolean;
 }
 
 export default function UrlCard(props: Props) {
@@ -186,6 +187,7 @@ export default function UrlCard(props: Props) {
             analyticsContext={props.analyticsContext}
             isPinnedInCollection={props.isPinnedInCollection}
             onTogglePinInCollection={props.onTogglePinInCollection}
+            connectTooltipOpen={props.connectTooltipOpen}
           />
         </Stack>
       </Stack>

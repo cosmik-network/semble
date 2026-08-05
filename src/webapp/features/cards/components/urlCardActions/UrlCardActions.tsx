@@ -50,6 +50,11 @@ interface Props {
   analyticsContext?: CardSaveAnalyticsContext;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
+  /**
+   * Forces the connect tooltip open. Mantine treats `opened={undefined}` as
+   * normal hover behavior, so omitting this leaves every call site unchanged.
+   */
+  connectTooltipOpen?: boolean;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -133,7 +138,11 @@ export default function UrlCardActions(props: Props) {
               )}
             </Button>
           </Tooltip>
-          <Tooltip label="Connect to another card" withArrow>
+          <Tooltip
+            label="Connect to another card"
+            withArrow
+            opened={props.connectTooltipOpen}
+          >
             <Button
               variant="light"
               color={props.urlIsConnected ? 'green' : 'gray'}
