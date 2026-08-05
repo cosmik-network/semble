@@ -1,8 +1,7 @@
 'use client';
 
 import type { UrlView } from '@/api-client';
-import { Card, Group, Image, Stack, Text, ThemeIcon } from '@mantine/core';
-import { BsCheck, BsPlus } from 'react-icons/bs';
+import { Card, Checkbox, Group, Image, Stack, Text } from '@mantine/core';
 
 interface Props {
   urlView: UrlView;
@@ -10,65 +9,51 @@ interface Props {
   onToggle: (url: string) => void;
 }
 
-function getDomain(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return url;
-  }
-}
-
 export default function OnboardingUrlCard(props: Props) {
-  const { urlView, selected } = props;
-  const metadata = urlView.metadata;
+  const metadata = props.urlView.metadata;
 
   return (
     <Card
       withBorder
       radius={'lg'}
       p={'sm'}
-      h={'100%'}
-      onClick={() => props.onToggle(urlView.url)}
-      style={{
-        cursor: 'pointer',
-        borderColor: selected ? 'var(--mantine-color-green-6)' : undefined,
-      }}
+      onClick={() => props.onToggle(props.urlView.url)}
+      style={{ cursor: 'pointer' }}
+      bd={props.selected ? '1px solid var(--mantine-color-green-6)' : undefined}
     >
-      <Group wrap="nowrap" align="flex-start" gap={'sm'}>
+      <Group gap={'sm'} wrap="nowrap" align="flex-start">
+        <Checkbox
+          checked={props.selected}
+          onChange={() => props.onToggle(props.urlView.url)}
+          aria-label={`Select ${metadata.title ?? props.urlView.url}`}
+          mt={2}
+        />
+
         {metadata.imageUrl && (
-          <Card p={0} radius={'md'} withBorder w={80} h={80} flex={'0 0 auto'}>
-            <Image
-              src={metadata.imageUrl}
-              alt={metadata.title ?? urlView.url}
-              w={'100%'}
-              h={'100%'}
-              fit="cover"
-            />
-          </Card>
+          <Image
+            src={metadata.imageUrl}
+            alt=""
+            w={64}
+            h={64}
+            radius={'md'}
+            fit="cover"
+            style={{ border: '1px solid var(--mantine-color-default-border)' }}
+          />
         )}
 
-        <Stack gap={4} flex={1} miw={0}>
-          <Text fz={'xs'} c={'gray'} lineClamp={1}>
-            {metadata.siteName || getDomain(urlView.url)}
-          </Text>
+        <Stack gap={2} miw={0}>
           <Text fw={600} c={'bright'} lineClamp={2}>
-            {metadata.title || urlView.url}
+            {metadata.title ?? props.urlView.url}
           </Text>
           {metadata.description && (
-            <Text fz={'sm'} c={'gray'} lineClamp={2}>
+            <Text fz={'sm'} c={'dimmed'} lineClamp={2}>
               {metadata.description}
             </Text>
           )}
+          <Text fz={'xs'} c={'dimmed'} lineClamp={1}>
+            {props.urlView.url}
+          </Text>
         </Stack>
-
-        <ThemeIcon
-          variant={selected ? 'filled' : 'light'}
-          color={selected ? 'green' : 'gray'}
-          radius={'xl'}
-          size={'lg'}
-        >
-          {selected ? <BsCheck size={20} /> : <BsPlus size={20} />}
-        </ThemeIcon>
       </Group>
     </Card>
   );
