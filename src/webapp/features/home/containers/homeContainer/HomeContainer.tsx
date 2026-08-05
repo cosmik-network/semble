@@ -9,18 +9,20 @@ import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton
 import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
 import { LinkButton } from '@/components/link/MantineLink';
+import HomeOnboardingBanner from '@/features/onboarding/components/homeOnboardingBanner/HomeOnboardingBanner';
 
-interface Props {
-  /** Slot above the page content. HomeContainer does not know or care what
-   * goes in it — today it is the onboarding CTA, tomorrow it may not be. */
-  banner?: React.ReactNode;
-}
-
-export default function HomeContainer(props: Props) {
+export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        {props.banner}
+        {/* Its own boundary, deliberately not awaited here: the flag check
+            inside HomeOnboardingBanner round-trips to the auth API, and
+            HomeContainer must stay a sync component so React can start
+            rendering the Suspense boundaries below (Discover, Collections,
+            Cards) without waiting on the banner's fetch. */}
+        <Suspense fallback={null}>
+          <HomeOnboardingBanner />
+        </Suspense>
         <Stack gap={50}>
           {/* Explore */}
           <Stack>

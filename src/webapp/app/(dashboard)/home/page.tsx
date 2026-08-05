@@ -6,13 +6,6 @@ import { getMyUrlCards } from '@/features/cards/lib/dal.server';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { makeServerQueryClient } from '@/lib/queryClient';
-import { cookies } from 'next/headers';
-import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
-import {
-  ONBOARDING_STATUS_COOKIE,
-  parseOnboardingStatus,
-} from '@/features/onboarding/lib/onboardingStatus';
-import HomeOnboardingBanner from '@/features/onboarding/components/homeOnboardingBanner/HomeOnboardingBanner';
 
 // Each entry must match the limit its component passes, or the prefetch lands
 // under a different query key and the client refetches:
@@ -25,19 +18,6 @@ const DISCOVER_CARDS_LIMIT = 8;
 
 export default async function Page() {
   await verifySessionOnServer({ redirectOnFail: true });
-
-  const featureFlags = await getServerFeatureFlags();
-  const cookieStore = await cookies();
-  const onboardingStatus = parseOnboardingStatus(
-    cookieStore.get(ONBOARDING_STATUS_COOKIE)?.value,
-  );
-
-  // Without the flag check the banner would link non-team users to
-  // /onboarding, which redirects straight back here — a button that appears
-  // to do nothing.
-  const showBanner =
-    featureFlags.onboarding &&
-    (onboardingStatus === 'unseen' || onboardingStatus === 'in_progress');
 
   // HomeContainer's children run useMyCollections/useMyCards — suspense queries
   // over DALs that authenticate through the browser and cannot run during SSR.
@@ -65,13 +45,7 @@ export default async function Page() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <HomeContainer
-        banner={
-          showBanner ? (
-            <HomeOnboardingBanner initialStatus={onboardingStatus} />
-          ) : undefined
-        }
-      />
+      <HomeContainer />
     </HydrationBoundary>
   );
 }
