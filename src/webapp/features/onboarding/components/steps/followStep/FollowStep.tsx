@@ -32,6 +32,11 @@ export default function FollowStep(props: Props) {
   const hasUrls = props.urls.length > 0;
   const isPending = hasUrls && (users.isPending || collections.isPending);
 
+  // Without this the empty branch fires on a failed fetch and tells the user
+  // there is nothing to recommend — which reads as "your network is empty",
+  // not "the request failed". Mirrors SaveCardsStep.
+  const isError = users.isError || collections.isError;
+
   const visibleUsers = users.data?.users.slice(0, VISIBLE_USERS) ?? [];
   const visibleCollections =
     collections.data?.collections.slice(0, VISIBLE_COLLECTIONS) ?? [];
@@ -54,7 +59,14 @@ export default function FollowStep(props: Props) {
         </Center>
       )}
 
+      {isError && (
+        <Text c={'dimmed'}>
+          Unable to load suggestions. Continue and find people to follow later.
+        </Text>
+      )}
+
       {!isPending &&
+        !isError &&
         visibleUsers.length === 0 &&
         visibleCollections.length === 0 && (
           <Stack gap={4} align="flex-start">
