@@ -28,7 +28,10 @@ export default function ReturningView(props: Props) {
         <OnboardingHeader
           currentStep={1}
           showStepper={false}
-          exitLabel="Go home"
+          // "Back to home", not "Go home": the exit link below also reads
+          // "Go home" but writes status 'completed'. Two controls with the
+          // same label and different consequences on one screen is a trap.
+          exitLabel="Back to home"
           onExit={() => {}}
         />
       }

@@ -29,7 +29,9 @@ export default function OnboardingUrlCard(props: Props) {
           // checkbox bubbles to the Card and fires a second toggle, netting
           // out to no change — the labelled control would do nothing.
           onClick={(event) => event.stopPropagation()}
-          aria-label={`Select ${metadata.title ?? props.urlView.url}`}
+          // `||`, not `??`: a recommendation can come back with title: '',
+          // and an empty accessible name is worse than the URL.
+          aria-label={`Select ${metadata.title || props.urlView.url}`}
           mt={2}
         />
 
@@ -46,8 +48,10 @@ export default function OnboardingUrlCard(props: Props) {
         )}
 
         <Stack gap={2} miw={0}>
+          {/* `||`, not `??`: title: '' would otherwise render an empty
+              heading instead of falling back to the URL. */}
           <Text fw={600} c={'bright'} lineClamp={2}>
-            {metadata.title ?? props.urlView.url}
+            {metadata.title || props.urlView.url}
           </Text>
           {metadata.description && (
             <Text fz={'sm'} c={'dimmed'} lineClamp={2}>

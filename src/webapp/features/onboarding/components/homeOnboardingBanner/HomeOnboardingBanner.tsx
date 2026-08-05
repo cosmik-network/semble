@@ -25,12 +25,18 @@ export default function HomeOnboardingBanner(props: Props) {
 
   const isResuming = status === 'in_progress';
 
-  // Deep-link straight to the stored stage. Before the client store is read,
-  // progress is null and this is just /onboarding — which resolves to stage 1
-  // anyway, so the href only ever improves after hydration.
-  const storedStep = progress
+  // Deep-link straight to the stored stage. useLocalStorage returns the
+  // hoisted EMPTY default until it has read storage, so on the first render
+  // stepId is 'topics' → storedStep 1 → plain /onboarding. The href only ever
+  // improves after that, and never needs a null check.
+  //
+  // Gated on isResuming because the two stores can disagree: if the status
+  // cookie is absent but localStorage progress survived (cookie blocked,
+  // expired, or selectively cleared) this banner says "Set up your account"
+  // and would otherwise drop the user on stage 3.
+  const storedStep = isResuming
     ? STEPS.findIndex((step) => step.id === progress.stepId) + 1
-    : 0;
+    : 1;
   const href =
     storedStep > 1 ? `/onboarding?step=${storedStep}` : '/onboarding';
 
