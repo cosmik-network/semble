@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Container, Stack } from '@mantine/core';
 import { useSelection } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { STEPS, TOTAL_STEPS, clampStep } from '../../lib/steps';
@@ -13,6 +12,8 @@ import {
 import { useOnboardingProgress } from '../../lib/useOnboardingProgress';
 import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader';
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
+import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
+import ReturningView from '../../components/returningView/ReturningView';
 import TopicsStep from '../../components/steps/topicsStep/TopicsStep';
 import SaveCardsStep from '../../components/steps/saveCardsStep/SaveCardsStep';
 import FollowStep from '../../components/steps/followStep/FollowStep';
@@ -21,7 +22,6 @@ import useRecommendedCards from '../../lib/queries/useRecommendedCards';
 import { FALLBACK_TOPICS } from '../../lib/topics';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import { CardSaveSource } from '@/features/analytics/types';
-import { LinkAnchor } from '@/components/link/MantineLink';
 
 interface Props {
   initialStatus: OnboardingStatus;
@@ -46,6 +46,14 @@ export default function OnboardingFlow(props: Props) {
   const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
   const [isSaving, setIsSaving] = useState(false);
 
+  // The presence of ?step= means "in the flow". That is what keeps the
+  // returning view stable across a refresh mid-restart. Computed early so it
+  // can also gate the recommendations query below — the returning view never
+  // renders SaveCardsStep, so it has no reason to fetch for it.
+  const isReturning =
+    searchParams.get('step') === null &&
+    (status === 'completed' || status === 'dismissed');
+
   const addCard = useAddCard({
     saveSource: CardSaveSource.ONBOARDING,
     pagePath: '/onboarding',
@@ -56,10 +64,12 @@ export default function OnboardingFlow(props: Props) {
   //
   // The hook is already `enabled: queries.length > 0`, so during the first
   // frame — before the stored topics arrive — it simply does not fire. It
-  // starts on its own once topics land. Nothing to coordinate.
+  // starts on its own once topics land. Nothing to coordinate. `enabled` also
+  // excludes the returning view, which never renders anything this feeds.
   const recommendations = useRecommendedCards({
     queries: progress.topics,
     limit: 10,
+    enabled: !isReturning,
   });
 
   const recommendedUrls =
@@ -162,101 +172,61 @@ export default function OnboardingFlow(props: Props) {
           ? { onContinue: () => goToStep(currentStep + 1) }
           : {};
 
-  // The presence of ?step= means "in the flow". That is what keeps the
-  // returning view stable across a refresh mid-restart.
-  const isReturning =
-    searchParams.get('step') === null &&
-    (status === 'completed' || status === 'dismissed');
-
   if (isReturning) {
     return (
-      <Stack h={'100svh'} gap={0}>
-        <OnboardingHeader
-          currentStep={1}
-          showStepper={false}
-          exitLabel="Go home"
-          onExit={() => {}}
-        />
-
-        <Container
-          size={'md'}
-          flex={1}
-          w={'100%'}
-          py={'xl'}
-          px={'md'}
-          style={{ overflowY: 'auto' }}
-        >
-          <Stack gap={'lg'}>
-            <WhatNextStep
-              variant="returning"
-              onComplete={() => changeStatus('completed')}
-            />
-
-            {/* Start over deliberately leaves status alone: bailing halfway
-                on a repeat run must not put the banner back on /home. */}
-            <LinkAnchor
-              href="/onboarding?step=1"
-              fz={'sm'}
-              onClick={() => clear()}
-            >
-              Start setup over
-            </LinkAnchor>
-          </Stack>
-        </Container>
-      </Stack>
+      <ReturningView
+        onStartOver={clear}
+        onComplete={() => changeStatus('completed')}
+      />
     );
   }
 
   return (
-    <Stack h={'100svh'} gap={0}>
-      <OnboardingHeader
-        currentStep={currentStep}
-        showStepper
-        exitLabel="Exit setup"
-        onExit={() => changeStatus('dismissed')}
-      />
-
-      <Container
-        size={'md'}
-        flex={1}
-        w={'100%'}
-        py={'xl'}
-        px={'md'}
-        style={{ overflowY: 'auto' }}
-      >
-        {currentStep === 1 && (
-          <TopicsStep
-            topics={progress.topics}
-            onChangeTopics={(topics) => update({ topics })}
-          />
-        )}
-        {currentStep === 2 && (
-          <SaveCardsStep
-            recommendations={recommendations}
-            selectedUrls={selectedUrls}
-            onToggleUrl={selection.toggle}
-            hasTopics={progress.topics.length > 0}
-          />
-        )}
-        {currentStep === 3 && <FollowStep urls={progress.seedUrls} />}
-        {currentStep === 4 && (
-          <WhatNextStep
-            variant="flow"
-            onComplete={() => changeStatus('completed')}
-          />
-        )}
-      </Container>
-
-      <OnboardingFooter
-        backHref={
-          currentStep > 1 ? `/onboarding?step=${currentStep - 1}` : undefined
-        }
-        onSkip={footerProps.onSkip}
-        onContinue={footerProps.onContinue}
-        continueLabel={footerProps.continueLabel}
-        continueDisabled={footerProps.continueDisabled}
-        continueLoading={isSaving}
-      />
-    </Stack>
+    <OnboardingScreen
+      header={
+        <OnboardingHeader
+          currentStep={currentStep}
+          showStepper
+          exitLabel="Exit setup"
+          onExit={() => changeStatus('dismissed')}
+        />
+      }
+      footer={
+        <OnboardingFooter
+          backHref={
+            currentStep > 1
+              ? `/onboarding?step=${currentStep - 1}`
+              : undefined
+          }
+          onSkip={footerProps.onSkip}
+          onContinue={footerProps.onContinue}
+          continueLabel={footerProps.continueLabel}
+          continueDisabled={footerProps.continueDisabled}
+          continueLoading={isSaving}
+        />
+      }
+    >
+      {currentStep === 1 && (
+        <TopicsStep
+          topics={progress.topics}
+          onChangeTopics={(topics) => update({ topics })}
+        />
+      )}
+      {currentStep === 2 && (
+        <SaveCardsStep
+          recommendations={recommendations}
+          selectedUrls={selectedUrls}
+          onToggleUrl={selection.toggle}
+          hasTopics={progress.topics.length > 0}
+        />
+      )}
+      {currentStep === 3 && <FollowStep urls={progress.seedUrls} />}
+      {currentStep === 4 && (
+        <WhatNextStep
+          variant="flow"
+          onComplete={() => changeStatus('completed')}
+        />
+      )}
+    </OnboardingScreen>
   );
 }
