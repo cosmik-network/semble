@@ -39,6 +39,7 @@ export interface GetGlobalFeedQuery {
   urlType?: string; // Filter by URL type
   source?: ActivitySource; // Filter by activity source
   activityTypes?: string[]; // Filter by activity types
+  actorIds?: string[]; // Filter by actor DIDs (empty array = no filter)
   includeKnownBots?: boolean; // Include known bots in feed (default: false)
 }
 
@@ -109,6 +110,7 @@ export class GetGlobalFeedUseCase implements UseCase<
         urlType,
         source: query.source,
         activityTypes,
+        actorIds: query.actorIds,
         includeKnownBots: query.includeKnownBots,
       });
 

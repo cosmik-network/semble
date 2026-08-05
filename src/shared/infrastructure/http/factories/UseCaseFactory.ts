@@ -542,6 +542,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         repositories.collectionRepository,
         repositories.connectionRepository,
+        repositories.followsRepository,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

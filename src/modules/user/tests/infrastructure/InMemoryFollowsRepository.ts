@@ -136,6 +136,25 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getFollowedUserIds(followerId: string): Promise<Result<string[]>> {
+    try {
+      const targetIds: string[] = [];
+
+      for (const follow of this.follows.values()) {
+        if (
+          follow.followerId.value === followerId &&
+          follow.targetType.value === FollowTargetTypeEnum.USER
+        ) {
+          targetIds.push(follow.targetId);
+        }
+      }
+
+      return ok(targetIds);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async getFollowingCount(
     followerId: string,
     targetType?: FollowTargetType,
