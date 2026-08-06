@@ -264,6 +264,8 @@ export const createExpressApp = (
       controllers.createApiKeyController,
       controllers.updateApiKeyController,
       controllers.revokeApiKeyController,
+      controllers.getOnboardingStateController,
+      controllers.updateOnboardingStateController,
     );
 
     registerCardsModuleRoutes(

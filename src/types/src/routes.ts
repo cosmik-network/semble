@@ -74,6 +74,8 @@ export const paths = {
   // users / actor
   myProfile: '/network.cosmik.actor.getMyProfile',
   userProfile: '/network.cosmik.actor.getProfile',
+  getOnboardingState: '/network.cosmik.actor.getOnboardingState',
+  updateOnboardingState: '/network.cosmik.actor.updateOnboardingState',
   initiateOAuth: '/network.cosmik.server.initiateOAuth',
   oauthCallback: '/network.cosmik.server.oauthCallback',
   loginWithAppPassword: '/network.cosmik.server.createSession',
@@ -180,6 +182,12 @@ export const routes = {
     refreshToken: defineRoute(paths.refreshToken, 'POST', false),
     logout: defineRoute(paths.logout, 'POST', true),
     extensionTokens: defineRoute(paths.extensionTokens, 'GET', true),
+    getOnboardingState: defineRoute(paths.getOnboardingState, 'GET', true),
+    updateOnboardingState: defineRoute(
+      paths.updateOnboardingState,
+      'POST',
+      true,
+    ),
   },
   apiKeys: {
     listApiKeys: defineRoute(paths.listApiKeys, 'GET', true),

@@ -19,6 +19,7 @@ export class FeedClient extends BaseClient {
         urlType: params?.urlType,
         source: params?.source,
         activityTypes: params?.activityTypes,
+        actorIds: params?.actorIds,
         includeKnownBots: params?.includeKnownBots,
       },
     });

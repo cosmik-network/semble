@@ -9,6 +9,7 @@ interface PageParams {
   urlType?: UrlType;
   source?: ActivitySource;
   activityTypes?: ActivityType[];
+  actorIds?: string[];
   includeKnownBots?: boolean;
 }
 
@@ -20,6 +21,7 @@ export const getGlobalFeed = cache(async (params?: PageParams) => {
     urlType: params?.urlType,
     source: params?.source,
     activityTypes: params?.activityTypes,
+    actorIds: params?.actorIds,
     includeKnownBots: params?.includeKnownBots,
   });
 

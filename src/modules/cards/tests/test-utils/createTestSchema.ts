@@ -176,6 +176,32 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP NOT NULL,
       PRIMARY KEY (user_id, activity_id)
     )`,
+
+    // Onboarding state table (references users) - one row per user, one column per field
+    sql`CREATE TABLE IF NOT EXISTS onboarding_state (
+      user_id TEXT PRIMARY KEY REFERENCES users(id),
+      onboarding_state TEXT,
+      topics_selected TEXT[],
+      links_suggested TEXT[],
+      links_selected TEXT[],
+      suggested_accounts TEXT[],
+      suggested_collections TEXT[],
+      followed_accounts TEXT[],
+      followed_collections TEXT[],
+      first_cards TEXT[],
+      first_collection TEXT,
+      first_connection TEXT,
+      pwa_clicked TIMESTAMP WITH TIME ZONE,
+      ios_shortcut_clicked TIMESTAMP WITH TIME ZONE,
+      browser_extension_clicked TIMESTAMP WITH TIME ZONE,
+      mcp_clicked TIMESTAMP WITH TIME ZONE,
+      save_modal_guide_completed TIMESTAMP WITH TIME ZONE,
+      connection_creation_modal_completed TIMESTAMP WITH TIME ZONE,
+      semble_page_navigation_completed TIMESTAMP WITH TIME ZONE,
+      intention TEXT[],
+      referral_source TEXT[],
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
   ];
 
   // Execute table creation queries in order
