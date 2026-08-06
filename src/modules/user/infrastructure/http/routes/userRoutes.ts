@@ -20,6 +20,8 @@ import { ListApiKeysController } from '../controllers/ListApiKeysController';
 import { CreateApiKeyController } from '../controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../controllers/RevokeApiKeyController';
+import { GetOnboardingStateController } from '../controllers/GetOnboardingStateController';
+import { UpdateOnboardingStateController } from '../controllers/UpdateOnboardingStateController';
 import { routes } from '@semble/types';
 import { usersContract, graphContract } from '@semble/contract';
 import {
@@ -50,6 +52,8 @@ export function registerUserRoutes(
   createApiKeyController: CreateApiKeyController,
   updateApiKeyController: UpdateApiKeyController,
   revokeApiKeyController: RevokeApiKeyController,
+  getOnboardingStateController: GetOnboardingStateController,
+  updateOnboardingStateController: UpdateOnboardingStateController,
 ): void {
   app.get(
     routes.users.initiateOAuth.path,
@@ -174,6 +178,21 @@ export function registerUserRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(usersContract.revokeApiKey.body),
     (req, res) => revokeApiKeyController.execute(req, res),
+  );
+
+  // Onboarding state
+  app.get(
+    routes.users.getOnboardingState.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(usersContract.getOnboardingState.query),
+    (req, res) => getOnboardingStateController.execute(req, res),
+  );
+
+  app.post(
+    routes.users.updateOnboardingState.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.updateOnboardingState.body),
+    (req, res) => updateOnboardingStateController.execute(req, res),
   );
 
   // userProfile must be last: /:identifier would swallow /me, /login, /extension/tokens, etc.

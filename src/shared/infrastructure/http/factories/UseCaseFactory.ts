@@ -5,6 +5,8 @@ import { ListApiKeysUseCase } from '../../../../modules/user/application/use-cas
 import { CreateApiKeyUseCase } from '../../../../modules/user/application/use-cases/CreateApiKeyUseCase';
 import { UpdateApiKeyUseCase } from '../../../../modules/user/application/use-cases/UpdateApiKeyUseCase';
 import { RevokeApiKeyUseCase } from '../../../../modules/user/application/use-cases/RevokeApiKeyUseCase';
+import { GetOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/GetOnboardingStateUseCase';
+import { UpdateOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/UpdateOnboardingStateUseCase';
 import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase';
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
@@ -127,6 +129,8 @@ export interface UseCases {
   createApiKeyUseCase: CreateApiKeyUseCase;
   updateApiKeyUseCase: UpdateApiKeyUseCase;
   revokeApiKeyUseCase: RevokeApiKeyUseCase;
+  getOnboardingStateUseCase: GetOnboardingStateUseCase;
+  updateOnboardingStateUseCase: UpdateOnboardingStateUseCase;
   followTargetUseCase: FollowTargetUseCase;
   unfollowTargetUseCase: UnfollowTargetUseCase;
   subscribeToTargetUseCase: SubscribeToTargetUseCase;
@@ -284,6 +288,12 @@ export class UseCaseFactory {
       ),
       revokeApiKeyUseCase: new RevokeApiKeyUseCase(
         repositories.apiKeyRepository,
+      ),
+      getOnboardingStateUseCase: new GetOnboardingStateUseCase(
+        repositories.userOnboardingRepository,
+      ),
+      updateOnboardingStateUseCase: new UpdateOnboardingStateUseCase(
+        repositories.userOnboardingRepository,
       ),
       followTargetUseCase: new FollowTargetUseCase(
         repositories.followsRepository,

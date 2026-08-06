@@ -24,6 +24,9 @@ import {
   UpdateApiKeyResponse,
   RevokeApiKeyRequest,
   RevokeApiKeyResponse,
+  GetOnboardingStateResponse,
+  UpdateOnboardingStateRequest,
+  UpdateOnboardingStateResponse,
 } from '@semble/types';
 
 export class UserClient extends BaseClient {
@@ -136,5 +139,19 @@ export class UserClient extends BaseClient {
   ): Promise<RevokeApiKeyResponse> {
     const res = await this.client.users.revokeApiKey({ body: request });
     return unwrap<RevokeApiKeyResponse>(res);
+  }
+
+  async getOnboardingState(): Promise<GetOnboardingStateResponse> {
+    const res = await this.client.users.getOnboardingState({ query: {} });
+    return unwrap<GetOnboardingStateResponse>(res);
+  }
+
+  async updateOnboardingState(
+    request: UpdateOnboardingStateRequest,
+  ): Promise<UpdateOnboardingStateResponse> {
+    const res = await this.client.users.updateOnboardingState({
+      body: request,
+    });
+    return unwrap<UpdateOnboardingStateResponse>(res);
   }
 }

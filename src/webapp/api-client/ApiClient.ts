@@ -141,6 +141,9 @@ import type {
   UpdateApiKeyResponse,
   RevokeApiKeyRequest,
   RevokeApiKeyResponse,
+  GetOnboardingStateResponse,
+  UpdateOnboardingStateRequest,
+  UpdateOnboardingStateResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -518,6 +521,16 @@ export class ApiClient {
     request: RevokeApiKeyRequest,
   ): Promise<RevokeApiKeyResponse> {
     return this.userClient.revokeApiKey(request);
+  }
+
+  async getOnboardingState(): Promise<GetOnboardingStateResponse> {
+    return this.userClient.getOnboardingState();
+  }
+
+  async updateOnboardingState(
+    request: UpdateOnboardingStateRequest,
+  ): Promise<UpdateOnboardingStateResponse> {
+    return this.userClient.updateOnboardingState(request);
   }
 
   // Feed operations - delegate to FeedClient
