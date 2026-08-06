@@ -13,7 +13,7 @@ type OnboardingRow = typeof onboardingState.$inferSelect;
 function toRecord(row: OnboardingRow): OnboardingStateRecord {
   return {
     userId: row.userId,
-    onboardingCompleted: row.onboardingCompleted,
+    onboardingState: row.onboardingState,
     topicsSelected: row.topicsSelected,
     linksSuggested: row.linksSuggested,
     linksSelected: row.linksSelected,
@@ -24,9 +24,10 @@ function toRecord(row: OnboardingRow): OnboardingStateRecord {
     firstCards: row.firstCards,
     firstCollection: row.firstCollection,
     firstConnection: row.firstConnection,
-    pwaInstalled: row.pwaInstalled,
-    iosShortcutInstalled: row.iosShortcutInstalled,
-    browserExtensionInstalled: row.browserExtensionInstalled,
+    pwaClicked: row.pwaClicked,
+    iosShortcutClicked: row.iosShortcutClicked,
+    browserExtensionClicked: row.browserExtensionClicked,
+    mcpClicked: row.mcpClicked,
     saveModalGuideCompleted: row.saveModalGuideCompleted,
     connectionCreationModalCompleted: row.connectionCreationModalCompleted,
     semblePageNavigationCompleted: row.semblePageNavigationCompleted,

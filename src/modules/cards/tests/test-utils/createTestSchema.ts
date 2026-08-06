@@ -180,7 +180,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     // Onboarding state table (references users) - one row per user, one column per field
     sql`CREATE TABLE IF NOT EXISTS onboarding_state (
       user_id TEXT PRIMARY KEY REFERENCES users(id),
-      onboarding_completed BOOLEAN,
+      onboarding_state TEXT,
       topics_selected TEXT[],
       links_suggested TEXT[],
       links_selected TEXT[],
@@ -191,9 +191,10 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       first_cards TEXT[],
       first_collection TEXT,
       first_connection TEXT,
-      pwa_installed TIMESTAMP WITH TIME ZONE,
-      ios_shortcut_installed TIMESTAMP WITH TIME ZONE,
-      browser_extension_installed TIMESTAMP WITH TIME ZONE,
+      pwa_clicked TIMESTAMP WITH TIME ZONE,
+      ios_shortcut_clicked TIMESTAMP WITH TIME ZONE,
+      browser_extension_clicked TIMESTAMP WITH TIME ZONE,
+      mcp_clicked TIMESTAMP WITH TIME ZONE,
       save_modal_guide_completed TIMESTAMP WITH TIME ZONE,
       connection_creation_modal_completed TIMESTAMP WITH TIME ZONE,
       semble_page_navigation_completed TIMESTAMP WITH TIME ZONE,

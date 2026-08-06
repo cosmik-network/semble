@@ -1,11 +1,13 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './user.sql';
 
 export const onboardingState = pgTable('onboarding_state', {
   userId: text('user_id')
     .primaryKey()
     .references(() => users.id),
-  onboardingCompleted: boolean('onboarding_completed'),
+  onboardingState: text('onboarding_state', {
+    enum: ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED'],
+  }),
   topicsSelected: text('topics_selected').array(),
   linksSuggested: text('links_suggested').array(),
   linksSelected: text('links_selected').array(),
@@ -16,13 +18,14 @@ export const onboardingState = pgTable('onboarding_state', {
   firstCards: text('first_cards').array(),
   firstCollection: text('first_collection'),
   firstConnection: text('first_connection'),
-  pwaInstalled: timestamp('pwa_installed', { withTimezone: true }),
-  iosShortcutInstalled: timestamp('ios_shortcut_installed', {
+  pwaClicked: timestamp('pwa_clicked', { withTimezone: true }),
+  iosShortcutClicked: timestamp('ios_shortcut_clicked', {
     withTimezone: true,
   }),
-  browserExtensionInstalled: timestamp('browser_extension_installed', {
+  browserExtensionClicked: timestamp('browser_extension_clicked', {
     withTimezone: true,
   }),
+  mcpClicked: timestamp('mcp_clicked', { withTimezone: true }),
   saveModalGuideCompleted: timestamp('save_modal_guide_completed', {
     withTimezone: true,
   }),

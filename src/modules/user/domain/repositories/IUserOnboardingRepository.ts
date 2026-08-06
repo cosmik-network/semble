@@ -1,8 +1,14 @@
 import { Result } from 'src/shared/core/Result';
 
+export type OnboardingStatus =
+  | 'NOT_STARTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'SKIPPED';
+
 export interface OnboardingStateRecord {
   userId: string;
-  onboardingCompleted: boolean | null;
+  onboardingState: OnboardingStatus | null;
   topicsSelected: string[] | null;
   linksSuggested: string[] | null;
   linksSelected: string[] | null;
@@ -13,9 +19,10 @@ export interface OnboardingStateRecord {
   firstCards: string[] | null;
   firstCollection: string | null;
   firstConnection: string | null;
-  pwaInstalled: Date | null;
-  iosShortcutInstalled: Date | null;
-  browserExtensionInstalled: Date | null;
+  pwaClicked: Date | null;
+  iosShortcutClicked: Date | null;
+  browserExtensionClicked: Date | null;
+  mcpClicked: Date | null;
   saveModalGuideCompleted: Date | null;
   connectionCreationModalCompleted: Date | null;
   semblePageNavigationCompleted: Date | null;

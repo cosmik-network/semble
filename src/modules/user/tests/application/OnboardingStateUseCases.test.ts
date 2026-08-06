@@ -26,7 +26,7 @@ describe('Onboarding state use cases', () => {
       if (result.isOk()) {
         expect(result.value.userId).toBe(userId);
         expect(result.value.topicsSelected).toBeNull();
-        expect(result.value.onboardingCompleted).toBeNull();
+        expect(result.value.onboardingState).toBeNull();
       }
     });
   });
@@ -39,15 +39,15 @@ describe('Onboarding state use cases', () => {
       });
       expect(first.isOk()).toBe(true);
 
-      // Second update only touches onboardingCompleted; topicsSelected must remain.
+      // Second update only touches onboardingState; topicsSelected must remain.
       const second = await updateUseCase.execute({
         userId,
-        update: { onboardingCompleted: true },
+        update: { onboardingState: 'IN_PROGRESS' },
       });
       expect(second.isOk()).toBe(true);
       if (second.isOk()) {
         expect(second.value.topicsSelected).toEqual(['a', 'b']);
-        expect(second.value.onboardingCompleted).toBe(true);
+        expect(second.value.onboardingState).toBe('IN_PROGRESS');
       }
 
       // GET reflects the merged state.
@@ -55,7 +55,7 @@ describe('Onboarding state use cases', () => {
       expect(fetched.isOk()).toBe(true);
       if (fetched.isOk()) {
         expect(fetched.value.topicsSelected).toEqual(['a', 'b']);
-        expect(fetched.value.onboardingCompleted).toBe(true);
+        expect(fetched.value.onboardingState).toBe('IN_PROGRESS');
       }
     });
 

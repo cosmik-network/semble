@@ -8,7 +8,7 @@ import {
 function emptyRecord(userId: string): OnboardingStateRecord {
   return {
     userId,
-    onboardingCompleted: null,
+    onboardingState: null,
     topicsSelected: null,
     linksSuggested: null,
     linksSelected: null,
@@ -19,9 +19,10 @@ function emptyRecord(userId: string): OnboardingStateRecord {
     firstCards: null,
     firstCollection: null,
     firstConnection: null,
-    pwaInstalled: null,
-    iosShortcutInstalled: null,
-    browserExtensionInstalled: null,
+    pwaClicked: null,
+    iosShortcutClicked: null,
+    browserExtensionClicked: null,
+    mcpClicked: null,
     saveModalGuideCompleted: null,
     connectionCreationModalCompleted: null,
     semblePageNavigationCompleted: null,

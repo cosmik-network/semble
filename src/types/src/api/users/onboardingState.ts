@@ -1,11 +1,21 @@
 import { z } from 'zod';
 
+// Where the user is in the onboarding flow. SKIPPED means they dismissed it
+// rather than finishing, so it is terminal like COMPLETED but distinguishable.
+export const OnboardingStatusSchema = z.enum([
+  'NOT_STARTED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'SKIPPED',
+]);
+export type OnboardingStatus = z.infer<typeof OnboardingStatusSchema>;
+
 // Full onboarding state as the client sees it. Every field except the
 // server-derived userId is optional. Returned by the GET endpoint and as the
 // merged result of an update.
 export const OnboardingStateSchema = z.object({
   userId: z.string(),
-  onboardingCompleted: z.boolean().nullable().optional(),
+  onboardingState: OnboardingStatusSchema.nullable().optional(),
   topicsSelected: z.array(z.string()).nullable().optional(),
   linksSuggested: z.array(z.string()).nullable().optional(),
   linksSelected: z.array(z.string()).nullable().optional(),
@@ -16,9 +26,10 @@ export const OnboardingStateSchema = z.object({
   firstCards: z.array(z.string()).nullable().optional(),
   firstCollection: z.string().nullable().optional(),
   firstConnection: z.string().nullable().optional(),
-  pwaInstalled: z.coerce.date().nullable().optional(),
-  iosShortcutInstalled: z.coerce.date().nullable().optional(),
-  browserExtensionInstalled: z.coerce.date().nullable().optional(),
+  pwaClicked: z.coerce.date().nullable().optional(),
+  iosShortcutClicked: z.coerce.date().nullable().optional(),
+  browserExtensionClicked: z.coerce.date().nullable().optional(),
+  mcpClicked: z.coerce.date().nullable().optional(),
   saveModalGuideCompleted: z.coerce.date().nullable().optional(),
   connectionCreationModalCompleted: z.coerce.date().nullable().optional(),
   semblePageNavigationCompleted: z.coerce.date().nullable().optional(),
@@ -38,7 +49,7 @@ export type GetOnboardingStateResponse = z.infer<
 // neither is accepted here. Fields present in the body are written (explicit
 // null clears them); absent fields are left untouched.
 export const UpdateOnboardingStateRequestSchema = z.object({
-  onboardingCompleted: z.boolean().nullable().optional(),
+  onboardingState: OnboardingStatusSchema.nullable().optional(),
   topicsSelected: z.array(z.string()).nullable().optional(),
   linksSuggested: z.array(z.string()).nullable().optional(),
   linksSelected: z.array(z.string()).nullable().optional(),
@@ -49,9 +60,10 @@ export const UpdateOnboardingStateRequestSchema = z.object({
   firstCards: z.array(z.string()).nullable().optional(),
   firstCollection: z.string().nullable().optional(),
   firstConnection: z.string().nullable().optional(),
-  pwaInstalled: z.coerce.date().nullable().optional(),
-  iosShortcutInstalled: z.coerce.date().nullable().optional(),
-  browserExtensionInstalled: z.coerce.date().nullable().optional(),
+  pwaClicked: z.coerce.date().nullable().optional(),
+  iosShortcutClicked: z.coerce.date().nullable().optional(),
+  browserExtensionClicked: z.coerce.date().nullable().optional(),
+  mcpClicked: z.coerce.date().nullable().optional(),
   saveModalGuideCompleted: z.coerce.date().nullable().optional(),
   connectionCreationModalCompleted: z.coerce.date().nullable().optional(),
   semblePageNavigationCompleted: z.coerce.date().nullable().optional(),
