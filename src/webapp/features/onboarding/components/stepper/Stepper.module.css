@@ -1,0 +1,11 @@
+/*
+ * Below `sm` there is no room beside the icons for four labels, so they come
+ * off and the numbered circles carry position on their own. Mantine has no
+ * responsive prop for this, but it does expose the part, so this is one rule
+ * against a documented class rather than a reimplementation of the component.
+ */
+@media (max-width: 47.99em) {
+  .stepBody {
+    display: none;
+  }
+}

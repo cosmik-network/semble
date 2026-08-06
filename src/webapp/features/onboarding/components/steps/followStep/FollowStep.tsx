@@ -2,21 +2,20 @@
 
 import {
   Avatar,
-  Badge,
-  Card,
   Center,
-  Grid,
-  Group,
   Loader,
+  SimpleGrid,
   Stack,
   Text,
+  ThemeIcon,
   Title,
 } from '@mantine/core';
+import { BiCollection } from 'react-icons/bi';
 import useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
 import useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
-import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import { LinkAnchor } from '@/components/link/MantineLink';
+import FollowSuggestionCard from '../../followSuggestionCard/FollowSuggestionCard';
 
 const VISIBLE_USERS = 8;
 const VISIBLE_COLLECTIONS = 6;
@@ -46,19 +45,43 @@ export default function FollowStep(props: Props) {
 
   // Without this the empty branch fires on a failed fetch and tells the user
   // there is nothing to recommend — which reads as "your network is empty",
-  // not "the request failed". Mirrors SaveCardsStep.
+  // not "the request failed". Mirrors PickCardsStep.
   const isError = users.isError || collections.isError;
 
   const visibleUsers = users.data?.users.slice(0, VISIBLE_USERS) ?? [];
   const visibleCollections =
     collections.data?.collections.slice(0, VISIBLE_COLLECTIONS) ?? [];
 
+  // Small, quiet and consistent between the two groups. `order={2}` under the
+  // stage's h1 keeps the outline honest; the size keeps it from competing.
+  const sectionHeading = (label: string) => (
+    <Title order={2} fz={'sm'} c={'dimmed'} tt="uppercase" lts={0.5}>
+      {label}
+    </Title>
+  );
+
+  const followButton = (
+    targetId: string,
+    targetType: 'USER' | 'COLLECTION',
+    isFollowing?: boolean,
+  ) => (
+    <FollowButton
+      targetId={targetId}
+      targetType={targetType}
+      initialIsFollowing={isFollowing}
+      size="compact-sm"
+      radius={'xl'}
+      style={{ flex: '0 0 auto' }}
+    />
+  );
+
   return (
-    <Stack gap={'md'}>
+    <Stack gap={'lg'}>
       <Stack gap={4}>
-        <Title order={1}>Find people and collections to follow</Title>
+        <Title order={1}>Who to follow</Title>
         <Text c={'dimmed'}>
-          Collections are curated lists of cards, kept by one or more people.
+          Follow whatever looks interesting. Collections are curated lists of
+          cards, kept by one or more people.
         </Text>
       </Stack>
 
@@ -89,73 +112,79 @@ export default function FollowStep(props: Props) {
 
       {visibleUsers.length > 0 && (
         <Stack gap={'xs'}>
-          <Title order={3}>People</Title>
-          {visibleUsers.map((user) => (
-            <Card key={user.id} withBorder radius={'lg'} p={'sm'}>
-              <Group justify="space-between" wrap="nowrap">
-                <Group gap={'xs'} wrap="nowrap" miw={0}>
+          {sectionHeading('People')}
+
+          {/* Two columns, the same grid rhythm as stage 2 — so the flow's
+              three picking screens share one shape instead of each inventing
+              its own. */}
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={'sm'}>
+            {visibleUsers.map((user) => (
+              <FollowSuggestionCard
+                key={user.id}
+                media={
                   <Avatar
                     src={user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-                    alt={`${user.handle}'s avatar`}
+                    alt=""
+                    size={38}
+                    radius={'50%'}
                   />
-                  <Stack gap={0} miw={0}>
-                    <Group gap={'xs'} wrap="nowrap">
-                      <Text fw={600} c={'bright'} lineClamp={1}>
-                        {user.name}
-                      </Text>
-                      {user.followsOnBsky && (
-                        <Badge variant="light" color="blue" flex={'0 0 auto'}>
-                          Followed on Bluesky
-                        </Badge>
-                      )}
-                    </Group>
-                    <Text fw={600} c={'dimmed'} fz={'sm'} lineClamp={1}>
-                      @{user.handle}
-                    </Text>
-                    {user.description && (
-                      <Text fz={'sm'} lineClamp={1}>
-                        {user.description}
-                      </Text>
-                    )}
-                  </Stack>
-                </Group>
-                <FollowButton
-                  targetId={user.id}
-                  targetType="USER"
-                  initialIsFollowing={user.isFollowing}
-                />
-              </Group>
-            </Card>
-          ))}
+                }
+                title={user.name}
+                meta={`@${user.handle}`}
+                description={user.description}
+                blueskyNote={
+                  user.followsOnBsky ? 'Followed on Bluesky' : undefined
+                }
+                action={followButton(user.id, 'USER', user.isFollowing)}
+              />
+            ))}
+          </SimpleGrid>
         </Stack>
       )}
 
       {visibleCollections.length > 0 && (
         <Stack gap={'xs'}>
-          <Title order={3}>Collections</Title>
-          <Grid>
+          {sectionHeading('Collections')}
+
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={'sm'}>
             {visibleCollections.map((collection) => (
-              <Grid.Col key={collection.id} span={{ base: 12, sm: 6 }}>
-                <Stack gap={'xs'} h={'100%'}>
-                  <CollectionCard collection={collection} showAuthor />
-                  <Group justify="space-between">
-                    {collection.authorFollowedOnBsky ? (
-                      <Badge variant="light" color="blue">
-                        Author followed on Bluesky
-                      </Badge>
-                    ) : (
-                      <span />
-                    )}
-                    <FollowButton
-                      targetId={collection.id}
-                      targetType="COLLECTION"
-                      initialIsFollowing={collection.isFollowing}
-                    />
-                  </Group>
-                </Stack>
-              </Grid.Col>
+              <FollowSuggestionCard
+                key={collection.id}
+                media={
+                  // The app's collection glyph rather than the author's
+                  // avatar: a face in that slot reads as "a person", which is
+                  // exactly the distinction this section has to make.
+                  <ThemeIcon
+                    variant="light"
+                    color="gray"
+                    size={38}
+                    radius={'md'}
+                  >
+                    <BiCollection size={18} />
+                  </ThemeIcon>
+                }
+                title={collection.name}
+                // Author and size in one line — who keeps it and how much is
+                // in it are the two things that decide whether to follow.
+                meta={
+                  collection.cardCount === 1
+                    ? `by @${collection.author.handle} · 1 card`
+                    : `by @${collection.author.handle} · ${collection.cardCount} cards`
+                }
+                description={collection.description}
+                blueskyNote={
+                  collection.authorFollowedOnBsky
+                    ? 'Author followed on Bluesky'
+                    : undefined
+                }
+                action={followButton(
+                  collection.id,
+                  'COLLECTION',
+                  collection.isFollowing,
+                )}
+              />
             ))}
-          </Grid>
+          </SimpleGrid>
         </Stack>
       )}
     </Stack>

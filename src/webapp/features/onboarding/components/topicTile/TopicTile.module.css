@@ -1,31 +1,24 @@
-/* The only hand-written CSS this screen needs: hover and press feedback, which
-   Mantine has no prop for. Everything else is Mantine components and tokens. */
+/* The only hand-written CSS this screen needs. Deliberately minimal: a border
+   that warms on hover, and nothing that moves. An earlier version lifted the
+   tile and scaled it on press, which made a grid of sixteen targets feel
+   restless. */
 
 .tile {
   cursor: pointer;
   transition:
     background-color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease,
-    box-shadow 150ms ease;
+    border-color 150ms ease;
 }
 
+/* Only when a pointer can actually hover — otherwise a tap on a touch screen
+   leaves the border stuck in its hover state until you tap elsewhere. */
 @media (hover: hover) {
+  /* A picked tile sets its border inline, which beats this, so its accent is
+     never overridden — the cue is only for tiles you have not chosen yet. */
   .tile:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--mantine-shadow-sm);
-  }
-}
-
-.tile:active {
-  transform: translateY(0) scale(0.985);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tile,
-  .tile:hover,
-  .tile:active {
-    transition: none;
-    transform: none;
+    border-color: light-dark(
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-3)
+    );
   }
 }

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import { STEPS, TOTAL_STEPS, clampStep } from '../../lib/steps';
 import {
   type OnboardingStatus,
@@ -14,14 +13,13 @@ import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
 import ReturningView from '../../components/returningView/ReturningView';
+import WelcomeView from '../../components/welcomeView/WelcomeView';
 import TopicsStep from '../../components/steps/topicsStep/TopicsStep';
-import SaveCardsStep from '../../components/steps/saveCardsStep/SaveCardsStep';
+import PickCardsStep from '../../components/steps/pickCardsStep/PickCardsStep';
 import FollowStep from '../../components/steps/followStep/FollowStep';
 import WhatNextStep from '../../components/steps/whatNextStep/WhatNextStep';
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
 import { FALLBACK_TOPICS } from '../../lib/topics';
-import useAddCard from '@/features/cards/lib/mutations/useAddCard';
-import { CardSaveSource } from '@/features/analytics/types';
 
 interface Props {
   initialStatus: OnboardingStatus;
@@ -44,20 +42,22 @@ export default function OnboardingFlow(props: Props) {
   const searchParams = useSearchParams();
   const { progress, isLoaded, update, clear } = useOnboardingProgress();
   const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
-  const [isSaving, setIsSaving] = useState(false);
 
   // The presence of ?step= means "in the flow". That is what keeps the
-  // returning view stable across a refresh mid-restart. Computed early so it
-  // can also gate the recommendations query below — the returning view never
-  // renders SaveCardsStep, so it has no reason to fetch for it.
-  const isReturning =
-    searchParams.get('step') === null &&
-    (status === 'completed' || status === 'dismissed');
+  // returning view stable across a refresh mid-restart, and what separates
+  // both non-flow screens below from the stages.
+  const stepParam = searchParams.get('step');
 
-  const addCard = useAddCard({
-    saveSource: CardSaveSource.ONBOARDING,
-    pagePath: '/onboarding',
-  });
+  const isReturning =
+    stepParam === null && (status === 'completed' || status === 'dismissed');
+
+  // Bare /onboarding for anyone who has not finished: the welcome screen, not
+  // stage 1. Entering the flow should be a decision, not something that has
+  // already happened by the time the page paints.
+  //
+  // Only the bare URL. The home banner and "Start setup over" both link to an
+  // explicit ?step=, so resuming never detours through here.
+  const isWelcome = stepParam === null && !isReturning;
 
   // Lives here, not in the stage: the Continue handler below needs the top-5
   // fallback, and pushing it up from the child would require an Effect.
@@ -65,11 +65,15 @@ export default function OnboardingFlow(props: Props) {
   // The hook is already `enabled: queries.length > 0`, so during the first
   // frame — before the stored topics arrive — it simply does not fire. It
   // starts on its own once topics land. Nothing to coordinate. `enabled` also
-  // excludes the returning view, which never renders anything this feeds.
+  // excludes the welcome and returning screens, which render nothing this feeds.
+  //
+  // 5 to a page, because stage 2 shows 5 at a time and "Show different cards"
+  // is just the next page. Results are randomised server-side, so each page is
+  // a fresh set rather than a continuation of a ranked list.
   const recommendations = useRecommendedCards({
     queries: progress.topics,
-    limit: 10,
-    enabled: !isReturning,
+    limit: 5,
+    enabled: !isReturning && !isWelcome,
   });
 
   const recommendedUrls =
@@ -79,8 +83,8 @@ export default function OnboardingFlow(props: Props) {
 
   // resetSelectionOnDataChange is deliberately omitted — it defaults to off,
   // and turning it on would wipe the user's picks every time "Show more"
-  // grows `data`. Selections come back in click order, so the "Save N cards"
-  // label and the save order match what they did.
+  // grows `data`. The selection lives here rather than in the stage so it
+  // survives a trip to stage 3 and back.
   const [selectedUrls, selection] = useSelection({
     data: recommendedUrls.map((view) => view.url),
   });
@@ -94,10 +98,10 @@ export default function OnboardingFlow(props: Props) {
     setStatus(next);
   };
 
-  // Everything goToStep does except the navigation. The stepper's pills and
-  // the footer's Back are real anchors that navigate themselves, but they
-  // still owe the same status and stepId writes Continue performs — otherwise
-  // the home banner would resume somewhere the user has since left.
+  // Everything goToStep does except the navigation. The footer's Back is a
+  // real anchor that navigates itself, but it still owes the same status and
+  // stepId writes Continue performs — otherwise the home banner would resume
+  // somewhere the user has since left.
   const markStep = (step: number) => {
     // Moving between stages is what makes this "in progress" — an event, not
     // a mount.
@@ -112,45 +116,17 @@ export default function OnboardingFlow(props: Props) {
     router.push(`/onboarding?step=${step}`);
   };
 
-  // The one place in the flow that must be a handler rather than a Link:
-  // it saves before it navigates.
-  const handleSaveCardsContinue = async () => {
-    if (selectedUrls.length === 0) {
-      update({ seedUrls: fallbackUrls });
-      goToStep(3);
-      return;
-    }
-
-    setIsSaving(true);
-    const results = await Promise.allSettled(
-      selectedUrls.map((url) => addCard.mutateAsync({ url })),
-    );
-    setIsSaving(false);
-
-    const saved = selectedUrls.filter(
-      (_url, index) => results[index].status === 'fulfilled',
-    );
-
-    // The selection lives here, in the container, which stays mounted across
-    // stages — so without this, Back to stage 2 shows the same cards still
-    // checked and Continue saves them a second time, re-firing the
-    // 'card_saved' analytics event and inflating onboarding conversion.
-    // Drop exactly what saved; anything that failed stays checked so Back is
-    // a real retry.
-    selection.setSelection(selectedUrls.filter((url) => !saved.includes(url)));
-
-    if (saved.length < selectedUrls.length) {
-      notifications.show({
-        color: 'yellow',
-        message:
-          selectedUrls.length === 1
-            ? 'Unable to save that card. Try again from your library.'
-            : `Saved ${saved.length} of ${selectedUrls.length} cards. Try the rest again from your library.`,
-      });
-    }
-
-    // Never trap anyone: advance even on partial failure.
-    update({ savedUrls: saved, seedUrls: selectedUrls });
+  // Stage 2 picks are a signal, not a save. They become the seed URLs stage 3
+  // recommends people and collections from, and nothing is written to the
+  // user's library — so this is synchronous, has nothing to fail, and needs no
+  // loading state or partial-failure handling.
+  //
+  // Falling back to the top 5 when nothing is picked keeps stage 3 with
+  // something to work from, exactly as skipping the stage does.
+  const handlePickCardsContinue = () => {
+    update({
+      seedUrls: selectedUrls.length > 0 ? selectedUrls : fallbackUrls,
+    });
     goToStep(3);
   };
 
@@ -176,13 +152,7 @@ export default function OnboardingFlow(props: Props) {
               update({ seedUrls: fallbackUrls });
               goToStep(3);
             },
-            onContinue: handleSaveCardsContinue,
-            continueLabel:
-              selectedUrls.length > 0
-                ? selectedUrls.length === 1
-                  ? 'Save 1 card and continue'
-                  : `Save ${selectedUrls.length} cards and continue`
-                : undefined,
+            onContinue: handlePickCardsContinue,
             // !isLoaded covers the frame before stored topics arrive: the
             // query has not started, so isLoading is still false, and a fast
             // click would skip ahead writing seedUrls: [].
@@ -201,15 +171,23 @@ export default function OnboardingFlow(props: Props) {
     );
   }
 
+  if (isWelcome) {
+    // markStep(1) rather than a bare status write: "Get started" is a real
+    // anchor to ?step=1, so it only has to record the move, not perform it.
+    return <WelcomeView onStart={() => markStep(1)} />;
+  }
+
   return (
     <OnboardingScreen
       header={
         <OnboardingHeader
-          stepper={{ currentStep, onSelectStep: markStep }}
-          exitLabel="Exit setup"
+          // goToStep, not markStep: Mantine's Stepper renders buttons rather
+          // than links, so the click has to do the navigating itself.
+          stepper={{ currentStep, onSelectStep: goToStep }}
+          exitLabel="Finish later"
           onExit={() => {
             // Once earned, `completed` is permanent. A completed user reaches
-            // this by "Start setup over" → walk to stage 2 → Exit setup, or
+            // this by "Start setup over" → walk to stage 2 → Finish later, or
             // by pressing browser Back after finishing at stage 4. Both
             // statuses hide the banner today, but onboardingStatus.ts is the
             // swap point for server-persisted completion and `completed` is
@@ -230,7 +208,6 @@ export default function OnboardingFlow(props: Props) {
           onContinue={footerProps.onContinue}
           continueLabel={footerProps.continueLabel}
           continueDisabled={footerProps.continueDisabled}
-          continueLoading={isSaving}
         />
       }
     >
@@ -242,7 +219,7 @@ export default function OnboardingFlow(props: Props) {
         />
       )}
       {currentStep === 2 && (
-        <SaveCardsStep
+        <PickCardsStep
           recommendations={recommendations}
           selectedUrls={selectedUrls}
           onToggleUrl={selection.toggle}

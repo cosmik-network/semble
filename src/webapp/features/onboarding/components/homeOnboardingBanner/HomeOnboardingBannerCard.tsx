@@ -53,7 +53,7 @@ export default function HomeOnboardingBannerCard(props: Props) {
             {isResuming ? 'Resume setup' : 'Set up your account'}
           </Text>
           <Text fz={'sm'} c={'dimmed'}>
-            Pick your topics, save a few cards, and find people to follow.
+            Pick your topics and find people and collections worth following.
           </Text>
         </Stack>
 

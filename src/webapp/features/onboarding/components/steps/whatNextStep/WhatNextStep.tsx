@@ -1,7 +1,15 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { Center, Grid, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import {
+  Center,
+  Group,
+  Loader,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { FiBookmark, FiPlus } from 'react-icons/fi';
 import { TbPlugConnected } from 'react-icons/tb';
@@ -12,7 +20,7 @@ import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats'
 import { useAuth } from '@/hooks/useAuth';
 import WhatNextTile from '../../whatNextTile/WhatNextTile';
 import ConnectTileCards from '../../connectTileCards/ConnectTileCards';
-import InstallMenu from '../../installMenu/InstallMenu';
+import InstallOptions from '../../installOptions/InstallOptions';
 
 interface Props {
   variant: 'flow' | 'returning';
@@ -60,75 +68,79 @@ export default function WhatNextStep(props: Props) {
     );
   }
 
+  // The same quiet uppercase heading stage 3 uses, so the flow's two
+  // multi-section screens label their groups identically.
+  const sectionHeading = (label: string) => (
+    <Title order={2} fz={'sm'} c={'dimmed'} tt="uppercase" lts={0.5}>
+      {label}
+    </Title>
+  );
+
   return (
-    <Stack gap={'lg'}>
+    <Stack gap={'xl'}>
       <Stack gap={4}>
         <Title order={1}>
-          {props.variant === 'returning' ? 'What next?' : "You're set up."}
+          {props.variant === 'returning' ? 'What next?' : "You're all set"}
         </Title>
-        <Text c={'dimmed'}>
-          Each of these takes a few seconds, and you stay on this page.
-        </Text>
+        <Text c={'dimmed'}>Try something below, or take Semble with you.</Text>
       </Stack>
 
       <Stack gap={'xs'}>
-        <Text fz={'xs'} fw={700} c={'dimmed'} tt={'uppercase'}>
-          Try something
-        </Text>
+        {sectionHeading('Try something')}
 
-        <Grid>
+        {/* The same grid as stages 2 and 3, rather than a bespoke Grid with
+            hand-written spans — so the tile count can change without anyone
+            recomputing column widths. */}
+        <SimpleGrid cols={{ base: 1, sm: showSaveTile ? 3 : 2 }} spacing={'sm'}>
           {showSaveTile && (
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <WhatNextTile
-                icon={<FiBookmark />}
-                title="Save a card"
-                description="Any link worth keeping."
-                done={cardCount > 0}
-                onClick={composer.open}
-              />
-            </Grid.Col>
+            <WhatNextTile
+              icon={<FiBookmark />}
+              title="Save a card"
+              description="Any link worth keeping."
+              done={cardCount > 0}
+              onClick={composer.open}
+            />
           )}
 
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <WhatNextTile
-              icon={<FiPlus />}
-              title="Create a collection"
-              description="Group cards by theme."
-              done={createdCollection}
-              onClick={collectionDrawer.open}
-            />
-          </Grid.Col>
+          <WhatNextTile
+            icon={<FiPlus />}
+            title="Create a collection"
+            description="Group cards by theme."
+            done={createdCollection}
+            onClick={collectionDrawer.open}
+          />
 
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <WhatNextTile
-              icon={<TbPlugConnected />}
-              title="Connect two cards"
-              description="Say why two cards belong together."
-              locked={!canConnect}
-              lockedHint="Save 2 cards to connect them."
-              onClick={connectTile.toggle}
-              expanded={canConnect && connectExpanded}
-            >
-              {canConnect && connectExpanded && user?.handle && (
-                <Suspense
-                  fallback={
-                    <Center py={'md'}>
-                      <Loader size={'sm'} />
-                    </Center>
-                  }
-                >
-                  <ConnectTileCards handle={user.handle} />
-                </Suspense>
-              )}
-            </WhatNextTile>
-          </Grid.Col>
-        </Grid>
+          <WhatNextTile
+            icon={<TbPlugConnected />}
+            title="Connect two cards"
+            description="Say why two cards belong together."
+            locked={!canConnect}
+            lockedHint="Save 2 cards to connect them."
+            onClick={connectTile.toggle}
+            expanded={canConnect && connectExpanded}
+          >
+            {canConnect && connectExpanded && user?.handle && (
+              <Suspense
+                fallback={
+                  <Center py={'md'}>
+                    <Loader size={'sm'} />
+                  </Center>
+                }
+              >
+                <ConnectTileCards handle={user.handle} />
+              </Suspense>
+            )}
+          </WhatNextTile>
+        </SimpleGrid>
       </Stack>
 
       <Stack gap={'xs'}>
-        <Text fz={'xs'} fw={700} c={'dimmed'} tt={'uppercase'}>
-          Or go somewhere
-        </Text>
+        {sectionHeading('Take Semble with you')}
+        <InstallOptions onSelect={props.onComplete} />
+      </Stack>
+
+      <Stack gap={'xs'}>
+        {sectionHeading('Or go somewhere')}
         <Group gap={'xs'}>
           <LinkButton
             href="/explore"
@@ -138,7 +150,6 @@ export default function WhatNextStep(props: Props) {
           >
             Explore Semble
           </LinkButton>
-          <InstallMenu onSelect={props.onComplete} />
           <LinkButton
             href="/home"
             variant="default"

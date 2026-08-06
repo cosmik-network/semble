@@ -74,9 +74,14 @@ export default function TopicsStep(props: Props) {
   // custom topic added before a remount (footer Back, refresh, ?step=1 with
   // stored progress) would have no tile to click, so there would be no way to
   // deselect it.
-  const customTopicList = dedupe([...props.topics, ...customTopics]).filter(
-    (topic) => !PRESET_KEYS.has(normalize(topic)),
-  );
+  //
+  // Reversed, and rendered ahead of the presets: a topic you just typed should
+  // appear next to the tile you typed it into, not appended below fifteen
+  // suggestions you have already scanned past. `filter` returns a fresh array,
+  // so reversing it in place touches nothing else.
+  const customTopicList = dedupe([...props.topics, ...customTopics])
+    .filter((topic) => !PRESET_KEYS.has(normalize(topic)))
+    .reverse();
 
   const allTopics = dedupe([
     ...PRESET_TOPICS,
@@ -160,7 +165,8 @@ export default function TopicsStep(props: Props) {
       >
         {/* First, not last: it is the one tile whose position should not move
             as custom topics accumulate, and putting it up front makes it the
-            first thing Tab reaches. */}
+            first thing Tab reaches. Whatever you add lands immediately after
+            it. */}
         <AddTopicTile
           value={newTopic}
           onChangeValue={setNewTopic}
@@ -172,16 +178,6 @@ export default function TopicsStep(props: Props) {
           description={inputDescription}
         />
 
-        {TOPICS.map((topic) => (
-          <TopicTile
-            key={topic.id}
-            label={topic.label}
-            icon={TOPIC_ICONS[topic.id]}
-            selected={isSelected(topic.query)}
-            onToggle={() => toggle(topic.query)}
-          />
-        ))}
-
         {customTopicList.map((topic) => (
           <TopicTile
             key={topic}
@@ -189,6 +185,16 @@ export default function TopicsStep(props: Props) {
             icon={CUSTOM_TOPIC_ICON}
             selected={isSelected(topic)}
             onToggle={() => toggle(topic)}
+          />
+        ))}
+
+        {TOPICS.map((topic) => (
+          <TopicTile
+            key={topic.id}
+            label={topic.label}
+            icon={TOPIC_ICONS[topic.id]}
+            selected={isSelected(topic.query)}
+            onToggle={() => toggle(topic.query)}
           />
         ))}
       </SimpleGrid>

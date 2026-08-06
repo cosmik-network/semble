@@ -6,8 +6,6 @@ import type { StepId } from './steps';
 export interface OnboardingProgress {
   stepId: StepId;
   topics: string[];
-  /** URLs actually saved as cards. */
-  savedUrls: string[];
   /** URLs fed to stage 3's recommendations — the selection, or the top 5. */
   seedUrls: string[];
 }
@@ -19,7 +17,6 @@ const STORAGE_KEY = 'semble.onboarding.progress';
 const EMPTY: OnboardingProgress = {
   stepId: 'topics',
   topics: [],
-  savedUrls: [],
   seedUrls: [],
 };
 
@@ -53,7 +50,6 @@ function deserialize(raw: string | undefined): OnboardingProgress {
         ? (candidate.stepId as StepId)
         : EMPTY.stepId,
     topics: isStringArray(candidate.topics) ? candidate.topics : [],
-    savedUrls: isStringArray(candidate.savedUrls) ? candidate.savedUrls : [],
     seedUrls: isStringArray(candidate.seedUrls) ? candidate.seedUrls : [],
   };
 }

@@ -3,8 +3,10 @@ export type StepId = 'topics' | 'cards' | 'follow' | 'next';
 // Order is meaningful: index + 1 is the ?step= value and the stepper position.
 export const STEPS: ReadonlyArray<{ id: StepId; label: string }> = [
   { id: 'topics', label: 'Topics' },
-  { id: 'cards', label: 'Save cards' },
-  { id: 'follow', label: 'Follow people' },
+  // "Cards", not "Save cards" — the stage picks cards to tune stage 3's
+  // suggestions, it does not add anything to the library.
+  { id: 'cards', label: 'Cards' },
+  { id: 'follow', label: 'Follow' },
   { id: 'next', label: 'What next' },
 ];
 
