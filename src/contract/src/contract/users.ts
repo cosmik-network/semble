@@ -21,6 +21,9 @@ import {
   UpdateApiKeyResponseSchema,
   RevokeApiKeyRequestSchema,
   RevokeApiKeyResponseSchema,
+  GetOnboardingStateResponseSchema,
+  UpdateOnboardingStateRequestSchema,
+  UpdateOnboardingStateResponseSchema,
 } from '@semble/types';
 
 const c = initContract();
@@ -145,6 +148,26 @@ export const usersContract = c.router(
       summary: 'Revoke an API key',
       description:
         'Permanently revokes the specified API key. Subsequent requests using that token will be rejected.',
+      metadata: { internal: true } as const,
+    },
+    getOnboardingState: {
+      method: 'GET',
+      path: paths.getOnboardingState,
+      query: z.object({}),
+      responses: { 200: GetOnboardingStateResponseSchema },
+      summary: 'Get onboarding state',
+      description:
+        'Returns the onboarding state for the authenticated user as a flat object of fields.',
+      metadata: { internal: true } as const,
+    },
+    updateOnboardingState: {
+      method: 'POST',
+      path: paths.updateOnboardingState,
+      body: UpdateOnboardingStateRequestSchema,
+      responses: { 200: UpdateOnboardingStateResponseSchema },
+      summary: 'Update onboarding state',
+      description:
+        'Partially updates the onboarding state for the authenticated user. Only fields present in the body are written; omitted fields are left untouched. Returns the merged state.',
       metadata: { internal: true } as const,
     },
   },

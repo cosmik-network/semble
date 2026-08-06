@@ -40,6 +40,8 @@ import { ListApiKeysController } from '../../../../modules/user/infrastructure/h
 import { CreateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/RevokeApiKeyController';
+import { GetOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/GetOnboardingStateController';
+import { UpdateOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/UpdateOnboardingStateController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
@@ -95,6 +97,8 @@ export interface Controllers {
   createApiKeyController: CreateApiKeyController;
   updateApiKeyController: UpdateApiKeyController;
   revokeApiKeyController: RevokeApiKeyController;
+  getOnboardingStateController: GetOnboardingStateController;
+  updateOnboardingStateController: UpdateOnboardingStateController;
   followTargetController: FollowTargetController;
   unfollowTargetController: UnfollowTargetController;
   subscribeToTargetController: SubscribeToTargetController;
@@ -220,6 +224,12 @@ export class ControllerFactory {
       ),
       revokeApiKeyController: new RevokeApiKeyController(
         useCases.revokeApiKeyUseCase,
+      ),
+      getOnboardingStateController: new GetOnboardingStateController(
+        useCases.getOnboardingStateUseCase,
+      ),
+      updateOnboardingStateController: new UpdateOnboardingStateController(
+        useCases.updateOnboardingStateUseCase,
       ),
       followTargetController: new FollowTargetController(
         useCases.followTargetUseCase,
