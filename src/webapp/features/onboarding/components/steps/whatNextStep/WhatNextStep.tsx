@@ -12,6 +12,7 @@ import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats'
 import { useAuth } from '@/hooks/useAuth';
 import WhatNextTile from '../../whatNextTile/WhatNextTile';
 import ConnectTileCards from '../../connectTileCards/ConnectTileCards';
+import InstallMenu from '../../installMenu/InstallMenu';
 
 interface Props {
   variant: 'flow' | 'returning';
@@ -137,14 +138,7 @@ export default function WhatNextStep(props: Props) {
           >
             Explore Semble
           </LinkButton>
-          <LinkButton
-            href="/install-app"
-            variant="default"
-            radius={'xl'}
-            onClick={props.onComplete}
-          >
-            Install Semble
-          </LinkButton>
+          <InstallMenu onSelect={props.onComplete} />
           <LinkButton
             href="/home"
             variant="default"

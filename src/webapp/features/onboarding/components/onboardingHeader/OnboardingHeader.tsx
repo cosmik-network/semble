@@ -5,10 +5,18 @@ import { LinkButton } from '@/components/link/MantineLink';
 import Stepper from '../stepper/Stepper';
 
 interface Props {
-  /** 1-based. */
-  currentStep: number;
-  /** False on the returning view — there is no flow to show progress through. */
-  showStepper: boolean;
+  /**
+   * Omitted on the returning view — there is no flow to show progress
+   * through. One object rather than a currentStep/showStepper pair, so there
+   * is no way to ask for a stepper without saying which stage, or to pass a
+   * stage that nothing reads.
+   */
+  stepper?: {
+    /** 1-based. */
+    currentStep: number;
+    /** Records the stage before the browser follows a stepper pill. */
+    onSelectStep: (step: number) => void;
+  };
   exitLabel: string;
   /** Writes the status before the browser follows the link. */
   onExit: () => void;
@@ -29,7 +37,12 @@ export default function OnboardingHeader(props: Props) {
         Semble
       </Text>
 
-      {props.showStepper && <Stepper currentStep={props.currentStep} />}
+      {props.stepper && (
+        <Stepper
+          currentStep={props.stepper.currentStep}
+          onSelectStep={props.stepper.onSelectStep}
+        />
+      )}
 
       <LinkButton
         href="/home"

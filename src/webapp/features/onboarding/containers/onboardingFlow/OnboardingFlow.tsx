@@ -42,7 +42,7 @@ interface FooterStageProps {
 export default function OnboardingFlow(props: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { progress, update, clear } = useOnboardingProgress();
+  const { progress, isLoaded, update, clear } = useOnboardingProgress();
   const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -94,12 +94,21 @@ export default function OnboardingFlow(props: Props) {
     setStatus(next);
   };
 
-  const goToStep = (step: number) => {
-    // Advancing is what makes this "in progress" — an event, not a mount.
+  // Everything goToStep does except the navigation. The stepper's pills and
+  // the footer's Back are real anchors that navigate themselves, but they
+  // still owe the same status and stepId writes Continue performs — otherwise
+  // the home banner would resume somewhere the user has since left.
+  const markStep = (step: number) => {
+    // Moving between stages is what makes this "in progress" — an event, not
+    // a mount.
     if (status === 'unseen') {
       changeStatus('in_progress');
     }
     update({ stepId: STEPS[step - 1].id });
+  };
+
+  const goToStep = (step: number) => {
+    markStep(step);
     router.push(`/onboarding?step=${step}`);
   };
 
@@ -174,7 +183,10 @@ export default function OnboardingFlow(props: Props) {
                   ? 'Save 1 card and continue'
                   : `Save ${selectedUrls.length} cards and continue`
                 : undefined,
-            continueDisabled: recommendations.isLoading,
+            // !isLoaded covers the frame before stored topics arrive: the
+            // query has not started, so isLoading is still false, and a fast
+            // click would skip ahead writing seedUrls: [].
+            continueDisabled: !isLoaded || recommendations.isLoading,
           }
         : currentStep < TOTAL_STEPS
           ? { onContinue: () => goToStep(currentStep + 1) }
@@ -193,8 +205,7 @@ export default function OnboardingFlow(props: Props) {
     <OnboardingScreen
       header={
         <OnboardingHeader
-          currentStep={currentStep}
-          showStepper
+          stepper={{ currentStep, onSelectStep: markStep }}
           exitLabel="Exit setup"
           onExit={() => {
             // Once earned, `completed` is permanent. A completed user reaches
@@ -214,6 +225,7 @@ export default function OnboardingFlow(props: Props) {
           backHref={
             currentStep > 1 ? `/onboarding?step=${currentStep - 1}` : undefined
           }
+          onBack={() => markStep(currentStep - 1)}
           onSkip={footerProps.onSkip}
           onContinue={footerProps.onContinue}
           continueLabel={footerProps.continueLabel}
@@ -226,6 +238,7 @@ export default function OnboardingFlow(props: Props) {
         <TopicsStep
           topics={progress.topics}
           onChangeTopics={(topics) => update({ topics })}
+          progressLoaded={isLoaded}
         />
       )}
       {currentStep === 2 && (
@@ -234,9 +247,12 @@ export default function OnboardingFlow(props: Props) {
           selectedUrls={selectedUrls}
           onToggleUrl={selection.toggle}
           hasTopics={progress.topics.length > 0}
+          progressLoaded={isLoaded}
         />
       )}
-      {currentStep === 3 && <FollowStep urls={progress.seedUrls} />}
+      {currentStep === 3 && (
+        <FollowStep urls={progress.seedUrls} progressLoaded={isLoaded} />
+      )}
       {currentStep === 4 && (
         <WhatNextStep
           variant="flow"

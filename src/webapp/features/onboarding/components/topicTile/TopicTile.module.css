@@ -1,0 +1,31 @@
+/* The only hand-written CSS this screen needs: hover and press feedback, which
+   Mantine has no prop for. Everything else is Mantine components and tokens. */
+
+.tile {
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--mantine-shadow-sm);
+  }
+}
+
+.tile:active {
+  transform: translateY(0) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .tile:hover,
+  .tile:active {
+    transition: none;
+    transform: none;
+  }
+}

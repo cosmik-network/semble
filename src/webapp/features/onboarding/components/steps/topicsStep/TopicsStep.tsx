@@ -1,20 +1,21 @@
 'use client';
 
-import {
-  Button,
-  Chip,
-  Group,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Badge, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { useInputState, useListState } from '@mantine/hooks';
-import { PRESET_TOPICS } from '../../../lib/topics';
+import { PRESET_TOPICS, TOPICS } from '../../../lib/topics';
+import AddTopicTile from '../../addTopicTile/AddTopicTile';
+import TopicTile from '../../topicTile/TopicTile';
+import {
+  CUSTOM_TOPIC_ICON,
+  TOPIC_COLOR,
+  TOPIC_ICONS,
+} from '../../topicTile/topicVisuals';
 
 interface Props {
   topics: string[];
   onChangeTopics: (topics: string[]) => void;
+  /** False until stored progress has been read — see useOnboardingProgress. */
+  progressLoaded: boolean;
 }
 
 /** Comparison form only. Never stored and never displayed. */
@@ -34,47 +35,67 @@ function dedupe(topics: string[]): string[] {
   });
 }
 
+const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalize));
+
 export default function TopicsStep(props: Props) {
   // useListState for the append; useInputState so TextInput's onChange takes
   // the setter directly instead of an event-unwrapping closure.
   //
   // This is session state and resets on every mount, so it cannot be the only
-  // source of custom chips — props.topics is the persisted one. It is still
+  // source of custom tiles — props.topics is the persisted one. It is still
   // kept so a custom topic deselected within a session stays on screen and
   // can be re-selected.
   const [customTopics, customTopicsHandlers] = useListState<string>([]);
   const [newTopic, setNewTopic] = useInputState('');
 
-  // Derived every render from all three sources. Without props.topics in here,
-  // a custom topic added before a remount (footer Back, refresh, ?step=1 with
-  // stored progress) stays selected and counted with no chip to click, so
-  // there is no way to deselect it.
-  //
-  // Chip.Group matches values by exact string, so where a stored topic differs
-  // only in case from a preset the stored casing has to win or the chip never
-  // lights up. Order still follows the presets.
-  const storedByKey = new Map(
+  // Selection is matched on the normalized form, so a stored "ai" lights up
+  // the preset "AI" rather than sitting invisibly beside it. The map keeps the
+  // stored casing, which is what has to be removed on deselect.
+  const selectedByKey = new Map(
     props.topics.map((topic) => [normalize(topic), topic]),
+  );
+
+  const isSelected = (query: string) => selectedByKey.has(normalize(query));
+
+  const toggle = (query: string) => {
+    const key = normalize(query);
+
+    if (selectedByKey.has(key)) {
+      props.onChangeTopics(
+        props.topics.filter((topic) => normalize(topic) !== key),
+      );
+      return;
+    }
+
+    props.onChangeTopics([...props.topics, query]);
+  };
+
+  // Derived every render from both sources. Without props.topics in here, a
+  // custom topic added before a remount (footer Back, refresh, ?step=1 with
+  // stored progress) would have no tile to click, so there would be no way to
+  // deselect it.
+  const customTopicList = dedupe([...props.topics, ...customTopics]).filter(
+    (topic) => !PRESET_KEYS.has(normalize(topic)),
   );
 
   const allTopics = dedupe([
     ...PRESET_TOPICS,
     ...props.topics,
     ...customTopics,
-  ]).map((topic) => storedByKey.get(normalize(topic)) ?? topic);
+  ]);
 
   const trimmedInput = newTopic.trim();
   const existingTopic = trimmedInput
     ? allTopics.find((topic) => normalize(topic) === normalize(trimmedInput))
     : undefined;
   const isAlreadySelected =
-    existingTopic !== undefined && props.topics.includes(existingTopic);
+    existingTopic !== undefined && isSelected(existingTopic);
 
   const handleAddTopic = () => {
     if (!trimmedInput) return;
 
     // Re-use the existing entry rather than creating a near-duplicate, so
-    // typing "ai" selects the preset "AI" instead of spawning a second chip.
+    // typing "ai" selects the preset "AI" instead of spawning a second tile.
     if (existingTopic) {
       if (!isAlreadySelected) {
         props.onChangeTopics([...props.topics, existingTopic]);
@@ -92,68 +113,85 @@ export default function TopicsStep(props: Props) {
     ? undefined
     : isAlreadySelected
       ? 'You already picked that topic.'
-      : 'That topic is already in the list below.';
+      : 'That topic is already in the grid.';
 
-  const countLabel =
-    props.topics.length === 1
-      ? '1 topic selected'
-      : `${props.topics.length} topics selected`;
+  // Custom topics are tiles too, so adding one raises the denominator as well
+  // as the numerator — the ratio always describes what is actually on screen.
+  const totalTopics = TOPICS.length + customTopicList.length;
 
   return (
-    <Stack gap={'md'}>
-      <Stack gap={4}>
-        <Title order={1}>What topics interest you?</Title>
-        <Text c={'dimmed'}>
-          We use these to suggest cards, people and collections.
+    // One measure for the whole stage. The screen's Container is `md` (960px),
+    // which is far too wide for a four-column grid of small tiles — they end up
+    // as letterboxes with the icon adrift in them, on a different width to the
+    // hero above. 720 keeps a tile close to square at every breakpoint.
+    <Stack gap={'xl'} maw={720} w={'100%'} mx={'auto'}>
+      {/* Narrower than the grid on purpose: this is a text measure. */}
+      <Stack gap={4} align="center" maw={480} mx={'auto'}>
+        <Title order={1} ta={'center'}>
+          Pick a few topics
+        </Title>
+        <Text c={'dimmed'} ta={'center'}>
+          We use them to suggest cards, people and collections.
         </Text>
+
+        {/* The fixed height reserves the row, so nothing shifts when the badge
+            appears — which is what lets it render nothing at all until stored
+            progress has been read, rather than flashing 0/15 for a frame. */}
+        <Group justify="center" h={26} mt={4}>
+          {props.progressLoaded && (
+            <Badge
+              radius={'xl'}
+              variant="light"
+              // Same accent as the tiles, so the count and the grid read as
+              // one thing rather than two colour schemes.
+              color={props.topics.length > 0 ? TOPIC_COLOR : 'gray'}
+            >
+              {props.topics.length}/{totalTopics}
+            </Badge>
+          )}
+        </Group>
       </Stack>
 
-      <Chip.Group multiple value={props.topics} onChange={props.onChangeTopics}>
-        <Group gap={'xs'}>
-          {allTopics.map((topic) => (
-            <Chip key={topic} value={topic} color="green" variant="light">
-              {topic}
-            </Chip>
-          ))}
-        </Group>
-      </Chip.Group>
-
-      {/* flex-end keeps the button on the input's baseline. Mantine renders
-          `description` above the input, so the field grows upward and the
-          alignment holds whether or not the hint is showing. */}
-      <Group gap={'xs'} maw={500} align="flex-end">
-        <TextInput
-          flex={1}
-          label="Add your own topic"
-          placeholder="mycology, urban planning"
-          description={inputDescription}
+      <SimpleGrid
+        role="group"
+        aria-label="Topics"
+        cols={{ base: 2, xs: 3, sm: 4 }}
+        spacing={'xs'}
+      >
+        {/* First, not last: it is the one tile whose position should not move
+            as custom topics accumulate, and putting it up front makes it the
+            first thing Tab reaches. */}
+        <AddTopicTile
           value={newTopic}
-          onChange={setNewTopic}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              handleAddTopic();
-            }
-          }}
+          onChangeValue={setNewTopic}
+          onSubmit={handleAddTopic}
+          // Adding is a no-op only when the typed topic is already picked. A
+          // match that isn't picked yet stays actionable — submitting selects
+          // the existing tile.
+          submitDisabled={!trimmedInput || isAlreadySelected}
+          description={inputDescription}
         />
-        <Button
-          variant="light"
-          color="blue"
-          // Adding is a no-op only when the typed topic is already picked.
-          // A match that isn't picked yet stays actionable — pressing it
-          // selects the existing chip.
-          disabled={!trimmedInput || isAlreadySelected}
-          onClick={handleAddTopic}
-        >
-          Add topic
-        </Button>
-      </Group>
 
-      <Text fz={'sm'} c={'dimmed'}>
-        {props.topics.length > 0
-          ? countLabel
-          : 'Pick at least one topic to continue.'}
-      </Text>
+        {TOPICS.map((topic) => (
+          <TopicTile
+            key={topic.id}
+            label={topic.label}
+            icon={TOPIC_ICONS[topic.id]}
+            selected={isSelected(topic.query)}
+            onToggle={() => toggle(topic.query)}
+          />
+        ))}
+
+        {customTopicList.map((topic) => (
+          <TopicTile
+            key={topic}
+            label={topic}
+            icon={CUSTOM_TOPIC_ICON}
+            selected={isSelected(topic)}
+            onToggle={() => toggle(topic)}
+          />
+        ))}
+      </SimpleGrid>
     </Stack>
   );
 }

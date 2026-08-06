@@ -6,6 +6,8 @@ import { LinkButton } from '@/components/link/MantineLink';
 interface Props {
   /** Href of the previous stage. Omitted on stage 1. */
   backHref?: string;
+  /** Records the stage before the browser follows backHref. */
+  onBack?: () => void;
   onSkip?: () => void;
   onContinue?: () => void;
   continueLabel?: string;
@@ -23,7 +25,12 @@ export default function OnboardingFooter(props: Props) {
       style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
     >
       {props.backHref ? (
-        <LinkButton href={props.backHref} variant="subtle" color="gray">
+        <LinkButton
+          href={props.backHref}
+          variant="subtle"
+          color="gray"
+          onClick={props.onBack}
+        >
           Back
         </LinkButton>
       ) : (

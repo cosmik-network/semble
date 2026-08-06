@@ -23,6 +23,8 @@ const VISIBLE_COLLECTIONS = 6;
 
 interface Props {
   urls: string[];
+  /** False until stored progress has been read — see useOnboardingProgress. */
+  progressLoaded: boolean;
 }
 
 export default function FollowStep(props: Props) {
@@ -30,7 +32,17 @@ export default function FollowStep(props: Props) {
   const collections = useRecommendedCollections({ urls: props.urls });
 
   const hasUrls = props.urls.length > 0;
-  const isPending = hasUrls && (users.isPending || collections.isPending);
+
+  // !progressLoaded is the "we don't know yet" frame. Without it, urls is
+  // still [] so the queries are disabled and nothing is pending, and the
+  // empty branch below wins for one frame — "No suggestions yet" flashing
+  // before the spinner. Keep hasUrls too: once progress has loaded and there
+  // genuinely are no urls (a ?step=3 deep link with nothing stored), the
+  // queries stay disabled at isPending: true forever, and gating on that
+  // alone would spin without end.
+  const isPending =
+    !props.progressLoaded ||
+    (hasUrls && (users.isPending || collections.isPending));
 
   // Without this the empty branch fires on a failed fetch and tells the user
   // there is nothing to recommend — which reads as "your network is empty",

@@ -9,6 +9,8 @@ interface Props {
   selectedUrls: string[];
   onToggleUrl: (url: string) => void;
   hasTopics: boolean;
+  /** False until stored progress has been read — see useOnboardingProgress. */
+  progressLoaded: boolean;
 }
 
 export default function SaveCardsStep(props: Props) {
@@ -26,7 +28,12 @@ export default function SaveCardsStep(props: Props) {
   // topics exist, mirroring stage 3's hasUrls/isPending pattern, so a
   // deep-link with no topics falls through to the empty state below instead
   // of spinning forever.
-  const isPending = props.hasTopics && queryIsPending;
+  //
+  // !progressLoaded covers the frame before stored topics arrive, where
+  // hasTopics is still false for the same reason it is on a genuinely empty
+  // record. Without it the empty branch flashes before the spinner.
+  const isPending =
+    !props.progressLoaded || (props.hasTopics && queryIsPending);
 
   const urls = data?.pages.flatMap((page) => page.urls) ?? [];
 

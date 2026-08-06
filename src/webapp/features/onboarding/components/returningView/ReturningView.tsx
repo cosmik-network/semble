@@ -26,8 +26,8 @@ export default function ReturningView(props: Props) {
     <OnboardingScreen
       header={
         <OnboardingHeader
-          currentStep={1}
-          showStepper={false}
+          // No stepper: nothing here is in progress.
+          //
           // "Back to home", not "Go home": the exit link below also reads
           // "Go home" but writes status 'completed'. Two controls with the
           // same label and different consequences on one screen is a trap.

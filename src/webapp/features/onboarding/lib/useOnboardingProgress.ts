@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocalStorage } from '@mantine/hooks';
+import { useLocalStorage, useMounted } from '@mantine/hooks';
 import type { StepId } from './steps';
 
 export interface OnboardingProgress {
@@ -65,8 +65,19 @@ export function useOnboardingProgress() {
     deserialize,
   });
 
+  // useLocalStorage reads storage in an effect, so `progress` is EMPTY on the
+  // server and on the first client render. Callers must not read that frame as
+  // "the user has no topics" — it means "we don't know yet", and treating the
+  // two the same flashes an empty state before the real loading state.
+  //
+  // Order matters: this call sits after useLocalStorage, so its effect is
+  // registered after the storage read. React flushes them in order and batches
+  // the resulting updates into one render, so isLoaded never turns true ahead
+  // of the stored value.
+  const isLoaded = useMounted();
+
   const update = (patch: Partial<OnboardingProgress>) =>
     setProgress((current) => ({ ...current, ...patch }));
 
-  return { progress, update, clear };
+  return { progress, isLoaded, update, clear };
 }
