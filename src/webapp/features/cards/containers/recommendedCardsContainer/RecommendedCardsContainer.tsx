@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ActionIcon, Grid, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { BiLink, BiRefresh } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -11,27 +11,40 @@ import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEm
 import useRecommendedCards from '@/features/cards/lib/queries/useRecommendedCards';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { CardSaveSource } from '@/features/analytics/types';
+import {
+  clearStoredQueries,
+  readStoredQueries,
+  writeStoredQueries,
+} from '@/features/cards/lib/utils/recommendedQueriesStorage';
 
 export default function RecommendedCardsContainer() {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const queries = searchParams.getAll('queries');
+  // Read once on mount rather than during render so server and client markup
+  // agree; stale entries (>2min) come back empty and the server re-derives.
+  const [queries, setQueries] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setQueries(readStoredQueries());
+    setHydrated(true);
+  }, []);
+
+  // Clear on unmount so navigating away drops the pinned queries
+  useEffect(() => clearStoredQueries, []);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    useRecommendedCards({ queries });
+    useRecommendedCards({ queries, enabled: hydrated });
 
   const usedQueries = data?.pages[0]?.queries ?? [];
 
-  // When the server derives the queries, pin them in the URL so pagination
-  // and reloads keep reading from the same cached ranked set.
+  // When the server derives the queries, pin them so pagination and reloads
+  // keep reading from the same cached ranked set.
   useEffect(() => {
     if (queries.length === 0 && usedQueries.length > 0) {
-      const params = new URLSearchParams();
-      usedQueries.forEach((q) => params.append('queries', q));
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      writeStoredQueries(usedQueries);
+      setQueries(usedQueries);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queries.length, usedQueries.join('|')]);
@@ -40,7 +53,8 @@ export default function RecommendedCardsContainer() {
     // Drop cached recommendations and re-run with no queries so the server
     // derives a fresh set
     queryClient.removeQueries({ queryKey: cardKeys.recommended() });
-    router.replace(pathname, { scroll: false });
+    clearStoredQueries();
+    setQueries([]);
   };
 
   const allUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
@@ -85,6 +99,7 @@ export default function RecommendedCardsContainer() {
               >
                 <SimilarUrlCard
                   urlView={urlView}
+                  liveStats
                   analyticsContext={{
                     saveSource: CardSaveSource.RECOMMENDED,
                     pagePath: pathname,

@@ -29,7 +29,11 @@ export const cardKeys = {
   ],
   urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
     [...cardKeys.all(), 'metadata', url, options] as const,
-  recommended: () => [...cardKeys.all(), 'recommended'] as const,
+  // Deliberately NOT under cardKeys.all(): saving or connecting invalidates
+  // that whole prefix, which would refetch the recommendations and reshuffle
+  // the list under the user. Individual cards refresh their own state via
+  // cardKeys.urlMetadata instead.
+  recommended: () => ['recommended-cards'] as const,
   recommendedInfinite: (queries: string[], limit?: number) =>
     [...cardKeys.recommended(), 'infinite', limit, ...queries] as const,
 };

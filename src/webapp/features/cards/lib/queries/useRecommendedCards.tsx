@@ -8,12 +8,16 @@ interface Props {
   // response so pagination can pass them explicitly.
   queries: string[];
   limit?: number;
+  // Lets callers hold the request until stored queries have been read, so the
+  // first fetch isn't wasted on an empty-query set that gets replaced.
+  enabled?: boolean;
 }
 
 export default function useRecommendedCards(props: Props) {
   const limit = props.limit ?? 10;
 
   return useInfiniteQuery({
+    enabled: props.enabled ?? true,
     queryKey: cardKeys.recommendedInfinite(props.queries, limit),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
