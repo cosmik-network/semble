@@ -253,7 +253,9 @@ export const createExpressApp = (
       controllers.refreshAccessTokenController,
       controllers.generateExtensionTokensController,
       controllers.followTargetController,
+      controllers.followManyUsersController,
       controllers.unfollowTargetController,
+      controllers.getBskyFollowedSembleUsersController,
       controllers.getFollowingUsersController,
       controllers.getFollowersController,
       controllers.getFollowingCollectionsController,
@@ -264,6 +266,8 @@ export const createExpressApp = (
       controllers.createApiKeyController,
       controllers.updateApiKeyController,
       controllers.revokeApiKeyController,
+      controllers.getOnboardingStateController,
+      controllers.updateOnboardingStateController,
     );
 
     registerCardsModuleRoutes(

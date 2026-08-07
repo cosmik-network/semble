@@ -14,6 +14,9 @@ import {
   FollowTargetResponseSchema,
   UnfollowTargetRequestSchema,
   GetFollowingUsersResponseSchema,
+  GetBskyFollowedUsersResponseSchema,
+  FollowManyUsersRequestSchema,
+  FollowManyUsersResponseSchema,
   GetFollowersResponseSchema,
   GetFollowingCollectionsResponseSchema,
   GetFollowingCountParamsSchema,
@@ -97,6 +100,29 @@ export const graphContract = c.router(
       summary: 'List users a user follows',
       description:
         'Returns users followed by the specified account, identified by handle or DID.',
+    },
+    bskyFollowedUsers: {
+      method: 'GET',
+      path: paths.bskyFollowedUsers,
+      query: z.object({
+        page: z.coerce.number().optional(),
+        limit: z.coerce.number().optional(),
+      }),
+      responses: { 200: GetBskyFollowedUsersResponseSchema },
+      summary: 'List Semble users followed on Bluesky',
+      description:
+        'Returns the Semble users that the authenticated user follows on Bluesky, paginated.',
+      metadata: { internal: true } as const,
+    },
+    followMany: {
+      method: 'POST',
+      path: paths.followMany,
+      body: FollowManyUsersRequestSchema,
+      responses: { 200: FollowManyUsersResponseSchema },
+      summary: 'Follow multiple users',
+      description:
+        'Follows all given users on behalf of the authenticated user. Already-followed targets are skipped.',
+      metadata: { internal: true } as const,
     },
     userFollowers: {
       method: 'GET',

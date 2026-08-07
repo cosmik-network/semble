@@ -125,3 +125,16 @@ export const getLibrariesForCard = cache(async (cardId: string) => {
 
   return response;
 });
+
+export const getRecommendedUrls = async (params?: {
+  queries?: string[];
+  page?: number;
+  limit?: number;
+}) => {
+  const client = createSembleClient();
+  return client.getRecommendedUrls({
+    queries: params?.queries?.length ? params.queries : undefined,
+    page: params?.page,
+    limit: params?.limit,
+  });
+};

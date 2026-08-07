@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { Controller } from 'src/shared/infrastructure/http/Controller';
 import { GetCollectionPageByAtUriUseCase } from '../../../application/useCases/queries/GetCollectionPageByAtUriUseCase';
+import {
+  CollectionNotFoundError,
+  ValidationError,
+} from '../../../application/useCases/queries/GetCollectionPageUseCase';
 import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 
@@ -33,8 +37,11 @@ export class GetCollectionPageByAtUriController extends Controller {
 
       if (result.isErr()) {
         const error = result.error;
-        if (error.name === 'CollectionNotFoundError') {
+        if (error instanceof CollectionNotFoundError) {
           return this.notFound(res, error.message, 'COLLECTION_NOT_FOUND');
+        }
+        if (error instanceof ValidationError) {
+          return this.badRequest(res, error.message);
         }
         return this.fail(res, error);
       }

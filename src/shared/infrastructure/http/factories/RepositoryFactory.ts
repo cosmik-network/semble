@@ -2,6 +2,7 @@ import { DatabaseFactory } from '../../database/DatabaseFactory';
 import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
 import { RedisFactory } from '../../redis/RedisFactory';
 import { DrizzleUserRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserRepository';
+import { DrizzleUserOnboardingRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserOnboardingRepository';
 import { DrizzleTokenRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleTokenRepository';
 import { DrizzleApiKeyRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleApiKeyRepository';
 import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardRepository';
@@ -18,6 +19,7 @@ import { InMemoryCollectionQueryRepository } from '../../../../modules/cards/tes
 import { InMemoryConnectionRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionRepository';
 import { InMemoryConnectionQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionQueryRepository';
 import { InMemoryUserRepository } from '../../../../modules/user/tests/infrastructure/InMemoryUserRepository';
+import { InMemoryUserOnboardingRepository } from '../../../../modules/user/tests/infrastructure/InMemoryUserOnboardingRepository';
 import { InMemoryTokenRepository } from '../../../../modules/user/tests/infrastructure/InMemoryTokenRepository';
 import { InMemoryApiKeyRepository } from '../../../../modules/user/tests/infrastructure/InMemoryApiKeyRepository';
 import { InMemoryAppPasswordSessionRepository } from '../../../../modules/atproto/tests/infrastructure/InMemoryAppPasswordSessionRepository';
@@ -28,6 +30,7 @@ import { ICollectionQueryRepository } from 'src/modules/cards/domain/ICollection
 import { IConnectionRepository } from 'src/modules/cards/domain/IConnectionRepository';
 import { IConnectionQueryRepository } from 'src/modules/cards/domain/IConnectionQueryRepository';
 import { IUserRepository } from 'src/modules/user/domain/repositories/IUserRepository';
+import { IUserOnboardingRepository } from 'src/modules/user/domain/repositories/IUserOnboardingRepository';
 import { ITokenRepository } from 'src/modules/user/domain/repositories/ITokenRepository';
 import { IApiKeyRepository } from 'src/modules/user/domain/repositories/IApiKeyRepository';
 import { IAppPasswordSessionRepository } from 'src/modules/atproto/infrastructure/repositories/IAppPasswordSessionRepository';
@@ -64,6 +67,7 @@ import { DrizzleProductAnalyticsQueryRepository } from '../../../../modules/anal
 
 export interface Repositories {
   userRepository: IUserRepository;
+  userOnboardingRepository: IUserOnboardingRepository;
   userStatsRepository: IUserStatsRepository;
   productAnalyticsQueryRepository: IProductAnalyticsQueryRepository;
   tokenRepository: ITokenRepository;
@@ -92,6 +96,8 @@ export class RepositoryFactory {
     if (useMockRepos) {
       // Use singleton instances to ensure same data across processes
       const userRepository = InMemoryUserRepository.getInstance();
+      const userOnboardingRepository =
+        InMemoryUserOnboardingRepository.getInstance();
       const tokenRepository = InMemoryTokenRepository.getInstance();
       const apiKeyRepository = InMemoryApiKeyRepository.getInstance();
       const cardRepository = InMemoryCardRepository.getInstance();
@@ -141,6 +147,7 @@ export class RepositoryFactory {
 
       return {
         userRepository,
+        userOnboardingRepository,
         userStatsRepository,
         productAnalyticsQueryRepository,
         tokenRepository,
@@ -172,6 +179,7 @@ export class RepositoryFactory {
 
     return {
       userRepository: new DrizzleUserRepository(db),
+      userOnboardingRepository: new DrizzleUserOnboardingRepository(db),
       userStatsRepository: new DrizzleUserStatsRepository(db),
       productAnalyticsQueryRepository:
         new DrizzleProductAnalyticsQueryRepository(db),

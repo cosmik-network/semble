@@ -9,9 +9,12 @@ import {
   UrlSearchResult,
 } from '../../../domain/IVectorDatabase';
 import {
+  CardSortField,
   ICardQueryRepository,
+  SortOrder,
   UrlRankingStats,
 } from '../../../../cards/domain/ICardQueryRepository';
+import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 
 export interface RecommendationRankingConfig {
   urlCardWeight: number;
@@ -35,11 +38,17 @@ const MAX_RESULTS = 100;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
 
+// When no queries are provided, derive them from the caller's library:
+// pick SEED_CARD_COUNT random URL cards out of their RECENT_CARD_POOL_SIZE
+// most recent ones and use each card's title + description as a query.
+const RECENT_CARD_POOL_SIZE = 20;
+const SEED_CARD_COUNT = 3;
+
 const CACHE_KEY_PREFIX = 'recommended-cards:';
 const CACHE_TTL_SECONDS = 3600; // 1 hour
 
 export interface RecommendedCardsQuery {
-  queries: string[];
+  queries?: string[];
   callingUserId?: string;
   page?: number;
   limit?: number;
@@ -47,6 +56,9 @@ export interface RecommendedCardsQuery {
 
 export interface RecommendedCardsResult {
   urls: UrlView[];
+  // The queries actually used, whether passed in or derived. Clients pass
+  // these back when paginating so every page reads the same cached ranked set.
+  queries: string[];
   pagination: Pagination;
 }
 
@@ -65,6 +77,7 @@ export class RecommendedCardsUseCase implements UseCase<
   constructor(
     private vectorDatabase: IVectorDatabase,
     private cardQueryRepository: ICardQueryRepository,
+    private profileService: IProfileService,
     // Optional Redis cache for the ranked set. When absent (e.g. mock mode),
     // the ranking is recomputed on every request.
     private redis?: Redis,
@@ -79,12 +92,12 @@ export class RecommendedCardsUseCase implements UseCase<
     Result<RecommendedCardsResult, ValidationError | AppError.UnexpectedError>
   > {
     try {
-      const queries = (query.queries || [])
+      let queries = (query.queries || [])
         .map((q) => q.trim())
         .filter((q) => q.length > 0);
 
       if (queries.length === 0) {
-        return err(new ValidationError('At least one query is required'));
+        queries = await this.deriveQueries(query.callingUserId);
       }
 
       const page = Math.max(query.page || 1, 1);
@@ -92,6 +105,22 @@ export class RecommendedCardsUseCase implements UseCase<
         Math.max(query.limit || DEFAULT_LIMIT, 1),
         MAX_LIMIT,
       );
+
+      if (queries.length === 0) {
+        // Nothing to recommend from: no queries given, and no library cards
+        // or profile bio to derive them from.
+        return ok({
+          urls: [],
+          queries: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalCount: 0,
+            hasMore: false,
+            limit,
+          },
+        });
+      }
 
       // Build (or read from cache) the full ranked list, then paginate over it.
       // The ranked order is stable per (queries, user) so pages don't reshuffle.
@@ -111,6 +140,7 @@ export class RecommendedCardsUseCase implements UseCase<
 
       return ok({
         urls: paginatedUrls,
+        queries,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(totalCount / limit),
@@ -122,6 +152,65 @@ export class RecommendedCardsUseCase implements UseCase<
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  /**
+   * Derives query strings for a caller who didn't provide any: title +
+   * description of random recent library cards, falling back to the profile
+   * bio. Returns an empty array when nothing usable exists.
+   */
+  private async deriveQueries(callingUserId?: string): Promise<string[]> {
+    if (!callingUserId) {
+      return [];
+    }
+
+    const recentCards = await this.cardQueryRepository.getUrlCardsOfUser(
+      callingUserId,
+      {
+        page: 1,
+        limit: RECENT_CARD_POOL_SIZE,
+        sortBy: CardSortField.CREATED_AT,
+        sortOrder: SortOrder.DESC,
+      },
+    );
+
+    // Cards with neither title nor description can't produce a useful query
+    const usableCards = recentCards.items.filter(
+      (card) =>
+        card.cardContent.title?.trim() || card.cardContent.description?.trim(),
+    );
+
+    const selectedCards = this.pickRandom(usableCards, SEED_CARD_COUNT);
+    const queries = selectedCards.map((card) =>
+      [card.cardContent.title?.trim(), card.cardContent.description?.trim()]
+        .filter(Boolean)
+        .join(' '),
+    );
+    if (queries.length > 0) {
+      return queries;
+    }
+
+    // No usable cards: fall back to the profile bio
+    const profileResult = await this.profileService.getProfile(
+      callingUserId,
+      callingUserId,
+    );
+    const bio = profileResult.isOk()
+      ? profileResult.value.bio?.trim()
+      : undefined;
+    return bio ? [bio] : [];
+  }
+
+  private pickRandom<T>(items: T[], count: number): T[] {
+    if (items.length <= count) {
+      return items;
+    }
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+    }
+    return shuffled.slice(0, count);
   }
 
   /**

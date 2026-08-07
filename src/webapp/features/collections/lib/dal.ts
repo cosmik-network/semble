@@ -37,7 +37,15 @@ export const getCollectionsForUrl = cache(
       sortOrder: params?.sortOrder,
     });
 
-    return response;
+    // Temp fix: filter out collections without uri
+    // CollectionCard does getRecordKey(collection.uri!!), so an entry without
+    // a uri would render a broken link.
+    return {
+      ...response,
+      collections: response.collections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
   },
 );
 

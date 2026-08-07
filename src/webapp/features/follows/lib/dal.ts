@@ -66,6 +66,26 @@ export const getFollowingUsers = cache(
   },
 );
 
+export const getBskyFollowedUsers = cache(
+  async (params?: { page?: number; limit?: number }) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new Error('No session found');
+    const client = createSembleClient();
+    const response = await client.getBskyFollowedUsers({
+      page: params?.page,
+      limit: params?.limit,
+    });
+    return response;
+  },
+);
+
+export const followManyUsers = cache(async (targetIds: string[]) => {
+  const session = await verifySessionOnClient({ redirectOnFail: true });
+  if (!session) throw new Error('No session found');
+  const client = createSembleClient();
+  return client.followManyUsers({ targetIds });
+});
+
 export const getFollowers = cache(
   async (identifier: string, params?: { page?: number; limit?: number }) => {
     const client = createSembleClient();

@@ -9,7 +9,9 @@ import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/
 import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
 import { FollowTargetController } from '../controllers/FollowTargetController';
+import { FollowManyUsersController } from '../controllers/FollowManyUsersController';
 import { UnfollowTargetController } from '../controllers/UnfollowTargetController';
+import { GetBskyFollowedSembleUsersController } from '../controllers/GetBskyFollowedSembleUsersController';
 import { GetFollowingUsersController } from '../controllers/GetFollowingUsersController';
 import { GetFollowersController } from '../controllers/GetFollowersController';
 import { GetFollowingCollectionsController } from '../controllers/GetFollowingCollectionsController';
@@ -20,6 +22,8 @@ import { ListApiKeysController } from '../controllers/ListApiKeysController';
 import { CreateApiKeyController } from '../controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../controllers/RevokeApiKeyController';
+import { GetOnboardingStateController } from '../controllers/GetOnboardingStateController';
+import { UpdateOnboardingStateController } from '../controllers/UpdateOnboardingStateController';
 import { routes } from '@semble/types';
 import { usersContract, graphContract } from '@semble/contract';
 import {
@@ -39,7 +43,9 @@ export function registerUserRoutes(
   refreshAccessTokenController: RefreshAccessTokenController,
   generateExtensionTokensController: GenerateExtensionTokensController,
   followTargetController: FollowTargetController,
+  followManyUsersController: FollowManyUsersController,
   unfollowTargetController: UnfollowTargetController,
+  getBskyFollowedSembleUsersController: GetBskyFollowedSembleUsersController,
   getFollowingUsersController: GetFollowingUsersController,
   getFollowersController: GetFollowersController,
   getFollowingCollectionsController: GetFollowingCollectionsController,
@@ -50,6 +56,8 @@ export function registerUserRoutes(
   createApiKeyController: CreateApiKeyController,
   updateApiKeyController: UpdateApiKeyController,
   revokeApiKeyController: RevokeApiKeyController,
+  getOnboardingStateController: GetOnboardingStateController,
+  updateOnboardingStateController: UpdateOnboardingStateController,
 ): void {
   app.get(
     routes.users.initiateOAuth.path,
@@ -97,6 +105,20 @@ export function registerUserRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(graphContract.followTarget.body),
     (req, res) => followTargetController.execute(req, res),
+  );
+
+  app.post(
+    routes.graph.followMany.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(graphContract.followMany.body),
+    (req, res) => followManyUsersController.execute(req, res),
+  );
+
+  app.get(
+    routes.graph.bskyFollowedUsers.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(graphContract.bskyFollowedUsers.query),
+    (req, res) => getBskyFollowedSembleUsersController.execute(req, res),
   );
 
   app.post(
@@ -174,6 +196,21 @@ export function registerUserRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(usersContract.revokeApiKey.body),
     (req, res) => revokeApiKeyController.execute(req, res),
+  );
+
+  // Onboarding state
+  app.get(
+    routes.users.getOnboardingState.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(usersContract.getOnboardingState.query),
+    (req, res) => getOnboardingStateController.execute(req, res),
+  );
+
+  app.post(
+    routes.users.updateOnboardingState.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(usersContract.updateOnboardingState.body),
+    (req, res) => updateOnboardingStateController.execute(req, res),
   );
 
   // userProfile must be last: /:identifier would swallow /me, /login, /extension/tokens, etc.

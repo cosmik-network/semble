@@ -12,6 +12,7 @@ export const GetGlobalFeedParamsSchema = PaginationParamsSchema.extend({
   urlType: UrlTypeSchema.optional(),
   source: ActivitySourceSchema.optional(),
   activityTypes: z.array(z.string()).optional(),
+  actorIds: z.array(z.string()).optional(),
   includeKnownBots: z.boolean().optional(),
 });
 export type GetGlobalFeedParams = z.infer<typeof GetGlobalFeedParamsSchema>;

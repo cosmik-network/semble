@@ -183,6 +183,20 @@
       "when": 1781137243634,
       "tag": "0025_flat_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1786052826350,
+      "tag": "0026_public_xavin",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1786056769060,
+      "tag": "0027_lucky_the_call",
+      "breakpoints": true
     }
   ]
 }

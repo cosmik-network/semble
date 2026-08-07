@@ -390,6 +390,24 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getFollowedUserIds(followerId: string): Promise<Result<string[]>> {
+    try {
+      const results = await this.db
+        .select({ targetId: follows.targetId })
+        .from(follows)
+        .where(
+          and(
+            eq(follows.followerId, followerId),
+            eq(follows.targetType, FollowTargetTypeEnum.USER),
+          ),
+        );
+
+      return ok(results.map((row) => row.targetId));
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async getFollowingCount(
     followerId: string,
     targetType?: FollowTargetType,

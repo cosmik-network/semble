@@ -40,6 +40,8 @@ import { ListApiKeysController } from '../../../../modules/user/infrastructure/h
 import { CreateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/RevokeApiKeyController';
+import { GetOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/GetOnboardingStateController';
+import { UpdateOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/UpdateOnboardingStateController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
@@ -53,6 +55,8 @@ import { GetUnreadNotificationCountController } from '../../../../modules/notifi
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
 import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
+import { FollowManyUsersController } from '../../../../modules/user/infrastructure/http/controllers/FollowManyUsersController';
+import { GetBskyFollowedSembleUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetBskyFollowedSembleUsersController';
 import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
 import { SubscribeToTargetController } from '../../../../modules/user/infrastructure/http/controllers/SubscribeToTargetController';
 import { UnsubscribeFromTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnsubscribeFromTargetController';
@@ -95,8 +99,12 @@ export interface Controllers {
   createApiKeyController: CreateApiKeyController;
   updateApiKeyController: UpdateApiKeyController;
   revokeApiKeyController: RevokeApiKeyController;
+  getOnboardingStateController: GetOnboardingStateController;
+  updateOnboardingStateController: UpdateOnboardingStateController;
   followTargetController: FollowTargetController;
+  followManyUsersController: FollowManyUsersController;
   unfollowTargetController: UnfollowTargetController;
+  getBskyFollowedSembleUsersController: GetBskyFollowedSembleUsersController;
   subscribeToTargetController: SubscribeToTargetController;
   unsubscribeFromTargetController: UnsubscribeFromTargetController;
   updateSubscriptionController: UpdateSubscriptionController;
@@ -221,12 +229,25 @@ export class ControllerFactory {
       revokeApiKeyController: new RevokeApiKeyController(
         useCases.revokeApiKeyUseCase,
       ),
+      getOnboardingStateController: new GetOnboardingStateController(
+        useCases.getOnboardingStateUseCase,
+      ),
+      updateOnboardingStateController: new UpdateOnboardingStateController(
+        useCases.updateOnboardingStateUseCase,
+      ),
       followTargetController: new FollowTargetController(
         useCases.followTargetUseCase,
+      ),
+      followManyUsersController: new FollowManyUsersController(
+        useCases.followManyUsersUseCase,
       ),
       unfollowTargetController: new UnfollowTargetController(
         useCases.unfollowTargetUseCase,
       ),
+      getBskyFollowedSembleUsersController:
+        new GetBskyFollowedSembleUsersController(
+          useCases.getBskyFollowedSembleUsersUseCase,
+        ),
       subscribeToTargetController: new SubscribeToTargetController(
         useCases.subscribeToTargetUseCase,
       ),

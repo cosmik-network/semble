@@ -102,6 +102,10 @@ import type {
   GetMySubscriptionsResponse,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
+  GetBskyFollowedUsersParams,
+  GetBskyFollowedUsersResponse,
+  FollowManyUsersRequest,
+  FollowManyUsersResponse,
   GetFollowersParams,
   GetFollowersResponse,
   GetFollowingCollectionsParams,
@@ -141,6 +145,9 @@ import type {
   UpdateApiKeyResponse,
   RevokeApiKeyRequest,
   RevokeApiKeyResponse,
+  GetOnboardingStateResponse,
+  UpdateOnboardingStateRequest,
+  UpdateOnboardingStateResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -320,6 +327,12 @@ export class ApiClient {
     return this.queryClient.getFollowers(params);
   }
 
+  async getBskyFollowedUsers(
+    params?: GetBskyFollowedUsersParams,
+  ): Promise<GetBskyFollowedUsersResponse> {
+    return this.queryClient.getBskyFollowedUsers(params);
+  }
+
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
@@ -465,6 +478,12 @@ export class ApiClient {
     return this.userClient.followTarget(request);
   }
 
+  async followManyUsers(
+    request: FollowManyUsersRequest,
+  ): Promise<FollowManyUsersResponse> {
+    return this.userClient.followManyUsers(request);
+  }
+
   async unfollowTarget(
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
@@ -518,6 +537,16 @@ export class ApiClient {
     request: RevokeApiKeyRequest,
   ): Promise<RevokeApiKeyResponse> {
     return this.userClient.revokeApiKey(request);
+  }
+
+  async getOnboardingState(): Promise<GetOnboardingStateResponse> {
+    return this.userClient.getOnboardingState();
+  }
+
+  async updateOnboardingState(
+    request: UpdateOnboardingStateRequest,
+  ): Promise<UpdateOnboardingStateResponse> {
+    return this.userClient.updateOnboardingState(request);
   }
 
   // Feed operations - delegate to FeedClient

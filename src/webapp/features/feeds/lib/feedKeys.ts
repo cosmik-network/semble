@@ -8,6 +8,7 @@ export const feedKeys = {
     source?: ActivitySource,
     activityTypes?: ActivityType[],
     includeKnownBots?: boolean,
+    actorIds?: string[],
   ) => [
     ...feedKeys.all(),
     'infinite',
@@ -16,6 +17,7 @@ export const feedKeys = {
     source,
     activityTypes,
     includeKnownBots,
+    actorIds,
   ],
   gems: () => [...feedKeys.all(), 'gems'] as const,
   gemsInfinite: (

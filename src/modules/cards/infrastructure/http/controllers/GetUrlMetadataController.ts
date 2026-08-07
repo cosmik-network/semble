@@ -22,6 +22,7 @@ export class GetUrlMetadataController extends Controller {
       const result = await this.getUrlMetadataUseCase.execute({
         url,
         includeStats: includeStatsParam,
+        callingUserId: req.did,
       });
 
       if (result.isErr()) {

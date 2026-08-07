@@ -99,6 +99,17 @@ export interface IFollowsRepository {
   ): Promise<Result<{ follows: Follow[]; totalCount: number }>>;
 
   /**
+   * Get all target DIDs a user follows (targetType = USER), unpaginated.
+   *
+   * Single indexed query on follows(follower_id, target_type). Used by the
+   * following feed to spill over into the global feed scoped to these DIDs.
+   *
+   * @param followerId - DID of the follower
+   * @returns Array of followed user DIDs (can be empty)
+   */
+  getFollowedUserIds(followerId: string): Promise<Result<string[]>>;
+
+  /**
    * Get count of entities that a user follows.
    *
    * @param followerId - DID of the follower

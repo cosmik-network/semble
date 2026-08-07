@@ -11,7 +11,7 @@ import {
  * intersected result per caller DID for a short TTL.
  */
 export class CachedBskyFollowsService implements IBskyFollowsService {
-  private readonly CACHE_TTL_SECONDS = 3600 * 6; // 6 hours
+  private readonly CACHE_TTL_SECONDS = 1800; // 30 minutes
   private readonly CACHE_KEY_PREFIX = 'bsky-follows:';
 
   constructor(
