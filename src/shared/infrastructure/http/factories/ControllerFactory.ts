@@ -55,6 +55,8 @@ import { GetUnreadNotificationCountController } from '../../../../modules/notifi
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
 import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
+import { FollowManyUsersController } from '../../../../modules/user/infrastructure/http/controllers/FollowManyUsersController';
+import { GetBskyFollowedSembleUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetBskyFollowedSembleUsersController';
 import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
 import { SubscribeToTargetController } from '../../../../modules/user/infrastructure/http/controllers/SubscribeToTargetController';
 import { UnsubscribeFromTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnsubscribeFromTargetController';
@@ -100,7 +102,9 @@ export interface Controllers {
   getOnboardingStateController: GetOnboardingStateController;
   updateOnboardingStateController: UpdateOnboardingStateController;
   followTargetController: FollowTargetController;
+  followManyUsersController: FollowManyUsersController;
   unfollowTargetController: UnfollowTargetController;
+  getBskyFollowedSembleUsersController: GetBskyFollowedSembleUsersController;
   subscribeToTargetController: SubscribeToTargetController;
   unsubscribeFromTargetController: UnsubscribeFromTargetController;
   updateSubscriptionController: UpdateSubscriptionController;
@@ -234,9 +238,16 @@ export class ControllerFactory {
       followTargetController: new FollowTargetController(
         useCases.followTargetUseCase,
       ),
+      followManyUsersController: new FollowManyUsersController(
+        useCases.followManyUsersUseCase,
+      ),
       unfollowTargetController: new UnfollowTargetController(
         useCases.unfollowTargetUseCase,
       ),
+      getBskyFollowedSembleUsersController:
+        new GetBskyFollowedSembleUsersController(
+          useCases.getBskyFollowedSembleUsersUseCase,
+        ),
       subscribeToTargetController: new SubscribeToTargetController(
         useCases.subscribeToTargetUseCase,
       ),

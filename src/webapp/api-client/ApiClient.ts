@@ -102,6 +102,10 @@ import type {
   GetMySubscriptionsResponse,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
+  GetBskyFollowedUsersParams,
+  GetBskyFollowedUsersResponse,
+  FollowManyUsersRequest,
+  FollowManyUsersResponse,
   GetFollowersParams,
   GetFollowersResponse,
   GetFollowingCollectionsParams,
@@ -323,6 +327,12 @@ export class ApiClient {
     return this.queryClient.getFollowers(params);
   }
 
+  async getBskyFollowedUsers(
+    params?: GetBskyFollowedUsersParams,
+  ): Promise<GetBskyFollowedUsersResponse> {
+    return this.queryClient.getBskyFollowedUsers(params);
+  }
+
   async getFollowingCollections(
     params: GetFollowingCollectionsParams,
   ): Promise<GetFollowingCollectionsResponse> {
@@ -466,6 +476,12 @@ export class ApiClient {
     request: FollowTargetRequest,
   ): Promise<FollowTargetResponse> {
     return this.userClient.followTarget(request);
+  }
+
+  async followManyUsers(
+    request: FollowManyUsersRequest,
+  ): Promise<FollowManyUsersResponse> {
+    return this.userClient.followManyUsers(request);
   }
 
   async unfollowTarget(
