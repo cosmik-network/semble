@@ -5,7 +5,7 @@ import { CollectionSchema } from '../../entities/collection';
 import { PaginationSchema } from '../../entities/common';
 
 export const RecommendedUrlsParamsSchema = z.object({
-  queries: z.array(z.string()),
+  queries: z.array(z.string()).optional(),
   page: z.number().optional(),
   limit: z.number().optional(),
 });
@@ -13,6 +13,10 @@ export type RecommendedUrlsParams = z.infer<typeof RecommendedUrlsParamsSchema>;
 
 export const RecommendedUrlsResponseSchema = z.object({
   urls: z.array(UrlViewSchema),
+  // The query strings actually used for the recommendation. When called with
+  // no queries the server derives them; pass these back on subsequent pages so
+  // pagination reads from the same cached ranked set.
+  queries: z.array(z.string()),
   pagination: PaginationSchema,
 });
 export type RecommendedUrlsResponse = z.infer<

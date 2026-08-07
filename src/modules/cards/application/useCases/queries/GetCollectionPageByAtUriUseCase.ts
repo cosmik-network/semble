@@ -8,6 +8,7 @@ import {
   GetCollectionPageUseCase,
   GetCollectionPageResult,
   CollectionNotFoundError,
+  ValidationError,
 } from './GetCollectionPageUseCase';
 import {
   CardSortField,
@@ -44,8 +45,11 @@ export class GetCollectionPageByAtUriUseCase implements UseCase<
     // First resolve the handle to a DID
     const identifierResult = DIDOrHandle.create(query.handle);
     if (identifierResult.isErr()) {
+      // A malformed handle is bad client input, not a server fault.
       return err(
-        new Error(`Invalid handle: ${identifierResult.error.message}`),
+        new ValidationError(
+          `Invalid handle: ${identifierResult.error.message}`,
+        ),
       );
     }
 
