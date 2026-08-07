@@ -8,6 +8,8 @@ export const followKeys = {
     [...followKeys.all(), 'subscription-state', targetType, targetId] as const,
   followingUsers: (identifier: string, limit?: number) =>
     [...followKeys.all(), 'following-users', identifier, limit] as const,
+  bskyFollowedUsers: (limit?: number) =>
+    [...followKeys.all(), 'bsky-followed-users', limit] as const,
   followers: (identifier: string, limit?: number) =>
     [...followKeys.all(), 'followers', identifier, limit] as const,
   followingCollections: (identifier: string, limit?: number) =>

@@ -18,10 +18,14 @@ import {
 } from 'react-icons/md';
 import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
 import { FiChrome } from 'react-icons/fi';
+import { FaBluesky } from 'react-icons/fa6';
+import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 import { Suspense } from 'react';
 import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
 
 export default async function SettingsContainer() {
+  const featureFlags = await getServerFeatureFlags();
+
   return (
     <Container p={'xs'} size={'xs'}>
       <Stack gap={'xl'}>
@@ -44,6 +48,11 @@ export default async function SettingsContainer() {
             <SettingItem href="/settings/api-keys" icon={MdKey}>
               API Keys
             </SettingItem>
+            {featureFlags.bskyFollows && (
+              <SettingItem href="/settings/bluesky-follows" icon={FaBluesky}>
+                Bluesky follows
+              </SettingItem>
+            )}
             {/*<SettingItem href="/settings/data-sync" icon={MdSync}>
               Data sync
             </SettingItem>*/}
