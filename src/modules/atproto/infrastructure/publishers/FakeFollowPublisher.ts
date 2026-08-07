@@ -24,6 +24,20 @@ export class FakeFollowPublisher implements IFollowPublisher {
     return ok(recordId);
   }
 
+  async publishFollows(
+    follows: Follow[],
+  ): Promise<Result<PublishedRecordId[], UseCaseError>> {
+    const recordIds: PublishedRecordId[] = [];
+    for (const follow of follows) {
+      const result = await this.publishFollow(follow);
+      if (result.isErr()) {
+        return result as Result<never, UseCaseError>;
+      }
+      recordIds.push(result.value);
+    }
+    return ok(recordIds);
+  }
+
   async unpublishFollow(follow: Follow): Promise<Result<void, UseCaseError>> {
     if (!follow.publishedRecordId) {
       return ok(undefined);

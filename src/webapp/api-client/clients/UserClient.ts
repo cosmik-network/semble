@@ -13,6 +13,8 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  FollowManyUsersRequest,
+  FollowManyUsersResponse,
   SubscribeToTargetRequest,
   SubscribeToTargetResponse,
   UpdateSubscriptionRequest,
@@ -79,6 +81,13 @@ export class UserClient extends BaseClient {
   ): Promise<FollowTargetResponse> {
     const res = await this.client.graph.followTarget({ body: request });
     return unwrap<FollowTargetResponse>(res);
+  }
+
+  async followManyUsers(
+    request: FollowManyUsersRequest,
+  ): Promise<FollowManyUsersResponse> {
+    const res = await this.client.graph.followMany({ body: request });
+    return unwrap<FollowManyUsersResponse>(res);
   }
 
   async unfollowTarget(

@@ -9,7 +9,9 @@ import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/
 import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
 import { FollowTargetController } from '../controllers/FollowTargetController';
+import { FollowManyUsersController } from '../controllers/FollowManyUsersController';
 import { UnfollowTargetController } from '../controllers/UnfollowTargetController';
+import { GetBskyFollowedSembleUsersController } from '../controllers/GetBskyFollowedSembleUsersController';
 import { GetFollowingUsersController } from '../controllers/GetFollowingUsersController';
 import { GetFollowersController } from '../controllers/GetFollowersController';
 import { GetFollowingCollectionsController } from '../controllers/GetFollowingCollectionsController';
@@ -41,7 +43,9 @@ export function registerUserRoutes(
   refreshAccessTokenController: RefreshAccessTokenController,
   generateExtensionTokensController: GenerateExtensionTokensController,
   followTargetController: FollowTargetController,
+  followManyUsersController: FollowManyUsersController,
   unfollowTargetController: UnfollowTargetController,
+  getBskyFollowedSembleUsersController: GetBskyFollowedSembleUsersController,
   getFollowingUsersController: GetFollowingUsersController,
   getFollowersController: GetFollowersController,
   getFollowingCollectionsController: GetFollowingCollectionsController,
@@ -101,6 +105,20 @@ export function registerUserRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(graphContract.followTarget.body),
     (req, res) => followTargetController.execute(req, res),
+  );
+
+  app.post(
+    routes.graph.followMany.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(graphContract.followMany.body),
+    (req, res) => followManyUsersController.execute(req, res),
+  );
+
+  app.get(
+    routes.graph.bskyFollowedUsers.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(graphContract.bskyFollowedUsers.query),
+    (req, res) => getBskyFollowedSembleUsersController.execute(req, res),
   );
 
   app.post(

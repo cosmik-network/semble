@@ -5,6 +5,11 @@ import {
 } from '../../application/services/IBskyFollowsService';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
 
+// Toggle to include a batch of generated mock follows (not real Semble users).
+// Useful for exercising pagination and bulk-follow UI in local mock mode.
+const INCLUDE_GENERATED_MOCK_FOLLOWS = true;
+const GENERATED_MOCK_FOLLOW_COUNT = 25;
+
 /**
  * Fake implementation for local mock mode. Pretends the caller follows the
  * other mock Bluesky accounts, then intersects with actual Semble users so
@@ -43,6 +48,16 @@ export class FakeBskyFollowsService implements IBskyFollowsService {
         }
       });
 
+      // Generated profiles skip the intersection: they don't exist in the
+      // local DB but let the UI show a populated, paginated list.
+      if (INCLUDE_GENERATED_MOCK_FOLLOWS) {
+        this.getGeneratedMockProfiles().forEach((p) => {
+          if (p.did !== callerDid) {
+            followed.set(p.did, p);
+          }
+        });
+      }
+
       return ok(followed);
     } catch (error) {
       return err(
@@ -51,6 +66,22 @@ export class FakeBskyFollowsService implements IBskyFollowsService {
         ),
       );
     }
+  }
+
+  private getGeneratedMockProfiles(): BskyFollowedProfile[] {
+    const avatarUrl =
+      'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg';
+
+    return Array.from({ length: GENERATED_MOCK_FOLLOW_COUNT }, (_, i) => {
+      const n = i + 1;
+      return {
+        did: `did:plc:mockfollow${String(n).padStart(3, '0')}`,
+        handle: `mock-follow-${n}.bsky.social`,
+        displayName: `Mock Follow ${n}`,
+        avatarUrl,
+        description: `Generated mock Bluesky follow #${n} for local testing.`,
+      };
+    });
   }
 
   private getMockFollowedProfiles(): BskyFollowedProfile[] {

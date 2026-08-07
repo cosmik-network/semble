@@ -73,6 +73,8 @@ import { MarkAllNotificationsAsReadUseCase } from '../../../../modules/notificat
 import { CreateNotificationUseCase } from '../../../../modules/notifications/application/useCases/commands/CreateNotificationUseCase';
 import { SyncAccountDataUseCase } from '../../../../modules/sync/application/useCases/SyncAccountDataUseCase';
 import { FollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/FollowTargetUseCase';
+import { FollowManyUsersUseCase } from '../../../../modules/user/application/useCases/commands/FollowManyUsersUseCase';
+import { GetBskyFollowedSembleUsersUseCase } from '../../../../modules/user/application/useCases/queries/GetBskyFollowedSembleUsersUseCase';
 import { UnfollowTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnfollowTargetUseCase';
 import { SubscribeToTargetUseCase } from '../../../../modules/user/application/useCases/commands/SubscribeToTargetUseCase';
 import { UnsubscribeFromTargetUseCase } from '../../../../modules/user/application/useCases/commands/UnsubscribeFromTargetUseCase';
@@ -132,7 +134,9 @@ export interface UseCases {
   getOnboardingStateUseCase: GetOnboardingStateUseCase;
   updateOnboardingStateUseCase: UpdateOnboardingStateUseCase;
   followTargetUseCase: FollowTargetUseCase;
+  followManyUsersUseCase: FollowManyUsersUseCase;
   unfollowTargetUseCase: UnfollowTargetUseCase;
+  getBskyFollowedSembleUsersUseCase: GetBskyFollowedSembleUsersUseCase;
   subscribeToTargetUseCase: SubscribeToTargetUseCase;
   unsubscribeFromTargetUseCase: UnsubscribeFromTargetUseCase;
   updateSubscriptionUseCase: UpdateSubscriptionUseCase;
@@ -303,6 +307,15 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         services.eventPublisher,
+      ),
+      followManyUsersUseCase: new FollowManyUsersUseCase(
+        repositories.followsRepository,
+        services.followPublisher,
+        services.eventPublisher,
+      ),
+      getBskyFollowedSembleUsersUseCase: new GetBskyFollowedSembleUsersUseCase(
+        services.bskyFollowsService,
+        repositories.followsRepository,
       ),
       unfollowTargetUseCase: new UnfollowTargetUseCase(
         repositories.followsRepository,

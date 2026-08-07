@@ -15,6 +15,18 @@ export interface IFollowPublisher {
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
   /**
+   * Publish multiple follow relationships to AT Protocol in bulk
+   * (com.atproto.repo.applyWrites). All follows must belong to the same
+   * follower and target users (not collections).
+   *
+   * @param follows - The Follow domain objects to publish
+   * @returns Published record IDs in the same order as the input follows
+   */
+  publishFollows(
+    follows: Follow[],
+  ): Promise<Result<PublishedRecordId[], UseCaseError>>;
+
+  /**
    * Unpublish (delete) a follow relationship from AT Protocol.
    *
    * @param follow - The Follow domain object with publishedRecordId to unpublish
