@@ -584,6 +584,7 @@ export class UseCaseFactory {
       recommendedCardsUseCase: new RecommendedCardsUseCase(
         services.vectorDatabase,
         repositories.cardQueryRepository,
+        services.profileService,
         recommendedCardsRedis,
       ),
       recommendedUsersUseCase: new RecommendedUsersUseCase(

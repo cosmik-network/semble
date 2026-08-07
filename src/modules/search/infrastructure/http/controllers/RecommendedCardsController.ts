@@ -12,14 +12,12 @@ export class RecommendedCardsController extends Controller {
     try {
       const { queries, page, limit } = req.query;
 
-      // A single ?queries=x arrives as a string; repeated params arrive as an array
+      // A single ?queries=x arrives as a string; repeated params arrive as an
+      // array. When absent, the use case derives queries from the caller's
+      // library / profile.
       const queryList = (Array.isArray(queries) ? queries : [queries]).filter(
         (q): q is string => typeof q === 'string',
       );
-
-      if (queryList.length === 0) {
-        return this.fail(res, 'At least one queries parameter is required');
-      }
 
       const result = await this.recommendedCardsUseCase.execute({
         queries: queryList,

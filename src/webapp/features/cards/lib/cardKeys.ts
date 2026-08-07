@@ -29,4 +29,7 @@ export const cardKeys = {
   ],
   urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
     [...cardKeys.all(), 'metadata', url, options] as const,
+  recommended: () => [...cardKeys.all(), 'recommended'] as const,
+  recommendedInfinite: (queries: string[], limit?: number) =>
+    [...cardKeys.recommended(), 'infinite', limit, ...queries] as const,
 };
