@@ -14,6 +14,9 @@ export class ATProtoFollowPublisher implements IFollowPublisher {
     private readonly agentService: IAgentService,
     private readonly followCollection: string, // 'network.cosmik.follow'
     private readonly collectionRepository: ICollectionRepository,
+    // applyWrites caps at 200 writes per call; keep batches small to limit
+    // the blast radius of a failed call
+    private readonly bulkPublishBatchSize: number = 10,
   ) {}
 
   async publishFollow(
@@ -171,12 +174,11 @@ export class ATProtoFollowPublisher implements IFollowPublisher {
         return err(new Error('No authenticated session found for follower'));
       }
 
-      // applyWrites caps at 200 writes per call
-      const BATCH_SIZE = 200;
+      const batchSize = Math.min(Math.max(1, this.bulkPublishBatchSize), 200);
       const publishedRecordIds: PublishedRecordId[] = [];
 
-      for (let start = 0; start < follows.length; start += BATCH_SIZE) {
-        const batch = follows.slice(start, start + BATCH_SIZE);
+      for (let start = 0; start < follows.length; start += batchSize) {
+        const batch = follows.slice(start, start + batchSize);
 
         const writes = batch.map((follow) => ({
           $type: 'com.atproto.repo.applyWrites#create' as const,
