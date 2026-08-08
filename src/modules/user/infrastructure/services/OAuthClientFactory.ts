@@ -38,6 +38,7 @@ export class OAuthClientFactory {
       'atproto',
       `repo?${cosmikCollections}`,
       'repo:at.margin.collection?action=update&action=delete',
+      'repo:at.margin.collectionItem?action=delete',
       'rpc:app.bsky.feed.searchPosts?aud=*',
       'rpc:app.bsky.actor.searchActors?aud=*',
       'rpc:app.bsky.actor.getProfile?aud=*',
