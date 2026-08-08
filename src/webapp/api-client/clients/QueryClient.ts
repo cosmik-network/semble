@@ -347,6 +347,11 @@ export class QueryClient extends BaseClient {
         queries: params.queries,
         page: params.page,
         limit: params.limit,
+        urlCardWeight: params.urlCardWeight,
+        noteWeight: params.noteWeight,
+        collectionWeight: params.collectionWeight,
+        connectionWeight: params.connectionWeight,
+        randomness: params.randomness,
       },
     });
     return unwrap<RecommendedUrlsResponse>(res);

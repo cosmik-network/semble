@@ -1,4 +1,5 @@
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
+import { RankingWeights } from './types/rankingWeights';
 
 export const cardKeys = {
   all: () => ['cards'] as const,
@@ -34,6 +35,18 @@ export const cardKeys = {
   // the list under the user. Individual cards refresh their own state via
   // cardKeys.urlMetadata instead.
   recommended: () => ['recommended-cards'] as const,
-  recommendedInfinite: (queries: string[], limit?: number) =>
-    [...cardKeys.recommended(), 'infinite', limit, ...queries] as const,
+  // Weights are part of the key so adjusting one refetches the re-ranked list
+  // instead of showing the previously cached order.
+  recommendedInfinite: (
+    queries: string[],
+    limit?: number,
+    weights?: Partial<RankingWeights>,
+  ) =>
+    [
+      ...cardKeys.recommended(),
+      'infinite',
+      limit,
+      weights ?? null,
+      ...queries,
+    ] as const,
 };
