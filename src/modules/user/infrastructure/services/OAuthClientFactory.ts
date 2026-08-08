@@ -41,6 +41,7 @@ export class OAuthClientFactory {
       'rpc:app.bsky.feed.searchPosts?aud=*',
       'rpc:app.bsky.actor.searchActors?aud=*',
       'rpc:app.bsky.actor.getProfile?aud=*',
+      'rpc:app.bsky.graph.getFollows?aud=*',
     ].join(' ');
 
     // OAuth spec requires client_uri to share its origin with client_id.

@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getRecommendedUrls } from '../dal';
 import { cardKeys } from '../cardKeys';
+import { RankingWeights } from '../types/rankingWeights';
 
 interface Props {
   // Empty array lets the server derive queries from the user's recent
@@ -11,6 +12,8 @@ interface Props {
   // Lets callers hold the request until stored queries have been read, so the
   // first fetch isn't wasted on an empty-query set that gets replaced.
   enabled?: boolean;
+  // Ranking weight overrides; changing these re-ranks server-side.
+  weights?: Partial<RankingWeights>;
 }
 
 export default function useRecommendedCards(props: Props) {
@@ -18,10 +21,15 @@ export default function useRecommendedCards(props: Props) {
 
   return useInfiniteQuery({
     enabled: props.enabled ?? true,
-    queryKey: cardKeys.recommendedInfinite(props.queries, limit),
+    queryKey: cardKeys.recommendedInfinite(props.queries, limit, props.weights),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      getRecommendedUrls({ queries: props.queries, page: pageParam, limit }),
+      getRecommendedUrls({
+        queries: props.queries,
+        page: pageParam,
+        limit,
+        weights: props.weights,
+      }),
     getNextPageParam: (lastPage) =>
       lastPage.pagination.hasMore
         ? lastPage.pagination.currentPage + 1

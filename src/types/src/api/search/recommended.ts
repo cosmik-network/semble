@@ -8,6 +8,13 @@ export const RecommendedUrlsParamsSchema = z.object({
   queries: z.array(z.string()).optional(),
   page: z.number().optional(),
   limit: z.number().optional(),
+  // Ranking weight overrides. Omitted values fall back to the server defaults.
+  // Distinct weights produce a distinct cached ranked set.
+  urlCardWeight: z.number().optional(),
+  noteWeight: z.number().optional(),
+  collectionWeight: z.number().optional(),
+  connectionWeight: z.number().optional(),
+  randomness: z.number().optional(),
 });
 export type RecommendedUrlsParams = z.infer<typeof RecommendedUrlsParamsSchema>;
 

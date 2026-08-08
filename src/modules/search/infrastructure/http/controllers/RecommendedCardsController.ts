@@ -10,7 +10,16 @@ export class RecommendedCardsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { queries, page, limit } = req.query;
+      const {
+        queries,
+        page,
+        limit,
+        urlCardWeight,
+        noteWeight,
+        collectionWeight,
+        connectionWeight,
+        randomness,
+      } = req.query;
 
       // A single ?queries=x arrives as a string; repeated params arrive as an
       // array. When absent, the use case derives queries from the caller's
@@ -19,11 +28,30 @@ export class RecommendedCardsController extends Controller {
         (q): q is string => typeof q === 'string',
       );
 
+      // Only include weights the caller actually sent, so the use case falls
+      // back to its defaults for the rest.
+      const ranking: Record<string, number> = {};
+      const weightParams = {
+        urlCardWeight,
+        noteWeight,
+        collectionWeight,
+        connectionWeight,
+        randomness,
+      };
+      for (const [key, value] of Object.entries(weightParams)) {
+        if (value === undefined) continue;
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) {
+          ranking[key] = parsed;
+        }
+      }
+
       const result = await this.recommendedCardsUseCase.execute({
         queries: queryList,
         callingUserId: req.did, // Pass through the authenticated user's DID
         page: page !== undefined ? Number(page) : undefined,
         limit: limit !== undefined ? Number(limit) : undefined,
+        ranking: Object.keys(ranking).length > 0 ? ranking : undefined,
       });
 
       if (result.isErr()) {
