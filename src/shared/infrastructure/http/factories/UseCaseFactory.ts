@@ -267,6 +267,8 @@ export class UseCaseFactory {
         services.tokenService,
         repositories.userRepository,
         services.userAuthService,
+        repositories.userOnboardingRepository,
+        services.configService.getAppConfig(),
       ),
       getProfileUseCase: new GetProfileUseCase(
         services.profileService,

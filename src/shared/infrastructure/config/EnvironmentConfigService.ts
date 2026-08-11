@@ -1,5 +1,11 @@
 import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 
+// Users who linked at or after this instant are eligible for the post-sign-in
+// onboarding redirect. Pinned to the date the redirect shipped rather than
+// computed from "now", so the eligible cohort doesn't shift on every restart.
+// Override with ONBOARDING_REDIRECT_AFTER (ISO 8601, UTC).
+const DEFAULT_ONBOARDING_REDIRECT_AFTER = '2026-08-13T00:00:00Z';
+
 export enum Environment {
   LOCAL = 'local',
   DEV = 'dev',
@@ -51,6 +57,11 @@ export interface EnvironmentConfig {
   };
   app: {
     appUrl: string;
+    // Users who linked after this instant and have not started onboarding are
+    // redirected to /onboarding after sign-in. Defaults to
+    // DEFAULT_ONBOARDING_REDIRECT_AFTER; only an invalid override leaves it
+    // unset, which disables the redirect.
+    onboardingRedirectAfter?: Date;
   };
   iframely: {
     apiKey: string;
@@ -190,6 +201,11 @@ export class EnvironmentConfigService {
         appUrl: tunnelEnabled
           ? tunnelFrontendUrl
           : process.env.APP_URL || 'http://127.0.0.1:4000',
+        onboardingRedirectAfter: this.parseOptionalDate(
+          process.env.ONBOARDING_REDIRECT_AFTER ||
+            DEFAULT_ONBOARDING_REDIRECT_AFTER,
+          'ONBOARDING_REDIRECT_AFTER',
+        ),
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
@@ -381,5 +397,25 @@ export class EnvironmentConfigService {
 
     // Default to false (use mock persistence) unless explicitly enabled
     return false;
+  }
+
+  // Parses an ISO 8601 instant, e.g. 2026-08-01T00:00:00Z. Returns undefined for
+  // missing or unparseable values so a bad value disables the dependent feature
+  // rather than silently enabling it for everyone.
+  private parseOptionalDate(
+    value: string | undefined,
+    name: string,
+  ): Date | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      console.warn(`[config] Ignoring invalid date for ${name}: "${value}"`);
+      return undefined;
+    }
+
+    return parsed;
   }
 }
