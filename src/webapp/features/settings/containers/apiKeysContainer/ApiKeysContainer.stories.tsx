@@ -14,13 +14,6 @@ type Story = StoryObj<typeof ApiKeysContainer>;
 /** Three mock API keys — the default state. */
 export const Default: Story = {};
 
-/** No keys yet — shows the empty state UI. */
-export const Empty: Story = {
-  args: {
-    initialKeys: [],
-  },
-};
-
 export const Skeleton: Story = {
   render: () => <ApiKeysContainerSkeleton />,
 };
