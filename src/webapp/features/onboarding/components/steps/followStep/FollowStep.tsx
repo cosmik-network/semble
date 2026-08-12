@@ -179,7 +179,7 @@ export default function FollowStep(props: Props) {
                 ) : (
                   <Box py={'xl'}>
                     <ProfileEmptyTab
-                      message="No suggestions from the cards you picked"
+                      message="No suggestions yet"
                       icon={MdPersonSearch}
                       button={
                         <LinkButton
