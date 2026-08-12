@@ -21,4 +21,6 @@ export const searchKeys = {
     [...searchKeys.all(), 'profile', query] as const,
   profileSearchInfinite: (query: string, limit?: number) =>
     [...searchKeys.profileSearch(query), 'infinite', limit] as const,
+  headerPreview: (query: string, limit?: number) =>
+    [...searchKeys.semanticSearch(query), 'headerPreview', limit] as const,
 };
