@@ -151,7 +151,7 @@ export default function WelcomeView(props: Props) {
             ))}
           </Stack>
 
-          <Stack gap={'sm'}>
+          <Stack gap={'md'}>
             <Group gap={'xs'} wrap="nowrap">
               {/* A real anchor, so it prefetches and middle-clicks. onStart
                   only records that the flow has begun. */}
@@ -164,16 +164,14 @@ export default function WelcomeView(props: Props) {
                 Get started
               </LinkButton>
 
-              {/* Deliberately does not dismiss — "Not now" means later, so the
-                  home banner has to still be there to come back to. */}
               <LinkButton href="/home" size="md" variant="light" color="gray">
                 Not now
               </LinkButton>
             </Group>
 
-            {/* One sentence written out rather than three labels mapped with
-                separators between them: the punctuation differs per position. */}
-            <Text fz={'sm'} c={'dimmed'}>
+            {/* Narrower than the 400 the column allows, so the sentence wraps
+                to two or three short lines instead of one long one. */}
+            <Text fz={'sm'} c={'gray'} fw={500} maw={280}>
               Questions?{' '}
               <LinkAnchor href={DOCS_URL} {...HELP_LINK_PROPS}>
                 Read the docs
