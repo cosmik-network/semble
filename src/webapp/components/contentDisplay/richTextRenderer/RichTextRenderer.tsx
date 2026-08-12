@@ -3,18 +3,22 @@
 import { RichText } from '@atproto/api';
 
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
-import { getDomain } from '@/lib/utils/link';
+import { getDisplayUrl } from '@/lib/utils/link';
+
+const MAX_LINK_PATH_LENGTH = 30;
 
 interface Props {
   text: string;
   linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags
   textProps?: Partial<TextProps>; // for plain text
+  linkDisplay?: 'short' | 'full'; // 'short' cuts off long paths (default)
 }
 
 export default function RichTextRenderer({
   text,
   linkProps = {},
   textProps = {},
+  linkDisplay = 'short',
 }: Props) {
   const richText = new RichText({ text });
   richText.detectFacetsWithoutResolution();
@@ -57,7 +61,10 @@ export default function RichTextRenderer({
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >
-              {getDomain(segment.link.uri)}
+              {getDisplayUrl(
+                segment.link.uri,
+                linkDisplay === 'full' ? Infinity : MAX_LINK_PATH_LENGTH,
+              )}
             </Anchor>
           );
         }
