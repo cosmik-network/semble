@@ -19,19 +19,13 @@ import {
 } from 'react-icons/tb';
 import type { TopicId } from '../../lib/topics';
 
-/**
- * One colour for every tile. Fifteen hues read as a rainbow and made the grid
- * noisy; a single accent lets the picked/unpicked split carry the whole signal.
- * Tangerine is the theme's primary, which also ties the tiles to the count
- * badge above them. Swap this one value to change the whole grid.
- */
+/** One accent for every tile. Swap this one value to change the whole grid. */
 export const TOPIC_COLOR = 'tangerine';
 
 /**
- * Kept out of `lib/topics.ts` so the registry stays free of React and
- * react-icons — the same split `STEP_ICONS` uses in `stepper/Stepper.tsx`. A
- * Record keyed by TopicId rather than a lookup with a fallback: adding a topic
- * id is a type error until it has an icon.
+ * Kept out of `lib/topics.ts` so the registry stays free of React. A Record
+ * keyed by TopicId rather than a lookup with a fallback: adding a topic id is a
+ * type error until it has an icon.
  */
 export const TOPIC_ICONS: Record<TopicId, IconType> = {
   science: TbFlask,

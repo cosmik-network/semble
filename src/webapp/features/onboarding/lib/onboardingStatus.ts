@@ -36,10 +36,8 @@ export function writeOnboardingStatus(status: OnboardingStatus): void {
 
   const maxAge = status === 'unseen' ? 0 : ONE_YEAR_SECONDS;
 
-  // Not a vulnerability — the value is one of four allowlisted words and is
-  // deliberately not secret — but it has no business travelling over plain
-  // HTTP. Applied only on https, because browsers reject Secure cookies on
-  // http:// dev hosts that aren't localhost.
+  // Applied only on https: browsers reject Secure cookies on http:// dev hosts
+  // that aren't localhost.
   const secure = document.location.protocol === 'https:' ? '; Secure' : '';
 
   document.cookie = `${ONBOARDING_STATUS_COOKIE}=${status}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;

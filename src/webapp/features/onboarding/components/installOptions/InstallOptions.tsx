@@ -1,13 +1,20 @@
 'use client';
 
-import { Group, SimpleGrid, Stack, Text, ThemeIcon } from '@mantine/core';
+import type { ReactNode } from 'react';
+import { Box, Card, Group, Menu, SimpleGrid } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
-import type { IconType } from 'react-icons/lib';
-import { FiChrome } from 'react-icons/fi';
 import { MdOutlineInstallMobile } from 'react-icons/md';
-import { TbBrandFirefox, TbRobot, TbStackForward } from 'react-icons/tb';
-import { LinkCard } from '@/components/link/MantineLink';
-import tileStyles from '../topicTile/TopicTile.module.css';
+import { TbStackForward } from 'react-icons/tb';
+import ChromeIcon from '@/assets/icons/chrome-icon.svg';
+import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
+import McpIcon from '@/assets/icons/mcp-icon.svg';
+import OptionTile, {
+  brandMark,
+  EXTERNAL_LINK_PROPS,
+  iconMark,
+  OPTION_TILE_PROPS,
+  OptionTileBody,
+} from '../optionTile/OptionTile';
 
 const CHROME_EXTENSION_URL =
   'https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg';
@@ -17,7 +24,7 @@ const MCP_DOCS_URL = 'https://docs.cosmik.network/semble-mcp';
 
 interface InstallOption {
   href: string;
-  icon: IconType;
+  mark: ReactNode;
   title: string;
   description: string;
   /** Store listings and docs live elsewhere; the two app routes do not. */
@@ -29,36 +36,22 @@ interface InstallOption {
 const OPTIONS: InstallOption[] = [
   {
     href: '/install-app',
-    icon: MdOutlineInstallMobile,
+    mark: iconMark(<MdOutlineInstallMobile />),
     title: 'Web app',
-    description: 'Semble on your home screen.',
-  },
-  {
-    href: CHROME_EXTENSION_URL,
-    icon: FiChrome,
-    title: 'Chrome extension',
-    description: 'Save from any page.',
-    external: true,
-  },
-  {
-    href: FIREFOX_EXTENSION_URL,
-    icon: TbBrandFirefox,
-    title: 'Firefox extension',
-    description: 'Save from any page.',
-    external: true,
+    description: 'Semble on your home screen',
   },
   {
     href: '/ios-shortcut',
-    icon: TbStackForward,
+    mark: iconMark(<TbStackForward />),
     title: 'iOS shortcut',
-    description: 'Save from the share sheet.',
+    description: 'Save from the share sheet',
     iosOnly: true,
   },
   {
     href: MCP_DOCS_URL,
-    icon: TbRobot,
+    mark: brandMark(McpIcon.src),
     title: 'MCP',
-    description: 'Use Semble from Claude.',
+    description: 'Use Semble from Claude',
     external: true,
   },
 ];
@@ -72,14 +65,6 @@ interface Props {
   onSelect: () => void;
 }
 
-/**
- * The install surfaces, laid out in the open.
- *
- * These used to sit behind an "Install Semble" dropdown. A menu is the wrong
- * container for the one thing on this screen that carries Semble past the
- * browser tab: it hid five options behind a click, gave none of them room to
- * say what they do, and read as a settings control rather than an invitation.
- */
 export default function InstallOptions(props: Props) {
   // Mantine resolves this after mount, so it is 'undetermined' on the server
   // and on the first client render. That is the point: the iOS card appears
@@ -88,39 +73,79 @@ export default function InstallOptions(props: Props) {
 
   const visible = OPTIONS.filter((option) => !option.iosOnly || os === 'ios');
 
-  return (
-    <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'sm'}>
-      {visible.map((option) => (
-        <LinkCard
-          key={option.href}
-          href={option.href}
-          {...(option.external && {
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          })}
-          onClick={props.onSelect}
-          withBorder
-          radius={'lg'}
-          p={'sm'}
-          h={'100%'}
-          className={tileStyles.tile}
-        >
-          <Group gap={'xs'} wrap="nowrap" align="center">
-            <ThemeIcon variant="light" color="gray" size={38} radius={'md'}>
-              <option.icon size={18} />
-            </ThemeIcon>
+  const [firstTile, ...restTiles] = visible.map((option) => (
+    <OptionTile
+      key={option.href}
+      href={option.href}
+      mark={option.mark}
+      title={option.title}
+      description={option.description}
+      external={option.external}
+      onClick={props.onSelect}
+    />
+  ));
 
-            <Stack gap={0} miw={0}>
-              <Text fw={600} c={'bright'} fz={'sm'} lineClamp={1}>
-                {option.title}
-              </Text>
-              <Text c={'dimmed'} fz={'xs'} lineClamp={1}>
-                {option.description}
-              </Text>
-            </Stack>
-          </Group>
-        </LinkCard>
-      ))}
+  // A Menu rather than an OptionTile: one extension, two stores, so the browser
+  // is chosen after you have decided you want it.
+  const extensionTile = (
+    <Menu
+      key="extension"
+      shadow="sm"
+      position="bottom-start"
+      width={220}
+      withinPortal
+    >
+      <Menu.Target>
+        <Card
+          component="button"
+          type="button"
+          w={'100%'}
+          ta="start"
+          {...OPTION_TILE_PROPS}
+        >
+          <OptionTileBody
+            mark={
+              <Group gap={0} wrap="nowrap">
+                {brandMark(ChromeIcon.src)}
+                {/* Negative margin, not a negative gap — `gap` cannot go below
+                    zero, and the overlap is what says "either of these". */}
+                <Box ml={-10}>{brandMark(FirefoxIcon.src)}</Box>
+              </Group>
+            }
+            title="Browser extension"
+            description="Save from any page"
+          />
+        </Card>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Item
+          component="a"
+          href={CHROME_EXTENSION_URL}
+          {...EXTERNAL_LINK_PROPS}
+          onClick={props.onSelect}
+          leftSection={brandMark(ChromeIcon.src, 16)}
+        >
+          Chrome
+        </Menu.Item>
+        <Menu.Item
+          component="a"
+          href={FIREFOX_EXTENSION_URL}
+          {...EXTERNAL_LINK_PROPS}
+          onClick={props.onSelect}
+          leftSection={brandMark(FirefoxIcon.src, 16)}
+        >
+          Firefox
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
+  );
+
+  return (
+    <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+      {firstTile}
+      {extensionTile}
+      {restTiles}
     </SimpleGrid>
   );
 }

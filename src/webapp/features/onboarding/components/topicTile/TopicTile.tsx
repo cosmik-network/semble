@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Stack, Text, ThemeIcon } from '@mantine/core';
+import { Card, Group, Text, ThemeIcon } from '@mantine/core';
 import type { IconType } from 'react-icons/lib';
 import { TOPIC_COLOR } from './topicVisuals';
 import styles from './TopicTile.module.css';
@@ -16,26 +16,24 @@ export default function TopicTile(props: Props) {
   const Icon = props.icon;
 
   return (
-    // A toggle button rather than a Chip: a tile in a grid cell is the same
-    // size picked or not, whereas a chip grows when its checkmark appears and
-    // shunts every chip after it onto a different line.
+    // A toggle button rather than a Chip: a chip grows when its checkmark
+    // appears and shunts every chip after it onto a different line, where this
+    // is the same size picked or not.
     <Card
       component="button"
-      type="button"
       aria-pressed={props.selected}
       onClick={props.onToggle}
       withBorder
-      radius={'lg'}
-      padding={'md'}
-      // Sized for the longest label at the narrowest column — "Personal
-      // knowledge management" runs to three lines — so every tile matches and
-      // no row stands taller than the one above it. Re-check this if a longer
-      // topic is added to the registry.
-      mih={120}
-      ta="center"
+      radius={'xl'}
+      padding={0}
       className={styles.tile}
+      // A solid tint, not Mantine's `-light` shade: those are colour-mixed
+      // with transparency, and over the page artwork the fill washes out. The
+      // palette's own 0 and 9 are opaque at both ends.
       bg={
-        props.selected ? `var(--mantine-color-${TOPIC_COLOR}-light)` : undefined
+        props.selected
+          ? `light-dark(var(--mantine-color-${TOPIC_COLOR}-0), var(--mantine-color-${TOPIC_COLOR}-9))`
+          : undefined
       }
       style={{
         borderColor: props.selected
@@ -43,26 +41,21 @@ export default function TopicTile(props: Props) {
           : undefined,
       }}
     >
-      {/* Card's root is a flex column, so growing to fill it and centring
-          along both axes puts the icon and label in the middle of the tile
-          whatever height the row settles at. */}
-      <Stack gap={'xs'} align="center" justify="center" flex={1}>
-        {/* Gray at rest, the accent only once picked — so the grid is neutral
-            until you choose and the colour is the reward, not the default. */}
+      <Group gap={8} wrap="nowrap" px={10} py={6}>
         <ThemeIcon
           variant={props.selected ? 'filled' : 'light'}
           color={props.selected ? TOPIC_COLOR : 'gray'}
-          size={'lg'}
+          size={24}
           radius={'xl'}
         >
-          <Icon size={18} />
+          <Icon size={14} />
         </ThemeIcon>
 
         {/* A span, not Text's default <p> — this sits inside a <button>. */}
         <Text component="span" fz={'sm'} fw={600} c={'bright'} lh={1.2}>
           {props.label}
         </Text>
-      </Stack>
+      </Group>
     </Card>
   );
 }

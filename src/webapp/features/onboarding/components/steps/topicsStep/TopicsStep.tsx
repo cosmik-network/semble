@@ -1,9 +1,10 @@
 'use client';
 
-import { Badge, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Group, Progress, Stack, Text, Title } from '@mantine/core';
 import { useInputState, useListState } from '@mantine/hooks';
 import { PRESET_TOPICS, TOPICS } from '../../../lib/topics';
 import AddTopicTile from '../../addTopicTile/AddTopicTile';
+import StepHeading from '../../stepHeading/StepHeading';
 import TopicTile from '../../topicTile/TopicTile';
 import {
   CUSTOM_TOPIC_ICON,
@@ -37,20 +38,17 @@ function dedupe(topics: string[]): string[] {
 
 const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalize));
 
+/** A target, not a requirement — Continue only asks for one topic. */
+const TOPIC_GOAL = 2;
+
 export default function TopicsStep(props: Props) {
-  // useListState for the append; useInputState so TextInput's onChange takes
-  // the setter directly instead of an event-unwrapping closure.
-  //
-  // This is session state and resets on every mount, so it cannot be the only
-  // source of custom tiles — props.topics is the persisted one. It is still
-  // kept so a custom topic deselected within a session stays on screen and
-  // can be re-selected.
+  // Session state, reset on every mount — props.topics is the persisted one.
+  // Kept so a topic deselected within a session stays on screen.
   const [customTopics, customTopicsHandlers] = useListState<string>([]);
   const [newTopic, setNewTopic] = useInputState('');
 
-  // Selection is matched on the normalized form, so a stored "ai" lights up
-  // the preset "AI" rather than sitting invisibly beside it. The map keeps the
-  // stored casing, which is what has to be removed on deselect.
+  // Matched on the normalized form, so a stored "ai" lights up the preset
+  // "AI". The map keeps the stored casing, which is what deselect removes.
   const selectedByKey = new Map(
     props.topics.map((topic) => [normalize(topic), topic]),
   );
@@ -70,15 +68,9 @@ export default function TopicsStep(props: Props) {
     props.onChangeTopics([...props.topics, query]);
   };
 
-  // Derived every render from both sources. Without props.topics in here, a
-  // custom topic added before a remount (footer Back, refresh, ?step=1 with
-  // stored progress) would have no tile to click, so there would be no way to
-  // deselect it.
-  //
-  // Reversed, and rendered ahead of the presets: a topic you just typed should
-  // appear next to the tile you typed it into, not appended below fifteen
-  // suggestions you have already scanned past. `filter` returns a fresh array,
-  // so reversing it in place touches nothing else.
+  // props.topics has to be in here or a custom topic added before a remount
+  // has no tile to click and no way to be deselected. Reversed so a topic you
+  // just typed appears next to the tile you typed it into.
   const customTopicList = dedupe([...props.topics, ...customTopics])
     .filter((topic) => !PRESET_KEYS.has(normalize(topic)))
     .reverse();
@@ -120,60 +112,64 @@ export default function TopicsStep(props: Props) {
       ? 'You already picked that topic.'
       : 'That topic is already in the grid.';
 
-  // Custom topics are tiles too, so adding one raises the denominator as well
-  // as the numerator — the ratio always describes what is actually on screen.
-  const totalTopics = TOPICS.length + customTopicList.length;
+  const pickedCount = props.topics.length;
+  const goalReached = pickedCount >= TOPIC_GOAL;
+
+  // A full string per branch rather than one assembled around the number: word
+  // order and plural rules differ by language.
+  const goalLabel =
+    pickedCount === 0
+      ? `Pick ${TOPIC_GOAL} for the best suggestions`
+      : goalReached
+        ? 'Good to go — pick more if you like'
+        : `${pickedCount} of ${TOPIC_GOAL} picked`;
 
   return (
-    // One measure for the whole stage. The screen's Container is `md` (960px),
-    // which is far too wide for a four-column grid of small tiles — they end up
-    // as letterboxes with the icon adrift in them, on a different width to the
-    // hero above. 720 keeps a tile close to square at every breakpoint.
-    <Stack gap={'xl'} maw={720} w={'100%'} mx={'auto'}>
-      {/* Narrower than the grid on purpose: this is a text measure. */}
-      <Stack gap={4} align="center" maw={480} mx={'auto'}>
-        <Title order={1} ta={'center'}>
-          Pick a few topics
-        </Title>
-        <Text c={'dimmed'} ta={'center'}>
-          We use them to suggest cards, people and collections.
-        </Text>
+    // No measure of its own: OnboardingScreen's Container sets one width for
+    // every stage, and clamping inside that shifts the heading's x.
+    <Stack gap={'xl'} w={'100%'}>
+      <Stack gap={'xs'}>
+        <StepHeading
+          title="Pick a few topics"
+          description="We use them to suggest cards, people and collections."
+        />
 
-        {/* The fixed height reserves the row, so nothing shifts when the badge
-            appears — which is what lets it render nothing at all until stored
-            progress has been read, rather than flashing 0/15 for a frame. */}
-        <Group justify="center" h={26} mt={4}>
+        {/* The fixed height reserves the row, so the meter can render nothing
+            until stored progress has been read rather than flashing "Pick 2" at
+            someone who already picked five. */}
+        <Group h={26} gap={'sm'} wrap="nowrap">
           {props.progressLoaded && (
-            <Badge
-              radius={'xl'}
-              variant="light"
-              // Same accent as the tiles, so the count and the grid read as
-              // one thing rather than two colour schemes.
-              color={props.topics.length > 0 ? TOPIC_COLOR : 'gray'}
-            >
-              {props.topics.length}/{totalTopics}
-            </Badge>
+            <>
+              <Progress
+                value={(Math.min(pickedCount, TOPIC_GOAL) / TOPIC_GOAL) * 100}
+                w={72}
+                size="sm"
+                radius={'xl'}
+                color={TOPIC_COLOR}
+                transitionDuration={200}
+                aria-hidden="true"
+              />
+              <Text
+                fz={'sm'}
+                fw={goalReached ? 600 : 500}
+                c={goalReached ? 'bright' : 'dimmed'}
+              >
+                {goalLabel}
+              </Text>
+            </>
           )}
         </Group>
       </Stack>
 
-      <SimpleGrid
-        role="group"
-        aria-label="Topics"
-        cols={{ base: 2, xs: 3, sm: 4 }}
-        spacing={'xs'}
-      >
-        {/* First, not last: it is the one tile whose position should not move
-            as custom topics accumulate, and putting it up front makes it the
-            first thing Tab reaches. Whatever you add lands immediately after
-            it. */}
+      {/* A wrapping row, not a grid: every tile is as wide as its own label. */}
+      <Group role="group" aria-label="Topics" gap={'xs'}>
+        {/* First, not last: the one tile whose position should not move as
+            custom topics accumulate. */}
         <AddTopicTile
           value={newTopic}
           onChangeValue={setNewTopic}
           onSubmit={handleAddTopic}
-          // Adding is a no-op only when the typed topic is already picked. A
-          // match that isn't picked yet stays actionable — submitting selects
-          // the existing tile.
+          // A match that isn't picked yet stays actionable.
           submitDisabled={!trimmedInput || isAlreadySelected}
           description={inputDescription}
         />
@@ -197,7 +193,7 @@ export default function TopicsStep(props: Props) {
             onToggle={() => toggle(topic.query)}
           />
         ))}
-      </SimpleGrid>
+      </Group>
     </Stack>
   );
 }

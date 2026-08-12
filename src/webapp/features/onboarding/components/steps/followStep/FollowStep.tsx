@@ -1,21 +1,25 @@
 'use client';
 
 import {
-  Avatar,
+  Badge,
+  Box,
   Center,
+  Group,
   Loader,
   SimpleGrid,
   Stack,
+  Tabs,
   Text,
-  ThemeIcon,
   Title,
 } from '@mantine/core';
-import { BiCollection } from 'react-icons/bi';
 import useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
 import useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import { LinkAnchor } from '@/components/link/MantineLink';
-import FollowSuggestionCard from '../../followSuggestionCard/FollowSuggestionCard';
+import BlueskyNote from '../../blueskyNote/BlueskyNote';
+import SuggestionCard from '../../suggestionCard/SuggestionCard';
+import StepHeading from '../../stepHeading/StepHeading';
 
 const VISIBLE_USERS = 8;
 const VISIBLE_COLLECTIONS = 6;
@@ -32,32 +36,46 @@ export default function FollowStep(props: Props) {
 
   const hasUrls = props.urls.length > 0;
 
-  // !progressLoaded is the "we don't know yet" frame. Without it, urls is
-  // still [] so the queries are disabled and nothing is pending, and the
-  // empty branch below wins for one frame — "No suggestions yet" flashing
-  // before the spinner. Keep hasUrls too: once progress has loaded and there
-  // genuinely are no urls (a ?step=3 deep link with nothing stored), the
-  // queries stay disabled at isPending: true forever, and gating on that
-  // alone would spin without end.
+  // !progressLoaded is the "we don't know yet" frame — without it the empty
+  // branch wins for one frame before the spinner. hasUrls covers the opposite
+  // case: with nothing stored the queries stay disabled at isPending: true
+  // forever, so gating on that alone would spin without end.
   const isPending =
     !props.progressLoaded ||
     (hasUrls && (users.isPending || collections.isPending));
 
-  // Without this the empty branch fires on a failed fetch and tells the user
-  // there is nothing to recommend — which reads as "your network is empty",
-  // not "the request failed". Mirrors PickCardsStep.
+  // Without this a failed fetch reads as "your network is empty" rather than
+  // "the request failed".
   const isError = users.isError || collections.isError;
 
-  const visibleUsers = users.data?.users.slice(0, VISIBLE_USERS) ?? [];
+  // One request, two lists: every user carries followsOnBsky, so the second tab
+  // is a filter rather than a second fetch. The limit applies per tab, so the
+  // Bluesky list is not cut short by the recommendations preceding it.
+  const allUsers = users.data?.users ?? [];
+  const visibleUsers = allUsers.slice(0, VISIBLE_USERS);
+  const bskyUsers = allUsers
+    .filter((user) => user.followsOnBsky)
+    .slice(0, VISIBLE_USERS);
+
+  // Counted before those already followed here are dropped — it is what tells
+  // "none of them are on Semble" apart from "you already follow all of them".
+  const bskyFollowedCount = users.data?.bskyFollowedSembleUserCount ?? 0;
+
   const visibleCollections =
     collections.data?.collections.slice(0, VISIBLE_COLLECTIONS) ?? [];
 
-  // Small, quiet and consistent between the two groups. `order={2}` under the
-  // stage's h1 keeps the outline honest; the size keeps it from competing.
-  const sectionHeading = (label: string) => (
-    <Title order={2} fz={'sm'} c={'dimmed'} tt="uppercase" lts={0.5}>
-      {label}
-    </Title>
+  const sectionHeader = (label: string, count?: number) => (
+    <Group gap={'xs'} align="center" wrap="nowrap">
+      <Title order={2} fz={'xl'} fw={600}>
+        {label}
+      </Title>
+
+      {count !== undefined && (
+        <Badge circle variant="light" color="gray" size={'lg'}>
+          {count}
+        </Badge>
+      )}
+    </Group>
   );
 
   const followButton = (
@@ -69,21 +87,35 @@ export default function FollowStep(props: Props) {
       targetId={targetId}
       targetType={targetType}
       initialIsFollowing={isFollowing}
-      size="compact-sm"
-      radius={'xl'}
       style={{ flex: '0 0 auto' }}
     />
   );
 
+  const userGrid = (list: typeof allUsers) => (
+    <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+      {list.map((user) => (
+        <SuggestionCard
+          key={user.id}
+          href={`/profile/${user.handle}`}
+          name={user.name}
+          handle={user.handle}
+          avatarUrl={user.avatarUrl}
+          description={user.description}
+          note={
+            user.followsOnBsky && <BlueskyNote>Followed on Bluesky</BlueskyNote>
+          }
+          action={followButton(user.id, 'USER', user.isFollowing)}
+        />
+      ))}
+    </SimpleGrid>
+  );
+
   return (
-    <Stack gap={'lg'}>
-      <Stack gap={4}>
-        <Title order={1}>Who to follow</Title>
-        <Text c={'dimmed'}>
-          Follow whatever looks interesting. Collections are curated lists of
-          cards, kept by one or more people.
-        </Text>
-      </Stack>
+    <Stack gap={'xl'}>
+      <StepHeading
+        title="Who to follow"
+        description="Follow whatever looks interesting. Collections are curated lists of cards, kept by one or more people."
+      />
 
       {isPending && (
         <Center py={'xl'}>
@@ -100,93 +132,98 @@ export default function FollowStep(props: Props) {
         </Text>
       )}
 
-      {!isPending &&
-        !isError &&
-        visibleUsers.length === 0 &&
-        visibleCollections.length === 0 && (
-          <Stack gap={4} align="flex-start">
-            <Text c={'dimmed'}>No suggestions yet.</Text>
-            <LinkAnchor href="/explore">Explore Semble</LinkAnchor>
+      <Stack gap={50}>
+        {/* Rendered whether or not there is anything in it — a tab bar that
+            only appears when it has results is one nobody learns is there.
+            Each panel says its own empty. */}
+        {!isPending && !isError && (
+          <Stack gap={'lg'}>
+            {sectionHeader('People')}
+
+            {/* Uncontrolled, so no state to hold: both lists come from one
+                query that has already resolved. keepMounted={false} so only the
+                tab you are looking at renders a grid. */}
+            <Tabs defaultValue="recommended" keepMounted={false}>
+              <Tabs.List mb={'md'}>
+                <Tabs.Tab value="recommended" fw={600}>
+                  Recommended
+                </Tabs.Tab>
+                <Tabs.Tab value="bluesky" fw={600}>
+                  Your Bluesky circle
+                </Tabs.Tab>
+              </Tabs.List>
+
+              <Tabs.Panel value="recommended">
+                {visibleUsers.length > 0 ? (
+                  userGrid(visibleUsers)
+                ) : (
+                  <Stack gap={4} align="flex-start">
+                    <Text c={'dimmed'}>
+                      Nothing to suggest from the cards you picked.
+                    </Text>
+                    <LinkAnchor href="/explore">Explore Semble</LinkAnchor>
+                  </Stack>
+                )}
+              </Tabs.Panel>
+
+              <Tabs.Panel value="bluesky">
+                {bskyUsers.length > 0 ? (
+                  userGrid(bskyUsers)
+                ) : (
+                  // Two different empties: candidates already followed here are
+                  // dropped server-side, so a returning user's tab empties as
+                  // they follow people.
+                  <Text c={'dimmed'}>
+                    {bskyFollowedCount > 0
+                      ? 'You already follow all of them here.'
+                      : 'Nobody you follow on Bluesky is on Semble yet.'}
+                  </Text>
+                )}
+              </Tabs.Panel>
+            </Tabs>
           </Stack>
         )}
 
-      {visibleUsers.length > 0 && (
-        <Stack gap={'xs'}>
-          {sectionHeading('People')}
+        {visibleCollections.length > 0 && (
+          <Stack gap={'lg'}>
+            {sectionHeader('Collections', visibleCollections.length)}
 
-          {/* Two columns, the same grid rhythm as stage 2 — so the flow's
-              three picking screens share one shape instead of each inventing
-              its own. */}
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={'sm'}>
-            {visibleUsers.map((user) => (
-              <FollowSuggestionCard
-                key={user.id}
-                media={
-                  <Avatar
-                    src={user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-                    alt=""
-                    size={38}
-                    radius={'50%'}
-                  />
-                }
-                title={user.name}
-                meta={`@${user.handle}`}
-                description={user.description}
-                blueskyNote={
-                  user.followsOnBsky ? 'Followed on Bluesky' : undefined
-                }
-                action={followButton(user.id, 'USER', user.isFollowing)}
-              />
-            ))}
-          </SimpleGrid>
-        </Stack>
-      )}
+            {/* CollectionCard owns its whole surface — the card itself
+                navigates — so the follow control cannot live inside it and sits
+                in a row beneath. */}
+            <SimpleGrid
+              cols={{ base: 1, sm: 2 }}
+              spacing={'xs'}
+              verticalSpacing={{ base: 'md', sm: 'xs' }}
+            >
+              {visibleCollections.map((collection) => (
+                <Stack key={collection.id} gap={'xs'} h={'100%'}>
+                  {/* flex={1} so the cards in a row match height and the follow
+                      rows below them line up. */}
+                  <Box flex={1}>
+                    <CollectionCard collection={collection} showAuthor />
+                  </Box>
 
-      {visibleCollections.length > 0 && (
-        <Stack gap={'xs'}>
-          {sectionHeading('Collections')}
+                  <Group justify="space-between" wrap="nowrap" gap={'xs'}>
+                    {collection.authorFollowedOnBsky ? (
+                      <BlueskyNote>Author followed on Bluesky</BlueskyNote>
+                    ) : (
+                      // Holds the row so the button stays hard right.
+                      <span />
+                    )}
 
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={'sm'}>
-            {visibleCollections.map((collection) => (
-              <FollowSuggestionCard
-                key={collection.id}
-                media={
-                  // The app's collection glyph rather than the author's
-                  // avatar: a face in that slot reads as "a person", which is
-                  // exactly the distinction this section has to make.
-                  <ThemeIcon
-                    variant="light"
-                    color="gray"
-                    size={38}
-                    radius={'md'}
-                  >
-                    <BiCollection size={18} />
-                  </ThemeIcon>
-                }
-                title={collection.name}
-                // Author and size in one line — who keeps it and how much is
-                // in it are the two things that decide whether to follow.
-                meta={
-                  collection.cardCount === 1
-                    ? `by @${collection.author.handle} · 1 card`
-                    : `by @${collection.author.handle} · ${collection.cardCount} cards`
-                }
-                description={collection.description}
-                blueskyNote={
-                  collection.authorFollowedOnBsky
-                    ? 'Author followed on Bluesky'
-                    : undefined
-                }
-                action={followButton(
-                  collection.id,
-                  'COLLECTION',
-                  collection.isFollowing,
-                )}
-              />
-            ))}
-          </SimpleGrid>
-        </Stack>
-      )}
+                    {followButton(
+                      collection.id,
+                      'COLLECTION',
+                      collection.isFollowing,
+                    )}
+                  </Group>
+                </Stack>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        )}
+      </Stack>
     </Stack>
   );
 }

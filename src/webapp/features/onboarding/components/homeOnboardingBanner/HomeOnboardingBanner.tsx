@@ -7,15 +7,10 @@ import {
 import HomeOnboardingBannerCard from './HomeOnboardingBannerCard';
 
 /**
- * Server-side gate: decides whether the banner should show at all, then hands
- * off to HomeOnboardingBannerCard for the actual UI. Kept async and separate
- * from the card so HomeContainer can mount it under its own `<Suspense>` —
- * getServerFeatureFlags round-trips to the auth API, and HomeContainer's
- * other sections (DiscoverOnSemble, RecentCollections, RecentCards) each have
- * their own Suspense boundary and must not wait on this one. If this async
- * work lived directly in HomeContainer, HomeContainer itself would have to
- * become async, and React can't start rendering any of its returned JSX —
- * including those sibling Suspense boundaries — until an async component's
+ * Kept async and separate from the card so HomeContainer can mount it under its
+ * own `<Suspense>`. If this work lived in HomeContainer that component would
+ * have to become async, and React cannot start rendering any of its returned
+ * JSX — including its sibling Suspense boundaries — until an async component's
  * own awaits resolve.
  */
 export default async function HomeOnboardingBanner() {

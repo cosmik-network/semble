@@ -1,11 +1,48 @@
 /*
- * Below `sm` there is no room beside the icons for four labels, so they come
- * off and the numbered circles carry position on their own. Mantine has no
- * responsive prop for this, but it does expose the part, so this is one rule
- * against a documented class rather than a reimplementation of the component.
+ * Vertical padding only: it turns an 8px mark into a row-height tap target
+ * without adding any gap the eye can see between the marks themselves.
  */
-@media (max-width: 47.99em) {
-  .stepBody {
-    display: none;
+.target {
+  padding-block: 8px;
+  cursor: pointer;
+  border-radius: var(--mantine-radius-xl);
+}
+
+.target:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+/*
+ * The timing lives in a custom property because two things move on it: the
+ * width here and the colour on .fill below. Split across two rules they drift.
+ */
+.bar {
+  --step-motion: 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  width: 8px;
+  transition: width var(--step-motion);
+}
+
+.bar[data-current] {
+  width: 32px;
+}
+
+/*
+ * Mantine repaints the section the instant `color` changes, so without this the
+ * outgoing mark turns white while still 32px long and the incoming one turns
+ * tangerine while still an 8px dot.
+ *
+ * Two classes deep so it beats Progress's own `transition: width …` shorthand
+ * whichever order the stylesheets land in.
+ */
+.bar .fill {
+  transition: background-color var(--step-motion);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .bar .fill {
+    transition: none;
   }
 }

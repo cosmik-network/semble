@@ -17,8 +17,7 @@ import OnboardingFlow from '@/features/onboarding/containers/onboardingFlow/Onbo
 import Loading from './loading';
 
 // Must match useMyCollections({ limit: NAV_COLLECTIONS_LIMIT }) in Composer,
-// or the prefetch lands under a different key and the client refetches. Same
-// constant and same value as app/(dashboard)/layout.tsx.
+// or the prefetch lands under a different key and the client refetches.
 const NAV_COLLECTIONS_LIMIT = 30;
 
 export default async function Page() {
@@ -37,8 +36,7 @@ export default async function Page() {
   const queryClient = makeServerQueryClient();
 
   try {
-    // Concurrent, like (dashboard)/home/page.tsx: they're independent, and
-    // neither prefetch* rejects, so one failing cannot skip the other.
+    // Neither prefetch* rejects, so one failing cannot skip the other.
     await Promise.all([
       // Stage 4's tiles read the stats query.
       queryClient.prefetchQuery({
@@ -46,14 +44,13 @@ export default async function Page() {
         queryFn: () => getMyProfile(true),
       }),
 
-      // Stage 4 renders Composer, which calls useMyCollections — a suspense
-      // query — at the top of its body rather than inside its Drawer, so it
-      // suspends whether or not the drawer is open. This route sits outside
-      // (dashboard), so it does not inherit that layout's identical prefetch,
-      // and without this every hard load of /onboarding suspends the entire
-      // page behind loading.tsx. Client-fetching is not a fallback here: the
-      // client DAL calls verifySessionOnClient(), which returns null off the
-      // browser, and throws.
+      // The last stage renders Composer, which calls useMyCollections — a
+      // suspense query — at the top of its body rather than inside its Drawer,
+      // so it suspends whether or not the drawer is open. This route sits
+      // outside (dashboard) and does not inherit that layout's identical
+      // prefetch. Client-fetching is not a fallback: the client DAL calls
+      // verifySessionOnClient(), which returns null off the browser and
+      // throws.
       queryClient.prefetchInfiniteQuery({
         queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
         initialPageParam: 1,

@@ -1,26 +1,23 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import {
-  Center,
-  Group,
-  Loader,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { FiBookmark, FiPlus } from 'react-icons/fi';
+import { Fragment, Suspense, useState } from 'react';
+import { Box, Center, Loader, SimpleGrid, Stack, Title } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { BiCollection } from 'react-icons/bi';
+import { FiBookOpen, FiCompass, FiHome, FiPlus } from 'react-icons/fi';
 import { TbPlugConnected } from 'react-icons/tb';
-import { LinkButton } from '@/components/link/MantineLink';
 import Composer from '@/features/composer/components/Composer';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
 import { useAuth } from '@/hooks/useAuth';
 import WhatNextTile from '../../whatNextTile/WhatNextTile';
 import ConnectTileCards from '../../connectTileCards/ConnectTileCards';
+import SaveTileCards from '../../saveTileCards/SaveTileCards';
 import InstallOptions from '../../installOptions/InstallOptions';
+import OptionTile, { iconMark } from '../../optionTile/OptionTile';
+import StepHeading from '../../stepHeading/StepHeading';
+
+const DOCS_URL = 'https://docs.cosmik.network/semble';
 
 interface Props {
   variant: 'flow' | 'returning';
@@ -34,31 +31,30 @@ export default function WhatNextStep(props: Props) {
 
   const [composerOpen, composer] = useDisclosure(false);
   const [collectionOpen, collectionDrawer] = useDisclosure(false);
-  const [connectExpanded, connectTile] = useDisclosure(false);
 
-  // Plain useState, not useDisclosure: this is a one-way latch, and calling
-  // it `open()` would misdescribe what happened.
+  // One value rather than a disclosure each: two panels open at once would
+  // stack in the grid with nothing saying which tile either belongs to.
+  const [openPanel, setOpenPanel] = useState<'save' | 'connect' | null>(null);
+
+  const togglePanel = (panel: 'save' | 'connect') =>
+    setOpenPanel((current) => (current === panel ? null : panel));
+
+  // A full-width panel can only be inserted at a row boundary, so the column
+  // count has to be known. The queries are SimpleGrid's own breakpoints below;
+  // `false` is the SSR value, and no panel is open on first paint.
+  const twoUp = useMediaQuery('(min-width: 36em)', false);
+  const threeUp = useMediaQuery('(min-width: 48em)', false);
+  const columns = threeUp ? 3 : twoUp ? 2 : 1;
+
+  // A one-way latch: the drawer reports the creation, but the stats query
+  // behind it will not have refetched yet.
   const [createdCollection, setCreatedCollection] = useState(false);
 
-  // Honest count — never synthesized. Each tile below accounts for
-  // stats.isError itself, so a broken stats query can't silently pose as
-  // "this user has 2 cards" for one decision while meaning "0" for another.
+  // Never synthesized: on a failed stats query these are 0, so the checklist
+  // stays actionable rather than claiming credit it cannot verify.
   const cardCount = stats.data?.urlCardCount ?? 0;
-
-  // Latch the save tile's visibility on the first render that has real data
-  // (success or error). This is React's "adjust state while rendering"
-  // pattern — the condition makes it run at most once, so it cannot loop.
-  // On error we can't know the real count, so we fail open: seed the latch
-  // to visible rather than hidden. A dimmed door with no explanation is
-  // worse than the tile just being there.
-  const [showSaveTile, setShowSaveTile] = useState<boolean | null>(null);
-  if (showSaveTile === null && !stats.isPending) {
-    setShowSaveTile(stats.isError || cardCount === 0);
-  }
-
-  // Same fail-open reasoning for the connect tile: an error unlocks it
-  // outright rather than leaving it dimmed behind a hint that may be wrong.
-  const canConnect = stats.isError || cardCount >= 2;
+  const collectionCount = stats.data?.collectionCount ?? 0;
+  const connectionCount = stats.data?.connectionCount ?? 0;
 
   if (stats.isPending) {
     return (
@@ -68,109 +64,144 @@ export default function WhatNextStep(props: Props) {
     );
   }
 
-  // The same quiet uppercase heading stage 3 uses, so the flow's two
-  // multi-section screens label their groups identically.
+  const tasks = [
+    {
+      key: 'save',
+      // The glyph on the save button of every UrlCard in the panel it opens.
+      icon: <FiPlus />,
+      color: 'tangerine',
+      title: 'Save a card',
+      description: 'Start your library with one of these',
+      done: cardCount > 0,
+      onClick: () => togglePanel('save'),
+      expanded: openPanel === 'save',
+    },
+    {
+      key: 'collection',
+      icon: <BiCollection />,
+      color: 'grape',
+      title: 'Create a collection',
+      description: 'Keep related cards together',
+      done: createdCollection || collectionCount > 0,
+      onClick: collectionDrawer.open,
+      expanded: undefined,
+    },
+    {
+      key: 'connect',
+      icon: <TbPlugConnected />,
+      color: 'green',
+      title: 'Connect two cards',
+      description: 'Show how two ideas relate',
+      done: connectionCount > 0,
+      onClick: () => togglePanel('connect'),
+      expanded: openPanel === 'connect',
+    },
+  ];
+
   const sectionHeading = (label: string) => (
-    <Title order={2} fz={'sm'} c={'dimmed'} tt="uppercase" lts={0.5}>
+    <Title order={2} fz={'xl'} fw={600}>
       {label}
     </Title>
   );
 
+  // The tile the open panel has to follow: the last one on the same grid row.
+  const openIndex = tasks.findIndex((task) => task.key === openPanel);
+  const panelAfter =
+    openIndex < 0
+      ? -1
+      : Math.min(
+          (Math.floor(openIndex / columns) + 1) * columns - 1,
+          tasks.length - 1,
+        );
+
+  // No boundary around the connect panel: it owns one internally, below its
+  // own header.
+  const panel =
+    openPanel === 'save' ? (
+      <SaveTileCards onSaveOwnLink={composer.open} />
+    ) : openPanel === 'connect' && user?.handle ? (
+      <ConnectTileCards handle={user.handle} />
+    ) : null;
+
   return (
     <Stack gap={'xl'}>
-      <Stack gap={4}>
-        <Title order={1}>
-          {props.variant === 'returning' ? 'What next?' : "You're all set"}
-        </Title>
-        <Text c={'dimmed'}>Try something below, or take Semble with you.</Text>
-      </Stack>
+      <StepHeading
+        title={props.variant === 'returning' ? 'What next?' : "You're all set"}
+        description="Try something below, or take Semble with you."
+      />
 
-      <Stack gap={'xs'}>
+      <Stack gap={'sm'}>
         {sectionHeading('Try something')}
 
-        {/* The same grid as stages 2 and 3, rather than a bespoke Grid with
-            hand-written spans — so the tile count can change without anyone
-            recomputing column widths. */}
-        <SimpleGrid cols={{ base: 1, sm: showSaveTile ? 3 : 2 }} spacing={'sm'}>
-          {showSaveTile && (
-            <WhatNextTile
-              icon={<FiBookmark />}
-              title="Save a card"
-              description="Any link worth keeping."
-              done={cardCount > 0}
-              onClick={composer.open}
-            />
-          )}
+        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+          {tasks.map((task, index) => (
+            // So the panel is a sibling of the tile, with no wrapper element
+            // between the grid and its items.
+            <Fragment key={task.key}>
+              <WhatNextTile
+                icon={task.icon}
+                color={task.color}
+                title={task.title}
+                description={task.description}
+                done={task.done}
+                onClick={task.onClick}
+                expanded={task.expanded}
+              />
 
-          <WhatNextTile
-            icon={<FiPlus />}
-            title="Create a collection"
-            description="Group cards by theme."
-            done={createdCollection}
-            onClick={collectionDrawer.open}
-          />
-
-          <WhatNextTile
-            icon={<TbPlugConnected />}
-            title="Connect two cards"
-            description="Say why two cards belong together."
-            locked={!canConnect}
-            lockedHint="Save 2 cards to connect them."
-            onClick={connectTile.toggle}
-            expanded={canConnect && connectExpanded}
-          >
-            {canConnect && connectExpanded && user?.handle && (
-              <Suspense
-                fallback={
-                  <Center py={'md'}>
-                    <Loader size={'sm'} />
-                  </Center>
-                }
-              >
-                <ConnectTileCards handle={user.handle} />
-              </Suspense>
-            )}
-          </WhatNextTile>
+              {/* Spanning the full row: in a single cell it would stretch its
+                  neighbours to the same height. minWidth: 0 because a grid item
+                  defaults to min-width: auto and the panel holds a row wider
+                  than its column. */}
+              {index === panelAfter && panel && (
+                <Box style={{ gridColumn: '1 / -1', minWidth: 0 }}>{panel}</Box>
+              )}
+            </Fragment>
+          ))}
         </SimpleGrid>
       </Stack>
 
-      <Stack gap={'xs'}>
+      <Stack gap={'sm'}>
         {sectionHeading('Take Semble with you')}
         <InstallOptions onSelect={props.onComplete} />
       </Stack>
 
-      <Stack gap={'xs'}>
-        {sectionHeading('Or go somewhere')}
-        <Group gap={'xs'}>
-          <LinkButton
-            href="/explore"
-            variant="default"
-            radius={'xl'}
-            onClick={props.onComplete}
-          >
-            Explore Semble
-          </LinkButton>
-          <LinkButton
+      <Stack gap={'sm'}>
+        {sectionHeading('Where to next')}
+
+        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+          <OptionTile
             href="/home"
-            variant="default"
-            radius={'xl'}
+            mark={iconMark(<FiHome />)}
+            title="Home"
+            description="Your library and your feed"
             onClick={props.onComplete}
-          >
-            Go home
-          </LinkButton>
-        </Group>
+          />
+          <OptionTile
+            href="/explore"
+            mark={iconMark(<FiCompass />)}
+            title="Explore"
+            description="See what others are saving"
+            onClick={props.onComplete}
+          />
+          {/* No onComplete: the docs open in a new tab, so this is not the way
+              you leave the flow. */}
+          <OptionTile
+            href={DOCS_URL}
+            external
+            mark={iconMark(<FiBookOpen />)}
+            title="Docs"
+            description="How Semble works"
+          />
+        </SimpleGrid>
       </Stack>
 
-      {/* Composer is the drawer itself. ComposerDrawer is the global FAB
+      {/* Composer is the drawer itself — ComposerDrawer is the global FAB
           wrapper and must not be used here.
 
-          The boundary is defence in depth. Composer runs useMyCollections —
-          a suspense query — at the top of its body, not inside its Drawer, so
-          it suspends even while closed. app/onboarding/page.tsx prefetches
-          that key, but without a local boundary any future un-prefetched
-          suspense query in this subtree would suspend to the page-level
-          boundary and blank the entire screen. Degrade to a missing drawer
-          instead. */}
+          The boundary is defence in depth: Composer runs useMyCollections at
+          the top of its body rather than inside its Drawer, so it suspends even
+          while closed. Without a local boundary any un-prefetched suspense
+          query in this subtree would blank the whole screen. */}
       <Suspense fallback={null}>
         <Composer
           isOpen={composerOpen}

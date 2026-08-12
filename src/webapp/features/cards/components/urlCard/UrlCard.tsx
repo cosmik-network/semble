@@ -37,6 +37,7 @@ interface Props {
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
   connectTooltipOpen?: boolean;
+  saveTooltipOpen?: boolean;
 }
 
 export default function UrlCard(props: Props) {
@@ -188,6 +189,7 @@ export default function UrlCard(props: Props) {
             isPinnedInCollection={props.isPinnedInCollection}
             onTogglePinInCollection={props.onTogglePinInCollection}
             connectTooltipOpen={props.connectTooltipOpen}
+            saveTooltipOpen={props.saveTooltipOpen}
           />
         </Stack>
       </Stack>

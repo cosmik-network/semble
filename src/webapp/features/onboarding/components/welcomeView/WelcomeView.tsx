@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   Avatar,
   BackgroundImage,
@@ -7,16 +8,19 @@ import {
   Center,
   Group,
   Image,
-  Paper,
   Stack,
   Text,
   ThemeIcon,
   Title,
 } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import { FaRegNoteSticky } from 'react-icons/fa6';
-import { MdOutlinePeopleAlt, MdOutlineTag } from 'react-icons/md';
-import type { IconType } from 'react-icons/lib';
+import {
+  IoAlbums,
+  IoCompass,
+  IoHelpCircle,
+  IoPeople,
+  IoPricetag,
+} from 'react-icons/io5';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.webp';
 import SembleLogo from '@/assets/semble-logo-full.svg';
@@ -24,61 +28,80 @@ import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
 import { sanitizeText } from '@/lib/utils/text';
 
-/**
- * What the flow will ask for, in the user's terms rather than the stepper's.
- * Deliberately not derived from STEPS: those labels name tabs ("Topics"), and
- * this list has to read as a promise ("Pick a few topics"). Three, not four —
- * stage 4 is the payoff, not a task.
- */
-const STAGES: { icon: IconType; title: string; description: string }[] = [
-  {
-    icon: MdOutlineTag,
-    title: 'Pick a few topics',
-    description: 'So we know what to look for.',
-  },
-  {
-    icon: FaRegNoteSticky,
-    title: 'Say what interests you',
-    description: 'A few cards is enough to go on.',
-  },
-  {
-    icon: MdOutlinePeopleAlt,
-    title: 'Find people to follow',
-    description: 'Curators and collections worth watching.',
-  },
+// Not derived from STEPS: those labels name tabs ("Topics"), these read as
+// promises. All five icons from Ionicons' filled set — a stroke glyph among
+// them reads as a different kind of item.
+const STAGES: { icon: ReactNode; title: string }[] = [
+  { icon: <IoHelpCircle />, title: 'Answer two quick questions' },
+  { icon: <IoPricetag />, title: 'Pick a few topics' },
+  { icon: <IoAlbums />, title: 'Find interesting content' },
+  { icon: <IoPeople />, title: 'Connect with others' },
+  { icon: <IoCompass />, title: 'Explore the rest of the app' },
 ];
 
+// The same three destinations Settings → Help lists, at the same URLs.
+const DOCS_URL = 'https://docs.cosmik.network/semble';
+const DISCORD_URL = 'https://discord.gg/SHvvysb73e';
+const FEEDBACK_URL = 'https://tangled.org/@cosmik.network/semble/issues';
+
+const HELP_LINK_PROPS = {
+  target: '_blank',
+  rel: 'noopener noreferrer',
+  fz: 'sm',
+  fw: 600,
+  underline: 'never',
+  // Not Anchor's default, which is the theme's tangerine — the same accent as
+  // "Get started" a line above.
+  c: 'blue',
+} as const;
+
+const ARTWORK_MASK =
+  'linear-gradient(to bottom, black 0%, black 15%, transparent 45%)';
+
+// The `-webkit-` prefix is still needed for older Safari.
+const ARTWORK_FADE = {
+  maskImage: ARTWORK_MASK,
+  WebkitMaskImage: ARTWORK_MASK,
+};
+
 interface Props {
-  /** Records that the flow has been entered, before the browser follows. */
   onStart: () => void;
 }
 
 export default function WelcomeView(props: Props) {
   // useMyProfileStats, not useMyProfile: the latter is a suspense query on a
   // key this route does not prefetch, so it would drop the whole screen behind
-  // loading.tsx. This one reads the key page.tsx already hydrates, so the name
-  // and avatar are there on the first render — no pop-in, no greeting that
-  // changes under the reader.
+  // loading.tsx.
   const { data: profile } = useMyProfileStats();
 
-  // Just the first word: "Welcome, Alice Smith" reads like a form letter.
   const firstName = profile?.name
     ? sanitizeText(profile.name).trim().split(/\s+/)[0]
     : undefined;
 
   return (
     <Box component="main" pos="relative" h={'100svh'} w={'100%'}>
-      {/* Same artwork as the landing page, so arriving here from it feels like
-          the same place. Two elements rather than one swapped src: a hidden
-          element's background is never fetched, so the inactive scheme costs
-          nothing. */}
-      <BackgroundImage src={BG.src} darkHidden pos={'absolute'} h={'100%'} />
+      {/* Two elements rather than one swapped src: a hidden element's
+          background is never fetched, so the inactive scheme costs nothing. */}
+      <BackgroundImage
+        src={BG.src}
+        darkHidden
+        pos={'absolute'}
+        h={'100%'}
+        style={ARTWORK_FADE}
+      />
       <BackgroundImage
         src={DarkBG.src}
         lightHidden
         pos={'absolute'}
         h={'100%'}
+        style={ARTWORK_FADE}
       />
+
+      {/* `md` on all four sides, matching the Group in OnboardingHeader, so the
+          mark holds its position when you cross into step 1. */}
+      <Box pos={'absolute'} top={0} left={0} p={'md'} style={{ zIndex: 2 }}>
+        <Image src={SembleLogo.src} alt="Semble logo" h={28} w={'auto'} />
+      </Box>
 
       <Center
         pos="relative"
@@ -86,106 +109,86 @@ export default function WelcomeView(props: Props) {
         p={'md'}
         style={{ zIndex: 1, overflowY: 'auto' }}
       >
-        <Stack gap={'lg'} align="center" w={'100%'} maw={440}>
-          {/* Above the card, not inside it — the same place the auth layouts
-              put it. Stacked directly over the avatar it read as two competing
-              images; out here it is unambiguously the brand and the avatar is
-              unambiguously the hero.
+        {/* fit-content, not 100%: the column is centred in the page, so hugging
+            its widest line is what centres the box you can actually see. Below
+            `maw` it resolves to the space available. */}
+        <Stack
+          gap={'xl'}
+          align="flex-start"
+          w={'fit-content'}
+          maw={400}
+          py={'xl'}
+        >
+          <Group gap={'sm'} w={'100%'}>
+            <Avatar
+              src={profile?.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+              alt={`${profile?.name || profile?.handle}'s avatar`}
+              size={'lg'}
+              radius={'md'}
+            />
 
-              The full mark-and-wordmark lockup, unlike the header's bare mark:
-              this is the first screen of the app and the only thing naming it,
-              now that the greeting reads just "Welcome". Sized by height so it
-              keeps its aspect ratio. */}
-          <Image src={SembleLogo.src} alt="Semble logo" h={28} w={'auto'} />
+            <Title order={1} fz={'h2'}>
+              {firstName ? `Welcome, ${firstName}` : 'Welcome'}
+            </Title>
+          </Group>
 
-          {/* Solid, not frosted: the card is the thing being read, and the
-              artwork behind it is the frame. Paper's default background is
-              var(--mantine-color-body) — white in light mode, the dark surface
-              in dark — so this needs no custom colour at all. */}
-          <Paper
-            radius={'lg'}
-            p={{ base: 'lg', xs: 'xl' }}
-            w={'100%'}
-            shadow="md"
-            withBorder
-          >
-            <Stack gap={'xl'} align="center">
-              <Stack gap={'xs'} align="center">
-                {/* The user is the hero of this screen, so their face is the
-                  large image. Thumbnail variant, as everywhere else that
-                  renders an avatar at this size. Decorative — the greeting
-                  below already names them.
-
-                  50%, not radius="xl": the theme sets Avatar's default radius
-                  to md, and xl is still a rounded square at this size. */}
-                <Avatar
-                  src={profile?.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt=""
-                  size={72}
-                  radius={'50%'}
-                />
-
-                {/* No subtitle: the three stages listed below already say what
-                  the flow does, and any line here only restated them.
-
-                  Bare "Welcome" without a name — not "Welcome to Semble". The
-                  brand mark sits right above the card, so naming it again here
-                  is a stutter. */}
-                <Title order={1} fz={'1.75rem'} ta={'center'}>
-                  {firstName ? `Welcome, ${firstName}` : 'Welcome'}
-                </Title>
-              </Stack>
-
-              <Stack gap={'md'} w={'100%'}>
-                {STAGES.map((stage) => (
-                  <Group key={stage.title} gap={'sm'} wrap="nowrap">
-                    <ThemeIcon
-                      variant="light"
-                      color="gray"
-                      size={'lg'}
-                      radius={'xl'}
-                    >
-                      <stage.icon size={18} />
-                    </ThemeIcon>
-
-                    <Stack gap={0} miw={0}>
-                      <Text fw={600} c={'bright'} fz={'sm'}>
-                        {stage.title}
-                      </Text>
-                      <Text c={'dimmed'} fz={'sm'}>
-                        {stage.description}
-                      </Text>
-                    </Stack>
-                  </Group>
-                ))}
-              </Stack>
-
-              <Stack gap={'xs'} align="center" w={'100%'}>
-                {/* A real anchor to stage 1 — nothing to do first, so it
-                  prefetches and middle-clicks. onStart only records that the
-                  flow has begun. */}
-                <LinkButton
-                  href="/onboarding?step=1"
-                  size="md"
-                  w={'100%'}
-                  rightSection={<BiRightArrowAlt size={18} />}
-                  onClick={props.onStart}
+          <Stack gap={'sm'} w={'100%'}>
+            {STAGES.map((stage) => (
+              <Group key={stage.title} gap={'sm'} wrap="nowrap" align="center">
+                <ThemeIcon
+                  variant="light"
+                  color="gray"
+                  size={'lg'}
+                  radius={'xl'}
                 >
-                  Get started
-                </LinkButton>
+                  {stage.icon}
+                </ThemeIcon>
 
-                {/* Deliberately does not dismiss: "Not now" means later, so the
-                  home banner has to still be there to come back to. Dismissing
-                  is what the banner's own close button is for. */}
-                <LinkAnchor href="/home" fz={'sm'} c={'dimmed'}>
-                  Not now
-                </LinkAnchor>
-              </Stack>
-            </Stack>
-          </Paper>
+                <Text fw={600} c={'bright'}>
+                  {stage.title}
+                </Text>
+              </Group>
+            ))}
+          </Stack>
+
+          <Stack gap={'sm'}>
+            <Group gap={'xs'} wrap="nowrap">
+              {/* A real anchor, so it prefetches and middle-clicks. onStart
+                  only records that the flow has begun. */}
+              <LinkButton
+                href="/onboarding?step=1"
+                size="md"
+                rightSection={<BiRightArrowAlt size={18} />}
+                onClick={props.onStart}
+              >
+                Get started
+              </LinkButton>
+
+              {/* Deliberately does not dismiss — "Not now" means later, so the
+                  home banner has to still be there to come back to. */}
+              <LinkButton href="/home" size="md" variant="light" color="gray">
+                Not now
+              </LinkButton>
+            </Group>
+
+            {/* One sentence written out rather than three labels mapped with
+                separators between them: the punctuation differs per position. */}
+            <Text fz={'sm'} c={'dimmed'}>
+              Questions?{' '}
+              <LinkAnchor href={DOCS_URL} {...HELP_LINK_PROPS}>
+                Read the docs
+              </LinkAnchor>
+              ,{' '}
+              <LinkAnchor href={DISCORD_URL} {...HELP_LINK_PROPS}>
+                join the Discord
+              </LinkAnchor>
+              , or{' '}
+              <LinkAnchor href={FEEDBACK_URL} {...HELP_LINK_PROPS}>
+                give feedback
+              </LinkAnchor>
+              .
+            </Text>
+          </Stack>
         </Stack>
       </Center>
     </Box>

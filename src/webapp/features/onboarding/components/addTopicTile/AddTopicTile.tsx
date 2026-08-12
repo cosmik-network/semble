@@ -35,41 +35,33 @@ export default function AddTopicTile(props: Props) {
 
   return (
     <>
-      {/*
-        The same shape and interaction styles as a topic tile, so it sits in
-        the grid as a peer rather than an intruder. Written out rather than
-        reusing TopicTile because this opens a dialog rather than toggling a
-        topic, so it has no aria-pressed and no selected state to carry.
-      */}
+      {/* Written out rather than reusing TopicTile: this opens a dialog rather
+          than toggling a topic, so it carries no aria-pressed and no selected
+          state. */}
       <Card
         component="button"
         type="button"
         aria-haspopup="dialog"
         aria-expanded={opened}
         onClick={handlers.open}
-        radius={'lg'}
-        padding={'md'}
-        // Must track TopicTile's mih, or the first cell is a different
-        // height to every other one.
-        mih={120}
-        ta="center"
+        // Radius, padding and inner metrics must all track TopicTile's, or
+        // this sits in the row at a different height to its neighbours.
+        radius={'xl'}
+        padding={0}
         className={tileStyles.tile}
         withBorder
-        // The one thing that sets it apart: no fill, where every topic tile
-        // sits on the body colour. Same border, same shape, same icon — it
-        // just recedes a step.
         bg="transparent"
       >
-        <Stack gap={'sm'} align="center" justify="center" flex={1}>
-          <ThemeIcon variant="light" color="gray" size={'lg'} radius={'xl'}>
-            <TbPlus size={18} />
+        <Group gap={8} wrap="nowrap" px={10} py={6}>
+          <ThemeIcon variant="light" color="gray" size={24} radius={'xl'}>
+            <TbPlus size={14} />
           </ThemeIcon>
 
           {/* A span, not Text's default <p> — this sits inside a <button>. */}
           <Text component="span" fz={'sm'} fw={600} c={'bright'} lh={1.2}>
             Add your own
           </Text>
-        </Stack>
+        </Group>
       </Card>
 
       <Modal
@@ -78,8 +70,6 @@ export default function AddTopicTile(props: Props) {
         centered
         size="sm"
         title="Add your own topic"
-        // The app's shared blurred, tinted overlay — every other modal in the
-        // webapp uses it, so this one should not invent its own.
         overlayProps={DEFAULT_OVERLAY_PROPS}
       >
         {/* A real form, so Enter submits natively and the button is a submit
@@ -96,12 +86,8 @@ export default function AddTopicTile(props: Props) {
               // Mantine moves focus here on open and back to the tile on
               // close, which is what saves this from needing an effect.
               data-autofocus
-              // "Topic", not "Add your own topic" — the dialog title already
-              // says that, and repeating it reads as a stutter.
               label="Topic"
               placeholder="mycology, urban planning"
-              // The webapp's modal-form field style — EditCollectionModal,
-              // ReportCardModal and NoteCardModal all use filled at size md.
               variant="filled"
               size="md"
               description={props.description}
@@ -111,9 +97,6 @@ export default function AddTopicTile(props: Props) {
               }
             />
 
-            {/* The webapp's modal footer pattern — see SubscribeModal and
-                AddCardToModal: Cancel stays at its natural width, the
-                confirming action takes the rest of the row. */}
             <Group gap={'xs'} wrap="nowrap">
               <Button
                 variant="light"
@@ -123,9 +106,6 @@ export default function AddTopicTile(props: Props) {
               >
                 Cancel
               </Button>
-              {/* Adding is a no-op only when the typed topic is already
-                  picked. A match that isn't picked yet stays actionable —
-                  submitting selects the existing tile. */}
               <Button
                 type="submit"
                 size="md"

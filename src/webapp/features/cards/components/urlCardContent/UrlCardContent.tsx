@@ -19,6 +19,8 @@ interface Props {
   uri?: string;
   cardContent: UrlCard['cardContent'];
   authorHandle?: string;
+  /** Passed through to LinkCardContent — see its docs. */
+  staticDomain?: boolean;
 }
 
 export default function UrlCardContent(props: Props) {
@@ -32,6 +34,7 @@ export default function UrlCardContent(props: Props) {
           cardContent={props.cardContent}
           uri={props.uri}
           authorHandle={props.authorHandle}
+          staticDomain={props.staticDomain}
         />
       );
     }
@@ -42,6 +45,7 @@ export default function UrlCardContent(props: Props) {
             cardContent={props.cardContent}
             uri={props.uri}
             authorHandle={props.authorHandle}
+            staticDomain={props.staticDomain}
           />
         }
       >
@@ -62,6 +66,7 @@ export default function UrlCardContent(props: Props) {
           cardContent={props.cardContent}
           uri={props.uri}
           authorHandle={props.authorHandle}
+          staticDomain={props.staticDomain}
         />
       );
     }
@@ -72,6 +77,7 @@ export default function UrlCardContent(props: Props) {
             cardContent={props.cardContent}
             uri={props.uri}
             authorHandle={props.authorHandle}
+            staticDomain={props.staticDomain}
           />
         }
       >
@@ -93,6 +99,7 @@ export default function UrlCardContent(props: Props) {
             cardContent={props.cardContent}
             uri={props.uri}
             authorHandle={props.authorHandle}
+            staticDomain={props.staticDomain}
           />
         }
       >
@@ -104,6 +111,7 @@ export default function UrlCardContent(props: Props) {
                 cardContent={props.cardContent}
                 uri={props.uri}
                 authorHandle={props.authorHandle}
+                staticDomain={props.staticDomain}
               />
             }
           />
@@ -189,6 +197,7 @@ export default function UrlCardContent(props: Props) {
       cardContent={props.cardContent}
       uri={props.uri}
       authorHandle={props.authorHandle}
+      staticDomain={props.staticDomain}
     />
   );
 }

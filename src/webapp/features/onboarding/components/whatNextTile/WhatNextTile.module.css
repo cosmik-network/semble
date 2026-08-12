@@ -1,0 +1,58 @@
+/* Unfilled, so the only background on this screen is a hover. The clip is what
+   keeps that hover inside the radius — Paper rounds its corners but does not
+   cut anything to them. */
+.card {
+  background-color: transparent;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+/* Says which tile the panel underneath came out of. */
+.card[data-expanded] {
+  border-color: light-dark(
+    var(--mantine-color-gray-5),
+    var(--mantine-color-dark-3)
+  );
+}
+
+.row {
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    opacity 150ms ease;
+}
+
+/* Done, but still here and still clickable. */
+.row[data-done] {
+  opacity: 0.65;
+}
+
+/* Only where a pointer can hover — otherwise a tap leaves the row stuck in its
+   hover state until you tap elsewhere. */
+@media (hover: hover) {
+  .row:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-2),
+      var(--mantine-color-dark-5)
+    );
+  }
+
+  .row[data-done]:hover {
+    opacity: 1;
+  }
+}
+
+.affordance {
+  transition: transform 200ms ease;
+}
+
+.affordance[data-expanded] {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .affordance {
+    transition: none;
+  }
+}

@@ -1,8 +1,3 @@
-/* The only hand-written CSS this screen needs. Deliberately minimal: a border
-   that warms on hover, and nothing that moves. An earlier version lifted the
-   tile and scaled it on press, which made a grid of sixteen targets feel
-   restless. */
-
 .tile {
   cursor: pointer;
   transition:
@@ -10,11 +5,10 @@
     border-color 150ms ease;
 }
 
-/* Only when a pointer can actually hover — otherwise a tap on a touch screen
-   leaves the border stuck in its hover state until you tap elsewhere. */
+/* Only where a pointer can hover — otherwise a tap on a touch screen leaves the
+   border stuck in its hover state until you tap elsewhere. A picked tile sets
+   its border inline, which beats this. */
 @media (hover: hover) {
-  /* A picked tile sets its border inline, which beats this, so its accent is
-     never overridden — the cue is only for tiles you have not chosen yet. */
   .tile:hover {
     border-color: light-dark(
       var(--mantine-color-gray-5),

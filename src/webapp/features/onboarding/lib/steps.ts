@@ -1,10 +1,9 @@
-export type StepId = 'topics' | 'cards' | 'follow' | 'next';
+export type StepId = 'about' | 'topics' | 'cards' | 'follow' | 'next';
 
 // Order is meaningful: index + 1 is the ?step= value and the stepper position.
 export const STEPS: ReadonlyArray<{ id: StepId; label: string }> = [
+  { id: 'about', label: 'About you' },
   { id: 'topics', label: 'Topics' },
-  // "Cards", not "Save cards" — the stage picks cards to tune stage 3's
-  // suggestions, it does not add anything to the library.
   { id: 'cards', label: 'Cards' },
   { id: 'follow', label: 'Follow' },
   { id: 'next', label: 'What next' },
@@ -16,16 +15,13 @@ export const TOTAL_STEPS = STEPS.length;
  * Resolves ?step= to a renderable 1-based stage number. Pure range validation,
  * and deliberately nothing else.
  *
- * It does NOT gate stages 2 and 3 on having topics. Progress is read from
- * localStorage just after mount, so a topic-aware clamp would render stage 1
- * for one frame on every deep-linked resume, then jump — a visible flicker on
- * the most common entry path. Stages 2 and 3 instead handle empty topics
- * themselves: their queries are already `enabled: queries.length > 0`, and
- * their empty states tell you to go back and add topics. Someone who asks for
- * stage 3 gets stage 3.
+ * It does NOT gate stages 2 and 3 on having topics: progress is read from
+ * localStorage after mount, so a topic-aware clamp would render stage 1 for one
+ * frame on every deep-linked resume, then jump. Those stages handle empty
+ * topics themselves.
  *
- * Never rewrites the URL. Clamping only decides what renders, so it can't
- * fight the router by navigating during a render.
+ * Never rewrites the URL, so it cannot fight the router by navigating during a
+ * render.
  */
 export function clampStep(raw: string | null): number {
   const parsed = Number(raw);

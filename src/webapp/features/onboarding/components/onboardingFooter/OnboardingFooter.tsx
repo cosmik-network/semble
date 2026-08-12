@@ -1,94 +1,97 @@
 'use client';
 
-import { Button, Group } from '@mantine/core';
-import { IoArrowBack } from 'react-icons/io5';
-import { LinkActionIcon } from '@/components/link/MantineLink';
+import { Box, Button, Container, Group } from '@mantine/core';
+import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { LinkButton } from '@/components/link/MantineLink';
+import { CONTENT_SIZE } from '../onboardingScreen/OnboardingScreen';
 
 interface Props {
-  /** Href of the previous stage. Omitted on stage 1. */
+  /** Href of the previous screen — the welcome screen on stage 1. */
   backHref?: string;
-  /** Records the stage before the browser follows backHref. */
+  /** Records the stage before the browser follows backHref, where there is one. */
   onBack?: () => void;
   onSkip?: () => void;
   onContinue?: () => void;
+  /** Makes the forward control an anchor out of the flow. `onContinue` still
+   * runs on the click, for whatever has to be recorded first. */
+  continueHref?: string;
   continueLabel?: string;
   continueDisabled?: boolean;
 }
 
 export default function OnboardingFooter(props: Props) {
   return (
-    // A pill floating clear of the bottom edge rather than a full-width bar.
-    // Sized by its contents and centred, so it reads as a small set of
-    // controls travelling with you rather than page chrome — which is why
-    // there is no longer a spacer where Back is absent, and no space-between
-    // stretching two buttons apart.
-    //
-    // Absolute against OnboardingScreen's relative shell, not fixed: it should
-    // belong to this screen, not to the viewport.
-    <Group
+    <Box
       component="footer"
-      pos="absolute"
-      // Keep in step with OnboardingScreen's bottom padding, which reserves
-      // room for this pill plus this gap.
-      bottom={12}
-      left={'50%'}
-      px={'xs'}
-      py={'xs'}
-      gap={'xs'}
-      wrap="nowrap"
+      // Not `default-border`: this rule sits under a full page of content and
+      // should read as the edge of the surface, not as a divider.
       style={{
-        transform: 'translateX(-50%)',
-        zIndex: 2,
-        borderRadius: 'var(--mantine-radius-xl)',
-        border: '1px solid var(--mantine-color-default-border)',
-        // Translucent and blurred, so content scrolling underneath reads as
-        // passing behind it rather than being cut off.
-        backgroundColor:
-          'light-dark(rgba(255, 255, 255, 0.82), rgba(28, 25, 23, 0.82))',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: 'var(--mantine-shadow-md)',
+        borderTop:
+          '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6))',
+        backgroundColor: 'var(--mantine-color-body)',
       }}
     >
-      {props.backHref && (
-        // The app's back affordance — same IoArrowBack, size and shape as
-        // components/navigation/backButton. Still an anchor to the previous
-        // stage rather than router.back(), so it prefetches and middle-clicks;
-        // and icon-only, so it needs the label spelled out for screen readers.
-        <LinkActionIcon
-          href={props.backHref}
-          aria-label="Go back"
-          variant="light"
-          color="gray"
-          size="lg"
-          radius={'xl'}
-          onClick={props.onBack}
-        >
-          <IoArrowBack />
-        </LinkActionIcon>
-      )}
+      {/* The same Container size the stages render in, so Back and Continue
+          land on the content's own left and right edges at every width. */}
+      <Container size={CONTENT_SIZE} py={'sm'}>
+        <Group justify="space-between" gap={'sm'} wrap="nowrap">
+          {/* An anchor rather than router.back(), so it prefetches and
+              middle-clicks. The empty span holds the row when there is nowhere
+              to go back to. */}
+          {props.backHref ? (
+            <LinkButton
+              href={props.backHref}
+              variant="light"
+              color="gray"
+              radius={'xl'}
+              leftSection={<IoArrowBack />}
+              onClick={props.onBack}
+            >
+              Back
+            </LinkButton>
+          ) : (
+            <span />
+          )}
 
-      {props.onSkip && (
-        <Button
-          variant="light"
-          color="gray"
-          radius={'xl'}
-          onClick={props.onSkip}
-        >
-          Skip
-        </Button>
-      )}
+          <Group gap={'xs'} wrap="nowrap">
+            {props.onSkip && (
+              <Button
+                variant="subtle"
+                color="gray"
+                radius={'xl'}
+                onClick={props.onSkip}
+              >
+                Skip
+              </Button>
+            )}
 
-      {props.onContinue && (
-        <Button
-          color="dark"
-          radius={'xl'}
-          onClick={props.onContinue}
-          disabled={props.continueDisabled}
-        >
-          {props.continueLabel ?? 'Continue'}
-        </Button>
-      )}
-    </Group>
+            {/* An anchor when it leaves the flow, for the same reason Back is
+                one. Within the flow the stage has work to do first — apply the
+                picks, seed the next query — so those stay buttons. */}
+            {props.continueHref ? (
+              <LinkButton
+                href={props.continueHref}
+                radius={'xl'}
+                rightSection={<IoArrowForward />}
+                onClick={props.onContinue}
+              >
+                {props.continueLabel ?? 'Continue'}
+              </LinkButton>
+            ) : (
+              props.onContinue && (
+                <Button
+                  radius={'xl'}
+                  rightSection={<IoArrowForward />}
+                  onClick={props.onContinue}
+                  disabled={props.continueDisabled}
+                >
+                  {props.continueLabel ?? 'Continue'}
+                </Button>
+              )
+            )}
+          </Group>
+        </Group>
+      </Container>
+    </Box>
   );
 }

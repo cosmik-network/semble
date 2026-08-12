@@ -1,0 +1,21 @@
+.tile {
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 150ms ease;
+
+  /* The extension tile is a <button>; every other tile is an <a>. Mantine's
+     reset gives buttons only `font` and `text-transform`, so without this the
+     browser's own button styling shows through on that one card. */
+  appearance: none;
+}
+
+/* Only where a pointer can hover — otherwise a tap leaves the tile stuck in its
+   hover state until you tap elsewhere. */
+@media (hover: hover) {
+  .tile:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-6)
+    );
+  }
+}

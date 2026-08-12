@@ -23,11 +23,8 @@ export interface Topic {
    * stops their stored pick from matching its preset.
    */
   query: string;
-  /**
-   * What the user reads. The full topic, never abbreviated — it differs from
-   * `query` only in casing, and exists so display casing can change without
-   * touching the frozen search string.
-   */
+  /** What the user reads, so display casing can change without touching the
+   * frozen search string above. */
   label: string;
 }
 
