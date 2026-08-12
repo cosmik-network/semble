@@ -1,66 +1,34 @@
-import {
-  AspectRatio,
-  Card,
-  Center,
-  Group,
-  Text,
-  Image,
-  Box,
-  Stack,
-} from '@mantine/core';
+import { Box, Card, Center, Group } from '@mantine/core';
 import { useScroller } from '@mantine/hooks';
 import { BiWorld } from 'react-icons/bi';
-import { getDomain } from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
-import { useState } from 'react';
 import { UrlCard } from '@semble/types';
+import ThumbnailPreviewCard, {
+  THUMBNAIL_CARD_WIDTH,
+} from '@/components/contentDisplay/thumbnailPreviewCard/ThumbnailPreviewCard';
 
 interface Props {
   rkey: string;
   handle: string;
 }
 
-const CARD_WIDTH = 110;
-
 function PreviewCard(props: { card: UrlCard }) {
-  const [imageError, setImageError] = useState(false);
   const cardContent = props.card.cardContent;
-  const domain = getDomain(cardContent.url);
-  const hasImage = cardContent.imageUrl && !imageError;
 
   return (
-    <Box w={CARD_WIDTH} miw={CARD_WIDTH}>
-      <AspectRatio ratio={16 / 9}>
-        {hasImage ? (
-          <Card p={0} radius={'md'} withBorder>
-            <Image
-              src={cardContent.imageUrl}
-              alt={`${cardContent.url} social preview image`}
-              w={'100%'}
-              h={'100%'}
-              fit="cover"
-              draggable={false}
-              onError={() => setImageError(true)}
-            />
-          </Card>
-        ) : (
-          <Card p={'xs'} radius={'md'} withBorder>
-            <Center my={'auto'}>
+    <Box w={THUMBNAIL_CARD_WIDTH} miw={THUMBNAIL_CARD_WIDTH}>
+      <ThumbnailPreviewCard
+        imageUrl={cardContent.imageUrl}
+        title={cardContent.title}
+        url={cardContent.url}
+        fallback={
+          <Card p="xs" radius="md" withBorder>
+            <Center my="auto">
               <BiWorld size={24} color="var(--mantine-color-dimmed)" />
             </Center>
           </Card>
-        )}
-      </AspectRatio>
-      <Stack gap={0} mt={6}>
-        <Text c={'gray'} fz={11} lineClamp={1}>
-          {domain}
-        </Text>
-        {cardContent.title && (
-          <Text c={'bright'} fz={12} fw={500} lineClamp={2}>
-            {cardContent.title}
-          </Text>
-        )}
-      </Stack>
+        }
+      />
     </Box>
   );
 }
