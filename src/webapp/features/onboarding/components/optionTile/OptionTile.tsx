@@ -10,10 +10,6 @@ export const EXTERNAL_LINK_PROPS = {
   rel: 'noopener noreferrer',
 } as const;
 
-/**
- * A props object rather than something baked into the component below, for the
- * extension tile — it is a Menu.Target, not a link.
- */
 export const OPTION_TILE_PROPS = {
   withBorder: true,
   radius: 'lg',
@@ -24,17 +20,12 @@ export const OPTION_TILE_PROPS = {
 
 const MARK_SIZE = 24;
 
-/** `alt=""`: the title beside it already names the thing. */
 export function brandMark(src: string, size = MARK_SIZE) {
   return <Image src={src} alt="" w={size} h={size} fit="contain" />;
 }
 
 const MARK_COLOR = 'green.6';
 
-/**
- * Nothing is passed down to the icon itself: react-icons default to `1em` and
- * `currentColor`, so the size and colour set here reach any of them.
- */
 export function iconMark(icon: ReactNode) {
   return (
     <Box c={MARK_COLOR} fz={MARK_SIZE} lh={1} display="flex">
@@ -49,12 +40,9 @@ interface BodyProps {
   description: string;
 }
 
-/** The inside of a tile on its own, for the extension card's menu trigger. */
 export function OptionTileBody(props: BodyProps) {
   return (
     <Group wrap="nowrap" align="center" gap={'sm'}>
-      {/* Group would otherwise let a fixed-size mark shrink to fit a long
-          title. */}
       <Box style={{ flex: '0 0 auto' }}>{props.mark}</Box>
 
       <Stack gap={2} miw={0}>
@@ -71,7 +59,6 @@ export function OptionTileBody(props: BodyProps) {
 
 interface Props extends BodyProps {
   href: string;
-  /** Anything that lives outside the app: stores, docs. Opens in a new tab. */
   external?: boolean;
   onClick?: () => void;
 }

@@ -18,10 +18,8 @@ import tileStyles from '../topicTile/TopicTile.module.css';
 interface Props {
   value: string;
   onChangeValue: (value: string) => void;
-  /** Adds the typed topic, or selects the existing tile it matches. */
   onSubmit: () => void;
   submitDisabled: boolean;
-  /** Explains a match against a topic that already exists. */
   description?: string;
 }
 
@@ -35,17 +33,12 @@ export default function AddTopicTile(props: Props) {
 
   return (
     <>
-      {/* Written out rather than reusing TopicTile: this opens a dialog rather
-          than toggling a topic, so it carries no aria-pressed and no selected
-          state. */}
       <Card
         component="button"
         type="button"
         aria-haspopup="dialog"
         aria-expanded={opened}
         onClick={handlers.open}
-        // Radius, padding and inner metrics must all track TopicTile's, or
-        // this sits in the row at a different height to its neighbours.
         radius={'xl'}
         padding={0}
         className={tileStyles.tile}

@@ -15,11 +15,9 @@ import {
 interface Props {
   topics: string[];
   onChangeTopics: (topics: string[]) => void;
-  /** False until stored progress has been read — see useOnboardingProgress. */
   progressLoaded: boolean;
 }
 
-/** Comparison form only. Never stored and never displayed. */
 function normalize(topic: string): string {
   return topic.trim().toLowerCase();
 }
@@ -38,7 +36,6 @@ function dedupe(topics: string[]): string[] {
 
 const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalize));
 
-/** A target, not a requirement — Continue only asks for one topic. */
 const TOPIC_GOAL = 2;
 
 export default function TopicsStep(props: Props) {
@@ -91,8 +88,6 @@ export default function TopicsStep(props: Props) {
   const handleAddTopic = () => {
     if (!trimmedInput) return;
 
-    // Re-use the existing entry rather than creating a near-duplicate, so
-    // typing "ai" selects the preset "AI" instead of spawning a second tile.
     if (existingTopic) {
       if (!isAlreadySelected) {
         props.onChangeTopics([...props.topics, existingTopic]);
@@ -125,8 +120,6 @@ export default function TopicsStep(props: Props) {
         : `${pickedCount} of ${TOPIC_GOAL} picked`;
 
   return (
-    // No measure of its own: OnboardingScreen's Container sets one width for
-    // every stage, and clamping inside that shifts the heading's x.
     <Stack gap={'xl'} w={'100%'}>
       <Stack gap={'xs'}>
         <StepHeading
@@ -134,9 +127,6 @@ export default function TopicsStep(props: Props) {
           description="We use them to suggest cards, people and collections."
         />
 
-        {/* The fixed height reserves the row, so the meter can render nothing
-            until stored progress has been read rather than flashing "Pick 2" at
-            someone who already picked five. */}
         <Group h={26} gap={'sm'} wrap="nowrap">
           {props.progressLoaded && (
             <>
@@ -161,15 +151,11 @@ export default function TopicsStep(props: Props) {
         </Group>
       </Stack>
 
-      {/* A wrapping row, not a grid: every tile is as wide as its own label. */}
       <Group role="group" aria-label="Topics" gap={'xs'}>
-        {/* First, not last: the one tile whose position should not move as
-            custom topics accumulate. */}
         <AddTopicTile
           value={newTopic}
           onChangeValue={setNewTopic}
           onSubmit={handleAddTopic}
-          // A match that isn't picked yet stays actionable.
           submitDisabled={!trimmedInput || isAlreadySelected}
           description={inputDescription}
         />

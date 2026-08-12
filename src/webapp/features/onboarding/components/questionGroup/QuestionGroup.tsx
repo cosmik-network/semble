@@ -8,9 +8,7 @@ const OTHER_MEASURE = 420;
 
 interface Props {
   question: Question;
-  /** Option ids currently picked. One at most on a single-choice question. */
   selected: string[];
-  /** Free text for the `other` option. Meaningless unless it is picked. */
   otherText: string;
   /**
    * Both values at once, because they change together: dropping `other` has to
@@ -20,8 +18,6 @@ interface Props {
 }
 
 export default function QuestionGroup(props: Props) {
-  // Unticking or moving off "Other" throws its answer away rather than parking
-  // it where it would be sent alongside an option nobody chose.
   const commit = (selected: string[]) => {
     props.onChange({
       selected,

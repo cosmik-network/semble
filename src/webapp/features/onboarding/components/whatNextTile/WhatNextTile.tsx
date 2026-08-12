@@ -15,14 +15,11 @@ import styles from './WhatNextTile.module.css';
 
 interface Props {
   icon: React.ReactNode;
-  /** Accent for this task's icon, so the three rows are told apart at a glance. */
   color: string;
   title: string;
   description: string;
   done?: boolean;
   onClick: () => void;
-  /** Drives aria-expanded and the chevron. The panel is the caller's to
-   * render: inside the tile it would stretch its neighbours to match. */
   expanded?: boolean;
 }
 
@@ -30,20 +27,11 @@ export default function WhatNextTile(props: Props) {
   const body = (
     <Stack gap={'sm'} w={'100%'} h={'100%'} p={'md'}>
       <Group justify="space-between" wrap="nowrap">
-        <ThemeIcon
-          variant="light"
-          color={props.color}
-          size={38}
-          // 50%, not radius="xl": at 38px `xl` is still visibly a rounded
-          // square, and the disc has to match the round box beside it.
-          radius={'50%'}
-        >
+        <ThemeIcon variant="light" color={props.color} size={38} radius={'50%'}>
           {props.icon}
         </ThemeIcon>
 
         <Group gap={6} wrap="nowrap">
-          {/* A chevron on a tile that just opens a drawer would promise an
-              expansion that never happens. */}
           {props.expanded !== undefined && (
             <ThemeIcon
               variant="transparent"
@@ -84,15 +72,12 @@ export default function WhatNextTile(props: Props) {
   );
 
   return (
-    // The stylesheet's `overflow: hidden` is not optional: Paper sets a radius
-    // without clipping to it, so the row's hover would paint a square corner.
     <Card
       withBorder
       radius={'lg'}
       p={0}
       h={'100%'}
       className={styles.card}
-      // Marks which tile the panel below belongs to.
       mod={{ expanded: props.expanded }}
     >
       {/* The panel this opens renders outside the button — full of UrlCards

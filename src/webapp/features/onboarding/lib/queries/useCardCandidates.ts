@@ -10,11 +10,6 @@ import useRecommendedCards from './useRecommendedCards';
 
 const CANDIDATE_LIMIT = 10;
 
-/**
- * The cards picked at the card stage first, then topic recommendations to fill
- * the row out. Progress is read here rather than passed in — ReturningView
- * renders the same stage outside the flow and has nothing to hand down.
- */
 export default function useCardCandidates() {
   const { progress, isLoaded } = useOnboardingProgress();
 
@@ -28,8 +23,6 @@ export default function useCardCandidates() {
     })),
   });
 
-  // Falling back keeps the row full for anyone who skipped the topic stage,
-  // exactly as the card stage falls back.
   const recommendations = useRecommendedCards({
     queries: progress.topics.length > 0 ? progress.topics : FALLBACK_TOPICS,
     limit: CANDIDATE_LIMIT,
@@ -68,8 +61,6 @@ export default function useCardCandidates() {
 
   return {
     candidates,
-    // Only while there is nothing to show yet: once a single card has arrived
-    // the row renders and the rest fill in behind it.
     isPending:
       candidates.length === 0 &&
       (!isLoaded ||

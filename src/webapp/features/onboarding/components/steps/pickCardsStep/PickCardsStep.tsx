@@ -14,8 +14,6 @@ import type useRecommendedCards from '../../../lib/queries/useRecommendedCards';
 import OnboardingUrlCard from '../../onboardingUrlCard/OnboardingUrlCard';
 import StepHeading from '../../stepHeading/StepHeading';
 
-/** A target, not a requirement — nothing picked still advances, on a fallback
- * set of seeds. */
 const PICK_GOAL = 2;
 
 interface Props {
@@ -23,7 +21,6 @@ interface Props {
   selectedUrls: string[];
   onToggleUrl: (url: string) => void;
   hasTopics: boolean;
-  /** False until stored progress has been read — see useOnboardingProgress. */
   progressLoaded: boolean;
 }
 
@@ -77,7 +74,6 @@ export default function PickCardsStep(props: Props) {
         description="Nothing is saved here. Your picks shape the people and collections we suggest next."
       />
 
-      {/* Only shown once there is something to pick. */}
       {!isPending && !isError && urls.length > 0 && (
         <Group gap={'sm'} wrap="nowrap">
           <Progress

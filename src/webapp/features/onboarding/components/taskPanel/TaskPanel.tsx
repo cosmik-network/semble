@@ -14,19 +14,15 @@ export const PANEL_FILL =
 
 interface Props {
   title: string;
-  /** A node, not a string: the save panel carries a link inside its sentence. */
   subtitle: ReactNode;
-  /** Ranged right against the title. */
   action?: ReactNode;
   children: ReactNode;
 }
 
-/** The shell both task panels open into. */
 export default function TaskPanel(props: Props) {
   return (
     <Card withBorder radius={'lg'} p={'md'} className={styles.panel}>
       <Stack gap={'md'}>
-        {/* Wrapping, so a narrow screen drops the action to its own line. */}
         <Group
           justify="space-between"
           align="flex-start"
@@ -34,7 +30,6 @@ export default function TaskPanel(props: Props) {
           gap={'sm'}
         >
           <Stack gap={2}>
-            {/* order 3 — the section heading above this is order 2. */}
             <Title order={3} fz={'md'} fw={600}>
               {props.title}
             </Title>

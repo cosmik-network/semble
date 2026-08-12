@@ -19,7 +19,6 @@ import {
 } from 'react-icons/tb';
 import type { TopicId } from '../../lib/topics';
 
-/** One accent for every tile. Swap this one value to change the whole grid. */
 export const TOPIC_COLOR = 'tangerine';
 
 /**
@@ -45,5 +44,4 @@ export const TOPIC_ICONS: Record<TopicId, IconType> = {
   nature: TbLeaf,
 };
 
-/** Custom topics have no authored icon, so they all wear the generic tag. */
 export const CUSTOM_TOPIC_ICON = MdOutlineTag;

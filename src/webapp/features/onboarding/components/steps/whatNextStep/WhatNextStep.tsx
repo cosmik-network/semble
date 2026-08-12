@@ -21,7 +21,6 @@ const DOCS_URL = 'https://docs.cosmik.network/semble';
 
 interface Props {
   variant: 'flow' | 'returning';
-  /** Writes status 'completed' before the browser follows an exit link. */
   onComplete: () => void;
 }
 
@@ -32,8 +31,6 @@ export default function WhatNextStep(props: Props) {
   const [composerOpen, composer] = useDisclosure(false);
   const [collectionOpen, collectionDrawer] = useDisclosure(false);
 
-  // One value rather than a disclosure each: two panels open at once would
-  // stack in the grid with nothing saying which tile either belongs to.
   const [openPanel, setOpenPanel] = useState<'save' | 'connect' | null>(null);
 
   const togglePanel = (panel: 'save' | 'connect') =>
@@ -67,7 +64,6 @@ export default function WhatNextStep(props: Props) {
   const tasks = [
     {
       key: 'save',
-      // The glyph on the save button of every UrlCard in the panel it opens.
       icon: <FiPlus />,
       color: 'tangerine',
       title: 'Save a card',
@@ -104,7 +100,6 @@ export default function WhatNextStep(props: Props) {
     </Title>
   );
 
-  // The tile the open panel has to follow: the last one on the same grid row.
   const openIndex = tasks.findIndex((task) => task.key === openPanel);
   const panelAfter =
     openIndex < 0
@@ -114,8 +109,6 @@ export default function WhatNextStep(props: Props) {
           tasks.length - 1,
         );
 
-  // No boundary around the connect panel: it owns one internally, below its
-  // own header.
   const panel =
     openPanel === 'save' ? (
       <SaveTileCards onSaveOwnLink={composer.open} />
@@ -135,8 +128,6 @@ export default function WhatNextStep(props: Props) {
 
         <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
           {tasks.map((task, index) => (
-            // So the panel is a sibling of the tile, with no wrapper element
-            // between the grid and its items.
             <Fragment key={task.key}>
               <WhatNextTile
                 icon={task.icon}
@@ -148,10 +139,6 @@ export default function WhatNextStep(props: Props) {
                 expanded={task.expanded}
               />
 
-              {/* Spanning the full row: in a single cell it would stretch its
-                  neighbours to the same height. minWidth: 0 because a grid item
-                  defaults to min-width: auto and the panel holds a row wider
-                  than its column. */}
               {index === panelAfter && panel && (
                 <Box style={{ gridColumn: '1 / -1', minWidth: 0 }}>{panel}</Box>
               )}
@@ -183,8 +170,6 @@ export default function WhatNextStep(props: Props) {
             description="See what others are saving"
             onClick={props.onComplete}
           />
-          {/* No onComplete: the docs open in a new tab, so this is not the way
-              you leave the flow. */}
           <OptionTile
             href={DOCS_URL}
             external

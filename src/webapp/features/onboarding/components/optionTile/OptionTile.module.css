@@ -3,9 +3,6 @@
   background-color: transparent;
   transition: background-color 150ms ease;
 
-  /* The extension tile is a <button>; every other tile is an <a>. Mantine's
-     reset gives buttons only `font` and `text-transform`, so without this the
-     browser's own button styling shows through on that one card. */
   appearance: none;
 }
 

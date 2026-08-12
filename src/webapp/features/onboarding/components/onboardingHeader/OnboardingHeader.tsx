@@ -6,23 +6,14 @@ import { TOTAL_STEPS } from '../../lib/steps';
 import Stepper from '../stepper/Stepper';
 
 interface Props {
-  /**
-   * Omitted on the returning view. One object rather than a
-   * currentStep/showStepper pair, so there is no way to ask for a stepper
-   * without saying which stage.
-   */
   stepper?: {
-    /** 1-based. */
     currentStep: number;
-    /** Records the stage before the browser follows a stepper pill. */
     onSelectStep: (step: number) => void;
   };
 }
 
 export default function OnboardingHeader(props: Props) {
   return (
-    // No background and no border: the header is a flex sibling of the scroll
-    // area rather than a layer over it, so nothing passes beneath it.
     <Box component="header">
       <Group
         p={'md'}
@@ -38,7 +29,6 @@ export default function OnboardingHeader(props: Props) {
 
         {props.stepper && (
           <Group gap={'sm'} wrap="nowrap" style={{ flex: '0 0 auto' }}>
-            {/* Tabular figures keep it from shifting as it counts up. */}
             <Text
               fz={'sm'}
               fw={600}

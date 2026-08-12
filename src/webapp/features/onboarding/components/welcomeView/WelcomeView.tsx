@@ -28,9 +28,6 @@ import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
 import { sanitizeText } from '@/lib/utils/text';
 
-// Not derived from STEPS: those labels name tabs ("Topics"), these read as
-// promises. All five icons from Ionicons' filled set — a stroke glyph among
-// them reads as a different kind of item.
 const STAGES: { icon: ReactNode; title: string }[] = [
   { icon: <IoHelpCircle />, title: 'Answer two quick questions' },
   { icon: <IoPricetag />, title: 'Pick a few topics' },
@@ -39,7 +36,6 @@ const STAGES: { icon: ReactNode; title: string }[] = [
   { icon: <IoCompass />, title: 'Explore the rest of the app' },
 ];
 
-// The same three destinations Settings → Help lists, at the same URLs.
 const DOCS_URL = 'https://docs.cosmik.network/semble';
 const DISCORD_URL = 'https://discord.gg/SHvvysb73e';
 const FEEDBACK_URL = 'https://tangled.org/@cosmik.network/semble/issues';
@@ -50,15 +46,12 @@ const HELP_LINK_PROPS = {
   fz: 'sm',
   fw: 600,
   underline: 'never',
-  // Not Anchor's default, which is the theme's tangerine — the same accent as
-  // "Get started" a line above.
   c: 'blue',
 } as const;
 
 const ARTWORK_MASK =
   'linear-gradient(to bottom, black 0%, black 15%, transparent 45%)';
 
-// The `-webkit-` prefix is still needed for older Safari.
 const ARTWORK_FADE = {
   maskImage: ARTWORK_MASK,
   WebkitMaskImage: ARTWORK_MASK,
@@ -80,8 +73,6 @@ export default function WelcomeView(props: Props) {
 
   return (
     <Box component="main" pos="relative" h={'100svh'} w={'100%'}>
-      {/* Two elements rather than one swapped src: a hidden element's
-          background is never fetched, so the inactive scheme costs nothing. */}
       <BackgroundImage
         src={BG.src}
         darkHidden
@@ -97,8 +88,6 @@ export default function WelcomeView(props: Props) {
         style={ARTWORK_FADE}
       />
 
-      {/* `md` on all four sides, matching the Group in OnboardingHeader, so the
-          mark holds its position when you cross into step 1. */}
       <Box pos={'absolute'} top={0} left={0} p={'md'} style={{ zIndex: 2 }}>
         <Image src={SembleLogo.src} alt="Semble logo" h={28} w={'auto'} />
       </Box>
@@ -109,9 +98,6 @@ export default function WelcomeView(props: Props) {
         p={'md'}
         style={{ zIndex: 1, overflowY: 'auto' }}
       >
-        {/* fit-content, not 100%: the column is centred in the page, so hugging
-            its widest line is what centres the box you can actually see. Below
-            `maw` it resolves to the space available. */}
         <Stack
           gap={'xl'}
           align="flex-start"
@@ -153,8 +139,6 @@ export default function WelcomeView(props: Props) {
 
           <Stack gap={'md'}>
             <Group gap={'xs'} wrap="nowrap">
-              {/* A real anchor, so it prefetches and middle-clicks. onStart
-                  only records that the flow has begun. */}
               <LinkButton
                 href="/onboarding?step=1"
                 size="md"
@@ -169,8 +153,6 @@ export default function WelcomeView(props: Props) {
               </LinkButton>
             </Group>
 
-            {/* Narrower than the 400 the column allows, so the sentence wraps
-                to two or three short lines instead of one long one. */}
             <Text fz={'sm'} c={'gray'} fw={500} maw={280}>
               Questions?{' '}
               <LinkAnchor href={DOCS_URL} {...HELP_LINK_PROPS}>

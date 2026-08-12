@@ -27,9 +27,7 @@ interface InstallOption {
   mark: ReactNode;
   title: string;
   description: string;
-  /** Store listings and docs live elsewhere; the two app routes do not. */
   external?: boolean;
-  /** Only offered where the shortcut can actually be installed. */
   iosOnly?: boolean;
 }
 
@@ -85,8 +83,6 @@ export default function InstallOptions(props: Props) {
     />
   ));
 
-  // A Menu rather than an OptionTile: one extension, two stores, so the browser
-  // is chosen after you have decided you want it.
   const extensionTile = (
     <Menu
       key="extension"
@@ -107,8 +103,6 @@ export default function InstallOptions(props: Props) {
             mark={
               <Group gap={0} wrap="nowrap">
                 {brandMark(ChromeIcon.src)}
-                {/* Negative margin, not a negative gap — `gap` cannot go below
-                    zero, and the overlap is what says "either of these". */}
                 <Box ml={-10}>{brandMark(FirefoxIcon.src)}</Box>
               </Group>
             }

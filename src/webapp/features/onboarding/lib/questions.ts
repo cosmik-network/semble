@@ -9,14 +9,8 @@ export interface ChoiceOption {
 
 export interface Question {
   prompt: string;
-  /**
-   * Whether more than one answer can be picked. Both answers are still stored
-   * as an array either way — the column behind each is `text[]`.
-   */
   multiple: boolean;
-  /** Label for the free-text field the `other` option reveals. */
   otherLabel: string;
-  /** What to write, not a specimen answer — an example steers what people say. */
   otherPlaceholder: string;
   options: ChoiceOption[];
 }

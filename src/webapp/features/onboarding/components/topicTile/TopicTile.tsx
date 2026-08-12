@@ -16,9 +16,6 @@ export default function TopicTile(props: Props) {
   const Icon = props.icon;
 
   return (
-    // A toggle button rather than a Chip: a chip grows when its checkmark
-    // appears and shunts every chip after it onto a different line, where this
-    // is the same size picked or not.
     <Card
       component="button"
       aria-pressed={props.selected}
@@ -27,9 +24,6 @@ export default function TopicTile(props: Props) {
       radius={'xl'}
       padding={0}
       className={styles.tile}
-      // A solid tint, not Mantine's `-light` shade: those are colour-mixed
-      // with transparency, and over the page artwork the fill washes out. The
-      // palette's own 0 and 9 are opaque at both ends.
       bg={
         props.selected
           ? `light-dark(var(--mantine-color-${TOPIC_COLOR}-0), var(--mantine-color-${TOPIC_COLOR}-9))`

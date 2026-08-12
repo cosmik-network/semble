@@ -36,9 +36,7 @@ export default async function Page() {
   const queryClient = makeServerQueryClient();
 
   try {
-    // Neither prefetch* rejects, so one failing cannot skip the other.
     await Promise.all([
-      // Stage 4's tiles read the stats query.
       queryClient.prefetchQuery({
         queryKey: profileKeys.mineWithStats(),
         queryFn: () => getMyProfile(true),

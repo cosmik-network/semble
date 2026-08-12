@@ -6,14 +6,10 @@ import type { StepId } from './steps';
 export interface OnboardingProgress {
   stepId: StepId;
   topics: string[];
-  /** URLs fed to stage 4's recommendations — the selection, or the top 5. */
   seedUrls: string[];
-  /** Option ids from the questionnaire — see lib/questions.ts. */
   intention: string[];
-  /** Free text, only meaningful while `intention` contains OTHER_ID. */
   intentionOther: string;
   referralSource: string[];
-  /** Free text, only meaningful while `referralSource` contains OTHER_ID. */
   referralSourceOther: string;
 }
 

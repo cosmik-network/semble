@@ -30,7 +30,6 @@ const VISIBLE_COLLECTIONS = 6;
 
 interface Props {
   urls: string[];
-  /** False until stored progress has been read — see useOnboardingProgress. */
   progressLoaded: boolean;
   pickCardsHref: string;
   onPickMoreCards: () => void;
@@ -50,8 +49,6 @@ export default function FollowStep(props: Props) {
     !props.progressLoaded ||
     (hasUrls && (users.isPending || collections.isPending));
 
-  // Without this a failed fetch reads as "your network is empty" rather than
-  // "the request failed".
   const isError = users.isError || collections.isError;
 
   // One request, two lists: every user carries followsOnBsky, so the second tab
@@ -153,16 +150,10 @@ export default function FollowStep(props: Props) {
       )}
 
       <Stack gap={50}>
-        {/* Rendered whether or not there is anything in it — a tab bar that
-            only appears when it has results is one nobody learns is there.
-            Each panel says its own empty. */}
         {!isPending && !isError && (
           <Stack gap={'lg'}>
             {sectionHeader('People')}
 
-            {/* Uncontrolled, so no state to hold: both lists come from one
-                query that has already resolved. keepMounted={false} so only the
-                tab you are looking at renders a grid. */}
             <Tabs defaultValue="recommended" keepMounted={false}>
               <Tabs.List mb={'md'}>
                 <Tabs.Tab value="recommended" fw={600}>
@@ -199,9 +190,6 @@ export default function FollowStep(props: Props) {
                 {bskyUsers.length > 0 ? (
                   userGrid(bskyUsers)
                 ) : (
-                  // Two different empties: candidates already followed here are
-                  // dropped server-side, so a returning user's tab empties as
-                  // they follow people.
                   <Box py={'xl'}>
                     <ProfileEmptyTab
                       message={
@@ -222,9 +210,6 @@ export default function FollowStep(props: Props) {
           <Stack gap={'lg'}>
             {sectionHeader('Collections', visibleCollections.length)}
 
-            {/* CollectionCard owns its whole surface — the card itself
-                navigates — so the follow control cannot live inside it and sits
-                in a row beneath. */}
             <SimpleGrid
               cols={{ base: 1, sm: 2 }}
               spacing={'xs'}
@@ -232,8 +217,6 @@ export default function FollowStep(props: Props) {
             >
               {visibleCollections.map((collection) => (
                 <Stack key={collection.id} gap={'xs'} h={'100%'}>
-                  {/* flex={1} so the cards in a row match height and the follow
-                      rows below them line up. */}
                   <Box flex={1}>
                     <CollectionCard collection={collection} showAuthor />
                   </Box>
@@ -242,7 +225,6 @@ export default function FollowStep(props: Props) {
                     {collection.authorFollowedOnBsky ? (
                       <BlueskyNote>Author followed on Bluesky</BlueskyNote>
                     ) : (
-                      // Holds the row so the button stays hard right.
                       <span />
                     )}
 

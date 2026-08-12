@@ -11,7 +11,6 @@ import { FaBluesky } from 'react-icons/fa6';
 const BLUESKY_BLUE = '#0085ff';
 
 interface Props {
-  /** "Followed on Bluesky" / "Author followed on Bluesky". */
   children: string;
 }
 

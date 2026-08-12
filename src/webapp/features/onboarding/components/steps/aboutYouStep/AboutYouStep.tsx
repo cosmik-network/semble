@@ -14,17 +14,8 @@ interface Props {
   onChangeReferral: (next: { selected: string[]; otherText: string }) => void;
 }
 
-/**
- * Two research questions, asked before the flow starts personalizing anything.
- *
- * Nothing downstream reads the answers, which is why the footer never disables
- * Continue here.
- */
 export default function AboutYouStep(props: Props) {
   return (
-    // No measure of its own: OnboardingScreen's Container sets one width for
-    // every stage, and a stage that clamps itself inside that starts its
-    // heading at a different x to the rest of the flow.
     <Stack gap={'xl'} w={'100%'}>
       <StepHeading
         title="Two quick questions"

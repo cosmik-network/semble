@@ -1,7 +1,3 @@
-/*
- * Vertical padding only: it turns an 8px mark into a row-height tap target
- * without adding any gap the eye can see between the marks themselves.
- */
 .target {
   padding-block: 8px;
   cursor: pointer;

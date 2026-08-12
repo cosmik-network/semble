@@ -40,8 +40,6 @@ export default function OnboardingFlow(props: Props) {
   const { progress, isLoaded, update, clear } = useOnboardingProgress();
   const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
 
-  // The presence of ?step= means "in the flow", which is what separates both
-  // non-flow screens below from the stages.
   const stepParam = searchParams.get('step');
 
   const isReturning =
@@ -49,8 +47,6 @@ export default function OnboardingFlow(props: Props) {
 
   const isWelcome = stepParam === null && !isReturning;
 
-  // Here rather than in the stage: the Continue handler below needs the top-5
-  // fallback, and pushing it up from the child would require an Effect.
   const recommendations = useRecommendedCards({
     queries: progress.topics,
     limit: 6,
@@ -70,8 +66,6 @@ export default function OnboardingFlow(props: Props) {
 
   const currentStep = clampStep(searchParams.get('step'));
 
-  // Everything below branches on the id rather than the number: parallel
-  // ladders of `currentStep === 3` mismatch the day a stage is inserted.
   const stepId = STEPS[currentStep - 1].id;
 
   const changeStatus = (next: OnboardingStatus) => {
@@ -95,8 +89,6 @@ export default function OnboardingFlow(props: Props) {
 
   const goNext = () => goToStep(currentStep + 1);
 
-  // The picks only seed the follow stage's recommendations — nothing reaches
-  // the library, so there is nothing here to fail.
   const handlePickCardsContinue = () => {
     update({
       seedUrls: selectedUrls.length > 0 ? selectedUrls : fallbackUrls,
@@ -134,13 +126,10 @@ export default function OnboardingFlow(props: Props) {
             }
           : stepId === 'follow'
             ? {
-                // Nothing to apply on the way out: a follow is performed the
-                // moment the button is pressed.
                 onSkip: goNext,
                 onContinue: goNext,
               }
             : {
-                // The last stage: the forward control leaves the flow.
                 continueHref: '/home',
                 continueLabel: 'Finish',
                 onContinue: () => changeStatus('completed'),
@@ -156,29 +145,21 @@ export default function OnboardingFlow(props: Props) {
   }
 
   if (isWelcome) {
-    // "Get started" is an anchor to ?step=1, so this only records the move.
     return <WelcomeView onStart={() => markStep(1)} />;
   }
 
   return (
     <OnboardingScreen
       header={
-        <OnboardingHeader
-          // goToStep, not markStep: the stepper renders buttons rather than
-          // links, so the click has to do the navigating itself.
-          stepper={{ currentStep, onSelectStep: goToStep }}
-        />
+        <OnboardingHeader stepper={{ currentStep, onSelectStep: goToStep }} />
       }
       footer={
         <OnboardingFooter
-          // Stage 1's Back goes to the welcome screen.
           backHref={
             currentStep > 1
               ? `/onboarding?step=${currentStep - 1}`
               : '/onboarding'
           }
-          // Nothing to record stepping back to the welcome screen: STEPS has
-          // no entry before 'about'.
           onBack={currentStep > 1 ? () => markStep(currentStep - 1) : undefined}
           onSkip={footerProps.onSkip}
           onContinue={footerProps.onContinue}

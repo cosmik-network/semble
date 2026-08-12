@@ -1,10 +1,5 @@
 import { Container, Group, Skeleton, Stack, Text } from '@mantine/core';
 
-/**
- * Route-level fallback, also used as page.tsx's Suspense fallback. Deliberately
- * carries no client state — no stored step, no status — so it can never
- * disagree with whatever renders after it resolves.
- */
 export default function Loading() {
   return (
     <Stack h={'100svh'} gap={0}>
