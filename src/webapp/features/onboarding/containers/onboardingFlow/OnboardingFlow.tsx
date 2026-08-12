@@ -225,7 +225,12 @@ export default function OnboardingFlow(props: Props) {
         />
       )}
       {stepId === 'follow' && (
-        <FollowStep urls={progress.seedUrls} progressLoaded={isLoaded} />
+        <FollowStep
+          urls={progress.seedUrls}
+          progressLoaded={isLoaded}
+          pickCardsHref={`/onboarding?step=${currentStep - 1}`}
+          onPickMoreCards={() => markStep(currentStep - 1)}
+        />
       )}
       {stepId === 'next' && (
         <WhatNextStep

@@ -3,6 +3,7 @@
 import {
   Badge,
   Box,
+  Button,
   Center,
   Group,
   Loader,
@@ -12,11 +13,14 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { FaBluesky } from 'react-icons/fa6';
+import { MdErrorOutline, MdPersonSearch } from 'react-icons/md';
 import useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
 import useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import { LinkAnchor } from '@/components/link/MantineLink';
+import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import { LinkButton } from '@/components/link/MantineLink';
 import BlueskyNote from '../../blueskyNote/BlueskyNote';
 import SuggestionCard from '../../suggestionCard/SuggestionCard';
 import StepHeading from '../../stepHeading/StepHeading';
@@ -28,6 +32,8 @@ interface Props {
   urls: string[];
   /** False until stored progress has been read — see useOnboardingProgress. */
   progressLoaded: boolean;
+  pickCardsHref: string;
+  onPickMoreCards: () => void;
 }
 
 export default function FollowStep(props: Props) {
@@ -127,9 +133,23 @@ export default function FollowStep(props: Props) {
       )}
 
       {isError && (
-        <Text c={'dimmed'}>
-          Unable to load suggestions. Continue and find people to follow later.
-        </Text>
+        <Box py={'xl'}>
+          <ProfileEmptyTab
+            message="Unable to load suggestions"
+            icon={MdErrorOutline}
+            button={
+              <Button
+                variant="light"
+                onClick={() => {
+                  users.refetch();
+                  collections.refetch();
+                }}
+              >
+                Try again
+              </Button>
+            }
+          />
+        </Box>
       )}
 
       <Stack gap={50}>
@@ -157,12 +177,21 @@ export default function FollowStep(props: Props) {
                 {visibleUsers.length > 0 ? (
                   userGrid(visibleUsers)
                 ) : (
-                  <Stack gap={4} align="flex-start">
-                    <Text c={'dimmed'}>
-                      Nothing to suggest from the cards you picked.
-                    </Text>
-                    <LinkAnchor href="/explore">Explore Semble</LinkAnchor>
-                  </Stack>
+                  <Box py={'xl'}>
+                    <ProfileEmptyTab
+                      message="No suggestions from the cards you picked"
+                      icon={MdPersonSearch}
+                      button={
+                        <LinkButton
+                          href={props.pickCardsHref}
+                          onClick={props.onPickMoreCards}
+                          variant="light"
+                        >
+                          Pick more cards
+                        </LinkButton>
+                      }
+                    />
+                  </Box>
                 )}
               </Tabs.Panel>
 
@@ -173,11 +202,16 @@ export default function FollowStep(props: Props) {
                   // Two different empties: candidates already followed here are
                   // dropped server-side, so a returning user's tab empties as
                   // they follow people.
-                  <Text c={'dimmed'}>
-                    {bskyFollowedCount > 0
-                      ? 'You already follow all of them here.'
-                      : 'Nobody you follow on Bluesky is on Semble yet.'}
-                  </Text>
+                  <Box py={'xl'}>
+                    <ProfileEmptyTab
+                      message={
+                        bskyFollowedCount > 0
+                          ? 'You already follow all of them here'
+                          : 'Nobody you follow on Bluesky is on Semble yet'
+                      }
+                      icon={FaBluesky}
+                    />
+                  </Box>
                 )}
               </Tabs.Panel>
             </Tabs>
