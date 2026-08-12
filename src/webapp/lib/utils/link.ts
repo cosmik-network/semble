@@ -6,6 +6,26 @@ export const getDomain = (url: string) => {
   }
 };
 
+// Formats a URL for display: drops the scheme and any "www.", always keeps the whole
+// domain, and cuts off a long path with a "…". Defaults to showing the full URL.
+export const getDisplayUrl = (url: string, maxPathLength = Infinity) => {
+  try {
+    const urlp = new URL(url);
+    if (urlp.protocol !== 'http:' && urlp.protocol !== 'https:') return url;
+
+    const host = urlp.host.replace(/^www\./, '');
+    const path =
+      (urlp.pathname === '/' ? '' : urlp.pathname) + urlp.search + urlp.hash;
+
+    if (path.length > maxPathLength) {
+      return host + path.slice(0, maxPathLength) + '…';
+    }
+    return host + path;
+  } catch {
+    return url;
+  }
+};
+
 export const getUrlFromSlug = (slug: string[]) => {
   const decoded = slug.map(decodeURIComponent);
   const url = decoded.join('/');
