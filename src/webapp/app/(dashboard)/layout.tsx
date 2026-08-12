@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 };
 
 // Must match useMyCollections({ limit: NAV_COLLECTIONS_LIMIT }) in
-// CollectionsNavList and Composer, or the prefetch lands under a different key
-// and the client refetches.
+// CollectionsNavListContent and Composer, or the prefetch lands under a
+// different key and the client refetches.
 const NAV_COLLECTIONS_LIMIT = 30;
 
 interface Props {
@@ -23,15 +23,7 @@ interface Props {
 }
 
 export default async function Layout(props: Props) {
-  // The authed navbar renders CollectionsNavList and Composer, both of which run
-  // useMyCollections — a suspense query over a DAL that authenticates through the
-  // browser and cannot run during SSR. Fetch it here with the server DAL and hand
-  // it down, per the Next.js guidance that Client Components receive
-  // authenticated data from a parent Server Component.
-  //
-  // getSession() is memoized per request, so this reuses the root layout's call.
   const user = await getSession();
-
   const queryClient = makeServerQueryClient();
 
   if (user) {
