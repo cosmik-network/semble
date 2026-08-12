@@ -106,7 +106,12 @@ export const getFollowingCollections = cache(
       page: params?.page,
       limit: params?.limit,
     });
-    return response;
+
+    // temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter((c) => !!c.uri),
+    };
   },
 );
 

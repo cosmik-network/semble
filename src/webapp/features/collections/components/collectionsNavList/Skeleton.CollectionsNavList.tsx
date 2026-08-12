@@ -1,5 +1,15 @@
 import { Group, Skeleton, Text, Stack } from '@mantine/core';
 
+export function CollectionsNavListContentSkeleton() {
+  return (
+    <Stack gap={5} my={'sm'}>
+      <Skeleton h={40} w={'100%'} />
+      <Skeleton h={40} w={'100%'} />
+      <Skeleton h={40} w={'100%'} />
+    </Stack>
+  );
+}
+
 export default function CollectionsNavListSkeleton() {
   return (
     <Stack gap={'xs'}>
@@ -14,13 +24,7 @@ export default function CollectionsNavListSkeleton() {
         </Group>
       </Group>
 
-      <Stack gap={0}>
-        <Stack gap={5} my={'sm'}>
-          <Skeleton h={40} w={'100%'} />
-          <Skeleton h={40} w={'100%'} />
-          <Skeleton h={40} w={'100%'} />
-        </Stack>
-      </Stack>
+      <CollectionsNavListContentSkeleton />
     </Stack>
   );
 }
