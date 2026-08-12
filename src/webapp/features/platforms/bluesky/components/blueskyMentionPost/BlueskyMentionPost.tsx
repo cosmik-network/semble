@@ -76,7 +76,11 @@ export default function BlueskyMentionPost(props: Props) {
             </Tooltip>
           </Group>
           <Stack gap={'xs'} w={'100%'}>
-            {<Box>{<RichTextRenderer text={record.text} />}</Box>}
+            {
+              <Box>
+                {<RichTextRenderer text={record.text} facets={record.facets} />}
+              </Box>
+            }
             {props.post.embed && <PostEmbed embed={props.post.embed} />}
           </Stack>
         </Stack>

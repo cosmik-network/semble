@@ -1,6 +1,6 @@
 'use client';
 
-import { RichText } from '@atproto/api';
+import { AppBskyRichtextFacet, RichText } from '@atproto/api';
 
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
 import { getDisplayUrl } from '@/lib/utils/link';
@@ -12,6 +12,10 @@ interface Props {
   linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags
   textProps?: Partial<TextProps>; // for plain text
   linkDisplay?: 'short' | 'full'; // 'short' cuts off long paths (default)
+  // A record's own facets. Pass them whenever the source has them: Bluesky stores post
+  // text with long links already shortened, so the real URL only lives in the facet and
+  // re-detecting from the text would give a broken href.
+  facets?: AppBskyRichtextFacet.Main[];
 }
 
 export default function RichTextRenderer({
@@ -19,9 +23,12 @@ export default function RichTextRenderer({
   linkProps = {},
   textProps = {},
   linkDisplay = 'short',
+  facets,
 }: Props) {
-  const richText = new RichText({ text });
-  richText.detectFacetsWithoutResolution();
+  const richText = new RichText({ text, facets });
+  if (!facets?.length) {
+    richText.detectFacetsWithoutResolution();
+  }
 
   return (
     <Text
