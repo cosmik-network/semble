@@ -102,14 +102,20 @@ export const searchContract = c.router(
       path: paths.recommended,
       query: z.object({
         // A single ?queries=x arrives as a string; repeated params arrive as an array
-        queries: z.union([z.string(), z.array(z.string())]),
+        queries: z.union([z.string(), z.array(z.string())]).optional(),
         page: z.coerce.number().optional(),
         limit: z.coerce.number().optional(),
+        // Ranking weight overrides; omitted values use the server defaults.
+        urlCardWeight: z.coerce.number().optional(),
+        noteWeight: z.coerce.number().optional(),
+        collectionWeight: z.coerce.number().optional(),
+        connectionWeight: z.coerce.number().optional(),
+        randomness: z.coerce.number().optional(),
       }),
       responses: { 200: RecommendedUrlsResponseSchema },
       summary: 'Recommended URLs',
       description:
-        'Returns URLs recommended for a set of query strings, ranked by network activity (saves, notes, collections, connections) with randomized ordering, excluding URLs the calling user already saved. Paginated over a cached ranked set.',
+        "Returns URLs recommended for a set of query strings. Each query's matches are ranked independently by network activity (saves, notes, collections, connections) with randomized ordering, then interleaved round-robin so no single query crowds out the others. Excludes URLs the calling user already saved. Ranking weights can be overridden per request; each distinct weight set is cached separately. Paginated over a cached ranked set. When no queries are given, they are derived from random recent cards in the calling user's library (falling back to their profile bio); the derived queries are returned so later pages can pass them back.",
       metadata: { internal: true } as const,
     },
     recommendedUsers: {

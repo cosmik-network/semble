@@ -37,6 +37,8 @@ import {
   GetOpenCollectionsWithContributorParams,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
+  GetBskyFollowedUsersParams,
+  GetBskyFollowedUsersResponse,
   GetFollowersParams,
   GetFollowersResponse,
   GetFollowingCollectionsParams,
@@ -345,6 +347,11 @@ export class QueryClient extends BaseClient {
         queries: params.queries,
         page: params.page,
         limit: params.limit,
+        urlCardWeight: params.urlCardWeight,
+        noteWeight: params.noteWeight,
+        collectionWeight: params.collectionWeight,
+        connectionWeight: params.connectionWeight,
+        randomness: params.randomness,
       },
     });
     return unwrap<RecommendedUrlsResponse>(res);
@@ -394,6 +401,18 @@ export class QueryClient extends BaseClient {
       },
     });
     return unwrap<GetFollowingUsersResponse>(res);
+  }
+
+  async getBskyFollowedUsers(
+    params?: GetBskyFollowedUsersParams,
+  ): Promise<GetBskyFollowedUsersResponse> {
+    const res = await this.client.graph.bskyFollowedUsers({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+      },
+    });
+    return unwrap<GetBskyFollowedUsersResponse>(res);
   }
 
   async getFollowers(

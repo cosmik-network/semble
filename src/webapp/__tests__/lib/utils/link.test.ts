@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   SupportedPlatform,
   detectUrlPlatform,
+  getDisplayUrl,
   getDomain,
   getUrlFromSlug,
   isCollectionPage,
@@ -29,6 +30,91 @@ describe('getDomain', () => {
 
     // Act
     const result = getDomain(url);
+
+    // Assert
+    expect(result).toBe(url);
+  });
+});
+
+// ─────────────────────────────────────────────
+// getDisplayUrl
+// ─────────────────────────────────────────────
+describe('getDisplayUrl', () => {
+  it('should strip the scheme and the www prefix', () => {
+    // Arrange
+    const url = 'https://www.example.com/blog';
+
+    // Act
+    const result = getDisplayUrl(url);
+
+    // Assert
+    expect(result).toBe('example.com/blog');
+  });
+
+  it('should drop the trailing slash of a bare domain', () => {
+    // Arrange
+    const url = 'https://example.com/';
+
+    // Act
+    const result = getDisplayUrl(url);
+
+    // Assert
+    expect(result).toBe('example.com');
+  });
+
+  it('should preserve the path, query and hash when under the budget', () => {
+    // Arrange
+    const url = 'https://example.com/blog?q=1#top';
+
+    // Act
+    const result = getDisplayUrl(url, 30);
+
+    // Assert
+    expect(result).toBe('example.com/blog?q=1#top');
+  });
+
+  it('should cut off the path past the budget while keeping the host whole', () => {
+    // Arrange
+    const url =
+      'https://a-very-long-domain-name.example.com/2026/08/12/us/politics/election';
+
+    // Act
+    const result = getDisplayUrl(url, 30);
+
+    // Assert
+    expect(result).toBe(
+      'a-very-long-domain-name.example.com/2026/08/12/us/politics/electi…',
+    );
+  });
+
+  it('should not truncate when no budget is given', () => {
+    // Arrange
+    const url = 'https://example.com/2026/08/12/us/politics/election?ref=home';
+
+    // Act
+    const result = getDisplayUrl(url);
+
+    // Assert
+    expect(result).toBe('example.com/2026/08/12/us/politics/election?ref=home');
+  });
+
+  it('should return the original string for a non-http(s) scheme', () => {
+    // Arrange
+    const url = 'mailto:someone@example.com';
+
+    // Act
+    const result = getDisplayUrl(url, 30);
+
+    // Assert
+    expect(result).toBe(url);
+  });
+
+  it('should return the original string when the URL is invalid', () => {
+    // Arrange
+    const url = 'not a valid url';
+
+    // Act
+    const result = getDisplayUrl(url, 30);
 
     // Assert
     expect(result).toBe(url);
