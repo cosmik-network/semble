@@ -28,7 +28,6 @@ export async function getServerFeatureFlags() {
     graphView: false,
     readerMode: showForTeam,
     onboarding: showForTeam,
-    profileActivity: show,
     bskyFollows: showForTeam,
   };
 }

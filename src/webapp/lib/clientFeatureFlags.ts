@@ -12,7 +12,6 @@ interface FeatureFlags {
   connections: boolean;
   graphView: boolean;
   readerMode: boolean;
-  profileActivity: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {
