@@ -51,7 +51,10 @@ interface ValueStatRow {
 }
 
 export class OnboardingStatsQueryService {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(
+    private db: PostgresJsDatabase,
+    private launchDate: string = ONBOARDING_LAUNCH_DATE,
+  ) {}
 
   async getWeeklyStats(options: {
     endWeek?: string;
@@ -91,7 +94,7 @@ export class OnboardingStatsQueryService {
       SELECT us.id, ${inWeekExpr} AS in_week, os.*
       FROM users us
       LEFT JOIN onboarding_state os ON os.user_id = us.id
-      WHERE us.linked_at >= ${ONBOARDING_LAUNCH_DATE}
+      WHERE us.linked_at >= ${this.launchDate}
         AND ${excludedUsersCondition}
     `;
 
@@ -280,7 +283,7 @@ export class OnboardingStatsQueryService {
         SELECT us.id, ${inWeekExpr} AS in_week, os.${sql.raw(column)} AS vals
         FROM users us
         JOIN onboarding_state os ON os.user_id = us.id
-        WHERE us.linked_at >= ${ONBOARDING_LAUNCH_DATE}
+        WHERE us.linked_at >= ${this.launchDate}
           AND ${excludedUsersCondition}
       ),
       exploded AS (

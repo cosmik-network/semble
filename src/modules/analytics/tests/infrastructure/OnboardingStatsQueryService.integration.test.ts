@@ -10,8 +10,12 @@ import { onboardingState } from '../../../user/infrastructure/repositories/schem
 import { OnboardingStatsQueryService } from '../../infrastructure/repositories/query-services/OnboardingStatsQueryService';
 import { EXCLUDED_ANALYTICS_USER_IDS } from '../../infrastructure/repositories/query-services/excludedUsers';
 
-// Cohort week under test: Mon 2026-08-10 .. Sun 2026-08-16 (after the
-// ONBOARDING_LAUNCH_DATE of 2026-08-01). Prior week: 2026-08-03 .. 2026-08-09.
+// The tests inject their own launch date so they don't depend on the
+// production ONBOARDING_LAUNCH_DATE constant.
+const TEST_LAUNCH_DATE = '2026-08-01T00:00:00Z';
+
+// Cohort week under test: Mon 2026-08-10 .. Sun 2026-08-16 (after
+// TEST_LAUNCH_DATE). Prior week: 2026-08-03 .. 2026-08-09.
 const COHORT_END_WEEK = '2026-08-10';
 const COHORT_WEEK_START_ISO = '2026-08-10T00:00:00.000Z';
 
@@ -36,7 +40,7 @@ describe('DrizzleOnboardingStatsQueryService', () => {
     container = await new PostgreSqlContainer('postgres:14').start();
     const client = postgres(container.getConnectionUri());
     db = drizzle(client);
-    service = new OnboardingStatsQueryService(db);
+    service = new OnboardingStatsQueryService(db, TEST_LAUNCH_DATE);
     await createTestSchema(db);
   }, 60000);
 
