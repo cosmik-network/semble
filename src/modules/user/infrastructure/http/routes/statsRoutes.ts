@@ -2,12 +2,14 @@ import { Router, Request, Response } from 'express';
 import { GetUserStatsController } from '../controllers/GetUserStatsController';
 import { StatsApiKeyMiddleware } from '../middleware/StatsApiKeyMiddleware';
 import { IProductAnalyticsQueryRepository } from '../../../../analytics/domain/IProductAnalyticsQueryRepository';
+import { OnboardingStatsComposer } from '../../../../analytics/application/OnboardingStatsComposer';
 
 export const createStatsRoutes = (
   router: Router,
   statsApiKeyMiddleware: StatsApiKeyMiddleware,
   getUserStatsController: GetUserStatsController,
   productAnalyticsQueryRepository: IProductAnalyticsQueryRepository,
+  onboardingStatsComposer: OnboardingStatsComposer,
 ) => {
   // All stats routes require API key authentication
   router.use(statsApiKeyMiddleware.ensureAuthenticated());
@@ -105,6 +107,63 @@ export const createStatsRoutes = (
     } catch (error: any) {
       return res.status(400).json({
         message: error?.message ?? 'Failed to load activation funnel stats',
+      });
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Onboarding stats
+  //
+  // Stats over the onboarding_state table. All "total" counts consider only
+  // users who signed up on/after ONBOARDING_LAUNCH_DATE (see
+  // OnboardingStatsQueryService), minus internal accounts. Stored onboarding
+  // values are untrusted client input: account values are DIDs, collection /
+  // connection values are internal UUIDs; unresolvable ones are returned as
+  // id-only stubs (counts stay truthful).
+  // ---------------------------------------------------------------------------
+
+  /**
+   * GET /api/stats/onboarding/weekly — one weekly signup cohort, hydrated
+   *
+   * Query params:
+   *   endWeek?  ISO date string; resolved to the ISO week (Mon–Sun, UTC) it
+   *             falls in — that week is the cohort. Omitted => the most recent
+   *             COMPLETED week.
+   *
+   * Response: OnboardingWeeklyStatsDTO. Each dimension carries
+   * { totalUserCount, weeklyUserCount, weeklyUsers } where weeklyUsers are
+   * minimal profiles of the cohort users. Per-value breakdowns (topics, links,
+   * accounts, collections, …) include only values present in the cohort week,
+   * but each value's totalUserCount spans all users since launch.
+   */
+  router.get('/onboarding/weekly', async (req: Request, res: Response) => {
+    try {
+      const { endWeek } = parseAnalyticsQuery(req);
+      const result = await onboardingStatsComposer.getWeeklyStats({ endWeek });
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error?.message ?? 'Failed to load onboarding weekly stats',
+      });
+    }
+  });
+
+  /**
+   * GET /api/stats/onboarding/summary — all-time (since launch) totals
+   *
+   * Response: OnboardingSummaryStatsDTO. Aggregate counts only — ranked
+   * per-value lists with totalUserCount, no per-user lists. Accounts and
+   * collections in the ranked lists are still hydrated; firstCollections /
+   * firstConnection are totals only (hydrating every user's first item is
+   * unbounded).
+   */
+  router.get('/onboarding/summary', async (_req: Request, res: Response) => {
+    try {
+      const result = await onboardingStatsComposer.getSummaryStats();
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error?.message ?? 'Failed to load onboarding summary stats',
       });
     }
   });
