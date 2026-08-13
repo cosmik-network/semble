@@ -12,7 +12,7 @@ import { EXCLUDED_ANALYTICS_USER_IDS } from './excludedUsers';
 
 // TODO: set to the actual onboarding feature launch date before relying on
 // the "total" counts — everything before this date is excluded.
-export const ONBOARDING_LAUNCH_DATE = '2026-08-01T00:00:00Z';
+export const ONBOARDING_LAUNCH_DATE = '2026-08-13T00:00:00Z';
 
 /** Cap on ranked per-value lists so untrusted free-text can't blow up responses. */
 const VALUE_STATS_LIMIT = 200;
