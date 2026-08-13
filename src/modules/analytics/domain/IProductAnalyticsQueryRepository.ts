@@ -48,19 +48,96 @@ export interface ActivationFunnelStatsDTO {
   periodEnd: string;
 }
 
+// Onboarding stats (single weekly signup cohort, or all-time summary)
+
+/** onboarding_state text[] columns broken down per stored value. */
+export type OnboardingArrayDimension =
+  | 'topicsSelected'
+  | 'linksSuggested'
+  | 'linksSelected'
+  | 'suggestedAccounts'
+  | 'suggestedCollections'
+  | 'followedAccounts'
+  | 'followedCollections'
+  | 'firstCards'
+  | 'intention'
+  | 'referralSource';
+
+/** onboarding_state nullable timestamp columns counted by presence. */
+export type OnboardingMilestoneDimension =
+  | 'pwaClicked'
+  | 'iosShortcutClicked'
+  | 'browserExtensionClicked'
+  | 'mcpClicked'
+  | 'saveModalGuideCompleted'
+  | 'connectionCreationModalCompleted'
+  | 'semblePageNavigationCompleted';
+
+export interface OnboardingDimensionCountsRaw {
+  /** Users since the onboarding launch date with a non-empty value. */
+  totalUserCount: number;
+  /** Subset who signed up in the cohort week (0 in summary mode). */
+  weeklyUserCount: number;
+  /** DIDs of the cohort-week users (empty in summary mode). */
+  weeklyUserIds: string[];
+}
+
+export interface OnboardingValueStatRaw extends OnboardingDimensionCountsRaw {
+  /** Raw stored string: topic, URL, DID, or UUID depending on the dimension. */
+  value: string;
+}
+
+/** A cohort-week user's first_collection / first_connection value. */
+export interface OnboardingSingleValueRaw {
+  userId: string;
+  value: string;
+}
+
+export interface OnboardingStatsRaw {
+  /** ISO Monday of the cohort week; null in summary mode. */
+  cohortWeekStart: string | null;
+  totalNewUserCount: number;
+  weeklyNewUsersCount: number;
+  onboardingState: Array<{ state: string } & OnboardingDimensionCountsRaw>;
+  dimensions: Record<
+    OnboardingArrayDimension,
+    OnboardingDimensionCountsRaw & { stats: OnboardingValueStatRaw[] }
+  >;
+  firstCollection: OnboardingDimensionCountsRaw & {
+    weeklyValues: OnboardingSingleValueRaw[];
+  };
+  firstConnection: OnboardingDimensionCountsRaw & {
+    weeklyValues: OnboardingSingleValueRaw[];
+  };
+  milestones: Record<
+    OnboardingMilestoneDimension,
+    OnboardingDimensionCountsRaw
+  >;
+}
+
 /**
  * Read-only query repository for product-analytics dashboards.
  *
- * Both methods return a dense weekly series. A "current vs prior week"
- * comparison is just `weeks: 2` (the caller picks the last two points).
+ * WAC and activation-funnel return a dense weekly series. A "current vs prior
+ * week" comparison is just `weeks: 2` (the caller picks the last two points).
  *
  * Funnel rungs are counted INDEPENDENTLY against each weekly signup cohort —
  * they are not monotonically nested. Percentages are derived by the caller
  * from these absolute counts.
+ *
+ * The onboarding methods return ID-based raw stats (DIDs / UUIDs / raw
+ * strings); hydration to profiles/collections/connections happens in the
+ * application layer (OnboardingStatsComposer). In weekly mode, per-value
+ * breakdowns include only values present in the cohort week, but each value's
+ * totalUserCount still spans all users since the onboarding launch date.
  */
 export interface IProductAnalyticsQueryRepository {
   getWacStats(options: AnalyticsWeekOptions): Promise<WacStatsDTO>;
   getActivationFunnelStats(
     options: AnalyticsWeekOptions,
   ): Promise<ActivationFunnelStatsDTO>;
+  getOnboardingWeeklyStatsRaw(options: {
+    endWeek?: string;
+  }): Promise<OnboardingStatsRaw>;
+  getOnboardingSummaryStatsRaw(): Promise<OnboardingStatsRaw>;
 }
