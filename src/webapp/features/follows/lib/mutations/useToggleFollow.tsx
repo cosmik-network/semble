@@ -99,10 +99,19 @@ export function useToggleFollow(target: FollowTarget) {
     },
   });
 
-  const toggleFollow = () => {
+  /**
+   * `onDone` reports the new state once the write has actually landed, so a
+   * caller recording the follow somewhere else cannot record one the server
+   * rejected. It runs as a mutate-level callback, so — like every other
+   * mutate-level callback in this repo — it is skipped if the caller unmounted
+   * first.
+   */
+  const toggleFollow = (onDone?: (isFollowing: boolean) => void) => {
     const isFollowing =
       queryClient.getQueryData<boolean>(followStateKey) ?? false;
-    mutation.mutate(!isFollowing);
+    const next = !isFollowing;
+
+    mutation.mutate(next, { onSuccess: () => onDone?.(next) });
   };
 
   return { toggleFollow, isPending: mutation.isPending };

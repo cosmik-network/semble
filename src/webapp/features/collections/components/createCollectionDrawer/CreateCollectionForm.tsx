@@ -17,16 +17,18 @@ import { FaSeedling } from 'react-icons/fa6';
 import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { BsExclamation } from 'react-icons/bs';
+import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   onClose: () => void;
   initialName?: string;
   initialAccessType?: CollectionAccessType;
   onCreate?: (collection: Collection) => void;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function CreateCollectionForm(props: Props) {
-  const createCollection = useCreateCollection();
+  const createCollection = useCreateCollection(props.analyticsContext);
   const queryClient = useQueryClient();
   const form = useForm({
     initialValues: {

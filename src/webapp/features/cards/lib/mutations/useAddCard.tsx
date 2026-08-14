@@ -11,8 +11,10 @@ import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
   CardSaveEventProperties,
+  CardSaveSource,
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
+import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 import { notifications } from '@mantine/notifications';
 import { Button, Group, Text } from '@mantine/core';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -23,6 +25,7 @@ export default function useAddCard(
 ) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const onboarding = useOnboardingMilestones();
 
   const mutation = useMutation({
     mutationFn: async (newCard: {
@@ -105,6 +108,12 @@ export default function useAddCard(
           queryKey: collectionKeys.infinite(id),
         });
       });
+
+      // The URL rather than the new card's id: onboarding_state.first_cards is
+      // a link column, ranked alongside links_suggested and links_selected.
+      if (analyticsContext?.saveSource === CardSaveSource.ONBOARDING) {
+        onboarding.recordCardSaved(variables.url);
+      }
 
       // Track card save event in PostHog
       if (shouldCaptureAnalytics() && analyticsContext) {

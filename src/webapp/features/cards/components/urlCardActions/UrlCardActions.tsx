@@ -316,6 +316,7 @@ export default function UrlCardActions(props: Props) {
             onClose={() => setShowAddConnectionModal(false)}
             sourceUrl={props.cardContent.url}
             targetUrl={props.semblePageUrl}
+            analyticsContext={props.analyticsContext}
           />
 
           {props.currentCollection && (
