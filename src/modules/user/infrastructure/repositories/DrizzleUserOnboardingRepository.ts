@@ -66,8 +66,8 @@ export class DrizzleUserOnboardingRepository implements IUserOnboardingRepositor
     update: OnboardingStateUpdate,
   ): Promise<Result<OnboardingStateRecord>> {
     try {
-      // Only the keys present in `update` are written, so untouched columns are
-      // preserved on conflict (PATCH semantics).
+      // Only the keys present in `update` are written, so columns it does not
+      // mention survive the conflict.
       const result = await this.db
         .insert(onboardingState)
         .values({ userId, ...update })

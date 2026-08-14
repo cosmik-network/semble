@@ -20,3 +20,12 @@ export const getProfile = cache(
     return response;
   },
 );
+
+/**
+ * Server-only myProfile fetch, for prefetching in Server Components.
+ * Client Components use getMyProfile from dal.ts instead.
+ */
+export const getMyProfile = cache(async (includeStats?: boolean) => {
+  const client = await createServerSembleClient();
+  return client.getMyProfile({ includeStats });
+});

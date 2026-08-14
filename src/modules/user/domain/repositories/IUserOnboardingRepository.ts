@@ -31,16 +31,13 @@ export interface OnboardingStateRecord {
   updatedAt: Date;
 }
 
-// Only the fields the client provided. userId and updatedAt are managed by the
-// server, so they are not part of a partial update.
 export type OnboardingStateUpdate = Partial<
   Omit<OnboardingStateRecord, 'userId' | 'updatedAt'>
 >;
 
 export interface IUserOnboardingRepository {
   findByUserId(userId: string): Promise<Result<OnboardingStateRecord | null>>;
-  // Creates the row if absent, otherwise writes only the provided columns.
-  // Returns the full merged record.
+  // Writes only the provided columns, and returns the full merged record.
   upsert(
     userId: string,
     update: OnboardingStateUpdate,

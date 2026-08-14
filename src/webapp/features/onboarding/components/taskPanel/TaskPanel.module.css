@@ -1,0 +1,8 @@
+/* Must stay in step with PANEL_FILL, which the scroller inside reads for its
+   edge fade. */
+.panel {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
