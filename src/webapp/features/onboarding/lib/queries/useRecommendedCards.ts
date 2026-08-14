@@ -21,7 +21,6 @@ export default function useRecommendedCards(props: Props) {
         ? lastPage.pagination.currentPage + 1
         : undefined,
     enabled: (props.enabled ?? true) && props.queries.length > 0,
-    // Randomized server-side, so a refetch reshuffles what is on screen.
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
