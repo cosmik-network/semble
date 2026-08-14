@@ -57,6 +57,22 @@ export const TOPICS: Topic[] = [
 
 export const PRESET_TOPICS = TOPICS.map((topic) => topic.query);
 
+export function normalizeTopic(topic: string): string {
+  return topic.trim().toLowerCase();
+}
+
+/** First occurrence wins, so preset order and preset casing survive. */
+export function dedupeTopics(topics: string[]): string[] {
+  const seen = new Set<string>();
+
+  return topics.filter((topic) => {
+    const key = normalizeTopic(topic);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export const FALLBACK_TOPICS = [
   'science',
   'AI',

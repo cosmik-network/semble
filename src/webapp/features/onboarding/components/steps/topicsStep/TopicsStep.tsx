@@ -2,7 +2,12 @@
 
 import { Group, Stack } from '@mantine/core';
 import { useInputState, useListState } from '@mantine/hooks';
-import { PRESET_TOPICS, TOPICS } from '../../../lib/topics';
+import {
+  PRESET_TOPICS,
+  TOPICS,
+  dedupeTopics,
+  normalizeTopic,
+} from '../../../lib/topics';
 import useOnboardingState from '../../../lib/useOnboardingState';
 import AddTopicTile from '../../addTopicTile/AddTopicTile';
 import GoalProgress from '../../goalProgress/GoalProgress';
@@ -10,23 +15,7 @@ import StepHeading from '../../stepHeading/StepHeading';
 import TopicTile from '../../topicTile/TopicTile';
 import { CUSTOM_TOPIC_ICON, TOPIC_ICONS } from '../../topicTile/topicVisuals';
 
-function normalize(topic: string): string {
-  return topic.trim().toLowerCase();
-}
-
-/** First occurrence wins, so preset order and preset casing survive. */
-function dedupe(topics: string[]): string[] {
-  const seen = new Set<string>();
-
-  return topics.filter((topic) => {
-    const key = normalize(topic);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalize));
+const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalizeTopic));
 
 const TOPIC_GOAL = 2;
 
@@ -45,16 +34,16 @@ export default function TopicsStep() {
   // Keyed on the normalized form so a stored "ai" lights up the preset "AI",
   // holding the stored casing, which is what deselect removes.
   const selectedByKey = new Map(
-    topics.map((topic) => [normalize(topic), topic]),
+    topics.map((topic) => [normalizeTopic(topic), topic]),
   );
 
-  const isSelected = (query: string) => selectedByKey.has(normalize(query));
+  const isSelected = (query: string) => selectedByKey.has(normalizeTopic(query));
 
   const toggle = (query: string) => {
-    const key = normalize(query);
+    const key = normalizeTopic(query);
 
     if (selectedByKey.has(key)) {
-      changeTopics(topics.filter((topic) => normalize(topic) !== key));
+      changeTopics(topics.filter((topic) => normalizeTopic(topic) !== key));
       return;
     }
 
@@ -63,15 +52,15 @@ export default function TopicsStep() {
 
   // `topics` has to be in here or a custom topic added before a remount has no
   // tile to click.
-  const customTopicList = dedupe([...topics, ...customTopics])
-    .filter((topic) => !PRESET_KEYS.has(normalize(topic)))
+  const customTopicList = dedupeTopics([...topics, ...customTopics])
+    .filter((topic) => !PRESET_KEYS.has(normalizeTopic(topic)))
     .reverse();
 
-  const allTopics = dedupe([...PRESET_TOPICS, ...topics, ...customTopics]);
+  const allTopics = dedupeTopics([...PRESET_TOPICS, ...topics, ...customTopics]);
 
   const trimmedInput = newTopic.trim();
   const existingTopic = trimmedInput
-    ? allTopics.find((topic) => normalize(topic) === normalize(trimmedInput))
+    ? allTopics.find((topic) => normalizeTopic(topic) === normalizeTopic(trimmedInput))
     : undefined;
   const isAlreadySelected =
     existingTopic !== undefined && isSelected(existingTopic);

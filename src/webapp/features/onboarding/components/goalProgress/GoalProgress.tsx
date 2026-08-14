@@ -1,19 +1,11 @@
 'use client';
 
 import { Group, Progress, Text } from '@mantine/core';
+import { goalLabel } from '../../lib/goalLabel';
 
 interface Props {
   picked: number;
   goal: number;
-}
-
-// A full string per branch rather than one assembled around the number, which
-// would not survive translation.
-function goalLabel(picked: number, goal: number) {
-  if (picked === 0) return `Pick at least ${goal} for the best suggestions`;
-  if (picked >= goal) return 'Good to go — pick more if you like';
-
-  return `${picked} of ${goal} picked`;
 }
 
 export default function GoalProgress(props: Props) {
@@ -28,7 +20,6 @@ export default function GoalProgress(props: Props) {
         radius={'xl'}
         color="tangerine"
         transitionDuration={200}
-        aria-hidden="true"
       />
 
       <Text
