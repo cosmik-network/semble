@@ -9,6 +9,7 @@ export default function HelpContainerSkeleton() {
           <SettingItemSkeleton />
           <SettingItemSkeleton />
           <SettingItemSkeleton />
+          <SettingItemSkeleton />
         </ButtonGroup>
       </Stack>
     </Container>
