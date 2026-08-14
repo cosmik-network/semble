@@ -68,7 +68,8 @@ export default function WhatNextStep(props: Props) {
       icon: <FiPlus />,
       color: 'tangerine',
       title: 'Save your first link',
-      description: 'Save a link (card) so that it’s easier to find again, and to make it easier for others to discover the same content.',
+      description:
+        'Save a link (card) so that it’s easier to find again, and to make it easier for others to discover the same content.',
       done: cardCount > 0,
       onClick: () => togglePanel('save'),
       expanded: openPanel === 'save',

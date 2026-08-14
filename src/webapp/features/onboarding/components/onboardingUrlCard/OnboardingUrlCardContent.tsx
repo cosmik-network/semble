@@ -38,7 +38,14 @@ export default function OnboardingUrlCardContent(props: Props) {
       </Stack>
       {metadata.imageUrl && !imageError && (
         <AspectRatio ratio={1 / 1}>
-          <Card p={0} radius={'md'} withBorder w={75} h={75} style={{ flexShrink: 0 }}>
+          <Card
+            p={0}
+            radius={'md'}
+            withBorder
+            w={75}
+            h={75}
+            style={{ flexShrink: 0 }}
+          >
             <Image
               src={metadata.imageUrl}
               alt={`${props.urlView.url} social preview image`}

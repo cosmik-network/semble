@@ -37,7 +37,8 @@ export default function TopicsStep() {
     topics.map((topic) => [normalizeTopic(topic), topic]),
   );
 
-  const isSelected = (query: string) => selectedByKey.has(normalizeTopic(query));
+  const isSelected = (query: string) =>
+    selectedByKey.has(normalizeTopic(query));
 
   const toggle = (query: string) => {
     const key = normalizeTopic(query);
@@ -56,11 +57,17 @@ export default function TopicsStep() {
     .filter((topic) => !PRESET_KEYS.has(normalizeTopic(topic)))
     .reverse();
 
-  const allTopics = dedupeTopics([...PRESET_TOPICS, ...topics, ...customTopics]);
+  const allTopics = dedupeTopics([
+    ...PRESET_TOPICS,
+    ...topics,
+    ...customTopics,
+  ]);
 
   const trimmedInput = newTopic.trim();
   const existingTopic = trimmedInput
-    ? allTopics.find((topic) => normalizeTopic(topic) === normalizeTopic(trimmedInput))
+    ? allTopics.find(
+        (topic) => normalizeTopic(topic) === normalizeTopic(trimmedInput),
+      )
     : undefined;
   const isAlreadySelected =
     existingTopic !== undefined && isSelected(existingTopic);
