@@ -12,16 +12,9 @@ export const STEPS: ReadonlyArray<{ id: StepId; label: string }> = [
 export const TOTAL_STEPS = STEPS.length;
 
 /**
- * Resolves ?step= to a renderable 1-based stage number. Pure range validation,
- * and deliberately nothing else.
- *
- * It does NOT gate stages 2 and 3 on having topics: progress is read from
- * localStorage after mount, so a topic-aware clamp would render stage 1 for one
- * frame on every deep-linked resume, then jump. Those stages handle empty
- * topics themselves.
- *
- * Never rewrites the URL, so it cannot fight the router by navigating during a
- * render.
+ * Range validation and nothing else: later stages are not gated on earlier
+ * answers — they handle an empty record themselves — and the URL is never
+ * rewritten, so this cannot navigate during a render.
  */
 export function clampStep(raw: string | null): number {
   const parsed = Number(raw);

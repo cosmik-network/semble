@@ -12,7 +12,7 @@ export default function useRecommendedCollections(props: Props) {
     queryKey: onboardingKeys.recommendedCollections(props.urls),
     queryFn: () => getRecommendedCollections(props.urls),
     enabled: (props.enabled ?? true) && props.urls.length > 0,
-    // Results are intentionally randomized server-side; don't reshuffle on refocus
+    // Randomized server-side, so a refetch reshuffles what is on screen.
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

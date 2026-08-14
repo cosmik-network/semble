@@ -1,4 +1,6 @@
-import { STEPS, type StepId } from './steps';
+import type { OnboardingState } from '@semble/types';
+import { resumeStep } from './resumeStep';
+import { STEPS } from './steps';
 
 export interface ResumePoint {
   step: number;
@@ -6,11 +8,16 @@ export interface ResumePoint {
   href: string;
 }
 
-export function resumePoint(isResuming: boolean, stepId: StepId): ResumePoint {
-  const index = isResuming ? STEPS.findIndex((step) => step.id === stepId) : 0;
-  // A stepId written by an older build is no longer in STEPS; findIndex gives
-  // -1, and "Step 0 of 5" is worse than starting over.
-  const step = index < 0 ? 1 : index + 1;
+/**
+ * Someone who has not started reads as stage 1 whatever their record holds, so
+ * a row left by an abandoned run cannot drop a first-timer into the middle of
+ * the flow.
+ */
+export function resumePoint(
+  isResuming: boolean,
+  state: OnboardingState | null | undefined,
+): ResumePoint {
+  const step = isResuming ? resumeStep(state) : 1;
 
   return {
     step,

@@ -18,9 +18,8 @@ export type TopicId =
 export interface Topic {
   id: TopicId;
   /**
-   * Sent verbatim to semantic search and persisted to localStorage. Treat as
-   * frozen: changing one silently changes what a user gets recommended and
-   * stops their stored pick from matching its preset.
+   * Sent verbatim to semantic search, and what gets persisted. Treat as frozen:
+   * changing one stops a stored pick from matching its preset.
    */
   query: string;
   label: string;
