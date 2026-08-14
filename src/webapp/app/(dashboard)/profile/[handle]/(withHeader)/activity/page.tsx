@@ -1,4 +1,4 @@
-import ProfileActivityContainer from '@/features/feeds/containers/profileActivityContainer/ProfileActivityContainer';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -7,5 +7,5 @@ interface Props {
 export default async function Page(props: Props) {
   const { handle } = await props.params;
 
-  return <ProfileActivityContainer handle={handle} />;
+  redirect(`/profile/${handle}`);
 }

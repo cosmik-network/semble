@@ -12,7 +12,6 @@ interface Props {
 }
 
 export default function ProfileActivityContainer({ handle }: Props) {
-  // Non-suspense query — profile.id may be undefined on first render.
   const { data: profile } = useProfile({
     didOrHandle: handle,
     includeStats: true,
