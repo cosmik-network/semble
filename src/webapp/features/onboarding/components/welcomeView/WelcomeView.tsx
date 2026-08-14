@@ -38,7 +38,8 @@ export const STAGES: { icon: ReactNode; title: string }[] = [
 
 const DOCS_URL = 'https://docs.cosmik.network/semble';
 const DISCORD_URL = 'https://discord.gg/SHvvysb73e';
-const FEEDBACK_URL = 'https://tangled.org/@cosmik.network/semble/issues';
+// TODO: replace with the real Tally form ID once the form is created
+const FEEDBACK_URL = 'https://tally.so/r/GxEjkz';
 
 const HELP_LINK_PROPS = {
   target: '_blank',
