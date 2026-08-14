@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// Where the user is in the onboarding flow. SKIPPED means they dismissed it
-// rather than finishing, so it is terminal like COMPLETED but distinguishable.
+// SKIPPED means dismissed rather than finished: terminal like COMPLETED, but
+// distinguishable.
 export const OnboardingStatusSchema = z.enum([
   'NOT_STARTED',
   'IN_PROGRESS',
@@ -10,9 +10,6 @@ export const OnboardingStatusSchema = z.enum([
 ]);
 export type OnboardingStatus = z.infer<typeof OnboardingStatusSchema>;
 
-// Full onboarding state as the client sees it. Every field except the
-// server-derived userId is optional. Returned by the GET endpoint and as the
-// merged result of an update.
 export const OnboardingStateSchema = z.object({
   userId: z.string(),
   onboardingState: OnboardingStatusSchema.nullable().optional(),
@@ -44,10 +41,9 @@ export type GetOnboardingStateResponse = z.infer<
   typeof GetOnboardingStateResponseSchema
 >;
 
-// Partial update: the client sends only the fields it wants to change. userId
-// is derived from the authenticated request and updatedAt is server-managed, so
-// neither is accepted here. Fields present in the body are written (explicit
-// null clears them); absent fields are left untouched.
+// Fields present in the body are written — an explicit null clears the column —
+// and absent fields are left untouched. userId and updatedAt are server-owned,
+// so neither is accepted here.
 export const UpdateOnboardingStateRequestSchema = z.object({
   onboardingState: OnboardingStatusSchema.nullable().optional(),
   topicsSelected: z.array(z.string()).nullable().optional(),

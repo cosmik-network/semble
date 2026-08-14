@@ -1,0 +1,17 @@
+.tile {
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 150ms ease;
+
+  appearance: none;
+}
+
+/* Pointers only — a tap would leave the tile stuck in its hover state. */
+@media (hover: hover) {
+  .tile:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-6)
+    );
+  }
+}

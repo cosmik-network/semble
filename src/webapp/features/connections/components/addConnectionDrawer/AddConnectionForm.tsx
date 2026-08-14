@@ -28,6 +28,9 @@ import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { BiSolidChevronDown } from 'react-icons/bi';
+import { CardSaveSource } from '@/features/analytics/types';
+import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 
 interface Props {
   onClose: () => void;
@@ -35,11 +38,13 @@ interface Props {
   sourceUrl?: string;
   /** When provided the target is prefilled. */
   targetUrl?: string;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddConnectionForm(props: Props) {
   const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
+  const onboarding = useOnboardingMilestones();
 
   // Track the raw input values so we can auto-confirm valid URLs on submit
   const rawSourceInput = useRef(props.sourceUrl ?? '');
@@ -140,7 +145,17 @@ export default function AddConnectionForm(props: Props) {
         note: values.note || undefined,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // Gated on the id, not on reaching onSuccess: the connections DAL
+          // swallows its errors and resolves undefined, so a failed create
+          // lands here too and would otherwise be recorded as a real one.
+          if (
+            data?.connectionId &&
+            props.analyticsContext?.saveSource === CardSaveSource.ONBOARDING
+          ) {
+            onboarding.recordConnectionCreated(data.connectionId);
+          }
+
           props.onClose();
           notifications.show({
             color: 'green',

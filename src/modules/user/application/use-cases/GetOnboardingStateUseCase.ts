@@ -56,7 +56,6 @@ export class GetOnboardingStateUseCase implements UseCase<
       return err(new AppError.UnexpectedError(result.error));
     }
 
-    // No row yet: return a usable, empty state so the client always gets an object.
     return ok(result.value ?? emptyState(request.userId));
   }
 }

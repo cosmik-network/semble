@@ -5,7 +5,11 @@ import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
-import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import {
+  CardSaveAnalyticsContext,
+  CardSaveSource,
+} from '@/features/analytics/types';
+import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
 import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
 import { notifications } from '@mantine/notifications';
@@ -25,10 +29,14 @@ interface Props {
 }
 
 export default function AddCardToModal(props: Props) {
+  const onboarding = useOnboardingMilestones();
   const addCard = useAddCard(props.analyticsContext);
   const updateCardAssociations = useUpdateCardAssociations(
     props.analyticsContext,
   );
+
+  const isOnboardingSave =
+    props.analyticsContext?.saveSource === CardSaveSource.ONBOARDING;
 
   const handleSubmit = (data: {
     isAddingNewCard: boolean;
@@ -63,7 +71,18 @@ export default function AddCardToModal(props: Props) {
 
       props.onClose();
 
-      addCard.mutate({ ...data.cardData, notificationId });
+      addCard.mutate(
+        { ...data.cardData, notificationId },
+        {
+          // Recorded here rather than in useAddCard so the composer's "add a
+          // link of your own" path does not claim a guide it never showed.
+          // The card itself is recorded by useAddCard, which also covers that
+          // composer path.
+          onSuccess: () => {
+            if (isOnboardingSave) onboarding.recordSaveGuideCompleted();
+          },
+        },
+      );
     } else if (!data.isAddingNewCard && data.updateData) {
       const notificationId = `update-card-${Date.now()}`;
       notifications.show({
@@ -78,7 +97,24 @@ export default function AddCardToModal(props: Props) {
 
       props.onClose();
 
-      updateCardAssociations.mutate({ ...data.updateData, notificationId });
+      const updateData = data.updateData;
+
+      updateCardAssociations.mutate(
+        { ...updateData, notificationId },
+        {
+          // The other half of the save. A URL already in the library takes this
+          // branch instead of useAddCard, and adding a note or a collection to
+          // it is a save — it is what the existing `card_saved` posthog event
+          // fires on here. Gated on the same addToLibrary flag, so merely
+          // removing a card from a collection is not counted.
+          onSuccess: () => {
+            if (!isOnboardingSave || !updateData.addToLibrary) return;
+
+            onboarding.recordCardSaved(props.url);
+            onboarding.recordSaveGuideCompleted();
+          },
+        },
+      );
     }
   };
 

@@ -21,7 +21,6 @@ export default function useRecommendedCards(props: Props) {
         ? lastPage.pagination.currentPage + 1
         : undefined,
     enabled: (props.enabled ?? true) && props.queries.length > 0,
-    // Results are intentionally randomized server-side; don't reshuffle on refocus
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

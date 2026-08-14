@@ -1,0 +1,52 @@
+.card {
+  background-color: transparent;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.card[data-expanded] {
+  border-color: light-dark(
+    var(--mantine-color-gray-5),
+    var(--mantine-color-dark-3)
+  );
+}
+
+.row {
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    opacity 150ms ease;
+}
+
+.row[data-done] {
+  opacity: 0.65;
+}
+
+/* Pointers only — a tap would leave the row stuck in its hover state. */
+@media (hover: hover) {
+  .row:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-2),
+      var(--mantine-color-dark-5)
+    );
+  }
+
+  .row[data-done]:hover {
+    opacity: 1;
+  }
+}
+
+.affordance {
+  transition: transform 200ms ease;
+}
+
+.affordance[data-expanded] {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .affordance {
+    transition: none;
+  }
+}
