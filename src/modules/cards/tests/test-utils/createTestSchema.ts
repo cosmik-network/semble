@@ -177,6 +177,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       PRIMARY KEY (user_id, activity_id)
     )`,
 
+    // API request logs table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS api_request_logs (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_did TEXT NOT NULL,
+      method TEXT NOT NULL,
+      endpoint TEXT NOT NULL,
+      source TEXT NOT NULL,
+      auth_method TEXT NOT NULL,
+      status INTEGER NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
     // Onboarding state table (references users) - one row per user, one column per field
     sql`CREATE TABLE IF NOT EXISTS onboarding_state (
       user_id TEXT PRIMARY KEY REFERENCES users(id),
@@ -398,6 +410,17 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Following feed items indexes
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
+  `);
+
+  // API request logs indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_created_at_idx ON api_request_logs(created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_source_created_at_idx ON api_request_logs(source, created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_user_created_at_idx ON api_request_logs(user_did, created_at);
   `);
 
   // API keys indexes
