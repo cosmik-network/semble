@@ -51,7 +51,6 @@ export default function WhatNextTile(props: Props) {
             color="green"
             size={'md'}
             radius={'xl'}
-            aria-hidden="true"
           />
         </Group>
       </Group>

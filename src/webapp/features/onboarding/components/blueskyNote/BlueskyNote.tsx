@@ -16,12 +16,7 @@ interface Props {
 export default function BlueskyNote(props: Props) {
   return (
     <Group gap={5} wrap="nowrap" miw={0}>
-      <FaBluesky
-        fill={BLUESKY_BLUE}
-        size={13}
-        style={{ flexShrink: 0 }}
-        aria-hidden="true"
-      />
+      <FaBluesky fill={BLUESKY_BLUE} size={14} style={{ flexShrink: 0 }} />
       <Text fz={'xs'} fw={600} c={BLUESKY_BLUE} lineClamp={1}>
         {props.children}
       </Text>
