@@ -5,7 +5,6 @@ import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
 import BottomBar from '../bottomBar/BottomBar';
-import { useMediaQuery } from '@mantine/hooks';
 import { Suspense } from 'react';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
@@ -16,7 +15,6 @@ interface Props {
 
 export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
 
   return (
     <AppShell
@@ -32,7 +30,7 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
       footer={{
-        height: isMobile ? 85 : 0,
+        height: { base: 85, sm: 0 },
       }}
     >
       <Suspense fallback={<NavbarSkeleton />}>
