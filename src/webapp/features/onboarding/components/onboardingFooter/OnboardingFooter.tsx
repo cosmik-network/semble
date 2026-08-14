@@ -13,6 +13,7 @@ interface Props {
   continueHref?: string;
   continueLabel?: string;
   continueDisabled?: boolean;
+  navigating?: boolean;
 }
 
 export default function OnboardingFooter(props: Props) {
@@ -70,6 +71,7 @@ export default function OnboardingFooter(props: Props) {
                   rightSection={<IoArrowForward />}
                   onClick={props.onContinue}
                   disabled={props.continueDisabled}
+                  loading={props.navigating}
                 >
                   {props.continueLabel ?? 'Continue'}
                 </Button>

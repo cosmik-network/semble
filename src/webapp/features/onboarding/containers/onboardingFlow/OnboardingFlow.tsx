@@ -1,5 +1,6 @@
 'use client';
 
+import { useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@mantine/hooks';
 import { STEPS, clampStep, type StepId } from '../../lib/steps';
@@ -36,6 +37,8 @@ export default function OnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state, status, isLoaded, update, updateNow } = useOnboardingState();
+
+  const [isNavigating, startTransition] = useTransition();
 
   const stepParam = searchParams.get('step');
 
@@ -95,7 +98,7 @@ export default function OnboardingFlow() {
 
   const goToStep = (step: number) => {
     markStep();
-    router.push(`/onboarding?step=${step}`);
+    startTransition(() => router.push(`/onboarding?step=${step}`));
   };
 
   const goNext = () => goToStep(currentStep + 1);
@@ -220,6 +223,7 @@ export default function OnboardingFlow() {
               : '/onboarding'
           }
           onBack={currentStep > 1 ? markStep : undefined}
+          navigating={isNavigating}
           {...stageFooters[stepId]}
         />
       }
