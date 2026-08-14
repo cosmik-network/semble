@@ -45,7 +45,6 @@ export default function TopicTile(props: Props) {
           <Icon size={14} />
         </ThemeIcon>
 
-        {/* A span, not Text's default <p> — this sits inside a <button>. */}
         <Text component="span" fz={'sm'} fw={600} c={'bright'} lh={1.2}>
           {props.label}
         </Text>

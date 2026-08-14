@@ -69,8 +69,6 @@ export default function OnboardingFlow() {
 
   const fallbackUrls = suggestedUrls.slice(0, 5);
 
-  // resetSelectionOnDataChange stays off: it would wipe the user's picks every
-  // time "Show more" grows `data`.
   const [selectedUrls, selection] = useSelection({
     data: suggestedUrls,
   });

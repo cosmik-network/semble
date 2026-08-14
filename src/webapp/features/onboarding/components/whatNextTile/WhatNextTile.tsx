@@ -44,8 +44,6 @@ export default function WhatNextTile(props: Props) {
             </ThemeIcon>
           )}
 
-          {/* Checkbox.Indicator, not Checkbox: a real checkbox here would be a
-              nested control promising a state you cannot set. */}
           <Checkbox.Indicator
             checked={props.done}
             color="green"
@@ -78,8 +76,6 @@ export default function WhatNextTile(props: Props) {
       className={styles.card}
       mod={{ expanded: props.expanded }}
     >
-      {/* The panel this opens renders outside the button: it is full of buttons
-          of its own, whose clicks would bubble up and collapse it. */}
       <UnstyledButton
         onClick={props.onClick}
         aria-expanded={props.expanded}
