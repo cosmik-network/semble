@@ -13,8 +13,6 @@ interface Props {
 export default function CardScroller(props: Props) {
   return (
     <Scroller w={'100%'} edgeGradientColor={PANEL_FILL}>
-      {/* Scroller's content element is `white-space: nowrap`, which every card
-          inherits — titles would run onto one line. */}
       <Group
         wrap="nowrap"
         align="stretch"

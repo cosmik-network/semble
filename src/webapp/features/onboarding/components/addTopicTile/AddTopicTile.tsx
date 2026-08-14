@@ -50,7 +50,6 @@ export default function AddTopicTile(props: Props) {
             <TbPlus size={14} />
           </ThemeIcon>
 
-          {/* A span, not Text's default <p> — this sits inside a <button>. */}
           <Text component="span" fz={'sm'} fw={600} c={'bright'} lh={1.2}>
             Add your own
           </Text>
@@ -65,8 +64,6 @@ export default function AddTopicTile(props: Props) {
         title="Add your own topic"
         overlayProps={DEFAULT_OVERLAY_PROPS}
       >
-        {/* A real form, so Enter submits natively — no key handler to keep in
-            sync with the click path. */}
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -76,8 +73,7 @@ export default function AddTopicTile(props: Props) {
         >
           <Stack gap={'md'}>
             <TextInput
-              // Mantine moves focus here on open and back to the tile on close,
-              // so no effect of our own.
+              // Mantine moves focus here on open and back to the tile on close
               data-autofocus
               label="Topic"
               placeholder="mycology, urban planning"
