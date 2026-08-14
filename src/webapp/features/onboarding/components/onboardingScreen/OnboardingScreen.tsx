@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Box, Container, Stack } from '@mantine/core';
-import OnboardingArtwork from '../onboardingArtwork/OnboardingArtwork';
+import OnboardingBackground from '../onboardingBackground/OnboardingBackground';
 
 const SCROLL_MASK =
   'linear-gradient(to bottom, transparent 0, black 24px, black 100%)';
@@ -18,7 +18,7 @@ interface Props {
 export default function OnboardingScreen(props: Props) {
   return (
     <Box pos="relative" h={'100svh'} w={'100%'}>
-      <OnboardingArtwork variant="screen" />
+      <OnboardingBackground variant="screen" />
 
       <Stack h={'100%'} gap={0} pos="relative" style={{ zIndex: 1 }}>
         {props.header}

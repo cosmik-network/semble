@@ -11,13 +11,13 @@ import {
   ThemeIcon,
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo-full.svg';
-import OnboardingArtwork from '../onboardingArtwork/OnboardingArtwork';
+import OnboardingBackground from '../onboardingBackground/OnboardingBackground';
 import { STAGES } from './WelcomeView';
 
 export default function WelcomeViewSkeleton() {
   return (
     <Box component="main" pos="relative" h={'100svh'} w={'100%'}>
-      <OnboardingArtwork variant="welcome" />
+      <OnboardingBackground variant="welcome" />
 
       <Box pos={'absolute'} top={0} left={0} p={'md'} style={{ zIndex: 2 }}>
         <Image src={SembleLogo.src} alt="Semble logo" h={28} w={'auto'} />

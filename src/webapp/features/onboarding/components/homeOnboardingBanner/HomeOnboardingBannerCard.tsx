@@ -7,7 +7,7 @@ import { LinkButton } from '@/components/link/MantineLink';
 import useUpdateOnboardingState from '../../lib/mutations/useUpdateOnboardingState';
 import type { ResumePoint } from '../../lib/resumePoint';
 import { TOTAL_STEPS } from '../../lib/steps';
-import OnboardingArtwork from '../onboardingArtwork/OnboardingArtwork';
+import OnboardingBackground from '../onboardingBackground/OnboardingBackground';
 import Stepper from '../stepper/Stepper';
 
 // The stepper's own default is white, which disappears on this card's surface.
@@ -32,7 +32,7 @@ export default function HomeOnboardingBannerCard(props: Props) {
 
   return (
     <Card withBorder radius={'lg'} p={{ base: 'md', sm: 'lg' }} pos="relative">
-      <OnboardingArtwork variant="banner" />
+      <OnboardingBackground variant="banner" />
 
       <Group
         justify="space-between"

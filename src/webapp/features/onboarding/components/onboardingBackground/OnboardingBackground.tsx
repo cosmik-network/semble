@@ -4,8 +4,6 @@ import { BackgroundImage } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.webp';
 
-// How far down each surface the artwork survives before fading out. The
-// `-webkit-` prefix is still needed for older Safari.
 const FADE = {
   screen: 'linear-gradient(to bottom, black 0%, black 6%, transparent 20%)',
   welcome: 'linear-gradient(to bottom, black 0%, black 15%, transparent 45%)',
@@ -16,7 +14,7 @@ interface Props {
   variant: keyof typeof FADE;
 }
 
-export default function OnboardingArtwork(props: Props) {
+export default function OnboardingBackground(props: Props) {
   const mask = FADE[props.variant];
 
   const style = { maskImage: mask, WebkitMaskImage: mask };
