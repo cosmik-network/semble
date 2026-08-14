@@ -22,11 +22,6 @@ interface Props {
   cardContent: UrlCard['cardContent'];
   uri?: string;
   authorHandle?: string;
-  /**
-   * Renders the domain as plain text instead of a link, for places where the
-   * card itself is the control — onboarding's card picker.
-   */
-  staticDomain?: boolean;
 }
 
 export default function LinkCardContent(props: Props) {
@@ -39,27 +34,19 @@ export default function LinkCardContent(props: Props) {
     <Group justify="space-between" align="start" gap={'lg'}>
       <Stack gap={0} flex={1}>
         <Group gap={4}>
-          {props.staticDomain ? (
-            // No Tooltip either: it reveals the full URL before you follow it,
-            // and there is nothing to follow here.
-            <Text c={'gray'} lineClamp={1} w={'fit-content'} fz={'sm'}>
+          <Tooltip label={props.cardContent.url}>
+            <Anchor
+              onClick={(e) => e.stopPropagation()}
+              href={props.cardContent.url}
+              target="_blank"
+              c={'gray'}
+              lineClamp={1}
+              w={'fit-content'}
+              fz={'sm'}
+            >
               {domain}
-            </Text>
-          ) : (
-            <Tooltip label={props.cardContent.url}>
-              <Anchor
-                onClick={(e) => e.stopPropagation()}
-                href={props.cardContent.url}
-                target="_blank"
-                c={'gray'}
-                lineClamp={1}
-                w={'fit-content'}
-                fz={'sm'}
-              >
-                {domain}
-              </Anchor>
-            </Tooltip>
-          )}
+            </Anchor>
+          </Tooltip>
           {isMarginUri(props.uri) && (
             <MarginLogo size={12} marginUrl={marginUrl} />
           )}
