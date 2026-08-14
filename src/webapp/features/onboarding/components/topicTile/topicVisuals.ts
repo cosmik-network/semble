@@ -22,9 +22,8 @@ import type { TopicId } from '../../lib/topics';
 export const TOPIC_COLOR = 'tangerine';
 
 /**
- * Kept out of `lib/topics.ts` so the registry stays free of React. A Record
- * keyed by TopicId rather than a lookup with a fallback: adding a topic id is a
- * type error until it has an icon.
+ * Kept out of `lib/topics.ts` so the registry stays free of React. Keyed by
+ * TopicId, so adding a topic is a type error until it has an icon.
  */
 export const TOPIC_ICONS: Record<TopicId, IconType> = {
   science: TbFlask,

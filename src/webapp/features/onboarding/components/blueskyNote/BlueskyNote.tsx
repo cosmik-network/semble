@@ -4,9 +4,8 @@ import { Group, Text } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 
 /**
- * Deliberately not a Mantine palette colour: the theme overrides `blue` with a
- * cyan of its own, so `color="blue"` renders something recognisably not
- * Bluesky. Already inlined the same way in `BlueskyPlatformIcon`.
+ * Not a Mantine palette colour: the theme overrides `blue` with a cyan of its
+ * own. Inlined the same way in `BlueskyPlatformIcon`.
  */
 const BLUESKY_BLUE = '#0085ff';
 

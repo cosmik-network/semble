@@ -4,64 +4,69 @@ import {
   Badge,
   Box,
   Button,
-  Center,
   Group,
-  Loader,
   SimpleGrid,
   Stack,
   Tabs,
-  Text,
   Title,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import { MdErrorOutline, MdPersonSearch } from 'react-icons/md';
-import useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
-import useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
+import type useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
+import type useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { LinkButton } from '@/components/link/MantineLink';
 import BlueskyNote from '../../blueskyNote/BlueskyNote';
 import SuggestionCard from '../../suggestionCard/SuggestionCard';
+import SuggestionCardSkeleton from '../../suggestionCard/Skeleton.SuggestionCard';
 import StepHeading from '../../stepHeading/StepHeading';
 
-const VISIBLE_USERS = 8;
-const VISIBLE_COLLECTIONS = 6;
+// Exported because the container records what was suggested, and "suggested"
+// has to mean the same set the user was shown.
+export const VISIBLE_USERS = 8;
+export const VISIBLE_COLLECTIONS = 6;
 
 interface Props {
-  urls: string[];
+  // Owned by the container, which records what was suggested on the way out
+  // and so has to see the same results this does.
+  users: ReturnType<typeof useRecommendedUsers>;
+  collections: ReturnType<typeof useRecommendedCollections>;
+  hasUrls: boolean;
   progressLoaded: boolean;
   pickCardsHref: string;
   onPickMoreCards: () => void;
+  onFollowChange: (
+    targetType: 'USER' | 'COLLECTION',
+    targetId: string,
+    isFollowing: boolean,
+  ) => void;
 }
 
 export default function FollowStep(props: Props) {
-  const users = useRecommendedUsers({ urls: props.urls });
-  const collections = useRecommendedCollections({ urls: props.urls });
-
-  const hasUrls = props.urls.length > 0;
+  const { users, collections } = props;
 
   // !progressLoaded is the "we don't know yet" frame — without it the empty
-  // branch wins for one frame before the spinner. hasUrls covers the opposite
-  // case: with nothing stored the queries stay disabled at isPending: true
-  // forever, so gating on that alone would spin without end.
+  // branch wins for one frame. hasUrls covers the opposite case: with nothing
+  // stored the queries stay disabled at isPending forever.
   const isPending =
     !props.progressLoaded ||
-    (hasUrls && (users.isPending || collections.isPending));
+    (props.hasUrls && (users.isPending || collections.isPending));
 
   const isError = users.isError || collections.isError;
 
   // One request, two lists: every user carries followsOnBsky, so the second tab
-  // is a filter rather than a second fetch. The limit applies per tab, so the
-  // Bluesky list is not cut short by the recommendations preceding it.
+  // is a filter rather than a second fetch. The limit applies per tab.
   const allUsers = users.data?.users ?? [];
   const visibleUsers = allUsers.slice(0, VISIBLE_USERS);
   const bskyUsers = allUsers
     .filter((user) => user.followsOnBsky)
     .slice(0, VISIBLE_USERS);
 
-  // Counted before those already followed here are dropped — it is what tells
-  // "none of them are on Semble" apart from "you already follow all of them".
+  // Counted server-side before those already followed are dropped, which is
+  // what tells "none are on Semble" apart from "you already follow them all".
   const bskyFollowedCount = users.data?.bskyFollowedSembleUserCount ?? 0;
 
   const visibleCollections =
@@ -90,8 +95,19 @@ export default function FollowStep(props: Props) {
       targetId={targetId}
       targetType={targetType}
       initialIsFollowing={isFollowing}
+      onFollowChange={(next) =>
+        props.onFollowChange(targetType, targetId, next)
+      }
       style={{ flex: '0 0 auto' }}
     />
+  );
+
+  const userGridSkeleton = (
+    <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+      {Array.from({ length: VISIBLE_USERS }).map((_, index) => (
+        <SuggestionCardSkeleton key={index} />
+      ))}
+    </SimpleGrid>
   );
 
   const userGrid = (list: typeof allUsers) => (
@@ -116,18 +132,9 @@ export default function FollowStep(props: Props) {
   return (
     <Stack gap={'xl'}>
       <StepHeading
-        title="Who to follow"
-        description="Follow whatever looks interesting. Collections are curated lists of cards, kept by one or more people."
+        title="Find people and collections to follow"
+        description="These are the people curating the kind of content your just selected. Follow them or their collections to easily keep track of their activity. You can also connect with people you may already know from Bluesky."
       />
-
-      {isPending && (
-        <Center py={'xl'}>
-          <Stack align="center" gap={'xs'}>
-            <Loader />
-            <Text c={'dimmed'}>Finding people and collections…</Text>
-          </Stack>
-        </Center>
-      )}
 
       {isError && (
         <Box py={'xl'}>
@@ -150,7 +157,7 @@ export default function FollowStep(props: Props) {
       )}
 
       <Stack gap={50}>
-        {!isPending && !isError && (
+        {!isError && (
           <Stack gap={'lg'}>
             {sectionHeader('People')}
 
@@ -165,7 +172,9 @@ export default function FollowStep(props: Props) {
               </Tabs.List>
 
               <Tabs.Panel value="recommended">
-                {visibleUsers.length > 0 ? (
+                {isPending ? (
+                  userGridSkeleton
+                ) : visibleUsers.length > 0 ? (
                   userGrid(visibleUsers)
                 ) : (
                   <Box py={'xl'}>
@@ -187,7 +196,9 @@ export default function FollowStep(props: Props) {
               </Tabs.Panel>
 
               <Tabs.Panel value="bluesky">
-                {bskyUsers.length > 0 ? (
+                {isPending ? (
+                  userGridSkeleton
+                ) : bskyUsers.length > 0 ? (
                   userGrid(bskyUsers)
                 ) : (
                   <Box py={'xl'}>
@@ -206,15 +217,23 @@ export default function FollowStep(props: Props) {
           </Stack>
         )}
 
-        {visibleCollections.length > 0 && (
+        {(isPending || visibleCollections.length > 0) && (
           <Stack gap={'lg'}>
-            {sectionHeader('Collections', visibleCollections.length)}
+            {sectionHeader(
+              'Collections',
+              isPending ? undefined : visibleCollections.length,
+            )}
 
             <SimpleGrid
               cols={{ base: 1, sm: 2 }}
               spacing={'xs'}
               verticalSpacing={{ base: 'md', sm: 'xs' }}
             >
+              {isPending &&
+                Array.from({ length: VISIBLE_COLLECTIONS }).map((_, index) => (
+                  <CollectionCardSkeleton key={index} />
+                ))}
+
               {visibleCollections.map((collection) => (
                 <Stack key={collection.id} gap={'xs'} h={'100%'}>
                   <Box flex={1}>

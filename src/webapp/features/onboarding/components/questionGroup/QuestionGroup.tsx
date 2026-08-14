@@ -10,10 +10,7 @@ interface Props {
   question: Question;
   selected: string[];
   otherText: string;
-  /**
-   * Both values at once, because they change together: dropping `other` has to
-   * clear the text in the same write.
-   */
+  /** Both at once: dropping `other` has to clear the text in the same write. */
   onChange: (next: { selected: string[]; otherText: string }) => void;
 }
 
@@ -30,8 +27,7 @@ export default function QuestionGroup(props: Props) {
   return (
     <Stack gap={'sm'}>
       {/* A real heading rather than the group's own `label`, which is styled as
-          a form label — the aria-label below is what names the group in
-          assistive tech. */}
+          a form label. The aria-label below names the group instead. */}
       <Title order={2} fz={'lg'} fw={600}>
         {props.question.prompt}
       </Title>
@@ -56,8 +52,8 @@ export default function QuestionGroup(props: Props) {
         </Checkbox.Group>
       ) : (
         <Radio.Group
-          // Stored as an array like every other answer, so the one column behind
-          // both questions keeps one shape.
+          // Stored as an array like every other answer, so both questions keep
+          // one shape in the column behind them.
           value={props.selected[0] ?? ''}
           onChange={(value) => commit([value])}
           aria-label={props.question.prompt}

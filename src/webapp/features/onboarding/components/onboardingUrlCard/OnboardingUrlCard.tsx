@@ -46,8 +46,8 @@ export default function OnboardingUrlCard(props: Props) {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* UrlCardContent suspends for Semble collection and profile URLs, and
-          without this the whole stage goes behind the page-level fallback. */}
+      {/* UrlCardContent suspends for Semble collection and profile URLs, which
+          without this would drop the whole stage behind the route fallback. */}
       <Suspense fallback={<UrlCardContentSkeleton />}>
         <UrlCardContent
           url={props.urlView.url}

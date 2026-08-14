@@ -6,8 +6,7 @@
   appearance: none;
 }
 
-/* Only where a pointer can hover — otherwise a tap leaves the tile stuck in its
-   hover state until you tap elsewhere. */
+/* Pointers only — a tap would leave the tile stuck in its hover state. */
 @media (hover: hover) {
   .tile:hover {
     background-color: light-dark(

@@ -1,6 +1,5 @@
-/* In the class rather than on a `bg` prop: Mantine's `bg` writes an inline
-   style, and PANEL_FILL has to stay the single definition of this colour — the
-   scroller inside reads it for its edge fade. */
+/* Must stay in step with PANEL_FILL, which the scroller inside reads for its
+   edge fade. */
 .panel {
   background-color: light-dark(
     var(--mantine-color-gray-0),

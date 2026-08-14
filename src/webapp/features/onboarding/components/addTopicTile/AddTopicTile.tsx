@@ -65,8 +65,8 @@ export default function AddTopicTile(props: Props) {
         title="Add your own topic"
         overlayProps={DEFAULT_OVERLAY_PROPS}
       >
-        {/* A real form, so Enter submits natively and the button is a submit
-            button — no key handler to keep in sync with the click path. */}
+        {/* A real form, so Enter submits natively — no key handler to keep in
+            sync with the click path. */}
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -76,8 +76,8 @@ export default function AddTopicTile(props: Props) {
         >
           <Stack gap={'md'}>
             <TextInput
-              // Mantine moves focus here on open and back to the tile on
-              // close, which is what saves this from needing an effect.
+              // Mantine moves focus here on open and back to the tile on close,
+              // so no effect of our own.
               data-autofocus
               label="Topic"
               placeholder="mycology, urban planning"

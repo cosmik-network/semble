@@ -15,11 +15,8 @@ export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        {/* Its own boundary, deliberately not awaited here: the flag check
-            inside HomeOnboardingBanner round-trips to the auth API, and
-            HomeContainer must stay a sync component so React can start
-            rendering the Suspense boundaries below (Discover, Collections,
-            Cards) without waiting on the banner's fetch. */}
+        {/* Its own boundary so HomeContainer stays sync: React can start on the
+            Suspense boundaries below without waiting on the banner's fetch. */}
         <Suspense fallback={null}>
           <HomeOnboardingBanner />
         </Suspense>

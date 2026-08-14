@@ -44,9 +44,8 @@ export default function WhatNextTile(props: Props) {
             </ThemeIcon>
           )}
 
-          {/* Checkbox.Indicator, not Checkbox: it draws the box and the tick
-              with no input behind it. A real checkbox here would be a nested
-              control promising a state you can set — you cannot. */}
+          {/* Checkbox.Indicator, not Checkbox: a real checkbox here would be a
+              nested control promising a state you cannot set. */}
           <Checkbox.Indicator
             checked={props.done}
             color="green"
@@ -64,7 +63,7 @@ export default function WhatNextTile(props: Props) {
           </Text>
           {props.done && <VisuallyHidden>Done</VisuallyHidden>}
         </Group>
-        <Text fz={'sm'} c={'dimmed'} lineClamp={2}>
+        <Text fz={'sm'} c={'dimmed'}>
           {props.description}
         </Text>
       </Stack>
@@ -80,9 +79,8 @@ export default function WhatNextTile(props: Props) {
       className={styles.card}
       mod={{ expanded: props.expanded }}
     >
-      {/* The panel this opens renders outside the button — full of UrlCards
-          with buttons of their own, so nested inside it a click would bubble up
-          and collapse what it just opened. */}
+      {/* The panel this opens renders outside the button: it is full of buttons
+          of its own, whose clicks would bubble up and collapse it. */}
       <UnstyledButton
         onClick={props.onClick}
         aria-expanded={props.expanded}

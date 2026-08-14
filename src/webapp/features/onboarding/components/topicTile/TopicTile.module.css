@@ -5,9 +5,7 @@
     border-color 150ms ease;
 }
 
-/* Only where a pointer can hover — otherwise a tap on a touch screen leaves the
-   border stuck in its hover state until you tap elsewhere. A picked tile sets
-   its border inline, which beats this. */
+/* Pointers only — a tap would leave the border stuck in its hover state. */
 @media (hover: hover) {
   .tile:hover {
     border-color: light-dark(

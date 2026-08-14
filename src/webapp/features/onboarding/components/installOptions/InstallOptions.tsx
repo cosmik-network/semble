@@ -8,6 +8,7 @@ import { TbStackForward } from 'react-icons/tb';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
 import McpIcon from '@/assets/icons/mcp-icon.svg';
+import type { InstallMilestoneField } from '../../lib/useOnboardingMilestones';
 import OptionTile, {
   brandMark,
   EXTERNAL_LINK_PROPS,
@@ -27,6 +28,7 @@ interface InstallOption {
   mark: ReactNode;
   title: string;
   description: string;
+  surface: InstallMilestoneField;
   external?: boolean;
   iosOnly?: boolean;
 }
@@ -37,12 +39,14 @@ const OPTIONS: InstallOption[] = [
     mark: iconMark(<MdOutlineInstallMobile />),
     title: 'Web app',
     description: 'Semble on your home screen',
+    surface: 'pwaClicked',
   },
   {
     href: '/ios-shortcut',
     mark: iconMark(<TbStackForward />),
     title: 'iOS shortcut',
     description: 'Save from the share sheet',
+    surface: 'iosShortcutClicked',
     iosOnly: true,
   },
   {
@@ -50,25 +54,18 @@ const OPTIONS: InstallOption[] = [
     mark: brandMark(McpIcon.src),
     title: 'MCP',
     description: 'Use Semble from Claude',
+    surface: 'mcpClicked',
     external: true,
   },
 ];
 
 interface Props {
-  /**
-   * Runs before the browser follows any card. Marks onboarding complete —
-   * picking an install target is the last step, whether or not the click
-   * navigates away from this tab.
-   */
-  onSelect: () => void;
+  /** Runs before the browser follows the tile, which may leave this tab. */
+  onSelect: (surface: InstallMilestoneField) => void;
 }
 
 export default function InstallOptions(props: Props) {
-  // Mantine resolves this after mount, so it is 'undetermined' on the server
-  // and on the first client render. That is the point: the iOS card appears
-  // once we know the device, and the markup matches on hydration.
   const os = useOs();
-
   const visible = OPTIONS.filter((option) => !option.iosOnly || os === 'ios');
 
   const [firstTile, ...restTiles] = visible.map((option) => (
@@ -79,7 +76,7 @@ export default function InstallOptions(props: Props) {
       title={option.title}
       description={option.description}
       external={option.external}
-      onClick={props.onSelect}
+      onClick={() => props.onSelect(option.surface)}
     />
   ));
 
@@ -117,7 +114,7 @@ export default function InstallOptions(props: Props) {
           component="a"
           href={CHROME_EXTENSION_URL}
           {...EXTERNAL_LINK_PROPS}
-          onClick={props.onSelect}
+          onClick={() => props.onSelect('browserExtensionClicked')}
           leftSection={brandMark(ChromeIcon.src, 16)}
         >
           Chrome
@@ -126,7 +123,7 @@ export default function InstallOptions(props: Props) {
           component="a"
           href={FIREFOX_EXTENSION_URL}
           {...EXTERNAL_LINK_PROPS}
-          onClick={props.onSelect}
+          onClick={() => props.onSelect('browserExtensionClicked')}
           leftSection={brandMark(FirefoxIcon.src, 16)}
         >
           Firefox

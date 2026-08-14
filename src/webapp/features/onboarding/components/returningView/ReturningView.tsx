@@ -8,9 +8,6 @@ import OnboardingScreen from '../onboardingScreen/OnboardingScreen';
 import WhatNextStep from '../steps/whatNextStep/WhatNextStep';
 
 interface Props {
-  /** Clears the locally stored progress. Deliberately never touches the
-   * status cookie: bailing halfway on a repeat run must not put the banner
-   * back on /home. */
   onStartOver: () => void;
   onComplete: () => void;
 }

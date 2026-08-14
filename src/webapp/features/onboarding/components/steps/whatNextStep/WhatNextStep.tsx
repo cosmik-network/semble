@@ -9,7 +9,9 @@ import { TbPlugConnected } from 'react-icons/tb';
 import Composer from '@/features/composer/components/Composer';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
+import { CardSaveSource } from '@/features/analytics/types';
 import { useAuth } from '@/hooks/useAuth';
+import useOnboardingMilestones from '../../../lib/useOnboardingMilestones';
 import WhatNextTile from '../../whatNextTile/WhatNextTile';
 import ConnectTileCards from '../../connectTileCards/ConnectTileCards';
 import SaveTileCards from '../../saveTileCards/SaveTileCards';
@@ -27,6 +29,7 @@ interface Props {
 export default function WhatNextStep(props: Props) {
   const stats = useMyProfileStats();
   const { user } = useAuth();
+  const onboarding = useOnboardingMilestones();
 
   const [composerOpen, composer] = useDisclosure(false);
   const [collectionOpen, collectionDrawer] = useDisclosure(false);
@@ -37,7 +40,7 @@ export default function WhatNextStep(props: Props) {
     setOpenPanel((current) => (current === panel ? null : panel));
 
   // A full-width panel can only be inserted at a row boundary, so the column
-  // count has to be known. The queries are SimpleGrid's own breakpoints below;
+  // count has to be known. These mirror SimpleGrid's own breakpoints below;
   // `false` is the SSR value, and no panel is open on first paint.
   const twoUp = useMediaQuery('(min-width: 36em)', false);
   const threeUp = useMediaQuery('(min-width: 48em)', false);
@@ -47,8 +50,6 @@ export default function WhatNextStep(props: Props) {
   // behind it will not have refetched yet.
   const [createdCollection, setCreatedCollection] = useState(false);
 
-  // Never synthesized: on a failed stats query these are 0, so the checklist
-  // stays actionable rather than claiming credit it cannot verify.
   const cardCount = stats.data?.urlCardCount ?? 0;
   const collectionCount = stats.data?.collectionCount ?? 0;
   const connectionCount = stats.data?.connectionCount ?? 0;
@@ -66,8 +67,8 @@ export default function WhatNextStep(props: Props) {
       key: 'save',
       icon: <FiPlus />,
       color: 'tangerine',
-      title: 'Save a card',
-      description: 'Start your library with one of these',
+      title: 'Save your first link',
+      description: 'Save a link (card) so that it’s easier to find again, and to make it easier for others to discover the same content.',
       done: cardCount > 0,
       onClick: () => togglePanel('save'),
       expanded: openPanel === 'save',
@@ -86,8 +87,8 @@ export default function WhatNextStep(props: Props) {
       key: 'connect',
       icon: <TbPlugConnected />,
       color: 'green',
-      title: 'Connect two cards',
-      description: 'Show how two ideas relate',
+      title: 'Pick a card to connect',
+      description: 'Then choose what it relates to, and why',
       done: connectionCount > 0,
       onClick: () => togglePanel('connect'),
       expanded: openPanel === 'connect',
@@ -120,7 +121,7 @@ export default function WhatNextStep(props: Props) {
     <Stack gap={'xl'}>
       <StepHeading
         title={props.variant === 'returning' ? 'What next?' : "You're all set"}
-        description="Try something below, or take Semble with you."
+        description="Learn about the rest of Semble’s features, setup your workflow, or explore the app."
       />
 
       <Stack gap={'sm'}>
@@ -149,7 +150,12 @@ export default function WhatNextStep(props: Props) {
 
       <Stack gap={'sm'}>
         {sectionHeading('Take Semble with you')}
-        <InstallOptions onSelect={props.onComplete} />
+        <InstallOptions
+          onSelect={(surface) => {
+            onboarding.recordInstallClicked(surface);
+            props.onComplete();
+          }}
+        />
       </Stack>
 
       <Stack gap={'sm'}>
@@ -180,25 +186,29 @@ export default function WhatNextStep(props: Props) {
         </SimpleGrid>
       </Stack>
 
-      {/* Composer is the drawer itself — ComposerDrawer is the global FAB
-          wrapper and must not be used here.
-
-          The boundary is defence in depth: Composer runs useMyCollections at
-          the top of its body rather than inside its Drawer, so it suspends even
-          while closed. Without a local boundary any un-prefetched suspense
-          query in this subtree would blank the whole screen. */}
+      {/* Composer is the drawer itself; ComposerDrawer is the global FAB
+          wrapper and must not be used here. It runs useMyCollections at the top
+          of its body, so it suspends even while closed. */}
       <Suspense fallback={null}>
         <Composer
           isOpen={composerOpen}
           onClose={composer.close}
           initialMode="card"
+          saveSource={CardSaveSource.ONBOARDING}
         />
       </Suspense>
 
       <CreateCollectionDrawer
         isOpen={collectionOpen}
         onClose={collectionDrawer.close}
+        // Only the tick. The collection itself is recorded by
+        // useCreateCollection, because this callback silently does not fire
+        // when the new collection is missing from the refetched list cache.
         onCreate={() => setCreatedCollection(true)}
+        analyticsContext={{
+          saveSource: CardSaveSource.ONBOARDING,
+          pagePath: '/onboarding',
+        }}
       />
     </Stack>
   );

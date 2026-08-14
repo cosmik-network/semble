@@ -1,14 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@mantine/hooks';
-import { STEPS, clampStep } from '../../lib/steps';
-import {
-  type OnboardingStatus,
-  writeOnboardingStatus,
-} from '../../lib/onboardingStatus';
-import { useOnboardingProgress } from '../../lib/useOnboardingProgress';
+import { STEPS, clampStep, type StepId } from '../../lib/steps';
+import useOnboardingState from '../../lib/useOnboardingState';
+import { decodeAnswer, encodeAnswer } from '../../lib/otherAnswer';
 import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader';
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
@@ -20,13 +16,15 @@ import PickCardsStep from '../../components/steps/pickCardsStep/PickCardsStep';
 import FollowStep from '../../components/steps/followStep/FollowStep';
 import WhatNextStep from '../../components/steps/whatNextStep/WhatNextStep';
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
+import useRecommendedUsers from '../../lib/queries/useRecommendedUsers';
+import useRecommendedCollections from '../../lib/queries/useRecommendedCollections';
+import {
+  VISIBLE_COLLECTIONS,
+  VISIBLE_USERS,
+} from '../../components/steps/followStep/FollowStep';
 import { FALLBACK_TOPICS } from '../../lib/topics';
 
-interface Props {
-  initialStatus: OnboardingStatus;
-}
-
-interface FooterStageProps {
+interface StageFooter {
   onSkip?: () => void;
   onContinue?: () => void;
   continueHref?: string;
@@ -34,118 +32,181 @@ interface FooterStageProps {
   continueDisabled?: boolean;
 }
 
-export default function OnboardingFlow(props: Props) {
+export default function OnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { progress, isLoaded, update, clear } = useOnboardingProgress();
-  const [status, setStatus] = useState<OnboardingStatus>(props.initialStatus);
+  const { state, status, isLoaded, update, updateNow } = useOnboardingState();
 
   const stepParam = searchParams.get('step');
 
   const isReturning =
-    stepParam === null && (status === 'completed' || status === 'dismissed');
+    stepParam === null && (status === 'COMPLETED' || status === 'SKIPPED');
 
   const isWelcome = stepParam === null && !isReturning;
 
+  const topics = state.topicsSelected ?? [];
+  const seedUrls = state.linksSelected ?? [];
+
+  const intention = decodeAnswer(state.intention);
+  const referral = decodeAnswer(state.referralSource);
+
+  const currentStep = clampStep(stepParam);
+
+  const stepId = STEPS[currentStep - 1].id;
+
+  // The query key spreads `topics`, so without the gate every toggle on the
+  // topics stage fires a request the next toggle discards.
   const recommendations = useRecommendedCards({
-    queries: progress.topics,
+    queries: topics,
     limit: 6,
-    enabled: !isReturning && !isWelcome,
+    enabled: stepId === 'cards',
   });
 
   const recommendedUrls =
     recommendations.data?.pages.flatMap((page) => page.urls) ?? [];
 
-  const fallbackUrls = recommendedUrls.slice(0, 5).map((view) => view.url);
+  const suggestedUrls = recommendedUrls.map((view) => view.url);
 
-  // resetSelectionOnDataChange is deliberately omitted: turning it on would
-  // wipe the user's picks every time "Show more" grows `data`.
+  const fallbackUrls = suggestedUrls.slice(0, 5);
+
+  // resetSelectionOnDataChange stays off: it would wipe the user's picks every
+  // time "Show more" grows `data`.
   const [selectedUrls, selection] = useSelection({
-    data: recommendedUrls.map((view) => view.url),
+    data: suggestedUrls,
   });
 
-  const currentStep = clampStep(searchParams.get('step'));
+  const suggestedUsers = useRecommendedUsers({
+    urls: seedUrls,
+    enabled: stepId === 'follow',
+  });
 
-  const stepId = STEPS[currentStep - 1].id;
+  const suggestedCollections = useRecommendedCollections({
+    urls: seedUrls,
+    enabled: stepId === 'follow',
+  });
 
-  const changeStatus = (next: OnboardingStatus) => {
-    writeOnboardingStatus(next);
-    setStatus(next);
-  };
+  const complete = () => updateNow({ onboardingState: 'COMPLETED' });
 
-  // Everything goToStep does except the navigation, for the footer's Back —
-  // an anchor that navigates itself but still owes the same writes.
-  const markStep = (step: number) => {
-    if (status === 'unseen') {
-      changeStatus('in_progress');
+  // Split out of goToStep for the anchors that navigate themselves but still
+  // owe the same write.
+  const markStep = () => {
+    if (status === 'NOT_STARTED') {
+      updateNow({ onboardingState: 'IN_PROGRESS' });
     }
-    update({ stepId: STEPS[step - 1].id });
   };
 
   const goToStep = (step: number) => {
-    markStep(step);
+    markStep();
     router.push(`/onboarding?step=${step}`);
   };
 
   const goNext = () => goToStep(currentStep + 1);
 
-  const handlePickCardsContinue = () => {
-    update({
-      seedUrls: selectedUrls.length > 0 ? selectedUrls : fallbackUrls,
+  // Each stage commits its own field on the way out, empty array included: the
+  // resume point is derived from which fields are non-null.
+  const leaveAboutYou = () => {
+    updateNow({
+      intention: encodeAnswer(intention.selected, intention.otherText),
+      referralSource: encodeAnswer(referral.selected, referral.otherText),
     });
     goNext();
   };
 
-  const footerProps: FooterStageProps =
-    stepId === 'about'
-      ? {
-          onSkip: goNext,
-          onContinue: goNext,
-        }
-      : stepId === 'topics'
-        ? {
-            onSkip: () => {
-              update({ topics: FALLBACK_TOPICS });
-              goNext();
-            },
-            onContinue: goNext,
-            continueDisabled: progress.topics.length === 0,
-          }
-        : stepId === 'cards'
-          ? {
-              onSkip: () => {
-                update({ seedUrls: fallbackUrls });
-                goNext();
-              },
-              onContinue: handlePickCardsContinue,
-              // isLoading is true only while the first page is in flight, so
-              // an error still frees the button. !isLoaded covers the frame
-              // before stored topics arrive, where the query has not started
-              // and a fast click would skip ahead writing seedUrls: [].
-              continueDisabled: !isLoaded || recommendations.isLoading,
-            }
-          : stepId === 'follow'
-            ? {
-                onSkip: goNext,
-                onContinue: goNext,
-              }
-            : {
-                continueHref: '/home',
-                continueLabel: 'Finish',
-                onContinue: () => changeStatus('completed'),
-              };
+  const leaveTopics = (next: string[]) => {
+    updateNow({ topicsSelected: next });
+    goNext();
+  };
+
+  const leavePickCards = (next: string[]) => {
+    updateNow({ linksSelected: next, linksSuggested: suggestedUrls });
+    goNext();
+  };
+
+  const leaveFollow = () => {
+    updateNow({
+      suggestedAccounts: (suggestedUsers.data?.users ?? [])
+        .slice(0, VISIBLE_USERS)
+        .map((user) => user.id),
+      suggestedCollections: (suggestedCollections.data?.collections ?? [])
+        .slice(0, VISIBLE_COLLECTIONS)
+        .map((collection) => collection.id),
+      followedAccounts: state.followedAccounts ?? [],
+      followedCollections: state.followedCollections ?? [],
+    });
+    goNext();
+  };
+
+  const recordFollow = (
+    targetType: 'USER' | 'COLLECTION',
+    targetId: string,
+    isFollowing: boolean,
+  ) => {
+    const key =
+      targetType === 'USER' ? 'followedAccounts' : 'followedCollections';
+
+    update((current) => {
+      const following = (current[key] ?? []).filter((id) => id !== targetId);
+
+      return { [key]: isFollowing ? [...following, targetId] : following };
+    });
+  };
+
+  const stageFooters: Record<StepId, StageFooter> = {
+    about: {
+      onSkip: leaveAboutYou,
+      onContinue: leaveAboutYou,
+      continueDisabled:
+        intention.selected.length === 0 || referral.selected.length === 0,
+    },
+    topics: {
+      onSkip: () => leaveTopics(FALLBACK_TOPICS),
+      onContinue: () => leaveTopics(topics),
+      continueDisabled: topics.length === 0,
+    },
+    cards: {
+      onSkip: () => leavePickCards(fallbackUrls),
+      onContinue: () =>
+        leavePickCards(selectedUrls.length > 0 ? selectedUrls : fallbackUrls),
+      // !isLoaded covers the frame before the record arrives, where a fast
+      // click would skip ahead writing an empty pick.
+      continueDisabled: !isLoaded || recommendations.isLoading,
+    },
+    follow: {
+      onSkip: leaveFollow,
+      onContinue: leaveFollow,
+    },
+    next: {
+      continueHref: '/home',
+      continueLabel: 'Finish',
+      onContinue: complete,
+    },
+  };
 
   if (isReturning) {
     return (
       <ReturningView
-        onStartOver={clear}
-        onComplete={() => changeStatus('completed')}
+        onStartOver={() =>
+          // Inputs only. The outcomes and the status survive: bailing on a
+          // repeat run must not put the banner back on /home.
+          updateNow({
+            intention: null,
+            referralSource: null,
+            topicsSelected: null,
+            linksSelected: null,
+            linksSuggested: null,
+            suggestedAccounts: null,
+            suggestedCollections: null,
+            followedAccounts: null,
+            followedCollections: null,
+          })
+        }
+        onComplete={complete}
       />
     );
   }
 
   if (isWelcome) {
-    return <WelcomeView onStart={() => markStep(1)} />;
+    return <WelcomeView onStart={markStep} />;
   }
 
   return (
@@ -160,64 +221,38 @@ export default function OnboardingFlow(props: Props) {
               ? `/onboarding?step=${currentStep - 1}`
               : '/onboarding'
           }
-          onBack={currentStep > 1 ? () => markStep(currentStep - 1) : undefined}
-          onSkip={footerProps.onSkip}
-          onContinue={footerProps.onContinue}
-          continueHref={footerProps.continueHref}
-          continueLabel={footerProps.continueLabel}
-          continueDisabled={footerProps.continueDisabled}
+          onBack={currentStep > 1 ? markStep : undefined}
+          {...stageFooters[stepId]}
         />
       }
     >
-      {stepId === 'about' && (
-        <AboutYouStep
-          intention={progress.intention}
-          intentionOther={progress.intentionOther}
-          referralSource={progress.referralSource}
-          referralSourceOther={progress.referralSourceOther}
-          // Straight into stored progress on every keystroke: useLocalStorage
-          // reads in an effect, so local state seeded at mount would sit empty
-          // after a refresh and there is no useEffect here to resync it.
-          onChangeIntention={(next) =>
-            update({ intention: next.selected, intentionOther: next.otherText })
-          }
-          onChangeReferral={(next) =>
-            update({
-              referralSource: next.selected,
-              referralSourceOther: next.otherText,
-            })
-          }
-        />
-      )}
-      {stepId === 'topics' && (
-        <TopicsStep
-          topics={progress.topics}
-          onChangeTopics={(topics) => update({ topics })}
-          progressLoaded={isLoaded}
-        />
-      )}
+      {/* These two write through useOnboardingState themselves — the same cache
+          entry this container reads, so their answers reach the leave handlers
+          above without being threaded back up. */}
+      {stepId === 'about' && <AboutYouStep />}
+      {stepId === 'topics' && <TopicsStep />}
       {stepId === 'cards' && (
         <PickCardsStep
           recommendations={recommendations}
           selectedUrls={selectedUrls}
           onToggleUrl={selection.toggle}
-          hasTopics={progress.topics.length > 0}
+          hasTopics={topics.length > 0}
           progressLoaded={isLoaded}
         />
       )}
       {stepId === 'follow' && (
         <FollowStep
-          urls={progress.seedUrls}
+          users={suggestedUsers}
+          collections={suggestedCollections}
+          hasUrls={seedUrls.length > 0}
           progressLoaded={isLoaded}
           pickCardsHref={`/onboarding?step=${currentStep - 1}`}
-          onPickMoreCards={() => markStep(currentStep - 1)}
+          onPickMoreCards={markStep}
+          onFollowChange={recordFollow}
         />
       )}
       {stepId === 'next' && (
-        <WhatNextStep
-          variant="flow"
-          onComplete={() => changeStatus('completed')}
-        />
+        <WhatNextStep variant="flow" onComplete={complete} />
       )}
     </OnboardingScreen>
   );

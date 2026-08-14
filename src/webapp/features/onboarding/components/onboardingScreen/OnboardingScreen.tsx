@@ -1,17 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { BackgroundImage, Box, Container, Stack } from '@mantine/core';
-import BG from '@/assets/semble-bg.webp';
-import DarkBG from '@/assets/semble-bg-dark.webp';
-
-const ARTWORK_MASK =
-  'linear-gradient(to bottom, black 0%, black 6%, transparent 20%)';
-
-const ARTWORK_FADE = {
-  maskImage: ARTWORK_MASK,
-  WebkitMaskImage: ARTWORK_MASK,
-};
+import { Box, Container, Stack } from '@mantine/core';
+import OnboardingArtwork from '../onboardingArtwork/OnboardingArtwork';
 
 const SCROLL_MASK =
   'linear-gradient(to bottom, transparent 0, black 24px, black 100%)';
@@ -27,20 +18,7 @@ interface Props {
 export default function OnboardingScreen(props: Props) {
   return (
     <Box pos="relative" h={'100svh'} w={'100%'}>
-      <BackgroundImage
-        src={BG.src}
-        darkHidden
-        pos={'absolute'}
-        h={'100%'}
-        style={ARTWORK_FADE}
-      />
-      <BackgroundImage
-        src={DarkBG.src}
-        lightHidden
-        pos={'absolute'}
-        h={'100%'}
-        style={ARTWORK_FADE}
-      />
+      <OnboardingArtwork variant="screen" />
 
       <Stack h={'100%'} gap={0} pos="relative" style={{ zIndex: 1 }}>
         {props.header}

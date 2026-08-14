@@ -9,10 +9,8 @@
   outline-offset: 2px;
 }
 
-/*
- * The timing lives in a custom property because two things move on it: the
- * width here and the colour on .fill below. Split across two rules they drift.
- */
+/* A custom property because two rules move on this timing: the width here and
+   the colour on .fill below. */
 .bar {
   --step-motion: 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -24,14 +22,9 @@
   width: 32px;
 }
 
-/*
- * Mantine repaints the section the instant `color` changes, so without this the
- * outgoing mark turns white while still 32px long and the incoming one turns
- * tangerine while still an 8px dot.
- *
- * Two classes deep so it beats Progress's own `transition: width …` shorthand
- * whichever order the stylesheets land in.
- */
+/* Mantine repaints the section the instant `color` changes, so without this the
+   colour and the width move out of step. Two classes deep so it beats
+   Progress's own `transition` shorthand whichever order the sheets land in. */
 .bar .fill {
   transition: background-color var(--step-motion);
 }

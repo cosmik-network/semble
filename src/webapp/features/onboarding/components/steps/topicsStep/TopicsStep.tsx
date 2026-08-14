@@ -1,22 +1,14 @@
 'use client';
 
-import { Group, Progress, Stack, Text, Title } from '@mantine/core';
+import { Group, Stack } from '@mantine/core';
 import { useInputState, useListState } from '@mantine/hooks';
 import { PRESET_TOPICS, TOPICS } from '../../../lib/topics';
+import useOnboardingState from '../../../lib/useOnboardingState';
 import AddTopicTile from '../../addTopicTile/AddTopicTile';
+import GoalProgress from '../../goalProgress/GoalProgress';
 import StepHeading from '../../stepHeading/StepHeading';
 import TopicTile from '../../topicTile/TopicTile';
-import {
-  CUSTOM_TOPIC_ICON,
-  TOPIC_COLOR,
-  TOPIC_ICONS,
-} from '../../topicTile/topicVisuals';
-
-interface Props {
-  topics: string[];
-  onChangeTopics: (topics: string[]) => void;
-  progressLoaded: boolean;
-}
+import { CUSTOM_TOPIC_ICON, TOPIC_ICONS } from '../../topicTile/topicVisuals';
 
 function normalize(topic: string): string {
   return topic.trim().toLowerCase();
@@ -38,16 +30,22 @@ const PRESET_KEYS = new Set(PRESET_TOPICS.map(normalize));
 
 const TOPIC_GOAL = 2;
 
-export default function TopicsStep(props: Props) {
-  // Session state, reset on every mount — props.topics is the persisted one.
-  // Kept so a topic deselected within a session stays on screen.
+export default function TopicsStep() {
+  const { state, isLoaded, stage } = useOnboardingState();
+
+  const topics = state.topicsSelected ?? [];
+
+  const changeTopics = (next: string[]) => stage({ topicsSelected: next });
+
+  // Session state, so a custom topic deselected within a session keeps its
+  // tile. `topics` is the persisted list.
   const [customTopics, customTopicsHandlers] = useListState<string>([]);
   const [newTopic, setNewTopic] = useInputState('');
 
-  // Matched on the normalized form, so a stored "ai" lights up the preset
-  // "AI". The map keeps the stored casing, which is what deselect removes.
+  // Keyed on the normalized form so a stored "ai" lights up the preset "AI",
+  // holding the stored casing, which is what deselect removes.
   const selectedByKey = new Map(
-    props.topics.map((topic) => [normalize(topic), topic]),
+    topics.map((topic) => [normalize(topic), topic]),
   );
 
   const isSelected = (query: string) => selectedByKey.has(normalize(query));
@@ -56,27 +54,20 @@ export default function TopicsStep(props: Props) {
     const key = normalize(query);
 
     if (selectedByKey.has(key)) {
-      props.onChangeTopics(
-        props.topics.filter((topic) => normalize(topic) !== key),
-      );
+      changeTopics(topics.filter((topic) => normalize(topic) !== key));
       return;
     }
 
-    props.onChangeTopics([...props.topics, query]);
+    changeTopics([...topics, query]);
   };
 
-  // props.topics has to be in here or a custom topic added before a remount
-  // has no tile to click and no way to be deselected. Reversed so a topic you
-  // just typed appears next to the tile you typed it into.
-  const customTopicList = dedupe([...props.topics, ...customTopics])
+  // `topics` has to be in here or a custom topic added before a remount has no
+  // tile to click.
+  const customTopicList = dedupe([...topics, ...customTopics])
     .filter((topic) => !PRESET_KEYS.has(normalize(topic)))
     .reverse();
 
-  const allTopics = dedupe([
-    ...PRESET_TOPICS,
-    ...props.topics,
-    ...customTopics,
-  ]);
+  const allTopics = dedupe([...PRESET_TOPICS, ...topics, ...customTopics]);
 
   const trimmedInput = newTopic.trim();
   const existingTopic = trimmedInput
@@ -90,14 +81,14 @@ export default function TopicsStep(props: Props) {
 
     if (existingTopic) {
       if (!isAlreadySelected) {
-        props.onChangeTopics([...props.topics, existingTopic]);
+        changeTopics([...topics, existingTopic]);
       }
       setNewTopic('');
       return;
     }
 
     customTopicsHandlers.append(trimmedInput);
-    props.onChangeTopics([...props.topics, trimmedInput]);
+    changeTopics([...topics, trimmedInput]);
     setNewTopic('');
   };
 
@@ -107,46 +98,18 @@ export default function TopicsStep(props: Props) {
       ? 'You already picked that topic.'
       : 'That topic is already in the grid.';
 
-  const pickedCount = props.topics.length;
-  const goalReached = pickedCount >= TOPIC_GOAL;
-
-  // A full string per branch rather than one assembled around the number: word
-  // order and plural rules differ by language.
-  const goalLabel =
-    pickedCount === 0
-      ? `Pick ${TOPIC_GOAL} for the best suggestions`
-      : goalReached
-        ? 'Good to go — pick more if you like'
-        : `${pickedCount} of ${TOPIC_GOAL} picked`;
-
   return (
     <Stack gap={'xl'} w={'100%'}>
       <Stack gap={'xs'}>
         <StepHeading
           title="Pick a few topics"
-          description="We use them to suggest cards, people and collections."
+          description="This helps us find interesting content to get you started."
         />
 
-        <Group h={26} gap={'sm'} wrap="nowrap">
-          {props.progressLoaded && (
-            <>
-              <Progress
-                value={(Math.min(pickedCount, TOPIC_GOAL) / TOPIC_GOAL) * 100}
-                w={72}
-                size="sm"
-                radius={'xl'}
-                color={TOPIC_COLOR}
-                transitionDuration={200}
-                aria-hidden="true"
-              />
-              <Text
-                fz={'sm'}
-                fw={goalReached ? 600 : 500}
-                c={goalReached ? 'bright' : 'dimmed'}
-              >
-                {goalLabel}
-              </Text>
-            </>
+        {/* Fixed height so the label arriving does not shift the grid. */}
+        <Group h={26}>
+          {isLoaded && (
+            <GoalProgress picked={topics.length} goal={TOPIC_GOAL} />
           )}
         </Group>
       </Stack>

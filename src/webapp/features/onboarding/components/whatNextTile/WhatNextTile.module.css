@@ -22,8 +22,7 @@
   opacity: 0.65;
 }
 
-/* Only where a pointer can hover — otherwise a tap leaves the row stuck in its
-   hover state until you tap elsewhere. */
+/* Pointers only — a tap would leave the row stuck in its hover state. */
 @media (hover: hover) {
   .row:hover {
     background-color: light-dark(

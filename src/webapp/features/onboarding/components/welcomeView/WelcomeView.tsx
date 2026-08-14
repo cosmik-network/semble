@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import {
   Avatar,
-  BackgroundImage,
   Box,
   Center,
   Group,
@@ -21,14 +20,15 @@ import {
   IoPeople,
   IoPricetag,
 } from 'react-icons/io5';
-import BG from '@/assets/semble-bg.webp';
-import DarkBG from '@/assets/semble-bg-dark.webp';
 import SembleLogo from '@/assets/semble-logo-full.svg';
 import { LinkAnchor, LinkButton } from '@/components/link/MantineLink';
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
 import { sanitizeText } from '@/lib/utils/text';
+import OnboardingArtwork from '../onboardingArtwork/OnboardingArtwork';
 
-const STAGES: { icon: ReactNode; title: string }[] = [
+// Exported for the skeleton, which renders them for real: they are constants,
+// so greying them out would only add a shift when the profile lands.
+export const STAGES: { icon: ReactNode; title: string }[] = [
   { icon: <IoHelpCircle />, title: 'Answer two quick questions' },
   { icon: <IoPricetag />, title: 'Pick a few topics' },
   { icon: <IoAlbums />, title: 'Find interesting content' },
@@ -49,14 +49,6 @@ const HELP_LINK_PROPS = {
   c: 'blue',
 } as const;
 
-const ARTWORK_MASK =
-  'linear-gradient(to bottom, black 0%, black 15%, transparent 45%)';
-
-const ARTWORK_FADE = {
-  maskImage: ARTWORK_MASK,
-  WebkitMaskImage: ARTWORK_MASK,
-};
-
 interface Props {
   onStart: () => void;
 }
@@ -64,7 +56,7 @@ interface Props {
 export default function WelcomeView(props: Props) {
   // useMyProfileStats, not useMyProfile: the latter is a suspense query on a
   // key this route does not prefetch, so it would drop the whole screen behind
-  // loading.tsx.
+  // the route fallback.
   const { data: profile } = useMyProfileStats();
 
   const firstName = profile?.name
@@ -73,20 +65,7 @@ export default function WelcomeView(props: Props) {
 
   return (
     <Box component="main" pos="relative" h={'100svh'} w={'100%'}>
-      <BackgroundImage
-        src={BG.src}
-        darkHidden
-        pos={'absolute'}
-        h={'100%'}
-        style={ARTWORK_FADE}
-      />
-      <BackgroundImage
-        src={DarkBG.src}
-        lightHidden
-        pos={'absolute'}
-        h={'100%'}
-        style={ARTWORK_FADE}
-      />
+      <OnboardingArtwork variant="welcome" />
 
       <Box pos={'absolute'} top={0} left={0} p={'md'} style={{ zIndex: 2 }}>
         <Image src={SembleLogo.src} alt="Semble logo" h={28} w={'auto'} />
