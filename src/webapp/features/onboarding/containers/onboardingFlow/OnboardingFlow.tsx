@@ -252,7 +252,7 @@ export default function OnboardingFlow() {
         />
       )}
       {stepId === 'next' && (
-        <WhatNextStep variant="flow" onComplete={complete} />
+        <WhatNextStep title="You're all set" onComplete={complete} />
       )}
     </OnboardingScreen>
   );

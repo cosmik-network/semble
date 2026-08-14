@@ -22,7 +22,7 @@ import StepHeading from '../../stepHeading/StepHeading';
 const DOCS_URL = 'https://docs.cosmik.network/semble';
 
 interface Props {
-  variant: 'flow' | 'returning';
+  title: string;
   onComplete: () => void;
 }
 
@@ -120,7 +120,7 @@ export default function WhatNextStep(props: Props) {
   return (
     <Stack gap={'xl'}>
       <StepHeading
-        title={props.variant === 'returning' ? 'What next?' : "You're all set"}
+        title={props.title}
         description="Learn about the rest of Semble’s features, setup your workflow, or explore the app."
       />
 

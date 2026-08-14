@@ -16,7 +16,7 @@ export default function ReturningView(props: Props) {
   return (
     <OnboardingScreen header={<OnboardingHeader />}>
       <Stack gap={'xl'}>
-        <WhatNextStep variant="returning" onComplete={props.onComplete} />
+        <WhatNextStep title="What next?" onComplete={props.onComplete} />
 
         <Stack align="center" gap={'xs'}>
           <Text fz={'sm'} fw={600} c={'gray'}>
