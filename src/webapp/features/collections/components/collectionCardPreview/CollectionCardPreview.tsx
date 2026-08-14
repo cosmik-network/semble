@@ -52,12 +52,13 @@ function PreviewCard(props: { card: UrlCard }) {
         )}
       </AspectRatio>
       <Stack gap={0} mt={6}>
-        <Text c={'gray'} fz={11} lineClamp={1}>
-          {domain}
-        </Text>
-        {cardContent.title && (
+        {cardContent.title ? (
           <Text c={'bright'} fz={12} fw={500} lineClamp={2}>
             {cardContent.title}
+          </Text>
+        ) : (
+          <Text c={'gray'} fz={11} lineClamp={1}>
+            {domain}
           </Text>
         )}
       </Stack>

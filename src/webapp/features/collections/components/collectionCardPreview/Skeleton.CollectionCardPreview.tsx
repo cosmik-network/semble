@@ -19,7 +19,6 @@ export default function CollectionCardPreviewSkeleton() {
             </AspectRatio>
             {/* Mirrors the loaded card: a short domain line + a 2-line title */}
             <Stack gap={5} mt={6}>
-              <Skeleton height={8} width={'45%'} radius={'sm'} />
               <Skeleton height={10} width={'90%'} radius={'sm'} />
               <Skeleton height={10} width={'65%'} radius={'sm'} />
             </Stack>
