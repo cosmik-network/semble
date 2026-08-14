@@ -17,7 +17,7 @@ export default async function Page(props: Props) {
   return (
     <Suspense
       fallback={<CardSearchResultsContainerSkeleton />}
-      key={query + handle + urlType}
+      key={`${query}|${handle ?? ''}|${urlType ?? ''}`}
     >
       <CardSearchResultsContainer
         query={query}

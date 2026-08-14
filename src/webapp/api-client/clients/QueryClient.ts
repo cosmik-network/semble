@@ -37,6 +37,8 @@ import {
   GetOpenCollectionsWithContributorParams,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
+  GetBskyFollowedUsersParams,
+  GetBskyFollowedUsersResponse,
   GetFollowersParams,
   GetFollowersResponse,
   GetFollowingCollectionsParams,
@@ -60,6 +62,12 @@ import {
   GetUrlGraphDataParams,
   GetMySubscriptionsParams,
   GetMySubscriptionsResponse,
+  RecommendedUrlsParams,
+  RecommendedUrlsResponse,
+  RecommendedUsersParams,
+  RecommendedUsersResponse,
+  RecommendedCollectionsParams,
+  RecommendedCollectionsResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -331,6 +339,42 @@ export class QueryClient extends BaseClient {
     return unwrap<SearchLeafletDocsForUrlResponse>(res);
   }
 
+  async getRecommendedUrls(
+    params: RecommendedUrlsParams,
+  ): Promise<RecommendedUrlsResponse> {
+    const res = await this.client.search.recommended({
+      query: {
+        queries: params.queries,
+        page: params.page,
+        limit: params.limit,
+        urlCardWeight: params.urlCardWeight,
+        noteWeight: params.noteWeight,
+        collectionWeight: params.collectionWeight,
+        connectionWeight: params.connectionWeight,
+        randomness: params.randomness,
+      },
+    });
+    return unwrap<RecommendedUrlsResponse>(res);
+  }
+
+  async getRecommendedUsers(
+    params: RecommendedUsersParams,
+  ): Promise<RecommendedUsersResponse> {
+    const res = await this.client.search.recommendedUsers({
+      query: { urls: params.urls },
+    });
+    return unwrap<RecommendedUsersResponse>(res);
+  }
+
+  async getRecommendedCollections(
+    params: RecommendedCollectionsParams,
+  ): Promise<RecommendedCollectionsResponse> {
+    const res = await this.client.search.recommendedCollections({
+      query: { urls: params.urls },
+    });
+    return unwrap<RecommendedCollectionsResponse>(res);
+  }
+
   async getOpenCollectionsWithContributor(
     params: GetOpenCollectionsWithContributorParams,
   ): Promise<GetCollectionsResponse> {
@@ -357,6 +401,18 @@ export class QueryClient extends BaseClient {
       },
     });
     return unwrap<GetFollowingUsersResponse>(res);
+  }
+
+  async getBskyFollowedUsers(
+    params?: GetBskyFollowedUsersParams,
+  ): Promise<GetBskyFollowedUsersResponse> {
+    const res = await this.client.graph.bskyFollowedUsers({
+      query: {
+        page: params?.page,
+        limit: params?.limit,
+      },
+    });
+    return unwrap<GetBskyFollowedUsersResponse>(res);
   }
 
   async getFollowers(

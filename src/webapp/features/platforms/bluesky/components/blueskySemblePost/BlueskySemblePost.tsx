@@ -137,6 +137,7 @@ export default async function BlueskySemblePost(props: Props) {
               <Box>
                 <RichTextRenderer
                   text={record.text}
+                  facets={record.facets}
                   textProps={{ c: 'bright' }}
                 />
               </Box>

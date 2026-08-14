@@ -74,6 +74,8 @@ export const paths = {
   // users / actor
   myProfile: '/network.cosmik.actor.getMyProfile',
   userProfile: '/network.cosmik.actor.getProfile',
+  getOnboardingState: '/network.cosmik.actor.getOnboardingState',
+  updateOnboardingState: '/network.cosmik.actor.updateOnboardingState',
   initiateOAuth: '/network.cosmik.server.initiateOAuth',
   oauthCallback: '/network.cosmik.server.oauthCallback',
   loginWithAppPassword: '/network.cosmik.server.createSession',
@@ -83,6 +85,8 @@ export const paths = {
   followTarget: '/network.cosmik.graph.follow',
   unfollowTarget: '/network.cosmik.graph.unfollow',
   followingUsers: '/network.cosmik.graph.getFollowing',
+  bskyFollowedUsers: '/network.cosmik.graph.getBskyFollowedUsers',
+  followMany: '/network.cosmik.graph.followMany',
   userFollowers: '/network.cosmik.graph.getFollowers',
   followingCollections: '/network.cosmik.graph.getFollowingCollections',
   followingCount: '/network.cosmik.graph.getFollowingCount',
@@ -115,6 +119,9 @@ export const paths = {
   bskyPosts: '/network.cosmik.search.getBskyPosts',
   atProtoAccounts: '/network.cosmik.search.getAccounts',
   leafletDocs: '/network.cosmik.search.getLeafletDocs',
+  recommended: '/network.cosmik.search.getRecommended',
+  recommendedUsers: '/network.cosmik.search.getRecommendedUsers',
+  recommendedCollections: '/network.cosmik.search.getRecommendedCollections',
   // graph (graphView namespace to avoid collision with social graph)
   graphData: '/network.cosmik.graphView.getData',
   userGraphData: '/network.cosmik.graphView.getUserData',
@@ -177,6 +184,12 @@ export const routes = {
     refreshToken: defineRoute(paths.refreshToken, 'POST', false),
     logout: defineRoute(paths.logout, 'POST', true),
     extensionTokens: defineRoute(paths.extensionTokens, 'GET', true),
+    getOnboardingState: defineRoute(paths.getOnboardingState, 'GET', true),
+    updateOnboardingState: defineRoute(
+      paths.updateOnboardingState,
+      'POST',
+      true,
+    ),
   },
   apiKeys: {
     listApiKeys: defineRoute(paths.listApiKeys, 'GET', true),
@@ -208,6 +221,13 @@ export const routes = {
     bskyPosts: defineRoute(paths.bskyPosts, 'GET', false),
     atProtoAccounts: defineRoute(paths.atProtoAccounts, 'GET', false),
     leafletDocs: defineRoute(paths.leafletDocs, 'GET', false),
+    recommended: defineRoute(paths.recommended, 'GET', false),
+    recommendedUsers: defineRoute(paths.recommendedUsers, 'GET', true),
+    recommendedCollections: defineRoute(
+      paths.recommendedCollections,
+      'GET',
+      true,
+    ),
   },
   graph: {
     graphData: defineRoute(paths.graphData, 'GET', true),
@@ -216,6 +236,8 @@ export const routes = {
     followTarget: defineRoute(paths.followTarget, 'POST', true),
     unfollowTarget: defineRoute(paths.unfollowTarget, 'POST', true),
     followingUsers: defineRoute(paths.followingUsers, 'GET', false),
+    bskyFollowedUsers: defineRoute(paths.bskyFollowedUsers, 'GET', true),
+    followMany: defineRoute(paths.followMany, 'POST', true),
     followers: defineRoute(paths.userFollowers, 'GET', false),
     followingCollections: defineRoute(paths.followingCollections, 'GET', false),
     followingCount: defineRoute(paths.followingCount, 'GET', false),

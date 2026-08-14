@@ -52,14 +52,22 @@ export default function SourceCardPreview(props: Props) {
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Group gap="xs" wrap="nowrap">
         {data?.metadata?.imageUrl && (
-          <Image
-            src={data.metadata.imageUrl}
-            alt={`${data.metadata.title} social preview image`}
+          <Card
+            p={0}
             radius={'md'}
+            withBorder
             w={45}
             h={45}
             style={{ flexShrink: 0 }}
-          />
+          >
+            <Image
+              src={data.metadata.imageUrl}
+              alt={`${data.metadata.title} social preview image`}
+              w={'100%'}
+              h={'100%'}
+              fit="cover"
+            />
+          </Card>
         )}
         <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
           <Text fw={500} lineClamp={1} c={'bright'}>

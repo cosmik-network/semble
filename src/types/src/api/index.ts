@@ -34,8 +34,10 @@ export * from './users/login';
 export * from './users/oauth';
 export * from './users/session';
 export * from './users/follow';
+export * from './users/bskyFollows';
 export * from './users/subscriptions';
 export * from './users/apiKeys';
+export * from './users/onboardingState';
 
 export * from './feeds/global';
 export * from './feeds/gem';
@@ -57,6 +59,7 @@ export * from './search/bskyPosts';
 export * from './search/accounts';
 export * from './search/leaflet';
 export * from './search/searchUrls';
+export * from './search/recommended';
 
 export * from './graph/getData';
 export * from './graph/getUserData';

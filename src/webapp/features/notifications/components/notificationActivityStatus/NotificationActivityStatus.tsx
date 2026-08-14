@@ -290,8 +290,12 @@ export default function NotificationActivityStatus(props: Props) {
                   key={c.id}
                   href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                   target="_blank"
-                  c="grape"
-                  fw={600}
+                  c={
+                    c.accessType === CollectionAccessType.OPEN
+                      ? 'green'
+                      : 'grape'
+                  }
+                  fw={500}
                 >
                   {c.name}
                 </LinkMenuItem>

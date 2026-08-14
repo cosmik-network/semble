@@ -14,6 +14,9 @@ import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 export const runtime = 'nodejs';
 
 const THUMB_SIZE = 225;
+// Goes on the <img>, not a rounded wrapper: Satori leaves corner artifacts
+// when clipping with overflow:hidden. #dee2e6 is the app's light-mode border.
+const THUMB_BORDER = '2px solid #dee2e6';
 
 interface Metadata {
   title?: string;
@@ -340,6 +343,7 @@ export async function GET(request: NextRequest) {
                 height: THUMB_SIZE,
                 objectFit: 'cover',
                 borderRadius: 24,
+                border: THUMB_BORDER,
               }}
             />
           ) : (
@@ -352,6 +356,7 @@ export async function GET(request: NextRequest) {
                 justifyContent: 'center',
                 backgroundColor: '#f1f3f5',
                 borderRadius: 24,
+                border: THUMB_BORDER,
               }}
             >
               <img src={thumb.dataUri} width={96} height={96} />

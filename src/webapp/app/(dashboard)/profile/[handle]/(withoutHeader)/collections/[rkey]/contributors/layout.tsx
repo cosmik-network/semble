@@ -1,4 +1,6 @@
 import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
+import { isNotFoundApiError } from '@/api-client/errors';
+import { notFound } from 'next/navigation';
 
 import type { Metadata } from 'next';
 
@@ -13,6 +15,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const collection = await getCollectionPageByAtUri({
     recordKey: rkey,
     handle: handle,
+  }).catch((error: unknown) => {
+    // Unresolvable handle / missing collection → render the not-found page.
+    if (isNotFoundApiError(error, 'COLLECTION_NOT_FOUND')) notFound();
+    throw error;
   });
 
   return {
@@ -32,7 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     other: {
-      'atprotocol:creator': `at://${collection.author.id}`,
+      'at:author': `at://${collection.author.id}`,
+      'at:canonical': `at://${collection.author.id}/network.cosmik.collection/${collection.id}`,
     },
   };
 }

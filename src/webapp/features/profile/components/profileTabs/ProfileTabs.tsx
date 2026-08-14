@@ -50,6 +50,9 @@ export default function ProfileTabs(props: Props) {
             >
               Connections
             </TabItem>
+            <TabItem value="activity" href={`${basePath}/activity`}>
+              Activity
+            </TabItem>
             <TabItem value="network" href={`${basePath}/network`}>
               Network
             </TabItem>

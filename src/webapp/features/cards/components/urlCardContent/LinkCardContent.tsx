@@ -10,6 +10,7 @@ import {
   Tooltip,
   AspectRatio,
   Image,
+  Card,
 } from '@mantine/core';
 import { UrlCard } from '@semble/types';
 
@@ -63,14 +64,23 @@ export default function LinkCardContent(props: Props) {
       </Stack>
       {props.cardContent.imageUrl && !imageError && (
         <AspectRatio ratio={1 / 1}>
-          <Image
-            src={props.cardContent.imageUrl}
-            alt={`${props.cardContent.url} social preview image`}
+          <Card
+            p={0}
             radius={'md'}
+            withBorder
             w={settings.cardView === 'grid' ? 75 : 45}
             h={settings.cardView === 'grid' ? 75 : 45}
-            onError={() => setImageError(true)}
-          />
+            style={{ flexShrink: 0 }}
+          >
+            <Image
+              src={props.cardContent.imageUrl}
+              alt={`${props.cardContent.url} social preview image`}
+              w={'100%'}
+              h={'100%'}
+              fit="cover"
+              onError={() => setImageError(true)}
+            />
+          </Card>
         </AspectRatio>
       )}
     </Group>

@@ -5,7 +5,6 @@ import {
   Avatar,
   Text,
   Title,
-  Spoiler,
   ActionIcon,
   Tooltip,
   Image,
@@ -128,14 +127,11 @@ export default async function ProfileHeader(props: Props) {
                 </Group>
               </Stack>
               {profile.description && (
-                <Spoiler
-                  showLabel={'Read more'}
-                  hideLabel={'See less'}
-                  maxHeight={75}
-                  maw={700}
-                >
-                  <RichTextRenderer text={profile.description} />
-                </Spoiler>
+                <RichTextRenderer
+                  text={profile.description}
+                  linkDisplay="full"
+                  textProps={{ maw: 700 }}
+                />
               )}
 
               {/* follow stats */}

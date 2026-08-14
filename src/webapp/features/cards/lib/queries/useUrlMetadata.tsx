@@ -6,7 +6,11 @@ import { cardKeys } from '../cardKeys';
 interface PropsWithStats {
   url: string;
   includeStats: true;
-  initialData?: { stats?: UrlAggregateStats };
+  initialData?: {
+    stats?: UrlAggregateStats;
+    urlInLibrary?: boolean;
+    urlIsConnected?: boolean;
+  };
 }
 
 interface PropsWithoutStats {

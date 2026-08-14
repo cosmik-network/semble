@@ -11,6 +11,7 @@ import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata'
 export interface GetUrlMetadataQuery {
   url: string;
   includeStats?: boolean;
+  callingUserId?: string;
 }
 
 export interface GetUrlMetadataResult {
@@ -42,6 +43,8 @@ export interface GetUrlMetadataResult {
       };
     };
   };
+  urlInLibrary?: boolean;
+  urlIsConnected?: boolean;
 }
 
 export class ValidationError extends Error {
@@ -106,13 +109,19 @@ export class GetUrlMetadataUseCase implements UseCase<
 
       // If includeStats is true, fetch aggregate statistics in parallel
       if (query.includeStats) {
-        const [cardStats, collectionCount, connectionStats] = await Promise.all(
-          [
+        const [cardStats, collectionCount, connectionStats, libraryInfoMap] =
+          await Promise.all([
             this.cardQueryRepository.getUrlAggregateStats(url.value),
             this.collectionQueryRepository.getCollectionCountForUrl(url.value),
             this.connectionQueryRepository.getConnectionStatsForUrl(url.value),
-          ],
-        );
+            // Only meaningful for an authenticated caller; skip the query otherwise
+            query.callingUserId
+              ? this.cardQueryRepository.getBatchUrlLibraryInfo(
+                  [url.value],
+                  query.callingUserId,
+                )
+              : Promise.resolve(undefined),
+          ]);
 
         // Convert connection type Maps to plain objects for JSON serialization
         const allConnections: { total: number; [type: string]: number } = {
@@ -149,6 +158,12 @@ export class GetUrlMetadataUseCase implements UseCase<
             outgoing: outgoingConnections,
           },
         };
+
+        if (libraryInfoMap) {
+          const libraryInfo = libraryInfoMap.get(url.value);
+          result.urlInLibrary = libraryInfo?.urlInLibrary ?? false;
+          result.urlIsConnected = libraryInfo?.urlIsConnected ?? false;
+        }
       }
 
       return ok(result);

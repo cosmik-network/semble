@@ -511,6 +511,41 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     }
   }
 
+  async getCollectionsForUrls(
+    urls: string[],
+  ): Promise<CollectionQueryResultDTO[]> {
+    const allCards = this.cardRepository?.getAllCards() || [];
+    const allCollections = this.collectionRepository?.getAllCollections() || [];
+    const urlSet = new Set(urls);
+
+    // Find all URL cards with these URLs
+    const urlCardIds = new Set(
+      allCards
+        .filter(
+          (c) => c.type.value === 'URL' && c.url && urlSet.has(c.url.value),
+        )
+        .map((c) => c.cardId.getStringValue()),
+    );
+
+    return allCollections
+      .filter((collection) =>
+        collection.cardLinks.some((link) =>
+          urlCardIds.has(link.cardId.getStringValue()),
+        ),
+      )
+      .map((collection) => ({
+        id: collection.collectionId.getStringValue(),
+        uri: collection.publishedRecordId?.uri,
+        authorId: collection.authorId.value,
+        name: collection.name.value,
+        description: collection.description?.value,
+        accessType: collection.accessType,
+        cardCount: collection.cardCount,
+        createdAt: collection.createdAt,
+        updatedAt: collection.updatedAt,
+      }));
+  }
+
   async getCollectionCountForUrl(url: string): Promise<number> {
     const allCards = this.cardRepository?.getAllCards() || [];
     const allCollections = this.collectionRepository?.getAllCollections() || [];

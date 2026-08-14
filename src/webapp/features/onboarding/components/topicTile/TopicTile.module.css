@@ -1,0 +1,16 @@
+.tile {
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Pointers only — a tap would leave the border stuck in its hover state. */
+@media (hover: hover) {
+  .tile:hover {
+    border-color: light-dark(
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-3)
+    );
+  }
+}

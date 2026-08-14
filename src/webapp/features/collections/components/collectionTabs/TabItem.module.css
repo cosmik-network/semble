@@ -1,5 +1,5 @@
 .tab {
-  color: var(--mantine-color-dark-2); /* Inactive tab color */
+  color: var(--mantine-color-dimmed); /* Inactive tab color */
 
   @mixin hover {
     color: var(--mantine-color-dark);

@@ -170,7 +170,7 @@ export default function EditCollectionModal(props: Props) {
               </Stack>
             </Stack>
 
-            <Group justify="space-between" gap={'xs'} grow>
+            <Group gap={'xs'} wrap="nowrap">
               <Button
                 variant="light"
                 size="md"
@@ -182,6 +182,7 @@ export default function EditCollectionModal(props: Props) {
               <Button
                 type="submit"
                 size="md"
+                style={{ flex: 1 }}
                 loading={updateCollection.isPending}
               >
                 Save

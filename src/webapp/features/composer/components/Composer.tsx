@@ -53,6 +53,9 @@ interface Props {
   initialCollectionName?: string;
   initialCollectionAccessType?: CollectionAccessType;
   onCollectionCreate?: () => void;
+  /** Defaults to ADD_CARD_DRAWER. Set when the drawer is opened from a flow
+   * whose saves should be attributed to it. */
+  saveSource?: CardSaveSource;
 }
 
 export default function Composer(props: Props) {
@@ -79,10 +82,15 @@ export default function Composer(props: Props) {
       ]
     : allCollections;
 
-  const addCard = useAddCard({
-    saveSource: CardSaveSource.ADD_CARD_DRAWER,
+  // saveSource is overridable so onboarding can mark its own saves — the
+  // drawer is the same component there, but the save belongs to the flow. All
+  // three modes take it, since any of them can be the thing the user does.
+  const analyticsContext = {
+    saveSource: props.saveSource ?? CardSaveSource.ADD_CARD_DRAWER,
     pagePath: pathname,
-  });
+  };
+
+  const addCard = useAddCard(analyticsContext);
 
   const cardForm = useForm({
     initialValues: {
@@ -93,7 +101,7 @@ export default function Composer(props: Props) {
   });
 
   // Collection form state
-  const createCollection = useCreateCollection();
+  const createCollection = useCreateCollection(analyticsContext);
   const collectionForm = useForm({
     initialValues: {
       name: props.initialCollectionName ?? '',
@@ -260,7 +268,10 @@ export default function Composer(props: Props) {
         >
           {mode === 'connection' ? (
             <Suspense>
-              <AddConnectionForm onClose={props.onClose} />
+              <AddConnectionForm
+                onClose={props.onClose}
+                analyticsContext={analyticsContext}
+              />
             </Suspense>
           ) : mode === 'card' ? (
             <form

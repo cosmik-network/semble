@@ -1,4 +1,4 @@
-import { Button, Stack, Modal } from '@mantine/core';
+import { Button, Group, Modal } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 import useDeleteConnection from '../../lib/mutations/useDeleteConnection';
@@ -55,19 +55,20 @@ export default function DeleteConnectionModal(props: Props) {
       withCloseButton={false}
       centered
     >
-      <Stack>
-        <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>
+      <Group gap="xs" wrap="nowrap">
+        <Button variant="light" size="md" color="gray" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
           size="md"
           color="red"
+          style={{ flex: 1 }}
           onClick={handleDelete}
           loading={deleteConnection.isPending}
         >
           Remove
         </Button>
-      </Stack>
+      </Group>
     </Modal>
   );
 }

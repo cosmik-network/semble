@@ -4,6 +4,7 @@ import { Collection, CollectionAccessType } from '@semble/types';
 import { Container, Drawer } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import CreateCollectionForm from './CreateCollectionForm';
+import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface Props {
   initialName?: string;
   initialAccessType?: CollectionAccessType;
   onCreate?: (collection: Collection) => void;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function CreateCollectionDrawer(props: Props) {
@@ -36,6 +38,7 @@ export default function CreateCollectionDrawer(props: Props) {
           initialName={props.initialName}
           initialAccessType={props.initialAccessType}
           onCreate={props.onCreate}
+          analyticsContext={props.analyticsContext}
         />
       </Container>
     </Drawer>

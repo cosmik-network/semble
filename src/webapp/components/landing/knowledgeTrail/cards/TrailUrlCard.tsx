@@ -48,14 +48,23 @@ export default function TrailUrlCard() {
           </Stack>
           {trailUrlCard.imageUrl && !imageError && (
             <AspectRatio ratio={1 / 1}>
-              <Image
-                src={trailUrlCard.imageUrl}
-                alt={`${trailUrlCard.domain} social preview image`}
+              <Card
+                p={0}
                 radius="md"
+                withBorder
                 w={75}
                 h={75}
-                onError={() => setImageError(true)}
-              />
+                style={{ flexShrink: 0 }}
+              >
+                <Image
+                  src={trailUrlCard.imageUrl}
+                  alt={`${trailUrlCard.domain} social preview image`}
+                  w={'100%'}
+                  h={'100%'}
+                  fit="cover"
+                  onError={() => setImageError(true)}
+                />
+              </Card>
             </AspectRatio>
           )}
         </Group>

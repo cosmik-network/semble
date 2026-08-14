@@ -23,7 +23,7 @@ export default function HelpContainer() {
             Submit an issue
           </SettingItem>
           <SettingItem
-            href="https://discord.gg/SHvvysb73e"
+            href="https://discord.gg/vq7KzPkhCs"
             openInNewTab
             icon={FaDiscord}
           >

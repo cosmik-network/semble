@@ -659,7 +659,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           updateData.name = updates.name;
         }
         if ('description' in updates) {
-          updateData.description = updates.description;
+          updateData.description = updates.description ?? null;
         }
         if ('accessType' in updates) {
           updateData.accessType = updates.accessType;

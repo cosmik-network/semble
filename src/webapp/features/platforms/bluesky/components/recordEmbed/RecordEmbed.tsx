@@ -48,6 +48,7 @@ export default function RecordEmbed(props: Props) {
             <Box>
               <RichTextRenderer
                 text={(post.value as AppBskyFeedPost.Record).text}
+                facets={(post.value as AppBskyFeedPost.Record).facets}
                 textProps={{ lineClamp: 1 }}
               />
             </Box>

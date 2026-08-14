@@ -7,6 +7,8 @@ export enum CardSaveSource {
   NOTIFICATIONS = 'notifications',
   SEARCH_RESULTS = 'search_results',
   ADD_CARD_DRAWER = 'add_card_drawer',
+  ONBOARDING = 'onboarding',
+  RECOMMENDED = 'recommended',
 }
 
 export interface CardSaveAnalyticsContext {

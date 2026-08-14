@@ -158,6 +158,25 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async getFollowedUserIds(followerId: string): Promise<Result<string[]>> {
+    try {
+      const targetIds: string[] = [];
+
+      for (const follow of this.follows.values()) {
+        if (
+          follow.followerId.value === followerId &&
+          follow.targetType.value === FollowTargetTypeEnum.USER
+        ) {
+          targetIds.push(follow.targetId);
+        }
+      }
+
+      return ok(targetIds);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
   async getFollowingCount(
     followerId: string,
     targetType?: FollowTargetType,
@@ -196,6 +215,29 @@ export class InMemoryFollowsRepository implements IFollowsRepository {
       }
 
       return ok(count);
+    } catch (error: any) {
+      return err(error);
+    }
+  }
+
+  async getBatchFollowersCount(
+    targetIds: string[],
+    targetType: FollowTargetType,
+  ): Promise<Result<Map<string, number>>> {
+    try {
+      const countMap = new Map<string, number>();
+      targetIds.forEach((id) => countMap.set(id, 0));
+
+      for (const follow of this.follows.values()) {
+        if (
+          follow.targetType.equals(targetType) &&
+          countMap.has(follow.targetId)
+        ) {
+          countMap.set(follow.targetId, countMap.get(follow.targetId)! + 1);
+        }
+      }
+
+      return ok(countMap);
     } catch (error: any) {
       return err(error);
     }

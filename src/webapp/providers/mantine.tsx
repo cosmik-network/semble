@@ -9,6 +9,7 @@ import {
   MantineProvider as BaseProvider,
   useMantineColorScheme,
   v8CssVariablesResolver,
+  type CSSVariablesResolver,
 } from '@mantine/core';
 import {
   CodeHighlightAdapterProvider,
@@ -34,6 +35,30 @@ async function loadShiki() {
 
 const shikiAdapter = createShikiAdapter(loadShiki);
 
+/**
+ * Mantine's default `dimmed` is gray.6 on light and dark.2 on dark — 3.32:1 and
+ * 4.04:1 against the body, both under the 4.5:1 AA floor for normal text.
+ * dark.3 / dark.1 clear it (5.49:1 / 7.83:1) and still read as secondary.
+ *
+ * No single shade passes on both backgrounds, which is why this is a per-scheme
+ * override rather than a palette change.
+ */
+const cssVariablesResolver: CSSVariablesResolver = (theme) => {
+  const base = v8CssVariablesResolver(theme);
+
+  return {
+    ...base,
+    light: {
+      ...base.light,
+      '--mantine-color-dimmed': theme.colors.dark[3],
+    },
+    dark: {
+      ...base.dark,
+      '--mantine-color-dimmed': theme.colors.dark[1],
+    },
+  };
+};
+
 const schemes = ['light', 'dark', 'auto'] as const;
 type ColorScheme = (typeof schemes)[number];
 
@@ -56,7 +81,7 @@ export default function MantineProvider(props: Props) {
     <BaseProvider
       theme={theme}
       defaultColorScheme="auto"
-      cssVariablesResolver={v8CssVariablesResolver}
+      cssVariablesResolver={cssVariablesResolver}
     >
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
         <ThemeHotkey />

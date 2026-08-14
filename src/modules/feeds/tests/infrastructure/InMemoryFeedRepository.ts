@@ -54,6 +54,13 @@ export class InMemoryFeedRepository implements IFeedRepository {
         );
       }
 
+      // Filter by actor DIDs if provided (empty array = no filter)
+      if (options.actorIds && options.actorIds.length > 0) {
+        filteredActivities = filteredActivities.filter((activity) =>
+          options.actorIds!.includes(activity.actorId.value),
+        );
+      }
+
       // Filter by URL type if provided
       if (urlType) {
         filteredActivities = filteredActivities.filter(

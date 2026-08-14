@@ -117,6 +117,7 @@ export default function BlueskyPost(props: Props) {
           <Box>
             <RichTextRenderer
               text={record.text}
+              facets={record.facets}
               textProps={{ lineClamp: settings.cardView === 'grid' ? 3 : 1 }}
             />
           </Box>

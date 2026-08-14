@@ -44,16 +44,19 @@ export default function HeroCollectionCard() {
               <Box key={c.url} w={CARD_WIDTH} miw={CARD_WIDTH}>
                 <AspectRatio ratio={16 / 9}>
                   {c.imageUrl && !failed[c.url] ? (
-                    <Image
-                      src={c.imageUrl}
-                      alt={`${c.title} preview image`}
-                      radius="md"
-                      fit="cover"
-                      draggable={false}
-                      onError={() =>
-                        setFailed((prev) => ({ ...prev, [c.url]: true }))
-                      }
-                    />
+                    <Card p={0} radius="md" withBorder>
+                      <Image
+                        src={c.imageUrl}
+                        alt={`${c.title} preview image`}
+                        w={'100%'}
+                        h={'100%'}
+                        fit="cover"
+                        draggable={false}
+                        onError={() =>
+                          setFailed((prev) => ({ ...prev, [c.url]: true }))
+                        }
+                      />
+                    </Card>
                   ) : (
                     <Card p="xs" radius="md" withBorder>
                       <Center my="auto">

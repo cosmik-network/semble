@@ -77,6 +77,12 @@ import type {
   SearchAtProtoAccountsResponse,
   SearchLeafletDocsForUrlParams,
   SearchLeafletDocsForUrlResponse,
+  RecommendedUrlsParams,
+  RecommendedUrlsResponse,
+  RecommendedUsersParams,
+  RecommendedUsersResponse,
+  RecommendedCollectionsParams,
+  RecommendedCollectionsResponse,
   GetMyNotificationsParams,
   GetMyNotificationsResponse,
   GetUnreadNotificationCountResponse,
@@ -96,6 +102,10 @@ import type {
   GetMySubscriptionsResponse,
   GetFollowingUsersParams,
   GetFollowingUsersResponse,
+  GetBskyFollowedUsersParams,
+  GetBskyFollowedUsersResponse,
+  FollowManyUsersRequest,
+  FollowManyUsersResponse,
   GetFollowersParams,
   GetFollowersResponse,
   GetFollowingCollectionsParams,
@@ -135,6 +145,9 @@ import type {
   UpdateApiKeyResponse,
   RevokeApiKeyRequest,
   RevokeApiKeyResponse,
+  GetOnboardingStateResponse,
+  UpdateOnboardingStateRequest,
+  UpdateOnboardingStateResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -283,6 +296,24 @@ export class ApiClient {
     return this.queryClient.searchLeafletDocs(params);
   }
 
+  async getRecommendedUrls(
+    params: RecommendedUrlsParams,
+  ): Promise<RecommendedUrlsResponse> {
+    return this.queryClient.getRecommendedUrls(params);
+  }
+
+  async getRecommendedUsers(
+    params: RecommendedUsersParams,
+  ): Promise<RecommendedUsersResponse> {
+    return this.queryClient.getRecommendedUsers(params);
+  }
+
+  async getRecommendedCollections(
+    params: RecommendedCollectionsParams,
+  ): Promise<RecommendedCollectionsResponse> {
+    return this.queryClient.getRecommendedCollections(params);
+  }
+
   // Follow query operations - delegate to QueryClient
   async getFollowingUsers(
     params: GetFollowingUsersParams,
@@ -294,6 +325,12 @@ export class ApiClient {
     params: GetFollowersParams,
   ): Promise<GetFollowersResponse> {
     return this.queryClient.getFollowers(params);
+  }
+
+  async getBskyFollowedUsers(
+    params?: GetBskyFollowedUsersParams,
+  ): Promise<GetBskyFollowedUsersResponse> {
+    return this.queryClient.getBskyFollowedUsers(params);
   }
 
   async getFollowingCollections(
@@ -441,6 +478,12 @@ export class ApiClient {
     return this.userClient.followTarget(request);
   }
 
+  async followManyUsers(
+    request: FollowManyUsersRequest,
+  ): Promise<FollowManyUsersResponse> {
+    return this.userClient.followManyUsers(request);
+  }
+
   async unfollowTarget(
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
@@ -494,6 +537,16 @@ export class ApiClient {
     request: RevokeApiKeyRequest,
   ): Promise<RevokeApiKeyResponse> {
     return this.userClient.revokeApiKey(request);
+  }
+
+  async getOnboardingState(): Promise<GetOnboardingStateResponse> {
+    return this.userClient.getOnboardingState();
+  }
+
+  async updateOnboardingState(
+    request: UpdateOnboardingStateRequest,
+  ): Promise<UpdateOnboardingStateResponse> {
+    return this.userClient.updateOnboardingState(request);
   }
 
   // Feed operations - delegate to FeedClient

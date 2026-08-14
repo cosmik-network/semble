@@ -23,6 +23,9 @@ import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastr
 import { GetFollowingFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetFollowingFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
+import { RecommendedCardsController } from '../../../../modules/search/infrastructure/http/controllers/RecommendedCardsController';
+import { RecommendedUsersController } from '../../../../modules/user/infrastructure/http/controllers/RecommendedUsersController';
+import { RecommendedCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/RecommendedCollectionsController';
 import { SearchBskyPostsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchBskyPostsForUrlController';
 import { SearchAtProtoAccountsController } from '../../../../modules/search/infrastructure/http/controllers/SearchAtProtoAccountsController';
 import { SearchLeafletDocsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/SearchLeafletDocsForUrlController';
@@ -37,6 +40,8 @@ import { ListApiKeysController } from '../../../../modules/user/infrastructure/h
 import { CreateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/CreateApiKeyController';
 import { UpdateApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/UpdateApiKeyController';
 import { RevokeApiKeyController } from '../../../../modules/user/infrastructure/http/controllers/RevokeApiKeyController';
+import { GetOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/GetOnboardingStateController';
+import { UpdateOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/UpdateOnboardingStateController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
@@ -50,6 +55,8 @@ import { GetUnreadNotificationCountController } from '../../../../modules/notifi
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
 import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
+import { FollowManyUsersController } from '../../../../modules/user/infrastructure/http/controllers/FollowManyUsersController';
+import { GetBskyFollowedSembleUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetBskyFollowedSembleUsersController';
 import { UnfollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnfollowTargetController';
 import { SubscribeToTargetController } from '../../../../modules/user/infrastructure/http/controllers/SubscribeToTargetController';
 import { UnsubscribeFromTargetController } from '../../../../modules/user/infrastructure/http/controllers/UnsubscribeFromTargetController';
@@ -92,8 +99,12 @@ export interface Controllers {
   createApiKeyController: CreateApiKeyController;
   updateApiKeyController: UpdateApiKeyController;
   revokeApiKeyController: RevokeApiKeyController;
+  getOnboardingStateController: GetOnboardingStateController;
+  updateOnboardingStateController: UpdateOnboardingStateController;
   followTargetController: FollowTargetController;
+  followManyUsersController: FollowManyUsersController;
   unfollowTargetController: UnfollowTargetController;
+  getBskyFollowedSembleUsersController: GetBskyFollowedSembleUsersController;
   subscribeToTargetController: SubscribeToTargetController;
   unsubscribeFromTargetController: UnsubscribeFromTargetController;
   updateSubscriptionController: UpdateSubscriptionController;
@@ -153,6 +164,9 @@ export interface Controllers {
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   semanticSearchUrlsController: SemanticSearchUrlsController;
+  recommendedCardsController: RecommendedCardsController;
+  recommendedUsersController: RecommendedUsersController;
+  recommendedCollectionsController: RecommendedCollectionsController;
   searchBskyPostsForUrlController: SearchBskyPostsForUrlController;
   searchAtProtoAccountsController: SearchAtProtoAccountsController;
   searchLeafletDocsForUrlController: SearchLeafletDocsForUrlController;
@@ -215,12 +229,25 @@ export class ControllerFactory {
       revokeApiKeyController: new RevokeApiKeyController(
         useCases.revokeApiKeyUseCase,
       ),
+      getOnboardingStateController: new GetOnboardingStateController(
+        useCases.getOnboardingStateUseCase,
+      ),
+      updateOnboardingStateController: new UpdateOnboardingStateController(
+        useCases.updateOnboardingStateUseCase,
+      ),
       followTargetController: new FollowTargetController(
         useCases.followTargetUseCase,
+      ),
+      followManyUsersController: new FollowManyUsersController(
+        useCases.followManyUsersUseCase,
       ),
       unfollowTargetController: new UnfollowTargetController(
         useCases.unfollowTargetUseCase,
       ),
+      getBskyFollowedSembleUsersController:
+        new GetBskyFollowedSembleUsersController(
+          useCases.getBskyFollowedSembleUsersUseCase,
+        ),
       subscribeToTargetController: new SubscribeToTargetController(
         useCases.subscribeToTargetUseCase,
       ),
@@ -398,6 +425,15 @@ export class ControllerFactory {
       ),
       semanticSearchUrlsController: new SemanticSearchUrlsController(
         useCases.semanticSearchUrlsUseCase,
+      ),
+      recommendedCardsController: new RecommendedCardsController(
+        useCases.recommendedCardsUseCase,
+      ),
+      recommendedUsersController: new RecommendedUsersController(
+        useCases.recommendedUsersUseCase,
+      ),
+      recommendedCollectionsController: new RecommendedCollectionsController(
+        useCases.recommendedCollectionsUseCase,
       ),
       searchBskyPostsForUrlController: new SearchBskyPostsForUrlController(
         useCases.searchBskyPostsForUrlUseCase,

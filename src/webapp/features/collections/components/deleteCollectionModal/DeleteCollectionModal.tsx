@@ -1,4 +1,4 @@
-import { Button, Stack, Modal } from '@mantine/core';
+import { Button, Group, Modal } from '@mantine/core';
 import useDeleteCollection from '../../lib/mutations/useDeleteCollection';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
@@ -49,20 +49,21 @@ export default function DeleteCollectionModal(props: Props) {
       overlayProps={DANGER_OVERLAY_PROPS}
       centered
     >
-      <Stack>
-        <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>
+      <Group gap="xs" wrap="nowrap">
+        <Button variant="light" size="md" color="gray" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
           color="red"
           size="md"
+          style={{ flex: 1 }}
           onClick={handleDeleteCollection}
           loading={deleteCollection.isPending}
           data-autofocus
         >
           Delete
         </Button>
-      </Stack>
+      </Group>
     </Modal>
   );
 }

@@ -7,6 +7,7 @@ import {
   UrlType,
 } from '@semble/types';
 import { cache } from 'react';
+import { RankingWeights } from './types/rankingWeights';
 
 interface PageParams {
   page?: number;
@@ -125,3 +126,18 @@ export const getLibrariesForCard = cache(async (cardId: string) => {
 
   return response;
 });
+
+export const getRecommendedUrls = async (params?: {
+  queries?: string[];
+  page?: number;
+  limit?: number;
+  weights?: Partial<RankingWeights>;
+}) => {
+  const client = createSembleClient();
+  return client.getRecommendedUrls({
+    queries: params?.queries?.length ? params.queries : undefined,
+    page: params?.page,
+    limit: params?.limit,
+    ...params?.weights,
+  });
+};

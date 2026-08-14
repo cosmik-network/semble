@@ -9,11 +9,17 @@ import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton
 import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
 import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
 import { LinkButton } from '@/components/link/MantineLink';
+import HomeOnboardingBanner from '@/features/onboarding/components/homeOnboardingBanner/HomeOnboardingBanner';
 
 export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
+        {/* Its own boundary so HomeContainer stays sync: React can start on the
+            Suspense boundaries below without waiting on the banner's fetch. */}
+        <Suspense fallback={null}>
+          <HomeOnboardingBanner />
+        </Suspense>
         <Stack gap={50}>
           {/* Explore */}
           <Stack>

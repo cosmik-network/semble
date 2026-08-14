@@ -45,7 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     other: {
-      'atprotocol:creator': `at://${collection.author.id}`,
+      'at:author': `at://${collection.author.id}`,
+      'at:canonical': `at://${collection.author.id}/network.cosmik.collection/${collection.id}`,
     },
   };
 }

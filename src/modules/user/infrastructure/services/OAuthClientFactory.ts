@@ -38,9 +38,11 @@ export class OAuthClientFactory {
       'atproto',
       `repo?${cosmikCollections}`,
       'repo:at.margin.collection?action=update&action=delete',
+      'repo:at.margin.collectionItem?action=delete',
       'rpc:app.bsky.feed.searchPosts?aud=*',
       'rpc:app.bsky.actor.searchActors?aud=*',
       'rpc:app.bsky.actor.getProfile?aud=*',
+      'rpc:app.bsky.graph.getFollows?aud=*',
     ].join(' ');
 
     // OAuth spec requires client_uri to share its origin with client_id.

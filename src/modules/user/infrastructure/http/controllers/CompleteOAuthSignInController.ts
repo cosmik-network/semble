@@ -44,8 +44,9 @@ export class CompleteOAuthSignInController extends Controller {
         refreshToken: result.value.refreshToken,
       });
 
-      // Redirect back to frontend without tokens in URL (more secure)
-      return res.redirect(`${appUrl}/home`);
+      // Redirect back to frontend without tokens in URL (more secure).
+      // The destination is decided by the use case.
+      return res.redirect(`${appUrl}${result.value.redirectPath}`);
     } catch (error: any) {
       return res.redirect(
         `${appUrl}/login?error=${encodeURIComponent(error.message || 'Unknown error')}`,

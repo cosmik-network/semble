@@ -25,6 +25,8 @@ import {
   CardSortField,
   SortOrder,
   UrlLibraryInfo,
+  UrlRankingStats,
+  UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
 } from '../../../domain/ICardQueryRepository';
@@ -1463,6 +1465,271 @@ export class UrlCardQueryService {
       return resultMap;
     } catch (error) {
       console.error('Error in getBatchUrlCardViews:', error);
+      throw error;
+    }
+  }
+
+  async getBatchUrlRankingStats(
+    urls: string[],
+  ): Promise<Map<string, UrlRankingStats>> {
+    try {
+      if (urls.length === 0) {
+        return new Map();
+      }
+
+      const urlCardCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: count(),
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const noteCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: count(),
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.NOTE), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const collectionCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(collectionCards.collectionId),
+        })
+        .from(collectionCards)
+        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const sourceConnectionCountsQuery = this.db
+        .select({
+          url: connections.sourceValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.sourceType, 'URL'),
+            inArray(connections.sourceValue, urls),
+          ),
+        )
+        .groupBy(connections.sourceValue);
+
+      const targetConnectionCountsQuery = this.db
+        .select({
+          url: connections.targetValue,
+          count: count(),
+        })
+        .from(connections)
+        .where(
+          and(
+            eq(connections.targetType, 'URL'),
+            inArray(connections.targetValue, urls),
+          ),
+        )
+        .groupBy(connections.targetValue);
+
+      const [
+        urlCardCounts,
+        noteCounts,
+        collectionCounts,
+        sourceConnectionCounts,
+        targetConnectionCounts,
+      ] = await Promise.all([
+        urlCardCountsQuery,
+        noteCountsQuery,
+        collectionCountsQuery,
+        sourceConnectionCountsQuery,
+        targetConnectionCountsQuery,
+      ]);
+
+      const resultMap = new Map<string, UrlRankingStats>();
+      for (const url of urls) {
+        resultMap.set(url, {
+          urlCardCount: 0,
+          noteCount: 0,
+          collectionCount: 0,
+          connectionCount: 0,
+        });
+      }
+
+      urlCardCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.urlCardCount = Number(row.count);
+        }
+      });
+      noteCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.noteCount = Number(row.count);
+        }
+      });
+      collectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.collectionCount = Number(row.count);
+        }
+      });
+      sourceConnectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.connectionCount += Number(row.count);
+        }
+      });
+      targetConnectionCounts.forEach((row) => {
+        if (row.url && resultMap.has(row.url)) {
+          resultMap.get(row.url)!.connectionCount += Number(row.count);
+        }
+      });
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchUrlRankingStats:', error);
+      throw error;
+    }
+  }
+
+  async getUsersForUrls(urls: string[]): Promise<string[]> {
+    try {
+      if (urls.length === 0) {
+        return [];
+      }
+
+      const [cardAuthors, sourceCurators, targetCurators] = await Promise.all([
+        this.db
+          .selectDistinct({ userId: cards.authorId })
+          .from(cards)
+          .where(
+            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
+          ),
+        this.db
+          .selectDistinct({ userId: connections.curatorId })
+          .from(connections)
+          .where(
+            and(
+              eq(connections.sourceType, 'URL'),
+              inArray(connections.sourceValue, urls),
+            ),
+          ),
+        this.db
+          .selectDistinct({ userId: connections.curatorId })
+          .from(connections)
+          .where(
+            and(
+              eq(connections.targetType, 'URL'),
+              inArray(connections.targetValue, urls),
+            ),
+          ),
+      ]);
+
+      const userIds = new Set<string>();
+      [...cardAuthors, ...sourceCurators, ...targetCurators].forEach((row) => {
+        if (row.userId) {
+          userIds.add(row.userId);
+        }
+      });
+
+      return Array.from(userIds);
+    } catch (error) {
+      console.error('Error in getUsersForUrls:', error);
+      throw error;
+    }
+  }
+
+  async getBatchUserActivityStats(
+    userIds: string[],
+  ): Promise<Map<string, UserActivityStats>> {
+    try {
+      if (userIds.length === 0) {
+        return new Map();
+      }
+
+      const [cardStats, collectionStats, collectionCardStats, connectionStats] =
+        await Promise.all([
+          this.db
+            .select({
+              userId: cards.authorId,
+              count: count(),
+              latest: sql<Date | null>`MAX(${cards.createdAt})`,
+            })
+            .from(cards)
+            .where(inArray(cards.authorId, userIds))
+            .groupBy(cards.authorId),
+          this.db
+            .select({
+              userId: collections.authorId,
+              count: count(),
+            })
+            .from(collections)
+            .where(inArray(collections.authorId, userIds))
+            .groupBy(collections.authorId),
+          this.db
+            .select({
+              userId: collectionCards.addedBy,
+              latest: sql<Date | null>`MAX(${collectionCards.addedAt})`,
+            })
+            .from(collectionCards)
+            .where(inArray(collectionCards.addedBy, userIds))
+            .groupBy(collectionCards.addedBy),
+          this.db
+            .select({
+              userId: connections.curatorId,
+              count: count(),
+              latest: sql<Date | null>`MAX(${connections.createdAt})`,
+            })
+            .from(connections)
+            .where(inArray(connections.curatorId, userIds))
+            .groupBy(connections.curatorId),
+        ]);
+
+      const resultMap = new Map<string, UserActivityStats>();
+      for (const userId of userIds) {
+        resultMap.set(userId, {
+          cardCount: 0,
+          collectionCount: 0,
+          connectionCount: 0,
+          lastActivityAt: null,
+        });
+      }
+
+      const updateLatest = (userId: string, latest: Date | null) => {
+        if (!latest) return;
+        const stats = resultMap.get(userId);
+        if (!stats) return;
+        const latestDate = new Date(latest);
+        if (!stats.lastActivityAt || latestDate > stats.lastActivityAt) {
+          stats.lastActivityAt = latestDate;
+        }
+      };
+
+      cardStats.forEach((row) => {
+        const stats = resultMap.get(row.userId);
+        if (stats) {
+          stats.cardCount = Number(row.count);
+          updateLatest(row.userId, row.latest);
+        }
+      });
+      collectionStats.forEach((row) => {
+        const stats = resultMap.get(row.userId);
+        if (stats) {
+          stats.collectionCount = Number(row.count);
+        }
+      });
+      collectionCardStats.forEach((row) => {
+        updateLatest(row.userId, row.latest);
+      });
+      connectionStats.forEach((row) => {
+        const stats = resultMap.get(row.userId);
+        if (stats) {
+          stats.connectionCount = Number(row.count);
+          updateLatest(row.userId, row.latest);
+        }
+      });
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchUserActivityStats:', error);
       throw error;
     }
   }

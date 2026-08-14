@@ -13,6 +13,8 @@ import {
   GenerateExtensionTokensResponse,
   FollowTargetRequest,
   FollowTargetResponse,
+  FollowManyUsersRequest,
+  FollowManyUsersResponse,
   SubscribeToTargetRequest,
   SubscribeToTargetResponse,
   UpdateSubscriptionRequest,
@@ -24,6 +26,9 @@ import {
   UpdateApiKeyResponse,
   RevokeApiKeyRequest,
   RevokeApiKeyResponse,
+  GetOnboardingStateResponse,
+  UpdateOnboardingStateRequest,
+  UpdateOnboardingStateResponse,
 } from '@semble/types';
 
 export class UserClient extends BaseClient {
@@ -76,6 +81,13 @@ export class UserClient extends BaseClient {
   ): Promise<FollowTargetResponse> {
     const res = await this.client.graph.followTarget({ body: request });
     return unwrap<FollowTargetResponse>(res);
+  }
+
+  async followManyUsers(
+    request: FollowManyUsersRequest,
+  ): Promise<FollowManyUsersResponse> {
+    const res = await this.client.graph.followMany({ body: request });
+    return unwrap<FollowManyUsersResponse>(res);
   }
 
   async unfollowTarget(
@@ -136,5 +148,19 @@ export class UserClient extends BaseClient {
   ): Promise<RevokeApiKeyResponse> {
     const res = await this.client.users.revokeApiKey({ body: request });
     return unwrap<RevokeApiKeyResponse>(res);
+  }
+
+  async getOnboardingState(): Promise<GetOnboardingStateResponse> {
+    const res = await this.client.users.getOnboardingState({ query: {} });
+    return unwrap<GetOnboardingStateResponse>(res);
+  }
+
+  async updateOnboardingState(
+    request: UpdateOnboardingStateRequest,
+  ): Promise<UpdateOnboardingStateResponse> {
+    const res = await this.client.users.updateOnboardingState({
+      body: request,
+    });
+    return unwrap<UpdateOnboardingStateResponse>(res);
   }
 }

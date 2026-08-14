@@ -28,6 +28,8 @@ export const theme = createTheme({
     dark: 6,
   },
   primaryColor: 'tangerine',
+  // Off-black instead of Mantine's `#000`; drives --mantine-color-text/-bright.
+  black: '#1c1917',
   colors: {
     tangerine: [
       '#fff1e2',

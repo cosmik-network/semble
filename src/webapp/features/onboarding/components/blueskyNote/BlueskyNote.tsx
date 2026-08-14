@@ -1,0 +1,25 @@
+'use client';
+
+import { Group, Text } from '@mantine/core';
+import { FaBluesky } from 'react-icons/fa6';
+
+/**
+ * Not a Mantine palette colour: the theme overrides `blue` with a cyan of its
+ * own. Inlined the same way in `BlueskyPlatformIcon`.
+ */
+const BLUESKY_BLUE = '#0085ff';
+
+interface Props {
+  children: string;
+}
+
+export default function BlueskyNote(props: Props) {
+  return (
+    <Group gap={5} wrap="nowrap" miw={0}>
+      <FaBluesky fill={BLUESKY_BLUE} size={14} style={{ flexShrink: 0 }} />
+      <Text fz={'xs'} fw={600} c={BLUESKY_BLUE} lineClamp={1}>
+        {props.children}
+      </Text>
+    </Group>
+  );
+}

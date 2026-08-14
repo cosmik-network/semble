@@ -167,10 +167,11 @@ export default function ReportCardModal(props: Props) {
             </Text>
           )}
 
-          <Group justify="flex-end" gap="xs">
+          <Group gap="xs" wrap="nowrap">
             <Button
-              variant="subtle"
+              variant="light"
               color="gray"
+              size="md"
               onClick={props.onClose}
               disabled={state.kind === 'submitting'}
             >
@@ -178,6 +179,8 @@ export default function ReportCardModal(props: Props) {
             </Button>
             <Button
               color="red"
+              size="md"
+              style={{ flex: 1 }}
               onClick={handleSubmit}
               loading={state.kind === 'submitting'}
               disabled={!canSubmit}

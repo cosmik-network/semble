@@ -15,6 +15,7 @@ const FeedQuery = z.object({
   urlType: UrlTypeSchema.optional(),
   source: ActivitySourceSchema.optional(),
   activityTypes: z.array(z.string()).optional(),
+  actorIds: z.array(z.string()).optional(),
   includeKnownBots: z.coerce.boolean().optional(),
 });
 

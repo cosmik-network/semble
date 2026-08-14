@@ -130,7 +130,7 @@ export default function NoteCardModalContent(props: Props) {
           </VisuallyHidden>
         </Stack>
 
-        <Group gap={'xs'} grow>
+        <Group gap={'xs'} wrap="nowrap">
           <Button
             variant="light"
             color="gray"
@@ -142,6 +142,7 @@ export default function NoteCardModalContent(props: Props) {
             Cancel
           </Button>
           <Button
+            style={{ flex: 1 }}
             onClick={handleUpdateNote}
             loading={updateNote.isPending}
             disabled={note?.trimEnd() === ''}
@@ -185,13 +186,22 @@ export default function NoteCardModalContent(props: Props) {
         <Stack>
           <Group gap={'sm'} wrap="nowrap">
             {props.cardContent.imageUrl && (
-              <Image
-                src={props.cardContent.imageUrl}
-                alt={`${props.cardContent.url} social preview image`}
+              <Card
+                p={0}
                 radius={'md'}
+                withBorder
                 w={45}
                 h={45}
-              />
+                style={{ flexShrink: 0 }}
+              >
+                <Image
+                  src={props.cardContent.imageUrl}
+                  alt={`${props.cardContent.url} social preview image`}
+                  w={'100%'}
+                  h={'100%'}
+                  fit="cover"
+                />
+              </Card>
             )}
             <Stack gap={0}>
               {props.cardContent.title && (

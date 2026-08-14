@@ -134,6 +134,12 @@ export interface ICollectionQueryRepository {
   ): Promise<PaginatedQueryResult<CollectionContributorDTO>>;
 
   /**
+   * Get all distinct collections containing URL cards with any of the given URLs
+   * Used for recommendation scoring (no pagination)
+   */
+  getCollectionsForUrls(urls: string[]): Promise<CollectionQueryResultDTO[]>;
+
+  /**
    * Get the count of collections containing a specific URL
    * Used for efficient counting without fetching full data
    */

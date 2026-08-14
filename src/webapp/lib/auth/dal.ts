@@ -17,6 +17,12 @@ export const verifySessionOnClient = cache(
   ): Promise<GetProfileResponse | null> => {
     const { redirectOnFail = false } = options || {};
 
+    // Browser-only by construction: it authenticates via `credentials: 'include'`
+    // on HttpOnly cookies, which a server render cannot supply. Short-circuit
+    // rather than firing an /api/auth/me request that always 401s during SSR.
+    // Server Components should use verifySessionOnServer from dal.server.ts.
+    if (typeof window === 'undefined') return null;
+
     if (isRefreshing && refreshPromise) {
       console.log('Auth refresh already in progress, waiting...');
       return refreshPromise;

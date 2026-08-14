@@ -28,6 +28,7 @@ import {
   ConnectionCreatedMetadata,
 } from '../../../domain/FeedActivity';
 import { ActivityType as ActivityTypeEnum } from '@semble/types';
+import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 
 export interface GetFollowingFeedQuery {
   callingUserId: string;
@@ -59,6 +60,7 @@ export class GetFollowingFeedUseCase implements UseCase<
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
     private connectionRepository: IConnectionRepository,
+    private followsRepository: IFollowsRepository,
   ) {}
 
   async execute(
@@ -116,7 +118,56 @@ export class GetFollowingFeedUseCase implements UseCase<
         return err(AppError.UnexpectedError.create(feedResult.error));
       }
 
-      const feed = feedResult.value;
+      let feed = feedResult.value;
+
+      // Spill-over: once the fan-out following feed is drained, continue with the
+      // global feed scoped to the DIDs the caller follows. The scoped global feed
+      // is a SUPERSET of the fan-out feed (all activity by followed users, ordered
+      // by the same created_at DESC key), so we continue it at the SAME combined
+      // offset rather than restarting it — this seamlessly skips past the items
+      // already shown in the following phase and surfaces the older history that
+      // was never fanned out.
+      //
+      // Uses page-based (offset) pagination to match the webapp, which paginates
+      // by page number and ignores nextCursor. Only engages when no cursor is
+      // supplied (cursor pagination keeps its original pure-following behavior).
+      if (!beforeActivityId) {
+        const followedIdsResult =
+          await this.followsRepository.getFollowedUserIds(query.callingUserId);
+        if (followedIdsResult.isErr()) {
+          return err(AppError.UnexpectedError.create(followedIdsResult.error));
+        }
+        const followedDids = followedIdsResult.value;
+
+        // No follows → no overflow possible; keep the following feed as-is.
+        if (followedDids.length > 0) {
+          const offset = (page - 1) * limit;
+          const followingTotal = feed.totalCount;
+
+          if (offset + limit >= followingTotal) {
+            // This page reaches or passes the end of the fan-out feed. Serve it
+            // (and everything after) from the scoped global feed at the same
+            // combined offset, so the two feeds stitch together in one order.
+            // (>= so the last full fan-out page is served by global too, letting
+            // its hasMore correctly signal whether older overflow history exists.)
+            const globalResult = await this.feedRepository.getGlobalFeed({
+              page, // same page/offset into the (superset) global feed
+              limit,
+              urlType,
+              source: query.source,
+              activityTypes,
+              actorIds: followedDids,
+              includeKnownBots: query.includeKnownBots,
+            });
+            if (globalResult.isErr()) {
+              return err(AppError.UnexpectedError.create(globalResult.error));
+            }
+            feed = globalResult.value;
+          }
+          // else: fully inside the fan-out feed — keep the following-feed page.
+          // Its hasMore is true (more fan-out items remain before the boundary).
+        }
+      }
 
       // Get unique actor IDs for profile enrichment
       const actorIds = [

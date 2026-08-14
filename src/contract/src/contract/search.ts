@@ -9,6 +9,9 @@ import {
   SearchBskyPostsForUrlResponseSchema,
   SearchAtProtoAccountsResponseSchema,
   SearchLeafletDocsForUrlResponseSchema,
+  RecommendedUrlsResponseSchema,
+  RecommendedUsersResponseSchema,
+  RecommendedCollectionsResponseSchema,
 } from '@semble/types';
 import { CoercedPaginatedSortedQuery } from './shared';
 
@@ -92,6 +95,53 @@ export const searchContract = c.router(
       summary: 'Search Leaflet documents for a URL',
       description:
         'Returns Leaflet documents that reference or annotate a given URL.',
+      metadata: { internal: true } as const,
+    },
+    recommended: {
+      method: 'GET',
+      path: paths.recommended,
+      query: z.object({
+        // A single ?queries=x arrives as a string; repeated params arrive as an array
+        queries: z.union([z.string(), z.array(z.string())]).optional(),
+        page: z.coerce.number().optional(),
+        limit: z.coerce.number().optional(),
+        // Ranking weight overrides; omitted values use the server defaults.
+        urlCardWeight: z.coerce.number().optional(),
+        noteWeight: z.coerce.number().optional(),
+        collectionWeight: z.coerce.number().optional(),
+        connectionWeight: z.coerce.number().optional(),
+        randomness: z.coerce.number().optional(),
+      }),
+      responses: { 200: RecommendedUrlsResponseSchema },
+      summary: 'Recommended URLs',
+      description:
+        "Returns URLs recommended for a set of query strings. Each query's matches are ranked independently by network activity (saves, notes, collections, connections) with randomized ordering, then interleaved round-robin so no single query crowds out the others. Excludes URLs the calling user already saved. Ranking weights can be overridden per request; each distinct weight set is cached separately. Paginated over a cached ranked set. When no queries are given, they are derived from random recent cards in the calling user's library (falling back to their profile bio); the derived queries are returned so later pages can pass them back.",
+      metadata: { internal: true } as const,
+    },
+    recommendedUsers: {
+      method: 'GET',
+      path: paths.recommendedUsers,
+      query: z.object({
+        // A single ?urls=x arrives as a string; repeated params arrive as an array
+        urls: z.union([z.string(), z.array(z.string())]),
+      }),
+      responses: { 200: RecommendedUsersResponseSchema },
+      summary: 'Recommended users',
+      description:
+        'Returns users recommended for a set of URLs — users who saved or connected those URLs, plus Semble users the caller follows on Bluesky — ranked by activity, followers, recency, and Bluesky follow status, excluding users the caller already follows.',
+      metadata: { internal: true } as const,
+    },
+    recommendedCollections: {
+      method: 'GET',
+      path: paths.recommendedCollections,
+      query: z.object({
+        // A single ?urls=x arrives as a string; repeated params arrive as an array
+        urls: z.union([z.string(), z.array(z.string())]),
+      }),
+      responses: { 200: RecommendedCollectionsResponseSchema },
+      summary: 'Recommended collections',
+      description:
+        'Returns collections containing any of the given URLs, ranked by card count, follower count, update recency, and whether the caller follows the collection author on Bluesky.',
       metadata: { internal: true } as const,
     },
   },

@@ -107,6 +107,10 @@ export class DrizzleFeedRepository implements IFeedRepository {
           notInArray(feedActivities.actorId, KNOWN_BOT_DIDS),
         );
       }
+      // Filter by actor DIDs if provided (empty array = no filter)
+      if (options.actorIds && options.actorIds.length > 0) {
+        whereConditions.push(inArray(feedActivities.actorId, options.actorIds));
+      }
 
       // Fetch limit + 1 rows to determine hasMore without an expensive COUNT(*)
       if (beforeActivityId) {
