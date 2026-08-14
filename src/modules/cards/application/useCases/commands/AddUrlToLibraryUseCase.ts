@@ -308,10 +308,17 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           viaCardId = viaCardIdResult.value;
         }
 
-        // Add card to collections using domain service
-        const collectionOptions = request.timestamp
-          ? { timestamp: request.timestamp }
-          : undefined;
+        // Add card to collections using domain service. When the record
+        // arrived from the firehose (publishedRecordId set), we must not
+        // publish anything back — collection-link records arrive as their
+        // own firehose events.
+        const collectionOptions =
+          request.publishedRecordId || request.timestamp
+            ? {
+                ...(request.publishedRecordId && { skipPublishing: true }),
+                ...(request.timestamp && { timestamp: request.timestamp }),
+              }
+            : undefined;
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
             cardToAdd,

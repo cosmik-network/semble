@@ -38,7 +38,10 @@ export abstract class Controller {
     return Controller.jsonResponse(res, 400, message || 'Bad request');
   }
 
-  public unauthorized(res: Response, message?: string) {
+  public unauthorized(res: Response, message?: string, code?: string) {
+    if (code) {
+      return res.status(401).json({ message: message || 'Unauthorized', code });
+    }
     return Controller.jsonResponse(res, 401, message || 'Unauthorized');
   }
 
@@ -70,7 +73,11 @@ export abstract class Controller {
 
   protected handleError(res: Response, error: Error): Response {
     if (error instanceof AuthenticationError) {
-      return this.unauthorized(res, error.message);
+      // AuthenticationError originates from PDS agent authentication (the
+      // server-side ATProto OAuth session), not from the app's own JWT.
+      // The distinct code lets the frontend prompt re-authentication
+      // instead of treating this as a generic session expiry.
+      return this.unauthorized(res, error.message, 'PDS_SESSION_EXPIRED');
     }
     return this.fail(res, error);
   }

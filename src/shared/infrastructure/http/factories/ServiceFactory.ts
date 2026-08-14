@@ -21,6 +21,12 @@ import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/F
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
 import { FakeConnectionPublisher } from '../../../../modules/cards/tests/utils/FakeConnectionPublisher';
 import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/FakeFollowPublisher';
+import {
+  DisabledCardPublisher,
+  DisabledCollectionPublisher,
+  DisabledConnectionPublisher,
+  DisabledFollowPublisher,
+} from '../../../../modules/atproto/infrastructure/publishers/DisabledPublishers';
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
@@ -121,6 +127,14 @@ export interface WebAppServices extends SharedServices {
   statsApiKeyMiddleware: StatsApiKeyMiddleware;
 }
 
+export interface WorkerServiceOptions {
+  /**
+   * Replace all PDS publishers with loud-failing stubs. Use for processes
+   * that must never authenticate as users (e.g. the firehose worker).
+   */
+  disablePdsPublishing?: boolean;
+}
+
 // Worker specific services (includes subscribers)
 export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
@@ -201,10 +215,12 @@ export class ServiceFactory {
   static createForWorker(
     configService: EnvironmentConfigService,
     repositories: Repositories,
+    options?: WorkerServiceOptions,
   ): WorkerServices {
     const sharedServices = this.createSharedServices(
       configService,
       repositories,
+      options,
     );
 
     const useInMemoryEvents = configService.shouldUseInMemoryEvents();
@@ -251,6 +267,7 @@ export class ServiceFactory {
   private static createSharedServices(
     configService: EnvironmentConfigService,
     repositories: Repositories,
+    options?: WorkerServiceOptions,
   ): SharedServices {
     const useMockAuth = configService.shouldUseMockAuth();
 
@@ -467,33 +484,46 @@ export class ServiceFactory {
     const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
 
-    const collectionPublisher = useFakePublishers
-      ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(
-          atProtoAgentService,
-          collections.collection,
-          collections.collectionLink,
-          collections.collectionLinkRemoval,
-        );
+    // Processes that only mirror records already on the PDS (e.g. the
+    // firehose worker) must never authenticate as users: publishing from
+    // them races the web tier's OAuth token refresh and destroys sessions.
+    const disablePdsPublishing = options?.disablePdsPublishing === true;
 
-    const connectionPublisher = useFakePublishers
-      ? new FakeConnectionPublisher()
-      : new ATProtoConnectionPublisher(
-          atProtoAgentService,
-          collections.connection,
-        );
+    const collectionPublisher = disablePdsPublishing
+      ? new DisabledCollectionPublisher()
+      : useFakePublishers
+        ? new FakeCollectionPublisher()
+        : new ATProtoCollectionPublisher(
+            atProtoAgentService,
+            collections.collection,
+            collections.collectionLink,
+            collections.collectionLinkRemoval,
+          );
 
-    const followPublisher = useFakePublishers
-      ? new FakeFollowPublisher()
-      : new ATProtoFollowPublisher(
-          atProtoAgentService,
-          collections.follow,
-          repositories.collectionRepository,
-        );
+    const connectionPublisher = disablePdsPublishing
+      ? new DisabledConnectionPublisher()
+      : useFakePublishers
+        ? new FakeConnectionPublisher()
+        : new ATProtoConnectionPublisher(
+            atProtoAgentService,
+            collections.connection,
+          );
 
-    const cardPublisher = useFakePublishers
-      ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+    const followPublisher = disablePdsPublishing
+      ? new DisabledFollowPublisher()
+      : useFakePublishers
+        ? new FakeFollowPublisher()
+        : new ATProtoFollowPublisher(
+            atProtoAgentService,
+            collections.follow,
+            repositories.collectionRepository,
+          );
+
+    const cardPublisher = disablePdsPublishing
+      ? new DisabledCardPublisher()
+      : useFakePublishers
+        ? new FakeCardPublisher()
+        : new ATProtoCardPublisher(atProtoAgentService, collections.card);
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(
