@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const InitiateOAuthSignInRequestSchema = z.object({
   handle: z.string().optional(),
+  // App-relative path to return the user to after sign-in completes.
+  redirect: z.string().optional(),
 });
 export type InitiateOAuthSignInRequest = z.infer<
   typeof InitiateOAuthSignInRequestSchema

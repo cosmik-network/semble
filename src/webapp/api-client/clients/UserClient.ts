@@ -43,7 +43,7 @@ export class UserClient extends BaseClient {
     request?: InitiateOAuthSignInRequest,
   ): Promise<InitiateOAuthSignInResponse> {
     const res = await this.client.users.initiateOAuth({
-      query: { handle: request?.handle },
+      query: { handle: request?.handle, redirect: request?.redirect },
     });
     return unwrap<InitiateOAuthSignInResponse>(res);
   }
