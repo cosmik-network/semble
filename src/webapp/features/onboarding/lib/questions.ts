@@ -29,8 +29,8 @@ export const INTENTION_QUESTION: Question = {
   options: [
     { id: 'bookmarks', label: 'Managing and organizing personal bookmarks' },
     { id: 'discovery', label: 'Following curators and discovering content' },
-    { id: 'community', label: 'Contributing to a community knowledge system' },
-    { id: 'sharing', label: 'Sharing content with my peers' },
+    { id: 'community', label: 'Contributing to a community knowledge network' },
+    { id: 'sharing', label: 'Sharing content with others' },
     { id: 'testing', label: 'Unsure — just testing the app' },
     { id: OTHER_ID, label: 'Other' },
   ],

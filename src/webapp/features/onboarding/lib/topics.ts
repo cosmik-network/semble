@@ -8,11 +8,12 @@ export type TopicId =
   | 'music'
   | 'writing'
   | 'note-taking'
-  | 'pkm'
   | 'politics'
   | 'curation'
   | 'product-building'
-  | 'business'
+  | 'design'
+  | 'film'
+  | 'games'
   | 'nature';
 
 export interface Topic {
@@ -34,16 +35,11 @@ export const TOPICS: Topic[] = [
     label: 'Software development',
   },
   { id: 'community', query: 'community', label: 'Community' },
-  { id: 'atproto', query: 'atproto', label: 'atproto' },
+  { id: 'atproto', query: 'atproto', label: 'ATProto' },
   { id: 'social-networks', query: 'social networks', label: 'Social networks' },
   { id: 'music', query: 'music', label: 'Music' },
   { id: 'writing', query: 'writing', label: 'Writing' },
   { id: 'note-taking', query: 'note-taking', label: 'Note-taking' },
-  {
-    id: 'pkm',
-    query: 'personal knowledge management',
-    label: 'Personal knowledge management',
-  },
   { id: 'politics', query: 'politics', label: 'Politics' },
   { id: 'curation', query: 'curation', label: 'Curation' },
   {
@@ -51,7 +47,9 @@ export const TOPICS: Topic[] = [
     query: 'product building',
     label: 'Product building',
   },
-  { id: 'business', query: 'business', label: 'Business' },
+  { id: 'design', query: 'design', label: 'Design' },
+  { id: 'film', query: 'film', label: 'Film' },
+  { id: 'games', query: 'games', label: 'Games' },
   { id: 'nature', query: 'nature', label: 'Nature' },
 ];
 
@@ -76,7 +74,7 @@ export function dedupeTopics(topics: string[]): string[] {
 export const FALLBACK_TOPICS = [
   'science',
   'AI',
-  'personal knowledge management',
+  'design',
   'curation',
   'social networks',
 ];

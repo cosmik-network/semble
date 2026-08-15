@@ -3,15 +3,16 @@ import { IoMdCode } from 'react-icons/io';
 import { MdOutlineTag } from 'react-icons/md';
 import {
   TbAffiliate,
-  TbBrain,
   TbBuildingBank,
-  TbChartLine,
+  TbDeviceGamepad2,
   TbFeather,
   TbFlask,
   TbLeaf,
+  TbMovie,
   TbMusic,
   TbNetwork,
   TbNotebook,
+  TbPalette,
   TbSparkles,
   TbStack2,
   TbTool,
@@ -35,11 +36,12 @@ export const TOPIC_ICONS: Record<TopicId, IconType> = {
   music: TbMusic,
   writing: TbFeather,
   'note-taking': TbNotebook,
-  pkm: TbBrain,
   politics: TbBuildingBank,
   curation: TbStack2,
   'product-building': TbTool,
-  business: TbChartLine,
+  design: TbPalette,
+  film: TbMovie,
+  games: TbDeviceGamepad2,
   nature: TbLeaf,
 };
 

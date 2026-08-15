@@ -16,8 +16,8 @@ export default function AboutYouStep() {
   return (
     <Stack gap={'xl'} w={'100%'}>
       <StepHeading
-        title="Tell us why you’re here."
-        description="Your answers shape what we build next."
+        title="A few questions"
+        description="These help us improve the app and tailor your experience."
       />
 
       <QuestionGroup
