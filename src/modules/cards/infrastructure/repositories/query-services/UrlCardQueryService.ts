@@ -1867,6 +1867,37 @@ export class UrlCardQueryService {
     }
   }
 
+  async getBatchLatestCardCreatedAt(
+    userIds: string[],
+  ): Promise<Map<string, Date>> {
+    try {
+      if (userIds.length === 0) {
+        return new Map();
+      }
+
+      const rows = await this.db
+        .select({
+          userId: cards.authorId,
+          latest: sql<Date | null>`MAX(${cards.createdAt})`,
+        })
+        .from(cards)
+        .where(inArray(cards.authorId, userIds))
+        .groupBy(cards.authorId);
+
+      const resultMap = new Map<string, Date>();
+      rows.forEach((row) => {
+        if (row.latest) {
+          resultMap.set(row.userId, new Date(row.latest));
+        }
+      });
+
+      return resultMap;
+    } catch (error) {
+      console.error('Error in getBatchLatestCardCreatedAt:', error);
+      throw error;
+    }
+  }
+
   async getBatchUrlLibraryInfo(
     urls: string[],
     callingUserId?: string,

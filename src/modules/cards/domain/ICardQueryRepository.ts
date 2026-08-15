@@ -252,6 +252,11 @@ export interface ICardQueryRepository {
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>>;
 
+  /**
+   * Most recent card creation time per user. Users with no cards are omitted.
+   */
+  getBatchLatestCardCreatedAt(userIds: string[]): Promise<Map<string, Date>>;
+
   searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>>;
