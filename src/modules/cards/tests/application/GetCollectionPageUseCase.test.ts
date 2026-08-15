@@ -777,6 +777,7 @@ describe('GetCollectionPageUseCase', () => {
         searchUrls: jest.fn(),
         getUrlAggregateStats: jest.fn(),
         getProfileCardStats: jest.fn(),
+        getBatchLatestCardCreatedAt: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(

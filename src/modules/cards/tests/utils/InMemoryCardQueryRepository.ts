@@ -972,6 +972,24 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return resultMap;
   }
 
+  async getBatchLatestCardCreatedAt(
+    userIds: string[],
+  ): Promise<Map<string, Date>> {
+    const resultMap = new Map<string, Date>();
+    const userIdSet = new Set(userIds);
+
+    this.cardRepository.getAllCards().forEach((card) => {
+      const userId = card.curatorId.value;
+      if (!userIdSet.has(userId)) return;
+      const existing = resultMap.get(userId);
+      if (!existing || card.createdAt > existing) {
+        resultMap.set(userId, card.createdAt);
+      }
+    });
+
+    return resultMap;
+  }
+
   async searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {

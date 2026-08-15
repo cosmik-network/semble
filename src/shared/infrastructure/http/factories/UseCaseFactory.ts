@@ -318,6 +318,7 @@ export class UseCaseFactory {
       getBskyFollowedSembleUsersUseCase: new GetBskyFollowedSembleUsersUseCase(
         services.bskyFollowsService,
         repositories.followsRepository,
+        repositories.cardQueryRepository,
       ),
       unfollowTargetUseCase: new UnfollowTargetUseCase(
         repositories.followsRepository,
