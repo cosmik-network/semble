@@ -203,7 +203,7 @@ export default function FollowStep(props: Props) {
                         href={props.pickCardsHref}
                         onClick={props.onPickMoreCards}
                         variant="light"
-                        color='gray'
+                        color="gray"
                       >
                         Pick more cards
                       </LinkButton>
