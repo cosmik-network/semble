@@ -50,6 +50,13 @@ interface Props {
   analyticsContext?: CardSaveAnalyticsContext;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
+  /**
+   * Forces the connect tooltip open. Mantine treats `opened={undefined}` as
+   * normal hover behavior, so omitting this leaves every call site unchanged.
+   */
+  connectTooltipOpen?: boolean;
+  /** Same, for the save tooltip. */
+  saveTooltipOpen?: boolean;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -100,7 +107,16 @@ export default function UrlCardActions(props: Props) {
       )}
       <Group justify="space-between">
         <Group gap={'xs'}>
-          <Tooltip label="Save or update" withArrow>
+          <Tooltip
+            label="Save or update"
+            withArrow
+            opened={props.saveTooltipOpen}
+            // A tooltip held open in a portal is positioned against the page,
+            // so it stays put once the card has been scrolled away from under
+            // it. Rendered inline the scroller clips it instead. Only the
+            // pinned case moves — every other call site keeps the portal.
+            withinPortal={props.saveTooltipOpen === undefined}
+          >
             <Button
               variant="light"
               color={'gray'}
@@ -133,7 +149,14 @@ export default function UrlCardActions(props: Props) {
               )}
             </Button>
           </Tooltip>
-          <Tooltip label="Connect to another card" withArrow>
+          <Tooltip
+            label="Connect to another card"
+            withArrow
+            opened={props.connectTooltipOpen}
+            // As above: pinned tooltips render inline so the scroller cannot
+            // leave them behind.
+            withinPortal={props.connectTooltipOpen === undefined}
+          >
             <Button
               variant="light"
               color={props.urlIsConnected ? 'green' : 'gray'}
@@ -293,6 +316,7 @@ export default function UrlCardActions(props: Props) {
             onClose={() => setShowAddConnectionModal(false)}
             sourceUrl={props.cardContent.url}
             targetUrl={props.semblePageUrl}
+            analyticsContext={props.analyticsContext}
           />
 
           {props.currentCollection && (

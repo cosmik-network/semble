@@ -4,12 +4,14 @@ import { Modal } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from '../addConnectionDrawer/AddConnectionForm';
 import { Suspense } from 'react';
+import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   sourceUrl?: string;
   targetUrl?: string;
+  analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddConnectionModal(props: Props) {
@@ -28,6 +30,7 @@ export default function AddConnectionModal(props: Props) {
           onClose={props.onClose}
           sourceUrl={props.sourceUrl}
           targetUrl={props.targetUrl}
+          analyticsContext={props.analyticsContext}
         />
       </Suspense>
     </Modal>

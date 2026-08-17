@@ -67,8 +67,8 @@ export default meta;
 
 type Story = StoryObj<typeof ProfileTabs>;
 
-/** Tab bar on the Profile tab (default view). */
-export const ProfileTab: Story = {};
+/** Tab bar on the Activity tab (default view). */
+export const ActivityTab: Story = {};
 
 /** Tab bar with the Cards tab active. */
 export const CardsTab: Story = {

@@ -1,3 +1,4 @@
+import type { UpdateOnboardingStateRequest } from '@semble/types';
 import { createSembleClient } from '@/services/client.apiClient';
 
 export const getRecommendedUrls = async (
@@ -20,4 +21,16 @@ export const getRecommendedUsers = async (urls: string[]) => {
 export const getRecommendedCollections = async (urls: string[]) => {
   const client = createSembleClient();
   return client.getRecommendedCollections({ urls });
+};
+
+export const getOnboardingState = async () => {
+  const client = createSembleClient();
+  return client.getOnboardingState();
+};
+
+export const updateOnboardingState = async (
+  update: UpdateOnboardingStateRequest,
+) => {
+  const client = createSembleClient();
+  return client.updateOnboardingState(update);
 };

@@ -13,6 +13,8 @@ interface Props extends Omit<
   targetType: FollowTargetType;
   initialIsFollowing?: boolean;
   followText?: string;
+  /** Fires with the new state once the write lands, never on the click alone. */
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 export default function FollowButton({
@@ -20,6 +22,7 @@ export default function FollowButton({
   targetType,
   initialIsFollowing,
   followText,
+  onFollowChange,
   ...buttonProps
 }: Props) {
   const target = { targetId, targetType };
@@ -31,7 +34,7 @@ export default function FollowButton({
       variant={isFollowing ? 'light' : 'filled'}
       color={isFollowing ? 'gray' : 'dark'}
       {...buttonProps}
-      onClick={toggleFollow}
+      onClick={() => toggleFollow(onFollowChange)}
     >
       {isFollowing ? 'Following' : (followText ?? 'Follow')}
     </Button>

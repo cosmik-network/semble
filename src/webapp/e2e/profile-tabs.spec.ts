@@ -9,13 +9,24 @@ test.describe('Profile tab navigation', () => {
     expect(response?.status()).toBe(200);
 
     // Wait for the tab bar to be present
-    await expect(page.getByRole('tab', { name: /Profile/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Activity/ })).toBeVisible();
   });
 
-  test('Profile tab is active by default', async ({ page }) => {
-    const profileTab = page.getByRole('tab', { name: /Profile/ });
-    await expect(profileTab).toHaveAttribute('data-active', 'true');
+  test('Activity tab is active by default', async ({ page }) => {
+    const activityTab = page.getByRole('tab', { name: /Activity/ });
+    await expect(activityTab).toHaveAttribute('data-active', 'true');
     await expect(page).toHaveURL(new RegExp(`${BASE}$`));
+    await expect(page.getByRole('tab', { name: /^Profile$/ })).toHaveCount(0);
+  });
+
+  test('legacy /activity URL redirects to base profile', async ({ page }) => {
+    const response = await page.goto(`${BASE}/activity`);
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(new RegExp(`${BASE}$`));
+    await expect(page.getByRole('tab', { name: /Activity/ })).toHaveAttribute(
+      'data-active',
+      'true',
+    );
   });
 
   test('can navigate to Cards tab', async ({ page }) => {

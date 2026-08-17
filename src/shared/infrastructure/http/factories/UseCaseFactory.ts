@@ -267,6 +267,8 @@ export class UseCaseFactory {
         services.tokenService,
         repositories.userRepository,
         services.userAuthService,
+        repositories.userOnboardingRepository,
+        services.configService.getAppConfig(),
       ),
       getProfileUseCase: new GetProfileUseCase(
         services.profileService,
@@ -316,6 +318,7 @@ export class UseCaseFactory {
       getBskyFollowedSembleUsersUseCase: new GetBskyFollowedSembleUsersUseCase(
         services.bskyFollowsService,
         repositories.followsRepository,
+        repositories.cardQueryRepository,
       ),
       unfollowTargetUseCase: new UnfollowTargetUseCase(
         repositories.followsRepository,

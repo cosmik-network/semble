@@ -122,6 +122,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     return this.urlCardQueryService.getBatchUserActivityStats(userIds);
   }
 
+  async getBatchLatestCardCreatedAt(
+    userIds: string[],
+  ): Promise<Map<string, Date>> {
+    return this.urlCardQueryService.getBatchLatestCardCreatedAt(userIds);
+  }
+
   async searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {

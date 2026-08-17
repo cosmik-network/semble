@@ -1,7 +1,6 @@
 export const onboardingKeys = {
   all: () => ['onboarding'] as const,
-  recommendedCards: (queries: string[]) =>
-    [...onboardingKeys.all(), 'recommendedCards', ...queries] as const,
+  state: () => [...onboardingKeys.all(), 'state'] as const,
   recommendedCardsInfinite: (queries: string[], limit?: number) =>
     [
       ...onboardingKeys.all(),

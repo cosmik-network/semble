@@ -3,8 +3,6 @@
 import { Box, Container } from '@mantine/core';
 import { useWindowScroll } from '@mantine/hooks';
 import MinimalProfileHeader from '../../components/profileHeader/MinimalProfileHeader';
-import { useNavbarContext } from '@/providers/navbar';
-import { useMediaQuery } from '@mantine/hooks';
 
 interface Props {
   avatarUrl?: string;
@@ -14,19 +12,16 @@ interface Props {
 
 export default function MinimalProfileHeaderContainer(props: Props) {
   const [{ y: yScroll }] = useWindowScroll();
-  const { desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)', true);
   const HEADER_REVEAL_SCROLL_THRESHOLD = 260;
-  const NAVBAR_WIDTH = 300;
-
-  const navbarOffset = !isMobile && desktopOpened ? NAVBAR_WIDTH : 0;
 
   return (
     <Box
       style={{
         position: 'fixed',
         top: 0,
-        left: navbarOffset,
+        // AppShell keeps this at the navbar width when the navbar is visible
+        // and 0 when it is collapsed or below its breakpoint
+        left: 'var(--app-shell-navbar-offset, 0px)',
         right: 0,
         // Must sit above the sticky page Header (zIndex 100) it replaces
         zIndex: 101,

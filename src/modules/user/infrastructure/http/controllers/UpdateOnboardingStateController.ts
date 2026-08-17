@@ -15,7 +15,6 @@ export class UpdateOnboardingStateController extends Controller {
     const userId = req.did;
     if (!userId) return this.unauthorized(res, 'User not authenticated');
 
-    // The validated body contains only the fields the client wants to change.
     const update = req.body as UpdateOnboardingStateRequest;
     const result = await this.updateOnboardingStateUseCase.execute({
       userId,

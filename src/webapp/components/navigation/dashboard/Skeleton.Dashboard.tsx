@@ -2,7 +2,6 @@
 
 import { AppShell, Center, Stack, Text } from '@mantine/core';
 import { useNavbarContext } from '@/providers/navbar';
-import { useMediaQuery } from '@mantine/hooks';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
 import classes from './Skeleton.Dashboard.module.css';
@@ -10,7 +9,6 @@ import Header from '../header/Header';
 
 export default function DashboardSkeleton() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
 
   return (
     <AppShell
@@ -24,6 +22,9 @@ export default function DashboardSkeleton() {
         width: 0,
         breakpoint: 'xl',
         collapsed: { mobile: true },
+      }}
+      footer={{
+        height: { base: 85, sm: 0 },
       }}
     >
       <NavbarSkeleton />

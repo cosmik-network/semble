@@ -32,6 +32,7 @@ import { BiCollection } from 'react-icons/bi';
 import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
+import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
@@ -53,6 +54,9 @@ interface Props {
   initialCollectionName?: string;
   initialCollectionAccessType?: CollectionAccessType;
   onCollectionCreate?: () => void;
+  /** Defaults to ADD_CARD_DRAWER. Set when the drawer is opened from a flow
+   * whose saves should be attributed to it. */
+  saveSource?: CardSaveSource;
 }
 
 export default function Composer(props: Props) {
@@ -68,7 +72,9 @@ export default function Composer(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
 
-  const { data: collections } = useMyCollections({ limit: 30 });
+  const { data: collections } = useMyCollections({
+    limit: NAV_COLLECTIONS_LIMIT,
+  });
   const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -79,10 +85,15 @@ export default function Composer(props: Props) {
       ]
     : allCollections;
 
-  const addCard = useAddCard({
-    saveSource: CardSaveSource.ADD_CARD_DRAWER,
+  // saveSource is overridable so onboarding can mark its own saves — the
+  // drawer is the same component there, but the save belongs to the flow. All
+  // three modes take it, since any of them can be the thing the user does.
+  const analyticsContext = {
+    saveSource: props.saveSource ?? CardSaveSource.ADD_CARD_DRAWER,
     pagePath: pathname,
-  });
+  };
+
+  const addCard = useAddCard(analyticsContext);
 
   const cardForm = useForm({
     initialValues: {
@@ -93,7 +104,7 @@ export default function Composer(props: Props) {
   });
 
   // Collection form state
-  const createCollection = useCreateCollection();
+  const createCollection = useCreateCollection(analyticsContext);
   const collectionForm = useForm({
     initialValues: {
       name: props.initialCollectionName ?? '',
@@ -260,7 +271,10 @@ export default function Composer(props: Props) {
         >
           {mode === 'connection' ? (
             <Suspense>
-              <AddConnectionForm onClose={props.onClose} />
+              <AddConnectionForm
+                onClose={props.onClose}
+                analyticsContext={analyticsContext}
+              />
             </Suspense>
           ) : mode === 'card' ? (
             <form

@@ -13,7 +13,7 @@ interface Props {
 export default function ProfileTabs(props: Props) {
   const pathname = usePathname();
   const segment = pathname.split('/')[3];
-  const currentTab = segment || 'profile'; // treat base route as 'profile'
+  const currentTab = segment || 'activity'; // treat base route as 'activity'
   const basePath = `/profile/${props.handle}`;
   const { data: featureFlags } = useFeatureFlags();
   const { data: profile } = useProfile({
@@ -26,8 +26,8 @@ export default function ProfileTabs(props: Props) {
       <Paper radius={0}>
         <Tabs.List style={{ flexWrap: 'nowrap' }}>
           <Scroller>
-            <TabItem value="profile" href={basePath}>
-              Profile
+            <TabItem value="activity" href={basePath}>
+              Activity
             </TabItem>
             <TabItem
               value="cards"
@@ -50,11 +50,6 @@ export default function ProfileTabs(props: Props) {
             >
               Connections
             </TabItem>
-            {featureFlags?.profileActivity && (
-              <TabItem value="activity" href={`${basePath}/activity`}>
-                Activity
-              </TabItem>
-            )}
             <TabItem value="network" href={`${basePath}/network`}>
               Network
             </TabItem>

@@ -6,6 +6,8 @@ import * as Sentry from '@sentry/node';
 import { openApiDocument } from './openapi';
 import { registerUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createStatsRoutes } from '../../../modules/user/infrastructure/http/routes/statsRoutes';
+import { OnboardingStatsComposer } from '../../../modules/analytics/application/OnboardingStatsComposer';
+import { BatchProfileFetcher } from '../../../modules/cards/application/services/BatchProfileFetcher';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { registerCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { registerConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
@@ -200,11 +202,18 @@ export const createExpressApp = (
   app.use('/api/test', testRouter);
 
   const statsRouter = Router();
+  const onboardingStatsComposer = new OnboardingStatsComposer(
+    repositories.productAnalyticsQueryRepository,
+    new BatchProfileFetcher(services.profileService),
+    repositories.collectionRepository,
+    repositories.connectionRepository,
+  );
   createStatsRoutes(
     statsRouter,
     services.statsApiKeyMiddleware,
     controllers.getUserStatsController,
     repositories.productAnalyticsQueryRepository,
+    onboardingStatsComposer,
   );
   app.use('/api/stats', statsRouter);
 
