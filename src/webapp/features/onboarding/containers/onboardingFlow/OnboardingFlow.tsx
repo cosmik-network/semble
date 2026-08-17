@@ -57,12 +57,17 @@ export default function OnboardingFlow() {
 
   const stepId = STEPS[currentStep - 1].id;
 
-  // The query key spreads `topics`, so without the gate every toggle on the
-  // topics stage fires a request the next toggle discards.
+  // Skipping the topics stage stores `[]`, so the fallback is applied here
+  // rather than persisted as a selection — the same rule useCardCandidates uses.
+  const cardQueries = topics.length > 0 ? topics : FALLBACK_TOPICS;
+
+  // The query key spreads the topics, so without the stage gate every toggle
+  // on the topics stage fires a request the next toggle discards. isLoaded
+  // keeps an unseeded cache from firing a throwaway fallback request.
   const recommendations = useRecommendedCards({
-    queries: topics,
+    queries: cardQueries,
     limit: 6,
-    enabled: stepId === 'cards',
+    enabled: stepId === 'cards' && isLoaded,
   });
 
   const recommendedUrls =
@@ -160,7 +165,7 @@ export default function OnboardingFlow() {
         intention.selected.length === 0 || referral.selected.length === 0,
     },
     topics: {
-      onSkip: () => leaveTopics(FALLBACK_TOPICS),
+      onSkip: () => leaveTopics([]),
       onContinue: () => leaveTopics(topics),
       continueDisabled: topics.length === 0,
     },
@@ -238,7 +243,6 @@ export default function OnboardingFlow() {
           recommendations={recommendations}
           selectedUrls={selectedUrls}
           onToggleUrl={selection.toggle}
-          hasTopics={topics.length > 0}
           progressLoaded={isLoaded}
         />
       )}

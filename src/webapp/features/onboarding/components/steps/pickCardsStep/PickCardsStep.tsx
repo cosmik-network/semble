@@ -17,7 +17,6 @@ interface Props {
   recommendations: ReturnType<typeof useRecommendedCards>;
   selectedUrls: string[];
   onToggleUrl: (url: string) => void;
-  hasTopics: boolean;
   progressLoaded: boolean;
 }
 
@@ -31,12 +30,9 @@ export default function PickCardsStep(props: Props) {
     isFetchingNextPage,
   } = props.recommendations;
 
-  // The query is `enabled: queries.length > 0`, so with no stored topics it
-  // sits at isPending forever — hence the hasTopics gate. !progressLoaded
-  // covers the frame before stored topics arrive, where hasTopics is false for
-  // the same reason it is on a genuinely empty record.
-  const isPending =
-    !props.progressLoaded || (props.hasTopics && queryIsPending);
+  // !progressLoaded covers the frame before the stored record arrives, during
+  // which the query is disabled and would otherwise read as pending forever.
+  const isPending = !props.progressLoaded || queryIsPending;
 
   const urls = dedupeByUrl((data?.pages ?? []).flatMap((page) => page.urls));
 
