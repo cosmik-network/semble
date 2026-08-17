@@ -1,13 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Badge,
   Box,
   Button,
   Group,
+  SegmentedControl,
   SimpleGrid,
   Stack,
-  Tabs,
   Title,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
@@ -47,6 +48,10 @@ interface Props {
 
 export default function FollowStep(props: Props) {
   const { users, collections } = props;
+
+  const [peopleTab, setPeopleTab] = useState<'recommended' | 'bluesky'>(
+    'recommended',
+  );
 
   // !progressLoaded is the "we don't know yet" frame — without it the empty
   // branch wins for one frame. hasUrls covers the opposite case: with nothing
@@ -161,59 +166,69 @@ export default function FollowStep(props: Props) {
           <Stack gap={'lg'}>
             {sectionHeader('People')}
 
-            <Tabs defaultValue="recommended" keepMounted={false}>
-              <Tabs.List mb={'md'}>
-                <Tabs.Tab value="recommended" fw={600}>
-                  Recommended
-                </Tabs.Tab>
-                <Tabs.Tab value="bluesky" fw={600}>
-                  Your Bluesky circle
-                </Tabs.Tab>
-              </Tabs.List>
+            <SegmentedControl
+              value={peopleTab}
+              onChange={(value) =>
+                setPeopleTab(value as 'recommended' | 'bluesky')
+              }
+              size="md"
+              w={'fit-content'}
+              data={[
+                { label: 'Recommended', value: 'recommended' },
+                {
+                  label: (
+                    <Group gap={6} wrap="nowrap" justify="center">
+                      <FaBluesky size={14} />
+                      <span>Your Bluesky circle</span>
+                    </Group>
+                  ),
+                  value: 'bluesky',
+                },
+              ]}
+              mb={'md'}
+            />
 
-              <Tabs.Panel value="recommended">
-                {isPending ? (
-                  userGridSkeleton
-                ) : visibleUsers.length > 0 ? (
-                  userGrid(visibleUsers)
-                ) : (
-                  <Box py={'xl'}>
-                    <ProfileEmptyTab
-                      message="No suggestions yet"
-                      icon={MdPersonSearch}
-                      button={
-                        <LinkButton
-                          href={props.pickCardsHref}
-                          onClick={props.onPickMoreCards}
-                          variant="light"
-                        >
-                          Pick more cards
-                        </LinkButton>
-                      }
-                    />
-                  </Box>
-                )}
-              </Tabs.Panel>
+            {peopleTab === 'recommended' &&
+              (isPending ? (
+                userGridSkeleton
+              ) : visibleUsers.length > 0 ? (
+                userGrid(visibleUsers)
+              ) : (
+                <Box py={'xl'}>
+                  <ProfileEmptyTab
+                    message="No suggestions yet"
+                    icon={MdPersonSearch}
+                    button={
+                      <LinkButton
+                        href={props.pickCardsHref}
+                        onClick={props.onPickMoreCards}
+                        variant="light"
+                        color='gray'
+                      >
+                        Pick more cards
+                      </LinkButton>
+                    }
+                  />
+                </Box>
+              ))}
 
-              <Tabs.Panel value="bluesky">
-                {isPending ? (
-                  userGridSkeleton
-                ) : bskyUsers.length > 0 ? (
-                  userGrid(bskyUsers)
-                ) : (
-                  <Box py={'xl'}>
-                    <ProfileEmptyTab
-                      message={
-                        bskyFollowedCount > 0
-                          ? 'You already follow all of them here'
-                          : 'Nobody you follow on Bluesky is on Semble yet'
-                      }
-                      icon={FaBluesky}
-                    />
-                  </Box>
-                )}
-              </Tabs.Panel>
-            </Tabs>
+            {peopleTab === 'bluesky' &&
+              (isPending ? (
+                userGridSkeleton
+              ) : bskyUsers.length > 0 ? (
+                userGrid(bskyUsers)
+              ) : (
+                <Box py={'xl'}>
+                  <ProfileEmptyTab
+                    message={
+                      bskyFollowedCount > 0
+                        ? 'You already follow all of them here'
+                        : 'Nobody you follow on Bluesky is on Semble yet'
+                    }
+                    icon={FaBluesky}
+                  />
+                </Box>
+              ))}
           </Stack>
         )}
 
