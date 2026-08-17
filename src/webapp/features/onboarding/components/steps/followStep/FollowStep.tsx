@@ -46,6 +46,29 @@ interface Props {
   ) => void;
 }
 
+interface FollowActionButtonProps {
+  targetId: string;
+  targetType: 'USER' | 'COLLECTION';
+  isFollowing?: boolean;
+  onFollowChange: Props['onFollowChange'];
+}
+
+function FollowActionButton({
+  targetId,
+  targetType,
+  isFollowing,
+  onFollowChange,
+}: FollowActionButtonProps) {
+  return (
+    <FollowButton
+      targetId={targetId}
+      targetType={targetType}
+      initialIsFollowing={isFollowing}
+      onFollowChange={(next) => onFollowChange(targetType, targetId, next)}
+    />
+  );
+}
+
 export default function FollowStep(props: Props) {
   const { users, collections } = props;
 
@@ -91,22 +114,6 @@ export default function FollowStep(props: Props) {
     </Group>
   );
 
-  const followButton = (
-    targetId: string,
-    targetType: 'USER' | 'COLLECTION',
-    isFollowing?: boolean,
-  ) => (
-    <FollowButton
-      targetId={targetId}
-      targetType={targetType}
-      initialIsFollowing={isFollowing}
-      onFollowChange={(next) =>
-        props.onFollowChange(targetType, targetId, next)
-      }
-      style={{ flex: '0 0 auto' }}
-    />
-  );
-
   const userGridSkeleton = (
     <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
       {Array.from({ length: VISIBLE_USERS }).map((_, index) => (
@@ -128,7 +135,14 @@ export default function FollowStep(props: Props) {
           note={
             user.followsOnBsky && <BlueskyNote>Followed on Bluesky</BlueskyNote>
           }
-          action={followButton(user.id, 'USER', user.isFollowing)}
+          action={
+            <FollowActionButton
+              targetId={user.id}
+              targetType="USER"
+              isFollowing={user.isFollowing}
+              onFollowChange={props.onFollowChange}
+            />
+          }
         />
       ))}
     </SimpleGrid>
@@ -262,11 +276,12 @@ export default function FollowStep(props: Props) {
                       <span />
                     )}
 
-                    {followButton(
-                      collection.id,
-                      'COLLECTION',
-                      collection.isFollowing,
-                    )}
+                    <FollowActionButton
+                      targetId={collection.id}
+                      targetType="COLLECTION"
+                      isFollowing={collection.isFollowing}
+                      onFollowChange={props.onFollowChange}
+                    />
                   </Group>
                 </Stack>
               ))}
