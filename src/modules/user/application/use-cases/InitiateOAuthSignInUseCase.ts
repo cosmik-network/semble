@@ -2,11 +2,14 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
 import { IOAuthProcessor } from '../services/IOAuthProcessor';
+import { sanitizeRedirectPath } from '../services/postAuthRedirect';
 import { Handle } from '../../domain/value-objects/Handle';
 import { InitiateOAuthSignInErrors } from './errors/InitiateOAuthSignInErrors';
 
 export interface InitiateOAuthSignInDTO {
   handle?: string;
+  // Where to send the user after sign-in completes (app-relative path).
+  redirect?: string;
 }
 
 export type InitiateOAuthSignInResponse = Result<
@@ -40,9 +43,12 @@ export class InitiateOAuthSignInUseCase implements UseCase<
         );
       }
 
-      // Generate auth URL
+      // Generate auth URL. An unsafe redirect is dropped, never an error —
+      // sign-in must not fail because of a bad redirect hint.
+      const redirectPath = sanitizeRedirectPath(request.redirect);
       const authUrlResult = await this.oauthProcessor.generateAuthUrl(
         request.handle,
+        redirectPath ? { redirectPath } : undefined,
       );
 
       if (authUrlResult.isErr()) {

@@ -19,13 +19,14 @@ import posthog from 'posthog-js';
 import { isInternalUser, isEarlyTester } from '@/lib/userLists';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
+import { getLoginPathWithRedirect } from '@/lib/auth/redirect';
 
 export interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (options?: { returnTo?: string }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -37,23 +38,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const pathname = usePathname(); // to prevent redirecting to login on landing page
 
-  const logout = useCallback(async () => {
-    if (ENABLE_AUTH_LOGGING) {
-      console.log('[useAuth] Initiating logout process');
-    }
-
-    // Reset PostHog user identity
-    if (shouldCaptureAnalytics()) {
-      posthog.reset();
+  const logout = useCallback(
+    async (options?: { returnTo?: string }) => {
       if (ENABLE_AUTH_LOGGING) {
-        console.log('[useAuth] PostHog user identity reset');
+        console.log('[useAuth] Initiating logout process');
       }
-    }
 
-    await ClientCookieAuthService.clearTokens();
-    queryClient.clear();
-    router.push('/login');
-  }, [queryClient, router]);
+      // Reset PostHog user identity
+      if (shouldCaptureAnalytics()) {
+        posthog.reset();
+        if (ENABLE_AUTH_LOGGING) {
+          console.log('[useAuth] PostHog user identity reset');
+        }
+      }
+
+      await ClientCookieAuthService.clearTokens();
+      queryClient.clear();
+      router.push(
+        options?.returnTo
+          ? getLoginPathWithRedirect(options.returnTo)
+          : '/login',
+      );
+    },
+    [queryClient, router],
+  );
 
   const query = useQuery<GetProfileResponse | null>({
     queryKey: authKeys.session(),
@@ -70,8 +78,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [query.refetch]);
 
   useEffect(() => {
-    // Handle other auth errors
-    if (query.isError && !query.isLoading && pathname !== '/') logout();
+    // Handle other auth errors. Carry the current location so the user lands
+    // back here after re-authenticating.
+    if (query.isError && !query.isLoading && pathname !== '/') {
+      logout({
+        returnTo: window.location.pathname + window.location.search,
+      });
+    }
   }, [query.isError, query.isLoading, pathname, logout]);
 
   // Set super properties for anonymous tracking (no PII)
