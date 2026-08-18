@@ -1,19 +1,20 @@
 export type TopicId =
   | 'science'
   | 'ai'
-  | 'software-development'
-  | 'community'
-  | 'atproto'
-  | 'social-networks'
+  | 'design'
   | 'music'
+  | 'social-networks'
+  | 'film'
   | 'writing'
-  | 'note-taking'
-  | 'pkm'
+  | 'games'
+  | 'community'
+  | 'nature'
+  | 'software-development'
   | 'politics'
   | 'curation'
+  | 'note-taking'
   | 'product-building'
-  | 'business'
-  | 'nature';
+  | 'atproto';
 
 export interface Topic {
   id: TopicId;
@@ -25,34 +26,36 @@ export interface Topic {
   label: string;
 }
 
+/**
+ * Order is the reading order of the tile cloud, and unlike `query` it is safe
+ * to change. Broad topics first so a non-builder sees something for them before
+ * the Semble-native ones; label lengths are interleaved so the rows wrap evenly.
+ */
 export const TOPICS: Topic[] = [
   { id: 'science', query: 'science', label: 'Science' },
   { id: 'ai', query: 'AI', label: 'AI' },
+  { id: 'design', query: 'design', label: 'Design' },
+  { id: 'music', query: 'music', label: 'Music' },
+  { id: 'social-networks', query: 'social networks', label: 'Social networks' },
+  { id: 'film', query: 'film', label: 'Film' },
+  { id: 'writing', query: 'writing', label: 'Writing' },
+  { id: 'games', query: 'games', label: 'Games' },
+  { id: 'community', query: 'community', label: 'Community' },
+  { id: 'nature', query: 'nature', label: 'Nature' },
   {
     id: 'software-development',
     query: 'software development',
     label: 'Software development',
   },
-  { id: 'community', query: 'community', label: 'Community' },
-  { id: 'atproto', query: 'atproto', label: 'atproto' },
-  { id: 'social-networks', query: 'social networks', label: 'Social networks' },
-  { id: 'music', query: 'music', label: 'Music' },
-  { id: 'writing', query: 'writing', label: 'Writing' },
-  { id: 'note-taking', query: 'note-taking', label: 'Note-taking' },
-  {
-    id: 'pkm',
-    query: 'personal knowledge management',
-    label: 'Personal knowledge management',
-  },
   { id: 'politics', query: 'politics', label: 'Politics' },
   { id: 'curation', query: 'curation', label: 'Curation' },
+  { id: 'note-taking', query: 'note-taking', label: 'Note-taking' },
   {
     id: 'product-building',
     query: 'product building',
     label: 'Product building',
   },
-  { id: 'business', query: 'business', label: 'Business' },
-  { id: 'nature', query: 'nature', label: 'Nature' },
+  { id: 'atproto', query: 'atproto', label: 'ATProto' },
 ];
 
 export const PRESET_TOPICS = TOPICS.map((topic) => topic.query);
@@ -76,7 +79,7 @@ export function dedupeTopics(topics: string[]): string[] {
 export const FALLBACK_TOPICS = [
   'science',
   'AI',
-  'personal knowledge management',
+  'design',
   'curation',
   'social networks',
 ];

@@ -223,7 +223,32 @@ export class CardLibraryService implements DomainService {
       }
 
       if (isInLibrary && libraryInfo?.publishedRecordId) {
-        // Card is already in library and published - republish to update it
+        // Card is already in library and published. If the caller asked to
+        // skip publishing (e.g. the firehose worker echoing the user's own
+        // PDS write), never publish — at most record the provided record id.
+        if (options?.skipPublishing) {
+          if (options.publishedRecordId) {
+            const markResult = card.markCardInLibraryAsPublished(
+              curatorId,
+              options.publishedRecordId,
+            );
+            if (markResult.isErr()) {
+              return err(
+                new CardLibraryValidationError(
+                  `Failed to update published record: ${markResult.error.message}`,
+                ),
+              );
+            }
+
+            const saveResult = await this.cardRepository.save(card);
+            if (saveResult.isErr()) {
+              return err(AppError.UnexpectedError.create(saveResult.error));
+            }
+          }
+          return ok(card);
+        }
+
+        // Republish to update it
         const republishResult = await this.cardPublisher.publishCardToLibrary(
           card,
           curatorId,

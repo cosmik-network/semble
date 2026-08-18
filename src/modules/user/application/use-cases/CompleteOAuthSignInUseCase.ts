@@ -12,6 +12,7 @@ import { CompleteOAuthSignInErrors } from './errors/CompleteOAuthSignInErrors';
 import { IUserAuthenticationService } from '../../domain/services/IUserAuthenticationService';
 import { User } from '../../domain/User';
 import { IUserOnboardingRepository } from '../../domain/repositories/IUserOnboardingRepository';
+import { sanitizeRedirectPath } from '../services/postAuthRedirect';
 
 export interface CompleteOAuthSignInResult extends TokenPair {
   // App-relative path (always leading-slash) the caller should redirect to.
@@ -118,7 +119,10 @@ export class CompleteOAuthSignInUseCase implements UseCase<
         );
       }
 
-      const redirectPath = await this.resolveRedirectPath(user);
+      const redirectPath = await this.resolveRedirectPath(
+        user,
+        authResult.value.redirectPath,
+      );
 
       return ok({ ...tokenResult.value, redirectPath });
     } catch (error: any) {
@@ -129,7 +133,18 @@ export class CompleteOAuthSignInUseCase implements UseCase<
   // Extension point for post-auth redirects: add further rules here in priority
   // order, first match wins. Rules must never throw or fail the sign-in — the
   // user is already authenticated by this point and their tokens are valid.
-  private async resolveRedirectPath(user: User): Promise<string> {
+  private async resolveRedirectPath(
+    user: User,
+    requestedPath?: string,
+  ): Promise<string> {
+    // A redirect carried through the OAuth flow (re-auth after a session
+    // expiry) wins: it implies an existing user mid-session, and genuinely
+    // new sign-ups never initiate with one.
+    const carriedRedirect = sanitizeRedirectPath(requestedPath);
+    if (carriedRedirect) {
+      return carriedRedirect;
+    }
+
     if (await this.shouldRedirectToOnboarding(user)) {
       return ONBOARDING_REDIRECT_PATH;
     }

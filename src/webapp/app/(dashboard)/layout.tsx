@@ -4,6 +4,7 @@ import Dashboard from '@/components/navigation/dashboard/Dashboard';
 import { getSession } from '@/lib/auth/dal.server';
 import { getMyCollections } from '@/features/collections/lib/dal.server';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { makeServerQueryClient } from '@/lib/queryClient';
 
 export const metadata: Metadata = {
@@ -12,11 +13,6 @@ export const metadata: Metadata = {
     default: 'Semble',
   },
 };
-
-// Must match useMyCollections({ limit: NAV_COLLECTIONS_LIMIT }) in
-// CollectionsNavListContent and Composer, or the prefetch lands under a
-// different key and the client refetches.
-const NAV_COLLECTIONS_LIMIT = 30;
 
 interface Props {
   children: React.ReactNode;

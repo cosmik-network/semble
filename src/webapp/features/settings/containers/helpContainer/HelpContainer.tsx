@@ -1,13 +1,16 @@
 import { Container, Stack, ButtonGroup } from '@mantine/core';
 import { FaDiscord } from 'react-icons/fa6';
 import SettingItem from '../../components/settingItem/SettingItem';
-import { MdBugReport, MdMenuBook } from 'react-icons/md';
+import { MdBugReport, MdMenuBook, MdRocketLaunch } from 'react-icons/md';
 
 export default function HelpContainer() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
         <ButtonGroup orientation="vertical">
+          <SettingItem href="/onboarding" icon={MdRocketLaunch}>
+            Get started
+          </SettingItem>
           <SettingItem
             href="https://docs.cosmik.network/semble"
             openInNewTab

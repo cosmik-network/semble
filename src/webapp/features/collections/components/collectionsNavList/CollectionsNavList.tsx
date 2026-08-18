@@ -1,7 +1,6 @@
 'use client';
 
 import { Group, Stack, Text } from '@mantine/core';
-import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 import CollectionsNavListError from './Error.CollectionsNavList';
@@ -9,7 +8,6 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
 import { LinkButton } from '@/components/link/MantineLink';
 import CollectionsNavListContent from './CollectionsNavListContent';
-import { CollectionsNavListContentSkeleton } from './Skeleton.CollectionsNavList';
 
 export default function CollectionsNavList() {
   const { toggleMobile } = useNavbarContext();
@@ -38,9 +36,7 @@ export default function CollectionsNavList() {
       </Group>
 
       <ErrorBoundary fallback={<CollectionsNavListError />}>
-        <Suspense fallback={<CollectionsNavListContentSkeleton />}>
-          <CollectionsNavListContent />
-        </Suspense>
+        <CollectionsNavListContent />
       </ErrorBoundary>
     </Stack>
   );

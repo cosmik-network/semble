@@ -23,21 +23,29 @@ export default function OnboardingScreen(props: Props) {
       <Stack h={'100%'} gap={0} pos="relative" style={{ zIndex: 1 }}>
         {props.header}
 
-        <Container
-          size={CONTENT_SIZE}
+        {/* The scroller must span the full viewport width so its scrollbar
+            sits at the window edge; the centering Container lives inside. */}
+        <Box
           flex={1}
           w={'100%'}
-          pt={'xl'}
-          pb={'xl'}
-          px={'md'}
           style={{
             overflowY: 'auto',
             maskImage: SCROLL_MASK,
             WebkitMaskImage: SCROLL_MASK,
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          {props.children}
-        </Container>
+          <Container
+            size={CONTENT_SIZE}
+            flex={1}
+            w={'100%'}
+            py={'xl'}
+            px={'md'}
+          >
+            {props.children}
+          </Container>
+        </Box>
 
         {props.footer}
       </Stack>

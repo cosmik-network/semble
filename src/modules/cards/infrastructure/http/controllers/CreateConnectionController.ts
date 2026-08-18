@@ -55,7 +55,11 @@ export class CreateConnectionController extends Controller {
       if (result.isErr()) {
         // Check if the error is an authentication error
         if (result.error instanceof AuthenticationError) {
-          return this.unauthorized(res, result.error.message);
+          return this.unauthorized(
+            res,
+            result.error.message,
+            'PDS_SESSION_EXPIRED',
+          );
         }
         return this.fail(res, result.error);
       }

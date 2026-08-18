@@ -6,15 +6,12 @@ import { getMyProfile } from '@/features/profile/lib/dal.server';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { getMyCollections } from '@/features/collections/lib/dal.server';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { getOnboardingState } from '@/features/onboarding/lib/dal.server';
 import { onboardingKeys } from '@/features/onboarding/lib/onboardingKeys';
 import OnboardingFlow from '@/features/onboarding/containers/onboardingFlow/OnboardingFlow';
 import OnboardingScreenSkeleton from '@/features/onboarding/components/onboardingScreen/Skeleton.OnboardingScreen';
 import WelcomeViewSkeleton from '@/features/onboarding/components/welcomeView/Skeleton.WelcomeView';
-
-// Must match useMyCollections({ limit: NAV_COLLECTIONS_LIMIT }) in Composer,
-// or the prefetch lands under a different key and the client refetches.
-const NAV_COLLECTIONS_LIMIT = 30;
 
 interface Props {
   searchParams: Promise<{ step?: string }>;

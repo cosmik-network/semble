@@ -10,6 +10,15 @@ export function CollectionsNavListContentSkeleton() {
   );
 }
 
+export function CollectionNavSectionSkeleton() {
+  return (
+    <Stack gap={0} px={'sm'}>
+      <Skeleton h={25} my={'xxs'} w={'100%'} />
+      <Skeleton h={25} my={'xxs'} w={'100%'} />
+    </Stack>
+  );
+}
+
 export default function CollectionsNavListSkeleton() {
   return (
     <Stack gap={'xs'}>

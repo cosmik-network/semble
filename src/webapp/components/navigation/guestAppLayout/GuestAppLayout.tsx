@@ -4,7 +4,6 @@ import { AppShell } from '@mantine/core';
 import { useNavbarContext } from '@/providers/navbar';
 import GuestNavbar from '../guestNavbar/GuestNavbar';
 import GuestBottomBar from '../guestBottomBar/GuestBottomBar';
-import { useMediaQuery } from '@mantine/hooks';
 
 interface Props {
   children: React.ReactNode;
@@ -12,7 +11,6 @@ interface Props {
 
 export default function GuestAppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
 
   return (
     <AppShell
@@ -28,7 +26,7 @@ export default function GuestAppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
       footer={{
-        height: isMobile ? 80 : 0,
+        height: { base: 85, sm: 0 },
       }}
     >
       <GuestNavbar />

@@ -3,12 +3,14 @@
 import { useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@mantine/hooks';
+import { ErrorBoundary } from 'react-error-boundary';
 import { STEPS, clampStep, type StepId } from '../../lib/steps';
 import useOnboardingState from '../../lib/useOnboardingState';
 import { decodeAnswer, encodeAnswer } from '../../lib/otherAnswer';
 import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader';
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
+import OnboardingStepError from '../../components/onboardingStepError/OnboardingStepError';
 import ReturningView from '../../components/returningView/ReturningView';
 import WelcomeView from '../../components/welcomeView/WelcomeView';
 import AboutYouStep from '../../components/steps/aboutYouStep/AboutYouStep';
@@ -57,12 +59,17 @@ export default function OnboardingFlow() {
 
   const stepId = STEPS[currentStep - 1].id;
 
-  // The query key spreads `topics`, so without the gate every toggle on the
-  // topics stage fires a request the next toggle discards.
+  // Skipping the topics stage stores `[]`, so the fallback is applied here
+  // rather than persisted as a selection — the same rule useCardCandidates uses.
+  const cardQueries = topics.length > 0 ? topics : FALLBACK_TOPICS;
+
+  // The query key spreads the topics, so without the stage gate every toggle
+  // on the topics stage fires a request the next toggle discards. isLoaded
+  // keeps an unseeded cache from firing a throwaway fallback request.
   const recommendations = useRecommendedCards({
-    queries: topics,
+    queries: cardQueries,
     limit: 6,
-    enabled: stepId === 'cards',
+    enabled: stepId === 'cards' && isLoaded,
   });
 
   const recommendedUrls =
@@ -160,7 +167,7 @@ export default function OnboardingFlow() {
         intention.selected.length === 0 || referral.selected.length === 0,
     },
     topics: {
-      onSkip: () => leaveTopics(FALLBACK_TOPICS),
+      onSkip: () => leaveTopics([]),
       onContinue: () => leaveTopics(topics),
       continueDisabled: topics.length === 0,
     },
@@ -228,34 +235,32 @@ export default function OnboardingFlow() {
         />
       }
     >
-      {/* These two write through useOnboardingState themselves — the same cache
-          entry this container reads, so their answers reach the leave handlers
-          above without being threaded back up. */}
-      {stepId === 'about' && <AboutYouStep />}
-      {stepId === 'topics' && <TopicsStep />}
-      {stepId === 'cards' && (
-        <PickCardsStep
-          recommendations={recommendations}
-          selectedUrls={selectedUrls}
-          onToggleUrl={selection.toggle}
-          hasTopics={topics.length > 0}
-          progressLoaded={isLoaded}
-        />
-      )}
-      {stepId === 'follow' && (
-        <FollowStep
-          users={suggestedUsers}
-          collections={suggestedCollections}
-          hasUrls={seedUrls.length > 0}
-          progressLoaded={isLoaded}
-          pickCardsHref={`/onboarding?step=${currentStep - 1}`}
-          onPickMoreCards={markStep}
-          onFollowChange={recordFollow}
-        />
-      )}
-      {stepId === 'next' && (
-        <WhatNextStep title="You're all set" onComplete={complete} />
-      )}
+      <ErrorBoundary FallbackComponent={OnboardingStepError} key={stepId}>
+        {stepId === 'about' && <AboutYouStep />}
+        {stepId === 'topics' && <TopicsStep />}
+        {stepId === 'cards' && (
+          <PickCardsStep
+            recommendations={recommendations}
+            selectedUrls={selectedUrls}
+            onToggleUrl={selection.toggle}
+            progressLoaded={isLoaded}
+          />
+        )}
+        {stepId === 'follow' && (
+          <FollowStep
+            users={suggestedUsers}
+            collections={suggestedCollections}
+            hasUrls={seedUrls.length > 0}
+            progressLoaded={isLoaded}
+            pickCardsHref={`/onboarding?step=${currentStep - 1}`}
+            onPickMoreCards={markStep}
+            onFollowChange={recordFollow}
+          />
+        )}
+        {stepId === 'next' && (
+          <WhatNextStep title="You're all set" onComplete={complete} />
+        )}
+      </ErrorBoundary>
     </OnboardingScreen>
   );
 }

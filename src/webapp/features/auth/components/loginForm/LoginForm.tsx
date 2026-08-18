@@ -9,17 +9,24 @@ import { createSembleClient } from '@/services/client.apiClient';
 import OAuthLoginForm from './OAuthLoginForm';
 import AppPasswordLoginForm from './AppPasswordLoginForm';
 
-export default function LoginForm() {
+interface Props {
+  // Validated app-relative path to land on after signing in.
+  redirectPath?: string;
+}
+
+export default function LoginForm(props: Props) {
   const router = useRouter();
   const { isAuthenticated, refreshAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const postLoginPath = props.redirectPath ?? '/home';
+
   const client = createSembleClient();
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/home');
+      router.push(postLoginPath);
     }
   }, [isAuthenticated]);
 
@@ -36,6 +43,7 @@ export default function LoginForm() {
 
       const { authUrl } = await client.initiateOAuthSignIn({
         handle: form.values.handle.trimEnd(),
+        redirect: props.redirectPath,
       });
 
       window.location.href = authUrl;
@@ -64,7 +72,7 @@ export default function LoginForm() {
 
       // Refresh auth state to fetch user profile with new tokens (cookies are set automatically)
       await refreshAuth();
-      router.push('/home');
+      router.push(postLoginPath);
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {

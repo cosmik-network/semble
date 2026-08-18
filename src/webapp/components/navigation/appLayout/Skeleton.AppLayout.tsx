@@ -2,7 +2,6 @@
 
 import { AppShell } from '@mantine/core';
 import { useNavbarContext } from '@/providers/navbar';
-import { useMediaQuery } from '@mantine/hooks';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
 
@@ -12,7 +11,6 @@ interface Props {
 
 export default function AppLayoutSkeleton(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
 
   return (
     <AppShell
@@ -28,7 +26,7 @@ export default function AppLayoutSkeleton(props: Props) {
         collapsed: { mobile: true },
       }}
       footer={{
-        height: isMobile ? 85 : 0,
+        height: { base: 85, sm: 0 },
       }}
     >
       <NavbarSkeleton />

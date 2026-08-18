@@ -6,6 +6,7 @@ import { User } from '@semble/types';
 import { IFollowsRepository } from '../../../domain/repositories/IFollowsRepository';
 import { FollowTargetType } from '../../../domain/value-objects/FollowTargetType';
 import { IBskyFollowsService } from '../../services/IBskyFollowsService';
+import { ICardQueryRepository } from 'src/modules/cards/domain/ICardQueryRepository';
 
 export interface GetBskyFollowedSembleUsersQuery {
   callingUserId: string;
@@ -44,6 +45,7 @@ export class GetBskyFollowedSembleUsersUseCase implements UseCase<
   constructor(
     private bskyFollowsService: IBskyFollowsService,
     private followsRepository: IFollowsRepository,
+    private cardQueryRepository: ICardQueryRepository,
   ) {}
 
   async execute(
@@ -91,9 +93,19 @@ export class GetBskyFollowedSembleUsersUseCase implements UseCase<
         (profile) => !followingMap.get(profile.did),
       );
 
-      // Stable order across pages (getFollows returns them in follow order,
-      // but the map intersection does not guarantee it)
-      profiles.sort((a, b) => a.handle.localeCompare(b.handle));
+      // Rank by most recently created card first. Users with no cards go last;
+      // handle is the tiebreaker so paging stays stable.
+      const latestCardMap =
+        await this.cardQueryRepository.getBatchLatestCardCreatedAt(
+          profiles.map((p) => p.did),
+        );
+
+      profiles.sort((a, b) => {
+        const aTime = latestCardMap.get(a.did)?.getTime() ?? -1;
+        const bTime = latestCardMap.get(b.did)?.getTime() ?? -1;
+        if (aTime !== bTime) return bTime - aTime;
+        return a.handle.localeCompare(b.handle);
+      });
 
       const totalCount = profiles.length;
       const offset = (page - 1) * limit;

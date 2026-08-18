@@ -17,7 +17,12 @@ async function main() {
 
   const configService = new EnvironmentConfigService();
   const repositories = RepositoryFactory.create(configService);
-  const services = ServiceFactory.createForWorker(configService, repositories);
+  // The firehose worker only mirrors records that already exist on the PDS;
+  // it must never publish (i.e. authenticate) as a user. Real publishers here
+  // would race the web tier's OAuth token refresh and destroy sessions.
+  const services = ServiceFactory.createForWorker(configService, repositories, {
+    disablePdsPublishing: true,
+  });
   const useCases = UseCaseFactory.createForWorker(repositories, services);
 
   // Get database connection for duplication service

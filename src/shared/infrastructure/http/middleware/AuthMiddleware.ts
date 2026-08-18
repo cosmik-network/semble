@@ -5,8 +5,12 @@ import { IApiKeyService } from '../../../../modules/user/application/services/IA
 import { IApiKeyRepository } from '../../../../modules/user/domain/repositories/IApiKeyRepository';
 import { CookieService } from '../services/CookieService';
 
+export type AuthMethod = 'cookie' | 'apiKey' | 'bearer-jwt';
+
 export interface AuthenticatedRequest extends Request {
   did?: string;
+  /** Which credential resolved the DID. Unset when unauthenticated. */
+  authMethod?: AuthMethod;
 }
 
 const API_KEY_PREFIX = 'sk_';
@@ -48,7 +52,10 @@ export class AuthMiddleware {
     const cookieToken = this.cookieService.getAccessToken(req);
     if (cookieToken) {
       const didResult = await this.tokenService.validateToken(cookieToken);
-      if (didResult.isOk() && didResult.value) return didResult.value;
+      if (didResult.isOk() && didResult.value) {
+        req.authMethod = 'cookie';
+        return didResult.value;
+      }
     }
 
     const apiKey = this.extractApiKey(req);
@@ -58,6 +65,7 @@ export class AuthMiddleware {
       const record = verifyResult.value;
       // Fire-and-forget; failure to touch lastUsedAt should not block the request.
       void this.apiKeyRepository.touchLastUsed(record.id, new Date());
+      req.authMethod = 'apiKey';
       return record.userDid;
     }
 
@@ -70,11 +78,15 @@ export class AuthMiddleware {
       const record = verifyResult.value;
       // Fire-and-forget; failure to touch lastUsedAt should not block the request.
       void this.apiKeyRepository.touchLastUsed(record.id, new Date());
+      req.authMethod = 'apiKey';
       return record.userDid;
     }
 
     const didResult = await this.tokenService.validateToken(bearer);
-    if (didResult.isOk() && didResult.value) return didResult.value;
+    if (didResult.isOk() && didResult.value) {
+      req.authMethod = 'bearer-jwt';
+      return didResult.value;
+    }
     return null;
   }
 
@@ -161,6 +173,7 @@ export class AuthMiddleware {
           const verifyResult = await this.apiKeyService.verify(apiKey);
           if (verifyResult.isOk() && verifyResult.value) {
             did = verifyResult.value.userDid;
+            req.authMethod = 'apiKey';
             void this.apiKeyRepository.touchLastUsed(
               verifyResult.value.id,
               new Date(),
@@ -170,6 +183,7 @@ export class AuthMiddleware {
           const verifyResult = await this.apiKeyService.verify(bearer!);
           if (verifyResult.isOk() && verifyResult.value) {
             did = verifyResult.value.userDid;
+            req.authMethod = 'apiKey';
             void this.apiKeyRepository.touchLastUsed(
               verifyResult.value.id,
               new Date(),
@@ -177,7 +191,10 @@ export class AuthMiddleware {
           }
         } else {
           const didResult = await this.tokenService.validateToken(bearer!);
-          if (didResult.isOk() && didResult.value) did = didResult.value;
+          if (didResult.isOk() && didResult.value) {
+            did = didResult.value;
+            req.authMethod = 'bearer-jwt';
+          }
         }
 
         if (!did) {
@@ -221,6 +238,7 @@ export class AuthMiddleware {
         }
 
         req.did = didResult.value;
+        req.authMethod = 'cookie';
         Sentry.setUser({ id: didResult.value });
         next();
       } catch (error) {
