@@ -1,12 +1,8 @@
-import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 import { getOnboardingState } from '../../lib/dal.server';
 import { resumePoint } from '../../lib/resumePoint';
 import HomeOnboardingBannerCard from './HomeOnboardingBannerCard';
 
 export default async function HomeOnboardingBanner() {
-  const { onboarding } = await getServerFeatureFlags();
-  if (!onboarding) return null;
-
   const state = await getOnboardingState().catch(() => null);
   const status = state?.onboardingState ?? 'NOT_STARTED';
   const isResuming = status === 'IN_PROGRESS';
