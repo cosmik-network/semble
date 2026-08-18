@@ -9,6 +9,11 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   collectionId: string;
+  /**
+   * Navigate up to the parent route once deleted. Defaults to true for the
+   * collection page; pass false when deleting from a list so the user stays put.
+   */
+  redirectOnSuccess?: boolean;
 }
 
 export default function DeleteCollectionModal(props: Props) {
@@ -17,9 +22,11 @@ export default function DeleteCollectionModal(props: Props) {
 
   const handleDeleteCollection = () => {
     deleteCollection.mutate(props.collectionId, {
-      onSuccess: (fes) => {
+      onSuccess: () => {
         props.onClose();
-        router.push('./');
+        if (props.redirectOnSuccess ?? true) {
+          router.push('./');
+        }
       },
       onError: () => {
         notifications.show({
@@ -48,6 +55,7 @@ export default function DeleteCollectionModal(props: Props) {
       size={'xs'}
       overlayProps={DANGER_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Group gap="xs" wrap="nowrap">
         <Button variant="light" size="md" color="gray" onClick={props.onClose}>
