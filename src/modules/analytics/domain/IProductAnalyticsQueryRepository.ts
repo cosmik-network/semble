@@ -48,6 +48,40 @@ export interface ActivationFunnelStatsDTO {
   periodEnd: string;
 }
 
+// API usage (per-client-source request analytics over api_request_logs)
+
+export interface ApiUsageSourceWeekly {
+  source: string; // 'mcp' | 'extension' | 'api' | future client identifiers
+  users: number; // distinct users who called this week via this source
+  calls: number; // total requests this week via this source
+}
+
+export interface ApiUsageDataPoint {
+  weekStart: string; // ISO date of the week's Monday (date_trunc('week'))
+  sources: ApiUsageSourceWeekly[]; // sorted by calls desc; empty when no traffic
+}
+
+export interface ApiUsageEndpointStat {
+  method: string;
+  endpoint: string; // route pattern, e.g. /xrpc/cards/:id
+  calls: number;
+  users: number;
+}
+
+export interface ApiUsageSourceTotals {
+  source: string;
+  users: number; // distinct users over the whole period
+  calls: number; // total requests over the whole period
+  topEndpoints: ApiUsageEndpointStat[]; // top 10 by calls desc
+}
+
+export interface ApiUsageStatsDTO {
+  dataPoints: ApiUsageDataPoint[]; // chronological, oldest -> newest, dense (gap-filled)
+  totals: ApiUsageSourceTotals[]; // sorted by calls desc
+  periodStart: string;
+  periodEnd: string;
+}
+
 // Onboarding stats (single weekly signup cohort, or all-time summary)
 
 /** onboarding_state text[] columns broken down per stored value. */
@@ -133,6 +167,7 @@ export interface OnboardingStatsRaw {
  */
 export interface IProductAnalyticsQueryRepository {
   getWacStats(options: AnalyticsWeekOptions): Promise<WacStatsDTO>;
+  getApiUsageStats(options: AnalyticsWeekOptions): Promise<ApiUsageStatsDTO>;
   getActivationFunnelStats(
     options: AnalyticsWeekOptions,
   ): Promise<ActivationFunnelStatsDTO>;

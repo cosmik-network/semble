@@ -139,6 +139,9 @@ class StubQueryRepository implements IProductAnalyticsQueryRepository {
   getWacStats(): never {
     throw new Error('not used');
   }
+  getApiUsageStats(): never {
+    throw new Error('not used');
+  }
   getActivationFunnelStats(): never {
     throw new Error('not used');
   }
