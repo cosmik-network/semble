@@ -6,6 +6,8 @@ import CollectionCardSkeleton from './Skeleton.CollectionCard';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { AuthContext } from '@/hooks/useAuth';
+import type { AuthContextType } from '@/hooks/useAuth';
 
 const baseAuthor = {
   id: 'did:plc:abc123def456',
@@ -15,6 +17,34 @@ const baseAuthor = {
   description: 'Researcher & collector of interesting things.',
   followerCount: 342,
   followingCount: 89,
+};
+
+// The signed-in viewer for stories — a different user than the collection
+// author, so the follow button is visible by default.
+const viewerUser = {
+  id: 'did:plc:viewer999',
+  handle: 'sam.viewer',
+  name: 'Sam Viewer',
+  avatarUrl: 'https://i.pravatar.cc/150?u=sam',
+};
+
+const viewerAuth: AuthContextType = {
+  user: viewerUser as any,
+  isAuthenticated: true,
+  isLoading: false,
+  refreshAuth: async () => {},
+  logout: async () => {},
+};
+
+const authorAuth: AuthContextType = {
+  ...viewerAuth,
+  user: baseAuthor as any,
+};
+
+const loggedOutAuth: AuthContextType = {
+  ...viewerAuth,
+  user: null,
+  isAuthenticated: false,
 };
 
 const baseCollection: Collection = {
@@ -127,9 +157,11 @@ const meta: Meta<typeof CollectionCard> = {
   component: CollectionCard,
   decorators: [
     (Story, context) => (
-      <QueryCacheSeed collection={context.args.collection}>
-        <Story />
-      </QueryCacheSeed>
+      <AuthContext value={context.parameters.auth ?? viewerAuth}>
+        <QueryCacheSeed collection={context.args.collection}>
+          <Story />
+        </QueryCacheSeed>
+      </AuthContext>
     ),
   ],
   args: {
@@ -220,6 +252,24 @@ export const Empty: Story = {
       followerCount: 0,
     },
   },
+};
+
+export const Following: Story = {
+  args: {
+    collection: {
+      ...baseCollection,
+      id: 'col-008',
+      isFollowing: true,
+    },
+  },
+};
+
+export const OwnCollection: Story = {
+  parameters: { auth: authorAuth },
+};
+
+export const LoggedOut: Story = {
+  parameters: { auth: loggedOutAuth },
 };
 
 export const Skeleton: Story = {

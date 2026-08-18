@@ -98,6 +98,7 @@ export default function EditCollectionModal(props: Props) {
         </Group>
       }
       centered
+      onClick={(e) => e.stopPropagation()}
       overlayProps={UPDATE_OVERLAY_PROPS}
     >
       <Container size="sm" p={0}>

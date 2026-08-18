@@ -14,12 +14,15 @@ import { MouseEvent } from 'react';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import CollectionCardActions from '../collectionCardActions/CollectionCardActions';
 import styles from './CollectionCard.module.css';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
   showAuthor?: boolean;
   collection: Collection;
+  /** Forwarded to CollectionCardActions' follow button. */
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 export default function CollectionCard(props: Props) {
@@ -116,14 +119,17 @@ export default function CollectionCard(props: Props) {
           )}
         </Stack>
 
-        <Group justify="space-between" gap={'xs'}>
+        <Group justify="space-between" gap={'xs'} wrap="nowrap">
           <Text c={'gray'} fz={'sm'}>
             {collection.cardCount}{' '}
             {collection.cardCount === 1 ? 'card' : 'cards'}
-          </Text>
-          <Text c={'gray'} fz={'sm'}>
+            {' · '}
             {time}
           </Text>
+          <CollectionCardActions
+            collection={collection}
+            onFollowChange={props.onFollowChange}
+          />
         </Group>
       </Stack>
     </Card>
