@@ -206,6 +206,26 @@ export class ControllerFactory {
       ),
       getMyProfileController: new GetMyProfileController(
         useCases.getProfileUseCase,
+        // Cheap existence check of the stored ATProto OAuth session (never a
+        // restore — that could trigger a token refresh on every auth poll).
+        // Mock auth has no real session store, so report valid; on store
+        // errors, also report valid rather than logging users out over a
+        // transient DB failure.
+        async (did: string) => {
+          if (services.configService.shouldUseMockAuth()) {
+            return true;
+          }
+          try {
+            const session = await repositories.oauthSessionStore.get(did);
+            return session !== undefined;
+          } catch (error) {
+            console.warn(
+              `[ControllerFactory] Failed to check ATProto session for ${did}, assuming valid`,
+              error,
+            );
+            return true;
+          }
+        },
       ),
       getUserProfileController: new GetUserProfileController(
         useCases.getProfileUseCase,
