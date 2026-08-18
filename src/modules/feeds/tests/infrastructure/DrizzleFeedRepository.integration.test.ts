@@ -158,7 +158,7 @@ describe('DrizzleFeedRepository', () => {
     const feed = feedResult.unwrap();
 
     expect(feed.activities).toHaveLength(2);
-    expect(feed.totalCount).toBe(3);
+    expect(feed.totalCount).toBeUndefined();
     expect(feed.hasMore).toBe(true);
     expect(feed.nextCursor).toBeDefined();
 
@@ -260,7 +260,7 @@ describe('DrizzleFeedRepository', () => {
     const feed = feedResult.unwrap();
 
     expect(feed.activities).toHaveLength(0);
-    expect(feed.totalCount).toBe(0);
+    expect(feed.totalCount).toBeUndefined();
     expect(feed.hasMore).toBe(false);
     expect(feed.nextCursor).toBeUndefined();
   });
@@ -446,7 +446,7 @@ describe('DrizzleFeedRepository', () => {
 
       const page1Feed = page1Result.unwrap();
       expect(page1Feed.activities).toHaveLength(2);
-      expect(page1Feed.totalCount).toBe(5);
+      expect(page1Feed.totalCount).toBeUndefined();
       expect(page1Feed.hasMore).toBe(true);
       expect(page1Feed.activities.every((a) => a.cardCollected)).toBe(true);
 

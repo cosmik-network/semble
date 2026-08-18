@@ -117,34 +117,34 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           ? and(...whereConditions)
           : whereConditions[0];
 
-      // Get notifications
-      const notificationsResult = await this.db
-        .select()
-        .from(notifications)
-        .where(whereClause)
-        .orderBy(desc(notifications.createdAt))
-        .limit(limit)
-        .offset(offset);
+      // Get notifications and counts concurrently
+      // (total and unread counts are merged into a single query)
+      const [notificationsResult, countsResult] = await Promise.all([
+        this.db
+          .select()
+          .from(notifications)
+          .where(whereClause)
+          .orderBy(desc(notifications.createdAt))
+          .limit(limit)
+          .offset(offset),
+        this.db
+          .select({
+            totalCount: unreadOnly
+              ? sql<number>`count(*) filter (where not ${notifications.read})`.mapWith(
+                  Number,
+                )
+              : count(),
+            unreadCount:
+              sql<number>`count(*) filter (where not ${notifications.read})`.mapWith(
+                Number,
+              ),
+          })
+          .from(notifications)
+          .where(eq(notifications.recipientUserId, recipientId.value)),
+      ]);
 
-      // Get total count
-      const totalCountResult = await this.db
-        .select({ count: count() })
-        .from(notifications)
-        .where(whereClause);
-
-      // Get unread count
-      const unreadCountResult = await this.db
-        .select({ count: count() })
-        .from(notifications)
-        .where(
-          and(
-            eq(notifications.recipientUserId, recipientId.value),
-            eq(notifications.read, false),
-          ),
-        );
-
-      const totalCount = totalCountResult[0]?.count || 0;
-      const unreadCount = unreadCountResult[0]?.count || 0;
+      const totalCount = countsResult[0]?.totalCount || 0;
+      const unreadCount = countsResult[0]?.unreadCount || 0;
 
       // Map to domain objects
       const notificationsList: Notification[] = [];
@@ -226,34 +226,36 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>> {
     try {
+      // Filter by actor and cardId in metadata directly in SQL
       const result = await this.db
         .select()
         .from(notifications)
-        .where(eq(notifications.actorUserId, actorUserId.value));
+        .where(
+          and(
+            eq(notifications.actorUserId, actorUserId.value),
+            sql`${notifications.metadata}->>'cardId' = ${cardId}`,
+          ),
+        );
 
-      // Filter by cardId in metadata
       const matchingNotifications: Notification[] = [];
       for (const notificationData of result) {
-        const metadata = notificationData.metadata as any;
-        if (metadata.cardId === cardId) {
-          const dto: NotificationDTO = {
-            id: notificationData.id,
-            recipientUserId: notificationData.recipientUserId,
-            actorUserId: notificationData.actorUserId,
-            type: notificationData.type,
-            metadata: notificationData.metadata as any,
-            read: notificationData.read,
-            createdAt: notificationData.createdAt,
-            updatedAt: notificationData.updatedAt,
-          };
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
 
-          const domainResult = NotificationMapper.toDomain(dto);
-          if (domainResult.isErr()) {
-            return err(domainResult.error);
-          }
-
-          matchingNotifications.push(domainResult.value);
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
         }
+
+        matchingNotifications.push(domainResult.value);
       }
 
       return ok(matchingNotifications);
@@ -264,31 +266,31 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
   async findByCard(cardId: string): Promise<Result<Notification[]>> {
     try {
-      const result = await this.db.select().from(notifications);
+      // Filter by cardId in metadata directly in SQL
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(sql`${notifications.metadata}->>'cardId' = ${cardId}`);
 
-      // Filter by cardId in metadata
       const matchingNotifications: Notification[] = [];
       for (const notificationData of result) {
-        const metadata = notificationData.metadata as any;
-        if (metadata.cardId === cardId) {
-          const dto: NotificationDTO = {
-            id: notificationData.id,
-            recipientUserId: notificationData.recipientUserId,
-            actorUserId: notificationData.actorUserId,
-            type: notificationData.type,
-            metadata: notificationData.metadata as any,
-            read: notificationData.read,
-            createdAt: notificationData.createdAt,
-            updatedAt: notificationData.updatedAt,
-          };
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
 
-          const domainResult = NotificationMapper.toDomain(dto);
-          if (domainResult.isErr()) {
-            return err(domainResult.error);
-          }
-
-          matchingNotifications.push(domainResult.value);
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
         }
+
+        matchingNotifications.push(domainResult.value);
       }
 
       return ok(matchingNotifications);
@@ -302,34 +304,36 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>> {
     try {
+      // Filter by actor and connectionId in metadata directly in SQL
       const result = await this.db
         .select()
         .from(notifications)
-        .where(eq(notifications.actorUserId, actorUserId.value));
+        .where(
+          and(
+            eq(notifications.actorUserId, actorUserId.value),
+            sql`${notifications.metadata}->>'connectionId' = ${connectionId}`,
+          ),
+        );
 
-      // Filter by connectionId in metadata
       const matchingNotifications: Notification[] = [];
       for (const notificationData of result) {
-        const metadata = notificationData.metadata as any;
-        if (metadata.connectionId === connectionId) {
-          const dto: NotificationDTO = {
-            id: notificationData.id,
-            recipientUserId: notificationData.recipientUserId,
-            actorUserId: notificationData.actorUserId,
-            type: notificationData.type,
-            metadata: notificationData.metadata as any,
-            read: notificationData.read,
-            createdAt: notificationData.createdAt,
-            updatedAt: notificationData.updatedAt,
-          };
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
 
-          const domainResult = NotificationMapper.toDomain(dto);
-          if (domainResult.isErr()) {
-            return err(domainResult.error);
-          }
-
-          matchingNotifications.push(domainResult.value);
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
         }
+
+        matchingNotifications.push(domainResult.value);
       }
 
       return ok(matchingNotifications);
@@ -344,49 +348,49 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     targetType: 'USER' | 'COLLECTION',
   ): Promise<Result<Notification[]>> {
     try {
-      // Get all notifications for this actor
+      // Filter by actor and target directly in SQL
+      // For USER follows: recipientUserId should match the targetId
+      // For COLLECTION follows: metadata.targetId should match
+      const targetCondition =
+        targetType === 'USER'
+          ? and(
+              sql`${notifications.metadata}->>'targetType' = 'USER'`,
+              eq(notifications.recipientUserId, targetId),
+            )
+          : and(
+              sql`${notifications.metadata}->>'targetType' = 'COLLECTION'`,
+              sql`${notifications.metadata}->>'targetId' = ${targetId}`,
+            );
+
       const result = await this.db
         .select()
         .from(notifications)
-        .where(eq(notifications.actorUserId, actorUserId.value));
+        .where(
+          and(
+            eq(notifications.actorUserId, actorUserId.value),
+            targetCondition,
+          ),
+        );
 
-      // Filter by target based on targetType
       const matchingNotifications: Notification[] = [];
       for (const notificationData of result) {
-        const metadata = notificationData.metadata as any;
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
 
-        let isMatch = false;
-        if (targetType === 'USER') {
-          // For USER follows: recipientUserId should match the targetId
-          isMatch =
-            metadata.targetType === 'USER' &&
-            notificationData.recipientUserId === targetId;
-        } else if (targetType === 'COLLECTION') {
-          // For COLLECTION follows: metadata.targetId should match
-          isMatch =
-            metadata.targetType === 'COLLECTION' &&
-            metadata.targetId === targetId;
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
         }
 
-        if (isMatch) {
-          const dto: NotificationDTO = {
-            id: notificationData.id,
-            recipientUserId: notificationData.recipientUserId,
-            actorUserId: notificationData.actorUserId,
-            type: notificationData.type,
-            metadata: notificationData.metadata as any,
-            read: notificationData.read,
-            createdAt: notificationData.createdAt,
-            updatedAt: notificationData.updatedAt,
-          };
-
-          const domainResult = NotificationMapper.toDomain(dto);
-          if (domainResult.isErr()) {
-            return err(domainResult.error);
-          }
-
-          matchingNotifications.push(domainResult.value);
-        }
+        matchingNotifications.push(domainResult.value);
       }
 
       return ok(matchingNotifications);
@@ -441,72 +445,48 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           ? and(...notificationWhereConditions)
           : notificationWhereConditions[0];
 
-      // Get enriched notifications with card data
-      const enrichedQuery = this.db
-        .select({
-          // Notification fields
-          id: notifications.id,
-          type: notifications.type,
-          read: notifications.read,
-          createdAt: notifications.createdAt,
-          actorUserId: notifications.actorUserId,
-          metadata: notifications.metadata,
+      // Get the notification page and the counts concurrently
+      // (total and unread counts are merged into a single query)
+      const [notificationsResult, countsResult] = await Promise.all([
+        this.db
+          .select({
+            id: notifications.id,
+            type: notifications.type,
+            read: notifications.read,
+            createdAt: notifications.createdAt,
+            actorUserId: notifications.actorUserId,
+            metadata: notifications.metadata,
+          })
+          .from(notifications)
+          .where(notificationWhereClause)
+          .orderBy(desc(notifications.createdAt))
+          .limit(limit)
+          .offset(offset),
+        this.db
+          .select({
+            totalCount: unreadOnly
+              ? sql<number>`count(*) filter (where not ${notifications.read})`.mapWith(
+                  Number,
+                )
+              : count(),
+            unreadCount:
+              sql<number>`count(*) filter (where not ${notifications.read})`.mapWith(
+                Number,
+              ),
+          })
+          .from(notifications)
+          .where(eq(notifications.recipientUserId, recipientId.value)),
+      ]);
 
-          // Card fields
-          cardId: cards.id,
-          cardAuthorId: cards.authorId,
-          cardUrl: cards.url,
-          cardContentData: cards.contentData,
-          cardLibraryCount: cards.libraryCount,
-          cardCreatedAt: cards.createdAt,
-          cardUpdatedAt: cards.updatedAt,
-        })
-        .from(notifications)
-        .innerJoin(cards, eq(cards.id, notifications.metadata))
-        .where(notificationWhereClause)
-        .orderBy(desc(notifications.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      // Note: We need to extract cardId from metadata since it's stored as JSON
-      // This is a simplified approach - in practice you'd need to handle the JSON extraction
-      const notificationsResult = await this.db
-        .select({
-          id: notifications.id,
-          type: notifications.type,
-          read: notifications.read,
-          createdAt: notifications.createdAt,
-          actorUserId: notifications.actorUserId,
-          metadata: notifications.metadata,
-        })
-        .from(notifications)
-        .where(notificationWhereClause)
-        .orderBy(desc(notifications.createdAt))
-        .limit(limit)
-        .offset(offset);
+      const totalCount = countsResult[0]?.totalCount || 0;
+      const unreadCount = countsResult[0]?.unreadCount || 0;
 
       if (notificationsResult.length === 0) {
-        // Get counts for empty result
-        const totalCountResult = await this.db
-          .select({ count: count() })
-          .from(notifications)
-          .where(notificationWhereClause);
-
-        const unreadCountResult = await this.db
-          .select({ count: count() })
-          .from(notifications)
-          .where(
-            and(
-              eq(notifications.recipientUserId, recipientId.value),
-              eq(notifications.read, false),
-            ),
-          );
-
         return ok({
           notifications: [],
-          totalCount: totalCountResult[0]?.count || 0,
+          totalCount,
           hasMore: false,
-          unreadCount: unreadCountResult[0]?.count || 0,
+          unreadCount,
         });
       }
 
@@ -519,43 +499,162 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .map((n) => (n.metadata as any)?.cardId)
         .filter(Boolean);
 
-      // Process card-based notifications only if there are any
-      let cardsResult: any[] = [];
-      let urlLibraryCountMap = new Map<string, number>();
-      let urlInLibrarySet = new Set<string>();
-      let urlConnectionCountMap = new Map<string, number>();
-      let urlIsConnectedSet = new Set<string>();
-      let notesResult: any[] = [];
-      let collectionsResult: any[] = [];
-
-      if (cardIds.length > 0) {
-        // Get card data with URL library counts
-        const cardsQuery = this.db
-          .select({
-            id: cards.id,
-            authorId: cards.authorId,
-            url: cards.url,
-            publishedRecordUri: publishedRecords.uri,
-            contentData: cards.contentData,
-            libraryCount: cards.libraryCount,
-            createdAt: cards.createdAt,
-            updatedAt: cards.updatedAt,
-          })
-          .from(cards)
-          .leftJoin(
-            publishedRecords,
-            eq(cards.publishedRecordId, publishedRecords.id),
-          )
-          .where(
-            and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
+      // Collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
+      const followCollectionIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return (
+            metadata?.targetType === 'COLLECTION' && metadata?.targetId != null
           );
+        })
+        .map((n) => (n.metadata as any).targetId)
+        .filter(Boolean);
 
-        cardsResult = await cardsQuery;
+      // Collect connection IDs from CONNECTION notifications
+      const connectionIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return metadata?.connectionId !== undefined;
+        })
+        .map((n) => (n.metadata as any).connectionId)
+        .filter(Boolean);
 
-        // Get URL library counts for these cards
-        const urls = cardsResult.map((card) => card.url).filter(Boolean);
-        if (urls.length > 0) {
-          const urlLibraryCountsQuery = this.db
+      const emptyResult: any[] = [];
+
+      // Run all queries that depend only on the page results in parallel
+      const [
+        cardsResult,
+        notesResult,
+        collectionsResult,
+        followCollectionsResult,
+        connectionsResult,
+      ] = await Promise.all([
+        // Get card data with published record URIs
+        cardIds.length > 0
+          ? this.db
+              .select({
+                id: cards.id,
+                authorId: cards.authorId,
+                url: cards.url,
+                publishedRecordUri: publishedRecords.uri,
+                contentData: cards.contentData,
+                libraryCount: cards.libraryCount,
+                createdAt: cards.createdAt,
+                updatedAt: cards.updatedAt,
+              })
+              .from(cards)
+              .leftJoin(
+                publishedRecords,
+                eq(cards.publishedRecordId, publishedRecords.id),
+              )
+              .where(
+                and(
+                  inArray(cards.id, cardIds),
+                  eq(cards.type, CardTypeEnum.URL),
+                ),
+              )
+          : Promise.resolve(emptyResult),
+        // Get notes for these cards
+        cardIds.length > 0
+          ? this.db
+              .select({
+                id: cards.id,
+                parentCardId: cards.parentCardId,
+                contentData: cards.contentData,
+              })
+              .from(cards)
+              .where(
+                and(
+                  eq(cards.type, CardTypeEnum.NOTE),
+                  inArray(cards.parentCardId, cardIds),
+                ),
+              )
+          : Promise.resolve(emptyResult),
+        // Get collections for these cards
+        cardIds.length > 0
+          ? this.db
+              .select({
+                cardId: collectionCards.cardId,
+                collectionId: collections.id,
+                collectionUri: publishedRecords.uri,
+                collectionName: collections.name,
+                collectionDescription: collections.description,
+                collectionAccessType: collections.accessType,
+                collectionAuthorId: collections.authorId,
+                collectionCardCount: collections.cardCount,
+                collectionCreatedAt: collections.createdAt,
+                collectionUpdatedAt: collections.updatedAt,
+              })
+              .from(collectionCards)
+              .innerJoin(
+                collections,
+                eq(collectionCards.collectionId, collections.id),
+              )
+              .leftJoin(
+                publishedRecords,
+                eq(collections.publishedRecordId, publishedRecords.id),
+              )
+              .where(inArray(collectionCards.cardId, cardIds))
+          : Promise.resolve(emptyResult),
+        // Fetch collection data for follow notifications
+        followCollectionIds.length > 0
+          ? this.db
+              .select({
+                collectionId: collections.id,
+                collectionUri: publishedRecords.uri,
+                collectionName: collections.name,
+                collectionDescription: collections.description,
+                collectionAccessType: collections.accessType,
+                collectionAuthorId: collections.authorId,
+                collectionCardCount: collections.cardCount,
+                collectionCreatedAt: collections.createdAt,
+                collectionUpdatedAt: collections.updatedAt,
+              })
+              .from(collections)
+              .leftJoin(
+                publishedRecords,
+                eq(collections.publishedRecordId, publishedRecords.id),
+              )
+              .where(inArray(collections.id, followCollectionIds))
+          : Promise.resolve(emptyResult),
+        // Fetch connection data for CONNECTION notifications
+        connectionIds.length > 0
+          ? this.db
+              .select({
+                id: connections.id,
+                curatorId: connections.curatorId,
+                sourceType: connections.sourceType,
+                sourceValue: connections.sourceValue,
+                sourceUrlMetadata: connections.sourceUrlMetadata,
+                targetType: connections.targetType,
+                targetValue: connections.targetValue,
+                targetUrlMetadata: connections.targetUrlMetadata,
+                connectionType: connections.connectionType,
+                note: connections.note,
+                createdAt: connections.createdAt,
+                updatedAt: connections.updatedAt,
+              })
+              .from(connections)
+              .where(inArray(connections.id, connectionIds))
+          : Promise.resolve(emptyResult),
+      ]);
+
+      // URL-derived queries depend on the card data, so they run in a second stage
+      const urlLibraryCountMap = new Map<string, number>();
+      const urlInLibrarySet = new Set<string>();
+      const urlConnectionCountMap = new Map<string, number>();
+      const urlIsConnectedSet = new Set<string>();
+
+      const urls = cardsResult.map((card) => card.url).filter(Boolean);
+      if (urls.length > 0) {
+        const [
+          urlLibraryCountsResult,
+          urlInLibraryResult,
+          urlConnectionCountsResult,
+          urlIsConnectedResult,
+        ] = await Promise.all([
+          // Get URL library counts for these cards
+          this.db
             .select({
               url: cards.url,
               count: countDistinct(libraryMemberships.userId),
@@ -568,18 +667,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             .where(
               and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
             )
-            .groupBy(cards.url);
-
-          const urlLibraryCountsResult = await urlLibraryCountsQuery;
-          urlLibraryCountsResult.forEach((row) => {
-            if (row.url) {
-              urlLibraryCountMap.set(row.url, row.count);
-            }
-          });
-
+            .groupBy(cards.url),
           // Check which URLs are in the calling user's library
           // More efficient: check if user has a card with matching url and authorId
-          const urlInLibraryQuery = this.db
+          this.db
             .select({
               url: cards.url,
             })
@@ -591,17 +682,9 @@ export class DrizzleNotificationRepository implements INotificationRepository {
                 eq(cards.authorId, callingUserId),
               ),
             )
-            .groupBy(cards.url);
-
-          const urlInLibraryResult = await urlInLibraryQuery;
-          urlInLibraryResult.forEach((row) => {
-            if (row.url) {
-              urlInLibrarySet.add(row.url);
-            }
-          });
-
+            .groupBy(cards.url),
           // Get connection counts for these URLs
-          const urlConnectionCountsQuery = this.db
+          this.db
             .select({
               url: sql<string>`CASE
                 WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
@@ -622,17 +705,9 @@ export class DrizzleNotificationRepository implements INotificationRepository {
                 ),
               ),
             )
-            .groupBy(sql`url`);
-
-          const urlConnectionCountsResult = await urlConnectionCountsQuery;
-          urlConnectionCountsResult.forEach((row) => {
-            if (row.url) {
-              urlConnectionCountMap.set(row.url, row.count);
-            }
-          });
-
+            .groupBy(sql`url`),
           // Check which URLs the calling user has connections with
-          const urlIsConnectedQuery = this.db
+          this.db
             .select({
               url: sql<string>`CASE
                 WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
@@ -655,95 +730,32 @@ export class DrizzleNotificationRepository implements INotificationRepository {
                 ),
               ),
             )
-            .groupBy(sql`url`);
+            .groupBy(sql`url`),
+        ]);
 
-          const urlIsConnectedResult = await urlIsConnectedQuery;
-          urlIsConnectedResult.forEach((row) => {
-            if (row.url) {
-              urlIsConnectedSet.add(row.url);
-            }
-          });
-        }
+        urlLibraryCountsResult.forEach((row) => {
+          if (row.url) {
+            urlLibraryCountMap.set(row.url, row.count);
+          }
+        });
 
-        // Get notes for these cards
-        const notesQuery = this.db
-          .select({
-            id: cards.id,
-            parentCardId: cards.parentCardId,
-            contentData: cards.contentData,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.type, CardTypeEnum.NOTE),
-              inArray(cards.parentCardId, cardIds),
-            ),
-          );
+        urlInLibraryResult.forEach((row) => {
+          if (row.url) {
+            urlInLibrarySet.add(row.url);
+          }
+        });
 
-        notesResult = await notesQuery;
+        urlConnectionCountsResult.forEach((row) => {
+          if (row.url) {
+            urlConnectionCountMap.set(row.url, row.count);
+          }
+        });
 
-        // Get collections for these cards
-        const collectionsQuery = this.db
-          .select({
-            cardId: collectionCards.cardId,
-            collectionId: collections.id,
-            collectionUri: publishedRecords.uri,
-            collectionName: collections.name,
-            collectionDescription: collections.description,
-            collectionAccessType: collections.accessType,
-            collectionAuthorId: collections.authorId,
-            collectionCardCount: collections.cardCount,
-            collectionCreatedAt: collections.createdAt,
-            collectionUpdatedAt: collections.updatedAt,
-          })
-          .from(collectionCards)
-          .innerJoin(
-            collections,
-            eq(collectionCards.collectionId, collections.id),
-          )
-          .leftJoin(
-            publishedRecords,
-            eq(collections.publishedRecordId, publishedRecords.id),
-          )
-          .where(inArray(collectionCards.cardId, cardIds));
-
-        collectionsResult = await collectionsQuery;
-      }
-
-      // Collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
-      const followCollectionIds = notificationsResult
-        .filter((n) => {
-          const metadata = n.metadata as any;
-          return (
-            metadata?.targetType === 'COLLECTION' && metadata?.targetId != null
-          );
-        })
-        .map((n) => (n.metadata as any).targetId)
-        .filter(Boolean);
-
-      // Fetch collection data for follow notifications if needed
-      let followCollectionsResult: any[] = [];
-      if (followCollectionIds.length > 0) {
-        const followCollectionsQuery = this.db
-          .select({
-            collectionId: collections.id,
-            collectionUri: publishedRecords.uri,
-            collectionName: collections.name,
-            collectionDescription: collections.description,
-            collectionAccessType: collections.accessType,
-            collectionAuthorId: collections.authorId,
-            collectionCardCount: collections.cardCount,
-            collectionCreatedAt: collections.createdAt,
-            collectionUpdatedAt: collections.updatedAt,
-          })
-          .from(collections)
-          .leftJoin(
-            publishedRecords,
-            eq(collections.publishedRecordId, publishedRecords.id),
-          )
-          .where(inArray(collections.id, followCollectionIds));
-
-        followCollectionsResult = await followCollectionsQuery;
+        urlIsConnectedResult.forEach((row) => {
+          if (row.url) {
+            urlIsConnectedSet.add(row.url);
+          }
+        });
       }
 
       // Build lookup maps
@@ -752,40 +764,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         followCollectionsResult.map((c) => [c.collectionId, c]),
       );
 
-      // Fetch connection data for CONNECTION notifications
-      const connectionIds = notificationsResult
-        .filter((n) => {
-          const metadata = n.metadata as any;
-          return metadata?.connectionId !== undefined;
-        })
-        .map((n) => (n.metadata as any).connectionId)
-        .filter(Boolean);
-
-      let connectionDataMap = new Map<string, any>();
-      if (connectionIds.length > 0) {
-        const connectionQuery = this.db
-          .select({
-            id: connections.id,
-            curatorId: connections.curatorId,
-            sourceType: connections.sourceType,
-            sourceValue: connections.sourceValue,
-            sourceUrlMetadata: connections.sourceUrlMetadata,
-            targetType: connections.targetType,
-            targetValue: connections.targetValue,
-            targetUrlMetadata: connections.targetUrlMetadata,
-            connectionType: connections.connectionType,
-            note: connections.note,
-            createdAt: connections.createdAt,
-            updatedAt: connections.updatedAt,
-          })
-          .from(connections)
-          .where(inArray(connections.id, connectionIds));
-
-        const connectionsResult = await connectionQuery;
-        connectionsResult.forEach((connection) => {
-          connectionDataMap.set(connection.id, connection);
-        });
-      }
+      const connectionDataMap = new Map<string, any>();
+      connectionsResult.forEach((connection) => {
+        connectionDataMap.set(connection.id, connection);
+      });
 
       // Build enriched notifications - process in original chronological order
       const enrichedNotifications: EnrichedNotificationResult[] = [];
@@ -944,24 +926,6 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         }
       }
 
-      // Get total count and unread count
-      const totalCountResult = await this.db
-        .select({ count: count() })
-        .from(notifications)
-        .where(notificationWhereClause);
-
-      const unreadCountResult = await this.db
-        .select({ count: count() })
-        .from(notifications)
-        .where(
-          and(
-            eq(notifications.recipientUserId, recipientId.value),
-            eq(notifications.read, false),
-          ),
-        );
-
-      const totalCount = totalCountResult[0]?.count || 0;
-      const unreadCount = unreadCountResult[0]?.count || 0;
       const hasMore = offset + enrichedNotifications.length < totalCount;
 
       return ok({

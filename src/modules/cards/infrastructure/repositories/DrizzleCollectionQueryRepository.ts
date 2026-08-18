@@ -3,6 +3,7 @@ import {
   desc,
   asc,
   count,
+  countDistinct,
   sql,
   or,
   ilike,
@@ -243,22 +244,20 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         .limit(limit)
         .offset(offset);
 
-      const collectionsResult = await collectionsQuery;
-
       // Get total count of distinct collections
       const totalCountQuery = this.db
-        .selectDistinct({
-          id: collections.id,
+        .select({
+          count: countDistinct(collectionCards.collectionId),
         })
-        .from(collections)
-        .innerJoin(
-          collectionCards,
-          eq(collections.id, collectionCards.collectionId),
-        )
+        .from(collectionCards)
         .where(inArray(collectionCards.cardId, cardIds));
 
-      const totalCountResult = await totalCountQuery;
-      const totalCount = totalCountResult.length;
+      const [collectionsResult, totalCountResult] = await Promise.all([
+        collectionsQuery,
+        totalCountQuery,
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
       const hasMore = offset + collectionsResult.length < totalCount;
 
       const items = collectionsResult.map((result) => ({
@@ -268,6 +267,9 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         description: result.description || undefined,
         accessType: result.accessType,
         authorId: result.authorId,
+        cardCount: result.cardCount,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
       }));
 
       return {
@@ -463,12 +465,10 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         .limit(limit)
         .offset(offset);
 
-      const collectionsResult = await collectionsQuery;
-
       // Get total count with same conditions
       const totalCountQuery = this.db
-        .selectDistinct({
-          id: collections.id,
+        .select({
+          count: countDistinct(collections.id),
         })
         .from(collections)
         .innerJoin(
@@ -483,8 +483,12 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           ),
         );
 
-      const totalCountResult = await totalCountQuery;
-      const totalCount = totalCountResult.length;
+      const [collectionsResult, totalCountResult] = await Promise.all([
+        collectionsQuery,
+        totalCountQuery,
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
       const hasMore = offset + collectionsResult.length < totalCount;
 
       // Map to DTOs

@@ -112,6 +112,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         whereConditions.push(inArray(feedActivities.actorId, options.actorIds));
       }
 
+      // Fetch limit + 1 rows to determine hasMore without an expensive COUNT(*)
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId
         const beforeActivity = await this.db
@@ -130,7 +131,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
             .from(feedActivities)
             .where(conditions.length > 1 ? and(...conditions) : conditions[0])
             .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
-            .limit(limit);
+            .limit(limit + 1);
         } else {
           // If beforeActivityId doesn't exist, return empty result
           activitiesResult = [];
@@ -149,26 +150,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
         activitiesResult = await query
           .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
-          .limit(limit)
+          .limit(limit + 1)
           .offset(offset);
       }
 
-      // Get total count with same filters
-      const countQuery = this.db
-        .select({ count: count() })
-        .from(feedActivities);
-
-      if (whereConditions.length > 0) {
-        countQuery.where(
-          whereConditions.length > 1
-            ? and(...whereConditions)
-            : whereConditions[0],
-        );
+      // Determine if there are more activities from the extra row
+      const hasMore = activitiesResult.length > limit;
+      if (hasMore) {
+        activitiesResult = activitiesResult.slice(0, limit);
       }
-
-      const totalCountResult = await countQuery;
-
-      const totalCount = totalCountResult[0]?.count || 0;
 
       // Map to domain objects
       const activities: FeedActivity[] = [];
@@ -193,9 +183,6 @@ export class DrizzleFeedRepository implements IFeedRepository {
         activities.push(domainResult.value);
       }
 
-      // Determine if there are more activities
-      const hasMore = offset + activities.length < totalCount;
-
       // Set next cursor if there are more activities
       let nextCursor: ActivityId | undefined;
       if (hasMore && activities.length > 0) {
@@ -205,7 +192,6 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
       return ok({
         activities,
-        totalCount,
         hasMore,
         nextCursor,
       });
@@ -573,7 +559,8 @@ export class DrizzleFeedRepository implements IFeedRepository {
       }
 
       // Main query with JOIN
-      const activitiesResult = await this.db
+      // Fetch limit + 1 rows to determine hasMore without an expensive COUNT(*)
+      let activitiesResult = await this.db
         .select({
           id: feedActivities.id,
           actorId: feedActivities.actorId,
@@ -595,20 +582,14 @@ export class DrizzleFeedRepository implements IFeedRepository {
           desc(followingFeedItems.createdAt),
           desc(followingFeedItems.activityId),
         )
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
 
-      // Count total (with same filters)
-      const totalCountResult = await this.db
-        .select({ count: count() })
-        .from(followingFeedItems)
-        .innerJoin(
-          feedActivities,
-          eq(feedActivities.id, followingFeedItems.activityId),
-        )
-        .where(and(...whereConditions));
-
-      const totalCount = totalCountResult[0]?.count || 0;
+      // Determine if there are more activities from the extra row
+      const hasMore = activitiesResult.length > limit;
+      if (hasMore) {
+        activitiesResult = activitiesResult.slice(0, limit);
+      }
 
       // Map to domain objects
       const activities: FeedActivity[] = [];
@@ -633,7 +614,6 @@ export class DrizzleFeedRepository implements IFeedRepository {
         activities.push(domainResult.value);
       }
 
-      const hasMore = offset + activities.length < totalCount;
       const nextCursor =
         hasMore && activities.length > 0
           ? activities[activities.length - 1]!.activityId
@@ -641,7 +621,6 @@ export class DrizzleFeedRepository implements IFeedRepository {
 
       return ok({
         activities,
-        totalCount,
         hasMore,
         nextCursor,
       });

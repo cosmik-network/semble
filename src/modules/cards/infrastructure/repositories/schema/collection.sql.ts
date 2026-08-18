@@ -7,6 +7,7 @@ import {
   integer,
   index,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { publishedRecords } from './publishedRecord.sql';
 import { cards } from './card.sql';
 
@@ -46,6 +47,10 @@ export const collections = pgTable(
       createdAtAccessTypeIdx: index(
         'idx_collections_created_at_access_type',
       ).on(table.createdAt, table.accessType),
+      // Index for AT-URI resolution joins from published_records
+      publishedRecordIdIdx: index('idx_collections_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`published_record_id IS NOT NULL`),
     };
   },
 );
@@ -99,6 +104,10 @@ export const collectionCards = pgTable(
         table.addedBy,
         table.addedAt.desc(),
       ),
+      // Index for AT-URI resolution joins from published_records
+      publishedRecordIdIdx: index('idx_collection_cards_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`published_record_id IS NOT NULL`),
     };
   },
 );

@@ -63,6 +63,10 @@ export const cards: PgTableWithColumns<any> = pgTable(
         table.createdAt,
         table.urlType,
       ),
+      // Index for AT-URI resolution joins from published_records
+      publishedRecordIdIdx: index('idx_cards_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`published_record_id IS NOT NULL`),
     };
   },
 );

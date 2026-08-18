@@ -88,31 +88,28 @@ export class ConnectionQueryService {
 
     const sortOrderFn = sortOrder === SortOrder.ASC ? asc : desc;
 
-    // Execute main query with pagination
-    const results = await this.db
-      .select({
-        id: connections.id,
-        curatorId: connections.curatorId,
-        sourceValue: connections.sourceValue,
-        sourceUrlMetadata: connections.sourceUrlMetadata,
-        targetValue: connections.targetValue,
-        targetUrlMetadata: connections.targetUrlMetadata,
-        connectionType: connections.connectionType,
-        note: connections.note,
-        createdAt: connections.createdAt,
-        updatedAt: connections.updatedAt,
-      })
-      .from(connections)
-      .where(whereClause)
-      .orderBy(sortOrderFn(sortColumn))
-      .limit(limit)
-      .offset(offset);
-
-    // Execute count query for total count
-    const countResult = await this.db
-      .select({ count: count() })
-      .from(connections)
-      .where(whereClause);
+    // Execute main query with pagination and count query concurrently
+    const [results, countResult] = await Promise.all([
+      this.db
+        .select({
+          id: connections.id,
+          curatorId: connections.curatorId,
+          sourceValue: connections.sourceValue,
+          sourceUrlMetadata: connections.sourceUrlMetadata,
+          targetValue: connections.targetValue,
+          targetUrlMetadata: connections.targetUrlMetadata,
+          connectionType: connections.connectionType,
+          note: connections.note,
+          createdAt: connections.createdAt,
+          updatedAt: connections.updatedAt,
+        })
+        .from(connections)
+        .where(whereClause)
+        .orderBy(sortOrderFn(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.db.select({ count: count() }).from(connections).where(whereClause),
+    ]);
 
     const totalCount = countResult[0]?.count || 0;
 
@@ -182,31 +179,28 @@ export class ConnectionQueryService {
 
     const sortOrderFn = sortOrder === SortOrder.ASC ? asc : desc;
 
-    // Execute main query with pagination
-    const results = await this.db
-      .select({
-        id: connections.id,
-        curatorId: connections.curatorId,
-        sourceType: connections.sourceType,
-        sourceValue: connections.sourceValue,
-        targetType: connections.targetType,
-        targetValue: connections.targetValue,
-        connectionType: connections.connectionType,
-        note: connections.note,
-        createdAt: connections.createdAt,
-        updatedAt: connections.updatedAt,
-      })
-      .from(connections)
-      .where(whereClause)
-      .orderBy(sortOrderFn(sortColumn))
-      .limit(limit)
-      .offset(offset);
-
-    // Execute count query for total count
-    const countResult = await this.db
-      .select({ count: count() })
-      .from(connections)
-      .where(whereClause);
+    // Execute main query with pagination and count query concurrently
+    const [results, countResult] = await Promise.all([
+      this.db
+        .select({
+          id: connections.id,
+          curatorId: connections.curatorId,
+          sourceType: connections.sourceType,
+          sourceValue: connections.sourceValue,
+          targetType: connections.targetType,
+          targetValue: connections.targetValue,
+          connectionType: connections.connectionType,
+          note: connections.note,
+          createdAt: connections.createdAt,
+          updatedAt: connections.updatedAt,
+        })
+        .from(connections)
+        .where(whereClause)
+        .orderBy(sortOrderFn(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.db.select({ count: count() }).from(connections).where(whereClause),
+    ]);
 
     const totalCount = countResult[0]?.count || 0;
 
@@ -266,31 +260,28 @@ export class ConnectionQueryService {
 
     const sortOrderFn = sortOrder === SortOrder.ASC ? asc : desc;
 
-    // Execute main query with pagination
-    const results = await this.db
-      .select({
-        id: connections.id,
-        curatorId: connections.curatorId,
-        sourceValue: connections.sourceValue,
-        sourceUrlMetadata: connections.sourceUrlMetadata,
-        targetValue: connections.targetValue,
-        targetUrlMetadata: connections.targetUrlMetadata,
-        connectionType: connections.connectionType,
-        note: connections.note,
-        createdAt: connections.createdAt,
-        updatedAt: connections.updatedAt,
-      })
-      .from(connections)
-      .where(whereClause)
-      .orderBy(sortOrderFn(sortColumn))
-      .limit(limit)
-      .offset(offset);
-
-    // Execute count query for total count
-    const countResult = await this.db
-      .select({ count: count() })
-      .from(connections)
-      .where(whereClause);
+    // Execute main query with pagination and count query concurrently
+    const [results, countResult] = await Promise.all([
+      this.db
+        .select({
+          id: connections.id,
+          curatorId: connections.curatorId,
+          sourceValue: connections.sourceValue,
+          sourceUrlMetadata: connections.sourceUrlMetadata,
+          targetValue: connections.targetValue,
+          targetUrlMetadata: connections.targetUrlMetadata,
+          connectionType: connections.connectionType,
+          note: connections.note,
+          createdAt: connections.createdAt,
+          updatedAt: connections.updatedAt,
+        })
+        .from(connections)
+        .where(whereClause)
+        .orderBy(sortOrderFn(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.db.select({ count: count() }).from(connections).where(whereClause),
+    ]);
 
     const totalCount = countResult[0]?.count || 0;
 

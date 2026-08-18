@@ -672,8 +672,6 @@ export class GetFollowingFeedUseCase implements UseCase<
         activities: feedItems,
         pagination: {
           currentPage: page,
-          totalPages: Math.ceil(feed.totalCount / limit),
-          totalCount: feed.totalCount,
           hasMore: feed.hasMore,
           limit,
           nextCursor: feed.nextCursor?.getStringValue(),

@@ -8,7 +8,6 @@ import {
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
-import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { GetCollectionsForUrlResponse, Collection, User } from '@semble/types';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
@@ -96,57 +95,44 @@ export class GetCollectionsForUrlUseCase implements UseCase<
 
       // Map items with enriched author data and full collection data
       // Filter out collections with missing author profiles
-      const enrichedCollections = (
-        await Promise.all(
-          result.items.map(async (item) => {
-            const author = profileMap.get(item.authorId);
-            if (!author) {
-              return null; // Skip collections with missing author profiles
-            }
+      const enrichedCollections = result.items
+        .map((item) => {
+          const author = profileMap.get(item.authorId);
+          if (!author) {
+            return null; // Skip collections with missing author profiles
+          }
 
-            // Fetch full collection to get cardCount, dates
-            const collectionIdResult = CollectionId.createFromString(item.id);
-            if (collectionIdResult.isErr()) {
-              throw new Error(`Invalid collection ID: ${item.id}`);
-            }
-            const collectionResult = await this.collectionRepo.findById(
-              collectionIdResult.value,
-            );
-            if (collectionResult.isErr() || !collectionResult.value) {
-              throw new Error(`Collection not found: ${item.id}`);
-            }
-            const collection = collectionResult.value;
-
-            return {
-              id: item.id,
-              uri: item.uri,
-              name: item.name,
-              description: item.description,
-              accessType: collection.accessType,
-              author,
-              cardCount: collection.cardCount,
-              createdAt: collection.createdAt.toISOString(),
-              updatedAt: collection.updatedAt.toISOString(),
-            };
-          }),
-        )
-      ).filter((collection) => collection !== null) as Collection[];
+          return {
+            id: item.id,
+            uri: item.uri,
+            name: item.name,
+            description: item.description,
+            accessType: item.accessType,
+            author,
+            cardCount: item.cardCount,
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString(),
+          };
+        })
+        .filter((collection) => collection !== null) as Collection[];
 
       // Add follow status if callingUserId is provided
       if (query.callingUserId) {
-        const followChecks = await Promise.all(
-          enrichedCollections.map((c) =>
-            this.followsRepository.findByFollowerAndTarget(
-              query.callingUserId!,
-              c.id,
-              FollowTargetType.COLLECTION,
-            ),
-          ),
+        const followsResult =
+          await this.followsRepository.findByFollowerAndTargets(
+            query.callingUserId,
+            enrichedCollections.map((c) => c.id),
+            FollowTargetType.COLLECTION,
+          );
+
+        const followedCollectionIds = new Set(
+          followsResult.isOk()
+            ? followsResult.value.map((follow) => follow.targetId)
+            : [],
         );
 
-        enrichedCollections.forEach((collection, i) => {
-          collection.isFollowing =
-            followChecks[i]?.isOk() && followChecks[i].value !== null;
+        enrichedCollections.forEach((collection) => {
+          collection.isFollowing = followedCollectionIds.has(collection.id);
         });
       }
 

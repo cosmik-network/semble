@@ -19,7 +19,7 @@ export interface FeedQueryOptions {
 
 export interface PaginatedFeedResult {
   activities: FeedActivity[];
-  totalCount: number;
+  totalCount?: number; // Only computed for gems feed; global/following feeds derive hasMore without counting
   hasMore: boolean;
   nextCursor?: ActivityId; // For cursor-based pagination
 }
