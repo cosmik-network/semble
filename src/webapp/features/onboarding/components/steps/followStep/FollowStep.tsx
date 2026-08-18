@@ -65,6 +65,7 @@ function FollowActionButton({
       targetType={targetType}
       initialIsFollowing={isFollowing}
       onFollowChange={(next) => onFollowChange(targetType, targetId, next)}
+      size="xs"
     />
   );
 }
