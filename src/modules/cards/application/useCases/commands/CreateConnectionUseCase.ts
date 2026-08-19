@@ -104,21 +104,18 @@ export class CreateConnectionUseCase extends BaseUseCase<
       }
       const target = targetResult.value;
 
-      // Create optional connection type
-      let connectionType: ConnectionType | undefined;
-      if (request.connectionType) {
-        const typeResult = ConnectionType.createFromString(
-          request.connectionType,
+      // Create connection type - defaults to RELATED when not provided
+      const typeResult = request.connectionType
+        ? ConnectionType.createFromString(request.connectionType)
+        : ConnectionType.create(ConnectionTypeEnum.RELATED);
+      if (typeResult.isErr()) {
+        return err(
+          new ValidationError(
+            `Invalid connection type: ${typeResult.error.message}`,
+          ),
         );
-        if (typeResult.isErr()) {
-          return err(
-            new ValidationError(
-              `Invalid connection type: ${typeResult.error.message}`,
-            ),
-          );
-        }
-        connectionType = typeResult.value;
       }
+      const connectionType = typeResult.value;
 
       // Create optional note
       let note: ConnectionNote | undefined;
@@ -130,6 +127,39 @@ export class CreateConnectionUseCase extends BaseUseCase<
           );
         }
         note = noteResult.value;
+      }
+
+      // Deduplicate only fully identical connections. Identity is
+      // (curator, source, target, type, note) - every field included. If any
+      // one of them differs, the caller is asserting something different and
+      // gets a new connection.
+      //
+      // Because the match is exact, there is nothing to merge: the existing
+      // connection already holds precisely these values, so this is a no-op
+      // that returns the existing id.
+      //
+      // Firehose events are exempt: each AT Protocol record is a distinct
+      // entity with its own URI, so collapsing two records into one local row
+      // would orphan one of them.
+      if (!request.publishedRecordId) {
+        const existingResult =
+          await this.connectionRepository.findByCuratorIdenticalConnection(
+            curatorId,
+            source,
+            target,
+            connectionType,
+            note,
+          );
+        if (existingResult.isErr()) {
+          return err(AppError.UnexpectedError.create(existingResult.error));
+        }
+
+        const existing = existingResult.value;
+        if (existing) {
+          return ok({
+            connectionId: existing.connectionId.getStringValue(),
+          });
+        }
       }
 
       // Fetch URL metadata for source and target if they are URLs
