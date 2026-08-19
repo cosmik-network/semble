@@ -1,3 +1,4 @@
+import { NoSessionError } from '@/api-client/errors';
 import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
@@ -23,7 +24,7 @@ export const getNoteCardsForUrl = cache(
 export const updateNoteCard = cache(
   async (note: { cardId: string; note: string }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
 
     try {

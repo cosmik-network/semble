@@ -49,7 +49,22 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
 
   try {
     const client = await createServerSembleClient();
-    return { status: 'authenticated', user: await client.getMyProfile() };
+    const user = await client.getMyProfile();
+
+    // The backend reports whether the server-side ATProto OAuth session still
+    // exists alongside the profile (the app JWT can outlive it). Treating
+    // this as 'authenticated' caused a /login ↔ /home bounce: /login would
+    // redirect a "signed-in" user to /home, where the client's /api/auth/me
+    // check immediately forced them back out. Only the client can repair it
+    // (forced re-login), so report 'unresolved'.
+    const atprotoSessionValid = (
+      user as GetProfileResponse & { atprotoSessionValid?: boolean }
+    ).atprotoSessionValid;
+    if (atprotoSessionValid === false) {
+      return { status: 'unresolved' };
+    }
+
+    return { status: 'authenticated', user };
   } catch {
     // Never throw from a session check, and never downgrade to 'guest' — a
     // backend hiccup is not proof the user is signed out.

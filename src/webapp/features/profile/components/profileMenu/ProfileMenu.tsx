@@ -18,7 +18,6 @@ import { MdOutlineInstallMobile, MdOutlineColorLens } from 'react-icons/md';
 import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
 import { FiChrome } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { IoMdLogOut, IoMdHelpCircleOutline } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
@@ -30,7 +29,6 @@ import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '../botLabel/BotLabel';
 
 export default function ProfileMenu() {
-  const router = useRouter();
   const os = useOs();
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
@@ -39,8 +37,7 @@ export default function ProfileMenu() {
 
   const handleLogout = async () => {
     try {
-      await logout();
-      router.push('/');
+      await logout({ redirectTo: '/' });
     } catch (error) {
       console.error('Error logging out:', error);
     }
