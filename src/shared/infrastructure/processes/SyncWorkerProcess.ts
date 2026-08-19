@@ -16,7 +16,9 @@ export class SyncWorkerProcess extends BaseWorkerProcess {
     super(configService, QueueNames.SYNC);
   }
 
-  protected createServices(repositories: Repositories): WorkerServices {
+  protected createServices(
+    repositories: Repositories,
+  ): Promise<WorkerServices> {
     return ServiceFactory.createForWorker(this.configService, repositories);
   }
 

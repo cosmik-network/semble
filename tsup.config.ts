@@ -9,6 +9,7 @@ export default defineConfig({
     'workers/firehose-worker': 'src/workers/firehose-worker.ts',
     'workers/notification-worker': 'src/workers/notification-worker.ts',
     'workers/sync-worker': 'src/workers/sync-worker.ts',
+    'scripts/strip-oauth-auth-method': 'src/scripts/strip-oauth-auth-method.ts',
   },
   outDir: 'dist',
   target: 'node18',

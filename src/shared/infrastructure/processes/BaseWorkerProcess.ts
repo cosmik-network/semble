@@ -18,7 +18,7 @@ export abstract class BaseWorkerProcess implements IProcess {
     console.log(`Starting ${this.queueName} worker...`);
 
     const repositories = RepositoryFactory.create(this.configService);
-    const services = this.createServices(repositories);
+    const services = await this.createServices(repositories);
 
     await this.validateDependencies(services);
 
@@ -31,7 +31,9 @@ export abstract class BaseWorkerProcess implements IProcess {
     this.setupShutdownHandlers(eventSubscriber, services);
   }
 
-  protected abstract createServices(repositories: Repositories): WorkerServices;
+  protected abstract createServices(
+    repositories: Repositories,
+  ): Promise<WorkerServices>;
   protected abstract validateDependencies(
     services: WorkerServices,
   ): Promise<void>;

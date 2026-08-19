@@ -149,15 +149,15 @@ export class ServiceFactory {
   static create(
     configService: EnvironmentConfigService,
     repositories: Repositories,
-  ): Services {
+  ): Promise<Services> {
     return this.createForWebApp(configService, repositories);
   }
 
-  static createForWebApp(
+  static async createForWebApp(
     configService: EnvironmentConfigService,
     repositories: Repositories,
-  ): WebAppServices {
-    const sharedServices = this.createSharedServices(
+  ): Promise<WebAppServices> {
+    const sharedServices = await this.createSharedServices(
       configService,
       repositories,
     );
@@ -212,12 +212,12 @@ export class ServiceFactory {
     };
   }
 
-  static createForWorker(
+  static async createForWorker(
     configService: EnvironmentConfigService,
     repositories: Repositories,
     options?: WorkerServiceOptions,
-  ): WorkerServices {
-    const sharedServices = this.createSharedServices(
+  ): Promise<WorkerServices> {
+    const sharedServices = await this.createSharedServices(
       configService,
       repositories,
       options,
@@ -264,14 +264,14 @@ export class ServiceFactory {
     };
   }
 
-  private static createSharedServices(
+  private static async createSharedServices(
     configService: EnvironmentConfigService,
     repositories: Repositories,
     options?: WorkerServiceOptions,
-  ): SharedServices {
+  ): Promise<SharedServices> {
     const useMockAuth = configService.shouldUseMockAuth();
 
-    const nodeOauthClient = OAuthClientFactory.createClient(
+    const nodeOauthClient = await OAuthClientFactory.createClient(
       repositories.oauthStateStore,
       repositories.oauthSessionStore,
       oauthConfig.baseUrl,
