@@ -65,6 +65,7 @@ function FollowActionButton({
       targetType={targetType}
       initialIsFollowing={isFollowing}
       onFollowChange={(next) => onFollowChange(targetType, targetId, next)}
+      size="xs"
     />
   );
 }
@@ -266,23 +267,18 @@ export default function FollowStep(props: Props) {
               {visibleCollections.map((collection) => (
                 <Stack key={collection.id} gap={'xs'} h={'100%'}>
                   <Box flex={1}>
-                    <CollectionCard collection={collection} showAuthor />
+                    <CollectionCard
+                      collection={collection}
+                      showAuthor
+                      onFollowChange={(next) =>
+                        props.onFollowChange('COLLECTION', collection.id, next)
+                      }
+                    />
                   </Box>
 
-                  <Group justify="space-between" wrap="nowrap" gap={'xs'}>
-                    {collection.authorFollowedOnBsky ? (
-                      <BlueskyNote>Author followed on Bluesky</BlueskyNote>
-                    ) : (
-                      <span />
-                    )}
-
-                    <FollowActionButton
-                      targetId={collection.id}
-                      targetType="COLLECTION"
-                      isFollowing={collection.isFollowing}
-                      onFollowChange={props.onFollowChange}
-                    />
-                  </Group>
+                  {collection.authorFollowedOnBsky && (
+                    <BlueskyNote>Author followed on Bluesky</BlueskyNote>
+                  )}
                 </Stack>
               ))}
             </SimpleGrid>

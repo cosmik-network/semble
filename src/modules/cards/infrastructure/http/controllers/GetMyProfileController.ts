@@ -4,7 +4,15 @@ import { GetProfileUseCase } from '../../../application/useCases/queries/GetProf
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetMyProfileController extends Controller {
-  constructor(private getProfileUseCase: GetProfileUseCase) {
+  constructor(
+    private getProfileUseCase: GetProfileUseCase,
+    /**
+     * Reports whether the server still holds an ATProto OAuth session for
+     * this user. Must be a cheap store lookup — never a session restore,
+     * which could trigger a token refresh on every auth poll.
+     */
+    private hasAtprotoSession: (did: string) => Promise<boolean>,
+  ) {
     super();
   }
 
@@ -27,7 +35,9 @@ export class GetMyProfileController extends Controller {
         return this.fail(res, result.error);
       }
 
-      return this.ok(res, result.value);
+      const atprotoSessionValid = await this.hasAtprotoSession(userId);
+
+      return this.ok(res, { ...result.value, atprotoSessionValid });
     } catch (error: any) {
       return this.fail(res, error);
     }

@@ -204,6 +204,20 @@
       "when": 1786583940350,
       "tag": "0028_fix_onboarding_state_type",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786729246529,
+      "tag": "0029_regular_nehzno",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1787012304145,
+      "tag": "0030_silent_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

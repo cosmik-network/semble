@@ -107,9 +107,10 @@ export class JwtTokenService implements ITokenService {
         { expiresIn: this.accessTokenExpiresIn },
       );
 
-      const newRefreshToken = jwt.sign({ type: 'refresh' }, this.jwtSecret, {
-        expiresIn: this.refreshTokenExpiresIn,
-      });
+      // Opaque random token, matching the login path. A signed JWT is unsafe
+      // here: the payload carried no user or nonce claim, so two refreshes in
+      // the same second produced identical token strings.
+      const newRefreshToken = uuidv4();
 
       const tokenId = uuidv4();
       const now = new Date();

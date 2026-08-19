@@ -24,6 +24,7 @@ import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardTo
 import { MdIosShare, MdOutlineStickyNote2 } from 'react-icons/md';
 import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardInline';
 import { useAuth } from '@/hooks/useAuth';
+import { getLoginPathWithRedirect } from '@/lib/auth/redirect';
 import { useRouter } from 'next/navigation';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
@@ -134,7 +135,7 @@ export default function UrlCardActions(props: Props) {
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isAuthenticated) {
-                  router.push('/login');
+                  router.push(getLoginPathWithRedirect());
                   return;
                 }
                 setShowAddToModal(true);
@@ -170,7 +171,7 @@ export default function UrlCardActions(props: Props) {
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isAuthenticated) {
-                  router.push('/login');
+                  router.push(getLoginPathWithRedirect());
                   return;
                 }
                 setShowAddConnectionModal(true);

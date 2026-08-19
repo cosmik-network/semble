@@ -64,12 +64,15 @@ import { DrizzleGraphQueryRepository } from '../../../../modules/cards/infrastru
 import { InMemoryGraphQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryGraphQueryRepository';
 import { IProductAnalyticsQueryRepository } from '../../../../modules/analytics/domain/IProductAnalyticsQueryRepository';
 import { DrizzleProductAnalyticsQueryRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleProductAnalyticsQueryRepository';
+import { IApiRequestLogRepository } from '../../../../modules/analytics/domain/IApiRequestLogRepository';
+import { DrizzleApiRequestLogRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleApiRequestLogRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
   userOnboardingRepository: IUserOnboardingRepository;
   userStatsRepository: IUserStatsRepository;
   productAnalyticsQueryRepository: IProductAnalyticsQueryRepository;
+  apiRequestLogRepository: IApiRequestLogRepository;
   tokenRepository: ITokenRepository;
   apiKeyRepository: IApiKeyRepository;
   cardRepository: ICardRepository;
@@ -144,12 +147,14 @@ export class RepositoryFactory {
       const userStatsRepository = new DrizzleUserStatsRepository(db);
       const productAnalyticsQueryRepository =
         new DrizzleProductAnalyticsQueryRepository(db);
+      const apiRequestLogRepository = new DrizzleApiRequestLogRepository(db);
 
       return {
         userRepository,
         userOnboardingRepository,
         userStatsRepository,
         productAnalyticsQueryRepository,
+        apiRequestLogRepository,
         tokenRepository,
         apiKeyRepository,
         cardRepository,
@@ -183,6 +188,7 @@ export class RepositoryFactory {
       userStatsRepository: new DrizzleUserStatsRepository(db),
       productAnalyticsQueryRepository:
         new DrizzleProductAnalyticsQueryRepository(db),
+      apiRequestLogRepository: new DrizzleApiRequestLogRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
       apiKeyRepository: new DrizzleApiKeyRepository(db),
       cardRepository: new DrizzleCardRepository(db),

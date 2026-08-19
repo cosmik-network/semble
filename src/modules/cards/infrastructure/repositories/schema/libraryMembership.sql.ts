@@ -6,6 +6,7 @@ import {
   index,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { cards } from './card.sql';
 import { publishedRecords } from 'src/modules/cards/infrastructure/repositories/schema/publishedRecord.sql';
 
@@ -31,6 +32,10 @@ export const libraryMemberships = pgTable(
       userTypeCoveringIdx: index(
         'idx_library_memberships_user_type_covering',
       ).on(table.userId, table.addedAt.desc()),
+      // Index for AT-URI resolution joins from published_records
+      publishedRecordIdIdx: index('idx_library_memberships_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`published_record_id IS NOT NULL`),
     };
   },
 );

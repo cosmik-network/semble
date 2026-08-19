@@ -8,6 +8,7 @@ import {
   boolean,
   jsonb,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { publishedRecords } from '../../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { SubscriptionScopeEnum } from '../../../domain/value-objects/SubscriptionScope';
 
@@ -32,7 +33,12 @@ export const follows = pgTable(
       columns: [table.followerId, table.targetId, table.targetType],
     }),
     followerIdx: index('idx_follows_follower').on(table.followerId),
-    targetIdx: index('idx_follows_target').on(table.targetId, table.targetType),
+    // Supports follower listings sorted by follow time (supersedes idx_follows_target)
+    targetCreatedAtIdx: index('idx_follows_target_created_at').on(
+      table.targetId,
+      table.targetType,
+      table.createdAt.desc(),
+    ),
     // Index for time-series queries on created_at
     createdAtIdx: index('idx_follows_created_at').on(table.createdAt),
     // Composite index for getUserEngagementStats optimization
@@ -46,5 +52,9 @@ export const follows = pgTable(
       table.isSubscribed,
       table.subscribedAt,
     ),
+    // Index for AT-URI resolution joins from published_records
+    publishedRecordIdIdx: index('idx_follows_published_record_id')
+      .on(table.publishedRecordId)
+      .where(sql`published_record_id IS NOT NULL`),
   }),
 );

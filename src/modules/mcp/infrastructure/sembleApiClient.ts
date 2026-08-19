@@ -32,7 +32,10 @@ export class SembleApiClient {
   async get(path: string, query?: Record<string, unknown>): Promise<unknown> {
     const res = await fetch(this.url(path, query), {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.apiKey}` },
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        'X-Semble-Client': 'mcp',
+      },
     });
     return this.handle(res);
   }
@@ -42,6 +45,7 @@ export class SembleApiClient {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
+        'X-Semble-Client': 'mcp',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body ?? {}),

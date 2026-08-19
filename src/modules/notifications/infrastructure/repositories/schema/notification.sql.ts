@@ -7,6 +7,7 @@ import {
   boolean,
   index,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const notifications = pgTable(
   'notifications',
@@ -33,10 +34,17 @@ export const notifications = pgTable(
         table.createdAt.desc(),
       ),
 
-      // For unread count queries
-      recipientReadIdx: index('notifications_recipient_read_idx').on(
-        table.recipientUserId,
-        table.read,
+      // For unread count queries — only unread rows are indexed
+      recipientUnreadIdx: index('notifications_recipient_unread_partial_idx')
+        .on(table.recipientUserId)
+        .where(sql`read = false`),
+
+      // For cleanup queries that look up notifications by actor
+      actorIdx: index('notifications_actor_idx').on(table.actorUserId),
+
+      // For cleanup queries that filter on metadata cardId
+      metadataCardIdIdx: index('notifications_metadata_card_id_idx').on(
+        sql`(metadata->>'cardId')`,
       ),
     };
   },

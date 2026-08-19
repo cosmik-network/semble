@@ -21,6 +21,7 @@ import {
   EnvironmentConfigService,
   Environment,
 } from '../config/EnvironmentConfigService';
+import { createApiUsageLogger } from './middleware/ApiUsageLogger';
 import { RepositoryFactory } from './factories/RepositoryFactory';
 import { ServiceFactory } from './factories/ServiceFactory';
 import { UseCaseFactory } from './factories/UseCaseFactory';
@@ -217,8 +218,15 @@ export const createExpressApp = (
   );
   app.use('/api/stats', statsRouter);
 
+  // Records authenticated non-webapp API calls (API key / bearer JWT) for
+  // usage analytics; cookie-authenticated webapp traffic is skipped.
+  const apiUsageLogger = createApiUsageLogger(
+    repositories.apiRequestLogRepository,
+  );
+
   // /api router — strict CORS with credentials (internal frontend use)
   const apiRouter = Router();
+  apiRouter.use(apiUsageLogger);
   apiRouter.use(
     cors({
       origin: (origin, callback) => {
@@ -235,6 +243,7 @@ export const createExpressApp = (
 
   // /xrpc router — open CORS, no credentials (public API access)
   const xrpcRouter = Router();
+  xrpcRouter.use(apiUsageLogger);
   xrpcRouter.use(
     cors({
       origin: '*',

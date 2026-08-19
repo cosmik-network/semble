@@ -55,7 +55,7 @@ describe('RedisLockService Integration', () => {
       expect(executionCount).toBe(1);
 
       // Verify lock was released by checking Redis directly
-      const lockPattern = `oauth:lock:*:${lockKey}`;
+      const lockPattern = `oauth:lock:${lockKey}`;
       const keys = await redis.keys(lockPattern);
       expect(keys).toHaveLength(0);
     });
@@ -141,7 +141,7 @@ describe('RedisLockService Integration', () => {
       );
 
       // Verify lock was released even after error
-      const lockPattern = `oauth:lock:*:${lockKey}`;
+      const lockPattern = `oauth:lock:${lockKey}`;
       const keys = await redis.keys(lockPattern);
       expect(keys).toHaveLength(0);
     });
@@ -165,9 +165,11 @@ describe('RedisLockService Integration', () => {
     });
   });
 
-  describe('Lock Key Isolation', () => {
-    it('should include Fly.io instance ID in lock key when available', async () => {
-      // Arrange
+  describe('Lock Key Sharing', () => {
+    it('should use the same lock key on every instance (no per-instance prefix)', async () => {
+      // The OAuth request lock must be shared across all machines/processes:
+      // a per-instance key would let two machines refresh the same
+      // single-use refresh token concurrently and destroy the session.
       const originalAllocId = process.env.FLY_ALLOC_ID;
       process.env.FLY_ALLOC_ID = 'test-instance-123';
 
@@ -188,39 +190,8 @@ describe('RedisLockService Integration', () => {
         const requestLock = lockService.createRequestLock();
         await requestLock(lockKey, async () => 'test');
 
-        // Assert
-        expect(lockKeyUsed).toBe(`oauth:lock:test-instance-123:${lockKey}`);
-      } finally {
-        // Cleanup
-        process.env.FLY_ALLOC_ID = originalAllocId;
-        lockService['redlock'].acquire = originalAcquire;
-      }
-    });
-
-    it('should use "local" as default instance ID when FLY_ALLOC_ID is not set', async () => {
-      // Arrange
-      const originalAllocId = process.env.FLY_ALLOC_ID;
-      delete process.env.FLY_ALLOC_ID;
-
-      const lockKey = 'local-test-lock';
-      let lockKeyUsed = '';
-
-      // Mock redlock to capture the actual lock key used
-      const originalAcquire = lockService['redlock'].acquire;
-      lockService['redlock'].acquire = jest
-        .fn()
-        .mockImplementation(async (keys: string[]) => {
-          lockKeyUsed = keys[0]!;
-          return originalAcquire.call(lockService['redlock'], keys, 30000);
-        });
-
-      try {
-        // Act
-        const requestLock = lockService.createRequestLock();
-        await requestLock(lockKey, async () => 'test');
-
-        // Assert
-        expect(lockKeyUsed).toBe(`oauth:lock:local:${lockKey}`);
+        // Assert - key is identical regardless of instance identity
+        expect(lockKeyUsed).toBe(`oauth:lock:${lockKey}`);
       } finally {
         // Cleanup
         process.env.FLY_ALLOC_ID = originalAllocId;
@@ -235,8 +206,7 @@ describe('RedisLockService Integration', () => {
       const lockKey = 'ttl-test-lock';
 
       // Manually acquire a lock with short TTL to simulate timeout
-      const instanceId = process.env.FLY_ALLOC_ID || 'local';
-      const fullLockKey = `oauth:lock:${instanceId}:${lockKey}`;
+      const fullLockKey = `oauth:lock:${lockKey}`;
 
       // Use redlock directly to set a very short TTL (100ms)
       const shortLock = await lockService['redlock'].acquire(
@@ -264,6 +234,41 @@ describe('RedisLockService Integration', () => {
         // Ignore errors if lock already expired
       }
     });
+
+    it('should hold the lock across a slow critical section and make waiters wait it out', async () => {
+      // Token refreshes can take up to 30s (the oauth-client library's
+      // internal timeout). The lock TTL must outlive that window, and a
+      // concurrent waiter must wait for the holder to finish rather than
+      // failing with "unable to achieve a quorum" after ~1s (the old
+      // behavior with retryCount: 3).
+      const lockKey = 'slow-refresh-lock';
+      const holdMs = 12_000; // longer than the old 10s TTL
+      const events: string[] = [];
+
+      const requestLock = lockService.createRequestLock();
+
+      const holder = requestLock(lockKey, async () => {
+        events.push('holder-start');
+        await new Promise((resolve) => setTimeout(resolve, holdMs));
+        events.push('holder-end');
+        return 'holder-done';
+      });
+
+      // Give the holder a head start, then contend
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const waiter = requestLock(lockKey, async () => {
+        events.push('waiter-start');
+        return 'waiter-done';
+      });
+
+      const [holderResult, waiterResult] = await Promise.all([holder, waiter]);
+
+      expect(holderResult).toBe('holder-done');
+      expect(waiterResult).toBe('waiter-done');
+      // The waiter must not have run until the holder finished — if the
+      // lock had expired mid-section, waiter-start would precede holder-end.
+      expect(events).toEqual(['holder-start', 'holder-end', 'waiter-start']);
+    }, 30_000);
 
     it('should handle high concurrency with retry mechanism', async () => {
       // Arrange
@@ -305,12 +310,15 @@ describe('RedisLockService Integration', () => {
       // Close the connection to simulate network issues
       await testRedis.quit();
 
-      // Act & Assert - Should throw an error when trying to acquire lock
+      // Act & Assert - Should throw an error when trying to acquire lock.
+      // Note: acquisition now retries for up to ~1 minute before giving up
+      // (waiters must be able to wait out a full token refresh), hence the
+      // long test timeout.
       const requestLock = testLockService.createRequestLock();
       await expect(
         requestLock('test-key', async () => 'should-not-execute'),
       ).rejects.toThrow();
-    });
+    }, 90_000);
 
     it('should release lock even when function execution is interrupted', async () => {
       // Arrange
@@ -333,7 +341,7 @@ describe('RedisLockService Integration', () => {
       expect(lockAcquired).toBe(true);
 
       // Verify lock was released after error
-      const lockPattern = `oauth:lock:*:${lockKey}`;
+      const lockPattern = `oauth:lock:${lockKey}`;
       const keys = await redis.keys(lockPattern);
       expect(keys).toHaveLength(0);
 

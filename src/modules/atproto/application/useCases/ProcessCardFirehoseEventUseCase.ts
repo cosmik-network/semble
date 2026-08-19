@@ -1,4 +1,5 @@
 import { Result, ok, err } from 'src/shared/core/Result';
+import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 import { UseCase } from 'src/shared/core/UseCase';
 import { AppError } from 'src/shared/core/AppError';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
@@ -128,7 +129,15 @@ export class ProcessCardFirehoseEventUseCase implements UseCase<
         });
 
         if (result.isErr()) {
-          if (ENABLE_FIREHOSE_LOGGING) {
+          // The firehose only mirrors records that already exist on the PDS,
+          // so it must never need to authenticate as a user. An
+          // AuthenticationError here means a code path bypassed
+          // skipPublishing — the regression that races OAuth token refreshes.
+          if (result.error instanceof AuthenticationError) {
+            console.error(
+              `[FirehoseWorker] REGRESSION: attempted to authenticate as user while processing firehose event - user: ${curatorDid}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          } else if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
               `[FirehoseWorker] Failed to add URL to library - user: ${curatorDid}, uri: ${request.atUri}, error: ${result.error.message}`,
             );

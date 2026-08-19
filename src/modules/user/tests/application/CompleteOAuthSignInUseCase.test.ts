@@ -193,6 +193,43 @@ describe('CompleteOAuthSignInUseCase', () => {
     },
   );
 
+  describe('re-auth redirect from the OAuth callback', () => {
+    function stubCallbackRedirect(redirectPath: string | undefined) {
+      oauthProcessor.processCallback = async () =>
+        ok({ did: DID_VALUE, redirectPath });
+    }
+
+    it('redirects to the path carried through the OAuth flow', async () => {
+      stubCallbackRedirect('/profile/alice.bsky.social/collections?tab=open');
+
+      const path = await redirectPathFor({ linkedAt: BEFORE_CUTOFF });
+      expect(path).toBe('/profile/alice.bsky.social/collections?tab=open');
+    });
+
+    it('prefers the carried redirect over the onboarding redirect', async () => {
+      stubCallbackRedirect('/url?id=https%3A%2F%2Fexample.com');
+
+      const path = await redirectPathFor({
+        linkedAt: AFTER_CUTOFF,
+        onboardingRedirectAfter: CUTOFF,
+      });
+      expect(path).toBe('/url?id=https%3A%2F%2Fexample.com');
+    });
+
+    it.each([
+      'https://evil.com/phish',
+      '//evil.com/phish',
+      'home',
+      '/\\evil.com',
+      '',
+    ])('ignores an unsafe or invalid redirect %p', async (redirectPath) => {
+      stubCallbackRedirect(redirectPath);
+
+      const path = await redirectPathFor({ linkedAt: BEFORE_CUTOFF });
+      expect(path).toBe('/home');
+    });
+  });
+
   it('still signs the user in and falls back to /home when the onboarding lookup fails', async () => {
     const failingRepository: IUserOnboardingRepository = {
       findByUserId: async (): Promise<Result<OnboardingStateRecord | null>> =>

@@ -6,6 +6,7 @@ import {
   index,
   jsonb,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { publishedRecords } from './publishedRecord.sql';
 import { cards } from './card.sql';
 
@@ -59,6 +60,10 @@ export const connections = pgTable(
       createdAtConnectionTypeIdx: index(
         'idx_connections_created_at_connection_type',
       ).on(table.createdAt, table.connectionType),
+      // Index for AT-URI resolution joins from published_records
+      publishedRecordIdIdx: index('idx_connections_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`published_record_id IS NOT NULL`),
     };
   },
 );

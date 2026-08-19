@@ -456,8 +456,8 @@ export class GetGemActivityFeedUseCase implements UseCase<
         activities: feedItems,
         pagination: {
           currentPage: page,
-          totalPages: Math.ceil(feed.totalCount / limit),
-          totalCount: feed.totalCount,
+          totalPages: Math.ceil((feed.totalCount ?? 0) / limit),
+          totalCount: feed.totalCount ?? 0,
           hasMore: feed.hasMore,
           limit,
           nextCursor: feed.nextCursor?.getStringValue(),

@@ -55,12 +55,13 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       LIMIT ${limit}
     `;
 
-    const result = await this.db.execute(query);
-
-    // Get current total user count
-    const totalCountResult = await this.db.execute(sql`
-      SELECT COUNT(*)::int AS count FROM ${users}
-    `);
+    // Run the time-series and total count queries in parallel
+    const [result, totalCountResult] = await Promise.all([
+      this.db.execute(query),
+      this.db.execute(sql`
+        SELECT COUNT(*)::int AS count FROM ${users}
+      `),
+    ]);
     const currentTotal = (totalCountResult[0] as any)?.count || 0;
 
     // Transform the results into the DTO format
@@ -165,14 +166,14 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
       FROM user_activity
     `;
 
-    const result = await this.db.execute(snapshotQuery);
+    // Run the snapshot query and optional time series in parallel
+    const [result, dataPoints] = await Promise.all([
+      this.db.execute(snapshotQuery),
+      options.includeTimeSeries
+        ? this.getEngagementTimeSeries(options)
+        : Promise.resolve(undefined),
+    ]);
     const row = result[0] as any;
-
-    // Optional time series data
-    let dataPoints: UserEngagementDataPoint[] | undefined;
-    if (options.includeTimeSeries) {
-      dataPoints = await this.getEngagementTimeSeries(options);
-    }
 
     return {
       totalUsers: row?.total_users || 0,
@@ -196,33 +197,39 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   ): Promise<UserEngagementDataPoint[]> {
     const { interval = 'day', limit = 30 } = options;
 
-    // Optimized version using UNION ALL instead of multiple MIN subqueries
+    // Optimized version: pre-aggregate MIN(created_at) per user within each
+    // source table (index-friendly) so only one row per user per table flows
+    // into the join, instead of every action row
     const timeSeriesQuery = sql`
-      WITH all_user_actions AS (
-        SELECT author_id as user_id, created_at
+      WITH per_source_first_action AS (
+        SELECT author_id as user_id, MIN(created_at) AS first_action_at
         FROM ${cards}
         WHERE type = 'URL'
+        GROUP BY author_id
         UNION ALL
-        SELECT author_id as user_id, created_at
+        SELECT author_id as user_id, MIN(created_at) AS first_action_at
         FROM ${collections}
+        GROUP BY author_id
         UNION ALL
-        SELECT curator_id as user_id, created_at
+        SELECT curator_id as user_id, MIN(created_at) AS first_action_at
         FROM ${connections}
+        GROUP BY curator_id
         UNION ALL
-        SELECT follower_id as user_id, created_at
+        SELECT follower_id as user_id, MIN(created_at) AS first_action_at
         FROM ${follows}
+        GROUP BY follower_id
         UNION ALL
-        SELECT added_by as user_id, added_at as created_at
+        SELECT added_by as user_id, MIN(added_at) AS first_action_at
         FROM ${collectionCards}
+        GROUP BY added_by
       ),
       user_first_activity AS (
         SELECT
           u.id AS user_id,
-          u.linked_at,
-          MIN(aua.created_at) AS first_action_at
+          MIN(psa.first_action_at) AS first_action_at
         FROM ${users} u
-        LEFT JOIN all_user_actions aua ON u.id = aua.user_id
-        GROUP BY u.id, u.linked_at
+        LEFT JOIN per_source_first_action psa ON u.id = psa.user_id
+        GROUP BY u.id
       ),
       period_stats AS (
         SELECT

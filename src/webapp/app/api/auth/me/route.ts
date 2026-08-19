@@ -148,6 +148,25 @@ export async function GET(request: NextRequest) {
       }
 
       const user = await profileResponse.json();
+
+      // The backend JWT can be valid while the server-side ATProto OAuth
+      // session is gone (PDS writes would fail). Force a full re-login —
+      // completing the OAuth flow is the only way to repair the PDS session.
+      if (user.atprotoSessionValid === false) {
+        if (ENABLE_AUTH_LOGGING) {
+          console.log(
+            `[auth/me] ATProto session invalid for user: ${user.id} - forcing re-login`,
+          );
+        }
+        const response = NextResponse.json<AuthResult>(
+          { isAuth: false },
+          { status: 401 },
+        );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
+      }
+
       if (ENABLE_AUTH_LOGGING) {
         console.log(
           `[auth/me] Profile fetched successfully for user: ${user.handle} (${user.id})`,
@@ -232,6 +251,24 @@ async function performTokenRefresh(
   }
 
   const user = await profileResponse.json();
+
+  // Same PDS-session check as the non-refresh path: a valid app session with
+  // a dead ATProto OAuth session must force a full re-login.
+  if (user.atprotoSessionValid === false) {
+    if (ENABLE_AUTH_LOGGING) {
+      console.log(
+        `[auth/me] ATProto session invalid for user: ${user.id} - forcing re-login (post-refresh)`,
+      );
+    }
+    const response = NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 401 },
+    );
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
+    return response;
+  }
+
   if (ENABLE_AUTH_LOGGING) {
     console.log(
       `[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`,

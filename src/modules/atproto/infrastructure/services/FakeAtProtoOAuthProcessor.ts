@@ -2,6 +2,7 @@ import { Result, err, ok } from 'src/shared/core/Result';
 import {
   IOAuthProcessor,
   AuthResult,
+  GenerateAuthUrlOptions,
 } from '../../../user/application/services/IOAuthProcessor';
 import { OAuthCallbackDTO, paths } from '@semble/types';
 import { ITokenService } from '../../../user/application/services/ITokenService';
@@ -10,12 +11,16 @@ import { configService } from 'src/shared/infrastructure/config';
 export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
   constructor(private tokenService: ITokenService) {}
 
-  async generateAuthUrl(handle?: string): Promise<Result<string>> {
+  async generateAuthUrl(
+    handle?: string,
+    options?: GenerateAuthUrlOptions,
+  ): Promise<Result<string>> {
     try {
-      // Encode the handle in the state parameter so we can decode it later
-      const state = this.encodeState(handle || '');
+      // Encode the handle (and any redirect) in the state parameter so we can
+      // decode them later, mirroring the real client's app-state round trip
+      const state = this.encodeState(handle || '', options?.redirectPath);
       const baseUrl = configService.getAtProtoConfig().baseUrl;
-      const mockUrl = `${baseUrl}/api${paths.oauthCallback}?code=mockCode&state=${state}&iss=mockIssuer`;
+      const mockUrl = `${baseUrl}/api${paths.oauthCallback}?code=mockCode&state=${encodeURIComponent(state)}&iss=mockIssuer`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);
@@ -24,8 +29,8 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
 
   async processCallback(params: OAuthCallbackDTO): Promise<Result<AuthResult>> {
     try {
-      // Decode handle from the state parameter
-      const handle = this.decodeState(params.state);
+      // Decode handle and redirect from the state parameter
+      const { handle, redirectPath } = this.decodeState(params.state);
 
       // Get mock data based on handle
       const mockData = this.getMockDataForHandle(handle);
@@ -33,24 +38,32 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
       return ok({
         did: mockData.did,
         handle: mockData.handle,
+        redirectPath,
       });
     } catch (error: any) {
       return err(error);
     }
   }
 
-  private encodeState(handle: string): string {
-    // Simple base64 encoding of the handle for the mock state
-    return Buffer.from(handle).toString('base64');
+  private encodeState(handle: string, redirectPath?: string): string {
+    return Buffer.from(JSON.stringify({ handle, redirectPath })).toString(
+      'base64',
+    );
   }
 
-  private decodeState(state: string): string {
+  private decodeState(state: string): {
+    handle: string;
+    redirectPath?: string;
+  } {
     try {
-      // Decode the handle from the base64 state
-      return Buffer.from(state, 'base64').toString('utf8');
+      const decoded = JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
+      return {
+        handle: decoded.handle || '',
+        redirectPath: decoded.redirectPath,
+      };
     } catch (error) {
       // If decoding fails, default to the first account
-      return process.env.BSKY_HANDLE_1 || 'alice.bsky.social';
+      return { handle: process.env.BSKY_HANDLE_1 || 'alice.bsky.social' };
     }
   }
 

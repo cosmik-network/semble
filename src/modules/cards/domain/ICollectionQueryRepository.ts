@@ -52,6 +52,9 @@ export interface CollectionForUrlRawDTO {
   description?: string;
   accessType: string;
   authorId: string;
+  cardCount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Public DTO - what the use case returns (enriched with author profile)

@@ -177,6 +177,18 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       PRIMARY KEY (user_id, activity_id)
     )`,
 
+    // API request logs table (no dependencies)
+    sql`CREATE TABLE IF NOT EXISTS api_request_logs (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_did TEXT NOT NULL,
+      method TEXT NOT NULL,
+      endpoint TEXT NOT NULL,
+      source TEXT NOT NULL,
+      auth_method TEXT NOT NULL,
+      status INTEGER NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
+
     // Onboarding state table (references users) - one row per user, one column per field
     sql`CREATE TABLE IF NOT EXISTS onboarding_state (
       user_id TEXT PRIMARY KEY REFERENCES users(id),
@@ -258,8 +270,33 @@ export async function createTestSchema(db: PostgresJsDatabase) {
 
   // Covering index for finding collections containing a card - avoids table lookups
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection 
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection
     ON collection_cards(card_id) INCLUDE (collection_id)
+  `);
+  // Indexes for AT-URI resolution joins from published_records
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_published_record_id
+    ON cards(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collections_published_record_id
+    ON collections(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_published_record_id
+    ON collection_cards(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_connections_published_record_id
+    ON connections(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_follows_published_record_id
+    ON follows(published_record_id) WHERE published_record_id IS NOT NULL
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_library_memberships_published_record_id
+    ON library_memberships(published_record_id) WHERE published_record_id IS NOT NULL
   `);
   // Feed activities indexes
   await db.execute(sql`
@@ -309,7 +346,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_user_id, created_at DESC);
   `);
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx ON notifications(recipient_user_id, read);
+    CREATE INDEX IF NOT EXISTS notifications_recipient_unread_partial_idx ON notifications(recipient_user_id) WHERE read = false;
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_actor_idx ON notifications(actor_user_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS notifications_metadata_card_id_idx ON notifications((metadata->>'cardId'));
   `);
 
   // Cards table indexes
@@ -361,7 +404,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
   `);
   await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_follows_target ON follows(target_id, target_type);
+    CREATE INDEX IF NOT EXISTS idx_follows_target_created_at ON follows(target_id, target_type, created_at DESC);
   `);
   // New indexes for stats query optimization
   await db.execute(sql`
@@ -398,6 +441,17 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Following feed items indexes
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_following_feed_user_time ON following_feed_items(user_id, created_at DESC);
+  `);
+
+  // API request logs indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_created_at_idx ON api_request_logs(created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_source_created_at_idx ON api_request_logs(source, created_at);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS api_request_logs_user_created_at_idx ON api_request_logs(user_did, created_at);
   `);
 
   // API keys indexes

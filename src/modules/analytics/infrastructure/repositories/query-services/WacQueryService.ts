@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { sql } from 'drizzle-orm';
+import { sql, SQL } from 'drizzle-orm';
 import {
   AnalyticsWeekOptions,
   WacStatsDTO,
@@ -26,17 +26,23 @@ export class WacQueryService {
   async getWacStats(options: AnalyticsWeekOptions): Promise<WacStatsDTO> {
     const range = resolveWeekRange(options.endWeek, options.weeks, new Date());
 
-    const lowerCondition = range.lowerBound
-      ? sql`ts >= ${range.lowerBound.toISOString()}`
-      : sql`TRUE`;
+    // Push the time-range and excluded-user predicates into each UNION ALL
+    // branch so Postgres can use the created_at/added_at indexes instead of
+    // materializing the full union and filtering afterwards
+    const lowerConditionFor = (tsColumn: SQL) =>
+      range.lowerBound
+        ? sql`${tsColumn} >= ${range.lowerBound.toISOString()}`
+        : sql`TRUE`;
 
-    const excludedUsersCondition =
+    const excludedUsersConditionFor = (userIdColumn: SQL) =>
       EXCLUDED_ANALYTICS_USER_IDS.length > 0
-        ? sql`user_id NOT IN (${sql.join(
+        ? sql`${userIdColumn} NOT IN (${sql.join(
             EXCLUDED_ANALYTICS_USER_IDS.map((id) => sql`${id}`),
             sql`, `,
           )})`
         : sql`TRUE`;
+
+    const upperBoundIso = range.upperBoundExclusive.toISOString();
 
     const query = sql`
       WITH activity AS (
@@ -47,6 +53,9 @@ export class WacQueryService {
           'collection'::text AS kind
         FROM collection_cards cc
         JOIN collections col ON col.id = cc.collection_id
+        WHERE ${lowerConditionFor(sql`cc.added_at`)}
+          AND cc.added_at < ${upperBoundIso}
+          AND ${excludedUsersConditionFor(sql`cc.added_by`)}
         UNION ALL
         SELECT
           cn.curator_id AS user_id,
@@ -54,6 +63,9 @@ export class WacQueryService {
           false AS is_others_collection,
           'connection'::text AS kind
         FROM connections cn
+        WHERE ${lowerConditionFor(sql`cn.created_at`)}
+          AND cn.created_at < ${upperBoundIso}
+          AND ${excludedUsersConditionFor(sql`cn.curator_id`)}
       )
       SELECT
         date_trunc('week', ts) AS week_start,
@@ -62,9 +74,6 @@ export class WacQueryService {
         COUNT(DISTINCT user_id) FILTER (WHERE kind = 'connection')::int AS connection,
         COUNT(DISTINCT user_id) FILTER (WHERE is_others_collection)::int AS others_collection_add
       FROM activity
-      WHERE ${lowerCondition}
-        AND ts < ${range.upperBoundExclusive.toISOString()}
-        AND ${excludedUsersCondition}
       GROUP BY week_start
       ORDER BY week_start
     `;

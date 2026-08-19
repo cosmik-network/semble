@@ -1,6 +1,7 @@
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
+import { getLoginPathWithRedirect } from '@/lib/auth/redirect';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
@@ -63,6 +64,7 @@ export const verifySessionOnClient = cache(
 export const logoutUser = async (): Promise<void> => {
   await ClientCookieAuthService.clearTokens();
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    // Remember where the user was so re-authenticating returns them there
+    window.location.href = getLoginPathWithRedirect();
   }
 };

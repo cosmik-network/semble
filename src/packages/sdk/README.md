@@ -28,11 +28,18 @@ const result = await semble.cards.addUrlToLibrary({
 });
 ```
 
-By default the client targets `https://api.semble.so/xrpc`. Override with the `baseUrl` option:
+### Options
+
+All options are optional:
+
+- `apiKey` — your Semble API key. Without it, only public endpoints are accessible; authenticated endpoints will return `401`.
+- `client` — a short identifier for your integration (e.g. `'my-plugin'`), sent as the `X-Semble-Client` header. Setting it helps Semble understand which tools people use — please set it if you're building an integration.
+- `baseUrl` — the API base URL (default: `https://api.semble.so/xrpc`).
 
 ```ts
 const semble = createSembleClient({
   apiKey: '...',
+  client: 'my-plugin',
   baseUrl: 'https://anotherappview.com/xrpc',
 });
 ```

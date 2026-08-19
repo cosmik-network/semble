@@ -78,12 +78,15 @@ export class OAuthClientFactory {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
     const lockService = LockServiceFactory.create();
 
-    return new NodeOAuthClient({
+    const client = new NodeOAuthClient({
       clientMetadata,
       stateStore,
       sessionStore,
       requestLock: lockService.createRequestLock(),
     });
+
+    this.registerSessionEventLogging(client);
+    return client;
   }
 
   static createInMemoryClient(
@@ -95,11 +98,54 @@ export class OAuthClientFactory {
     const sessionStore = InMemorySessionStore.getInstance();
     const lockService = LockServiceFactory.create();
 
-    return new NodeOAuthClient({
+    const client = new NodeOAuthClient({
       clientMetadata,
       stateStore,
       sessionStore,
       requestLock: lockService.createRequestLock(),
     });
+
+    this.registerSessionEventLogging(client);
+    return client;
   }
+
+  /**
+   * Session deletion is the terminal failure we debug most (the library
+   * deletes a session when a token refresh is rejected). Log every deletion
+   * with its full cause chain and which process it happened in, so genuine
+   * refresh-token expiry can be told apart from cross-process refresh races.
+   */
+  private static registerSessionEventLogging(client: NodeOAuthClient): void {
+    const processGroup = process.env.FLY_PROCESS_GROUP || 'unknown';
+
+    client.addEventListener('deleted', (event) => {
+      const { sub, cause } = event.detail;
+      console.error(
+        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). Cause chain: ${formatCauseChain(cause)}`,
+      );
+    });
+
+    client.addEventListener('updated', (event) => {
+      console.log(
+        `[OAuthClient] Session updated (token refreshed) for ${event.detail.sub} (process: ${processGroup})`,
+      );
+    });
+  }
+}
+
+function formatCauseChain(error: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = error;
+  let depth = 0;
+  while (current && depth < 5) {
+    if (current instanceof Error) {
+      parts.push(`${current.name}: ${current.message}`);
+      current = current.cause;
+    } else {
+      parts.push(JSON.stringify(current));
+      break;
+    }
+    depth++;
+  }
+  return parts.join(' <- ') || String(error);
 }

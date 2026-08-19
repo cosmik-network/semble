@@ -81,9 +81,12 @@ export class CardCollectionService implements DomainService {
         );
       }
 
-      // Handle publishing based on options
-      if (options?.skipPublishing && options?.publishedRecordIds) {
-        const publishedRecordId = options.publishedRecordIds.get(
+      // Handle publishing based on options. skipPublishing alone must
+      // suppress publishing (e.g. firehose-originated writes): collection
+      // link records arrive as their own firehose events, so we only mark
+      // the link published when its record id is already known.
+      if (options?.skipPublishing) {
+        const publishedRecordId = options.publishedRecordIds?.get(
           collectionId.getStringValue(),
         );
         if (publishedRecordId) {

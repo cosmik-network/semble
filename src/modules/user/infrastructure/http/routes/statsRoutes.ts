@@ -111,6 +111,56 @@ export const createStatsRoutes = (
     }
   });
 
+  /**
+   * GET /api/stats/api-usage — non-webapp API usage per client source
+   *
+   * Aggregates api_request_logs (one row per authenticated API-key / bearer-JWT
+   * call; webapp cookie traffic is never logged). Sources are the client's
+   * self-declared X-Semble-Client header ('mcp', plugin names, ...) or inferred:
+   * 'api' for generic API-key consumers, 'extension' for bearer-JWT clients.
+   *
+   * Query params: endWeek?, weeks?  (see shared params above)
+   *
+   * Response: ApiUsageStatsDTO
+   *   {
+   *     dataPoints: Array<{
+   *       weekStart: string;              // ISO date of the week's Monday
+   *       sources: Array<{                // sorted by calls desc (ties: source asc)
+   *         source: string;
+   *         users: number;                // distinct users that week
+   *         calls: number;                // total requests that week
+   *       }>;
+   *     }>;                               // chronological, oldest -> newest, gap-filled
+   *     totals: Array<{                   // whole-period, sorted by calls desc
+   *       source: string;
+   *       users: number;
+   *       calls: number;
+   *       topEndpoints: Array<{           // top 10 by calls desc
+   *         method: string;
+   *         endpoint: string;             // route pattern, e.g. /xrpc/cards/:id
+   *         calls: number;
+   *         users: number;
+   *       }>;
+   *     }>;
+   *     periodStart: string;
+   *     periodEnd: string;
+   *   }
+   */
+  router.get('/api-usage', async (req: Request, res: Response) => {
+    try {
+      const { endWeek, weeks } = parseAnalyticsQuery(req);
+      const result = await productAnalyticsQueryRepository.getApiUsageStats({
+        endWeek,
+        weeks,
+      });
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res
+        .status(400)
+        .json({ message: error?.message ?? 'Failed to load API usage stats' });
+    }
+  });
+
   // ---------------------------------------------------------------------------
   // Onboarding stats
   //
