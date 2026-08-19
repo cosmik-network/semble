@@ -1,3 +1,4 @@
+import { NoSessionError } from '@/api-client/errors';
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
@@ -16,7 +17,7 @@ export const getProfile = cache(
 
 export const getMyProfile = cache(async (includeStats?: boolean) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
+  if (!session) throw new NoSessionError();
   const client = createSembleClient();
   const response = await client.getMyProfile({ includeStats });
 

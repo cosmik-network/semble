@@ -24,6 +24,13 @@ export class GetMyProfileController extends Controller {
         return this.unauthorized(res);
       }
 
+      // Resolve session validity BEFORE the profile fetch: when the ATProto
+      // session is dead the profile use case may fail, and the webapp's
+      // forced re-login path only triggers off a 200 body carrying
+      // atprotoSessionValid=false — a 500 here would leave the client
+      // retrying forever instead of logging the user out.
+      const atprotoSessionValid = await this.hasAtprotoSession(userId);
+
       const result = await this.getProfileUseCase.execute({
         userId,
         callerDid: req.did,
@@ -32,10 +39,18 @@ export class GetMyProfileController extends Controller {
       });
 
       if (result.isErr()) {
+        if (!atprotoSessionValid) {
+          // Minimal valid payload; the caller only needs the flag to force
+          // a re-login.
+          return this.ok(res, {
+            id: userId,
+            name: '',
+            handle: '',
+            atprotoSessionValid: false,
+          });
+        }
         return this.fail(res, result.error);
       }
-
-      const atprotoSessionValid = await this.hasAtprotoSession(userId);
 
       return this.ok(res, { ...result.value, atprotoSessionValid });
     } catch (error: any) {

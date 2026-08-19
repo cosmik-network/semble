@@ -1,3 +1,4 @@
+import { NoSessionError } from '@/api-client/errors';
 import { createSembleClient } from '@/services/client.apiClient';
 import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 import { cache } from 'react';
@@ -43,7 +44,7 @@ export const getGemsActivityFeed = cache(async (params?: PageParams) => {
 
 export const getFollowingFeed = cache(async (params?: PageParams) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
+  if (!session) throw new NoSessionError();
 
   const client = createSembleClient();
   const response = await client.getFollowingFeed({
