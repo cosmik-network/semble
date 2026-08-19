@@ -4,78 +4,37 @@ import {
 } from 'src/modules/cards/domain/services/IProfileService';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
-import { DID } from '../../domain/DID';
-import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 
 export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
 
+  /**
+   * Profile data is fully public: `app.bsky.actor.getProfile` against the
+   * public AppView returns the same displayName/handle/avatar/banner/bio
+   * regardless of viewer, and follow state is derived from our own DB.
+   *
+   * Deliberately does NOT use the caller's authenticated agent: every call
+   * through an OAuth session costs a session-store read + distributed lock
+   * (and a restore() on top), and profile fetches fan out per-author on
+   * feeds and collection pages. The `callerDid` parameter is kept for
+   * interface compatibility but unused.
+   */
   async getProfile(
     userId: string,
-    callerDid?: string,
+    _callerDid?: string,
   ): Promise<Result<UserProfile>> {
     try {
-      let agent;
-
-      if (callerDid) {
-        // Use caller's authenticated agent
-        const didResult = DID.create(callerDid);
-        if (didResult.isErr()) {
-          return err(
-            new Error(`Invalid caller DID: ${didResult.error.message}`),
-          );
-        }
-
-        const agentResult = await this.agentService.getAuthenticatedAgent(
-          didResult.value,
+      const agentResult = this.agentService.getUnauthenticatedAgent();
+      if (agentResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to get unauthenticated agent: ${agentResult.error.message}`,
+          ),
         );
-        if (agentResult.isErr()) {
-          return err(
-            new AuthenticationError(
-              `Failed to get authenticated agent for BlueskyProfileService: ${agentResult.error.message}`,
-            ),
-          );
-        }
-        agent = agentResult.value;
-      } else {
-        // Fall back to unauthenticated agent for public profiles
-        const agentResult = this.agentService.getUnauthenticatedAgent();
-        if (agentResult.isErr()) {
-          return err(
-            new Error(
-              `Failed to get unauthenticated agent: ${agentResult.error.message}`,
-            ),
-          );
-        }
-        agent = agentResult.value;
       }
+      const agent = agentResult.value;
 
-      if (!agent) {
-        return err(new Error('No authenticated agent available'));
-      }
-
-      // Fetch the profile using the ATProto API
-      let profileResult: Awaited<ReturnType<typeof agent.getProfile>>;
-
-      // Attempt to fetch profile from the authenticated agent first, then fall back to unauthenticated if it fails (may not be implemented)
-      try {
-        profileResult = await agent.getProfile({ actor: userId });
-      } catch (error) {
-        const unauthenticatedAgentResult =
-          this.agentService.getUnauthenticatedAgent();
-        if (unauthenticatedAgentResult.isOk()) {
-          const unauthenticatedAgent = unauthenticatedAgentResult.value;
-          profileResult = await unauthenticatedAgent.getProfile({
-            actor: userId,
-          });
-        } else {
-          return err(
-            new Error(
-              `Failed to fetch profile with authenticated agent and no unauthenticated agent available: ${error instanceof Error ? error.message : String(error)}`,
-            ),
-          );
-        }
-      }
+      const profileResult = await agent.getProfile({ actor: userId });
       if (!profileResult.success) {
         return err(
           new Error(

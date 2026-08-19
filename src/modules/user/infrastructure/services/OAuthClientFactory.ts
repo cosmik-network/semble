@@ -111,17 +111,24 @@ export class OAuthClientFactory {
 
   /**
    * Session deletion is the terminal failure we debug most (the library
-   * deletes a session when a token refresh is rejected). Log every deletion
+   * deletes a session when a token refresh is rejected). Log the deletion
    * with its full cause chain and which process it happened in, so genuine
    * refresh-token expiry can be told apart from cross-process refresh races.
+   *
+   * The library re-dispatches 'deleted' on EVERY restore() of a DID whose
+   * session row is already gone ("The session was deleted by another
+   * process"), so an active client with a dead session produces one event
+   * per request. Rate-limit per DID to keep the first, informative log and
+   * drop the echo storm.
    */
   private static registerSessionEventLogging(client: NodeOAuthClient): void {
     const processGroup = process.env.FLY_PROCESS_GROUP || 'unknown';
 
     client.addEventListener('deleted', (event) => {
       const { sub, cause } = event.detail;
+      if (!shouldLogDeletion(sub)) return;
       console.error(
-        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). Cause chain: ${formatCauseChain(cause)}`,
+        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). Cause chain: ${formatCauseChain(cause)} (further deletions for this DID suppressed for ${DELETION_LOG_INTERVAL_MS / 60_000} min)`,
       );
     });
 
@@ -131,6 +138,27 @@ export class OAuthClientFactory {
       );
     });
   }
+}
+
+const DELETION_LOG_INTERVAL_MS = 10 * 60 * 1000;
+const DELETION_LOG_MAX_ENTRIES = 1000;
+const lastDeletionLogAt = new Map<string, number>();
+
+function shouldLogDeletion(sub: string): boolean {
+  const now = Date.now();
+  const last = lastDeletionLogAt.get(sub);
+  if (last !== undefined && now - last < DELETION_LOG_INTERVAL_MS) {
+    return false;
+  }
+  if (lastDeletionLogAt.size >= DELETION_LOG_MAX_ENTRIES) {
+    // Evict the oldest entry (Map preserves insertion order).
+    const oldest = lastDeletionLogAt.keys().next().value;
+    if (oldest !== undefined) lastDeletionLogAt.delete(oldest);
+  }
+  // Delete before set so re-inserting refreshes insertion order.
+  lastDeletionLogAt.delete(sub);
+  lastDeletionLogAt.set(sub, now);
+  return true;
 }
 
 function formatCauseChain(error: unknown): string {

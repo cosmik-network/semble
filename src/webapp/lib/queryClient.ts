@@ -4,7 +4,10 @@ import {
   MutationCache,
   defaultShouldDehydrateQuery,
 } from '@tanstack/react-query';
-import { isNotFoundApiError } from '@/api-client/errors';
+import {
+  isNotFoundApiError,
+  isUnauthorizedApiError,
+} from '@/api-client/errors';
 
 type ErrorHandler = (error: unknown) => void;
 
@@ -22,10 +25,13 @@ export function makeQueryClient(onError?: ErrorHandler) {
         staleTime: 60 * 1000,
         gcTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
-        // A 404 is a definitive answer — retrying only doubles the round-trips
-        // before the error surfaces. Everything else still gets one retry.
+        // 404 and 401 are definitive answers — retrying only doubles the
+        // round-trips before the error surfaces (and a retried 401 delays the
+        // logout redirect). Everything else still gets one retry.
         retry: (failureCount, error) =>
-          !isNotFoundApiError(error) && failureCount < 1,
+          !isNotFoundApiError(error) &&
+          !isUnauthorizedApiError(error) &&
+          failureCount < 1,
       },
       dehydrate: {
         // include pending queries in dehydration

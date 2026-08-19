@@ -1,3 +1,4 @@
+import { NoSessionError } from '@/api-client/errors';
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { FollowTargetRequest, SubscriptionScope } from '@semble/types';
@@ -5,7 +6,7 @@ import { cache } from 'react';
 
 export const followTarget = cache(async (request: FollowTargetRequest) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
+  if (!session) throw new NoSessionError();
   const client = createSembleClient();
   return client.followTarget(request);
 });
@@ -13,7 +14,7 @@ export const followTarget = cache(async (request: FollowTargetRequest) => {
 export const unfollowTarget = cache(
   async (targetId: string, targetType: 'USER' | 'COLLECTION') => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
     await client.unfollowTarget(targetId, targetType);
   },
@@ -26,7 +27,7 @@ export const subscribeToTarget = cache(
     scopes?: SubscriptionScope[],
   ) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
     return client.subscribeToTarget({ targetId, targetType, scopes });
   },
@@ -35,7 +36,7 @@ export const subscribeToTarget = cache(
 export const unsubscribeFromTarget = cache(
   async (targetId: string, targetType: 'USER' | 'COLLECTION') => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
     await client.unsubscribeFromTarget(targetId, targetType);
   },
@@ -48,7 +49,7 @@ export const updateSubscription = cache(
     scopes: SubscriptionScope[],
   ) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
     return client.updateSubscription({ targetId, targetType, scopes });
   },
@@ -69,7 +70,7 @@ export const getFollowingUsers = cache(
 export const getBskyFollowedUsers = cache(
   async (params?: { page?: number; limit?: number }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
     const response = await client.getBskyFollowedUsers({
       page: params?.page,
@@ -81,7 +82,7 @@ export const getBskyFollowedUsers = cache(
 
 export const followManyUsers = cache(async (targetIds: string[]) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new Error('No session found');
+  if (!session) throw new NoSessionError();
   const client = createSembleClient();
   return client.followManyUsers({ targetIds });
 });
