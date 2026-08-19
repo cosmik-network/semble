@@ -2,7 +2,7 @@ import CollectionCardSkeleton from '@/features/collections/components/collection
 import { Stack, Group, Title, Skeleton, SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 
-export default function RecentCollectionsSkeleton() {
+export default function LibraryRecentCollectionsSkeleton() {
   return (
     <Stack>
       <Group justify="space-between">

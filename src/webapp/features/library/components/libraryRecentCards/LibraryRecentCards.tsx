@@ -22,7 +22,7 @@ import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings
 import { FiPlus } from 'react-icons/fi';
 import { LinkButton } from '@/components/link/MantineLink';
 
-export default function RecentCards() {
+export default function LibraryRecentCards() {
   const { desktopOpened } = useNavbarContext();
   const { settings } = useUserSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);

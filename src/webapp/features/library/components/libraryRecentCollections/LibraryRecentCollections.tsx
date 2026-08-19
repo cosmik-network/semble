@@ -160,7 +160,7 @@ function ContributedCollectionsList({
   );
 }
 
-export default function RecentCollections() {
+export default function LibraryRecentCollections() {
   const { settings } = useUserSettings();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [filter, setFilter] = useState<CollectionFilter>('mine');

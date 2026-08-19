@@ -3,7 +3,7 @@ import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCar
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { LinkButton } from '@/components/link/MantineLink';
 
-export default function DiscoverOnSembleSkeleton() {
+export default function LibraryRecommendationsSkeleton() {
   return (
     <Stack>
       <Group justify="space-between">

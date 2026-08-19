@@ -8,7 +8,7 @@ import { Box, Group, Scroller, Stack, Text, Title } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { LinkButton } from '@/components/link/MantineLink';
 
-export default function DiscoverOnSemble() {
+export default function LibraryRecommendations() {
   const { data: profile } = useMyProfile();
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: similarCardsData } = useSimilarCards({

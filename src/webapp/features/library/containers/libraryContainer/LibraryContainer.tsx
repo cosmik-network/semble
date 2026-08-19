@@ -1,25 +1,21 @@
 import { Container, Group, Stack, Title, Text } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import DiscoverOnSemble from '../../components/discoverOnSemble/DiscoverOnSemble';
+import LibraryRecommendations from '../../components/libraryRecommendations/LibraryRecommendations';
 import { ErrorBoundary } from 'react-error-boundary';
-import RecentCollections from '../../components/recentCollections/RecentCollections';
-import RecentCards from '../../components/recentCards/RecentCards';
+import LibraryRecentCollections from '../../components/libraryRecentCollections/LibraryRecentCollections';
+import LibraryRecentCards from '../../components/libraryRecentCards/LibraryRecentCards';
 import { Suspense } from 'react';
-import DiscoverOnSembleSkeleton from '../../components/discoverOnSemble/Skeleton.DiscoverOnSemble';
-import RecentCardsSkeleton from '../../components/recentCards/Skeleton.RecentCards';
-import RecentCollectionsSkeleton from '../../components/recentCollections/Skeleton.RecentCollections';
+import LibraryRecommendationsSkeleton from '../../components/libraryRecommendations/Skeleton.LibraryRecommendations';
+import LibraryRecentCardsSkeleton from '../../components/libraryRecentCards/Skeleton.LibraryRecentCards';
+import LibraryRecentCollectionsSkeleton from '../../components/libraryRecentCollections/Skeleton.LibraryRecentCollections';
 import { LinkButton } from '@/components/link/MantineLink';
-import HomeOnboardingBanner from '@/features/onboarding/components/homeOnboardingBanner/HomeOnboardingBanner';
 
-export default function HomeContainer() {
+export default function LibraryContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Suspense fallback={null}>
-          <HomeOnboardingBanner />
-        </Suspense>
         <Stack gap={50}>
-          {/* Explore */}
+          {/* Recommendations */}
           <Stack>
             <ErrorBoundary
               fallback={
@@ -41,20 +37,20 @@ export default function HomeContainer() {
                 </Stack>
               }
             >
-              <Suspense fallback={<DiscoverOnSembleSkeleton />}>
-                <DiscoverOnSemble />
+              <Suspense fallback={<LibraryRecommendationsSkeleton />}>
+                <LibraryRecommendations />
               </Suspense>
             </ErrorBoundary>
           </Stack>
 
           {/* Collections */}
-          <Suspense fallback={<RecentCollectionsSkeleton />}>
-            <RecentCollections />
+          <Suspense fallback={<LibraryRecentCollectionsSkeleton />}>
+            <LibraryRecentCollections />
           </Suspense>
 
           {/* Cards */}
-          <Suspense fallback={<RecentCardsSkeleton />}>
-            <RecentCards />
+          <Suspense fallback={<LibraryRecentCardsSkeleton />}>
+            <LibraryRecentCards />
           </Suspense>
         </Stack>
       </Stack>

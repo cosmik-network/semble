@@ -2,7 +2,7 @@ import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCar
 import { Stack, Group, Title, Skeleton, Grid, GridCol } from '@mantine/core';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 
-export default function RecentCardsSkeleton() {
+export default function LibraryRecentCardsSkeleton() {
   return (
     <Stack>
       <Group justify="space-between">
