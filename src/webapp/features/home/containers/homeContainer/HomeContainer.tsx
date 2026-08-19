@@ -15,8 +15,6 @@ export default function HomeContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        {/* Its own boundary so HomeContainer stays sync: React can start on the
-            Suspense boundaries below without waiting on the banner's fetch. */}
         <Suspense fallback={null}>
           <HomeOnboardingBanner />
         </Suspense>
