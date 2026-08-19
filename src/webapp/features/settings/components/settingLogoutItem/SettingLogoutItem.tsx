@@ -2,18 +2,15 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@mantine/core';
-import { useRouter } from 'next/navigation';
 import { IoMdLogOut } from 'react-icons/io';
 import SettingItemSkeleton from '../settingItem/Skeleton.SettingItem';
 
 export default function SettingLogoutItem() {
   const { logout, isLoading } = useAuth();
-  const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await logout();
-      router.push('/');
+      await logout({ redirectTo: '/' });
     } catch (error) {
       console.error('Error logging out:', error);
     }

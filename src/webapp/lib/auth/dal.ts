@@ -97,11 +97,20 @@ export const verifySessionOnClient = cache(
 );
 
 /**
+ * Drops the memoized session. Must be called on logout: the memo outlives the
+ * cookies, so without this the next session check within the TTL replays the
+ * logged-in user instead of seeing the cleared credentials.
+ */
+export const clearSessionMemo = (): void => {
+  memo = null;
+};
+
+/**
  * Logs out the current user by clearing tokens and redirecting to login
  * Can be called from both client and server contexts
  */
 export const logoutUser = async (): Promise<void> => {
-  memo = null;
+  clearSessionMemo();
   await ClientCookieAuthService.clearTokens();
   if (typeof window !== 'undefined') {
     // Remember where the user was so re-authenticating returns them there

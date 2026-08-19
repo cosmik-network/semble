@@ -12,7 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
-import { verifySessionOnClient } from '@/lib/auth/dal';
+import { clearSessionMemo, verifySessionOnClient } from '@/lib/auth/dal';
 import { authKeys } from '@/lib/auth/authKeys';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
@@ -26,7 +26,10 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
-  logout: (options?: { returnTo?: string }) => Promise<void>;
+  logout: (options?: {
+    returnTo?: string;
+    redirectTo?: string;
+  }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -39,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname(); // to prevent redirecting to login on landing page
 
   const logout = useCallback(
-    async (options?: { returnTo?: string }) => {
+    async (options?: { returnTo?: string; redirectTo?: string }) => {
       if (ENABLE_AUTH_LOGGING) {
         console.log('[useAuth] Initiating logout process');
       }
@@ -53,12 +56,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       await ClientCookieAuthService.clearTokens();
+      // The session check keeps its own module-level memo besides the query
+      // cache; drop it before queryClient.clear() triggers a refetch, or the
+      // refetch replays the logged-in user for the memo's TTL.
+      clearSessionMemo();
       queryClient.clear();
       router.push(
         options?.returnTo
           ? getLoginPathWithRedirect(options.returnTo)
-          : '/login',
+          : (options?.redirectTo ?? '/login'),
       );
+      // Bust the Router Cache so server components re-render as signed out.
+      router.refresh();
     },
     [queryClient, router],
   );
