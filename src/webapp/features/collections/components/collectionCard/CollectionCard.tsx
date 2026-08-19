@@ -68,34 +68,18 @@ export default function CollectionCard(props: Props) {
       <Stack justify="space-between" h="100%">
         <Stack gap={'xs'}>
           <Stack gap={0}>
-            <Group justify="space-between" wrap="nowrap">
-              <Group gap={4}>
-                <Text
-                  fw={500}
-                  lineClamp={1}
-                  c={
-                    accessType === CollectionAccessType.OPEN
-                      ? 'green'
-                      : 'bright'
-                  }
-                >
-                  {collection.name}
-                </Text>
-                {isMarginUri(collection.uri) && (
-                  <MarginLogo size={14} marginUrl={marginUrl} />
-                )}
-              </Group>
-
-              {props.showAuthor && (
-                <LinkAvatar
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
+            <Group gap={4} wrap="nowrap">
+              <Text
+                fw={500}
+                lineClamp={1}
+                c={
+                  accessType === CollectionAccessType.OPEN ? 'green' : 'bright'
+                }
+              >
+                {collection.name}
+              </Text>
+              {isMarginUri(collection.uri) && (
+                <MarginLogo size={14} marginUrl={marginUrl} />
               )}
             </Group>
             {collection.description && (
@@ -120,12 +104,25 @@ export default function CollectionCard(props: Props) {
         </Stack>
 
         <Group justify="space-between" gap={'xs'} wrap="nowrap">
-          <Text c={'gray'} fz={'sm'}>
-            {collection.cardCount}{' '}
-            {collection.cardCount === 1 ? 'card' : 'cards'}
-            {' · '}
-            {time}
-          </Text>
+          <Group gap={'xs'} wrap="nowrap" miw={0}>
+            {props.showAuthor && (
+              <LinkAvatar
+                href={`/profile/${collection.author.handle}`}
+                src={collection.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${collection.author.handle}'s avatar`}
+                size={'sm'}
+              />
+            )}
+            <Text c={'gray'} fz={'sm'} lineClamp={1}>
+              {collection.cardCount}{' '}
+              {collection.cardCount === 1 ? 'card' : 'cards'}
+              {' · '}
+              {time}
+            </Text>
+          </Group>
           <CollectionCardActions
             collection={collection}
             onFollowChange={props.onFollowChange}
