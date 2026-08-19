@@ -16,6 +16,30 @@ export interface UrlMetadataProps {
   isbn?: string;
 }
 
+/**
+ * Input accepted by `create`. Dates may arrive as Date objects (from a metadata
+ * service) or as ISO strings (from JSONB, a cache, or a vector store). `create`
+ * normalizes both to Date so consumers can safely call `.toISOString()`.
+ */
+export type UrlMetadataInput = Omit<
+  UrlMetadataProps,
+  'publishedDate' | 'retrievedAt'
+> & {
+  publishedDate?: Date | string;
+  retrievedAt?: Date | string;
+};
+
+/**
+ * Coerce to a valid Date, or undefined. Returning undefined rather than an
+ * Invalid Date keeps `.toISOString()` and date arithmetic from throwing/NaN-ing
+ * downstream — partial dates (e.g. Citoid's "2023") land here as unparseable.
+ */
+function coerceDate(value: Date | string | undefined): Date | undefined {
+  if (value === undefined || value === null) return undefined;
+  const parsed = value instanceof Date ? value : new Date(value);
+  return isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
 export class UrlMetadata extends ValueObject<UrlMetadataProps> {
   get url(): string {
     return this.props.url;
@@ -65,15 +89,19 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
     super(props);
   }
 
-  public static create(props: UrlMetadataProps): Result<UrlMetadata, Error> {
+  public static create(props: UrlMetadataInput): Result<UrlMetadata, Error> {
     if (!props.url || props.url.trim().length === 0) {
       return err(new Error('URL is required for metadata'));
     }
 
+    // Normalize date-ish inputs so publishedDate/retrievedAt are always real
+    // Date objects (or absent) regardless of whether they came from a metadata
+    // service, JSONB, or a cache.
     return ok(
       new UrlMetadata({
         ...props,
-        retrievedAt: props.retrievedAt || new Date(),
+        publishedDate: coerceDate(props.publishedDate),
+        retrievedAt: coerceDate(props.retrievedAt) || new Date(),
       }),
     );
   }

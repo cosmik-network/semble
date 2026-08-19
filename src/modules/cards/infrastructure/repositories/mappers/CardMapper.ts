@@ -7,7 +7,11 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
-import { UrlType } from '../../../domain/value-objects/UrlType';
+import {
+  toUrlMetadataJSON,
+  toUrlMetadataProps,
+  toUrlMetadataView,
+} from '../../../domain/value-objects/urlMetadataMapping';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 import { v4 as uuid } from 'uuid';
 import {
@@ -244,19 +248,9 @@ export class CardMapper {
 
           let metadata: UrlMetadata | undefined;
           if (urlData.metadata) {
-            const metadataResult = UrlMetadata.create({
-              url: urlData.metadata.url,
-              title: urlData.metadata.title,
-              description: urlData.metadata.description,
-              author: urlData.metadata.author,
-              publishedDate: urlData.metadata.publishedDate
-                ? new Date(urlData.metadata.publishedDate)
-                : undefined,
-              siteName: urlData.metadata.siteName,
-              imageUrl: urlData.metadata.imageUrl,
-              type: urlData.metadata.type as UrlType,
-              retrievedAt: new Date(urlData.metadata.retrievedAt),
-            });
+            const metadataResult = UrlMetadata.create(
+              toUrlMetadataProps(urlData.metadata),
+            );
             if (metadataResult.isErr()) return err(metadataResult.error);
             metadata = metadataResult.value;
           }
@@ -287,17 +281,7 @@ export class CardMapper {
       contentData = {
         url: urlContent.url.value,
         metadata: urlContent.metadata
-          ? {
-              url: urlContent.metadata.url,
-              title: urlContent.metadata.title,
-              description: urlContent.metadata.description,
-              author: urlContent.metadata.author,
-              siteName: urlContent.metadata.siteName,
-              imageUrl: urlContent.metadata.imageUrl,
-              type: urlContent.metadata.type,
-              doi: urlContent.metadata.doi,
-              isbn: urlContent.metadata.isbn,
-            }
+          ? toUrlMetadataJSON(urlContent.metadata)
           : undefined,
       } as UrlContentData;
     } else if (content.type === CardTypeEnum.NOTE) {
@@ -375,23 +359,10 @@ export class CardMapper {
     raw: RawUrlCardData,
   ): UrlCardQueryResultDTO {
     // Extract URL metadata from contentData
-    const cardContent = {
+    const cardContent = toUrlMetadataView({
+      ...raw.contentData?.metadata,
       url: raw.contentData?.url,
-      title: raw.contentData?.metadata?.title,
-      description: raw.contentData?.metadata?.description,
-      author: raw.contentData?.metadata?.author,
-      publishedDate: raw.contentData?.metadata?.publishedDate
-        ? new Date(raw.contentData.metadata.publishedDate)
-        : undefined,
-      siteName: raw.contentData?.metadata?.siteName,
-      imageUrl: raw.contentData?.metadata?.imageUrl,
-      type: raw.contentData?.metadata?.type,
-      retrievedAt: raw.contentData?.metadata?.retrievedAt
-        ? new Date(raw.contentData.metadata.retrievedAt)
-        : undefined,
-      doi: raw.contentData?.metadata?.doi,
-      isbn: raw.contentData?.metadata?.isbn,
-    };
+    });
 
     // Extract note text from note's contentData
     const note = raw.note
@@ -439,23 +410,10 @@ export class CardMapper {
     };
   }): CollectionCardQueryResultDTO {
     // Extract URL metadata from contentData
-    const cardContent = {
+    const cardContent = toUrlMetadataView({
+      ...raw.contentData?.metadata,
       url: raw.contentData.url,
-      title: raw.contentData?.metadata?.title,
-      description: raw.contentData?.metadata?.description,
-      author: raw.contentData?.metadata?.author,
-      publishedDate: raw.contentData?.metadata?.publishedDate
-        ? new Date(raw.contentData.metadata.publishedDate)
-        : undefined,
-      siteName: raw.contentData?.metadata?.siteName,
-      imageUrl: raw.contentData?.metadata?.imageUrl,
-      type: raw.contentData?.metadata?.type,
-      retrievedAt: raw.contentData?.metadata?.retrievedAt
-        ? new Date(raw.contentData.metadata.retrievedAt)
-        : undefined,
-      doi: raw.contentData?.metadata?.doi,
-      isbn: raw.contentData?.metadata?.isbn,
-    };
+    });
 
     // Extract note text from note's contentData
     const note = raw.note
@@ -512,23 +470,10 @@ export class CardMapper {
     };
   }): UrlCardViewDTO {
     // Extract URL metadata from contentData
-    const cardContent = {
+    const cardContent = toUrlMetadataView({
+      ...raw.contentData?.metadata,
       url: raw.contentData.url,
-      title: raw.contentData?.metadata?.title,
-      description: raw.contentData?.metadata?.description,
-      author: raw.contentData?.metadata?.author,
-      publishedDate: raw.contentData?.metadata?.publishedDate
-        ? new Date(raw.contentData.metadata.publishedDate)
-        : undefined,
-      siteName: raw.contentData?.metadata?.siteName,
-      imageUrl: raw.contentData?.metadata?.imageUrl,
-      type: raw.contentData?.metadata?.type,
-      retrievedAt: raw.contentData?.metadata?.retrievedAt
-        ? new Date(raw.contentData.metadata.retrievedAt)
-        : undefined,
-      doi: raw.contentData?.metadata?.doi,
-      isbn: raw.contentData?.metadata?.isbn,
-    };
+    });
 
     // Extract note text from note's contentData
     const note = raw.note

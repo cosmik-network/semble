@@ -29,6 +29,7 @@ import {
 } from '../../../domain/FeedActivity';
 import { ActivityType as ActivityTypeEnum } from '@semble/types';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
+import { toUrlMetadataDTO } from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
 
 export interface GetFollowingFeedQuery {
   callingUserId: string;
@@ -625,10 +626,14 @@ export class GetFollowingFeedUseCase implements UseCase<
 
           const sourceUrlView = {
             url: connectionData.sourceUrl,
-            metadata: connectionData.sourceUrlMetadata?.props ||
-              connectionData.sourceUrlMetadata || {
-                url: connectionData.sourceUrl,
-              },
+            metadata: toUrlMetadataDTO({
+              ...(connectionData.sourceUrlMetadata?.props ||
+                connectionData.sourceUrlMetadata),
+              url:
+                connectionData.sourceUrlMetadata?.props?.url ||
+                connectionData.sourceUrlMetadata?.url ||
+                connectionData.sourceUrl,
+            }),
             urlLibraryCount: sourceUrlStats.urlLibraryCount,
             urlInLibrary: sourceUrlStats.urlInLibrary,
             urlConnectionCount: sourceUrlStats.urlConnectionCount,
@@ -637,10 +642,14 @@ export class GetFollowingFeedUseCase implements UseCase<
 
           const targetUrlView = {
             url: connectionData.targetUrl,
-            metadata: connectionData.targetUrlMetadata?.props ||
-              connectionData.targetUrlMetadata || {
-                url: connectionData.targetUrl,
-              },
+            metadata: toUrlMetadataDTO({
+              ...(connectionData.targetUrlMetadata?.props ||
+                connectionData.targetUrlMetadata),
+              url:
+                connectionData.targetUrlMetadata?.props?.url ||
+                connectionData.targetUrlMetadata?.url ||
+                connectionData.targetUrl,
+            }),
             urlLibraryCount: targetUrlStats.urlLibraryCount,
             urlInLibrary: targetUrlStats.urlInLibrary,
             urlConnectionCount: targetUrlStats.urlConnectionCount,
