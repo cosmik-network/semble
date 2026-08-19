@@ -31,8 +31,8 @@ export default function FollowButton({
 
   return (
     <Button
-      variant={isFollowing ? 'light' : 'filled'}
-      color={isFollowing ? 'gray' : 'dark'}
+      variant={isFollowing ? 'light' : 'inverse'}
+      color="gray"
       {...buttonProps}
       onClick={(e) => {
         buttonProps.onClick?.(e);
