@@ -4,6 +4,11 @@ import { Connection } from '../../domain/Connection';
 import { ConnectionId } from '../../domain/value-objects/ConnectionId';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import {
+  ConnectionType,
+  ConnectionTypeEnum,
+} from '../../domain/value-objects/ConnectionType';
+import { ConnectionNote } from '../../domain/value-objects/ConnectionNote';
 
 export class InMemoryConnectionRepository implements IConnectionRepository {
   private static instance: InMemoryConnectionRepository;
@@ -119,6 +124,47 @@ export class InMemoryConnectionRepository implements IConnectionRepository {
           connection.target.stringValue === target.stringValue,
       );
       return ok(connections.map((connection) => this.clone(connection)));
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async findByCuratorIdenticalConnection(
+    curatorId: CuratorId,
+    source: UrlOrCardId,
+    target: UrlOrCardId,
+    type: ConnectionType,
+    note: ConnectionNote | undefined,
+  ): Promise<Result<Connection | null>> {
+    try {
+      const found = Array.from(this.connections.values())
+        .filter((connection) => {
+          if (connection.curatorId.value !== curatorId.value) return false;
+          if (
+            connection.source.type !== source.type ||
+            connection.source.stringValue !== source.stringValue
+          )
+            return false;
+          if (
+            connection.target.type !== target.type ||
+            connection.target.stringValue !== target.stringValue
+          )
+            return false;
+
+          // An untyped legacy connection represents the same claim as RELATED
+          if (connection.type === undefined) {
+            if (type.value !== ConnectionTypeEnum.RELATED) return false;
+          } else if (connection.type.value !== type.value) {
+            return false;
+          }
+
+          // An absent note matches only connections that also have no note
+          const existingNote = connection.note?.value ?? '';
+          return existingNote === (note?.value ?? '');
+        })
+        .sort((x, y) => x.createdAt.getTime() - y.createdAt.getTime())[0];
+
+      return ok(found ? this.clone(found) : null);
     } catch (error) {
       return err(error as Error);
     }

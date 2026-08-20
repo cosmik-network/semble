@@ -1,10 +1,15 @@
-import { eq, inArray, and } from 'drizzle-orm';
+import { eq, inArray, and, or, isNull } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { IConnectionRepository } from '../../domain/IConnectionRepository';
 import { Connection } from '../../domain/Connection';
 import { ConnectionId } from '../../domain/value-objects/ConnectionId';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import {
+  ConnectionType,
+  ConnectionTypeEnum,
+} from '../../domain/value-objects/ConnectionType';
+import { ConnectionNote } from '../../domain/value-objects/ConnectionNote';
 import { connections } from './schema/connection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
 import { ConnectionDTO, ConnectionMapper } from './mappers/ConnectionMapper';
@@ -378,6 +383,92 @@ export class DrizzleConnectionRepository implements IConnectionRepository {
       }
 
       return ok(domainConnections);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async findByCuratorIdenticalConnection(
+    curatorId: CuratorId,
+    source: UrlOrCardId,
+    target: UrlOrCardId,
+    type: ConnectionType,
+    note: ConnectionNote | undefined,
+  ): Promise<Result<Connection | null>> {
+    try {
+      // Rows written before connectionType defaulted to RELATED may have a
+      // NULL type. Those represent the same claim as an explicit RELATED, so
+      // match them too - otherwise a legacy row would get a duplicate.
+      const typeCondition =
+        type.value === ConnectionTypeEnum.RELATED
+          ? or(
+              eq(connections.connectionType, type.value),
+              isNull(connections.connectionType),
+            )
+          : eq(connections.connectionType, type.value);
+
+      // An absent note must match only rows that also have no note. Empty
+      // string and NULL are both stored for "no note", so treat them alike.
+      const noteCondition = note
+        ? eq(connections.note, note.value)
+        : or(isNull(connections.note), eq(connections.note, ''));
+
+      const connectionResults = await this.db
+        .select({
+          connection: connections,
+          publishedRecord: publishedRecords,
+        })
+        .from(connections)
+        .leftJoin(
+          publishedRecords,
+          eq(connections.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(
+            eq(connections.curatorId, curatorId.value),
+            eq(connections.sourceType, source.type),
+            eq(connections.sourceValue, source.stringValue),
+            eq(connections.targetType, target.type),
+            eq(connections.targetValue, target.stringValue),
+            typeCondition,
+            noteCondition,
+          ),
+        )
+        .orderBy(connections.createdAt)
+        .limit(1);
+
+      const result = connectionResults[0];
+      if (!result || !result.connection) {
+        return ok(null);
+      }
+
+      const connectionDTO: ConnectionDTO = {
+        id: result.connection.id,
+        curatorId: result.connection.curatorId,
+        sourceType: result.connection.sourceType,
+        sourceValue: result.connection.sourceValue,
+        sourceUrlMetadata: result.connection.sourceUrlMetadata
+          ? (result.connection.sourceUrlMetadata as any)
+          : undefined,
+        targetType: result.connection.targetType,
+        targetValue: result.connection.targetValue,
+        targetUrlMetadata: result.connection.targetUrlMetadata
+          ? (result.connection.targetUrlMetadata as any)
+          : undefined,
+        connectionType: result.connection.connectionType || undefined,
+        note: result.connection.note || undefined,
+        createdAt: result.connection.createdAt,
+        updatedAt: result.connection.updatedAt,
+        publishedRecordId: result.publishedRecord?.id || null,
+        publishedRecord: result.publishedRecord || undefined,
+      };
+
+      const domainResult = ConnectionMapper.toDomain(connectionDTO);
+      if (domainResult.isErr()) {
+        return err(domainResult.error);
+      }
+
+      return ok(domainResult.value);
     } catch (error) {
       return err(error as Error);
     }
