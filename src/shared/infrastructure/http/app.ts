@@ -189,6 +189,15 @@ export const createExpressApp = (
         header: 'X-API-Key',
         description: 'Pass your Semble API key in the X-API-Key header.',
       },
+      client_identification: {
+        header: 'X-Semble-Client',
+        required: false,
+        description:
+          'Optional. Send a short identifier for your integration (e.g. ' +
+          '"my-plugin") so Semble can understand which tools people use. ' +
+          'Values are lowercased; after lowercasing they must match ' +
+          '^[a-z0-9][a-z0-9_-]{0,31}$ or they are ignored.',
+      },
       meta: {
         openapi_url: `${apiBaseUrl}/api/openapi.json`,
         mcp_server_url: `${apiBaseUrl}/mcp`,
