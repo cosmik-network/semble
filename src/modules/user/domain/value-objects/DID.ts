@@ -15,8 +15,12 @@ export class DID extends ValueObject<DIDProps> {
   }
 
   public static create(did: string): Result<DID> {
-    if (!did || !did.startsWith('did:plc:')) {
-      return err(new Error("Invalid DID format. Must start with 'did:plc:'"));
+    if (!did || (!did.startsWith('did:plc:') && !did.startsWith('did:web:'))) {
+      return err(
+        new Error(
+          "Invalid DID format. Must start with 'did:plc:' or 'did:web:'",
+        ),
+      );
     }
 
     return ok(new DID({ value: did }));
