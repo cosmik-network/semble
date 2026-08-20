@@ -9,6 +9,7 @@ import {
 } from '../lexicon/types/network/cosmik/card';
 import { StrongRef } from '../../domain';
 import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { toUrlMetadataJSON } from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
@@ -104,6 +105,9 @@ export class CardMapper {
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,
+      // Lexicon requires format: 'datetime' (RFC-3339), so serialize the Date.
+      // toIso guards against Invalid Date, which would throw in toISOString().
+      publishedDate: toUrlMetadataJSON(metadata).publishedDate,
       siteName: metadata.siteName,
       imageUrl: metadata.imageUrl,
       type: metadata.type,
