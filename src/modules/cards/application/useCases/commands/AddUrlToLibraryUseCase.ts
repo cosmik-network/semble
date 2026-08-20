@@ -100,25 +100,15 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       let urlCard = existingUrlCardResult.value;
       if (!urlCard) {
-        // Fetch metadata for URL
-        const metadataResult = await this.metadataService.fetchMetadata(
-          url,
-          true,
-        );
-        let metadata: UrlMetadata;
-        if (metadataResult.isOk()) {
-          metadata = metadataResult.value;
-        } else {
-          metadata = UrlMetadata.create({ url: url.value }).unwrap();
-        }
-
-        // If metadata fetching fails, we continue without metadata
+        // Prime the metadata cache, but don't block on it's results
+        setTimeout(() => this.metadataService.fetchMetadata(url, true), 0);
 
         // Create URL card
+        // Only store user-edited metadata in the PDS
         const urlCardInput: IUrlCardInput = {
           type: CardTypeEnum.URL,
           url: url.value,
-          metadata: metadata,
+          metadata: UrlMetadata.create({ url: url.value }).unwrap(),
           viaCardId: request.viaCardId,
         };
 
