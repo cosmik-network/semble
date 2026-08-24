@@ -62,20 +62,30 @@ export default function MyFeedContainer() {
     refetch,
   } = activeFeed;
 
-  // Hold the loader briefly so a fast refetch still plays its animation.
-  const [showRefetchLoader, setShowRefetchLoader] = useState(false);
+  // Visibility during the refetch itself is derived, not stored. Only the
+  // tail — holding the loader open briefly after the refetch ends, so a fast
+  // one still plays its animation instead of flashing — needs state.
+  const [isHoldingLoader, setIsHoldingLoader] = useState(false);
+  const [wasRefetching, setWasRefetching] = useState(isRefetching);
+
+  // Adjusted during render (React's "derive from previous props" pattern)
+  // rather than in an effect, which would leave the loader a frame behind.
+  if (wasRefetching !== isRefetching) {
+    setWasRefetching(isRefetching);
+    if (!isRefetching) setIsHoldingLoader(true);
+  }
+
+  const showRefetchLoader = isRefetching || isHoldingLoader;
 
   useEffect(() => {
-    if (isRefetching) {
-      setShowRefetchLoader(true);
-    } else if (showRefetchLoader) {
-      const timer = setTimeout(
-        () => setShowRefetchLoader(false),
-        MIN_REFETCH_LOADER_MS,
-      );
-      return () => clearTimeout(timer);
-    }
-  }, [isRefetching, showRefetchLoader]);
+    if (!isHoldingLoader) return;
+
+    const timer = setTimeout(
+      () => setIsHoldingLoader(false),
+      MIN_REFETCH_LOADER_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [isHoldingLoader]);
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
