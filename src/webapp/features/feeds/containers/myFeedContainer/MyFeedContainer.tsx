@@ -21,6 +21,8 @@ import { CardSaveSource } from '@/features/analytics/types';
 import { useState, useEffect } from 'react';
 import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
+const MIN_REFETCH_LOADER_MS = 400;
+
 export default function MyFeedContainer() {
   const pathname = usePathname();
   const { settings } = useUserSettings();
@@ -47,7 +49,6 @@ export default function MyFeedContainer() {
     enabled: selectedFeed === 'following',
   });
 
-  // Use the appropriate feed based on selection
   const activeFeed = selectedFeed === 'following' ? followingFeed : globalFeed;
 
   const {
@@ -61,18 +62,17 @@ export default function MyFeedContainer() {
     refetch,
   } = activeFeed;
 
-  // Ensure animation is visible even for fast refetches
+  // Hold the loader briefly so a fast refetch still plays its animation.
   const [showRefetchLoader, setShowRefetchLoader] = useState(false);
-  const MIN_DISPLAY_TIME = 400; // milliseconds
 
   useEffect(() => {
     if (isRefetching) {
       setShowRefetchLoader(true);
     } else if (showRefetchLoader) {
-      // Keep showing the loader for minimum time to ensure animation completes
-      const timer = setTimeout(() => {
-        setShowRefetchLoader(false);
-      }, MIN_DISPLAY_TIME);
+      const timer = setTimeout(
+        () => setShowRefetchLoader(false),
+        MIN_REFETCH_LOADER_MS,
+      );
       return () => clearTimeout(timer);
     }
   }, [isRefetching, showRefetchLoader]);
@@ -112,29 +112,25 @@ export default function MyFeedContainer() {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-            <Stack gap={60}>
-              {allActivities.map((item) => (
-                <Box
-                  key={item.id}
-                  style={{
-                    contentVisibility: 'auto',
-                    containIntrinsicSize: 'auto 400px',
+          <Stack gap={60} mx={'auto'} maw={600} w={'100%'}>
+            {allActivities.map((item) => (
+              <Box
+                key={item.id}
+                style={{
+                  contentVisibility: 'auto',
+                  containIntrinsicSize: 'auto 400px',
+                }}
+              >
+                <FeedItem
+                  item={item}
+                  analyticsContext={{
+                    saveSource: CardSaveSource.FEED,
+                    activeFilters: { urlType: selectedUrlType },
+                    pagePath: pathname,
                   }}
-                >
-                  <FeedItem
-                    item={item}
-                    analyticsContext={{
-                      saveSource: CardSaveSource.FEED,
-                      activeFilters: {
-                        urlType: selectedUrlType,
-                      },
-                      pagePath: pathname,
-                    }}
-                  />
-                </Box>
-              ))}
-            </Stack>
+                />
+              </Box>
+            ))}
           </Stack>
         </InfiniteScroll>
       )}
