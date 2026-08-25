@@ -111,11 +111,12 @@ export const searchContract = c.router(
         collectionWeight: z.coerce.number().optional(),
         connectionWeight: z.coerce.number().optional(),
         randomness: z.coerce.number().optional(),
+        urlType: UrlTypeSchema.optional(),
       }),
       responses: { 200: RecommendedUrlsResponseSchema },
       summary: 'Recommended URLs',
       description:
-        "Returns URLs recommended for a set of query strings. Each query's matches are ranked independently by network activity (saves, notes, collections, connections) with randomized ordering, then interleaved round-robin so no single query crowds out the others. Excludes URLs the calling user already saved. Ranking weights can be overridden per request; each distinct weight set is cached separately. Paginated over a cached ranked set. When no queries are given, they are derived from random recent cards in the calling user's library (falling back to their profile bio); the derived queries are returned so later pages can pass them back.",
+        "Returns URLs recommended for a set of query strings. Each query's matches are ranked independently by network activity (saves, notes, collections, connections) with randomized ordering, then interleaved round-robin so no single query crowds out the others. Excludes URLs the calling user already saved. Ranking weights can be overridden per request; each distinct weight set is cached separately. Optionally filtered to a single `urlType`; changing it re-queries the vector database rather than reusing the cached ranked set. Paginated over a cached ranked set. When no queries are given, they are derived from random recent cards in the calling user's library (falling back to their profile bio); the derived queries are returned so later pages can pass them back.",
       metadata: { internal: true } as const,
     },
     recommendedUsers: {
