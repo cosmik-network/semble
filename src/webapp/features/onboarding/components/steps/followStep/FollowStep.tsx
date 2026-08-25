@@ -134,7 +134,7 @@ export default function FollowStep(props: Props) {
           avatarUrl={user.avatarUrl}
           description={user.description}
           note={
-            user.followsOnBsky && <BlueskyNote>Followed on Bluesky</BlueskyNote>
+            user.followsOnBsky && <BlueskyNote>Following on Bluesky</BlueskyNote>
           }
           action={
             <FollowActionButton
