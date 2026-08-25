@@ -1,4 +1,5 @@
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
+import { UrlType } from '@semble/types';
 import { getRecommendedUrls } from '../dal';
 import { cardKeys } from '../cardKeys';
 import { RankingWeights } from '../types/rankingWeights';
@@ -18,6 +19,7 @@ interface Props {
   nonce?: number;
   // Keep showing the previous pick while a new one loads.
   keepPreviousData?: boolean;
+  urlType?: UrlType;
 }
 
 export default function useRecommendedCards(props: Props) {
@@ -30,6 +32,7 @@ export default function useRecommendedCards(props: Props) {
       limit,
       props.weights,
       props.nonce,
+      props.urlType,
     ),
     placeholderData: props.keepPreviousData ? keepPreviousData : undefined,
     initialPageParam: 1,
@@ -39,6 +42,7 @@ export default function useRecommendedCards(props: Props) {
         page: pageParam,
         limit,
         weights: props.weights,
+        urlType: props.urlType,
       }),
     getNextPageParam: (lastPage) =>
       lastPage.pagination.hasMore

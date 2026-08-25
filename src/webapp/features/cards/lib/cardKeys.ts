@@ -62,6 +62,7 @@ export const cardKeys = {
     limit?: number,
     weights?: Partial<RankingWeights>,
     nonce?: number,
+    urlType?: UrlType,
   ) =>
     [
       ...cardKeys.recommended(),
@@ -69,6 +70,7 @@ export const cardKeys = {
       limit,
       weights ?? null,
       nonce ?? 0,
+      urlType ?? null,
       ...queries,
     ] as const,
 };
