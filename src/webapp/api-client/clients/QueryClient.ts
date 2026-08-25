@@ -352,6 +352,7 @@ export class QueryClient extends BaseClient {
         collectionWeight: params.collectionWeight,
         connectionWeight: params.connectionWeight,
         randomness: params.randomness,
+        urlType: params.urlType,
       },
     });
     return unwrap<RecommendedUrlsResponse>(res);

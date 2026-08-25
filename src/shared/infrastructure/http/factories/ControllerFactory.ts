@@ -21,6 +21,7 @@ import { GetMyCollectionsController } from '../../../../modules/cards/infrastruc
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { GetGemActivityFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGemActivityFeedController';
 import { GetFollowingFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetFollowingFeedController';
+import { GetBskyFollowingFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetBskyFollowingFeedController';
 import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { SemanticSearchUrlsController } from '../../../../modules/search/infrastructure/http/controllers/SemanticSearchUrlsController';
 import { RecommendedCardsController } from '../../../../modules/search/infrastructure/http/controllers/RecommendedCardsController';
@@ -161,6 +162,7 @@ export interface Controllers {
   getGlobalFeedController: GetGlobalFeedController;
   getGemActivityFeedController: GetGemActivityFeedController;
   getFollowingFeedController: GetFollowingFeedController;
+  getBskyFollowingFeedController: GetBskyFollowingFeedController;
   // Search controllers
   getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
   semanticSearchUrlsController: SemanticSearchUrlsController;
@@ -438,6 +440,9 @@ export class ControllerFactory {
       ),
       getFollowingFeedController: new GetFollowingFeedController(
         useCases.getFollowingFeedUseCase,
+      ),
+      getBskyFollowingFeedController: new GetBskyFollowingFeedController(
+        useCases.getBskyFollowingFeedUseCase,
       ),
       // Search controllers
       getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(

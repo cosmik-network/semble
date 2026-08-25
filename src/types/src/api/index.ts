@@ -42,6 +42,7 @@ export * from './users/onboardingState';
 export * from './feeds/global';
 export * from './feeds/gem';
 export * from './feeds/following';
+export * from './feeds/bskyFollowing';
 
 export * from './notifications/list';
 export * from './notifications/unreadCount';
