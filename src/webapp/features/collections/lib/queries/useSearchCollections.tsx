@@ -17,6 +17,7 @@ interface Props {
   sortBy?: CollectionSortField;
   accessType?: CollectionAccessType;
   identifier?: string;
+  sortOrder?: SortOrder;
   enabled?: boolean;
 }
 
@@ -30,6 +31,7 @@ export default function useSearchCollections(props: Props) {
       props.sortBy,
       props.accessType,
       props.identifier,
+      props.sortOrder,
     ),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
@@ -38,9 +40,13 @@ export default function useSearchCollections(props: Props) {
         limit,
         page: pageParam as number,
         collectionSortBy: props.sortBy,
-        sortOrder: props.sortBy
-          ? getCollectionsSortParams(props.sortBy).sortOrder
-          : undefined,
+        // An explicit order wins; otherwise fall back to the sensible default
+        // for the field (ascending for name, descending for the rest).
+        sortOrder:
+          props.sortOrder ??
+          (props.sortBy
+            ? getCollectionsSortParams(props.sortBy).sortOrder
+            : undefined),
         accessType: props.accessType,
         identifier: props.identifier,
       }),
