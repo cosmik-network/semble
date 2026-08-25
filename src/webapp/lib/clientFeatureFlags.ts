@@ -12,6 +12,9 @@ interface FeatureFlags {
   connections: boolean;
   graphView: boolean;
   readerMode: boolean;
+  onboarding: boolean;
+  bskyFollows: boolean;
+  newConnectionTypes: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {
