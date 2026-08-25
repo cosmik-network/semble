@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { getRecommendedUrls } from '../dal';
 import { cardKeys } from '../cardKeys';
 import { RankingWeights } from '../types/rankingWeights';
@@ -14,6 +14,10 @@ interface Props {
   enabled?: boolean;
   // Ranking weight overrides; changing these re-ranks server-side.
   weights?: Partial<RankingWeights>;
+  // Bump to force a fresh pick with otherwise identical inputs.
+  nonce?: number;
+  // Keep showing the previous pick while a new one loads.
+  keepPreviousData?: boolean;
 }
 
 export default function useRecommendedCards(props: Props) {
@@ -21,7 +25,13 @@ export default function useRecommendedCards(props: Props) {
 
   return useInfiniteQuery({
     enabled: props.enabled ?? true,
-    queryKey: cardKeys.recommendedInfinite(props.queries, limit, props.weights),
+    queryKey: cardKeys.recommendedInfinite(
+      props.queries,
+      limit,
+      props.weights,
+      props.nonce,
+    ),
+    placeholderData: props.keepPreviousData ? keepPreviousData : undefined,
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getRecommendedUrls({
