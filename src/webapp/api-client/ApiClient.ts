@@ -32,6 +32,7 @@ import type {
   GetMyCollectionsParams,
   GetGlobalFeedParams,
   GetFollowingFeedParams,
+  GetBskyFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -566,6 +567,12 @@ export class ApiClient {
     params?: GetFollowingFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getFollowingFeed(params);
+  }
+
+  async getBskyFollowingFeed(
+    params?: GetBskyFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getBskyFollowingFeed(params);
   }
 
   // Notification operations - delegate to NotificationClient

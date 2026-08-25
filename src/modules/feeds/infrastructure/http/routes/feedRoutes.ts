@@ -2,6 +2,7 @@ import { IRouter } from 'express';
 import { GetGlobalFeedController } from '../controllers/GetGlobalFeedController';
 import { GetGemActivityFeedController } from '../controllers/GetGemActivityFeedController';
 import { GetFollowingFeedController } from '../controllers/GetFollowingFeedController';
+import { GetBskyFollowingFeedController } from '../controllers/GetBskyFollowingFeedController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { routes } from '@semble/types';
 import { feedsContract } from '@semble/contract';
@@ -13,6 +14,7 @@ export function registerFeedRoutes(
   getGlobalFeedController: GetGlobalFeedController,
   getGemActivityFeedController: GetGemActivityFeedController,
   getFollowingFeedController: GetFollowingFeedController,
+  getBskyFollowingFeedController: GetBskyFollowingFeedController,
 ): void {
   app.get(
     routes.feeds.global.path,
@@ -33,5 +35,12 @@ export function registerFeedRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(feedsContract.followingFeed.query),
     (req, res) => getFollowingFeedController.execute(req, res),
+  );
+
+  app.get(
+    routes.feeds.bskyFollowing.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(feedsContract.bskyFollowingFeed.query),
+    (req, res) => getBskyFollowingFeedController.execute(req, res),
   );
 }

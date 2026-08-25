@@ -102,6 +102,7 @@ export const paths = {
   globalFeed: '/network.cosmik.feed.getGlobal',
   gemFeed: '/network.cosmik.feed.getGem',
   followingFeed: '/network.cosmik.feed.getFollowing',
+  bskyFollowingFeed: '/network.cosmik.feed.getBskyFollowing',
   // notifications
   myNotifications: '/network.cosmik.notification.list',
   unreadCount: '/network.cosmik.notification.getUnreadCount',
@@ -201,6 +202,7 @@ export const routes = {
     global: defineRoute(paths.globalFeed, 'GET', false),
     gem: defineRoute(paths.gemFeed, 'GET', false),
     following: defineRoute(paths.followingFeed, 'GET', true),
+    bskyFollowing: defineRoute(paths.bskyFollowingFeed, 'GET', true),
   },
   notifications: {
     myNotifications: defineRoute(paths.myNotifications, 'GET', true),

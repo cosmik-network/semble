@@ -31,6 +31,7 @@ import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
 import { GetFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetFollowingFeedUseCase';
+import { GetBskyFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetBskyFollowingFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
@@ -191,6 +192,7 @@ export interface UseCases {
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
   getFollowingFeedUseCase: GetFollowingFeedUseCase;
+  getBskyFollowingFeedUseCase: GetBskyFollowingFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
@@ -577,6 +579,15 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         repositories.connectionRepository,
         repositories.followsRepository,
+      ),
+      getBskyFollowingFeedUseCase: new GetBskyFollowingFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+        repositories.connectionRepository,
+        repositories.followsRepository,
+        services.bskyFollowsService,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

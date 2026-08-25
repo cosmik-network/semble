@@ -361,6 +361,7 @@ export const createExpressApp = (
       controllers.getGlobalFeedController,
       controllers.getGemActivityFeedController,
       controllers.getFollowingFeedController,
+      controllers.getBskyFollowingFeedController,
     );
 
     registerSearchRoutes(
