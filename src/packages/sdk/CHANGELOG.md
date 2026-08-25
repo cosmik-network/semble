@@ -1,3 +1,22 @@
+# sdk-v0.0.8 - 2026-08-25
+
+No new or removed endpoints. This release widens one shared type.
+
+## Modified types
+
+- `ConnectionType` — added two values: `SAME_AS` (source and target are the same thing in a different place, e.g. a mirror, reupload or DOI) and `REFERENCES` (source cites or points to the target). The existing eight values are unchanged.
+
+  Because this is a widening, existing code keeps compiling. Note that any exhaustive `switch` or mapping over `ConnectionType` will now need to handle the two new values, and endpoints that return a `connectionType` may return them.
+
+## Modified endpoints
+
+The new values are accepted and returned wherever `ConnectionType` already appeared:
+
+- `createConnection` (`POST /network.cosmik.connection.create`) — `connectionType` accepts the new values.
+- `updateConnection` (`POST /network.cosmik.connection.update`) — `connectionType` accepts the new values.
+- `connectionsForUrl` (`GET /network.cosmik.connection.getForUrl`) — the `connectionTypes` filter accepts the new values.
+- `connectionsByUser` (`GET /network.cosmik.connection.listByUser`) — the `connectionTypes` filter accepts the new values.
+
 # sdk-v0.0.7 - 2026-08-25
 
 ## New endpoints
