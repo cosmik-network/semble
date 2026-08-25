@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getRecommendedUsers } from '../dal';
-import { onboardingKeys } from '../onboardingKeys';
+import { profileKeys } from '../profileKeys';
 
 interface Props {
   urls: string[];
@@ -9,9 +9,11 @@ interface Props {
 
 export default function useRecommendedUsers(props: Props) {
   return useQuery({
-    queryKey: onboardingKeys.recommendedUsers(props.urls),
+    queryKey: profileKeys.recommended(props.urls),
     queryFn: () => getRecommendedUsers(props.urls),
     enabled: (props.enabled ?? true) && props.urls.length > 0,
+    // Keep the current list on screen while a new set loads.
+    placeholderData: keepPreviousData,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

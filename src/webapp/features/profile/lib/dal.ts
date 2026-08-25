@@ -23,3 +23,8 @@ export const getMyProfile = cache(async (includeStats?: boolean) => {
 
   return response;
 });
+
+export const getRecommendedUsers = async (urls: string[]) => {
+  const client = createSembleClient();
+  return client.getRecommendedUsers({ urls });
+};

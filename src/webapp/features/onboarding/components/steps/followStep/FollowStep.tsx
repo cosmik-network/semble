@@ -13,8 +13,8 @@ import {
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import { MdErrorOutline, MdPersonSearch } from 'react-icons/md';
-import type useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
-import type useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
+import type useRecommendedUsers from '@/features/profile/lib/queries/useRecommendedUsers';
+import type useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
@@ -134,7 +134,9 @@ export default function FollowStep(props: Props) {
           avatarUrl={user.avatarUrl}
           description={user.description}
           note={
-            user.followsOnBsky && <BlueskyNote>Following on Bluesky</BlueskyNote>
+            user.followsOnBsky && (
+              <BlueskyNote>Following on Bluesky</BlueskyNote>
+            )
           }
           action={
             <FollowActionButton
@@ -194,7 +196,7 @@ export default function FollowStep(props: Props) {
                   label: (
                     <Group gap={6} wrap="nowrap" justify="center">
                       <FaBluesky size={14} />
-                      <span>Your Bluesky circle</span>
+                      <span>Followed on Bluesky</span>
                     </Group>
                   ),
                   value: 'bluesky',

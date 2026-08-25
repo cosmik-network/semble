@@ -237,3 +237,8 @@ export const getCollectionContributors = cache(
     return response;
   },
 );
+
+export const getRecommendedCollections = async (urls: string[]) => {
+  const client = createSembleClient();
+  return client.getRecommendedCollections({ urls });
+};
