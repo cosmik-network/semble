@@ -21,11 +21,22 @@ export function encodeAnswer(selected: string[], otherText: string): string[] {
   // of the ranked values, giving a dimension a count with nothing behind it.
   const ids = selected.map((id) => id.trim()).filter(Boolean);
 
-  const text = otherText.trim().slice(0, MAX_OTHER_LENGTH);
+  // Deliberately not trimmed: this round-trips back into the textarea on every
+  // keystroke, and trimming here eats a trailing space as fast as it is typed.
+  // encodeFinalAnswer does the sanitizing on the way out of the stage.
+  const text = otherText.slice(0, MAX_OTHER_LENGTH);
 
   return ids.includes(OTHER_ID) && text.length > 0
     ? [...ids, `${OTHER_PREFIX}${text}`]
     : ids;
+}
+
+/** The persisted form: use when committing the stage, not while editing. */
+export function encodeFinalAnswer(
+  selected: string[],
+  otherText: string,
+): string[] {
+  return encodeAnswer(selected, otherText.trim());
 }
 
 export function decodeAnswer(stored: string[] | null | undefined): {

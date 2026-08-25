@@ -18,8 +18,7 @@ export async function GET() {
       connections: false,
       graphView: false,
       readerMode: false,
-      onboarding: false,
-      bskyFollows: false,
+      onboarding: true,
     });
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@semble.so/api",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A fully-typed Semble API client",
   "repository": {
     "type": "git",
