@@ -1,3 +1,11 @@
+# sdk-v0.0.7 - 2026-08-25
+
+## New endpoints
+
+- `bskyFollowingFeed` (`GET /network.cosmik.feed.getBskyFollowing`) — activity feed of the Semble users you follow on Bluesky. Requires authentication. Query: `GetBskyFollowingFeedParams` (`page`, `limit`, optional `beforeActivityId`, `urlType`, `source`, `activityTypes`, `includeKnownBots`). Returns `GetGlobalFeedResponse`, the same shape as the global and following feeds.
+
+New shared type: `GetBskyFollowingFeedParams`.
+
 # sdk-v0.0.6 - 2026-08-20
 
 No new or removed endpoints. This release fixes response payloads and changes the behaviour of one endpoint.
