@@ -49,6 +49,7 @@ import { RecommendedCardsUseCase } from '../../../../modules/search/application/
 import { RedisFactory } from '../../redis/RedisFactory';
 import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
 import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
+import { GlobalFeedSeedService } from '../../../../modules/feeds/application/services/GlobalFeedSeedService';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
@@ -225,6 +226,13 @@ export class UseCaseFactory {
         : RedisFactory.createConnection(
             services.configService.getRedisConfig(),
           );
+
+    // Supplies seed cards from recent global feed activity to the
+    // recommendation use cases when there's no authenticated caller.
+    const globalFeedSeedService = new GlobalFeedSeedService(
+      repositories.feedRepository,
+      repositories.cardQueryRepository,
+    );
 
     const getCollectionPageUseCase = new GetCollectionPageUseCase(
       repositories.collectionRepository,
@@ -589,6 +597,8 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
         recommendedCardsRedis,
+        undefined,
+        globalFeedSeedService,
       ),
       recommendedUsersUseCase: new RecommendedUsersUseCase(
         repositories.cardQueryRepository,
@@ -601,6 +611,8 @@ export class UseCaseFactory {
         repositories.followsRepository,
         services.bskyFollowsService,
         services.profileService,
+        undefined,
+        globalFeedSeedService,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
         services.atProtoAgentService,

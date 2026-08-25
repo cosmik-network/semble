@@ -59,7 +59,9 @@ export const RecommendedCollectionSchema = CollectionSchema.extend({
 export type RecommendedCollection = z.infer<typeof RecommendedCollectionSchema>;
 
 export const RecommendedCollectionsParamsSchema = z.object({
-  urls: z.array(z.string()),
+  // Required when authenticated. Unauthenticated callers may omit this, in
+  // which case seed URLs are drawn from random recent global feed cards.
+  urls: z.array(z.string()).optional(),
 });
 export type RecommendedCollectionsParams = z.infer<
   typeof RecommendedCollectionsParamsSchema

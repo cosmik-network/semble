@@ -16,6 +16,7 @@ import {
 } from '../../../../cards/domain/ICardQueryRepository';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { GlobalFeedSeedService } from '../../../../feeds/application/services/GlobalFeedSeedService';
 
 export interface RecommendationRankingConfig {
   urlCardWeight: number;
@@ -89,6 +90,9 @@ export class RecommendedCardsUseCase implements UseCase<
     // the ranking is recomputed on every request.
     private redis?: Redis,
     config?: Partial<RecommendationRankingConfig>,
+    // Used to derive seed queries for unauthenticated callers, who have no
+    // library to sample from. Absent in setups without a feed repository.
+    private globalFeedSeedService?: GlobalFeedSeedService,
   ) {
     this.config = { ...DEFAULT_RANKING_CONFIG, ...config };
   }
@@ -178,11 +182,12 @@ export class RecommendedCardsUseCase implements UseCase<
   /**
    * Derives query strings for a caller who didn't provide any: title +
    * description of random recent library cards, falling back to the profile
-   * bio. Returns an empty array when nothing usable exists.
+   * bio. Unauthenticated callers instead seed from random recent cards in the
+   * global feed. Returns an empty array when nothing usable exists.
    */
   private async deriveQueries(callingUserId?: string): Promise<string[]> {
     if (!callingUserId) {
-      return [];
+      return this.deriveQueriesFromGlobalFeed();
     }
 
     const recentCards = await this.cardQueryRepository.getUrlCardsOfUser(
@@ -220,6 +225,27 @@ export class RecommendedCardsUseCase implements UseCase<
       ? profileResult.value.bio?.trim()
       : undefined;
     return bio ? [bio] : [];
+  }
+
+  /**
+   * Seeds from the network rather than a library: random recent cards out of
+   * the latest global feed activity. Returns an empty array when no feed seed
+   * service is configured or the feed yields nothing usable.
+   */
+  private async deriveQueriesFromGlobalFeed(): Promise<string[]> {
+    if (!this.globalFeedSeedService) {
+      return [];
+    }
+
+    const seedCards = await this.globalFeedSeedService.getSeedCards();
+
+    return seedCards
+      .map((card) =>
+        [card.cardContent.title?.trim(), card.cardContent.description?.trim()]
+          .filter(Boolean)
+          .join(' '),
+      )
+      .filter((query) => query.length > 0);
   }
 
   private pickRandom<T>(items: T[], count: number): T[] {
