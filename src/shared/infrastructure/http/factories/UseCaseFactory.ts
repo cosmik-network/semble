@@ -31,6 +31,7 @@ import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { GetGemActivityFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGemActivityFeedUseCase';
 import { GetFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetFollowingFeedUseCase';
+import { GetBskyFollowingFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetBskyFollowingFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
@@ -49,6 +50,7 @@ import { RecommendedCardsUseCase } from '../../../../modules/search/application/
 import { RedisFactory } from '../../redis/RedisFactory';
 import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
 import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
+import { GlobalFeedSeedService } from '../../../../modules/feeds/application/services/GlobalFeedSeedService';
 import { SearchBskyPostsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchBskyPostsForUrlUseCase';
 import { SearchAtProtoAccountsUseCase } from '../../../../modules/search/application/use-cases/SearchAtProtoAccountsUseCase';
 import { SearchLeafletDocsForUrlUseCase } from '../../../../modules/search/application/use-cases/SearchLeafletDocsForUrlUseCase';
@@ -190,6 +192,7 @@ export interface UseCases {
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   getGemActivityFeedUseCase: GetGemActivityFeedUseCase;
   getFollowingFeedUseCase: GetFollowingFeedUseCase;
+  getBskyFollowingFeedUseCase: GetBskyFollowingFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   // Search use cases
   getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
@@ -225,6 +228,13 @@ export class UseCaseFactory {
         : RedisFactory.createConnection(
             services.configService.getRedisConfig(),
           );
+
+    // Supplies seed cards from recent global feed activity to the
+    // recommendation use cases when there's no authenticated caller.
+    const globalFeedSeedService = new GlobalFeedSeedService(
+      repositories.feedRepository,
+      repositories.cardQueryRepository,
+    );
 
     const getCollectionPageUseCase = new GetCollectionPageUseCase(
       repositories.collectionRepository,
@@ -570,6 +580,15 @@ export class UseCaseFactory {
         repositories.connectionRepository,
         repositories.followsRepository,
       ),
+      getBskyFollowingFeedUseCase: new GetBskyFollowingFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+        repositories.connectionRepository,
+        repositories.followsRepository,
+        services.bskyFollowsService,
+      ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
         repositories.cardRepository,
@@ -589,6 +608,8 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
         recommendedCardsRedis,
+        undefined,
+        globalFeedSeedService,
       ),
       recommendedUsersUseCase: new RecommendedUsersUseCase(
         repositories.cardQueryRepository,
@@ -601,6 +622,8 @@ export class UseCaseFactory {
         repositories.followsRepository,
         services.bskyFollowsService,
         services.profileService,
+        undefined,
+        globalFeedSeedService,
       ),
       searchBskyPostsForUrlUseCase: new SearchBskyPostsForUrlUseCase(
         services.atProtoAgentService,

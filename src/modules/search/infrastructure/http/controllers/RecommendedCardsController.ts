@@ -19,6 +19,7 @@ export class RecommendedCardsController extends Controller {
         collectionWeight,
         connectionWeight,
         randomness,
+        urlType,
       } = req.query;
 
       // A single ?queries=x arrives as a string; repeated params arrive as an
@@ -52,6 +53,7 @@ export class RecommendedCardsController extends Controller {
         page: page !== undefined ? Number(page) : undefined,
         limit: limit !== undefined ? Number(limit) : undefined,
         ranking: Object.keys(ranking).length > 0 ? ranking : undefined,
+        urlType: typeof urlType === 'string' ? urlType : undefined,
       });
 
       if (result.isErr()) {

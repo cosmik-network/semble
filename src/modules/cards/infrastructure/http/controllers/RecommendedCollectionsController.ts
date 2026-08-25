@@ -19,12 +19,11 @@ export class RecommendedCollectionsController extends Controller {
         (u): u is string => typeof u === 'string',
       );
 
-      if (urlList.length === 0) {
+      // Authenticated callers must say which URLs they want recommendations
+      // for. Unauthenticated ones may omit them and get seeds drawn from the
+      // global feed instead.
+      if (req.did && urlList.length === 0) {
         return this.fail(res, 'At least one urls parameter is required');
-      }
-
-      if (!req.did) {
-        return this.unauthorized(res);
       }
 
       const result = await this.recommendedCollectionsUseCase.execute({
