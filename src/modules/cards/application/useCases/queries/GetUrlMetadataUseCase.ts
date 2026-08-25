@@ -7,6 +7,10 @@ import { IConnectionQueryRepository } from '../../../domain/IConnectionQueryRepo
 import { UseCase } from 'src/shared/core/UseCase';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import {
+  toUrlMetadataDTO,
+  UrlMetadataDTO,
+} from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
 
 export interface GetUrlMetadataQuery {
   url: string;
@@ -15,15 +19,7 @@ export interface GetUrlMetadataQuery {
 }
 
 export interface GetUrlMetadataResult {
-  metadata: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    siteName?: string;
-    imageUrl?: string;
-    type?: string;
-  };
+  metadata: UrlMetadataDTO;
   stats?: {
     libraryCount: number;
     noteCount: number;
@@ -96,15 +92,7 @@ export class GetUrlMetadataUseCase implements UseCase<
 
       // Prepare the result
       const result: GetUrlMetadataResult = {
-        metadata: {
-          url: url.value,
-          title: metadata.title,
-          description: metadata.description,
-          author: metadata.author,
-          siteName: metadata.siteName,
-          imageUrl: metadata.imageUrl,
-          type: metadata.type,
-        },
+        metadata: { ...toUrlMetadataDTO(metadata), url: url.value },
       };
 
       // If includeStats is true, fetch aggregate statistics in parallel

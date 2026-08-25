@@ -60,6 +60,17 @@ export const connections = pgTable(
       createdAtConnectionTypeIdx: index(
         'idx_connections_created_at_connection_type',
       ).on(table.createdAt, table.connectionType),
+      // Supports the exact-duplicate lookup. The note is deliberately not
+      // indexed - notes run to 1000 chars and would risk the btree row-size
+      // limit. These four columns narrow to a handful of rows, and the note
+      // is compared against those from the heap.
+      curatorClaimIdx: index('connections_curator_claim_idx').on(
+        table.curatorId,
+        table.sourceValue,
+        table.targetValue,
+        table.connectionType,
+      ),
+
       // Index for AT-URI resolution joins from published_records
       publishedRecordIdIdx: index('idx_connections_published_record_id')
         .on(table.publishedRecordId)

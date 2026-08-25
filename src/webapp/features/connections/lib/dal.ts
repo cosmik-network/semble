@@ -1,3 +1,4 @@
+import { NoSessionError } from '@/api-client/errors';
 import { verifySessionOnClient, logoutUser } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import {
@@ -18,7 +19,7 @@ export const createConnection = cache(
     note?: string;
   }) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
 
     try {
@@ -45,7 +46,7 @@ export const searchUrls = cache(async (params: SearchUrlsParams) => {
 export const updateConnection = cache(
   async (request: UpdateConnectionRequest) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
 
     try {
@@ -60,7 +61,7 @@ export const updateConnection = cache(
 export const deleteConnection = cache(
   async (request: DeleteConnectionRequest) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
-    if (!session) throw new Error('No session found');
+    if (!session) throw new NoSessionError();
     const client = createSembleClient();
 
     try {

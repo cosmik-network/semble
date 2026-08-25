@@ -9,12 +9,43 @@ import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
+// How long to short-circuit restore() attempts for a DID whose OAuth session
+// is known to be gone. Kept short so a re-login on another machine (which we
+// can't observe via events) is picked up quickly; on this machine the
+// 'updated' event clears the entry immediately.
+const DEAD_SESSION_TTL_MS = 60_000;
+
+/**
+ * Only session-terminal failures should be negative-cached: a missing row or
+ * a rejected/revoked refresh token stays dead until the user re-authenticates.
+ * Transient failures (network, 5xx from the PDS) are rethrown by the library
+ * with their original error types and must NOT deny agents for the TTL.
+ */
+function isTerminalSessionError(error: unknown): boolean {
+  if (error instanceof AuthenticationError) return true; // our "no session found"
+  if (!(error instanceof Error)) return false;
+  return (
+    error.name === 'TokenRefreshError' ||
+    error.name === 'TokenRevokedError' ||
+    error.name === 'TokenInvalidError'
+  );
+}
+
 export class ATProtoAgentService implements IAgentService {
+  /** DID -> negative-cache expiry timestamp (ms). */
+  private readonly deadOAuthSessions = new Map<string, number>();
+
   constructor(
     private readonly oauthClient: NodeOAuthClient,
     private readonly appPasswordSessionService: IAppPasswordSessionService,
     private readonly configService: EnvironmentConfigService,
-  ) {}
+  ) {
+    // A stored/refreshed session (incl. after an OAuth callback re-login)
+    // invalidates the negative cache for that DID.
+    this.oauthClient.addEventListener('updated', (event) => {
+      this.deadOAuthSessions.delete(event.detail.sub);
+    });
+  }
   getUnauthenticatedAgent(): Result<Agent, Error> {
     return ok(
       new Agent({
@@ -88,6 +119,21 @@ export class ATProtoAgentService implements IAgentService {
   async getAuthenticatedAgentByOAuthSession(
     did: DID,
   ): Promise<Result<Agent, Error>> {
+    // Negative cache: once a session is known dead, every restore() attempt
+    // re-fires the library's 'deleted' event and hits the store for nothing.
+    // Short-circuit until the TTL lapses or an 'updated' event clears it.
+    const deadUntil = this.deadOAuthSessions.get(did.value);
+    if (deadUntil !== undefined) {
+      if (Date.now() < deadUntil) {
+        return err(
+          new AuthenticationError(
+            'OAuth authentication failed: session recently found missing or revoked (negative cache)',
+          ),
+        );
+      }
+      this.deadOAuthSessions.delete(did.value);
+    }
+
     try {
       // Try to restore the session for the DID
       const oauthSession = await this.oauthClient.restore(did.value);
@@ -102,6 +148,9 @@ export class ATProtoAgentService implements IAgentService {
         'No OAuth session found for the provided DID',
       );
     } catch (error) {
+      if (isTerminalSessionError(error)) {
+        this.deadOAuthSessions.set(did.value, Date.now() + DEAD_SESSION_TTL_MS);
+      }
       return err(
         new AuthenticationError(
           `OAuth authentication failed: ${error instanceof Error ? error.message : String(error)}`,

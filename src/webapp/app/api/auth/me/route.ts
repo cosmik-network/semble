@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
 import { ENABLE_AUTH_LOGGING } from '@/lib/auth/constants';
 import { paths } from '@semble/types';
+import { deleteAuthCookies } from '@/lib/auth/cookies';
 
 const backendUrl =
   `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` || 'http://127.0.0.1:3000/api';
@@ -11,6 +12,13 @@ const backendUrl =
 type AuthResult = {
   isAuth: boolean;
   user?: GetProfileResponse;
+  /**
+   * Why isAuth is false: 'no_credentials' = plain guest, nothing to repair;
+   * 'reauth_required' = credentials existed but the session is dead and the
+   * client must send the user through login again. Omitted on transient
+   * failures where the client should not change auth state.
+   */
+  reason?: 'no_credentials' | 'reauth_required';
 };
 
 // Prevent concurrent refresh attempts
@@ -27,7 +35,10 @@ export async function GET(request: NextRequest) {
       if (ENABLE_AUTH_LOGGING) {
         console.log('[auth/me] No tokens found - user not authenticated');
       }
-      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
+      return NextResponse.json<AuthResult>(
+        { isAuth: false, reason: 'no_credentials' },
+        { status: 401 },
+      );
     }
 
     // Check if accessToken is expired/missing or expiring soon
@@ -73,8 +84,8 @@ export async function GET(request: NextRequest) {
         // If this is a refresh failure with backend response, forward the cookie-clearing headers
         if (error.backendResponse) {
           const response = NextResponse.json<AuthResult>(
-            { isAuth: false },
-            { status: 500 },
+            { isAuth: false, reason: 'reauth_required' },
+            { status: 401 },
           );
 
           // Forward the Set-Cookie headers from backend to clear cookies
@@ -82,6 +93,8 @@ export async function GET(request: NextRequest) {
             error.backendResponse.headers.get('set-cookie');
           if (setCookieHeader) {
             response.headers.set('Set-Cookie', setCookieHeader);
+          } else {
+            deleteAuthCookies(response);
           }
 
           return response;
@@ -92,11 +105,10 @@ export async function GET(request: NextRequest) {
           console.log('[auth/me] Clearing cookies due to token refresh error');
         }
         const response = NextResponse.json<AuthResult>(
-          { isAuth: false },
-          { status: 500 },
+          { isAuth: false, reason: 'reauth_required' },
+          { status: 401 },
         );
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
+        deleteAuthCookies(response);
         return response;
       } finally {
         refreshPromise = null;
@@ -139,11 +151,17 @@ export async function GET(request: NextRequest) {
           );
         }
         const response = NextResponse.json<AuthResult>(
-          { isAuth: false },
+          {
+            isAuth: false,
+            // A 401 from the backend with a token it just validated as a
+            // cookie means the session is not repairable client-side.
+            ...(profileResponse.status === 401
+              ? { reason: 'reauth_required' as const }
+              : {}),
+          },
           { status: profileResponse.status },
         );
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
+        deleteAuthCookies(response);
         return response;
       }
 
@@ -159,11 +177,10 @@ export async function GET(request: NextRequest) {
           );
         }
         const response = NextResponse.json<AuthResult>(
-          { isAuth: false },
+          { isAuth: false, reason: 'reauth_required' },
           { status: 401 },
         );
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
+        deleteAuthCookies(response);
         return response;
       }
 
@@ -175,31 +192,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
-      // Clear cookies on fetch error too
-      if (ENABLE_AUTH_LOGGING) {
-        console.log('[auth/me] Clearing cookies due to profile fetch error');
-      }
-      const response = NextResponse.json<AuthResult>(
-        { isAuth: false },
-        { status: 500 },
-      );
-      response.cookies.delete('accessToken');
-      response.cookies.delete('refreshToken');
-      return response;
+      // Transient (network/backend) failure: report it without a reason so
+      // the client keeps its current auth state, and without touching
+      // cookies — a backend blip is not proof the session is dead.
+      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
     }
   } catch (error) {
     console.error('Auth me error:', error);
     refreshPromise = null; // Reset on error
-    if (ENABLE_AUTH_LOGGING) {
-      console.log('[auth/me] Clearing cookies due to unexpected auth error');
-    }
-    const response = NextResponse.json<AuthResult>(
-      { isAuth: false },
-      { status: 500 },
-    );
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
-    return response;
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
 }
 
@@ -247,7 +248,15 @@ async function performTokenRefresh(
   });
 
   if (!profileResponse.ok) {
-    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
+    return NextResponse.json<AuthResult>(
+      {
+        isAuth: false,
+        ...(profileResponse.status === 401
+          ? { reason: 'reauth_required' as const }
+          : {}),
+      },
+      { status: 401 },
+    );
   }
 
   const user = await profileResponse.json();
@@ -261,11 +270,10 @@ async function performTokenRefresh(
       );
     }
     const response = NextResponse.json<AuthResult>(
-      { isAuth: false },
+      { isAuth: false, reason: 'reauth_required' },
       { status: 401 },
     );
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
+    deleteAuthCookies(response);
     return response;
   }
 

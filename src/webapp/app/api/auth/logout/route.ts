@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paths } from '@semble/types';
+import { deleteAuthCookies } from '@/lib/auth/cookies';
 
 const ENABLE_AUTH_LOGGING = true;
 
@@ -44,8 +45,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Clear cookies as fallback
-      response.cookies.delete('accessToken');
-      response.cookies.delete('refreshToken');
+      deleteAuthCookies(response);
 
       return response;
     }
@@ -63,8 +63,7 @@ export async function POST(request: NextRequest) {
       message: 'Logged out successfully (fallback)',
     });
 
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
+    deleteAuthCookies(response);
 
     return response;
   }
