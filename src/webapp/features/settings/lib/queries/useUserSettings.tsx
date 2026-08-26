@@ -40,6 +40,18 @@ const defaultSettings: UserSettings = {
  * that every other instance answers with a re-render. It also starts from
  * `defaultSettings` until its own effect runs, so a component that mounts one
  * renders a defaults-based frame even when the app hydrated long ago.
+ *
+ * That defaults-based frame was doing a second job, though: it also meant a
+ * server-rendered component always agreed with the server's own defaults on
+ * its first client render, whenever that render happened. Reading the shared
+ * provider gives that up — the provider has already read storage by the time
+ * anything in a later hydration pass renders, so a component that renders a
+ * stored value inside a Suspense boundary now hydrates against server HTML
+ * built from the defaults, and React refuses to patch the mismatch up.
+ * `CollectionsNavListContent` is the one place this bites today, and it holds
+ * the server's value for one render with `useMounted()` from `@mantine/hooks`.
+ * Anything else that SSRs a stored setting from inside a streamed boundary
+ * needs to do the same.
  */
 export function useUserSettings() {
   const [settings, setSettings] = useLocalStorage<UserSettings>({
