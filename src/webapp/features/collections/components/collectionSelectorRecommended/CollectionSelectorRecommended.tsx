@@ -86,7 +86,7 @@ export default function CollectionSelectorRecommended(props: Props) {
             No recommendations
           </Text>
           <Text fz="sm" c="gray" ta="center">
-            Save more similar cards to your collections to get recommendations
+            Save more cards to your collections to get recommendations
           </Text>
         </Stack>
       )}
