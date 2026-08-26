@@ -117,6 +117,95 @@ export class SearchService {
     }
   }
 
+  /**
+   * Finds URLs similar to the given URL and partitions them into everything
+   * that matched and the subset already saved by the given user.
+   *
+   * Callers that need both views (e.g. recommending both the user's own
+   * collections and open collections) should use this rather than calling
+   * findSimilarUrls twice: it casts a single wide net against the vector
+   * index and derives both sets from it, so the metadata fetch, the vector
+   * query and the library-context enrichment each happen once.
+   *
+   * `savedByUser` is a subset of `all`, both ordered by similarity.
+   */
+  async findSimilarUrlsPartitionedByUser(
+    url: URL,
+    options: {
+      limit: number;
+      userId: string;
+      threshold?: number;
+      urlType?: UrlType;
+      callingUserId?: string;
+    },
+  ): Promise<Result<{ all: UrlView[]; savedByUser: UrlView[] }>> {
+    try {
+      // 1. Metadata -> chunk -> search query (fetched once for both views)
+      const metadataResult = await this.metadataService.fetchMetadata(url);
+      if (metadataResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch metadata for similarity search: ${metadataResult.error.message}`,
+          ),
+        );
+      }
+      const chunk = Chunk.create(metadataResult.value);
+      const searchQuery = chunk.value || url.value;
+
+      // 2. One wide query against the index. Repeat queries return the same
+      // top candidates, so a single pool serves both partitions.
+      const searchResult = await this.vectorDatabase.semanticSearchUrls({
+        query: searchQuery,
+        limit: USER_FILTER_CANDIDATE_POOL,
+        topK: USER_FILTER_CANDIDATE_POOL,
+        threshold: options.threshold,
+        urlType: options.urlType,
+      });
+      if (searchResult.isErr()) {
+        return err(
+          new Error(`Vector search failed: ${searchResult.error.message}`),
+        );
+      }
+
+      const candidates = searchResult.value.filter((result) =>
+        this.isUsableCandidate(result, url.value),
+      );
+
+      // 3. Partition. Best-effort: either side may return fewer than limit.
+      const userUrlSet = await this.cardQueryRepository.getUrlsSavedByUser(
+        options.userId,
+        candidates.map((result) => result.url),
+      );
+
+      const all = candidates.slice(0, options.limit);
+      const savedByUser = candidates
+        .filter((result) => userUrlSet.has(result.url))
+        .slice(0, options.limit);
+
+      // 4. Enrich both partitions in one batch over their union
+      const unionByUrl = new Map(
+        [...all, ...savedByUser].map((result) => [result.url, result]),
+      );
+      const enriched = await this.enrichUrlsWithContext(
+        Array.from(unionByUrl.values()),
+        options.callingUserId,
+      );
+      const enrichedByUrl = new Map(enriched.map((view) => [view.url, view]));
+      const toViews = (results: typeof candidates) =>
+        results
+          .map((result) => enrichedByUrl.get(result.url))
+          .filter((view): view is UrlView => view !== undefined);
+
+      return ok({ all: toViews(all), savedByUser: toViews(savedByUser) });
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async semanticSearchUrls(
     query: string,
     options: {
@@ -178,20 +267,9 @@ export class SearchService {
     }
 
     // Filter out excluded URL and results with insufficient content
-    const filteredResults = searchResult.value.filter((result) => {
-      // Filter out the excluded URL if specified
-      if (options.excludeUrl && result.url === options.excludeUrl) {
-        return false;
-      }
-
-      // Create UrlMetadata from the search result metadata
-      const metadataResult = UrlMetadata.create(result.metadata);
-      if (metadataResult.isErr()) {
-        return false;
-      }
-      const chunk = Chunk.create(metadataResult.value);
-      return chunk.meetsMinLength();
-    });
+    const filteredResults = searchResult.value.filter((result) =>
+      this.isUsableCandidate(result, options.excludeUrl),
+    );
 
     // Limit to requested amount after filtering
     const limitedResults = filteredResults.slice(0, options.limit);
@@ -234,22 +312,11 @@ export class SearchService {
     );
 
     const filteredResults = searchResult.value
-      .filter((result) => {
-        if (!userUrlSet.has(result.url)) {
-          return false;
-        }
-
-        if (options.excludeUrl && result.url === options.excludeUrl) {
-          return false;
-        }
-
-        const metadataResult = UrlMetadata.create(result.metadata);
-        if (metadataResult.isErr()) {
-          return false;
-        }
-        const chunk = Chunk.create(metadataResult.value);
-        return chunk.meetsMinLength();
-      })
+      .filter(
+        (result) =>
+          userUrlSet.has(result.url) &&
+          this.isUsableCandidate(result, options.excludeUrl),
+      )
       .slice(0, options.limit);
 
     const enrichedResults = await this.enrichUrlsWithContext(
@@ -258,6 +325,24 @@ export class SearchService {
     );
 
     return ok(enrichedResults);
+  }
+
+  /**
+   * A candidate is usable if it isn't the URL we searched from and still has
+   * enough indexed content to be worth showing.
+   */
+  private isUsableCandidate(
+    result: { url: string; metadata: UrlMetadataProps },
+    excludeUrl?: string,
+  ): boolean {
+    if (excludeUrl && result.url === excludeUrl) {
+      return false;
+    }
+    const metadataResult = UrlMetadata.create(result.metadata);
+    if (metadataResult.isErr()) {
+      return false;
+    }
+    return Chunk.create(metadataResult.value).meetsMinLength();
   }
 
   private async enrichUrlsWithContext(

@@ -9,24 +9,15 @@ export type GetRecommendedCollectionsForUrlParams = z.infer<
   typeof GetRecommendedCollectionsForUrlParamsSchema
 >;
 
+/**
+ * Both sets are returned together so the recommendation runs a single
+ * similarity search. `myCollections` are the caller's own; `openCollections`
+ * are open collections from across the network, excluding the caller's.
+ */
 export const GetRecommendedCollectionsForUrlResponseSchema = z.object({
-  collections: z.array(CollectionSchema),
+  myCollections: z.array(CollectionSchema),
+  openCollections: z.array(CollectionSchema),
 });
 export type GetRecommendedCollectionsForUrlResponse = z.infer<
   typeof GetRecommendedCollectionsForUrlResponseSchema
->;
-
-export const GetRecommendedOpenCollectionsForUrlParamsSchema = z.object({
-  url: z.string(),
-  limit: z.number().optional(),
-});
-export type GetRecommendedOpenCollectionsForUrlParams = z.infer<
-  typeof GetRecommendedOpenCollectionsForUrlParamsSchema
->;
-
-export const GetRecommendedOpenCollectionsForUrlResponseSchema = z.object({
-  collections: z.array(CollectionSchema),
-});
-export type GetRecommendedOpenCollectionsForUrlResponse = z.infer<
-  typeof GetRecommendedOpenCollectionsForUrlResponseSchema
 >;
