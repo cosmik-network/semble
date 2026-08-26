@@ -41,41 +41,36 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
   },
 ];
 
-// The tiles read as categories, so they are plural where the word pluralises.
-// `upperFirst(type)` — what the filter controls elsewhere use — would give
-// "Article"/"Video", which reads as a single item rather than a shelf.
-const URL_TYPE_LABELS: Record<UrlType, string> = {
-  [UrlType.ARTICLE]: 'Articles',
-  [UrlType.VIDEO]: 'Videos',
-  [UrlType.AUDIO]: 'Audio',
-  [UrlType.RESEARCH]: 'Research',
-  [UrlType.BOOK]: 'Books',
-  [UrlType.SOCIAL]: 'Social',
-  [UrlType.SOFTWARE]: 'Software',
-  [UrlType.EVENT]: 'Events',
-  [UrlType.LINK]: 'Links',
-};
-
-// Ordered by how often they turn up, not by the enum, so the rail opens on
-// the types most readers want.
-const TYPE_ORDER: UrlType[] = [
-  UrlType.ARTICLE,
-  UrlType.VIDEO,
-  UrlType.AUDIO,
-  UrlType.RESEARCH,
-  UrlType.BOOK,
-  UrlType.SOCIAL,
-  UrlType.SOFTWARE,
-  UrlType.EVENT,
-  UrlType.LINK,
+/*
+ * The type rail, in the order it is read: by how often a type turns up rather
+ * than by the enum, so the rail opens on the types most readers want.
+ *
+ * Labels are plural where the word pluralises — the tiles read as categories,
+ * where `upperFirst(type)` (what the filter controls elsewhere use) would give
+ * "Article"/"Video" and read as a single item rather than a shelf.
+ *
+ * Order and label sit in one table so they cannot drift apart. Neither is
+ * exhaustive by type any more; the coverage test in `feedDestinations.test.ts`
+ * is what fails when a new `UrlType` is added without a tile.
+ */
+const TYPE_TILES: { type: UrlType; label: string }[] = [
+  { type: UrlType.ARTICLE, label: 'Articles' },
+  { type: UrlType.VIDEO, label: 'Videos' },
+  { type: UrlType.AUDIO, label: 'Audio' },
+  { type: UrlType.RESEARCH, label: 'Research' },
+  { type: UrlType.BOOK, label: 'Books' },
+  { type: UrlType.SOCIAL, label: 'Social' },
+  { type: UrlType.SOFTWARE, label: 'Software' },
+  { type: UrlType.EVENT, label: 'Events' },
+  { type: UrlType.LINK, label: 'Links' },
 ];
 
-export const TYPE_DESTINATIONS: FeedDestination[] = TYPE_ORDER.map((type) => ({
-  id: `type-${type}`,
-  label: URL_TYPE_LABELS[type],
+export const TYPE_DESTINATIONS: FeedDestination[] = TYPE_TILES.map((tile) => ({
+  id: `type-${tile.type}`,
+  label: tile.label,
   description: '',
   feedView: 'global',
-  urlType: type,
+  urlType: tile.type,
   requiresAuth: false,
 }));
 
