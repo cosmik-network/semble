@@ -20,10 +20,13 @@ export class CachedBskyFollowsService implements IBskyFollowsService {
   ) {}
 
   async getSembleUsersFollowedOnBsky(
-    callerDid: string,
+    actorDid: string,
     maxFollows?: number,
+    viewerDid?: string,
   ): Promise<Result<Map<string, BskyFollowedProfile>>> {
-    const cacheKey = this.getCacheKey(callerDid, maxFollows);
+    // Keyed on the actor only: follows are public, so the viewer used to make
+    // the request doesn't change the result.
+    const cacheKey = this.getCacheKey(actorDid, maxFollows);
 
     try {
       const cached = await this.redis.get(cacheKey);
@@ -33,7 +36,7 @@ export class CachedBskyFollowsService implements IBskyFollowsService {
           return ok(new Map(entries.map((p) => [p.did, p])));
         } catch (parseError) {
           console.warn(
-            `Failed to parse cached Bluesky follows for ${callerDid}:`,
+            `Failed to parse cached Bluesky follows for ${actorDid}:`,
             parseError,
           );
           // fall through to refetch
@@ -41,8 +44,9 @@ export class CachedBskyFollowsService implements IBskyFollowsService {
       }
 
       const result = await this.bskyFollowsService.getSembleUsersFollowedOnBsky(
-        callerDid,
+        actorDid,
         maxFollows,
+        viewerDid,
       );
 
       if (result.isErr()) {
@@ -58,7 +62,7 @@ export class CachedBskyFollowsService implements IBskyFollowsService {
         );
       } catch (cacheError) {
         console.warn(
-          `Failed to cache Bluesky follows for ${callerDid}:`,
+          `Failed to cache Bluesky follows for ${actorDid}:`,
           cacheError,
         );
       }
@@ -67,29 +71,30 @@ export class CachedBskyFollowsService implements IBskyFollowsService {
     } catch (redisError) {
       // If Redis is down, fall back to direct service call
       console.warn(
-        `Redis error when fetching Bluesky follows for ${callerDid}:`,
+        `Redis error when fetching Bluesky follows for ${actorDid}:`,
         redisError,
       );
       return this.bskyFollowsService.getSembleUsersFollowedOnBsky(
-        callerDid,
+        actorDid,
         maxFollows,
+        viewerDid,
       );
     }
   }
 
-  private getCacheKey(callerDid: string, maxFollows?: number): string {
-    return `${this.CACHE_KEY_PREFIX}${callerDid}:${maxFollows ?? 'default'}`;
+  private getCacheKey(actorDid: string, maxFollows?: number): string {
+    return `${this.CACHE_KEY_PREFIX}${actorDid}:${maxFollows ?? 'default'}`;
   }
 
   /**
-   * Invalidate the cached follows for a specific caller
+   * Invalidate the cached follows for a specific actor
    */
-  async invalidate(callerDid: string, maxFollows?: number): Promise<void> {
+  async invalidate(actorDid: string, maxFollows?: number): Promise<void> {
     try {
-      await this.redis.del(this.getCacheKey(callerDid, maxFollows));
+      await this.redis.del(this.getCacheKey(actorDid, maxFollows));
     } catch (error) {
       console.warn(
-        `Failed to invalidate Bluesky follows cache for ${callerDid}:`,
+        `Failed to invalidate Bluesky follows cache for ${actorDid}:`,
         error,
       );
     }

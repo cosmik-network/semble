@@ -1,12 +1,16 @@
 import { Response } from 'express';
 import { z } from 'zod';
-import { GetBskyFollowingFeedUseCase } from '../../../application/useCases/queries/GetBskyFollowingFeedUseCase';
+import {
+  GetBskyFollowingFeedUseCase,
+  ValidationError,
+} from '../../../application/useCases/queries/GetBskyFollowingFeedUseCase';
 import { Controller } from 'src/shared/infrastructure/http/Controller';
 import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
 import { GetGlobalFeedResponse, ActivitySource } from '@semble/types';
 
 // Zod schema for request validation
 const querySchema = z.object({
+  identifier: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
   beforeActivityId: z.string().optional(),
@@ -45,15 +49,13 @@ export class GetBskyFollowingFeedController extends Controller {
       }
 
       const params = validation.data;
-      const callerDid = req.did;
 
-      // Bluesky following feed requires authentication
-      if (!callerDid) {
-        return this.unauthorized(res, 'Authentication required');
-      }
-
+      // Auth is optional: the subject comes from `identifier` when provided,
+      // otherwise from the authenticated caller. The use case rejects the
+      // request when neither is available.
       const result = await this.getBskyFollowingFeedUseCase.execute({
-        callingUserId: callerDid,
+        callingUserId: req.did,
+        identifier: params.identifier,
         page: params.page || 1,
         limit: params.limit || 20,
         beforeActivityId: params.beforeActivityId,
@@ -64,6 +66,9 @@ export class GetBskyFollowingFeedController extends Controller {
       });
 
       if (result.isErr()) {
+        if (result.error instanceof ValidationError) {
+          return this.badRequest(res, result.error.message);
+        }
         return this.fail(res, result.error.message);
       }
 

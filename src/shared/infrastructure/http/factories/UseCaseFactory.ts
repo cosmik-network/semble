@@ -596,6 +596,7 @@ export class UseCaseFactory {
         repositories.connectionRepository,
         repositories.followsRepository,
         services.bskyFollowsService,
+        services.identityResolutionService,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
