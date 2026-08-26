@@ -173,7 +173,6 @@ export const collectionsContract = c.router(
       summary: 'Recommended collections to save a URL to',
       description:
         "Returns the authenticated user's own collections that contain URLs semantically similar to the given URL, ranked by how many similar URLs each collection contains.",
-      metadata: { internal: true } as const,
     },
     recommendedOpenCollectionsForUrl: {
       method: 'GET',
@@ -186,7 +185,6 @@ export const collectionsContract = c.router(
       summary: 'Recommended open collections to save a URL to',
       description:
         "Returns open collections from across the network that contain URLs semantically similar to the given URL, ranked by how many similar URLs each collection contains. Excludes the caller's own collections.",
-      metadata: { internal: true } as const,
     },
     collectionContributors: {
       method: 'GET',
