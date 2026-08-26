@@ -32,6 +32,9 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
     requiresAuth: true,
   },
   {
+    // Ungated on purpose. The `bskyFollows` flag is `showForTeam`, so only the
+    // team reaches /settings/bluesky-follows in production — that flag covers
+    // managing the follows, not reading the feed they produce.
     id: 'feed-bsky-following',
     label: feedViewLabel('bskyFollowing'),
     description: 'People you follow on Bluesky who are on Semble',
