@@ -35,14 +35,14 @@ function renderAction(
 
   if (action.kind === 'clearFilters') {
     return (
-      <Button variant="light" color="cyan" onClick={onClearFilters}>
+      <Button variant="light" color="gray" onClick={onClearFilters}>
         {action.label}
       </Button>
     );
   }
 
   return (
-    <LinkButton variant="light" color="blue" href={action.href}>
+    <LinkButton variant="light" color="gray" href={action.href}>
       {action.label}
     </LinkButton>
   );
