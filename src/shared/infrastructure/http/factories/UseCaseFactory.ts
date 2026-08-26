@@ -41,7 +41,6 @@ import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/appli
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetRecommendedCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetRecommendedCollectionsForUrlUseCase';
-import { GetRecommendedOpenCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetRecommendedOpenCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { GetConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForUrlUseCase';
 import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
@@ -179,7 +178,6 @@ export interface UseCases {
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getRecommendedCollectionsForUrlUseCase: GetRecommendedCollectionsForUrlUseCase;
-  getRecommendedOpenCollectionsForUrlUseCase: GetRecommendedOpenCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase;
   // Connection use cases
@@ -516,12 +514,6 @@ export class UseCaseFactory {
       ),
       getRecommendedCollectionsForUrlUseCase:
         new GetRecommendedCollectionsForUrlUseCase(
-          services.searchService,
-          repositories.collectionQueryRepository,
-          services.profileService,
-        ),
-      getRecommendedOpenCollectionsForUrlUseCase:
-        new GetRecommendedOpenCollectionsForUrlUseCase(
           services.searchService,
           repositories.collectionQueryRepository,
           services.profileService,

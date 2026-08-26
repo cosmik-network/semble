@@ -2,10 +2,9 @@
 
 ## New endpoints
 
-- `recommendedCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedForUrl`) — recommends which of your own collections to save a URL to, based on semantic similarity: returns the authenticated user's collections that contain URLs similar to the given URL, ranked by how many similar URLs each collection contains. Requires authentication. Query: `GetRecommendedCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedCollectionsForUrlResponse` (`collections: Collection[]`).
-- `recommendedOpenCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedOpenForUrl`) — same recommendation, but over open collections from across the network, excluding your own. Requires authentication. Query: `GetRecommendedOpenCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedOpenCollectionsForUrlResponse` (`collections: Collection[]`).
+- `recommendedCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedForUrl`) — recommends which collections to save a URL to, based on semantic similarity. Returns two sets in one response: `myCollections`, the authenticated user's own collections that contain URLs similar to the given URL, and `openCollections`, open collections from across the network that do the same, excluding the user's own. Each set is ranked by how many similar URLs the collection contains, and `limit` applies to each set independently. Requires authentication. Query: `GetRecommendedCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedCollectionsForUrlResponse` (`myCollections: Collection[]`, `openCollections: Collection[]`).
 
-New shared types: `GetRecommendedCollectionsForUrlParams`, `GetRecommendedCollectionsForUrlResponse`, `GetRecommendedOpenCollectionsForUrlParams`, `GetRecommendedOpenCollectionsForUrlResponse`.
+New shared types: `GetRecommendedCollectionsForUrlParams`, `GetRecommendedCollectionsForUrlResponse`.
 
 # sdk-v0.0.8 - 2026-08-25
 

@@ -42,6 +42,32 @@ import { toUrlMetadataView } from '../../../domain/value-objects/urlMetadataMapp
 export class UrlCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
 
+  /**
+   * Of the given URLs, return the subset the user has saved as URL cards.
+   * Served by cards_author_url_idx (author_id, url).
+   */
+  async getUrlsSavedByUser(
+    userId: string,
+    urls: string[],
+  ): Promise<Set<string>> {
+    if (urls.length === 0) {
+      return new Set();
+    }
+
+    const rows = await this.db
+      .selectDistinct({ url: cards.url })
+      .from(cards)
+      .where(
+        and(
+          eq(cards.authorId, userId),
+          eq(cards.type, CardTypeEnum.URL),
+          inArray(cards.url, urls),
+        ),
+      );
+
+    return new Set(rows.map((row) => row.url as string));
+  }
+
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,

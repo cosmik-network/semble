@@ -73,8 +73,6 @@ export const paths = {
   collectionContributors: '/network.cosmik.collection.getContributors',
   recommendedCollectionsForUrl:
     '/network.cosmik.collection.getRecommendedForUrl',
-  recommendedOpenCollectionsForUrl:
-    '/network.cosmik.collection.getRecommendedOpenForUrl',
   // users / actor
   myProfile: '/network.cosmik.actor.getMyProfile',
   userProfile: '/network.cosmik.actor.getProfile',
@@ -177,11 +175,6 @@ export const routes = {
     contributors: defineRoute(paths.collectionContributors, 'GET', false),
     recommendedForUrl: defineRoute(
       paths.recommendedCollectionsForUrl,
-      'GET',
-      true,
-    ),
-    recommendedOpenForUrl: defineRoute(
-      paths.recommendedOpenCollectionsForUrl,
       'GET',
       true,
     ),

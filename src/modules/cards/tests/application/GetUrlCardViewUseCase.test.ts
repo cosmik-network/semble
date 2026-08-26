@@ -486,6 +486,7 @@ describe('GetUrlCardViewUseCase', () => {
         getBatchUrlLibraryInfo: jest.fn(),
         getBatchUrlRankingStats: jest.fn(),
         getUsersForUrls: jest.fn(),
+        getUrlsSavedByUser: jest.fn(),
         getBatchUserActivityStats: jest.fn(),
         searchUrls: jest.fn(),
         getUrlAggregateStats: jest.fn(),

@@ -149,10 +149,15 @@ export interface ICollectionQueryRepository {
    * Get all distinct collections created by the given author that contain URL
    * cards with any of the given URLs, along with which of those URLs matched.
    * Used to recommend the author's own collections to save a URL to.
+   *
+   * `excludeUrl` drops collections that already contain a URL card with that
+   * URL, so recommendations only include collections the URL can still be
+   * added to.
    */
   getCollectionsForUrlsByAuthor(
     urls: string[],
     authorId: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
@@ -160,10 +165,15 @@ export interface ICollectionQueryRepository {
    * given URLs, along with which of those URLs matched. Optionally excludes
    * collections created by a given author (e.g. the calling user, whose own
    * collections are recommended separately).
+   *
+   * `excludeUrl` drops collections that already contain a URL card with that
+   * URL, so recommendations only include collections the URL can still be
+   * added to.
    */
   getOpenCollectionsForUrls(
     urls: string[],
     excludeAuthorId?: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**

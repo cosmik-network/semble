@@ -5,15 +5,15 @@ import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository
 import { IVectorDatabase, SemanticSearchUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types';
 import {
-  CardSortField,
-  SortOrder,
-} from '../../../cards/domain/ICardQueryRepository';
-import {
   UrlMetadata,
   UrlMetadataProps,
 } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../value-objects/Chunk';
 import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
+
+// Candidate pool for user-filtered searches: the index is network-wide, so
+// over-fetch in one query and filter down to the user's URLs in memory
+const USER_FILTER_CANDIDATE_POOL = 200;
 
 export class SearchService {
   constructor(
@@ -117,6 +117,95 @@ export class SearchService {
     }
   }
 
+  /**
+   * Finds URLs similar to the given URL and partitions them into everything
+   * that matched and the subset already saved by the given user.
+   *
+   * Callers that need both views (e.g. recommending both the user's own
+   * collections and open collections) should use this rather than calling
+   * findSimilarUrls twice: it casts a single wide net against the vector
+   * index and derives both sets from it, so the metadata fetch, the vector
+   * query and the library-context enrichment each happen once.
+   *
+   * `savedByUser` is a subset of `all`, both ordered by similarity.
+   */
+  async findSimilarUrlsPartitionedByUser(
+    url: URL,
+    options: {
+      limit: number;
+      userId: string;
+      threshold?: number;
+      urlType?: UrlType;
+      callingUserId?: string;
+    },
+  ): Promise<Result<{ all: UrlView[]; savedByUser: UrlView[] }>> {
+    try {
+      // 1. Metadata -> chunk -> search query (fetched once for both views)
+      const metadataResult = await this.metadataService.fetchMetadata(url);
+      if (metadataResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch metadata for similarity search: ${metadataResult.error.message}`,
+          ),
+        );
+      }
+      const chunk = Chunk.create(metadataResult.value);
+      const searchQuery = chunk.value || url.value;
+
+      // 2. One wide query against the index. Repeat queries return the same
+      // top candidates, so a single pool serves both partitions.
+      const searchResult = await this.vectorDatabase.semanticSearchUrls({
+        query: searchQuery,
+        limit: USER_FILTER_CANDIDATE_POOL,
+        topK: USER_FILTER_CANDIDATE_POOL,
+        threshold: options.threshold,
+        urlType: options.urlType,
+      });
+      if (searchResult.isErr()) {
+        return err(
+          new Error(`Vector search failed: ${searchResult.error.message}`),
+        );
+      }
+
+      const candidates = searchResult.value.filter((result) =>
+        this.isUsableCandidate(result, url.value),
+      );
+
+      // 3. Partition. Best-effort: either side may return fewer than limit.
+      const userUrlSet = await this.cardQueryRepository.getUrlsSavedByUser(
+        options.userId,
+        candidates.map((result) => result.url),
+      );
+
+      const all = candidates.slice(0, options.limit);
+      const savedByUser = candidates
+        .filter((result) => userUrlSet.has(result.url))
+        .slice(0, options.limit);
+
+      // 4. Enrich both partitions in one batch over their union
+      const unionByUrl = new Map(
+        [...all, ...savedByUser].map((result) => [result.url, result]),
+      );
+      const enriched = await this.enrichUrlsWithContext(
+        Array.from(unionByUrl.values()),
+        options.callingUserId,
+      );
+      const enrichedByUrl = new Map(enriched.map((view) => [view.url, view]));
+      const toViews = (results: typeof candidates) =>
+        results
+          .map((result) => enrichedByUrl.get(result.url))
+          .filter((view): view is UrlView => view !== undefined);
+
+      return ok({ all: toViews(all), savedByUser: toViews(savedByUser) });
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async semanticSearchUrls(
     query: string,
     options: {
@@ -178,20 +267,9 @@ export class SearchService {
     }
 
     // Filter out excluded URL and results with insufficient content
-    const filteredResults = searchResult.value.filter((result) => {
-      // Filter out the excluded URL if specified
-      if (options.excludeUrl && result.url === options.excludeUrl) {
-        return false;
-      }
-
-      // Create UrlMetadata from the search result metadata
-      const metadataResult = UrlMetadata.create(result.metadata);
-      if (metadataResult.isErr()) {
-        return false;
-      }
-      const chunk = Chunk.create(metadataResult.value);
-      return chunk.meetsMinLength();
-    });
+    const filteredResults = searchResult.value.filter((result) =>
+      this.isUsableCandidate(result, options.excludeUrl),
+    );
 
     // Limit to requested amount after filtering
     const limitedResults = filteredResults.slice(0, options.limit);
@@ -214,89 +292,57 @@ export class SearchService {
       filterByUserId?: string;
     },
   ): Promise<Result<UrlView[]>> {
-    const maxAttempts = 3;
-    const maxTotalFetched = 500; // Absolute limit to prevent excessive API calls
-    let attempt = 0;
-    let totalFetched = 0;
-    let currentLimit = Math.max(searchParams.limit * 3, 100);
-    const results: UrlView[] = [];
-    const processedUrls = new Set<string>();
-
-    while (
-      attempt < maxAttempts &&
-      results.length < options.limit &&
-      totalFetched < maxTotalFetched
-    ) {
-      attempt++;
-
-      // Adjust limit for this attempt
-      const remainingNeeded = options.limit - results.length;
-      const adjustedLimit = Math.min(
-        Math.max(remainingNeeded * 5, currentLimit),
-        maxTotalFetched - totalFetched,
+    // Single wide query: repeat queries against the index return the same
+    // top candidates, so cast one wide net and filter in memory. Best-effort —
+    // may return fewer than options.limit results.
+    const searchResult = await this.vectorDatabase.semanticSearchUrls({
+      ...searchParams,
+      limit: USER_FILTER_CANDIDATE_POOL,
+      topK: USER_FILTER_CANDIDATE_POOL,
+    });
+    if (searchResult.isErr()) {
+      return err(
+        new Error(`Vector search failed: ${searchResult.error.message}`),
       );
-
-      const adjustedParams = {
-        ...searchParams,
-        limit: adjustedLimit,
-      };
-
-      const searchResult =
-        await this.vectorDatabase.semanticSearchUrls(adjustedParams);
-      if (searchResult.isErr()) {
-        return err(
-          new Error(`Vector search failed: ${searchResult.error.message}`),
-        );
-      }
-
-      totalFetched += searchResult.value.length;
-
-      // Filter out excluded URL, insufficient content, and already processed URLs
-      const filteredResults = searchResult.value.filter((result) => {
-        if (processedUrls.has(result.url)) {
-          return false;
-        }
-
-        if (options.excludeUrl && result.url === options.excludeUrl) {
-          return false;
-        }
-
-        const metadataResult = UrlMetadata.create(result.metadata);
-        if (metadataResult.isErr()) {
-          return false;
-        }
-        const chunk = Chunk.create(metadataResult.value);
-        return chunk.meetsMinLength();
-      });
-
-      // Mark URLs as processed
-      filteredResults.forEach((result) => processedUrls.add(result.url));
-
-      // Enrich and filter by user
-      const enrichedResults = await this.enrichUrlsWithContextAndUserFilter(
-        filteredResults,
-        options.callingUserId,
-        options.filterByUserId,
-      );
-
-      // Add new results
-      for (const result of enrichedResults) {
-        if (results.length >= options.limit) break;
-        results.push(result);
-      }
-
-      // If we got fewer results than expected, increase the limit for next attempt
-      if (
-        enrichedResults.length < remainingNeeded &&
-        searchResult.value.length > 0
-      ) {
-        currentLimit = Math.min(currentLimit * 2, 200);
-      } else {
-        break; // We got enough results or no more results available
-      }
     }
 
-    return ok(results);
+    const userUrlSet = await this.cardQueryRepository.getUrlsSavedByUser(
+      options.filterByUserId!,
+      searchResult.value.map((result) => result.url),
+    );
+
+    const filteredResults = searchResult.value
+      .filter(
+        (result) =>
+          userUrlSet.has(result.url) &&
+          this.isUsableCandidate(result, options.excludeUrl),
+      )
+      .slice(0, options.limit);
+
+    const enrichedResults = await this.enrichUrlsWithContext(
+      filteredResults,
+      options.callingUserId,
+    );
+
+    return ok(enrichedResults);
+  }
+
+  /**
+   * A candidate is usable if it isn't the URL we searched from and still has
+   * enough indexed content to be worth showing.
+   */
+  private isUsableCandidate(
+    result: { url: string; metadata: UrlMetadataProps },
+    excludeUrl?: string,
+  ): boolean {
+    if (excludeUrl && result.url === excludeUrl) {
+      return false;
+    }
+    const metadataResult = UrlMetadata.create(result.metadata);
+    if (metadataResult.isErr()) {
+      return false;
+    }
+    return Chunk.create(metadataResult.value).meetsMinLength();
   }
 
   private async enrichUrlsWithContext(
@@ -341,75 +387,6 @@ export class SearchService {
         urlIsConnected: libraryInfo?.urlIsConnected,
       };
     });
-
-    return enrichedResults;
-  }
-
-  private async enrichUrlsWithContextAndUserFilter(
-    searchResults: Array<{
-      url: string;
-      similarity: number;
-      metadata: UrlMetadataProps;
-    }>,
-    callingUserId?: string,
-    filterByUserId?: string,
-  ): Promise<UrlView[]> {
-    // Extract all URLs
-    const urls = searchResults.map((result) => result.url);
-
-    // Batch fetch library info for all URLs
-    const urlLibraryInfoMap =
-      await this.cardQueryRepository.getBatchUrlLibraryInfo(
-        urls,
-        callingUserId,
-      );
-
-    // If filtering by user, get all their URLs once
-    let userUrlSet: Set<string> | undefined;
-    if (filterByUserId) {
-      const userCardsResult = await this.cardQueryRepository.getUrlCardsOfUser(
-        filterByUserId,
-        {
-          page: 1,
-          limit: 10000, // Large limit to get all URLs
-          sortBy: CardSortField.CREATED_AT,
-          sortOrder: SortOrder.DESC,
-        },
-      );
-      userUrlSet = new Set(userCardsResult.items.map((card) => card.url));
-    }
-
-    // Enrich each URL with library context and filter by user
-    const enrichedResults = searchResults
-      .map((result) => {
-        // Filter by user if needed
-        if (filterByUserId && userUrlSet && !userUrlSet.has(result.url)) {
-          return null; // Filter out this result
-        }
-
-        const libraryInfo = urlLibraryInfoMap.get(result.url);
-
-        return {
-          url: result.url,
-          metadata: {
-            url: result.url,
-            title: result.metadata.title,
-            description: result.metadata.description,
-            author: result.metadata.author,
-            siteName: result.metadata.siteName,
-            imageUrl: result.metadata.imageUrl,
-            type: result.metadata.type,
-            retrievedAt: result.metadata.retrievedAt?.toISOString(),
-            doi: result.metadata.doi,
-            isbn: result.metadata.isbn,
-          },
-          urlLibraryCount: libraryInfo?.urlLibraryCount || 0,
-          urlInLibrary: libraryInfo?.urlInLibrary,
-          urlConnectionCount: libraryInfo?.urlConnectionCount,
-          urlIsConnected: libraryInfo?.urlIsConnected,
-        };
-      })
-      .filter((result) => result !== null) as UrlView[];
 
     return enrichedResults;
   }

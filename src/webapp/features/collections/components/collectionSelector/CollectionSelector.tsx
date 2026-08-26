@@ -68,22 +68,6 @@ export default function CollectionSelector(props: Props) {
             <Tabs.Tab classNames={classes} value="myCollections">
               My Collections
             </Tabs.Tab>
-            <Tabs.Tab
-              classNames={classes}
-              leftSection={
-                <ThemeIcon
-                  variant="light"
-                  radius={'xl'}
-                  size={'xs'}
-                  color="green"
-                >
-                  <FaSeedling size={8} />
-                </ThemeIcon>
-              }
-              value="openCollections"
-            >
-              Open Collections
-            </Tabs.Tab>
             {showRecommended && (
               <Tabs.Tab
                 classNames={classes}
@@ -102,6 +86,22 @@ export default function CollectionSelector(props: Props) {
                 Recommended
               </Tabs.Tab>
             )}
+            <Tabs.Tab
+              classNames={classes}
+              leftSection={
+                <ThemeIcon
+                  variant="light"
+                  radius={'xl'}
+                  size={'xs'}
+                  color="green"
+                >
+                  <FaSeedling size={8} />
+                </ThemeIcon>
+              }
+              value="openCollections"
+            >
+              Open Collections
+            </Tabs.Tab>
           </Scroller>
         </Tabs.List>
 
