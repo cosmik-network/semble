@@ -19,7 +19,9 @@ describe('feedEmptyState with filters', () => {
     );
 
     // Assert
-    expect(new Set(messages)).toEqual(new Set(['Nothing matches these filters']));
+    expect(new Set(messages)).toEqual(
+      new Set(['Nothing matches these filters']),
+    );
   });
 
   it('should offer to clear the filters', () => {
@@ -102,7 +104,10 @@ describe('hasFeedFilters', () => {
       true,
     );
     expect(
-      hasFeedFilters({ ...none, feedActivityType: ActivityType.CARD_COLLECTED }),
+      hasFeedFilters({
+        ...none,
+        feedActivityType: ActivityType.CARD_COLLECTED,
+      }),
     ).toBe(true);
   });
 });

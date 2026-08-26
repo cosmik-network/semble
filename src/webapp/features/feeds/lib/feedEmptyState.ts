@@ -45,7 +45,8 @@ export function feedEmptyState(params: {
   switch (params.view) {
     case 'following':
       return {
-        message: "The people and collections you follow haven't saved anything yet",
+        message:
+          "The people and collections you follow haven't saved anything yet",
         icon: 'following',
         action: FIND_PEOPLE,
       };
