@@ -248,6 +248,11 @@ export interface ICardQueryRepository {
    */
   getUsersForUrls(urls: string[]): Promise<string[]>;
 
+  /**
+   * Of the given URLs, return the subset the user has saved as URL cards
+   */
+  getUrlsSavedByUser(userId: string, urls: string[]): Promise<Set<string>>;
+
   getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>>;
