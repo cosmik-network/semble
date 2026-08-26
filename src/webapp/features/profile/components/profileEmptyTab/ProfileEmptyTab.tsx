@@ -14,7 +14,7 @@ export default function ProfileEmptyTab(props: Props) {
         <Box c={'gray'}>
           <props.icon size={40} />
         </Box>
-        <Text fz="lg" fw={600} c="gray" ta={'center'}>
+        <Text fz="lg" fw={600} c="gray" ta={'center'} maw={320}>
           {props.message}
         </Text>
       </Stack>
