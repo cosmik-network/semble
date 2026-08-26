@@ -58,11 +58,12 @@ export const feedsContract = c.router(
       path: paths.bskyFollowingFeed,
       query: FeedQuery.omit({ actorIds: true }).extend({
         beforeActivityId: z.string().optional(),
+        identifier: z.string().optional(),
       }),
       responses: { 200: GetGlobalFeedResponseSchema },
       summary: 'Get Bluesky following feed',
       description:
-        'Returns an activity feed of the Semble users the authenticated user follows on Bluesky.',
+        'Returns an activity feed of the Semble users a given account follows on Bluesky. Defaults to the authenticated user; pass `identifier` (DID or handle) to view another account’s feed. Requires either authentication or `identifier`.',
     },
   },
   { strictStatusCodes: true },

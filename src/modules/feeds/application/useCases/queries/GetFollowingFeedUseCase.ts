@@ -143,7 +143,7 @@ export class GetFollowingFeedUseCase implements UseCase<
         // No follows → no overflow possible; keep the following feed as-is.
         if (followedDids.length > 0) {
           const offset = (page - 1) * limit;
-          const followingTotal = feed.totalCount;
+          const followingTotal = feed.totalCount ?? 0;
 
           if (offset + limit >= followingTotal) {
             // This page reaches or passes the end of the fan-out feed. Serve it

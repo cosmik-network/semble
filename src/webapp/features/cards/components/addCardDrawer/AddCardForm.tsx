@@ -305,6 +305,7 @@ export default function AddCardForm(props: Props) {
           <Suspense fallback={<CollectionSelectorSkeleton />}>
             <CollectionSelector
               isOpen={collectionSelectorOpened}
+              url={form.values.url}
               onCancel={() => {
                 setSelectedCollections(initialCollections);
                 toggleCollectionSelector();

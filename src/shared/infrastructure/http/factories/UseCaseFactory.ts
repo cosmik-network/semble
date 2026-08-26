@@ -40,6 +40,7 @@ import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/u
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
+import { GetRecommendedCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetRecommendedCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { GetConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForUrlUseCase';
 import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
@@ -176,6 +177,7 @@ export interface UseCases {
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
+  getRecommendedCollectionsForUrlUseCase: GetRecommendedCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase;
   // Connection use cases
@@ -510,6 +512,12 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         repositories.followsRepository,
       ),
+      getRecommendedCollectionsForUrlUseCase:
+        new GetRecommendedCollectionsForUrlUseCase(
+          services.searchService,
+          repositories.collectionQueryRepository,
+          services.profileService,
+        ),
       getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
         repositories.cardQueryRepository,
         services.profileService,
@@ -588,6 +596,7 @@ export class UseCaseFactory {
         repositories.connectionRepository,
         repositories.followsRepository,
         services.bskyFollowsService,
+        services.identityResolutionService,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

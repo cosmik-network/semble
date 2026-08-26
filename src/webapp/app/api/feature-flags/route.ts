@@ -18,8 +18,10 @@ export async function GET() {
       connections: false,
       graphView: false,
       readerMode: false,
-      onboarding: false,
+      onboarding: true,
+      recommendedCollections: false,
       bskyFollows: false,
+      newConnectionTypes: false,
     });
   }
 }

@@ -1,5 +1,6 @@
 import {
   eq,
+  ne,
   desc,
   asc,
   count,
@@ -9,6 +10,7 @@ import {
   ilike,
   and,
   inArray,
+  SQL,
 } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
@@ -24,12 +26,14 @@ import {
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
   CollectionContributorDTO,
+  CollectionWithMatchedUrlsDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
 import { cards } from './schema/card.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { CollectionAccessType } from '../../domain/Collection';
 
 export class DrizzleCollectionQueryRepository implements ICollectionQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -633,6 +637,138 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       console.error('Error in getCollectionsForUrls:', error);
       throw error;
     }
+  }
+
+  async getCollectionsForUrlsByAuthor(
+    urls: string[],
+    authorId: string,
+    excludeUrl?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    try {
+      return await this.queryCollectionsWithMatchedUrls(
+        urls,
+        [eq(collections.authorId, authorId)],
+        excludeUrl,
+      );
+    } catch (error) {
+      console.error('Error in getCollectionsForUrlsByAuthor:', error);
+      throw error;
+    }
+  }
+
+  async getOpenCollectionsForUrls(
+    urls: string[],
+    excludeAuthorId?: string,
+    excludeUrl?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    try {
+      const conditions = [
+        eq(collections.accessType, CollectionAccessType.OPEN),
+      ];
+      if (excludeAuthorId) {
+        conditions.push(ne(collections.authorId, excludeAuthorId));
+      }
+      return await this.queryCollectionsWithMatchedUrls(
+        urls,
+        conditions,
+        excludeUrl,
+      );
+    } catch (error) {
+      console.error('Error in getOpenCollectionsForUrls:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Distinct collections containing URL cards with any of the given URLs,
+   * each with the subset of queried URLs it contains so callers can rank by
+   * match count. When `excludeUrl` is given, collections that already contain
+   * a URL card with that URL are filtered out.
+   */
+  private async queryCollectionsWithMatchedUrls(
+    urls: string[],
+    conditions: SQL[],
+    excludeUrl?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    if (urls.length === 0) {
+      return [];
+    }
+
+    const allConditions = [...conditions];
+    if (excludeUrl) {
+      // Anti-join: drop collections that already contain this URL
+      allConditions.push(
+        sql`NOT EXISTS (
+          SELECT 1
+          FROM ${collectionCards} AS existing_cc
+          INNER JOIN ${cards} AS existing_card
+            ON existing_card.id = existing_cc.card_id
+          WHERE existing_cc.collection_id = ${collections.id}
+            AND existing_card.type = ${CardTypeEnum.URL}
+            AND existing_card.url = ${excludeUrl}
+        )`,
+      );
+    }
+
+    // Distinct (collection, url) pairs so callers can rank by how many of
+    // the queried URLs each collection contains
+    const rows = await this.db
+      .selectDistinct({
+        id: collections.id,
+        name: collections.name,
+        description: collections.description,
+        accessType: collections.accessType,
+        createdAt: collections.createdAt,
+        updatedAt: collections.updatedAt,
+        authorId: collections.authorId,
+        cardCount: collections.cardCount,
+        uri: publishedRecords.uri,
+        matchedUrl: cards.url,
+      })
+      .from(collections)
+      .leftJoin(
+        publishedRecords,
+        eq(collections.publishedRecordId, publishedRecords.id),
+      )
+      .innerJoin(
+        collectionCards,
+        eq(collections.id, collectionCards.collectionId),
+      )
+      .innerJoin(cards, eq(collectionCards.cardId, cards.id))
+      .where(
+        and(
+          ...allConditions,
+          eq(cards.type, CardTypeEnum.URL),
+          inArray(cards.url, urls),
+        ),
+      );
+
+    const byId = new Map<string, CollectionWithMatchedUrlsDTO>();
+    for (const raw of rows) {
+      let collection = byId.get(raw.id);
+      if (!collection) {
+        collection = {
+          ...CollectionMapper.toQueryResult({
+            id: raw.id,
+            uri: raw.uri,
+            name: raw.name,
+            description: raw.description,
+            accessType: raw.accessType,
+            createdAt: raw.createdAt,
+            updatedAt: raw.updatedAt,
+            authorId: raw.authorId,
+            cardCount: raw.cardCount,
+          }),
+          matchedUrls: [],
+        };
+        byId.set(raw.id, collection);
+      }
+      if (raw.matchedUrl) {
+        collection.matchedUrls.push(raw.matchedUrl);
+      }
+    }
+
+    return Array.from(byId.values());
   }
 
   async getCollectionCountForUrl(url: string): Promise<number> {

@@ -29,5 +29,7 @@ export async function getServerFeatureFlags() {
     readerMode: showForTeam,
     onboarding: show,
     bskyFollows: showForTeam,
+    recommendedCollections: show,
+    newConnectionTypes: showForTeam,
   };
 }

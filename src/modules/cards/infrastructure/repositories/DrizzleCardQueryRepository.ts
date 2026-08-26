@@ -116,6 +116,13 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     return this.urlCardQueryService.getUsersForUrls(urls);
   }
 
+  async getUrlsSavedByUser(
+    userId: string,
+    urls: string[],
+  ): Promise<Set<string>> {
+    return this.urlCardQueryService.getUrlsSavedByUser(userId, urls);
+  }
+
   async getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>> {

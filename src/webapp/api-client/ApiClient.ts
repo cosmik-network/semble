@@ -68,6 +68,8 @@ import type {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetRecommendedCollectionsForUrlParams,
+  GetRecommendedCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
   SemanticSearchUrlsParams,
@@ -265,6 +267,12 @@ export class ApiClient {
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
     return this.queryClient.getCollectionsForUrl(params);
+  }
+
+  async getRecommendedCollectionsForUrl(
+    params: GetRecommendedCollectionsForUrlParams,
+  ): Promise<GetRecommendedCollectionsForUrlResponse> {
+    return this.queryClient.getRecommendedCollectionsForUrl(params);
   }
 
   async getSimilarUrlsForUrl(

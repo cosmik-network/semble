@@ -32,6 +32,8 @@ export const collectionKeys = {
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
   recommended: (urls: string[]) =>
     [...collectionKeys.all(), 'recommended', ...urls] as const,
+  recommendedForUrl: (url: string, limit?: number) =>
+    [...collectionKeys.all(), 'recommendedForUrl', url, limit] as const,
   infinite: (
     id?: string,
     limit?: number,

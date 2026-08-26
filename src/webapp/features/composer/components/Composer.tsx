@@ -530,6 +530,7 @@ export default function Composer(props: Props) {
         <Container size={'xs'} p={0}>
           <CollectionSelector
             isOpen={collectionSelectorOpened}
+            url={cardForm.values.url}
             onCancel={() => {
               setSelectedCollections(initialCollections);
               toggleCollectionSelector();

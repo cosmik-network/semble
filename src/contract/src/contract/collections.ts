@@ -22,6 +22,7 @@ import {
   GetFollowCountResponseSchema,
   GetCollectionContributorsParamsSchema,
   GetCollectionContributorsResponseSchema,
+  GetRecommendedCollectionsForUrlResponseSchema,
 } from '@semble/types';
 import {
   CoercedPaginatedCardSortedQuery,
@@ -159,6 +160,18 @@ export const collectionsContract = c.router(
       responses: { 200: GetFollowCountResponseSchema },
       summary: 'Get collection follower count',
       description: 'Returns the total number of followers for a collection.',
+    },
+    recommendedCollectionsForUrl: {
+      method: 'GET',
+      path: paths.recommendedCollectionsForUrl,
+      query: z.object({
+        url: z.string(),
+        limit: z.coerce.number().optional(),
+      }),
+      responses: { 200: GetRecommendedCollectionsForUrlResponseSchema },
+      summary: 'Recommended collections to save a URL to',
+      description:
+        "Returns collections that contain URLs semantically similar to the given URL, ranked by how many similar URLs each contains. Split into the authenticated user's own collections and open collections from across the network (excluding the caller's own). The limit applies to each set independently.",
     },
     collectionContributors: {
       method: 'GET',

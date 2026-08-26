@@ -6,7 +6,7 @@ import { useSelection } from '@mantine/hooks';
 import { ErrorBoundary } from 'react-error-boundary';
 import { STEPS, clampStep, type StepId } from '../../lib/steps';
 import useOnboardingState from '../../lib/useOnboardingState';
-import { decodeAnswer, encodeAnswer } from '../../lib/otherAnswer';
+import { decodeAnswer, encodeFinalAnswer } from '../../lib/otherAnswer';
 import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader';
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
@@ -114,8 +114,8 @@ export default function OnboardingFlow() {
   // resume point is derived from which fields are non-null.
   const leaveAboutYou = () => {
     updateNow({
-      intention: encodeAnswer(intention.selected, intention.otherText),
-      referralSource: encodeAnswer(referral.selected, referral.otherText),
+      intention: encodeFinalAnswer(intention.selected, intention.otherText),
+      referralSource: encodeFinalAnswer(referral.selected, referral.otherText),
     });
     goNext();
   };
