@@ -7,6 +7,7 @@ import { GetMyCollectionsController } from '../controllers/GetMyCollectionsContr
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
+import { GetRecommendedCollectionsForUrlController } from '../controllers/GetRecommendedCollectionsForUrlController';
 import { SearchCollectionsController } from '../controllers/SearchCollectionsController';
 import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
@@ -31,6 +32,7 @@ export function registerCollectionRoutes(
   getUserCollectionsController: GetUserCollectionsController,
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
+  getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
   getCollectionFollowersController: GetCollectionFollowersController,
@@ -56,6 +58,13 @@ export function registerCollectionRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(collectionsContract.collectionsForUrl.query),
     (req, res) => getCollectionsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.collections.recommendedForUrl.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(collectionsContract.recommendedCollectionsForUrl.query),
+    (req, res) => getRecommendedCollectionsForUrlController.execute(req, res),
   );
 
   app.get(

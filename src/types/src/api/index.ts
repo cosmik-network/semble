@@ -28,6 +28,7 @@ export * from './collections/getForUrl';
 export * from './collections/listContributed';
 export * from './collections/getFollowers';
 export * from './collections/getContributors';
+export * from './collections/recommendedForUrl';
 
 export * from './users/getProfile';
 export * from './users/login';

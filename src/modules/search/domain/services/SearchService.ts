@@ -78,6 +78,7 @@ export class SearchService {
       threshold?: number;
       urlType?: UrlType;
       callingUserId?: string;
+      filterByUserId?: string;
     },
   ): Promise<Result<UrlView[]>> {
     try {

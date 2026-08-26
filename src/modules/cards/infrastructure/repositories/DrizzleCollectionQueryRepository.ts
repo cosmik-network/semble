@@ -24,6 +24,7 @@ import {
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
   CollectionContributorDTO,
+  CollectionForUrlsByAuthorDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
@@ -631,6 +632,80 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       );
     } catch (error) {
       console.error('Error in getCollectionsForUrls:', error);
+      throw error;
+    }
+  }
+
+  async getCollectionsForUrlsByAuthor(
+    urls: string[],
+    authorId: string,
+  ): Promise<CollectionForUrlsByAuthorDTO[]> {
+    try {
+      if (urls.length === 0) {
+        return [];
+      }
+
+      // Distinct (collection, url) pairs so callers can rank by how many of
+      // the queried URLs each collection contains
+      const rows = await this.db
+        .selectDistinct({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          accessType: collections.accessType,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          authorId: collections.authorId,
+          cardCount: collections.cardCount,
+          uri: publishedRecords.uri,
+          matchedUrl: cards.url,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
+        .where(
+          and(
+            eq(collections.authorId, authorId),
+            eq(cards.type, CardTypeEnum.URL),
+            inArray(cards.url, urls),
+          ),
+        );
+
+      const byId = new Map<string, CollectionForUrlsByAuthorDTO>();
+      for (const raw of rows) {
+        let collection = byId.get(raw.id);
+        if (!collection) {
+          collection = {
+            ...CollectionMapper.toQueryResult({
+              id: raw.id,
+              uri: raw.uri,
+              name: raw.name,
+              description: raw.description,
+              accessType: raw.accessType,
+              createdAt: raw.createdAt,
+              updatedAt: raw.updatedAt,
+              authorId: raw.authorId,
+              cardCount: raw.cardCount,
+            }),
+            matchedUrls: [],
+          };
+          byId.set(raw.id, collection);
+        }
+        if (raw.matchedUrl) {
+          collection.matchedUrls.push(raw.matchedUrl);
+        }
+      }
+
+      return Array.from(byId.values());
+    } catch (error) {
+      console.error('Error in getCollectionsForUrlsByAuthor:', error);
       throw error;
     }
   }

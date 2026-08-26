@@ -326,6 +326,7 @@ export const createExpressApp = (
       controllers.getMyCollectionsController,
       controllers.getCollectionsController,
       controllers.getCollectionsForUrlController,
+      controllers.getRecommendedCollectionsForUrlController,
       controllers.searchCollectionsController,
       controllers.getOpenCollectionsWithContributorController,
       controllers.getCollectionFollowersController,
