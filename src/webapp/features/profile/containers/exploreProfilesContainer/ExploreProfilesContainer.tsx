@@ -39,7 +39,7 @@ export default function ExploreProfilesContainer() {
 
   // Recommendations are seeded from the reader's recommended card URLs, the
   // same way the explore shelf seeds them.
-  const { data: seedData } = useRecommendedCards({
+  const { data: seedData, isPending: isSeedPending } = useRecommendedCards({
     queries: [],
     limit: SEED_LIMIT,
     enabled: isAuthenticated && view === 'forYou',
@@ -47,12 +47,13 @@ export default function ExploreProfilesContainer() {
 
   // Falls back to network seeds when the reader's library yields none, so an
   // empty library still gets suggestions.
-  const seeds = useSeedUrls({
+  const seedUrls = useSeedUrls({
     candidates: seedData?.pages[0]?.urls.map((u) => u.url),
+    hasSettled: !isSeedPending,
   });
 
   const recommended = useRecommendedUsers({
-    urls: seeds.urls ?? [],
+    urls: seedUrls,
     enabled: view === 'forYou' && isAuthenticated,
   });
 
@@ -69,7 +70,7 @@ export default function ExploreProfilesContainer() {
       ? bsky.isPending
       : // The recommendations hook stays disabled (and "pending") with no
         // seeds, so only treat that as loading while seeds are still coming.
-        !seeds.urls || (seeds.urls.length > 0 && recommended.isPending));
+        !seedUrls || (seedUrls.length > 0 && recommended.isPending));
 
   const error = view === 'bluesky' ? bsky.error : recommended.error;
 

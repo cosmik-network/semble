@@ -11,28 +11,26 @@ import ExploreScroller, {
 } from '../exploreScroller/ExploreScroller';
 import RefreshButton from '../refreshButton/RefreshButton';
 import { ExploreCollectionsListSkeleton } from './Skeleton.ExploreCollections';
+import ExploreCollectionsError from './Error.ExploreCollections';
 import { EXPLORE_ROUTES } from '../../lib/exploreRoutes';
+import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 
 const SHELF_SIZE = 10;
 
-interface Props {
-  /** Empty while the parent is still resolving them. */
-  seedUrls: string[];
-  isSeedPending: boolean;
-}
+export default function ExploreCollections() {
+  const seedUrls = useExploreSeedUrls();
+  const recommended = useRecommendedCollections({ urls: seedUrls });
 
-export default function ExploreCollections(props: Props) {
-  const recommended = useRecommendedCollections({ urls: props.seedUrls });
-
-  // The hook is disabled (and stays "pending") with no seeds; only treat that
-  // as loading while the parent is still resolving them.
-  const isPending =
-    props.isSeedPending || (props.seedUrls.length > 0 && recommended.isPending);
+  // Disabled with no seeds, and so pending forever; that's a result, not a load.
+  const isPending = !seedUrls || (seedUrls.length > 0 && recommended.isPending);
   const isRefreshing = !recommended.isPending && recommended.isFetching;
   const collections = (recommended.data?.collections ?? []).slice(
     0,
     SHELF_SIZE,
   );
+  // A failed refetch keeps the previous set on screen, so only take over the
+  // shelf when there's nothing left to show.
+  const hasFailed = recommended.isError && collections.length === 0;
 
   // Replay the deal animation when a fresh set lands, but not on first paint.
   // Adjusted during render rather than in an effect, which would lag a frame.
@@ -62,6 +60,8 @@ export default function ExploreCollections(props: Props) {
 
       {isPending ? (
         <ExploreCollectionsListSkeleton />
+      ) : hasFailed ? (
+        <ExploreCollectionsError />
       ) : collections.length > 0 ? (
         <ExploreScroller
           itemWidth={COLLECTION_TILE_WIDTH}
