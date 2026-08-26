@@ -13,6 +13,7 @@ import {
   Badge,
   Text,
 } from '@mantine/core';
+import { HiOutlineHome } from 'react-icons/hi';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
@@ -55,6 +56,12 @@ export default function GuestNavbar() {
             </Group>
 
             <Stack gap={5} mt={'md'}>
+              <NavItem
+                href="/home"
+                label="Home"
+                icon={<HiOutlineHome size={25} />}
+              />
+
               <NavItem
                 href="/explore"
                 label="Explore"
