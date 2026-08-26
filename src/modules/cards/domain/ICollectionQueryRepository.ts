@@ -39,7 +39,7 @@ export interface CollectionQueryResultDTO {
 
 // Collection with the subset of queried URLs it contains, used for ranking
 // recommended collections to save a URL to
-export interface CollectionForUrlsByAuthorDTO extends CollectionQueryResultDTO {
+export interface CollectionWithMatchedUrlsDTO extends CollectionQueryResultDTO {
   matchedUrls: string[];
 }
 
@@ -153,7 +153,18 @@ export interface ICollectionQueryRepository {
   getCollectionsForUrlsByAuthor(
     urls: string[],
     authorId: string,
-  ): Promise<CollectionForUrlsByAuthorDTO[]>;
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
+
+  /**
+   * Get all distinct OPEN collections that contain URL cards with any of the
+   * given URLs, along with which of those URLs matched. Optionally excludes
+   * collections created by a given author (e.g. the calling user, whose own
+   * collections are recommended separately).
+   */
+  getOpenCollectionsForUrls(
+    urls: string[],
+    excludeAuthorId?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
    * Get the count of collections containing a specific URL

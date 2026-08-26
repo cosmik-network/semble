@@ -11,7 +11,7 @@ import {
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
   CollectionContributorDTO,
-  CollectionForUrlsByAuthorDTO,
+  CollectionWithMatchedUrlsDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -550,7 +550,29 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
   async getCollectionsForUrlsByAuthor(
     urls: string[],
     authorId: string,
-  ): Promise<CollectionForUrlsByAuthorDTO[]> {
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    return this.queryCollectionsWithMatchedUrls(
+      urls,
+      (collection) => collection.authorId.value === authorId,
+    );
+  }
+
+  async getOpenCollectionsForUrls(
+    urls: string[],
+    excludeAuthorId?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    return this.queryCollectionsWithMatchedUrls(
+      urls,
+      (collection) =>
+        collection.accessType === 'OPEN' &&
+        (!excludeAuthorId || collection.authorId.value !== excludeAuthorId),
+    );
+  }
+
+  private queryCollectionsWithMatchedUrls(
+    urls: string[],
+    matchesCollection: (collection: Collection) => boolean,
+  ): CollectionWithMatchedUrlsDTO[] {
     const allCards = this.cardRepository?.getAllCards() || [];
     const allCollections = this.collectionRepository?.getAllCollections() || [];
     const urlSet = new Set(urls);
@@ -562,7 +584,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
       .forEach((c) => urlByCardId.set(c.cardId.getStringValue(), c.url!.value));
 
     return allCollections
-      .filter((collection) => collection.authorId.value === authorId)
+      .filter(matchesCollection)
       .map((collection) => {
         const matchedUrls = [
           ...new Set(

@@ -2,6 +2,7 @@ import { Loader, Stack, Text } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import useRecommendedCollectionsForUrl from '../../lib/queries/useRecommendedCollectionsForUrl';
+import useRecommendedOpenCollectionsForUrl from '../../lib/queries/useRecommendedOpenCollectionsForUrl';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
@@ -14,11 +15,16 @@ interface Props {
 }
 
 export default function CollectionSelectorRecommended(props: Props) {
-  const { data, error, isPending } = useRecommendedCollectionsForUrl({
+  const myRecommended = useRecommendedCollectionsForUrl({ url: props.url });
+  const openRecommended = useRecommendedOpenCollectionsForUrl({
     url: props.url,
   });
 
-  const collections = data?.collections ?? [];
+  const myCollections = myRecommended.data?.collections ?? [];
+  const openCollections = openRecommended.data?.collections ?? [];
+
+  const isPending = myRecommended.isPending || openRecommended.isPending;
+  const hasAny = myCollections.length > 0 || openCollections.length > 0;
 
   const handleCollectionChange = (checked: boolean, item: Collection) => {
     if (checked) {
@@ -32,7 +38,7 @@ export default function CollectionSelectorRecommended(props: Props) {
     }
   };
 
-  if (error) {
+  if (myRecommended.error && openRecommended.error) {
     return <CollectionSelectorError />;
   }
 
@@ -41,17 +47,38 @@ export default function CollectionSelectorRecommended(props: Props) {
       {isPending ? (
         <Stack align="center" justify="center" style={{ flex: 1 }}>
           <Text fw={500} c="gray">
-            Finding similar cards in your library...
+            Finding similar cards...
           </Text>
           <Loader color="gray" />
         </Stack>
-      ) : collections.length > 0 ? (
+      ) : hasAny ? (
         <CollectionListScrollArea>
-          <CollectionSelectorItemList
-            collections={collections}
-            selectedCollections={props.selectedCollections}
-            onChange={handleCollectionChange}
-          />
+          <Stack gap="xs">
+            {myCollections.length > 0 && (
+              <Stack gap="xxs">
+                <Text fz="sm" fw={600} c="gray">
+                  Your collections
+                </Text>
+                <CollectionSelectorItemList
+                  collections={myCollections}
+                  selectedCollections={props.selectedCollections}
+                  onChange={handleCollectionChange}
+                />
+              </Stack>
+            )}
+            {openCollections.length > 0 && (
+              <Stack gap="xxs">
+                <Text fz="sm" fw={600} c="gray">
+                  Open collections
+                </Text>
+                <CollectionSelectorItemList
+                  collections={openCollections}
+                  selectedCollections={props.selectedCollections}
+                  onChange={handleCollectionChange}
+                />
+              </Stack>
+            )}
+          </Stack>
         </CollectionListScrollArea>
       ) : (
         <Stack align="center" justify="center" style={{ flex: 1 }} gap="xs">

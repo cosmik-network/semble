@@ -26,6 +26,8 @@ import {
   GetCollectionsForUrlResponse,
   GetRecommendedCollectionsForUrlParams,
   GetRecommendedCollectionsForUrlResponse,
+  GetRecommendedOpenCollectionsForUrlParams,
+  GetRecommendedOpenCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
   SemanticSearchUrlsParams,
@@ -271,6 +273,18 @@ export class QueryClient extends BaseClient {
       },
     });
     return unwrap<GetRecommendedCollectionsForUrlResponse>(res);
+  }
+
+  async getRecommendedOpenCollectionsForUrl(
+    params: GetRecommendedOpenCollectionsForUrlParams,
+  ): Promise<GetRecommendedOpenCollectionsForUrlResponse> {
+    const res = await this.client.collections.recommendedOpenCollectionsForUrl({
+      query: {
+        url: params.url,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetRecommendedOpenCollectionsForUrlResponse>(res);
   }
 
   async getSimilarUrlsForUrl(

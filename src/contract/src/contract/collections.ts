@@ -23,6 +23,7 @@ import {
   GetCollectionContributorsParamsSchema,
   GetCollectionContributorsResponseSchema,
   GetRecommendedCollectionsForUrlResponseSchema,
+  GetRecommendedOpenCollectionsForUrlResponseSchema,
 } from '@semble/types';
 import {
   CoercedPaginatedCardSortedQuery,
@@ -172,6 +173,19 @@ export const collectionsContract = c.router(
       summary: 'Recommended collections to save a URL to',
       description:
         "Returns the authenticated user's own collections that contain URLs semantically similar to the given URL, ranked by how many similar URLs each collection contains.",
+      metadata: { internal: true } as const,
+    },
+    recommendedOpenCollectionsForUrl: {
+      method: 'GET',
+      path: paths.recommendedOpenCollectionsForUrl,
+      query: z.object({
+        url: z.string(),
+        limit: z.coerce.number().optional(),
+      }),
+      responses: { 200: GetRecommendedOpenCollectionsForUrlResponseSchema },
+      summary: 'Recommended open collections to save a URL to',
+      description:
+        "Returns open collections from across the network that contain URLs semantically similar to the given URL, ranked by how many similar URLs each collection contains. Excludes the caller's own collections.",
       metadata: { internal: true } as const,
     },
     collectionContributors: {
