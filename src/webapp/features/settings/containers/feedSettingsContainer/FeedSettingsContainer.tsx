@@ -92,8 +92,9 @@ export default function FeedSettingsContainer() {
           <Stack gap={4}>
             <Text fw={500}>Feed</Text>
             <Text fw={500} c={'gray'} fz={'sm'}>
-              Global shows activity from all accounts, while following only
-              shows people you follow
+              Whose activity you see. Global covers every account, Following
+              covers the people and collections you follow here, and Bluesky
+              following covers people you follow on Bluesky who are on Semble
             </Text>
           </Stack>
           <SegmentedControl

@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 import MarginLogo from '@/components/MarginLogo';
 import SembleLogo from '@/assets/semble-logo.svg';
 
-export type FeedView = 'global' | 'following';
+export type FeedView = 'global' | 'following' | 'bskyFollowing';
 
 export interface SourceOption {
   value: ActivitySource | null;
@@ -40,9 +40,30 @@ export const sourceOptions: SourceOption[] = [
   { value: ActivitySource.MARGIN, label: 'Margin', icon: <MarginLogo /> },
 ];
 
+/*
+ * The one label table for the three views. "Bluesky" on its own read as a
+ * *source* — it sits a menu section above Semble/Margin — when the view is
+ * about whose activity you see, not where it came from.
+ *
+ * Typed as a full `Record`, so a fourth view fails to compile until it is
+ * named here, and read everywhere else through `feedViewLabel`: the explore
+ * feed cards used to keep a second table of the same three strings, which is
+ * how "Bluesky" and "Bluesky following" ended up meaning the same thing.
+ */
+const feedViewLabels: Record<FeedView, string> = {
+  global: 'Global',
+  following: 'Following',
+  bskyFollowing: 'Bluesky following',
+};
+
+export function feedViewLabel(view: FeedView): string {
+  return feedViewLabels[view];
+}
+
 export const feedOptions: FeedOption[] = [
-  { value: 'global', label: 'Global' },
-  { value: 'following', label: 'Following' },
+  { value: 'global', label: feedViewLabels.global },
+  { value: 'following', label: feedViewLabels.following },
+  { value: 'bskyFollowing', label: feedViewLabels.bskyFollowing },
 ];
 
 export const activityTypeOptions: ActivityTypeOption[] = [
