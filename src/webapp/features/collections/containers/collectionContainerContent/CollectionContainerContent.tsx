@@ -3,7 +3,7 @@
 import { useNavbarContext } from '@/providers/navbar';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, useState } from 'react';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useAuth } from '@/hooks/useAuth';
 import { CardSortField, UrlType } from '@semble/types';
 import {
@@ -33,7 +33,7 @@ interface Props {
 export default function CollectionContainerContent(props: Props) {
   const pathname = usePathname();
   const { desktopOpened } = useNavbarContext();
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { user } = useAuth();
 

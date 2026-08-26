@@ -19,7 +19,8 @@ import {
 import { Suspense, useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { UserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { LinkButton } from '@/components/link/MantineLink';
 
 type CollectionFilter = 'mine' | 'following' | 'contributed';
@@ -39,7 +40,7 @@ function MyCollectionsList({
   settings,
 }: {
   onCreateCollection: () => void;
-  settings: ReturnType<typeof useUserSettings>['settings'];
+  settings: UserSettings;
 }) {
   const { data: collectionsData } = useMyCollections({ limit: 3 });
   const collections =
@@ -85,7 +86,7 @@ function FollowingCollectionsList({
   settings,
 }: {
   identifier: string;
-  settings: ReturnType<typeof useUserSettings>['settings'];
+  settings: UserSettings;
 }) {
   const { data: collectionsData } = useFollowingCollections({
     identifier,
@@ -125,7 +126,7 @@ function ContributedCollectionsList({
   settings,
 }: {
   identifier: string;
-  settings: ReturnType<typeof useUserSettings>['settings'];
+  settings: UserSettings;
 }) {
   const { data: collectionsData } = useOpenCollectionsWithContributor({
     identifier,
@@ -161,7 +162,7 @@ function ContributedCollectionsList({
 }
 
 export default function LibraryRecentCollections() {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [filter, setFilter] = useState<CollectionFilter>('mine');
   const { data: profile } = useMyProfile();

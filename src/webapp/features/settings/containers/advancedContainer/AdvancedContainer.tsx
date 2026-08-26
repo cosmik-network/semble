@@ -14,7 +14,7 @@ import {
   Badge,
 } from '@mantine/core';
 import { CodeHighlightTabs } from '@mantine/code-highlight';
-import { useUserSettings } from '../../lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 const MOCK_CARD_CONTENT = {
   url: 'https://example.com/understanding-atproto',
@@ -79,7 +79,7 @@ function MockCardPreview() {
 }
 
 export default function AdvancedContainer() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   return (
     <Container p="xs" size="xs">

@@ -15,7 +15,7 @@ import {
 import { RiRobot2Fill } from 'react-icons/ri';
 import { upperFirst } from '@mantine/hooks';
 import { ActivitySource, ActivityType, UrlType } from '@semble/types';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   activityTypeOptions,
   feedOptions,
@@ -28,7 +28,7 @@ const SOURCE_ALL: string = 'all';
 const ACTIVITY_TYPE_ALL: string = 'all';
 
 export default function FeedSettingsContainer() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
 

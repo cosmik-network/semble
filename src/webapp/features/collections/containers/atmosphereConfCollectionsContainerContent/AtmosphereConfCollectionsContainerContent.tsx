@@ -8,7 +8,7 @@ import { BiCollection } from 'react-icons/bi';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 import { CollectionSortField } from '@semble/types';
 
@@ -31,7 +31,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

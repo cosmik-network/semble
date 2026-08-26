@@ -7,7 +7,7 @@ import CollectionCard from '@/features/collections/components/collectionCard/Col
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { CollectionFilterState } from '../../components/collectionFilters/CollectionFilters';
 import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
 import ExploreCollectionsBrowseContentSkeleton from './Skeleton.ExploreCollectionsBrowseContent';
@@ -37,7 +37,7 @@ export default function ExploreCollectionsBrowseContent(props: Props) {
     identifier: props.filters.author,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

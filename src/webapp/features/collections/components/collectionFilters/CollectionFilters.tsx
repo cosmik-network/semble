@@ -36,7 +36,7 @@ import { MdFilterList, MdOutlineAlternateEmail } from 'react-icons/md';
 import { BsGrid } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
 import { IoClose } from 'react-icons/io5';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { IoMdCheckmark } from 'react-icons/io';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { getCollectionsSortParams } from '../../lib/utils';
@@ -425,7 +425,7 @@ export function CollectionFiltersAuthorSelect() {
 
 // view toggle
 export function CollectionFiltersViewToggle() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   return (
     <Fragment>

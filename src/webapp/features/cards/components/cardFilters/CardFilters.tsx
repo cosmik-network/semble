@@ -19,7 +19,7 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
 import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { IoMdCheckmark } from 'react-icons/io';
 import { FaAsterisk } from 'react-icons/fa';
 
@@ -282,7 +282,7 @@ export function CardFiltersUncollectedToggle() {
 
 // view toggle
 export function CardFiltersViewToggle() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   return (
     <Fragment>

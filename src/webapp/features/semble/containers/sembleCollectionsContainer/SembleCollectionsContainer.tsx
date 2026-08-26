@@ -7,7 +7,7 @@ import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiCollection } from 'react-icons/bi';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   CollectionFiltersRoot,
   CollectionFiltersSortSelect,
@@ -35,7 +35,7 @@ export default function SembleCollectionsContainer(props: Props) {
     isPending,
   } = useSembleCollections({ url: props.url, sortBy });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

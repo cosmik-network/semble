@@ -18,13 +18,13 @@ import {
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { FiPlus } from 'react-icons/fi';
 import { LinkButton } from '@/components/link/MantineLink';
 
 export default function LibraryRecentCards() {
   const { desktopOpened } = useNavbarContext();
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
   const { data: myCardsData } = useMyCards({ limit: 4 });

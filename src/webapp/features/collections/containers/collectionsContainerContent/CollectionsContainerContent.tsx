@@ -9,7 +9,7 @@ import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/Profi
 import { BiCollection } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { CollectionSortField } from '@semble/types';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 
 interface Props {
@@ -30,7 +30,7 @@ export default function CollectionsContainerContent(props: Props) {
       query: props.query,
     });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const collections =

@@ -5,7 +5,7 @@ import type { CollectionDTO } from '@semble/types';
 import { BiCollection } from 'react-icons/bi';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
 import ExploreCollectionsRecommendedContentSkeleton from './Skeleton.ExploreCollectionsRecommendedContent';
 
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export default function ExploreCollectionsRecommendedContent(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (props.isPending) {
     return <ExploreCollectionsRecommendedContentSkeleton />;

@@ -11,7 +11,7 @@ import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { FaAsterisk } from 'react-icons/fa';
 import { LinkButton } from '@/components/link/MantineLink';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   activityTypeOptions,
   feedOptions,
@@ -21,7 +21,7 @@ import {
 import Link from 'next/link';
 
 export default function FeedControls() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
@@ -34,7 +34,7 @@ export default function FeedControls() {
   const handleSourceClick = (source: ActivitySource | null) => {
     updateSetting('feedSource', source);
     if (source === ActivitySource.MARGIN) {
-      if (settings.feedView === 'following') {
+      if (settings.feedView !== 'global') {
         updateSetting('feedView', 'global');
       }
       if (settings.feedActivityType !== null) {

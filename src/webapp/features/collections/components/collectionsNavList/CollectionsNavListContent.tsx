@@ -3,7 +3,7 @@
 import { Stack } from '@mantine/core';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import CollectionNavSection from './CollectionNavSection';
 import {
   ContributedCollectionsNavItems,
@@ -13,7 +13,7 @@ import {
 
 export default function CollectionsNavListContent() {
   const { toggleMobile } = useNavbarContext();
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
   const { data: profile } = useMyProfile();
 
   return (

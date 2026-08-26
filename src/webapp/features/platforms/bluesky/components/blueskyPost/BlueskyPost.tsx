@@ -17,7 +17,7 @@ import { isBotAccount } from '../../lib/utils/account';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import BlueskyPlatformIcon from '../blueskyPlatformIcon/BlueskyPlatformIcon';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { LinkAvatar } from '@/components/link/MantineLink';
 
 interface Props {
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function BlueskyPost(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const uri = getPostUriFromUrl(props.url);
   const { data } = useGetBlueskyPost({ uri });
   const showEmbed = settings.cardView === 'grid';

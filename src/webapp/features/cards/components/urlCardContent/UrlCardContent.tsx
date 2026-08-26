@@ -10,7 +10,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import IframeEmbed from '@/features/platforms/common/components/IframeEmbed/IframeEmbed';
 import UrlCardContentSkeleton from './Skeleton.UrlCardContent';
 
@@ -23,7 +23,7 @@ interface Props {
 
 export default function UrlCardContent(props: Props) {
   const platform = detectUrlPlatform(props.url);
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (platform.type === SupportedPlatform.SEMBLE_COLLECTION) {
     if (!platform.handle || !platform.rkey) {

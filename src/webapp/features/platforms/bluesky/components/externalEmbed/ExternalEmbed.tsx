@@ -1,6 +1,6 @@
 'use client';
 
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { getDomain } from '@/lib/utils/link';
 import { AppBskyEmbedExternal } from '@atproto/api';
 import {
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function ExternalEmbed(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (settings.cardView === 'grid') {
     return (

@@ -9,7 +9,7 @@ import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/Profi
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 
 export default function OpenCollectionsContainerContent() {
@@ -32,7 +32,7 @@ export default function OpenCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

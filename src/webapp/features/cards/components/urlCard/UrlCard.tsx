@@ -9,7 +9,7 @@ import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import posthog from 'posthog-js';
@@ -42,7 +42,7 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const router = useRouter();
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();

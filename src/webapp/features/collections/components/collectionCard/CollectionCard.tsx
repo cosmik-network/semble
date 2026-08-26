@@ -7,7 +7,7 @@ import { Card, Group, Stack, Text } from '@mantine/core';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
@@ -30,7 +30,7 @@ export default function CollectionCard(props: Props) {
   const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
   const accessType = collection.accessType;
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const router = useRouter();
   const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 

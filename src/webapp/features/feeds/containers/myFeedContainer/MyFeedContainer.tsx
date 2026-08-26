@@ -2,6 +2,7 @@
 
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import useFollowingFeed from '@/features/feeds/lib/queries/useFollowingFeed';
+import useBskyFollowingFeed from '@/features/feeds/lib/queries/useBskyFollowingFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import {
   Stack,
@@ -18,14 +19,15 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
-import { useState, useEffect } from 'react';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useState, useEffect, Suspense } from 'react';
+import { UserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 const MIN_REFETCH_LOADER_MS = 400;
 
-export default function MyFeedContainer() {
+function MyFeedContent(props: { settings: UserSettings }) {
   const pathname = usePathname();
-  const { settings } = useUserSettings();
+  const settings = props.settings;
   const selectedUrlType = settings.feedUrlType ?? undefined;
   const selectedSource = settings.feedSource ?? undefined;
   const selectedFeed = settings.feedView;
@@ -49,7 +51,20 @@ export default function MyFeedContainer() {
     enabled: selectedFeed === 'following',
   });
 
-  const activeFeed = selectedFeed === 'following' ? followingFeed : globalFeed;
+  const bskyFollowingFeed = useBskyFollowingFeed({
+    urlType: selectedUrlType,
+    source: selectedSource,
+    activityTypes: activityTypesFilter,
+    includeKnownBots,
+    enabled: selectedFeed === 'bskyFollowing',
+  });
+
+  const activeFeed =
+    selectedFeed === 'following'
+      ? followingFeed
+      : selectedFeed === 'bskyFollowing'
+        ? bskyFollowingFeed
+        : globalFeed;
 
   const {
     data,
@@ -156,5 +171,31 @@ export default function MyFeedContainer() {
         <RefetchButton onRefetch={() => refetch()} />
       </Box>
     </Container>
+  );
+}
+
+export default function MyFeedContainer() {
+  const { settings, isHydrated } = useSettings();
+
+  // Until localStorage has been read, `settings` still holds the defaults.
+  // Mounting the feed now would render the wrong feed for a frame and fire a
+  // request for it. `useGlobalFeed` is a suspense query with no `enabled`
+  // option, so withholding the mount is the only way to withhold the request.
+  //
+  // Only a hard load of this page reaches that state now: `useSettings` reads
+  // the app-wide provider, which has already hydrated by the time anything
+  // navigates here from inside the app.
+  //
+  // The settings still go down as a prop, which is now just a saved context
+  // read — a child calling `useSettings()` would see the same hydrated value.
+  if (!isHydrated) return <MyFeedContainerSkeleton />;
+
+  // The suspense `useGlobalFeed` throws would otherwise bubble past this
+  // container to the nearest ancestor boundary, blanking the page during a
+  // client-side transition from explore.
+  return (
+    <Suspense fallback={<MyFeedContainerSkeleton />}>
+      <MyFeedContent settings={settings} />
+    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import '@mantine-bites/lightbox/styles.css';
 import { MantineProvider, v8CssVariablesResolver } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '../styles/theme';
+import { SettingsProvider } from '../providers/settings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,7 +75,12 @@ const preview: Preview = {
             cssVariablesResolver={v8CssVariablesResolver}
             forceColorScheme={colorScheme}
           >
-            <Story />
+            {/* Components read user settings through `useSettings`, which
+                throws outside this provider — the app mounts it in
+                `providers/index.tsx`. */}
+            <SettingsProvider>
+              <Story />
+            </SettingsProvider>
           </MantineProvider>
         </QueryClientProvider>
       );

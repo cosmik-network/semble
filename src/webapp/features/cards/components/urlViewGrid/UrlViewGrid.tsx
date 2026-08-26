@@ -4,7 +4,7 @@ import { Divider, Grid } from '@mantine/core';
 import { Fragment } from 'react';
 import type { UrlView } from '@semble/types';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useNavbarContext } from '@/providers/navbar';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 
@@ -15,7 +15,7 @@ interface Props {
 
 /** Same responsive recipe as CardsContainerContent, over UrlViews. */
 export default function UrlViewGrid(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const { desktopOpened } = useNavbarContext();
 
   const isGrid = settings.cardView === 'grid';
