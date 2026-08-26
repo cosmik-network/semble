@@ -1,3 +1,21 @@
+# sdk-v0.0.10 - 2026-08-26
+
+No new or removed endpoints. This release makes one endpoint usable without authentication and lets it target any account.
+
+## Modified endpoints
+
+- `bskyFollowingFeed` (`GET /network.cosmik.feed.getBskyFollowing`) — authentication is now optional, and the feed can be fetched for any account rather than only your own.
+
+  Pass the new optional `identifier` (a DID or handle) to get the feed of Semble users that account follows on Bluesky. Omit it and the feed defaults to the authenticated user, exactly as before — existing authenticated calls are unaffected.
+
+  A request with neither authentication nor `identifier` returns 400, as does an `identifier` that is malformed or cannot be resolved. Previously an unauthenticated request returned 401.
+
+  When you are authenticated and also pass `identifier`, the feed is that account's follows seen through your eyes: viewer-specific fields (`urlInLibrary`, `urlIsConnected`, collection `isFollowing`) still reflect you, not the account named by `identifier`. Unauthenticated requests omit those fields.
+
+## Modified types
+
+- `GetBskyFollowingFeedParams` — added optional `identifier: string`. This is a widening, so existing code keeps compiling.
+
 # sdk-v0.0.9 - 2026-08-26
 
 ## New endpoints
