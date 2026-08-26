@@ -69,21 +69,32 @@ export function useUserSettings() {
 
   const mergedSettings: UserSettings = { ...defaultSettings, ...settings };
 
+  /**
+   * Write several keys as one change. Each separate write stringifies the
+   * whole object, hits storage, and broadcasts a `mantine-local-storage`
+   * event — so a handler that sets four keys one at a time broadcasts three
+   * combinations that never logically existed, which another open tab then
+   * applies in turn.
+   */
+  function updateSettings(patch: Partial<UserSettings>) {
+    setSettings((prev) => ({
+      ...defaultSettings,
+      ...prev,
+      ...patch,
+    }));
+  }
+
   function updateSetting<K extends keyof UserSettings>(
     key: K,
     value: UserSettings[K],
   ) {
-    setSettings((prev) => ({
-      ...defaultSettings,
-      ...prev,
-      [key]: value,
-    }));
+    updateSettings({ [key]: value } as Partial<UserSettings>);
   }
 
   return {
     settings: mergedSettings,
-    setSettings,
     updateSetting,
+    updateSettings,
     isHydrated,
   };
 }

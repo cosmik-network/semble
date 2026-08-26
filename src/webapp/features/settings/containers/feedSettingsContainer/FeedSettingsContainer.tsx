@@ -28,7 +28,7 @@ const SOURCE_ALL: string = 'all';
 const ACTIVITY_TYPE_ALL: string = 'all';
 
 export default function FeedSettingsContainer() {
-  const { settings, updateSetting } = useSettings();
+  const { settings, updateSetting, updateSettings } = useSettings();
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
 
@@ -40,11 +40,13 @@ export default function FeedSettingsContainer() {
     settings.includeKnownBots === false;
 
   const handleReset = () => {
-    updateSetting('feedSource', null);
-    updateSetting('feedView', 'global');
-    updateSetting('feedActivityType', null);
-    updateSetting('feedUrlType', null);
-    updateSetting('includeKnownBots', false);
+    updateSettings({
+      feedSource: null,
+      feedView: 'global',
+      feedActivityType: null,
+      feedUrlType: null,
+      includeKnownBots: false,
+    });
   };
 
   return (
@@ -65,15 +67,20 @@ export default function FeedSettingsContainer() {
             onChange={(value) => {
               const nextSource =
                 value === SOURCE_ALL ? null : (value as ActivitySource);
-              updateSetting('feedSource', nextSource);
-              if (nextSource === ActivitySource.MARGIN) {
-                if (settings.feedView === 'following') {
-                  updateSetting('feedView', 'global');
-                }
-                if (settings.feedActivityType !== null) {
-                  updateSetting('feedActivityType', null);
-                }
-              }
+              // Margin serves neither a following feed nor an activity-type
+              // filter, so picking it resets both. Unconditionally: the guard
+              // this replaces only checked for 'following', so choosing Margin
+              // from the Bluesky feed left the reader on a view Margin cannot
+              // answer — with this control then disabled, and no way back.
+              updateSettings(
+                nextSource === ActivitySource.MARGIN
+                  ? {
+                      feedSource: nextSource,
+                      feedView: 'global',
+                      feedActivityType: null,
+                    }
+                  : { feedSource: nextSource },
+              );
             }}
             size="md"
             data={sourceOptions.map((option) => ({

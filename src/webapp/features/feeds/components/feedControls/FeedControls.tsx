@@ -21,7 +21,7 @@ import {
 import Link from 'next/link';
 
 export default function FeedControls() {
-  const { settings, updateSetting } = useSettings();
+  const { settings, updateSetting, updateSettings } = useSettings();
 
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
@@ -31,16 +31,15 @@ export default function FeedControls() {
   const selectedFeed =
     feedOptions.find((o) => o.value === settings.feedView) || feedOptions[0];
 
+  // Margin serves neither a following feed nor an activity-type filter, so
+  // picking it resets both rather than leaving the feed on a combination it
+  // cannot answer.
   const handleSourceClick = (source: ActivitySource | null) => {
-    updateSetting('feedSource', source);
-    if (source === ActivitySource.MARGIN) {
-      if (settings.feedView !== 'global') {
-        updateSetting('feedView', 'global');
-      }
-      if (settings.feedActivityType !== null) {
-        updateSetting('feedActivityType', null);
-      }
-    }
+    updateSettings(
+      source === ActivitySource.MARGIN
+        ? { feedSource: source, feedView: 'global', feedActivityType: null }
+        : { feedSource: source },
+    );
   };
 
   const handleFeedClick = (feed: FeedView) => {
@@ -63,10 +62,12 @@ export default function FeedControls() {
     settings.feedActivityType !== null;
 
   const handleClear = () => {
-    updateSetting('feedSource', null);
-    updateSetting('feedView', 'global');
-    updateSetting('feedUrlType', null);
-    updateSetting('feedActivityType', null);
+    updateSettings({
+      feedSource: null,
+      feedView: 'global',
+      feedUrlType: null,
+      feedActivityType: null,
+    });
   };
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;

@@ -13,9 +13,9 @@ import {
 
 /**
  * /home reads its state from user settings rather than the URL, so a
- * destination is reached by writing that state and then navigating. Keeping
- * the four writes in one place is what stops them drifting apart across the
- * twelve tiles that use them.
+ * destination is reached by writing that state and then navigating. The whole
+ * destination goes down as one patch, which is what `feedSettingsFor` already
+ * describes it as.
  */
 export function useFeedDestination() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export function useFeedDestination() {
   // writes to storage and dispatches a `mantine-local-storage` event on mount
   // that every other instance answers with a re-render. The provider in
   // `providers/index.tsx` already holds one instance for the whole app.
-  const { updateSetting } = useSettings();
+  const { updateSettings } = useSettings();
 
   const actionFor = (destination: FeedDestination): FeedAction =>
     resolveFeedAction({
@@ -44,11 +44,7 @@ export function useFeedDestination() {
       return;
     }
 
-    const patch = feedSettingsFor(destination);
-    updateSetting('feedView', patch.feedView);
-    updateSetting('feedUrlType', patch.feedUrlType);
-    updateSetting('feedSource', patch.feedSource);
-    updateSetting('feedActivityType', patch.feedActivityType);
+    updateSettings(feedSettingsFor(destination));
     router.push('/home');
   };
 
