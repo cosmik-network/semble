@@ -32,6 +32,7 @@ import type {
   GetMyCollectionsParams,
   GetGlobalFeedParams,
   GetFollowingFeedParams,
+  GetBskyFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -67,6 +68,10 @@ import type {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetRecommendedCollectionsForUrlParams,
+  GetRecommendedCollectionsForUrlResponse,
+  GetRecommendedOpenCollectionsForUrlParams,
+  GetRecommendedOpenCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
   SemanticSearchUrlsParams,
@@ -264,6 +269,18 @@ export class ApiClient {
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
     return this.queryClient.getCollectionsForUrl(params);
+  }
+
+  async getRecommendedCollectionsForUrl(
+    params: GetRecommendedCollectionsForUrlParams,
+  ): Promise<GetRecommendedCollectionsForUrlResponse> {
+    return this.queryClient.getRecommendedCollectionsForUrl(params);
+  }
+
+  async getRecommendedOpenCollectionsForUrl(
+    params: GetRecommendedOpenCollectionsForUrlParams,
+  ): Promise<GetRecommendedOpenCollectionsForUrlResponse> {
+    return this.queryClient.getRecommendedOpenCollectionsForUrl(params);
   }
 
   async getSimilarUrlsForUrl(
@@ -566,6 +583,12 @@ export class ApiClient {
     params?: GetFollowingFeedParams,
   ): Promise<GetGlobalFeedResponse> {
     return this.feedClient.getFollowingFeed(params);
+  }
+
+  async getBskyFollowingFeed(
+    params?: GetBskyFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getBskyFollowingFeed(params);
   }
 
   // Notification operations - delegate to NotificationClient

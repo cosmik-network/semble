@@ -19,6 +19,9 @@ export async function GET() {
       graphView: false,
       readerMode: false,
       onboarding: true,
+      recommendedCollections: false,
+      bskyFollows: false,
+      newConnectionTypes: false,
     });
   }
 }

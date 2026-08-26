@@ -53,6 +53,17 @@ export const feedsContract = c.router(
       description:
         'Returns an activity feed of users and collections the authenticated user follows.',
     },
+    bskyFollowingFeed: {
+      method: 'GET',
+      path: paths.bskyFollowingFeed,
+      query: FeedQuery.omit({ actorIds: true }).extend({
+        beforeActivityId: z.string().optional(),
+      }),
+      responses: { 200: GetGlobalFeedResponseSchema },
+      summary: 'Get Bluesky following feed',
+      description:
+        'Returns an activity feed of the Semble users the authenticated user follows on Bluesky.',
+    },
   },
   { strictStatusCodes: true },
 );

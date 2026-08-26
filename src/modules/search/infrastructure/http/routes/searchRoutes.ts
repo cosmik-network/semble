@@ -75,7 +75,7 @@ export function registerSearchRoutes(
 
   app.get(
     routes.search.recommendedCollections.path,
-    authMiddleware.ensureAuthenticated(),
+    authMiddleware.optionalAuth(),
     validateQuery(searchContract.recommendedCollections.query),
     (req, res) => recommendedCollectionsController.execute(req, res),
   );

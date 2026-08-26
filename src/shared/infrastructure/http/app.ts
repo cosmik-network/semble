@@ -326,6 +326,8 @@ export const createExpressApp = (
       controllers.getMyCollectionsController,
       controllers.getCollectionsController,
       controllers.getCollectionsForUrlController,
+      controllers.getRecommendedCollectionsForUrlController,
+      controllers.getRecommendedOpenCollectionsForUrlController,
       controllers.searchCollectionsController,
       controllers.getOpenCollectionsWithContributorController,
       controllers.getCollectionFollowersController,
@@ -361,6 +363,7 @@ export const createExpressApp = (
       controllers.getGlobalFeedController,
       controllers.getGemActivityFeedController,
       controllers.getFollowingFeedController,
+      controllers.getBskyFollowingFeedController,
     );
 
     registerSearchRoutes(

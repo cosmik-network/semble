@@ -74,6 +74,8 @@ direction source → target.
 | \`RELATED\`      | Loose association when nothing more specific fits             |
 | \`SUPPLEMENT\`   | Source adds extra material/context to the target             |
 | \`EXPLAINER\`    | Source explains or clarifies the target                       |
+| \`SAME_AS\`      | Source and target are the same thing (mirror, reupload, DOI)  |
+| \`REFERENCES\`   | Source cites or points to the target                          |
 
 ## Guidance
 - **Direction matters.** "A supports B" ≠ "B supports A". Set source/target so
@@ -236,7 +238,7 @@ All requests authenticate with a Semble API key sent as
 ## Enums
 - **urlType**: article, link, book, research, audio, video, social, event, software
 - **accessType**: OPEN, CLOSED
-- **connectionType**: SUPPORTS, OPPOSES, ADDRESSES, HELPFUL, LEADS_TO, RELATED, SUPPLEMENT, EXPLAINER
+- **connectionType**: SUPPORTS, OPPOSES, ADDRESSES, HELPFUL, LEADS_TO, RELATED, SUPPLEMENT, EXPLAINER, SAME_AS, REFERENCES
 - **feed source**: margin, semble
 - **follow/subscribe targetType**: USER, COLLECTION
 - **subscription scopes**: CARD, CONNECTION, COLLECTION_SAVED

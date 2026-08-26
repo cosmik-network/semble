@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { UrlViewSchema } from '../../entities/connection';
 import { UserSchema } from '../../entities/user';
 import { CollectionSchema } from '../../entities/collection';
-import { PaginationSchema } from '../../entities/common';
+import { PaginationSchema, UrlTypeSchema } from '../../entities/common';
 
 export const RecommendedUrlsParamsSchema = z.object({
   queries: z.array(z.string()).optional(),
@@ -15,6 +15,9 @@ export const RecommendedUrlsParamsSchema = z.object({
   collectionWeight: z.number().optional(),
   connectionWeight: z.number().optional(),
   randomness: z.number().optional(),
+  // Restricts recommendations to URLs of this type. Changing it re-queries the
+  // vector database instead of reusing the cached ranked set.
+  urlType: UrlTypeSchema.optional(),
 });
 export type RecommendedUrlsParams = z.infer<typeof RecommendedUrlsParamsSchema>;
 
@@ -56,7 +59,9 @@ export const RecommendedCollectionSchema = CollectionSchema.extend({
 export type RecommendedCollection = z.infer<typeof RecommendedCollectionSchema>;
 
 export const RecommendedCollectionsParamsSchema = z.object({
-  urls: z.array(z.string()),
+  // Required when authenticated. Unauthenticated callers may omit this, in
+  // which case seed URLs are drawn from random recent global feed cards.
+  urls: z.array(z.string()).optional(),
 });
 export type RecommendedCollectionsParams = z.infer<
   typeof RecommendedCollectionsParamsSchema

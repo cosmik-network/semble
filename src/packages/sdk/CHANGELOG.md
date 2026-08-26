@@ -1,3 +1,39 @@
+# sdk-v0.0.9 - 2026-08-26
+
+## New endpoints
+
+- `recommendedCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedForUrl`) — recommends which of your own collections to save a URL to, based on semantic similarity: returns the authenticated user's collections that contain URLs similar to the given URL, ranked by how many similar URLs each collection contains. Requires authentication. Query: `GetRecommendedCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedCollectionsForUrlResponse` (`collections: Collection[]`).
+- `recommendedOpenCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedOpenForUrl`) — same recommendation, but over open collections from across the network, excluding your own. Requires authentication. Query: `GetRecommendedOpenCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedOpenCollectionsForUrlResponse` (`collections: Collection[]`).
+
+New shared types: `GetRecommendedCollectionsForUrlParams`, `GetRecommendedCollectionsForUrlResponse`, `GetRecommendedOpenCollectionsForUrlParams`, `GetRecommendedOpenCollectionsForUrlResponse`.
+
+# sdk-v0.0.8 - 2026-08-25
+
+No new or removed endpoints. This release widens one shared type.
+
+## Modified types
+
+- `ConnectionType` — added two values: `SAME_AS` (source and target are the same thing in a different place, e.g. a mirror, reupload or DOI) and `REFERENCES` (source cites or points to the target). The existing eight values are unchanged.
+
+  Because this is a widening, existing code keeps compiling. Note that any exhaustive `switch` or mapping over `ConnectionType` will now need to handle the two new values, and endpoints that return a `connectionType` may return them.
+
+## Modified endpoints
+
+The new values are accepted and returned wherever `ConnectionType` already appeared:
+
+- `createConnection` (`POST /network.cosmik.connection.create`) — `connectionType` accepts the new values.
+- `updateConnection` (`POST /network.cosmik.connection.update`) — `connectionType` accepts the new values.
+- `connectionsForUrl` (`GET /network.cosmik.connection.getForUrl`) — the `connectionTypes` filter accepts the new values.
+- `connectionsByUser` (`GET /network.cosmik.connection.listByUser`) — the `connectionTypes` filter accepts the new values.
+
+# sdk-v0.0.7 - 2026-08-25
+
+## New endpoints
+
+- `bskyFollowingFeed` (`GET /network.cosmik.feed.getBskyFollowing`) — activity feed of the Semble users you follow on Bluesky. Requires authentication. Query: `GetBskyFollowingFeedParams` (`page`, `limit`, optional `beforeActivityId`, `urlType`, `source`, `activityTypes`, `includeKnownBots`). Returns `GetGlobalFeedResponse`, the same shape as the global and following feeds.
+
+New shared type: `GetBskyFollowingFeedParams`.
+
 # sdk-v0.0.6 - 2026-08-20
 
 No new or removed endpoints. This release fixes response payloads and changes the behaviour of one endpoint.

@@ -24,6 +24,10 @@ import {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetRecommendedCollectionsForUrlParams,
+  GetRecommendedCollectionsForUrlResponse,
+  GetRecommendedOpenCollectionsForUrlParams,
+  GetRecommendedOpenCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
   SemanticSearchUrlsParams,
@@ -259,6 +263,30 @@ export class QueryClient extends BaseClient {
     return unwrap<GetCollectionsForUrlResponse>(res);
   }
 
+  async getRecommendedCollectionsForUrl(
+    params: GetRecommendedCollectionsForUrlParams,
+  ): Promise<GetRecommendedCollectionsForUrlResponse> {
+    const res = await this.client.collections.recommendedCollectionsForUrl({
+      query: {
+        url: params.url,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetRecommendedCollectionsForUrlResponse>(res);
+  }
+
+  async getRecommendedOpenCollectionsForUrl(
+    params: GetRecommendedOpenCollectionsForUrlParams,
+  ): Promise<GetRecommendedOpenCollectionsForUrlResponse> {
+    const res = await this.client.collections.recommendedOpenCollectionsForUrl({
+      query: {
+        url: params.url,
+        limit: params.limit,
+      },
+    });
+    return unwrap<GetRecommendedOpenCollectionsForUrlResponse>(res);
+  }
+
   async getSimilarUrlsForUrl(
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
@@ -352,6 +380,7 @@ export class QueryClient extends BaseClient {
         collectionWeight: params.collectionWeight,
         connectionWeight: params.connectionWeight,
         randomness: params.randomness,
+        urlType: params.urlType,
       },
     });
     return unwrap<RecommendedUrlsResponse>(res);

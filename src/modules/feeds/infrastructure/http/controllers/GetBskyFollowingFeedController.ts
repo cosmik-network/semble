@@ -1,0 +1,75 @@
+import { Response } from 'express';
+import { z } from 'zod';
+import { GetBskyFollowingFeedUseCase } from '../../../application/useCases/queries/GetBskyFollowingFeedUseCase';
+import { Controller } from 'src/shared/infrastructure/http/Controller';
+import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
+import { GetGlobalFeedResponse, ActivitySource } from '@semble/types';
+
+// Zod schema for request validation
+const querySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  beforeActivityId: z.string().optional(),
+  urlType: z.string().optional(),
+  source: z.nativeEnum(ActivitySource).optional(),
+  activityTypes: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
+  includeKnownBots: z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => {
+      if (val === undefined) return false; // Default to false
+      if (typeof val === 'boolean') return val;
+      return val === 'true'; // Convert string to boolean
+    }),
+});
+
+export class GetBskyFollowingFeedController extends Controller {
+  constructor(
+    private getBskyFollowingFeedUseCase: GetBskyFollowingFeedUseCase,
+  ) {
+    super();
+  }
+
+  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
+    try {
+      // Validate request with Zod
+      const validation = querySchema.safeParse(req.query);
+      if (!validation.success) {
+        return this.badRequest(res, JSON.stringify(validation.error.format()));
+      }
+
+      const params = validation.data;
+      const callerDid = req.did;
+
+      // Bluesky following feed requires authentication
+      if (!callerDid) {
+        return this.unauthorized(res, 'Authentication required');
+      }
+
+      const result = await this.getBskyFollowingFeedUseCase.execute({
+        callingUserId: callerDid,
+        page: params.page || 1,
+        limit: params.limit || 20,
+        beforeActivityId: params.beforeActivityId,
+        urlType: params.urlType,
+        source: params.source,
+        activityTypes: params.activityTypes,
+        includeKnownBots: params.includeKnownBots,
+      });
+
+      if (result.isErr()) {
+        return this.fail(res, result.error.message);
+      }
+
+      return this.ok<GetGlobalFeedResponse>(res, result.value);
+    } catch (error) {
+      return this.fail(res, 'An unexpected error occurred');
+    }
+  }
+}

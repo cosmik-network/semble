@@ -11,6 +11,7 @@ import {
   SearchCollectionsOptions,
   GetOpenCollectionsWithContributorOptions,
   CollectionContributorDTO,
+  CollectionWithMatchedUrlsDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -543,6 +544,69 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
         cardCount: collection.cardCount,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
+      }));
+  }
+
+  async getCollectionsForUrlsByAuthor(
+    urls: string[],
+    authorId: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    return this.queryCollectionsWithMatchedUrls(
+      urls,
+      (collection) => collection.authorId.value === authorId,
+    );
+  }
+
+  async getOpenCollectionsForUrls(
+    urls: string[],
+    excludeAuthorId?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]> {
+    return this.queryCollectionsWithMatchedUrls(
+      urls,
+      (collection) =>
+        collection.accessType === 'OPEN' &&
+        (!excludeAuthorId || collection.authorId.value !== excludeAuthorId),
+    );
+  }
+
+  private queryCollectionsWithMatchedUrls(
+    urls: string[],
+    matchesCollection: (collection: Collection) => boolean,
+  ): CollectionWithMatchedUrlsDTO[] {
+    const allCards = this.cardRepository?.getAllCards() || [];
+    const allCollections = this.collectionRepository?.getAllCollections() || [];
+    const urlSet = new Set(urls);
+
+    // Map URL card id -> url for cards matching the queried URLs
+    const urlByCardId = new Map<string, string>();
+    allCards
+      .filter((c) => c.type.value === 'URL' && c.url && urlSet.has(c.url.value))
+      .forEach((c) => urlByCardId.set(c.cardId.getStringValue(), c.url!.value));
+
+    return allCollections
+      .filter(matchesCollection)
+      .map((collection) => {
+        const matchedUrls = [
+          ...new Set(
+            collection.cardLinks
+              .map((link) => urlByCardId.get(link.cardId.getStringValue()))
+              .filter((url): url is string => !!url),
+          ),
+        ];
+        return { collection, matchedUrls };
+      })
+      .filter(({ matchedUrls }) => matchedUrls.length > 0)
+      .map(({ collection, matchedUrls }) => ({
+        id: collection.collectionId.getStringValue(),
+        uri: collection.publishedRecordId?.uri,
+        authorId: collection.authorId.value,
+        name: collection.name.value,
+        description: collection.description?.value,
+        accessType: collection.accessType,
+        cardCount: collection.cardCount,
+        createdAt: collection.createdAt,
+        updatedAt: collection.updatedAt,
+        matchedUrls,
       }));
   }
 

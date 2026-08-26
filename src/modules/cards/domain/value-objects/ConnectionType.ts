@@ -10,6 +10,8 @@ export enum ConnectionTypeEnum {
   RELATED = 'RELATED',
   SUPPLEMENT = 'SUPPLEMENT',
   EXPLAINER = 'EXPLAINER',
+  SAME_AS = 'SAME_AS',
+  REFERENCES = 'REFERENCES',
 }
 
 // Metadata about each connection type
@@ -53,6 +55,14 @@ const CONNECTION_TYPE_METADATA: Record<
   [ConnectionTypeEnum.EXPLAINER]: {
     isDirectional: true,
     displayName: 'Explainer',
+  },
+  [ConnectionTypeEnum.SAME_AS]: {
+    isDirectional: false,
+    displayName: 'Same as',
+  },
+  [ConnectionTypeEnum.REFERENCES]: {
+    isDirectional: true,
+    displayName: 'References',
   },
 };
 
