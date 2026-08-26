@@ -75,9 +75,6 @@ const preview: Preview = {
             cssVariablesResolver={v8CssVariablesResolver}
             forceColorScheme={colorScheme}
           >
-            {/* Components read user settings through `useSettings`, which
-                throws outside this provider — the app mounts it in
-                `providers/index.tsx`. */}
             <SettingsProvider>
               <Story />
             </SettingsProvider>
