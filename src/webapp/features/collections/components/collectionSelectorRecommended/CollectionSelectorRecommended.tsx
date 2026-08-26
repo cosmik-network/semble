@@ -47,7 +47,7 @@ export default function CollectionSelectorRecommended(props: Props) {
       {isPending ? (
         <Stack align="center" justify="center" style={{ flex: 1 }}>
           <Text fw={500} c="gray">
-            Finding similar cards...
+            Recommending collections...
           </Text>
           <Loader color="gray" />
         </Stack>
