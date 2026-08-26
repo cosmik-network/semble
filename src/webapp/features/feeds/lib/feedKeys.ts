@@ -19,6 +19,10 @@ export const feedKeys = {
     includeKnownBots,
     actorIds,
   ],
+  // Seed cards sampled out of recent global feed activity, used to stand in
+  // for a library the reader doesn't have yet.
+  seeds: (poolSize: number, count: number) =>
+    [...feedKeys.all(), 'seeds', poolSize, count] as const,
   gems: () => [...feedKeys.all(), 'gems'] as const,
   gemsInfinite: (
     limit?: number,

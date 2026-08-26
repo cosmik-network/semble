@@ -4,8 +4,8 @@ import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Explore',
-  description: 'Explore',
+  title: 'Profiles',
+  description: 'Discover people to follow on Semble',
 };
 
 interface Props {
@@ -15,9 +15,11 @@ interface Props {
 export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header title="Explore">
+      <Header title="Profiles">
         <BackButton />
       </Header>
+
+
       {props.children}
     </Fragment>
   );

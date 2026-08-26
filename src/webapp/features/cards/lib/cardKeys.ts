@@ -30,6 +30,13 @@ export const cardKeys = {
   ],
   urlMetadata: (url: string, options?: { includeStats?: boolean }) =>
     [...cardKeys.all(), 'metadata', url, options] as const,
+  // The subset of a URL's stats a card in a list can show: save/connect counts
+  // and the reader's own status. Deliberately separate from urlMetadata, which
+  // holds the authoritative full stats the semble and collection tabs read — a
+  // list only knows this subset, so seeding it into urlMetadata would mean
+  // padding the rest with zeros the tabs would then display.
+  urlStatuses: () => [...cardKeys.all(), 'url-status'] as const,
+  urlStatus: (url: string) => [...cardKeys.urlStatuses(), url] as const,
   // Deliberately NOT under cardKeys.all(): saving or connecting invalidates
   // that whole prefix, which would refetch the recommendations and reshuffle
   // the list under the user. Individual cards refresh their own state via

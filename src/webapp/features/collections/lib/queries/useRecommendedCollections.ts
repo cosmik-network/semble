@@ -3,6 +3,10 @@ import { getRecommendedCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 
 interface Props {
+  // Seed URLs to recommend from. The endpoint rejects an empty list from an
+  // authenticated caller, so the query stays disabled until there's at least
+  // one — see useGlobalFeedSeeds for where seeds come from when the reader's
+  // own library has none.
   urls: string[];
   enabled?: boolean;
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import MyFeedContainerError from '@/features/feeds/containers/myFeedContainer/Error.MyFeedContainer';
+import ExploreContainerError from '@/features/explore/containers/exploreContainer/Error.ExploreContainer';
 
 export default function Error() {
-  return <MyFeedContainerError />;
+  return <ExploreContainerError />;
 }
