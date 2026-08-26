@@ -60,6 +60,23 @@ export function feedViewLabel(view: FeedView): string {
   return feedViewLabels[view];
 }
 
+/*
+ * Which views the API will only answer for a signed-in reader. A `Record`
+ * again, so a fourth view has to say which side it falls on, and the one
+ * table is what both the feed menu and the explore cards read: a guest who
+ * could still pick "Following" would get a 401 feed, and — because the view
+ * is persisted — would keep getting one on every reload.
+ */
+const feedViewAuthRequirement: Record<FeedView, boolean> = {
+  global: false,
+  following: true,
+  bskyFollowing: true,
+};
+
+export function feedViewRequiresAuth(view: FeedView): boolean {
+  return feedViewAuthRequirement[view];
+}
+
 export const feedOptions: FeedOption[] = [
   { value: 'global', label: feedViewLabels.global },
   { value: 'following', label: feedViewLabels.following },

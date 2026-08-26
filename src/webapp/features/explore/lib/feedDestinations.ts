@@ -1,5 +1,9 @@
 import { UrlType } from '@semble/types';
-import { FeedView, feedViewLabel } from '@/features/feeds/lib/feedOptions';
+import {
+  FeedView,
+  feedViewLabel,
+  feedViewRequiresAuth,
+} from '@/features/feeds/lib/feedOptions';
 
 /** One tile in the explore "Happening now" section. */
 export interface FeedDestination {
@@ -21,7 +25,7 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
     description: 'Everything saved across Semble',
     feedView: 'global',
     urlType: null,
-    requiresAuth: false,
+    requiresAuth: feedViewRequiresAuth('global'),
   },
   {
     id: 'feed-following',
@@ -29,7 +33,7 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
     description: 'People and collections you follow here',
     feedView: 'following',
     urlType: null,
-    requiresAuth: true,
+    requiresAuth: feedViewRequiresAuth('following'),
   },
   {
     // Ungated on purpose. The `bskyFollows` flag is `showForTeam`, so only the
@@ -40,7 +44,7 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
     description: 'People you follow on Bluesky who are on Semble',
     feedView: 'bskyFollowing',
     urlType: null,
-    requiresAuth: true,
+    requiresAuth: feedViewRequiresAuth('bskyFollowing'),
   },
 ];
 
@@ -74,7 +78,7 @@ export const TYPE_DESTINATIONS: FeedDestination[] = TYPE_TILES.map((tile) => ({
   description: '',
   feedView: 'global',
   urlType: tile.type,
-  requiresAuth: false,
+  requiresAuth: feedViewRequiresAuth('global'),
 }));
 
 /** The settings a destination implies. */
