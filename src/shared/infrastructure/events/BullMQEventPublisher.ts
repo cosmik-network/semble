@@ -82,7 +82,10 @@ export class BullMQEventPublisher implements IEventPublisher {
           QueueNames.SEARCH,
           QueueNames.NOTIFICATIONS,
           QueueNames.SYNC,
+          QueueNames.METADATA,
         ];
+      case EventNames.URL_CARD_METADATA_UPDATED:
+        return [QueueNames.FEEDS, QueueNames.SEARCH];
       case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS];
       case EventNames.CARD_REMOVED_FROM_LIBRARY:

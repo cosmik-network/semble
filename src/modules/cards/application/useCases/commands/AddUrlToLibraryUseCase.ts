@@ -100,10 +100,13 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       let urlCard = existingUrlCardResult.value;
       if (!urlCard) {
-        // Fetch metadata for URL
+        // Fetch metadata for URL. Fast mode blocks only on the quick service;
+        // the metadata worker enriches the card with the full (slow) result
+        // asynchronously after the CardAddedToLibraryEvent.
         const metadataResult = await this.metadataService.fetchMetadata(
           url,
           true,
+          'fast',
         );
         let metadata: UrlMetadata;
         if (metadataResult.isOk()) {
