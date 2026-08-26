@@ -49,6 +49,8 @@ import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/i
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
+import { GetRecommendedCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetRecommendedCollectionsForUrlController';
+import { GetRecommendedOpenCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetRecommendedOpenCollectionsForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
 import { GetMyNotificationsController } from '../../../../modules/notifications/infrastructure/http/controllers/GetMyNotificationsController';
@@ -142,6 +144,8 @@ export interface Controllers {
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
+  getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController;
+  getRecommendedOpenCollectionsForUrlController: GetRecommendedOpenCollectionsForUrlController;
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   getCollectionFollowersController: GetCollectionFollowersController;
   getCollectionFollowersCountController: GetCollectionFollowersCountController;
@@ -383,6 +387,14 @@ export class ControllerFactory {
       getCollectionsForUrlController: new GetCollectionsForUrlController(
         useCases.getCollectionsForUrlUseCase,
       ),
+      getRecommendedCollectionsForUrlController:
+        new GetRecommendedCollectionsForUrlController(
+          useCases.getRecommendedCollectionsForUrlUseCase,
+        ),
+      getRecommendedOpenCollectionsForUrlController:
+        new GetRecommendedOpenCollectionsForUrlController(
+          useCases.getRecommendedOpenCollectionsForUrlUseCase,
+        ),
       getNoteCardsForUrlController: new GetNoteCardsForUrlController(
         useCases.getNoteCardsForUrlUseCase,
       ),

@@ -28,6 +28,10 @@ export const collectionKeys = {
       identifier,
     ] as const,
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
+  recommendedForUrl: (url: string, limit?: number) =>
+    [...collectionKeys.all(), 'recommendedForUrl', url, limit] as const,
+  recommendedOpenForUrl: (url: string, limit?: number) =>
+    [...collectionKeys.all(), 'recommendedOpenForUrl', url, limit] as const,
   infinite: (
     id?: string,
     limit?: number,

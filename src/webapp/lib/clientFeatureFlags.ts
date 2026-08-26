@@ -12,6 +12,7 @@ interface FeatureFlags {
   connections: boolean;
   graphView: boolean;
   readerMode: boolean;
+  recommendedCollections?: boolean;
   onboarding: boolean;
   bskyFollows: boolean;
   newConnectionTypes: boolean;

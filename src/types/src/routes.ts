@@ -71,6 +71,10 @@ export const paths = {
   collectionFollowers: '/network.cosmik.collection.getFollowers',
   collectionFollowersCount: '/network.cosmik.collection.getFollowerCount',
   collectionContributors: '/network.cosmik.collection.getContributors',
+  recommendedCollectionsForUrl:
+    '/network.cosmik.collection.getRecommendedForUrl',
+  recommendedOpenCollectionsForUrl:
+    '/network.cosmik.collection.getRecommendedOpenForUrl',
   // users / actor
   myProfile: '/network.cosmik.actor.getMyProfile',
   userProfile: '/network.cosmik.actor.getProfile',
@@ -171,6 +175,16 @@ export const routes = {
     followers: defineRoute(paths.collectionFollowers, 'GET', false),
     followersCount: defineRoute(paths.collectionFollowersCount, 'GET', false),
     contributors: defineRoute(paths.collectionContributors, 'GET', false),
+    recommendedForUrl: defineRoute(
+      paths.recommendedCollectionsForUrl,
+      'GET',
+      true,
+    ),
+    recommendedOpenForUrl: defineRoute(
+      paths.recommendedOpenCollectionsForUrl,
+      'GET',
+      true,
+    ),
   },
   users: {
     myProfile: defineRoute(paths.myProfile, 'GET', true),

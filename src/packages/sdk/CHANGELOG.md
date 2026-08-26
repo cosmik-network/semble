@@ -1,3 +1,12 @@
+# sdk-v0.0.9 - 2026-08-26
+
+## New endpoints
+
+- `recommendedCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedForUrl`) — recommends which of your own collections to save a URL to, based on semantic similarity: returns the authenticated user's collections that contain URLs similar to the given URL, ranked by how many similar URLs each collection contains. Requires authentication. Query: `GetRecommendedCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedCollectionsForUrlResponse` (`collections: Collection[]`).
+- `recommendedOpenCollectionsForUrl` (`GET /network.cosmik.collection.getRecommendedOpenForUrl`) — same recommendation, but over open collections from across the network, excluding your own. Requires authentication. Query: `GetRecommendedOpenCollectionsForUrlParams` (`url`, optional `limit`). Returns `GetRecommendedOpenCollectionsForUrlResponse` (`collections: Collection[]`).
+
+New shared types: `GetRecommendedCollectionsForUrlParams`, `GetRecommendedCollectionsForUrlResponse`, `GetRecommendedOpenCollectionsForUrlParams`, `GetRecommendedOpenCollectionsForUrlResponse`.
+
 # sdk-v0.0.8 - 2026-08-25
 
 No new or removed endpoints. This release widens one shared type.

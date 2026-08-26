@@ -151,6 +151,7 @@ export default function AddCardToModalContent(props: Props) {
 
       <CollectionSelector
         isOpen={true}
+        url={props.url}
         onClose={props.onClose}
         onCancel={() => {
           props.onClose();
