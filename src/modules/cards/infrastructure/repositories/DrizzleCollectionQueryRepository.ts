@@ -642,11 +642,14 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
   async getCollectionsForUrlsByAuthor(
     urls: string[],
     authorId: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     try {
-      return await this.queryCollectionsWithMatchedUrls(urls, [
-        eq(collections.authorId, authorId),
-      ]);
+      return await this.queryCollectionsWithMatchedUrls(
+        urls,
+        [eq(collections.authorId, authorId)],
+        excludeUrl,
+      );
     } catch (error) {
       console.error('Error in getCollectionsForUrlsByAuthor:', error);
       throw error;
@@ -656,6 +659,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
   async getOpenCollectionsForUrls(
     urls: string[],
     excludeAuthorId?: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     try {
       const conditions = [
@@ -664,7 +668,11 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       if (excludeAuthorId) {
         conditions.push(ne(collections.authorId, excludeAuthorId));
       }
-      return await this.queryCollectionsWithMatchedUrls(urls, conditions);
+      return await this.queryCollectionsWithMatchedUrls(
+        urls,
+        conditions,
+        excludeUrl,
+      );
     } catch (error) {
       console.error('Error in getOpenCollectionsForUrls:', error);
       throw error;
@@ -674,14 +682,32 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
   /**
    * Distinct collections containing URL cards with any of the given URLs,
    * each with the subset of queried URLs it contains so callers can rank by
-   * match count.
+   * match count. When `excludeUrl` is given, collections that already contain
+   * a URL card with that URL are filtered out.
    */
   private async queryCollectionsWithMatchedUrls(
     urls: string[],
     conditions: SQL[],
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     if (urls.length === 0) {
       return [];
+    }
+
+    const allConditions = [...conditions];
+    if (excludeUrl) {
+      // Anti-join: drop collections that already contain this URL
+      allConditions.push(
+        sql`NOT EXISTS (
+          SELECT 1
+          FROM ${collectionCards} AS existing_cc
+          INNER JOIN ${cards} AS existing_card
+            ON existing_card.id = existing_cc.card_id
+          WHERE existing_cc.collection_id = ${collections.id}
+            AND existing_card.type = ${CardTypeEnum.URL}
+            AND existing_card.url = ${excludeUrl}
+        )`,
+      );
     }
 
     // Distinct (collection, url) pairs so callers can rank by how many of
@@ -711,7 +737,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       .innerJoin(cards, eq(collectionCards.cardId, cards.id))
       .where(
         and(
-          ...conditions,
+          ...allConditions,
           eq(cards.type, CardTypeEnum.URL),
           inArray(cards.url, urls),
         ),

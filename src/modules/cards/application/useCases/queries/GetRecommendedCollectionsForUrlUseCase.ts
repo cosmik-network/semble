@@ -48,6 +48,9 @@ export class ValidationError extends UseCaseError {
  * Both sets are derived from a single vector-database query — the candidate
  * pool is fetched once and partitioned — and each is ranked by how many
  * similar URLs the collection contains, ties broken by similarity rank.
+ *
+ * Collections that already contain the given URL are excluded, since there is
+ * nothing to save to them.
  */
 export class GetRecommendedCollectionsForUrlUseCase implements UseCase<
   GetRecommendedCollectionsForUrlQuery,
@@ -102,17 +105,22 @@ export class GetRecommendedCollectionsForUrlUseCase implements UseCase<
       const networkUrls = similarUrlsResult.value.all.map((u) => u.url);
       const myUrls = similarUrlsResult.value.savedByUser.map((u) => u.url);
 
+      // Only recommend collections the URL can still be added to
+      const targetUrl = urlResult.value.value;
+
       const [myCandidates, openCandidates] = await Promise.all([
         myUrls.length > 0
           ? this.collectionQueryRepo.getCollectionsForUrlsByAuthor(
               myUrls,
               query.callingUserId,
+              targetUrl,
             )
           : Promise.resolve([]),
         networkUrls.length > 0
           ? this.collectionQueryRepo.getOpenCollectionsForUrls(
               networkUrls,
               query.callingUserId,
+              targetUrl,
             )
           : Promise.resolve([]),
       ]);

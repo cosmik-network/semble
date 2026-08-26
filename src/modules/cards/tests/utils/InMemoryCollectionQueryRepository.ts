@@ -550,32 +550,50 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
   async getCollectionsForUrlsByAuthor(
     urls: string[],
     authorId: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     return this.queryCollectionsWithMatchedUrls(
       urls,
       (collection) => collection.authorId.value === authorId,
+      excludeUrl,
     );
   }
 
   async getOpenCollectionsForUrls(
     urls: string[],
     excludeAuthorId?: string,
+    excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     return this.queryCollectionsWithMatchedUrls(
       urls,
       (collection) =>
         collection.accessType === 'OPEN' &&
         (!excludeAuthorId || collection.authorId.value !== excludeAuthorId),
+      excludeUrl,
     );
   }
 
   private queryCollectionsWithMatchedUrls(
     urls: string[],
     matchesCollection: (collection: Collection) => boolean,
+    excludeUrl?: string,
   ): CollectionWithMatchedUrlsDTO[] {
     const allCards = this.cardRepository?.getAllCards() || [];
     const allCollections = this.collectionRepository?.getAllCollections() || [];
     const urlSet = new Set(urls);
+
+    // Card ids of URL cards holding the URL being recommended for, so
+    // collections that already contain it can be filtered out
+    const excludedCardIds = excludeUrl
+      ? new Set(
+          allCards
+            .filter(
+              (c) =>
+                c.type.value === 'URL' && c.url && c.url.value === excludeUrl,
+            )
+            .map((c) => c.cardId.getStringValue()),
+        )
+      : null;
 
     // Map URL card id -> url for cards matching the queried URLs
     const urlByCardId = new Map<string, string>();
@@ -585,6 +603,13 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
 
     return allCollections
       .filter(matchesCollection)
+      .filter(
+        (collection) =>
+          !excludedCardIds ||
+          !collection.cardLinks.some((link) =>
+            excludedCardIds.has(link.cardId.getStringValue()),
+          ),
+      )
       .map((collection) => {
         const matchedUrls = [
           ...new Set(
