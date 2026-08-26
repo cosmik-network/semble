@@ -5,6 +5,7 @@ import {
 } from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/cards/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { ConnectionCreatedEventHandler } from '../../../modules/cards/application/eventHandlers/ConnectionCreatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -53,6 +54,17 @@ export class MetadataWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
+    );
+
+    const connectionCreatedHandler = new ConnectionCreatedEventHandler(
+      repositories.connectionRepository,
+      services.metadataService,
+      useCases.updateConnectionUrlMetadataUseCase,
+    );
+
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      connectionCreatedHandler,
     );
   }
 }

@@ -8,6 +8,7 @@ import { CardAddedToLibraryEventHandler as FeedCardAddedToLibraryEventHandler } 
 import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardAddedToLibraryEventHandler as MetadataCardAddedToLibraryEventHandler } from '../../../modules/cards/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { ConnectionCreatedEventHandler as MetadataConnectionCreatedEventHandler } from '../../../modules/cards/application/eventHandlers/ConnectionCreatedEventHandler';
 import { UrlCardMetadataUpdatedEventHandler as FeedUrlCardMetadataUpdatedEventHandler } from '../../../modules/feeds/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { UrlCardMetadataUpdatedEventHandler as SearchUrlCardMetadataUpdatedEventHandler } from '../../../modules/search/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { CardActivityBundlingSaga } from '../../../modules/notifications/application/sagas/CardActivityBundlingSaga';
@@ -79,6 +80,12 @@ export class InMemoryEventWorkerProcess implements IProcess {
         repositories.cardRepository,
         services.metadataService,
         useCases.updateUrlCardMetadataUseCase,
+      );
+    const metadataConnectionCreatedHandler =
+      new MetadataConnectionCreatedEventHandler(
+        repositories.connectionRepository,
+        services.metadataService,
+        useCases.updateConnectionUrlMetadataUseCase,
       );
     const feedUrlCardMetadataUpdatedHandler =
       new FeedUrlCardMetadataUpdatedEventHandler(
@@ -210,6 +217,10 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       metadataCardAddedToLibraryHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      metadataConnectionCreatedHandler,
     );
     await subscriber.subscribe(
       EventNames.URL_CARD_METADATA_UPDATED,
