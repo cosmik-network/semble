@@ -4,29 +4,28 @@ import { FaBluesky } from 'react-icons/fa6';
 
 export type ProfilesView = 'forYou' | 'bluesky';
 
-export interface ProfileViewOption {
+interface ProfileViewOption {
   value: ProfilesView;
   label: React.ReactNode;
 }
 
-function withIcon(icon: React.ReactNode, label: string) {
-  return (
-    <Group gap={7} wrap="nowrap" justify="center">
-      {icon}
-      <span>{label}</span>
-    </Group>
-  );
-}
-
-/** Shared by the explore shelf and the standalone profiles page so the two
- * segmented controls can't drift apart. */
 export const profileViewOptions: ProfileViewOption[] = [
   {
     value: 'forYou',
-    label: withIcon(<HiOutlineSparkles size={16} />, 'For you'),
+    label: (
+      <Group gap={'xxs'} wrap="nowrap" justify="center">
+        <HiOutlineSparkles size={16} />
+        <span>{'For you'}</span>
+      </Group>
+    ),
   },
   {
     value: 'bluesky',
-    label: withIcon(<FaBluesky size={15} />, 'Followed on Bluesky'),
+    label: (
+      <Group gap={'xxs'} wrap="nowrap" justify="center">
+        <FaBluesky size={16} />
+        <span>{'Followed on Bluesky'}</span>
+      </Group>
+    ),
   },
 ];

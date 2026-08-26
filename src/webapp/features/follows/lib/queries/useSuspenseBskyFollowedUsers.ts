@@ -1,19 +1,17 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getBskyFollowedUsers } from '../dal';
 import { followKeys } from '../followKeys';
 
 interface Props {
-  limit?: number;
-  enabled?: boolean;
+  limit: number;
 }
 
-export default function useBskyFollowedUsers({
-  limit = 20,
-  enabled = true,
-}: Props = {}) {
-  const query = useInfiniteQuery({
+/** Suspense twin of useBskyFollowedUsers. */
+export default function useSuspenseBskyFollowedUsers(props: Props) {
+  const limit = props.limit;
+
+  return useSuspenseInfiniteQuery({
     queryKey: followKeys.bskyFollowedUsers(limit),
-    enabled,
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await getBskyFollowedUsers({ limit, page: pageParam });
@@ -25,13 +23,9 @@ export default function useBskyFollowedUsers({
         })),
       };
     },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.hasMore) {
-        return lastPage.pagination.currentPage + 1;
-      }
-      return undefined;
-    },
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.hasMore
+        ? lastPage.pagination.currentPage + 1
+        : undefined,
   });
-
-  return query;
 }
