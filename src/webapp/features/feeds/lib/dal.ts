@@ -58,3 +58,20 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
 
   return response;
 });
+
+export const getBskyFollowingFeed = cache(async (params?: PageParams) => {
+  const session = await verifySessionOnClient({ redirectOnFail: true });
+  if (!session) throw new NoSessionError();
+
+  const client = createSembleClient();
+  const response = await client.getBskyFollowingFeed({
+    page: params?.page,
+    limit: params?.limit,
+    urlType: params?.urlType,
+    source: params?.source,
+    activityTypes: params?.activityTypes,
+    includeKnownBots: params?.includeKnownBots,
+  });
+
+  return response;
+});

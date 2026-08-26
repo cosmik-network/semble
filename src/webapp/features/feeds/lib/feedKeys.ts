@@ -56,4 +56,21 @@ export const feedKeys = {
       activityTypes,
       includeKnownBots,
     ] as const,
+  bskyFollowing: () => [...feedKeys.all(), 'bskyFollowing'] as const,
+  bskyFollowingInfinite: (
+    limit?: number,
+    urlType?: UrlType,
+    source?: ActivitySource,
+    activityTypes?: ActivityType[],
+    includeKnownBots?: boolean,
+  ) =>
+    [
+      ...feedKeys.bskyFollowing(),
+      'infinite',
+      limit,
+      urlType,
+      source,
+      activityTypes,
+      includeKnownBots,
+    ] as const,
 };
