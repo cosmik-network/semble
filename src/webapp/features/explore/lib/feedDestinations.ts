@@ -18,7 +18,10 @@ export interface FeedDestination {
 
 // A card and the feed menu name the same view, so the label comes from
 // `feedViewLabel` rather than being written out a second time here.
-export const FEED_DESTINATIONS: FeedDestination[] = [
+//
+// `as const satisfies` rather than a plain annotation: it keeps the ids as
+// literals so `FeedDestinationId` below can be derived from them.
+export const FEED_DESTINATIONS = [
   {
     id: 'feed-global',
     label: feedViewLabel('global'),
@@ -46,7 +49,14 @@ export const FEED_DESTINATIONS: FeedDestination[] = [
     urlType: null,
     requiresAuth: feedViewRequiresAuth('bskyFollowing'),
   },
-];
+] as const satisfies readonly FeedDestination[];
+
+/**
+ * The feed ids as a union. `ExploreFeeds` keys its icon table by this, so a
+ * feed added above without an icon fails the build instead of rendering a
+ * card with an empty space where the icon goes.
+ */
+export type FeedDestinationId = (typeof FEED_DESTINATIONS)[number]['id'];
 
 /*
  * The type rail, in the order it is read: by how often a type turns up rather
