@@ -911,6 +911,28 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return Array.from(userIds);
   }
 
+  async getUrlsSavedByUser(
+    userId: string,
+    urls: string[],
+  ): Promise<Set<string>> {
+    const urlSet = new Set(urls);
+    const savedUrls = new Set<string>();
+    const allCards = this.cardRepository.getAllCards();
+
+    allCards.forEach((card) => {
+      if (
+        card.isUrlCard &&
+        card.url &&
+        card.curatorId.value === userId &&
+        urlSet.has(card.url.value)
+      ) {
+        savedUrls.add(card.url.value);
+      }
+    });
+
+    return savedUrls;
+  }
+
   async getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>> {
