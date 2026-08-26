@@ -20,6 +20,8 @@ export async function GET() {
       readerMode: false,
       onboarding: true,
       recommendedCollections: false,
+      bskyFollows: false,
+      newConnectionTypes: false,
     });
   }
 }
