@@ -14,11 +14,16 @@ export interface BskyFollowedProfile {
  */
 export interface IBskyFollowsService {
   /**
-   * Get the Semble users that the caller follows on Bluesky, keyed by DID,
+   * Get the Semble users that `actorDid` follows on Bluesky, keyed by DID,
    * with the profile data included in the getFollows response.
+   *
+   * `viewerDid` is only used to pick which authenticated agent makes the
+   * request; it doesn't change the result, since follows are public. Omit it
+   * (or pass the same DID) when the viewer is reading their own follows.
    */
   getSembleUsersFollowedOnBsky(
-    callerDid: string,
+    actorDid: string,
     maxFollows?: number,
+    viewerDid?: string,
   ): Promise<Result<Map<string, BskyFollowedProfile>>>;
 }

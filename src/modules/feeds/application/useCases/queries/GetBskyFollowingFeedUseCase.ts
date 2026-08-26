@@ -32,9 +32,12 @@ import {
 } from '../../../domain/FeedActivity';
 import { ActivityType as ActivityTypeEnum } from '@semble/types';
 import { toUrlMetadataDTO } from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
+import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 
 export interface GetBskyFollowingFeedQuery {
-  callingUserId: string;
+  callingUserId?: string; // Viewer, if authenticated
+  identifier?: string; // DID or handle whose Bluesky follows define the feed
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
@@ -54,11 +57,16 @@ export class ValidationError extends UseCaseError {
 }
 
 /**
- * Activity feed scoped to the Semble users the caller follows on Bluesky.
+ * Activity feed scoped to the Semble users a subject follows on Bluesky.
  *
  * Identical to the global feed except the actor filter isn't supplied by the
- * caller — it's resolved from the caller's Bluesky follows (intersected with
+ * caller — it's resolved from the subject's Bluesky follows (intersected with
  * Semble users) and passed to the feed repository as actorIds.
+ *
+ * The subject is the `identifier` query param when given, otherwise the
+ * authenticated caller. The caller remains the viewer for hydration (library
+ * membership, follow status), so viewing someone else's feed shows their
+ * follows through your own eyes.
  */
 export class GetBskyFollowingFeedUseCase implements UseCase<
   GetBskyFollowingFeedQuery,
@@ -72,6 +80,7 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
     private connectionRepository: IConnectionRepository,
     private followsRepository: IFollowsRepository,
     private bskyFollowsService: IBskyFollowsService,
+    private identityResolutionService: IIdentityResolutionService,
   ) {}
 
   async execute(
@@ -83,8 +92,37 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
     >
   > {
     try {
-      if (!query.callingUserId) {
-        return err(new ValidationError('Calling user is required'));
+      // Resolve the subject whose Bluesky follows define this feed: the
+      // explicit identifier if given, otherwise the authenticated caller.
+      let subjectDid: string;
+      if (query.identifier) {
+        const identifierResult = DIDOrHandle.create(query.identifier);
+        if (identifierResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Invalid identifier: ${identifierResult.error.message}`,
+            ),
+          );
+        }
+
+        const didResult = await this.identityResolutionService.resolveToDID(
+          identifierResult.value,
+        );
+        if (didResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Could not resolve identifier: ${didResult.error.message}`,
+            ),
+          );
+        }
+
+        subjectDid = didResult.value.value;
+      } else if (query.callingUserId) {
+        subjectDid = query.callingUserId;
+      } else {
+        return err(
+          new ValidationError('identifier is required when unauthenticated'),
+        );
       }
 
       // Set defaults and validate
@@ -118,10 +156,12 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
         activityTypes = query.activityTypes as ActivityTypeEnum[];
       }
 
-      // Resolve the Semble users the caller follows on Bluesky. These become
+      // Resolve the Semble users the subject follows on Bluesky. These become
       // the actor filter for the feed.
       const followedResult =
         await this.bskyFollowsService.getSembleUsersFollowedOnBsky(
+          subjectDid,
+          undefined,
           query.callingUserId,
         );
       if (followedResult.isErr()) {
@@ -129,7 +169,7 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
       }
 
       const bskyFollowedDids = Array.from(followedResult.value.keys()).filter(
-        (did) => did !== query.callingUserId,
+        (did) => did !== subjectDid,
       );
 
       // No Semble users followed on Bluesky → empty feed. Returning early
