@@ -4,7 +4,6 @@ import {
   FEED_DESTINATIONS,
   TYPE_DESTINATIONS,
   feedSettingsFor,
-  resolveFeedAction,
 } from '@/features/explore/lib/feedDestinations';
 
 // ─────────────────────────────────────────────
@@ -22,16 +21,6 @@ describe('FEED_DESTINATIONS', () => {
   it('should not pre-filter any feed card by url type', () => {
     // Assert
     expect(FEED_DESTINATIONS.every((d) => d.urlType === null)).toBe(true);
-  });
-
-  it('should require auth for following and bskyFollowing only', () => {
-    // Act
-    const gated = FEED_DESTINATIONS.filter((d) => d.requiresAuth).map(
-      (d) => d.feedView,
-    );
-
-    // Assert
-    expect(gated).toEqual(['following', 'bskyFollowing']);
   });
 });
 
@@ -51,11 +40,6 @@ describe('TYPE_DESTINATIONS', () => {
   it('should send every type tile to the global feed', () => {
     // Assert
     expect(TYPE_DESTINATIONS.every((d) => d.feedView === 'global')).toBe(true);
-  });
-
-  it('should not gate any type tile behind auth', () => {
-    // Assert
-    expect(TYPE_DESTINATIONS.every((d) => !d.requiresAuth)).toBe(true);
   });
 
   it('should give every destination a unique id', () => {
@@ -106,58 +90,5 @@ describe('feedSettingsFor', () => {
       feedSource: null,
       feedActivityType: null,
     });
-  });
-});
-
-// ─────────────────────────────────────────────
-// resolveFeedAction
-// ─────────────────────────────────────────────
-describe('resolveFeedAction', () => {
-  it('should navigate for an ungated destination even while auth is loading', () => {
-    // Act
-    const action = resolveFeedAction({
-      requiresAuth: false,
-      isAuthenticated: false,
-      isAuthLoading: true,
-    });
-
-    // Assert
-    expect(action).toBe('navigate');
-  });
-
-  it('should disable a gated destination while auth is loading', () => {
-    // Act
-    const action = resolveFeedAction({
-      requiresAuth: true,
-      isAuthenticated: false,
-      isAuthLoading: true,
-    });
-
-    // Assert
-    expect(action).toBe('disabled');
-  });
-
-  it('should send a signed-out reader to login for a gated destination', () => {
-    // Act
-    const action = resolveFeedAction({
-      requiresAuth: true,
-      isAuthenticated: false,
-      isAuthLoading: false,
-    });
-
-    // Assert
-    expect(action).toBe('login');
-  });
-
-  it('should navigate a signed-in reader to a gated destination', () => {
-    // Act
-    const action = resolveFeedAction({
-      requiresAuth: true,
-      isAuthenticated: true,
-      isAuthLoading: false,
-    });
-
-    // Assert
-    expect(action).toBe('navigate');
   });
 });

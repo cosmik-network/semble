@@ -62,18 +62,28 @@ export function feedViewLabel(view: FeedView): string {
 
 /*
  * Which views the API will only answer for a signed-in reader. A `Record`
- * again, so a fourth view has to say which side it falls on, and the one
- * table is what both the feed menu and the explore cards read: a guest who
- * could still pick "Following" would get a 401 feed, and — because the view
- * is persisted — would keep getting one on every reload.
+ * again, so a fourth view has to say which side it falls on. A guest is no
+ * longer kept out of these views — the menu offers them and the explore cards
+ * navigate to them — but the request behind one can only 401, so this is what
+ * tells `MyFeedContainer` to render the login CTA in place of the feed rather
+ * than fire it.
  */
-const feedViewAuthRequirement: Record<FeedView, boolean> = {
+const feedViewAuthRequirement = {
   global: false,
   following: true,
   bskyFollowing: true,
-};
+} as const satisfies Record<FeedView, boolean>;
 
-export function feedViewRequiresAuth(view: FeedView): boolean {
+/**
+ * The views a guest can open but not read. Derived from the table above so the
+ * two cannot disagree — a view flipped to `true` there lands here, and the CTA
+ * copy keyed by this type stops compiling until it is written.
+ */
+export type AuthFeedView = {
+  [V in FeedView]: (typeof feedViewAuthRequirement)[V] extends true ? V : never;
+}[FeedView];
+
+export function feedViewRequiresAuth(view: FeedView): view is AuthFeedView {
   return feedViewAuthRequirement[view];
 }
 

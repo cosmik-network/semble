@@ -15,32 +15,24 @@ import { useSettings } from '@/providers/settings';
 import {
   activityTypeOptions,
   feedOptions,
-  feedViewRequiresAuth,
   FeedView,
   sourceOptions,
 } from '@/features/feeds/lib/feedOptions';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function FeedControls() {
   const { settings, updateSetting, updateSettings } = useSettings();
-  const { isAuthenticated } = useAuth();
 
-  // The following feeds are answered off the session, so a guest is offered
-  // only the views the API will serve them. `MyFeedContainer` makes the same
-  // call on the reader's persisted view, which the menu cannot reach.
-  const availableFeedOptions = isAuthenticated
-    ? feedOptions
-    : feedOptions.filter((option) => !feedViewRequiresAuth(option.value));
-
+  // Every view is offered, guest or not: the two answered off the session
+  // render a login CTA in `MyFeedContainer` rather than an error, so picking
+  // one shows a reader what they would get instead of hiding it from them.
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
   const selectedSource =
     sourceOptions.find((o) => o.value === settings.feedSource) ||
     sourceOptions[0];
   const selectedFeed =
-    availableFeedOptions.find((o) => o.value === settings.feedView) ||
-    availableFeedOptions[0];
+    feedOptions.find((o) => o.value === settings.feedView) || feedOptions[0];
 
   // Margin serves neither a following feed nor an activity-type filter, so
   // picking it resets both rather than leaving the feed on a combination it
@@ -104,7 +96,7 @@ export default function FeedControls() {
 
           <Menu.Dropdown>
             <Menu.Label>Feed</Menu.Label>
-            {availableFeedOptions.map((option) => (
+            {feedOptions.map((option) => (
               <Menu.Item
                 key={option.value}
                 onClick={() => handleFeedClick(option.value)}

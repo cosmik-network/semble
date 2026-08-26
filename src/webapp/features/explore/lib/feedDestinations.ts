@@ -1,9 +1,5 @@
 import { UrlType } from '@semble/types';
-import {
-  FeedView,
-  feedViewLabel,
-  feedViewRequiresAuth,
-} from '@/features/feeds/lib/feedOptions';
+import { FeedView, feedViewLabel } from '@/features/feeds/lib/feedOptions';
 
 /** One tile in the explore "Happening now" section. */
 export interface FeedDestination {
@@ -13,7 +9,6 @@ export interface FeedDestination {
   description: string;
   feedView: FeedView;
   urlType: UrlType | null;
-  requiresAuth: boolean;
 }
 
 // A card and the feed menu name the same view, so the label comes from
@@ -28,7 +23,6 @@ export const FEED_DESTINATIONS = [
     description: 'Everything saved across Semble',
     feedView: 'global',
     urlType: null,
-    requiresAuth: feedViewRequiresAuth('global'),
   },
   {
     id: 'feed-following',
@@ -36,7 +30,6 @@ export const FEED_DESTINATIONS = [
     description: 'People and collections you follow here',
     feedView: 'following',
     urlType: null,
-    requiresAuth: feedViewRequiresAuth('following'),
   },
   {
     // Ungated on purpose. The `bskyFollows` flag is `showForTeam`, so only the
@@ -47,7 +40,6 @@ export const FEED_DESTINATIONS = [
     description: 'People you follow on Bluesky who are on Semble',
     feedView: 'bskyFollowing',
     urlType: null,
-    requiresAuth: feedViewRequiresAuth('bskyFollowing'),
   },
 ] as const satisfies readonly FeedDestination[];
 
@@ -88,7 +80,6 @@ export const TYPE_DESTINATIONS: FeedDestination[] = TYPE_TILES.map((tile) => ({
   description: '',
   feedView: 'global',
   urlType: tile.type,
-  requiresAuth: feedViewRequiresAuth('global'),
 }));
 
 /** The settings a destination implies. */
@@ -114,22 +105,4 @@ export function feedSettingsFor(
     feedSource: null,
     feedActivityType: null,
   };
-}
-
-export type FeedAction = 'disabled' | 'login' | 'navigate';
-
-/**
- * What a click on a destination should do. `disabled` covers the window
- * before the session resolves — navigating then would bounce a signed-in
- * reader to /login.
- */
-export function resolveFeedAction(params: {
-  requiresAuth: boolean;
-  isAuthenticated: boolean;
-  isAuthLoading: boolean;
-}): FeedAction {
-  if (!params.requiresAuth) return 'navigate';
-  if (params.isAuthLoading) return 'disabled';
-  if (!params.isAuthenticated) return 'login';
-  return 'navigate';
 }

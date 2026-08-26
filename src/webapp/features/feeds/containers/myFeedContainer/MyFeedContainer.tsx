@@ -9,6 +9,7 @@ import { useSettings } from '@/providers/settings';
 import { useAuth } from '@/hooks/useAuth';
 import { feedViewRequiresAuth } from '@/features/feeds/lib/feedOptions';
 import { hasFeedFilters } from '@/features/feeds/lib/feedEmptyState';
+import FeedLoginCta from '@/features/feeds/components/feedLoginCta/FeedLoginCta';
 import FeedList from './FeedList';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 
@@ -106,18 +107,13 @@ export default function MyFeedContainer() {
       }),
   };
 
-  // Hiding the following views from a guest's menu stops them picking one; it
-  // does not help a reader who logged out with one already persisted, or who
-  // followed a shared link. Those views are answered off the session, so read
-  // them as global rather than mounting a feed that can only 401. The setting
-  // itself is left alone — logging back in restores the view they had.
-  //
   // `Dashboard` holds the whole tree behind a skeleton until the session
   // resolves, so `isAuthenticated` is settled by the time this mounts.
-  const view =
-    feedViewRequiresAuth(settings.feedView) && !isAuthenticated
-      ? 'global'
-      : settings.feedView;
+  const view = settings.feedView;
+
+  if (feedViewRequiresAuth(view) && !isAuthenticated) {
+    return <FeedLoginCta view={view} />;
+  }
 
   // The suspense `useGlobalFeed` throws would otherwise bubble past this
   // container to the nearest ancestor boundary, blanking the page during a

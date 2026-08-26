@@ -18,8 +18,7 @@ interface Props {
 }
 
 export default function ExploreFeedCard(props: Props) {
-  const { actionFor, select } = useFeedDestination();
-  const isDisabled = actionFor(props.destination) === 'disabled';
+  const { select } = useFeedDestination();
   const isHero = props.variant === 'hero';
 
   return (
@@ -46,9 +45,7 @@ export default function ExploreFeedCard(props: Props) {
       // `2px outset` button border; the fill does the separating work.
       bd="none"
       bg={CARD_BG}
-      opacity={isDisabled ? 0.55 : 1}
-      style={{ cursor: isDisabled ? 'default' : 'pointer' }}
-      disabled={isDisabled}
+      style={{ cursor: 'pointer' }}
       onClick={() => select(props.destination)}
     >
       {/* The landing page's card anatomy: icon at the top, label and
