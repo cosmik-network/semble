@@ -122,7 +122,7 @@ function GuestBskyHandleBar(props: { handle: string; onChange: () => void }) {
               href={loginHref}
               size="sm"
               radius="xl"
-              variant='inverse'
+              variant="inverse"
               rightSection={<BiRightArrowAlt size={22} />}
             >
               Log in to keep these
