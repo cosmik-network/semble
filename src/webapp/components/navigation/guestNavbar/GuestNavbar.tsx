@@ -11,6 +11,7 @@ import {
   Image,
   Box,
   Badge,
+  Card,
   Text,
 } from '@mantine/core';
 import { HiOutlineHome } from 'react-icons/hi';
@@ -20,9 +21,12 @@ import NavbarToggle from '../NavbarToggle';
 import { BiRightArrowAlt, BiSearch } from 'react-icons/bi';
 import { LinkButton } from '@/components/link/MantineLink';
 import { useLoginHref } from '@/hooks/useLoginHref';
+import { useNavbarContext } from '@/providers/navbar';
+import classes from './GuestNavbar.module.css';
 
 export default function GuestNavbar() {
   const loginHref = useLoginHref();
+  const { toggleMobile } = useNavbarContext();
 
   // z-index clears the sticky Header (100), which the open mobile navbar covers
   return (
@@ -41,40 +45,46 @@ export default function GuestNavbar() {
 
       <AppShellSection grow component={ScrollArea}>
         <Stack mt={'md'}>
-          <Stack>
-            <Text fw={600} fz={'xl'}>
-              A social knowledge network for research
-            </Text>
-            <Group gap={'xs'}>
-              <LinkButton href="/signup">Sign up</LinkButton>
-              <LinkButton
-                href={loginHref}
-                color="var(--mantine-color-dark-filled)"
-                rightSection={<BiRightArrowAlt size={22} />}
-              >
-                Log in
-              </LinkButton>
-            </Group>
-
-            <Stack gap={5} mt={'md'}>
-              <NavItem
-                href="/home"
-                label="Home"
-                icon={<HiOutlineHome size={25} />}
-              />
-
-              <NavItem
-                href="/explore"
-                label="Explore"
-                icon={<MdOutlineEmojiNature size={25} />}
-              />
-
-              <NavItem
-                href="/search"
-                label="Search"
-                icon={<BiSearch size={25} />}
-              />
+          <Card p={'sm'} radius={'lg'} className={classes.cta}>
+            <Stack gap={'sm'}>
+              <Text fw={600} fz={'md'}>
+                Save what matters. Make sense of it together.
+              </Text>
+              <Group gap={'xs'}>
+                <LinkButton href="/signup" size="md" onClick={toggleMobile}>
+                  Sign up
+                </LinkButton>
+                <LinkButton
+                  href={loginHref}
+                  color="var(--mantine-color-dark-filled)"
+                  size="md"
+                  rightSection={<BiRightArrowAlt size={22} />}
+                  onClick={toggleMobile}
+                >
+                  Log in
+                </LinkButton>
+              </Group>
             </Stack>
+          </Card>
+
+          <Stack gap={5}>
+            <NavItem
+              href="/home"
+              label="Home"
+              icon={<HiOutlineHome size={25} />}
+            />
+
+            <NavItem
+              href="/explore"
+              label="Explore"
+              icon={<MdOutlineEmojiNature size={25} />}
+            />
+
+            <NavItem
+              href="/search"
+              label="Search"
+              icon={<BiSearch size={25} />}
+            />
           </Stack>
         </Stack>
       </AppShellSection>
