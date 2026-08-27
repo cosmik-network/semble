@@ -22,6 +22,7 @@ import { FiPlus } from 'react-icons/fi';
 import { UserSettings } from '@/features/settings/lib/queries/useUserSettings';
 import { useSettings } from '@/providers/settings';
 import { LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 type CollectionFilter = 'mine' | 'following' | 'contributed';
 
@@ -48,20 +49,21 @@ function MyCollectionsList({
 
   if (collections.length === 0) {
     return (
-      <Stack align="center" gap="xs">
-        <Text fz="h3" fw={600} c="gray">
-          No collections
-        </Text>
-        <Button
-          onClick={onCreateCollection}
-          variant="light"
-          color="gray"
-          size="md"
-          rightSection={<FiPlus size={22} />}
-        >
-          Create your first collection
-        </Button>
-      </Stack>
+      <EmptyState
+        icon={BiCollection}
+        message="No collections"
+        button={
+          <Button
+            onClick={onCreateCollection}
+            variant="light"
+            color="gray"
+            size="md"
+            rightSection={<FiPlus size={22} />}
+          >
+            Create your first collection
+          </Button>
+        }
+      />
     );
   }
 
@@ -97,11 +99,7 @@ function FollowingCollectionsList({
 
   if (collections.length === 0) {
     return (
-      <Stack align="center" gap="xs">
-        <Text fz="h3" fw={600} c="gray">
-          Not following any collections
-        </Text>
-      </Stack>
+      <EmptyState icon={BiCollection} message="Not following any collections" />
     );
   }
 
@@ -137,11 +135,7 @@ function ContributedCollectionsList({
 
   if (collections.length === 0) {
     return (
-      <Stack align="center" gap="xs">
-        <Text fz="h3" fw={600} c="gray">
-          No collections contributed to
-        </Text>
-      </Stack>
+      <EmptyState icon={BiCollection} message="No collections contributed to" />
     );
   }
 

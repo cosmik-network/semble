@@ -2,10 +2,11 @@
 
 import useProfileSearch from '../../lib/queries/useProfileSearch';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Stack } from '@mantine/core';
+import { Center, Grid, Stack } from '@mantine/core';
 import ProfileSearchResultsContainerError from './Error.ProfileSearchResultsContainer';
 import SearchProfileCard from '../../components/profileCard/SearchProfileCard';
-import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { BiSearch } from 'react-icons/bi';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 
 interface Props {
@@ -35,7 +36,13 @@ export default function ProfileSearchResultsContainer(props: Props) {
       {error ? (
         <ProfileSearchResultsContainerError />
       ) : !isPending && allProfiles.length === 0 ? (
-        <SearchEmptyResults query={props.query} type="profiles" />
+        <Center py="xl">
+          <EmptyState
+            icon={BiSearch}
+            message="No profiles found"
+            description="Try a different search term"
+          />
+        </Center>
       ) : (
         <InfiniteScroll
           dataLength={allProfiles.length}

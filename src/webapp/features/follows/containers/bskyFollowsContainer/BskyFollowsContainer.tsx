@@ -15,6 +15,8 @@ import { getBskyFollowedUsers } from '../../lib/dal';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 import FollowButton from '../../components/followButton/FollowButton';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { FaBluesky } from 'react-icons/fa6';
 
 export default function BskyFollowsContainer() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
@@ -56,11 +58,10 @@ export default function BskyFollowsContainer() {
     <Container p="xs" size="xl">
       <Stack>
         {allUsers.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              No Semble users found in your Bluesky follows
-            </Text>
-          </Center>
+          <EmptyState
+            icon={FaBluesky}
+            message="No Semble users found in your Bluesky follows"
+          />
         ) : (
           <Stack gap="md">
             <Group justify="space-between" align="center">

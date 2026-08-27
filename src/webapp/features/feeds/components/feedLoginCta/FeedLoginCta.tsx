@@ -9,7 +9,7 @@ import { HiUsers } from 'react-icons/hi';
 import { LinkButton } from '@/components/link/MantineLink';
 import { useLoginHref } from '@/hooks/useLoginHref';
 import { useSettings } from '@/providers/settings';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { AuthFeedView } from '../../lib/feedOptions';
 import BlueskyHandleInput from '@/features/platforms/bluesky/components/blueskyHandleInput/BlueskyHandleInput';
 import { normalizeHandle } from '../../lib/bskyHandle';
@@ -84,7 +84,7 @@ export default function FeedLoginCta(props: Props) {
   return (
     <Container p="xs" size="xl">
       <Box py="xl">
-        <ProfileEmptyTab
+        <EmptyState
           message={copy.message}
           icon={copy.icon}
           button={

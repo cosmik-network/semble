@@ -7,7 +7,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Box, Group, Stack } from '@mantine/core';
 import ConnectionsContainerError from './Error.ConnectionsContainer';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
@@ -147,7 +147,7 @@ export default function ConnectionsContainer(props: Props) {
         </Group>
 
         {connections.length === 0 && !isPending ? (
-          <SembleEmptyTab message={emptyMessage} icon={BiLink} />
+          <EmptyState message={emptyMessage} icon={BiLink} />
         ) : (
           <InfiniteScroll
             dataLength={connections.length}
@@ -158,8 +158,6 @@ export default function ConnectionsContainer(props: Props) {
           >
             <Stack gap="xl" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connection, index) => {
-                // Determine the actual direction for this specific connection
-                // If direction is 'all', check if the source URL matches props.url
                 const isForward =
                   direction === 'all'
                     ? connection.source.url === props.url

@@ -18,7 +18,7 @@ import type useRecommendedCollections from '@/features/collections/lib/queries/u
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { LinkButton } from '@/components/link/MantineLink';
 import BlueskyNote from '../../blueskyNote/BlueskyNote';
 import SuggestionCard from '../../suggestionCard/SuggestionCard';
@@ -157,7 +157,7 @@ export default function FollowStep(props: Props) {
 
       {isError && (
         <Box py={'xl'}>
-          <ProfileEmptyTab
+          <EmptyState
             message="Unable to load suggestions"
             icon={MdErrorOutline}
             button={
@@ -209,7 +209,7 @@ export default function FollowStep(props: Props) {
                 userGrid(visibleUsers)
               ) : (
                 <Box py={'xl'}>
-                  <ProfileEmptyTab
+                  <EmptyState
                     message="No suggestions yet"
                     icon={MdPersonSearch}
                     button={
@@ -233,7 +233,7 @@ export default function FollowStep(props: Props) {
                 userGrid(bskyUsers)
               ) : (
                 <Box py={'xl'}>
-                  <ProfileEmptyTab
+                  <EmptyState
                     message={
                       bskyFollowedCount > 0
                         ? 'You already follow all of them here'

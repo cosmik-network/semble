@@ -1,4 +1,4 @@
-import { Container, Group, Stack, Title, Text } from '@mantine/core';
+import { Container, Group, Stack, Title } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import LibraryRecommendations from '../../components/libraryRecommendations/LibraryRecommendations';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -9,13 +9,13 @@ import LibraryRecommendationsSkeleton from '../../components/libraryRecommendati
 import LibraryRecentCardsSkeleton from '../../components/libraryRecentCards/Skeleton.LibraryRecentCards';
 import LibraryRecentCollectionsSkeleton from '../../components/libraryRecentCollections/Skeleton.LibraryRecentCollections';
 import { LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 export default function LibraryContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
         <Stack gap={50}>
-          {/* Recommendations */}
           <Stack>
             <ErrorBoundary
               fallback={
@@ -29,11 +29,10 @@ export default function LibraryContainer() {
                       View all
                     </LinkButton>
                   </Group>
-                  <Stack align="center" gap="xs">
-                    <Text fz="h3" fw={600} c="gray">
-                      No recent activity to show yet
-                    </Text>
-                  </Stack>
+                  <EmptyState
+                    icon={MdOutlineEmojiNature}
+                    message="No recent activity to show yet"
+                  />
                 </Stack>
               }
             >
@@ -43,12 +42,10 @@ export default function LibraryContainer() {
             </ErrorBoundary>
           </Stack>
 
-          {/* Collections */}
           <Suspense fallback={<LibraryRecentCollectionsSkeleton />}>
             <LibraryRecentCollections />
           </Suspense>
 
-          {/* Cards */}
           <Suspense fallback={<LibraryRecentCardsSkeleton />}>
             <LibraryRecentCards />
           </Suspense>

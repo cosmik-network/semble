@@ -2,7 +2,7 @@
 
 import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifications';
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
-import { Stack, Text, Center, Container, Button, Group } from '@mantine/core';
+import { Stack, Container, Button, Group } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -15,6 +15,8 @@ import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { RiNotification2Line } from 'react-icons/ri';
 
 export default function NotificationsContainer() {
   const pathname = usePathname();
@@ -46,7 +48,6 @@ export default function NotificationsContainer() {
     }
   };
 
-  // Mark unread notifications as read when component unmounts
   useEffect(() => {
     return () => {
       if (!hasMarkedAsRead.current && allNotifications.length > 0) {
@@ -88,11 +89,7 @@ export default function NotificationsContainer() {
       )}
       <RefetchLoader isRefetching={isRefetching} subject="notifications" />
       {allNotifications.length === 0 ? (
-        <Center>
-          <Text fz="h3" fw={600} c="gray">
-            No notifications yet
-          </Text>
-        </Center>
+        <EmptyState icon={RiNotification2Line} message="No notifications yet" />
       ) : (
         <InfiniteScroll
           dataLength={allNotifications.length}

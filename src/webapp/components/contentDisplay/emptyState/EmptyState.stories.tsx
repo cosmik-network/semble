@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { Button } from '@mantine/core';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import { BiCollection } from 'react-icons/bi';
+import { BiCollection, BiSearch } from 'react-icons/bi';
 import { MdPersonSearch } from 'react-icons/md';
-import ProfileEmptyTab from './ProfileEmptyTab';
+import EmptyState from './EmptyState';
 
-const meta: Meta<typeof ProfileEmptyTab> = {
-  title: 'Features/Profile/ProfileEmptyTab',
-  component: ProfileEmptyTab,
+const meta: Meta<typeof EmptyState> = {
+  title: 'Components/EmptyState',
+  component: EmptyState,
   decorators: [
     (Story) => (
       <div style={{ maxWidth: 400, padding: '2rem' }}>
@@ -23,12 +23,17 @@ const meta: Meta<typeof ProfileEmptyTab> = {
 
 export default meta;
 
-type Story = StoryObj<typeof ProfileEmptyTab>;
+type Story = StoryObj<typeof EmptyState>;
 
-/** Empty state for a tab with no content. */
 export const Default: Story = {};
 
-/** Empty state with an action button to prompt the user. */
+export const WithoutIcon: Story = {
+  args: {
+    message: 'No collections',
+    icon: undefined,
+  },
+};
+
 export const WithButton: Story = {
   args: {
     message: 'No cards yet',
@@ -37,7 +42,14 @@ export const WithButton: Story = {
   },
 };
 
-/** Empty collections tab. */
+export const WithDescription: Story = {
+  args: {
+    message: 'No cards found',
+    icon: BiSearch,
+    description: 'Try a different search term',
+  },
+};
+
 export const Collections: Story = {
   args: {
     message: 'No collections yet',
@@ -45,7 +57,6 @@ export const Collections: Story = {
   },
 };
 
-/** Empty connections tab with a call-to-action. */
 export const Connections: Story = {
   args: {
     message: 'No connections yet',

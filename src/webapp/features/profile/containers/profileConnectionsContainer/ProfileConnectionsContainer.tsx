@@ -3,7 +3,7 @@
 import useUserConnections from '@/features/connections/lib/queries/useUserConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Group, Stack } from '@mantine/core';
-import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
 import EditConnectionModal from '@/features/connections/components/editConnectionModal/EditConnectionModal';
@@ -73,9 +73,7 @@ export default function ProfileConnectionsContainer(props: Props) {
     data?.pages.flatMap((page) => page.connections ?? []) ?? [];
 
   if (error) {
-    return (
-      <ProfileEmptyTab message="Error loading connections" icon={BiLink} />
-    );
+    return <EmptyState message="Error loading connections" icon={BiLink} />;
   }
 
   return (
@@ -91,7 +89,7 @@ export default function ProfileConnectionsContainer(props: Props) {
         </Group>
 
         {allConnections.length === 0 && !isPending ? (
-          <ProfileEmptyTab message="No connections found" icon={BiLink} />
+          <EmptyState message="No connections found" icon={BiLink} />
         ) : (
           <InfiniteScroll
             dataLength={allConnections.length}

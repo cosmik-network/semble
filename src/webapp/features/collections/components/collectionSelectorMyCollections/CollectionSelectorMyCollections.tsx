@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   CloseButton,
   Stack,
@@ -22,6 +21,7 @@ import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
 } from '../collectionSelector/CollectionListScrollArea';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   selectedCollections: Collection[];
@@ -46,7 +46,6 @@ export default function CollectionSelectorMyCollections(props: Props) {
 
   const hasCollections = allCollections.length > 0;
 
-  // filter out selected from all to avoid duplication
   const unselectedCollections = allCollections.filter(
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
@@ -66,6 +65,23 @@ export default function CollectionSelectorMyCollections(props: Props) {
   if (error) {
     return <CollectionSelectorError />;
   }
+
+  const isSearching = !!search && searchedCollections.isPending;
+
+  const isEmpty = search
+    ? !!searchedCollections.data && searchResults.length === 0
+    : !hasCollections;
+
+  const createButton = (search || !hasCollections) && (
+    <Button
+      variant="light"
+      color="gray"
+      leftSection={<FiPlus size={22} />}
+      onClick={() => setIsDrawerOpen(true)}
+    >
+      {search ? `Create new collection "${search}"` : 'Create new collection'}
+    </Button>
+  );
 
   return (
     <Fragment>
@@ -88,81 +104,66 @@ export default function CollectionSelectorMyCollections(props: Props) {
             }
           />
 
-          <CollectionListScrollArea>
-            <Stack gap="xxs">
-              {(search || !hasCollections) && (
-                <Button
-                  variant="light"
-                  color="grape"
-                  radius="md"
-                  leftSection={<FiPlus size={22} />}
-                  onClick={() => setIsDrawerOpen(true)}
-                >
-                  {search
-                    ? `Create new collection "${search}"`
-                    : 'Create new collection'}
-                </Button>
-              )}
-
-              {search ? (
-                <Stack gap={'xxs'}>
-                  {searchedCollections.isPending && (
-                    <Stack align="center">
-                      <Text fw={500} c="gray">
-                        Searching collections...
-                      </Text>
-                      <Loader color="gray" />
-                    </Stack>
-                  )}
-
-                  {searchedCollections.data &&
-                    (searchResults.length === 0 ? (
-                      <Alert
-                        color="gray"
-                        title={`No results found for "${search}"`}
-                      />
-                    ) : (
-                      <InfiniteScroll
-                        dataLength={searchResults.length}
-                        hasMore={!!searchedCollections.hasNextPage}
-                        isInitialLoading={searchedCollections.isPending}
-                        isLoading={searchedCollections.isFetchingNextPage}
-                        loadMore={() => searchedCollections.fetchNextPage()}
-                        hideEndIndicator
-                      >
-                        <CollectionSelectorItemList
-                          collections={searchResults}
-                          selectedCollections={props.selectedCollections}
-                          onChange={handleCollectionChange}
-                        />
-                      </InfiniteScroll>
-                    ))}
-                </Stack>
-              ) : hasCollections ? (
-                <InfiniteScroll
-                  dataLength={allCollections.length}
-                  hasMore={!!hasNextPage}
-                  isInitialLoading={false}
-                  isLoading={isFetchingNextPage}
-                  loadMore={() => fetchNextPage()}
-                  hideEndIndicator
-                >
-                  <CollectionSelectorBrowseList
-                    selectedCollections={props.selectedCollections}
-                    unselectedCollections={unselectedCollections}
-                    onChange={handleCollectionChange}
-                    emptyMessage="No collections available"
-                  />
-                </InfiniteScroll>
-              ) : (
+          {isSearching || isEmpty ? (
+            <Stack justify="center" style={{ flex: 1 }}>
+              {isSearching ? (
                 <Stack align="center" gap="xs">
-                  <Text fz="lg" fw={600} c="gray">
-                    No collections
+                  <Text fw={500} c="gray">
+                    Searching collections...
                   </Text>
+                  <Loader color="gray" />
                 </Stack>
+              ) : (
+                <EmptyState
+                  message={
+                    search
+                      ? `No results found for "${search}"`
+                      : 'No collections'
+                  }
+                  button={createButton || undefined}
+                />
               )}
             </Stack>
-          </CollectionListScrollArea>
+          ) : (
+            <CollectionListScrollArea>
+              <Stack gap="xxs">
+                {createButton}
+
+                {search ? (
+                  <InfiniteScroll
+                    dataLength={searchResults.length}
+                    hasMore={!!searchedCollections.hasNextPage}
+                    isInitialLoading={false}
+                    isLoading={searchedCollections.isFetchingNextPage}
+                    loadMore={() => searchedCollections.fetchNextPage()}
+                    hideEndIndicator
+                  >
+                    <CollectionSelectorItemList
+                      collections={searchResults}
+                      selectedCollections={props.selectedCollections}
+                      onChange={handleCollectionChange}
+                    />
+                  </InfiniteScroll>
+                ) : (
+                  <InfiniteScroll
+                    dataLength={allCollections.length}
+                    hasMore={!!hasNextPage}
+                    isInitialLoading={false}
+                    isLoading={isFetchingNextPage}
+                    loadMore={() => fetchNextPage()}
+                    hideEndIndicator
+                  >
+                    <CollectionSelectorBrowseList
+                      selectedCollections={props.selectedCollections}
+                      unselectedCollections={unselectedCollections}
+                      onChange={handleCollectionChange}
+                      emptyMessage="No collections available"
+                    />
+                  </InfiniteScroll>
+                )}
+              </Stack>
+            </CollectionListScrollArea>
+          )}
         </Stack>
       </Stack>
 

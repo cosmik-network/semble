@@ -7,6 +7,7 @@ import useSimilarCards from '@/features/semble/lib/queries/useSimilarCards';
 import { Box, Group, Scroller, Stack, Text, Title } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 export default function LibraryRecommendations() {
   const { data: profile } = useMyProfile();
@@ -53,11 +54,10 @@ export default function LibraryRecommendations() {
           </Group>
         </Scroller>
       ) : (
-        <Stack align="center" gap="xs">
-          <Text fz="h3" fw={600} c="gray">
-            No recent activity to show yet
-          </Text>
-        </Stack>
+        <EmptyState
+          icon={MdOutlineEmojiNature}
+          message="No recent activity to show yet"
+        />
       )}
     </Stack>
   );

@@ -6,7 +6,7 @@ import { FaBluesky } from 'react-icons/fa6';
 import { HiGlobeAlt, HiUsers } from 'react-icons/hi';
 import { MdFilterList } from 'react-icons/md';
 import { LinkButton } from '@/components/link/MantineLink';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import {
   FeedEmptyAction,
   FeedEmptyIcon,
@@ -55,7 +55,7 @@ export default function FeedEmptyState(props: Props) {
   });
 
   return (
-    <ProfileEmptyTab
+    <EmptyState
       message={state.message}
       icon={ICONS[state.icon]}
       button={renderAction(state.action, props.onClearFilters)}
