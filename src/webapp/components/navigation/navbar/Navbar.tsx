@@ -35,8 +35,9 @@ export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
 
+  // z-index clears the sticky Header (100), which the open mobile navbar covers
   return (
-    <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
+    <AppShellNavbar p={'xs'} style={{ zIndex: 101 }}>
       <Group justify="space-between">
         <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
