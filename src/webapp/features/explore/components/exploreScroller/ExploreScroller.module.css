@@ -1,4 +1,4 @@
-@keyframes deal {
+@keyframes animateIn {
   from {
     opacity: 0;
     transform: translateY(14px) rotate(-1deg);
@@ -9,14 +9,8 @@
   }
 }
 
-.item {
-  flex-shrink: 0;
-  white-space: normal;
+.row {
   transition: opacity 200ms ease;
-}
-
-.deal {
-  animation: deal 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .dimmed {
@@ -24,8 +18,17 @@
   pointer-events: none;
 }
 
+.item {
+  flex-shrink: 0;
+  white-space: normal;
+}
+
+.animateIn {
+  animation: animateIn 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .deal {
+  .animateIn {
     animation: none;
   }
 }

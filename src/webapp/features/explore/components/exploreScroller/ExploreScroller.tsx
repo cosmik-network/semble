@@ -12,16 +12,20 @@ interface Props {
   children: ReactNode;
   /** Tile width in px; capped to the viewport so wide tiles fit a phone. */
   itemWidth?: number;
-  /** Bump to replay the staggered "deal" animation. 0 = no animation. */
-  dealKey?: number;
+  /** Animate the tiles in as they mount. Off for first paint and skeletons. */
+  animateOnMount?: boolean;
   /** Fade the row out while a new set is loading. */
   dimmed?: boolean;
 }
 
-/** Horizontal row of fixed-width tiles, shared by the explore sections. */
+/**
+ * Horizontal row of fixed-width tiles, shared by the explore sections.
+ *
+ * Give it a `key` that changes with the set to replay the entrance: React
+ * replaces the row, and its tiles mount again.
+ */
 export default function ExploreScroller(props: Props) {
   const itemWidth = props.itemWidth ?? 300;
-  const animate = !!props.dealKey;
 
   return (
     <Scroller scrollAmount={itemWidth + 20}>
@@ -29,18 +33,21 @@ export default function ExploreScroller(props: Props) {
         wrap="nowrap"
         align="stretch"
         gap="xs"
-        className={props.dimmed ? styles.dimmed : undefined}
+        className={props.dimmed ? `${styles.row} ${styles.dimmed}` : styles.row}
       >
         {Children.map(props.children, (child, index) => (
           <Box
-            key={`${props.dealKey ?? 0}-${index}`}
-            className={animate ? `${styles.item} ${styles.deal}` : styles.item}
+            className={
+              props.animateOnMount
+                ? `${styles.item} ${styles.animateIn}`
+                : styles.item
+            }
             style={{
               width: itemWidth,
               // Keeps a wide tile from running past a phone screen, while
               // still leaving a sliver of the next one visible.
               maxWidth: '85vw',
-              ...(animate ? { animationDelay: `${index * 70}ms` } : {}),
+              animationDelay: `${index * 70}ms`,
             }}
           >
             {child}

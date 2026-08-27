@@ -18,6 +18,7 @@ import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 const SHELF_SIZE = 10;
 
 export default function ExploreCollections() {
+  const [shuffled, setShuffled] = useState(false);
   const seedUrls = useExploreSeedUrls();
   const recommended = useRecommendedCollections({ urls: seedUrls });
 
@@ -32,16 +33,6 @@ export default function ExploreCollections() {
   // shelf when there's nothing left to show.
   const hasFailed = recommended.isError && collections.length === 0;
 
-  // Replay the deal animation when a fresh set lands, but not on first paint.
-  // Adjusted during render rather than in an effect, which would lag a frame.
-  const updatedAt = recommended.dataUpdatedAt;
-  const [prevUpdatedAt, setPrevUpdatedAt] = useState(updatedAt);
-  const [dealKey, setDealKey] = useState(0);
-  if (updatedAt !== prevUpdatedAt) {
-    setPrevUpdatedAt(updatedAt);
-    if (prevUpdatedAt) setDealKey((k) => k + 1);
-  }
-
   return (
     <Stack>
       <ExploreSectionHeader
@@ -51,7 +42,10 @@ export default function ExploreCollections() {
         viewAllHref={EXPLORE_ROUTES.collections}
         actions={
           <RefreshButton
-            onRefresh={() => recommended.refetch()}
+            onRefresh={() => {
+              setShuffled(true);
+              recommended.refetch();
+            }}
             isRefreshing={isRefreshing}
             subject="collections"
           />
@@ -63,9 +57,11 @@ export default function ExploreCollections() {
       ) : hasFailed ? (
         <ExploreCollectionsError />
       ) : collections.length > 0 ? (
+        // A fresh fetch — even one that returns identical data — is a new row.
         <ExploreScroller
+          key={recommended.dataUpdatedAt}
           itemWidth={COLLECTION_TILE_WIDTH}
-          dealKey={dealKey}
+          animateOnMount={shuffled}
           dimmed={isRefreshing}
         >
           {collections.map((collection) => (
