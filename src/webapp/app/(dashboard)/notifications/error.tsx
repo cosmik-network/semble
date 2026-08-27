@@ -1,7 +1,12 @@
 'use client';
 
-import NotificationsContainerError from '@/features/notifications/containers/notificationsContainer/Error.NotificationsContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <NotificationsContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load notifications" />
+    </Container>
+  );
 }

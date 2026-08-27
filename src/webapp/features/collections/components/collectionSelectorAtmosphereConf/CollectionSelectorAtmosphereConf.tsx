@@ -2,7 +2,7 @@ import { Divider, ScrollArea, Stack, Text, Loader } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import { Fragment, useState } from 'react';
 
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
 import { Collection, CollectionAccessType } from '@semble/types';
@@ -49,7 +49,7 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
   };
 
   if (searchedCollections.error) {
-    return <CollectionSelectorError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   return (

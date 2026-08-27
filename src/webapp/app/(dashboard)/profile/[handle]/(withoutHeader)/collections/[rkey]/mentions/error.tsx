@@ -1,7 +1,7 @@
 'use client';
 
-import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <SembleMentionsContainerError />;
+  return <ErrorState message="Could not load mentions" />;
 }

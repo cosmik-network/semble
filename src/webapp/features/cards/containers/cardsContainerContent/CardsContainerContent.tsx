@@ -2,7 +2,7 @@
 
 import { CardSortField, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
-import CardsContainerError from '../cardsContainer/Error.CardsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { Container, Divider, Grid, Stack } from '@mantine/core';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -56,7 +56,11 @@ export default function CardsContainerContent(props: Props) {
   }
 
   if (error) {
-    return <CardsContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load cards" />
+      </Container>
+    );
   }
 
   if (allCards.length === 0) {

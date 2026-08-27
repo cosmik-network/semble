@@ -1,6 +1,6 @@
 'use client';
 
-import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useSearchBlueskyPosts from '../../lib/queries/useSearchBlueskyPosts';
 import { BlueskySearchSortOptions } from '../../lib/types';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
@@ -27,7 +27,7 @@ export default function BlueskyMentionsContainer(props: Props) {
   const allPosts = data?.pages.flatMap((page) => page.posts ?? []) ?? [];
 
   if (error) {
-    return <SembleMentionsContainerError />;
+    return <ErrorState message="Could not load mentions" />;
   }
 
   if (allPosts.length === 0) {

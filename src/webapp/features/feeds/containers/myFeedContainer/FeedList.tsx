@@ -11,7 +11,7 @@ import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { CardSaveSource } from '@/features/analytics/types';
 import { FeedView } from '@/features/feeds/lib/feedOptions';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
-import MyFeedContainerError from './Error.MyFeedContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 /**
  * The slice of a react-query result this list reads, declared structurally so
@@ -60,7 +60,11 @@ export default function FeedList(props: Props) {
   }
 
   if (error) {
-    return <MyFeedContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load feed" />
+      </Container>
+    );
   }
 
   return (

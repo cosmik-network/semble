@@ -4,7 +4,7 @@ import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifi
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
 import { Stack, Container, Button, Group } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
-import NotificationsContainerError from './Error.NotificationsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import RefetchLoader from '@/components/contentDisplay/refetchLoader/RefetchLoader';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
@@ -68,7 +68,11 @@ export default function NotificationsContainer() {
   }
 
   if (error) {
-    return <NotificationsContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load notifications" />
+      </Container>
+    );
   }
 
   return (

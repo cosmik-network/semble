@@ -3,7 +3,7 @@
 import { Group, Stack, Text } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
-import CollectionsNavListError from './Error.CollectionsNavList';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
 import { LinkButton } from '@/components/link/MantineLink';
@@ -35,7 +35,9 @@ export default function CollectionsNavList() {
         </Group>
       </Group>
 
-      <ErrorBoundary fallback={<CollectionsNavListError />}>
+      <ErrorBoundary
+        fallback={<ErrorState message="Could not load collections" />}
+      >
         <CollectionsNavListContent />
       </ErrorBoundary>
     </Stack>

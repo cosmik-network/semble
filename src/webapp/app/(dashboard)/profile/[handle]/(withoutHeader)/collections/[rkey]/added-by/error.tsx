@@ -1,12 +1,12 @@
 'use client';
 
-import SembleAddedByContainerError from '@/features/semble/containers/sembleAddedByContainer/Error.SembleAddedByContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { Container } from '@mantine/core';
 
 export default function Error() {
   return (
     <Container p="xs" size="xl">
-      <SembleAddedByContainerError />
+      <ErrorState message="Could not load libraries" />
     </Container>
   );
 }

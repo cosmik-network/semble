@@ -14,7 +14,7 @@ import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import useMyCollections from '../../lib/queries/useMyCollections';
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection } from '@semble/types';
@@ -63,7 +63,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
   };
 
   if (error) {
-    return <CollectionSelectorError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   const isSearching = !!search && searchedCollections.isPending;

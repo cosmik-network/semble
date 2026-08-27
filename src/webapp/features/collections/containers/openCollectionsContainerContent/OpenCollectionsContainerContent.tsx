@@ -7,7 +7,7 @@ import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
-import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
 import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
@@ -37,7 +37,7 @@ export default function OpenCollectionsContainerContent() {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <OpenCollectionsContainerError />;
+    return <ErrorState message="Could not load open collections" />;
   }
 
   if (isLoading) {

@@ -1,10 +1,9 @@
 'use client';
 
-import { NavLink, Stack } from '@mantine/core';
+import { NavLink, Stack, Text } from '@mantine/core';
 import { ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LinkNavLink } from '@/components/link/MantineLink';
-import { CollectionNavSectionError } from './Error.CollectionsNavList';
 import { CollectionNavSectionSkeleton } from './Skeleton.CollectionsNavList';
 
 interface Props {
@@ -26,7 +25,15 @@ export default function CollectionNavSection(props: Props) {
       childrenOffset={10}
     >
       <Stack gap={0}>
-        <ErrorBoundary fallback={<CollectionNavSectionError />}>
+        <ErrorBoundary
+          fallback={
+            // Too tight a slot for the ErrorState alert — the nav lists are
+            // one line per collection.
+            <Text fz={'sm'} c={'red'} px={'sm'} py={'xxs'}>
+              Could not load collections
+            </Text>
+          }
+        >
           <Suspense fallback={<CollectionNavSectionSkeleton />}>
             {props.children}
           </Suspense>

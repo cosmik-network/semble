@@ -7,7 +7,7 @@ import { UrlType } from '@semble/types';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Center, Grid, Group, Stack } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
-import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 import { SearchFilters } from '../../components/searchFilters/SearchFilters';
 import { CardSaveSource } from '@/features/analytics/types';
@@ -52,7 +52,7 @@ export default function CardSearchResultsContainer(props: Props) {
       </Group>
 
       {error ? (
-        <SearchResultsContainerError />
+        <ErrorState message="Could not load search results" />
       ) : !isPending && props.query && allUrls.length === 0 ? (
         <Center py="xl">
           <EmptyState
