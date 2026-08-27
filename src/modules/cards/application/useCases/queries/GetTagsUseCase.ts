@@ -32,6 +32,19 @@ export class GetTagsUseCase implements UseCase<
     const prefix = query.q ? normalizeTag(query.q) : '';
 
     try {
+      // With a search query: prefix-search the global recent window. Without
+      // one: the calling user's own recent tags (empty for tagless/anonymous
+      // users) — the "recently used" suggestions in autocomplete.
+      if (prefix) {
+        const globalTexts = await this.tagQueryRepo.getRecentTexts({
+          limitPerSource: RECENT_WINDOW_PER_SOURCE,
+        });
+        const tags = this.collectTags(globalTexts).filter((t) =>
+          t.tag.startsWith(prefix),
+        );
+        return ok({ tags: tags.slice(0, limit) });
+      }
+
       let texts: RecentTextDTO[] = [];
       if (query.callingUserId) {
         texts = await this.tagQueryRepo.getRecentTexts({
@@ -39,20 +52,8 @@ export class GetTagsUseCase implements UseCase<
           limitPerSource: RECENT_WINDOW_PER_SOURCE,
         });
       }
-
-      let tags = this.collectTags(texts);
-      if (tags.length === 0) {
-        const globalTexts = await this.tagQueryRepo.getRecentTexts({
-          limitPerSource: RECENT_WINDOW_PER_SOURCE,
-        });
-        tags = this.collectTags(globalTexts);
-      }
-
-      const filtered = prefix
-        ? tags.filter((t) => t.tag.startsWith(prefix))
-        : tags;
-
-      return ok({ tags: filtered.slice(0, limit) });
+      const tags = this.collectTags(texts);
+      return ok({ tags: tags.slice(0, limit) });
     } catch (error) {
       return err(
         new Error(

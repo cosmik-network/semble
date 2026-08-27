@@ -66,7 +66,7 @@ describe('GetTagsUseCase', () => {
     expect(tags[0]!.lastUsed).toBe(new Date('2023-03-01').toISOString());
   });
 
-  it('falls back to global tags when the user has none', async () => {
+  it('returns no tags without q when the user has none', async () => {
     const repo = makeRepo(
       { [did]: [{ text: 'no tags here', createdAt: new Date() }] },
       [{ text: 'global #gamma', createdAt: new Date('2023-01-01') }],
@@ -75,10 +75,10 @@ describe('GetTagsUseCase', () => {
 
     const result = await useCase.execute({ callingUserId: did });
 
-    expect(result.unwrap().tags.map((t) => t.tag)).toEqual(['gamma']);
+    expect(result.unwrap().tags).toEqual([]);
   });
 
-  it('uses the global window when unauthenticated', async () => {
+  it('returns no tags without q when unauthenticated', async () => {
     const repo = makeRepo({}, [
       { text: 'global #delta', createdAt: new Date('2023-01-01') },
     ]);
@@ -86,23 +86,31 @@ describe('GetTagsUseCase', () => {
 
     const result = await useCase.execute({});
 
-    expect(result.unwrap().tags.map((t) => t.tag)).toEqual(['delta']);
+    expect(result.unwrap().tags).toEqual([]);
   });
 
-  it('prefix-filters with q, ignoring case and a leading hash', async () => {
+  it('searches global tags by prefix when q is given, ignoring case and a leading hash', async () => {
     const repo = makeRepo(
-      {
-        [did]: [
-          { text: '#history #maps #hist', createdAt: new Date('2023-01-01') },
-        ],
-      },
-      [],
+      { [did]: [{ text: '#mine only', createdAt: new Date('2023-01-01') }] },
+      [{ text: '#history #maps #hist', createdAt: new Date('2023-01-01') }],
     );
     const useCase = new GetTagsUseCase(repo);
 
     const result = await useCase.execute({ callingUserId: did, q: '#Hist' });
 
     expect(result.unwrap().tags.map((t) => t.tag)).toEqual(['history', 'hist']);
+  });
+
+  it('finds global tags by prefix even when the user has their own tags', async () => {
+    const repo = makeRepo(
+      { [did]: [{ text: 'my note #mine', createdAt: new Date('2023-01-01') }] },
+      [{ text: 'someone used #cosmik', createdAt: new Date('2023-02-01') }],
+    );
+    const useCase = new GetTagsUseCase(repo);
+
+    const result = await useCase.execute({ callingUserId: did, q: 'cos' });
+
+    expect(result.unwrap().tags.map((t) => t.tag)).toEqual(['cosmik']);
   });
 
   it('respects the limit', async () => {
