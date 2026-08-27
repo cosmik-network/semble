@@ -1,19 +1,17 @@
 'use client';
 
-import { Box, Collapse, Container, Loader, Stack, Text } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Box, Container, Stack } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { GetGlobalFeedResponse, UrlType } from '@semble/types';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import FeedEmptyState from '@/features/feeds/components/feedEmptyState/FeedEmptyState';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import RefetchLoader from '@/components/contentDisplay/refetchLoader/RefetchLoader';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import { CardSaveSource } from '@/features/analytics/types';
 import { FeedView } from '@/features/feeds/lib/feedOptions';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
-
-const MIN_REFETCH_LOADER_MS = 400;
 
 /**
  * The slice of a react-query result this list reads, declared structurally so
@@ -54,31 +52,6 @@ export default function FeedList(props: Props) {
     refetch,
   } = props.query;
 
-  // Visibility during the refetch itself is derived, not stored. Only the
-  // tail — holding the loader open briefly after the refetch ends, so a fast
-  // one still plays its animation instead of flashing — needs state.
-  const [isHoldingLoader, setIsHoldingLoader] = useState(false);
-  const [wasRefetching, setWasRefetching] = useState(isRefetching);
-
-  // Adjusted during render (React's "derive from previous props" pattern)
-  // rather than in an effect, which would leave the loader a frame behind.
-  if (wasRefetching !== isRefetching) {
-    setWasRefetching(isRefetching);
-    if (!isRefetching) setIsHoldingLoader(true);
-  }
-
-  const showRefetchLoader = isRefetching || isHoldingLoader;
-
-  useEffect(() => {
-    if (!isHoldingLoader) return;
-
-    const timer = setTimeout(
-      () => setIsHoldingLoader(false),
-      MIN_REFETCH_LOADER_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [isHoldingLoader]);
-
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
 
@@ -92,14 +65,7 @@ export default function FeedList(props: Props) {
 
   return (
     <Container p="xs" size="xl">
-      <Collapse expanded={showRefetchLoader} transitionDuration={350}>
-        <Stack align="center" gap={'xs'}>
-          <Loader size={'sm'} color={'gray'} />
-          <Text fw={600} c={'gray'} mb={'sm'}>
-            Fetching the latest activities...
-          </Text>
-        </Stack>
-      </Collapse>
+      <RefetchLoader isRefetching={isRefetching} subject="activities" />
       {allActivities.length === 0 ? (
         <Box py="xl">
           <FeedEmptyState
