@@ -14,6 +14,7 @@ import {
   Textarea,
   VisuallyHidden,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { IoEyeOffOutline } from 'react-icons/io5';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { MdOutlineEdit } from 'react-icons/md';
@@ -27,6 +28,7 @@ import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
 import styles from './NoteCardInline.module.css';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   note: UrlCard['note'];
@@ -118,7 +120,7 @@ export default function NoteCardInline(props: Props) {
                 {noteText.length} / {MAX_NOTE_LENGTH}
               </Text>
             </Flex>
-            <Textarea
+            <NoteTextarea
               id="note-inline"
               placeholder="Add a note about this card"
               size="md"
@@ -127,7 +129,7 @@ export default function NoteCardInline(props: Props) {
               maxRows={8}
               maxLength={MAX_NOTE_LENGTH}
               value={noteText}
-              onChange={(e) => setNoteText(e.currentTarget.value)}
+              onValueChange={setNoteText}
             />
             <VisuallyHidden id="note-inline-char-remaining" aria-live="polite">
               {`${MAX_NOTE_LENGTH - noteText.length} characters remaining`}
@@ -241,17 +243,17 @@ export default function NoteCardInline(props: Props) {
 
         {props.note && (
           <Text
-            fw={500}
-            fz={'sm'}
-            fs={'italic'}
-            c={'gray'}
+            component="div"
             style={{ cursor: 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
               props.onClose();
             }}
           >
-            {props.note.text}
+            <RichTextRenderer
+              text={props.note.text}
+              textProps={{ fw: 500, fz: 'sm', fs: 'italic', c: 'gray' }}
+            />
           </Text>
         )}
 

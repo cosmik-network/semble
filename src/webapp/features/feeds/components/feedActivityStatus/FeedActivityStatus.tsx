@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { ActivityType, Collection, CollectionAccessType } from '@/api-client';
 import { User } from '@semble/types';
 import { Fragment, ReactNode } from 'react';
@@ -178,9 +179,10 @@ export default function FeedActivityStatus(props: Props) {
             hideLabel={'See less'}
             maxHeight={100}
           >
-            <Text fw={500} fs={'italic'} c={'gray'}>
-              {props.note}
-            </Text>
+            <RichTextRenderer
+              text={props.note}
+              textProps={{ fw: 500, fs: 'italic', c: 'gray' }}
+            />
           </Spoiler>
         )}
       </Stack>

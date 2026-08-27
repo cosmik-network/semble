@@ -4,6 +4,7 @@ import { AppBskyRichtextFacet, RichText } from '@atproto/api';
 
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
 import { getDisplayUrl } from '@/lib/utils/link';
+import { normalizeTag, TAG_TOKEN_REGEX_SOURCE } from '@semble/types';
 
 const MAX_LINK_PATH_LENGTH = 30;
 
@@ -78,14 +79,22 @@ export default function RichTextRenderer({
 
         // hashtag
         if (segment.isTag()) {
-          const encodedTag = encodeURIComponent(segment.tag?.tag || '');
+          const tag = normalizeTag(segment.tag?.tag || '');
+          // Bluesky's tag charset is broader than Semble's; tags outside our
+          // grammar have no tag page, so leave them as plain text.
+          if (!new RegExp(`^${TAG_TOKEN_REGEX_SOURCE}$`).test(`#${tag}`)) {
+            return (
+              <span key={`tag-${i}`} className={textProps?.className}>
+                {segment.text}
+              </span>
+            );
+          }
           return (
             <Anchor
               key={`tag-${i}`}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
-              href={`https://bsky.app/hashtag/${encodedTag}`}
-              target="_blank"
+              href={`/tags/${encodeURIComponent(tag)}`}
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >

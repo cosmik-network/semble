@@ -19,6 +19,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { BsExclamation } from 'react-icons/bs';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   isOpen: boolean;
@@ -117,7 +118,7 @@ export default function EditCollectionModal(props: Props) {
                 {...form.getInputProps('name')}
               />
 
-              <Textarea
+              <NoteTextarea
                 id="description"
                 label="Description"
                 placeholder="Describe what this collection is about"
@@ -125,8 +126,8 @@ export default function EditCollectionModal(props: Props) {
                 size="md"
                 rows={4}
                 maxLength={500}
-                key={form.key('description')}
-                {...form.getInputProps('description')}
+                value={form.values.description ?? ''}
+                onValueChange={(v) => form.setFieldValue('description', v)}
               />
 
               <Stack gap={'xs'}>

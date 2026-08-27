@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { BsExclamation, BsTrash2Fill } from 'react-icons/bs';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   note?: string;
@@ -68,7 +69,7 @@ export default function AddCardActions(props: Props) {
               </Text>
             </Flex>
 
-            <Textarea
+            <NoteTextarea
               id="note"
               placeholder="Add a note about this card"
               variant="filled"
@@ -76,8 +77,8 @@ export default function AddCardActions(props: Props) {
               rows={3}
               maxLength={MAX_NOTE_LENGTH}
               aria-describedby="note-char-remaining"
-              value={note}
-              onChange={(e) => setNote(e.currentTarget.value)}
+              value={note ?? ''}
+              onValueChange={setNote}
             />
             <VisuallyHidden id="note-char-remaining" aria-live="polite">
               {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}

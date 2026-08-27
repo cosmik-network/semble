@@ -33,6 +33,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -182,7 +183,7 @@ export default function AddCardForm(props: Props) {
               </Text>
             </Flex>
 
-            <Textarea
+            <NoteTextarea
               id="note"
               placeholder="Add a note about this card"
               variant="filled"
@@ -190,8 +191,8 @@ export default function AddCardForm(props: Props) {
               rows={3}
               maxLength={MAX_NOTE_LENGTH}
               aria-describedby="note-char-remaining"
-              key={form.key('note')}
-              {...form.getInputProps('note')}
+              value={form.values.note}
+              onValueChange={(v) => form.setFieldValue('note', v)}
             />
             <VisuallyHidden id="note-char-remaining" aria-live="polite">
               {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}

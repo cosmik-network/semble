@@ -12,7 +12,6 @@ import {
   Stack,
   SegmentedControl,
   Text,
-  Textarea,
   TextInput,
   ThemeIcon,
   VisuallyHidden,
@@ -42,6 +41,7 @@ import { usePathname } from 'next/navigation';
 import { BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
 import { TbPlugConnected } from 'react-icons/tb';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 type ComposerMode = 'card' | 'collection' | 'connection';
 
@@ -306,7 +306,7 @@ export default function Composer(props: Props) {
                     </Text>
                   </Flex>
 
-                  <Textarea
+                  <NoteTextarea
                     id="note"
                     placeholder="Add a note about this card"
                     variant="filled"
@@ -314,8 +314,8 @@ export default function Composer(props: Props) {
                     rows={3}
                     maxLength={MAX_NOTE_LENGTH}
                     aria-describedby="note-char-remaining"
-                    key={cardForm.key('note')}
-                    {...cardForm.getInputProps('note')}
+                    value={cardForm.values.note}
+                    onValueChange={(v) => cardForm.setFieldValue('note', v)}
                   />
                   <VisuallyHidden id="note-char-remaining" aria-live="polite">
                     {`${MAX_NOTE_LENGTH - cardForm.getValues().note.length} characters remaining`}
@@ -440,7 +440,7 @@ export default function Composer(props: Props) {
                   {...collectionForm.getInputProps('name')}
                 />
 
-                <Textarea
+                <NoteTextarea
                   id="description"
                   label="Description"
                   placeholder="Describe what this collection is about"
@@ -448,8 +448,10 @@ export default function Composer(props: Props) {
                   size="md"
                   rows={3}
                   maxLength={500}
-                  key={collectionForm.key('description')}
-                  {...collectionForm.getInputProps('description')}
+                  value={collectionForm.values.description}
+                  onValueChange={(v) =>
+                    collectionForm.setFieldValue('description', v)
+                  }
                 />
 
                 <Select

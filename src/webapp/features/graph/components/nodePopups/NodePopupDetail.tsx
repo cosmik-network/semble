@@ -21,6 +21,7 @@ import styles from './NodePopup.module.css';
 import useGraphNodeUser from '../../lib/queries/useGraphNodeUser';
 import useGraphNodeCollection from '../../lib/queries/useGraphNodeCollection';
 import useGraphNodeUrl from '../../lib/queries/useGraphNodeUrl';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 
 /**
  * Detailed popup shown when a node is clicked
@@ -248,9 +249,12 @@ export default function NodePopupDetail({
 
             {(collectionData.data?.description ||
               node.metadata.description) && (
-              <Text size="sm" lineClamp={4}>
-                {collectionData.data?.description || node.metadata.description}
-              </Text>
+              <RichTextRenderer
+                text={
+                  collectionData.data?.description || node.metadata.description
+                }
+                textProps={{ size: 'sm', lineClamp: 4 }}
+              />
             )}
 
             <Group gap="md">

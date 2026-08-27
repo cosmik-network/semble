@@ -13,6 +13,7 @@ import {
   Input,
   VisuallyHidden,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { UrlCard, User } from '@semble/types';
 import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
@@ -22,6 +23,7 @@ import { BsExclamation } from 'react-icons/bs';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -113,7 +115,7 @@ export default function NoteCardModalContent(props: Props) {
             </Text>
           </Flex>
 
-          <Textarea
+          <NoteTextarea
             id="note"
             placeholder="Add a note about this card"
             variant="filled"
@@ -122,8 +124,8 @@ export default function NoteCardModalContent(props: Props) {
             minRows={3}
             maxRows={8}
             maxLength={MAX_NOTE_LENGTH}
-            value={note}
-            onChange={(e) => setNote(e.currentTarget.value)}
+            value={note ?? ''}
+            onValueChange={setNote}
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
@@ -181,7 +183,9 @@ export default function NoteCardModalContent(props: Props) {
           </Group>
         </Group>
       )}
-      {props.note && <Text fs={'italic'}>{props.note.text}</Text>}
+      {props.note && (
+        <RichTextRenderer text={props.note.text} textProps={{ fs: 'italic' }} />
+      )}
       <Card withBorder component="article" p={'xs'} radius={'lg'}>
         <Stack>
           <Group gap={'sm'} wrap="nowrap">
