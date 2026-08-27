@@ -31,31 +31,31 @@ export default function CollectionHeaderSkeleton() {
           <Stack gap={'xs'}>
             <Group justify="space-between" align="start">
               <Stack gap={0}>
-                <Group gap={'xs'}>
-                  {/* "Collection" text */}
-                  <Skeleton w={120} h={20} />
-
-                  {/* Open badge (optional) */}
-                  {/*<Skeleton w={67} h={20} />*/}
+                {/* "Collection" text, and the Open badge on open collections */}
+                <Group gap={'xs'} h={24.8}>
+                  <Skeleton w={120} h={18} />
                 </Group>
 
                 {/* Title */}
-                <Skeleton w={300} h={42} mt={8} />
+                <Group h={44.2}>
+                  <Skeleton w={300} h={34} />
+                </Group>
 
-                {/* Description */}
-                {/*<Skeleton w={'100%'} color="grape" h={22} mt={'lg'} />*/}
+                {/* Description — omitted: we can't know whether there is one */}
               </Stack>
             </Group>
 
             <Group justify="space-between" gap={'lg'}>
               <Stack gap={'xs'}>
                 {/* Author + collaborators */}
-                <Group gap={5}>
-                  <Skeleton w={180} h={24} />
+                <Group gap={5} h={26}>
+                  <Skeleton w={180} h={22} />
                 </Group>
 
                 {/* Stats section */}
-                <Skeleton w={'100%'} h={20} />
+                <Group h={21.7}>
+                  <Skeleton w={340} h={16} />
+                </Group>
               </Stack>
 
               <CollectionActionsSkeleton />
