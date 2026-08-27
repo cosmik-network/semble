@@ -2,15 +2,7 @@
 
 import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifications';
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
-import {
-  Stack,
-  Text,
-  Center,
-  Container,
-  Box,
-  Button,
-  Group,
-} from '@mantine/core';
+import { Stack, Text, Center, Container, Button, Group } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -126,16 +118,7 @@ export default function NotificationsContainer() {
         </InfiniteScroll>
       )}
 
-      <Box
-        pos={'fixed'}
-        bottom={0}
-        mt={'md'}
-        mx={{ base: 10, sm: 2.5 }}
-        mb={{ base: 100, sm: 'md' }}
-        style={{ zIndex: 2 }}
-      >
-        <RefetchButton onRefetch={() => refetch()} />
-      </Box>
+      <RefetchButton onRefetch={() => refetch()} />
     </Container>
   );
 }

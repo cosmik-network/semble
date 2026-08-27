@@ -6,7 +6,9 @@ import { FiPlus } from 'react-icons/fi';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavbarContext } from '@/providers/navbar';
 import { useSearchParams } from 'next/navigation';
+import { FLOATING_BOTTOM_OFFSET } from '@/lib/consts/layout';
 import Composer from '../Composer';
+import styles from './ComposerDrawer.module.css';
 
 export default function ComposerDrawer() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
@@ -30,23 +32,26 @@ export default function ComposerDrawer() {
   return (
     <Fragment key={shouldShowFab.toString()}>
       {shouldShowFab && (
-        <Affix
-          mt={'md'}
-          mx={{ base: 20, sm: 'xs' }}
-          mb={{ base: 100, sm: 'md' }}
-          style={{ zIndex: 101 }}
-        >
-          <ActionIcon
-            size="input-xl"
-            radius="xl"
-            variant="filled"
-            onClick={() => {
-              setOpened((prev) => !prev);
-            }}
+        <Fragment>
+          <div className={styles.fabClearance} />
+          <Affix
+            mt={'md'}
+            mx={{ base: 20, sm: 'xs' }}
+            mb={FLOATING_BOTTOM_OFFSET}
+            style={{ zIndex: 101 }}
           >
-            <FiPlus size={30} />
-          </ActionIcon>
-        </Affix>
+            <ActionIcon
+              size="input-xl"
+              radius="xl"
+              variant="filled"
+              onClick={() => {
+                setOpened((prev) => !prev);
+              }}
+            >
+              <FiPlus size={30} />
+            </ActionIcon>
+          </Affix>
+        </Fragment>
       )}
 
       <Composer

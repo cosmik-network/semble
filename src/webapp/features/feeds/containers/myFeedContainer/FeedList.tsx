@@ -105,16 +105,7 @@ export default function FeedList(props: Props) {
         </InfiniteScroll>
       )}
 
-      <Box
-        pos={'fixed'}
-        bottom={0}
-        mt={'md'}
-        mx={{ base: 10, sm: 2.5 }}
-        mb={{ base: 100, sm: 'md' }}
-        style={{ zIndex: 2 }}
-      >
-        <RefetchButton onRefetch={() => refetch()} />
-      </Box>
+      <RefetchButton onRefetch={() => refetch()} />
     </Container>
   );
 }

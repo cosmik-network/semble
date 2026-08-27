@@ -23,9 +23,7 @@ export default function DashboardSkeleton() {
         breakpoint: 'xl',
         collapsed: { mobile: true },
       }}
-      footer={{
-        height: { base: 85, sm: 0 },
-      }}
+      footer={BOTTOM_BAR_FOOTER}
     >
       <NavbarSkeleton />
 
