@@ -1,4 +1,4 @@
-# Connections (coming soon)
+# Connections
 
 Connections in Semble link two pieces of content with a typed semantic relationship. Each connection has a **source** (A), a **target** (B), an optional **relation type** that describes how they relate, and an optional **note** for additional context.
 
@@ -16,3 +16,6 @@ Connections in Semble link two pieces of content with a typed semantic relations
 | Explainer         | `explainer`   | A explains or summarizes B for a broader audience | Thread A walks through the key findings of paper B                  |
 | Leads to          | `leads_to`    | A led me to B — a trail segment worth walking     | Listening to podcast A led me to find book B                        |
 | Supplements       | `supplements` | A is supplemental material for B                  | Dataset A accompanies and supports the methods described in paper B |
+| References        | `references`  | A mentions or references B                        | Podcast episode A references and discusses paper B                  |
+| Same as           | `same_as`     | A refers to the same underlying entity as B       | A and B are two URLs hosting the same paper (same DOI)              |
+
