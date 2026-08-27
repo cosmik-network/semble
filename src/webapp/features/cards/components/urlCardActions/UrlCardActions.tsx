@@ -97,13 +97,7 @@ export default function UrlCardActions(props: Props) {
     <Fragment>
       {props.note && (
         <Collapse expanded={showNote}>
-          <NoteCardInline
-            note={props.note}
-            cardContent={props.cardContent}
-            cardAuthor={props.cardAuthor}
-            isOwner={isAuthenticated && isAuthor}
-            onClose={() => setShowNote(false)}
-          />
+          <NoteCardInline note={props.note} cardAuthor={props.cardAuthor} />
         </Collapse>
       )}
       <Group justify="space-between">
