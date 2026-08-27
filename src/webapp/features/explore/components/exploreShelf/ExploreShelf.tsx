@@ -1,4 +1,4 @@
-import { Stack, Text } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { ReactNode } from 'react';
 import ExploreSectionHeader from '../exploreSectionHeader/ExploreSectionHeader';
 import { EXPLORE_SECTIONS, ExploreSection } from '../../lib/exploreSections';
@@ -25,16 +25,6 @@ export default function ExploreShelf(props: Props) {
         actions={props.actions}
       />
       {props.children}
-    </Stack>
-  );
-}
-
-export function ExploreShelfEmpty(props: { message: string }) {
-  return (
-    <Stack align="center" gap="xs">
-      <Text fz="h3" fw={600} c="gray">
-        {props.message}
-      </Text>
     </Stack>
   );
 }

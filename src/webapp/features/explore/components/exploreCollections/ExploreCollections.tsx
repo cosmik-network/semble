@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
-import ExploreShelf, { ExploreShelfEmpty } from '../exploreShelf/ExploreShelf';
+import ExploreShelf from '../exploreShelf/ExploreShelf';
+import ExploreShelfEmpty from '../exploreShelfEmpty/ExploreShelfEmpty';
 import ExploreScroller, {
   COLLECTION_TILE_WIDTH,
 } from '../exploreScroller/ExploreScroller';
@@ -38,7 +39,7 @@ export default function ExploreCollections() {
             recommended.refetch();
           }}
           isRefreshing={isRefreshing}
-          subject="collections"
+          label="Show different collections"
         />
       }
     >

@@ -8,35 +8,37 @@ import styles from './RefreshButton.module.css';
 interface Props {
   onRefresh: () => void;
   isRefreshing?: boolean;
-  /** What's being refreshed, lowercase and plural ("cards"). */
-  subject: string;
+  /** Tooltip and accessible name. */
+  label: string;
+  color?: string;
+  size?: number | string;
 }
 
 export default function RefreshButton(props: Props) {
-  const [spinKey, setSpinKey] = useState(0);
-
-  const onClick = () => {
-    setSpinKey((key) => key + 1);
-    props.onRefresh();
-  };
+  const [spins, setSpins] = useState(0);
 
   return (
-    <Tooltip label={`Show different ${props.subject}`}>
+    <Tooltip label={props.label}>
       <ActionIcon
         variant="light"
-        color="blue"
+        color={props.color ?? 'blue'}
         radius="xl"
-        size={36}
-        onClick={onClick}
-        aria-label={`Show different ${props.subject}`}
+        size={props.size ?? 36}
+        onClick={() => {
+          setSpins((count) => count + 1);
+          props.onRefresh();
+        }}
+        aria-label={props.label}
       >
         <BiRefresh
-          key={spinKey}
+          // Remounting replays the animation, so a refresh answered from cache
+          // still moves.
+          key={spins}
           size={20}
           className={
             props.isRefreshing
               ? styles.busy
-              : spinKey > 0
+              : spins > 0
                 ? styles.spinning
                 : undefined
           }

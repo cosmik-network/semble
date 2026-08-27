@@ -3,7 +3,7 @@ import ProfileSuggestionCard, {
   SuggestedUser,
 } from '../profileSuggestionCard/ProfileSuggestionCard';
 import ExploreScroller from '@/features/explore/components/exploreScroller/ExploreScroller';
-import { ExploreShelfEmpty } from '@/features/explore/components/exploreShelf/ExploreShelf';
+import ExploreShelfEmpty from '@/features/explore/components/exploreShelfEmpty/ExploreShelfEmpty';
 
 interface Props {
   users: SuggestedUser[];

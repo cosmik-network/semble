@@ -3,7 +3,8 @@
 import { usePathname } from 'next/navigation';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import { CardSaveSource } from '@/features/analytics/types';
-import ExploreShelf, { ExploreShelfEmpty } from '../exploreShelf/ExploreShelf';
+import ExploreShelf from '../exploreShelf/ExploreShelf';
+import ExploreShelfEmpty from '../exploreShelfEmpty/ExploreShelfEmpty';
 import ExploreScroller from '../exploreScroller/ExploreScroller';
 import { useCardShelf } from '../../lib/useCardShelf';
 import RefreshButton from '../refreshButton/RefreshButton';
@@ -23,7 +24,7 @@ export default function ExploreCards() {
         <RefreshButton
           onRefresh={shelf.refresh}
           isRefreshing={shelf.isRefreshing}
-          subject="cards"
+          label="Show different cards"
         />
       }
     >
