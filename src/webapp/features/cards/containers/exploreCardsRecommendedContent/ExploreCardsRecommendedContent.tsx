@@ -29,9 +29,10 @@ export default function ExploreCardsRecommendedContent(props: Props) {
     // them back for the hook to carry across pages.
     nonce: props.nonce,
     urlType: props.urlType,
-    // Whether the derived queries are personalised — and so worth pinning —
-    // depends on the session, so hold the request until it's known rather
-    // than firing as a guest and pinning nothing.
+    // `pinQueries` is not part of the query key, so a request that goes out
+    // with the wrong value cannot be corrected: flipping it later returns the
+    // cached response, and the server-derived queries are never pinned. Hold
+    // the request until the session — and so the value — is settled.
     enabled: !isAuthLoading,
     pinQueries: isAuthenticated,
   });
