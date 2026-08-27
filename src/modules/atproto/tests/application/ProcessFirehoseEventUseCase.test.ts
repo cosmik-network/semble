@@ -148,11 +148,13 @@ describe('ProcessFirehoseEventUseCase', () => {
     createCollectionUseCase = new CreateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
+      new FakeEventPublisher(),
     );
 
     updateCollectionUseCase = new UpdateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
+      new FakeEventPublisher(),
     );
 
     deleteCollectionUseCase = new DeleteCollectionUseCase(

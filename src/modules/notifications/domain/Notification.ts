@@ -22,6 +22,16 @@ export interface ConnectionNotificationMetadata {
   connectionId: string;
 }
 
+export type MentionSource = 'NOTE' | 'CONNECTION' | 'COLLECTION';
+
+// Exactly one of cardId/connectionId/collectionId is set, per mentionSource.
+export interface MentionNotificationMetadata {
+  mentionSource: MentionSource;
+  cardId?: string;
+  connectionId?: string;
+  collectionId?: string;
+}
+
 interface NotificationProps {
   recipientUserId: CuratorId;
   actorUserId: CuratorId;
@@ -401,6 +411,43 @@ export class Notification extends AggregateRoot<NotificationProps> {
 
     const metadata: ConnectionNotificationMetadata = {
       connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
+  public static createMention(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    source:
+      | { mentionSource: 'NOTE'; cardId: CardId }
+      | { mentionSource: 'CONNECTION'; connectionId: ConnectionId }
+      | { mentionSource: 'COLLECTION'; collectionId: CollectionId },
+  ): Result<Notification> {
+    const typeResult = NotificationType.userMentionedYou();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: MentionNotificationMetadata = {
+      mentionSource: source.mentionSource,
+      cardId:
+        source.mentionSource === 'NOTE'
+          ? source.cardId.getStringValue()
+          : undefined,
+      connectionId:
+        source.mentionSource === 'CONNECTION'
+          ? source.connectionId.getStringValue()
+          : undefined,
+      collectionId:
+        source.mentionSource === 'COLLECTION'
+          ? source.collectionId.getStringValue()
+          : undefined,
     };
 
     return this.create({

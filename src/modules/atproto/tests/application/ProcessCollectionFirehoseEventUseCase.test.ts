@@ -1,4 +1,5 @@
 import { ProcessCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionFirehoseEventUseCase';
+import { FakeEventPublisher } from '../../../cards/tests/utils/FakeEventPublisher';
 import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
 import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
@@ -42,11 +43,13 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     createCollectionUseCase = new CreateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
+      new FakeEventPublisher(),
     );
 
     updateCollectionUseCase = new UpdateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
+      new FakeEventPublisher(),
     );
 
     deleteCollectionUseCase = new DeleteCollectionUseCase(

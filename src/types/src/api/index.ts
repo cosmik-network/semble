@@ -63,6 +63,9 @@ export * from './search/leaflet';
 export * from './search/searchUrls';
 export * from './search/recommended';
 
+export * from './tags/getTags';
+export * from './tags/getTaggedItems';
+
 export * from './graph/getData';
 export * from './graph/getUserData';
 export * from './graph/getUrlData';

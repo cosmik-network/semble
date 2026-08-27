@@ -7,6 +7,8 @@ import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
+import { CollectionUpdatedEvent } from '../../../domain/events/CollectionUpdatedEvent';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { CollectionAccessType } from '../../../domain/Collection';
 
@@ -39,6 +41,7 @@ export class UpdateCollectionUseCase implements UseCase<
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,
+    private eventPublisher: IEventPublisher,
   ) {}
 
   async execute(
@@ -174,6 +177,15 @@ export class UpdateCollectionUseCase implements UseCase<
             AppError.UnexpectedError.create(updateMetadataResult.error),
           );
         }
+      }
+
+      // Notify subscribers (e.g. description mention notifications)
+      const eventResult = CollectionUpdatedEvent.create(
+        collection.collectionId,
+        collection.authorId,
+      );
+      if (eventResult.isOk()) {
+        await this.eventPublisher.publishEvents([eventResult.value]);
       }
 
       return ok({

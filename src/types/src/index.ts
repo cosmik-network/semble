@@ -11,3 +11,4 @@ export * from './entities/url';
 export * from './api';
 export * from './routes';
 export * from './internal';
+export * from './richtext/tokens';
