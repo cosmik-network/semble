@@ -1,11 +1,9 @@
 'use client';
 
-import { SegmentedControl, Stack } from '@mantine/core';
+import { SegmentedControl } from '@mantine/core';
 import { Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { HiOutlineUsers } from 'react-icons/hi';
-import ExploreSectionHeader from '../exploreSectionHeader/ExploreSectionHeader';
-import { EXPLORE_ROUTES } from '../../lib/exploreRoutes';
+import ExploreShelf from '../exploreShelf/ExploreShelf';
 import { ProfilesView, profileViewOptions } from '../../lib/profilesView';
 import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 import { ExploreProfilesListSkeleton } from './Skeleton.ExploreProfiles';
@@ -19,18 +17,10 @@ export default function ExploreProfiles() {
   const seedUrls = useExploreSeedUrls();
 
   return (
-    <Stack>
-      <ExploreSectionHeader
-        icon={<HiOutlineUsers size={22} />}
-        title="Profiles"
-        subtitle={
-          view === 'bluesky'
-            ? 'People you follow on Bluesky'
-            : 'People you might want to follow'
-        }
-        viewAllHref={EXPLORE_ROUTES.profiles}
-      />
-
+    <ExploreShelf
+      section="profiles"
+      subtitle={view === 'bluesky' ? 'People you follow on Bluesky' : undefined}
+    >
       <SegmentedControl
         value={view}
         onChange={(value) => setView(value as ProfilesView)}
@@ -41,8 +31,7 @@ export default function ExploreProfiles() {
       />
 
       {!seedUrls ? (
-        // The seeds settle across two queries and a freeze, not one query this
-        // can suspend on, so this one wait stays manual.
+        // The seeds settle across two queries, not one this can suspend on.
         <ExploreProfilesListSkeleton />
       ) : (
         <ErrorBoundary
@@ -55,7 +44,6 @@ export default function ExploreProfiles() {
             ) : seedUrls.length > 0 ? (
               <RecommendedProfiles seedUrls={seedUrls} />
             ) : (
-              // No seeds.
               <ProfileSuggestionList
                 layout="scroller"
                 users={[]}
@@ -65,6 +53,6 @@ export default function ExploreProfiles() {
           </Suspense>
         </ErrorBoundary>
       )}
-    </Stack>
+    </ExploreShelf>
   );
 }

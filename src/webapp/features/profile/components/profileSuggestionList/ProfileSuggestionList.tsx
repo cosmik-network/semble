@@ -1,8 +1,9 @@
-import { SimpleGrid, Stack, Text } from '@mantine/core';
+import { SimpleGrid } from '@mantine/core';
 import ProfileSuggestionCard, {
   SuggestedUser,
 } from '../profileSuggestionCard/ProfileSuggestionCard';
 import ExploreScroller from '@/features/explore/components/exploreScroller/ExploreScroller';
+import { ExploreShelfEmpty } from '@/features/explore/components/exploreShelf/ExploreShelf';
 
 interface Props {
   users: SuggestedUser[];
@@ -13,13 +14,7 @@ interface Props {
 
 export default function ProfileSuggestionList(props: Props) {
   if (props.users.length === 0) {
-    return (
-      <Stack align="center" gap="xs">
-        <Text fz="h3" fw={600} c="gray">
-          {props.emptyMessage}
-        </Text>
-      </Stack>
-    );
+    return <ExploreShelfEmpty message={props.emptyMessage} />;
   }
 
   const cards = props.users.map((user) => (

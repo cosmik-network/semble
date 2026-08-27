@@ -1,18 +1,15 @@
 'use client';
 
-import { Stack, Text } from '@mantine/core';
 import { useState } from 'react';
-import { BiCollection } from 'react-icons/bi';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
-import ExploreSectionHeader from '../exploreSectionHeader/ExploreSectionHeader';
+import ExploreShelf, { ExploreShelfEmpty } from '../exploreShelf/ExploreShelf';
 import ExploreScroller, {
   COLLECTION_TILE_WIDTH,
 } from '../exploreScroller/ExploreScroller';
 import RefreshButton from '../refreshButton/RefreshButton';
 import { ExploreCollectionsListSkeleton } from './Skeleton.ExploreCollections';
 import ExploreCollectionsError from './Error.ExploreCollections';
-import { EXPLORE_ROUTES } from '../../lib/exploreRoutes';
 import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 
 const SHELF_SIZE = 10;
@@ -32,29 +29,26 @@ export default function ExploreCollections() {
   const hasFailed = recommended.isError && collections.length === 0;
 
   return (
-    <Stack>
-      <ExploreSectionHeader
-        icon={<BiCollection size={22} />}
-        title="Collections"
-        subtitle="Recommended for you"
-        viewAllHref={EXPLORE_ROUTES.collections}
-        actions={
-          <RefreshButton
-            onRefresh={() => {
-              setShuffled(true);
-              recommended.refetch();
-            }}
-            isRefreshing={isRefreshing}
-            subject="collections"
-          />
-        }
-      />
-
+    <ExploreShelf
+      section="collections"
+      actions={
+        <RefreshButton
+          onRefresh={() => {
+            setShuffled(true);
+            recommended.refetch();
+          }}
+          isRefreshing={isRefreshing}
+          subject="collections"
+        />
+      }
+    >
       {recommended.isPending ? (
         <ExploreCollectionsListSkeleton />
       ) : hasFailed ? (
         <ExploreCollectionsError />
-      ) : collections.length > 0 ? (
+      ) : collections.length === 0 ? (
+        <ExploreShelfEmpty message="No collections to suggest yet" />
+      ) : (
         // A fresh fetch — even one that returns identical data — is a new row.
         <ExploreScroller
           key={recommended.dataUpdatedAt}
@@ -70,13 +64,7 @@ export default function ExploreCollections() {
             />
           ))}
         </ExploreScroller>
-      ) : (
-        <Stack align="center" gap="xs">
-          <Text fz="h3" fw={600} c="gray">
-            No collections to suggest yet
-          </Text>
-        </Stack>
       )}
-    </Stack>
+    </ExploreShelf>
   );
 }

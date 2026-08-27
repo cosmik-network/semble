@@ -1,9 +1,7 @@
-import { Skeleton, Stack } from '@mantine/core';
-import { HiOutlineUsers } from 'react-icons/hi';
+import { Skeleton } from '@mantine/core';
 import SuggestionCardSkeleton from '@/features/onboarding/components/suggestionCard/Skeleton.SuggestionCard';
-import ExploreSectionHeader from '../exploreSectionHeader/ExploreSectionHeader';
+import ExploreShelf from '../exploreShelf/ExploreShelf';
 import ExploreScroller from '../exploreScroller/ExploreScroller';
-import { EXPLORE_ROUTES } from '../../lib/exploreRoutes';
 
 export function ExploreProfilesListSkeleton() {
   return (
@@ -17,15 +15,9 @@ export function ExploreProfilesListSkeleton() {
 
 export default function ExploreProfilesSkeleton() {
   return (
-    <Stack>
-      <ExploreSectionHeader
-        icon={<HiOutlineUsers size={22} />}
-        title="Profiles"
-        subtitle="People you might want to follow"
-        viewAllHref={EXPLORE_ROUTES.profiles}
-      />
+    <ExploreShelf section="profiles">
       <Skeleton h={36} w={220} radius="lg" />
       <ExploreProfilesListSkeleton />
-    </Stack>
+    </ExploreShelf>
   );
 }
