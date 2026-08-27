@@ -95,15 +95,6 @@ export default function CollectionTabs(props: Props) {
             >
               Followers
             </TabItem>
-            {isOpen && (
-              <TabItem
-                value="contributors"
-                href={`${basePath}/contributors`}
-                rightSection={<TabCount count={contributorCount} />}
-              >
-                Contributors
-              </TabItem>
-            )}
             <TabItem
               value="added-by"
               href={`${basePath}/added-by`}
@@ -118,6 +109,15 @@ export default function CollectionTabs(props: Props) {
             >
               Appears in
             </TabItem>
+            {isOpen && (
+              <TabItem
+                value="contributors"
+                href={`${basePath}/contributors`}
+                rightSection={<TabCount count={contributorCount} />}
+              >
+                Contributors
+              </TabItem>
+            )}
           </Scroller>
         </Tabs.List>
       </Paper>
