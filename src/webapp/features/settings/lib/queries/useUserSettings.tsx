@@ -15,6 +15,12 @@ export interface UserSettings {
   feedUrlType: UrlType | null;
   feedActivityType: ActivityType | null;
   includeKnownBots: boolean;
+  /**
+   * The Bluesky account a signed-out reader is reading the following feed of.
+   * Only the guest branch of `MyFeedContainer` consults it — a session names
+   * its own subject — and it is per-browser, like every other setting here.
+   */
+  bskyHandle: string | null;
 }
 
 const defaultSettings: UserSettings = {
@@ -29,6 +35,7 @@ const defaultSettings: UserSettings = {
   feedUrlType: null,
   feedActivityType: null,
   includeKnownBots: false,
+  bskyHandle: null,
 };
 
 /**

@@ -57,12 +57,16 @@ export const feedKeys = {
       includeKnownBots,
     ] as const,
   bskyFollowing: () => [...feedKeys.all(), 'bskyFollowing'] as const,
+  // `identifier` is part of the key, not an extra: the same filters name a
+  // different feed for every account whose follows are being read, and the
+  // reader's own feed is the one with none.
   bskyFollowingInfinite: (
     limit?: number,
     urlType?: UrlType,
     source?: ActivitySource,
     activityTypes?: ActivityType[],
     includeKnownBots?: boolean,
+    identifier?: string,
   ) =>
     [
       ...feedKeys.bskyFollowing(),
@@ -72,5 +76,6 @@ export const feedKeys = {
       source,
       activityTypes,
       includeKnownBots,
+      identifier,
     ] as const,
 };

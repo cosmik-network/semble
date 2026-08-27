@@ -14,6 +14,11 @@ interface PageParams {
   includeKnownBots?: boolean;
 }
 
+interface BskyFollowingParams extends PageParams {
+  /** DID or handle whose Bluesky follows define the feed. */
+  identifier?: string;
+}
+
 export const getGlobalFeed = cache(async (params?: PageParams) => {
   const client = createSembleClient();
   const response = await client.getGlobalFeed({
@@ -59,19 +64,27 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
   return response;
 });
 
-export const getBskyFollowingFeed = cache(async (params?: PageParams) => {
-  const session = await verifySessionOnClient({ redirectOnFail: true });
-  if (!session) throw new NoSessionError();
+export const getBskyFollowingFeed = cache(
+  async (params?: BskyFollowingParams) => {
+    // The API takes the subject from `identifier` when it is given and only
+    // falls back to the caller's session, so a named account's feed is public
+    // and a guest can read it.
+    if (!params?.identifier) {
+      const session = await verifySessionOnClient({ redirectOnFail: true });
+      if (!session) throw new NoSessionError();
+    }
 
-  const client = createSembleClient();
-  const response = await client.getBskyFollowingFeed({
-    page: params?.page,
-    limit: params?.limit,
-    urlType: params?.urlType,
-    source: params?.source,
-    activityTypes: params?.activityTypes,
-    includeKnownBots: params?.includeKnownBots,
-  });
+    const client = createSembleClient();
+    const response = await client.getBskyFollowingFeed({
+      identifier: params?.identifier,
+      page: params?.page,
+      limit: params?.limit,
+      urlType: params?.urlType,
+      source: params?.source,
+      activityTypes: params?.activityTypes,
+      includeKnownBots: params?.includeKnownBots,
+    });
 
-  return response;
-});
+    return response;
+  },
+);

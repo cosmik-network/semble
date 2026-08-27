@@ -10,6 +10,11 @@ interface Props {
   activityTypes?: ActivityType[];
   includeKnownBots?: boolean;
   enabled?: boolean;
+  /**
+   * DID or handle whose Bluesky follows define the feed. Left out for the
+   * reader's own feed, which the API answers off their session instead.
+   */
+  identifier?: string;
 }
 
 export default function useBskyFollowingFeed(props?: Props) {
@@ -23,12 +28,14 @@ export default function useBskyFollowingFeed(props?: Props) {
       props?.source,
       props?.activityTypes,
       props?.includeKnownBots,
+      props?.identifier,
     ),
     staleTime: 10000,
     initialPageParam: 1,
     enabled,
     queryFn: ({ pageParam = 1 }) => {
       return getBskyFollowingFeed({
+        identifier: props?.identifier,
         limit,
         page: pageParam,
         urlType: props?.urlType,
