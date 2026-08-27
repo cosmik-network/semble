@@ -24,22 +24,18 @@ export default function ComposerDrawer() {
     searchParams.get('addText') ||
     searchParams.get('addTitle');
 
-  // Adjusted during render rather than in an effect. Remembering which share
-  // opened the composer is what lets the reader close it again: the param stays
-  // in the URL, so `if (addUrl) open` alone would reopen on every render.
-  const [openedFor, setOpenedFor] = useState<string | null>(null);
-  if (addUrl && openedFor !== addUrl) {
-    setOpenedFor(addUrl);
-    setOpened(true);
+  // Adjusted during render rather than in an effect. Tracking the previous
+  // share is what lets the reader close the composer again: the param stays in
+  // the URL, so `if (addUrl) open` alone would reopen on every render.
+  const [prevAddUrl, setPrevAddUrl] = useState<string | null>(null);
+  if (addUrl !== prevAddUrl) {
+    setPrevAddUrl(addUrl);
+    if (addUrl) setOpened(true);
   }
 
   return (
     <Fragment key={shouldShowFab.toString()}>
-      {/* Not gated on `shouldShowFab`, which comes from a media query and so
-          resolves differently on the server. Unlike the portaled Affix this is
-          real markup, so gating it mismatches on hydration. */}
       <div className={styles.fabClearance} />
-
       {shouldShowFab && (
         <Affix
           mt={'md'}
