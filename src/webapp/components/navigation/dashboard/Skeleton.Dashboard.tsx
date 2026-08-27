@@ -1,6 +1,7 @@
 'use client';
 
 import { AppShell, Center, Stack, Text } from '@mantine/core';
+import { BOTTOM_BAR_FOOTER } from '@/lib/consts/layout';
 import { useNavbarContext } from '@/providers/navbar';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
