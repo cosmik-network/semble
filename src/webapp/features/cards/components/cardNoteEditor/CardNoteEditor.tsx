@@ -20,6 +20,7 @@ interface Props {
   onChange: Dispatch<SetStateAction<string | undefined>>;
   noteId?: string;
   onDeleted: () => void;
+  onCancel: () => void;
 }
 
 export default function CardNoteEditor(props: Props) {
@@ -54,9 +55,7 @@ export default function CardNoteEditor(props: Props) {
         placeholder="Add a note about this card"
         variant="filled"
         size="md"
-        autosize
-        minRows={2}
-        maxRows={5}
+        rows={2}
         autoFocus
         maxLength={MAX_NOTE_LENGTH}
         aria-describedby="note-char-remaining"
@@ -97,17 +96,27 @@ export default function CardNoteEditor(props: Props) {
           <Text c={'gray'} fz={'sm'} aria-hidden>
             {props.note?.length ?? 0} / {MAX_NOTE_LENGTH}
           </Text>
-          {props.noteId && (
+          <Group gap={'xs'} wrap="nowrap">
+            {props.noteId && (
+              <Button
+                variant="light"
+                size="xs"
+                color="red"
+                leftSection={<BsTrash2Fill />}
+                onClick={() => setShowDeleteWarning(true)}
+              >
+                Delete note
+              </Button>
+            )}
             <Button
               variant="light"
               size="xs"
-              color="red"
-              leftSection={<BsTrash2Fill />}
-              onClick={() => setShowDeleteWarning(true)}
+              color="gray"
+              onClick={props.onCancel}
             >
-              Delete note
+              Cancel
             </Button>
-          )}
+          </Group>
         </Group>
       )}
     </Stack>

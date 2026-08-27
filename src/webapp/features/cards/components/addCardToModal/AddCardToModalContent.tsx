@@ -157,18 +157,20 @@ export default function AddCardToModalContent(props: Props) {
         libraryCount={props.urlLibraryCount}
         isInYourLibrary={props.isInYourLibrary}
         action={
-          <Button
-            variant={isEditingNote ? 'filled' : 'light'}
-            size="xs"
-            color="gray"
-            leftSection={<MdOutlineStickyNote2 />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditingNote((wasEditing) => !wasEditing);
-            }}
-          >
-            {note ? 'Edit note' : 'Add note'}
-          </Button>
+          !isEditingNote && (
+            <Button
+              variant="light"
+              size="xs"
+              color="gray"
+              leftSection={<MdOutlineStickyNote2 />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingNote(true);
+              }}
+            >
+              {savedNote ? 'Edit note' : 'Add note'}
+            </Button>
+          )
         }
       >
         {isEditingNote && (
@@ -177,6 +179,10 @@ export default function AddCardToModalContent(props: Props) {
             onChange={setNote}
             noteId={cardStatus.data.card?.note?.id}
             onDeleted={props.onClose}
+            onCancel={() => {
+              setNote(savedNote);
+              setIsEditingNote(false);
+            }}
           />
         )}
       </CardToBeAddedPreview>
