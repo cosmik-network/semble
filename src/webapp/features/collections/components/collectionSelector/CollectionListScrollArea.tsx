@@ -9,7 +9,7 @@ import { useScrollFade } from '@/hooks/useScrollFade';
 // few-collections states; the scroll area flexes to fill whatever the
 // search row doesn't use. Capped to a fraction of the viewport so the
 // modal doesn't overflow short screens (e.g. iPhone SE).
-export const COLLECTION_PANEL_HEIGHT = 'min(284px, 33dvh)';
+export const COLLECTION_PANEL_HEIGHT = 'min(284px, 35dvh)';
 
 interface Props {
   children: ReactNode;
