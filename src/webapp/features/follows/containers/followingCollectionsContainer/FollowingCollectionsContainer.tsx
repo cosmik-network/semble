@@ -11,7 +11,7 @@ import {
 import useFollowingCollections from '../../lib/queries/useFollowingCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   handle: string;
@@ -21,7 +21,7 @@ export default function FollowingCollectionsContainer(props: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useFollowingCollections({ identifier: props.handle });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

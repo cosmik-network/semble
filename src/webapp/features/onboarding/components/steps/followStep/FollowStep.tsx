@@ -13,8 +13,8 @@ import {
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import { MdErrorOutline, MdPersonSearch } from 'react-icons/md';
-import type useRecommendedUsers from '../../../lib/queries/useRecommendedUsers';
-import type useRecommendedCollections from '../../../lib/queries/useRecommendedCollections';
+import type useRecommendedUsers from '@/features/profile/lib/queries/useRecommendedUsers';
+import type useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
@@ -35,7 +35,6 @@ interface Props {
   // and so has to see the same results this does.
   users: ReturnType<typeof useRecommendedUsers>;
   collections: ReturnType<typeof useRecommendedCollections>;
-  hasUrls: boolean;
   progressLoaded: boolean;
   pickCardsHref: string;
   onPickMoreCards: () => void;
@@ -78,11 +77,9 @@ export default function FollowStep(props: Props) {
   );
 
   // !progressLoaded is the "we don't know yet" frame — without it the empty
-  // branch wins for one frame. hasUrls covers the opposite case: with nothing
-  // stored the queries stay disabled at isPending forever.
+  // branch wins for one frame.
   const isPending =
-    !props.progressLoaded ||
-    (props.hasUrls && (users.isPending || collections.isPending));
+    !props.progressLoaded || users.isPending || collections.isPending;
 
   const isError = users.isError || collections.isError;
 
@@ -134,7 +131,9 @@ export default function FollowStep(props: Props) {
           avatarUrl={user.avatarUrl}
           description={user.description}
           note={
-            user.followsOnBsky && <BlueskyNote>Followed on Bluesky</BlueskyNote>
+            user.followsOnBsky && (
+              <BlueskyNote>Following on Bluesky</BlueskyNote>
+            )
           }
           action={
             <FollowActionButton
@@ -194,7 +193,7 @@ export default function FollowStep(props: Props) {
                   label: (
                     <Group gap={6} wrap="nowrap" justify="center">
                       <FaBluesky size={14} />
-                      <span>Your Bluesky circle</span>
+                      <span>Followed on Bluesky</span>
                     </Group>
                   ),
                   value: 'bluesky',

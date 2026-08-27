@@ -30,19 +30,21 @@ export default function LoginForm(props: Props) {
     }
   }, [isAuthenticated]);
 
-  const handleOAuthSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // validate form
-    const isValid = form.validateField('handle');
-    if (!isValid) return;
+  // Takes the handle rather than reading it back off the form: a dropdown
+  // selection submits before `form.values` has caught up with it.
+  const submitOAuth = async (handle: string) => {
+    const value = handle.trimEnd();
+    if (!value.trim()) {
+      form.setFieldError('handle', 'Handle is required');
+      return;
+    }
 
     try {
       setIsLoading(true);
       setError('');
 
       const { authUrl } = await client.initiateOAuthSignIn({
-        handle: form.values.handle.trimEnd(),
+        handle: value,
         redirect: props.redirectPath,
       });
 
@@ -52,6 +54,11 @@ export default function LoginForm(props: Props) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitOAuth(form.values.handle);
   };
 
   const handleAppPasswordSubmit = async (e: React.FormEvent) => {
@@ -115,6 +122,7 @@ export default function LoginForm(props: Props) {
           error={error}
           isLoading={isLoading}
           onSubmit={handleOAuthSubmit}
+          onSelectHandle={submitOAuth}
           onSwitchToAppPassword={() => {
             form.setFieldValue('useAppPassword', true);
             setError('');

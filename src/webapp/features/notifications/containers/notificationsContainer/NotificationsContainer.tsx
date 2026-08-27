@@ -2,23 +2,14 @@
 
 import useMyNotifications from '@/features/notifications/lib/queries/useMyNotifications';
 import NotificationItem from '@/features/notifications/components/notificationItem/NotificationItem';
-import {
-  Stack,
-  Text,
-  Center,
-  Container,
-  Box,
-  Loader,
-  Button,
-  Group,
-  Collapse,
-} from '@mantine/core';
+import { Stack, Text, Center, Container, Button, Group } from '@mantine/core';
 import NotificationsContainerSkeleton from './Skeleton.NotificationsContainer';
 import NotificationsContainerError from './Error.NotificationsContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import RefetchLoader from '@/components/contentDisplay/refetchLoader/RefetchLoader';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotificationsAsRead';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
@@ -47,22 +38,6 @@ export default function NotificationsContainer() {
 
   const allNotifications =
     data?.pages.flatMap((page) => page.notifications ?? []) ?? [];
-
-  // Ensure animation is visible even for fast refetches
-  const [showRefetchLoader, setShowRefetchLoader] = useState(false);
-  const MIN_DISPLAY_TIME = 400; // milliseconds
-
-  useEffect(() => {
-    if (isRefetching) {
-      setShowRefetchLoader(true);
-    } else if (showRefetchLoader) {
-      // Keep showing the loader for minimum time to ensure animation completes
-      const timer = setTimeout(() => {
-        setShowRefetchLoader(false);
-      }, MIN_DISPLAY_TIME);
-      return () => clearTimeout(timer);
-    }
-  }, [isRefetching, showRefetchLoader]);
 
   const handleMarkAllAsRead = () => {
     if (unreadData.unreadCount > 0) {
@@ -111,14 +86,7 @@ export default function NotificationsContainer() {
           </Button>
         </Group>
       )}
-      <Collapse expanded={showRefetchLoader} transitionDuration={400}>
-        <Stack align="center" gap={'xs'}>
-          <Loader size={'sm'} color={'gray'} />
-          <Text fw={600} c={'gray'} mb={'sm'}>
-            Fetching the latest notifications...
-          </Text>
-        </Stack>
-      </Collapse>
+      <RefetchLoader isRefetching={isRefetching} subject="notifications" />
       {allNotifications.length === 0 ? (
         <Center>
           <Text fz="h3" fw={600} c="gray">
@@ -150,16 +118,7 @@ export default function NotificationsContainer() {
         </InfiniteScroll>
       )}
 
-      <Box
-        pos={'fixed'}
-        bottom={0}
-        mt={'md'}
-        mx={{ base: 10, sm: 2.5 }}
-        mb={{ base: 100, sm: 'md' }}
-        style={{ zIndex: 2 }}
-      >
-        <RefetchButton onRefetch={() => refetch()} />
-      </Box>
+      <RefetchButton onRefetch={() => refetch()} />
     </Container>
   );
 }

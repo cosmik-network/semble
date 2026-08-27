@@ -1,0 +1,129 @@
+'use client';
+
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import { useNavbarContext } from '@/providers/navbar';
+import {
+  ActionIcon,
+  Anchor,
+  Button,
+  Divider,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
+import { Fragment, useState } from 'react';
+import { FaRegNoteSticky } from 'react-icons/fa6';
+import { useSettings } from '@/providers/settings';
+import { FiPlus } from 'react-icons/fi';
+import { LinkButton } from '@/components/link/MantineLink';
+
+export default function LibraryRecentCards() {
+  const { desktopOpened } = useNavbarContext();
+  const { settings } = useSettings();
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const { data: profile } = useMyProfile();
+  const { data: myCardsData } = useMyCards({ limit: 4 });
+  const cards = myCardsData.pages.flatMap((page) => page.cards) ?? [];
+
+  return (
+    <Stack>
+      <Group justify="space-between">
+        <Group gap="xs">
+          <FaRegNoteSticky size={22} />
+          <Title order={2}>Cards</Title>
+        </Group>
+        <Group gap="xs">
+          <ActionIcon
+            variant="light"
+            color="blue"
+            size={38}
+            radius={'xl'}
+            onClick={() => setShowAddDrawer(true)}
+            aria-label="Add card"
+          >
+            <FiPlus size={18} />
+          </ActionIcon>
+          <LinkButton
+            variant="light"
+            color="blue"
+            href={`/profile/${profile.handle}/cards`}
+          >
+            View all
+          </LinkButton>
+        </Group>
+      </Group>
+
+      {cards.length > 0 ? (
+        <Grid gap={settings.cardView === 'list' ? 0 : 'xs'}>
+          {cards.map((card, index) => (
+            <Fragment key={card.id}>
+              {settings.cardView === 'list' && index > 0 && (
+                <Grid.Col span={12}>
+                  <Divider />
+                </Grid.Col>
+              )}
+              <Grid.Col
+                span={{
+                  base: 12,
+                  xs:
+                    settings.cardView !== 'grid' ? 12 : desktopOpened ? 12 : 6,
+                  sm: settings.cardView !== 'grid' ? 12 : desktopOpened ? 6 : 4,
+                  md: settings.cardView !== 'grid' ? 12 : 4,
+                  lg: settings.cardView !== 'grid' ? 12 : 3,
+                }}
+              >
+                <UrlCard
+                  id={card.id}
+                  url={card.url}
+                  uri={card.uri}
+                  cardContent={card.cardContent}
+                  note={card.note}
+                  urlLibraryCount={card.urlLibraryCount}
+                  urlIsInLibrary={card.urlInLibrary}
+                  urlConnectionCount={card.urlConnectionCount ?? 0}
+                  urlIsConnected={card.urlIsConnected}
+                  cardAuthor={card.author}
+                  viaCardId={card.id}
+                />
+              </Grid.Col>
+            </Fragment>
+          ))}
+        </Grid>
+      ) : (
+        <Fragment>
+          <Stack align="center" gap="xs">
+            <Text fz="h3" fw={600} c="gray">
+              No cards
+            </Text>
+            <Button
+              variant="light"
+              color="gray"
+              size="md"
+              rightSection={<FiPlus size={22} />}
+              onClick={() => setShowAddDrawer(true)}
+            >
+              Add your first card
+            </Button>
+
+            <Text ta={'center'} fw={500} c={'gray'}>
+              Need inspiration?{' '}
+              <Anchor href={'/explore'} fw={500} c={'grape'}>
+                Explore cards from the community
+              </Anchor>
+            </Text>
+          </Stack>
+        </Fragment>
+      )}
+
+      <AddCardDrawer
+        isOpen={showAddDrawer}
+        onClose={() => setShowAddDrawer(false)}
+      />
+    </Stack>
+  );
+}
