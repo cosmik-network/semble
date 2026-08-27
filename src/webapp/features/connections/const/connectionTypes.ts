@@ -7,7 +7,8 @@ import {
   BiLink,
 } from 'react-icons/bi';
 import { BsPaperclip } from 'react-icons/bs';
-import { TbEqual, TbQuote } from 'react-icons/tb';
+import { LuArrowLeftRight } from 'react-icons/lu';
+import { TbBlockquote } from 'react-icons/tb';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
 import { IconType } from 'react-icons';
@@ -88,7 +89,7 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     value: 'SAME_AS',
     label: 'Same as',
     description: 'The same thing in a different place (mirror, reupload, DOI)',
-    icon: TbEqual,
+    icon: LuArrowLeftRight,
     notePlaceholder: 'Note where this version differs, if at all...',
     isNew: true,
   },
@@ -96,7 +97,7 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     value: 'REFERENCES',
     label: 'References',
     description: 'Cites or points to the other',
-    icon: TbQuote,
+    icon: TbBlockquote,
     notePlaceholder: 'Describe what is referenced or cited...',
     isNew: true,
   },
