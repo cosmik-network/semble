@@ -6,7 +6,7 @@ import { BiCollection } from 'react-icons/bi';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
-import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ExploreCollectionsRecommendedContentSkeleton from './Skeleton.ExploreCollectionsRecommendedContent';
 
 interface Props {
@@ -24,7 +24,7 @@ export default function ExploreCollectionsRecommendedContent(props: Props) {
   }
 
   if (props.error) {
-    return <ExploreCollectionsContainerError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   if (props.collections.length === 0) {

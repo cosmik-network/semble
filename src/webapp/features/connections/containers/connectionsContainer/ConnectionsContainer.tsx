@@ -4,8 +4,8 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Box, Group, Stack } from '@mantine/core';
-import ConnectionsContainerError from './Error.ConnectionsContainer';
+import { Box, Group, Stack, Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiLink } from 'react-icons/bi';
@@ -99,7 +99,11 @@ export default function ConnectionsContainer(props: Props) {
       : `No connections found ${direction} this`;
 
   if (forwardError || backwardError || allError) {
-    return <ConnectionsContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load connections" />
+      </Container>
+    );
   }
 
   const connections =

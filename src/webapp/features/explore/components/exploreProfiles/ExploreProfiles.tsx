@@ -7,7 +7,7 @@ import ExploreShelf from '../exploreShelf/ExploreShelf';
 import { ProfilesView, profileViewOptions } from '../../lib/profilesView';
 import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 import { ExploreProfilesListSkeleton } from './Skeleton.ExploreProfiles';
-import ProfileSuggestionListError from '@/features/profile/components/profileSuggestionList/Error.ProfileSuggestionList';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ProfileSuggestionList from '@/features/profile/components/profileSuggestionList/ProfileSuggestionList';
 import RecommendedProfiles from './RecommendedProfiles';
 import BlueskyProfiles from './BlueskyProfiles';
@@ -35,7 +35,7 @@ export default function ExploreProfiles() {
         <ExploreProfilesListSkeleton />
       ) : (
         <ErrorBoundary
-          fallback={<ProfileSuggestionListError />}
+          fallback={<ErrorState message="Could not load profiles" />}
           resetKeys={[view]}
         >
           <Suspense fallback={<ExploreProfilesListSkeleton />}>

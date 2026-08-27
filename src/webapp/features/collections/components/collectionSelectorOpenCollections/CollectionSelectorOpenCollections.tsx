@@ -12,7 +12,7 @@ import CollectionSelectorBrowseList from '../collectionSelectorBrowseList/Collec
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -90,7 +90,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
   const isLoading = listQuery.isPending || search !== debouncedSearch;
 
   if (searchedCollections.error || userContributedCollections.error) {
-    return <CollectionSelectorError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   const isEmpty = !isLoading && !hasCollections;

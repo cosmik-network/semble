@@ -10,7 +10,7 @@ import ExploreScroller, {
 } from '../exploreScroller/ExploreScroller';
 import RefreshButton from '../refreshButton/RefreshButton';
 import { ExploreCollectionsListSkeleton } from './Skeleton.ExploreCollections';
-import ExploreCollectionsError from './Error.ExploreCollections';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useExploreSeedUrls from '../../lib/queries/useExploreSeedUrls';
 
 const SHELF_SIZE = 10;
@@ -46,7 +46,7 @@ export default function ExploreCollections() {
       {recommended.isPending ? (
         <ExploreCollectionsListSkeleton />
       ) : hasFailed ? (
-        <ExploreCollectionsError />
+        <ErrorState message="Could not load collections" />
       ) : collections.length === 0 ? (
         <EmptyState message="No collections to suggest yet" />
       ) : (

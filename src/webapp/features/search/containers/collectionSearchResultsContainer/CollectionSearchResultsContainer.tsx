@@ -4,7 +4,7 @@ import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Center, Grid, Group, Stack } from '@mantine/core';
-import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
@@ -50,7 +50,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
       </Group>
 
       {error ? (
-        <SearchResultsContainerError />
+        <ErrorState message="Could not load search results" />
       ) : !isPending && props.query && allCollections.length === 0 ? (
         <Center py="xl">
           <EmptyState
