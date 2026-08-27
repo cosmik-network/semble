@@ -17,8 +17,7 @@ export interface UserSettings {
   includeKnownBots: boolean;
   /**
    * The Bluesky account a signed-out reader is reading the following feed of.
-   * Only the guest branch of `MyFeedContainer` consults it — a session names
-   * its own subject — and it is per-browser, like every other setting here.
+   * Consulted only while signed out — a session names its own subject.
    */
   bskyHandle: string | null;
 }

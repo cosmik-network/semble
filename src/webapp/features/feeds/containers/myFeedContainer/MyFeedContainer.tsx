@@ -86,16 +86,13 @@ function BskyFollowingFeed(props: ViewProps & { identifier?: string }) {
 
 /**
  * Whose follows a guest is reading, and the way back to the prompt — without
- * it a mistyped handle would sit in settings with nothing to undo it.
+ * it a mistyped handle sits in settings with nothing to undo it.
  */
 function GuestBskyHandleBar(props: { handle: string; onChange: () => void }) {
   const loginHref = useLoginHref();
 
   return (
     <Container p="xs" pb={0} size="xl">
-      {/* A band rather than a line of text: it says which feed this is, and
-          reads as a header for the column below it instead of as the first
-          item in it. */}
       <Card
         radius="lg"
         p={'sm'}
@@ -120,12 +117,7 @@ function GuestBskyHandleBar(props: { handle: string; onChange: () => void }) {
               {' follows on Bluesky'}
             </Text>
           </Group>
-          {/* Their own row: sharing one with the sentence left it a few
-              characters wide on a phone. */}
           <Group gap={'xs'} wrap="nowrap" justify="flex-start">
-            {/* The reason, not the act: a guest reading this feed can already
-                see it, so "log in" on its own asks for something and offers
-                nothing back. Keeping the cards is what an account is for. */}
             <LinkButton
               href={loginHref}
               size="sm"
@@ -185,10 +177,9 @@ export default function MyFeedContainer() {
   // resolves, so `isAuthenticated` is settled by the time this mounts.
   const view = settings.feedView;
 
-  // `following` is answered off the session and can only 401 for a guest, so
-  // the CTA stands in for it. The Bluesky view is answered for whichever
-  // account is named, so once a guest has told us their handle it is a real
-  // feed — until then the CTA is what asks for it.
+  // `following` can only 401 for a guest, so the CTA stands in for it. The
+  // Bluesky view is answered for whichever account is named, so it is a real
+  // feed as soon as a guest has given us a handle.
   if (feedViewRequiresAuth(view) && !isAuthenticated) {
     if (view !== 'bskyFollowing' || !settings.bskyHandle) {
       return <FeedLoginCta view={view} />;

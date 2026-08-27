@@ -20,11 +20,7 @@ import { searchBlueskyUsers } from '../../lib/dal';
 interface Props {
   value: string;
   onChange: (value: string) => void;
-  /**
-   * An account picked out of the dropdown, by click or by Enter on a
-   * highlighted row. Distinct from submitting the field: the caller knows an
-   * account was chosen, not merely typed at.
-   */
+  /** An account picked out of the dropdown, by click or by Enter. */
   onSelect: (handle: string) => void;
   /** Rendered at the end of the field while no search is in flight. */
   rightSection?: ReactNode;
@@ -38,14 +34,7 @@ interface Props {
 
 /**
  * The Bluesky handle field, shared by the login forms and the signed-out feed
- * prompt — three places that were each running their own copy of the same
- * typeahead over `searchBlueskyUsers` (the public appview, so no session is
- * involved and a guest can use it).
- *
- * What the caller does with a chosen account is the one thing that differs:
- * OAuth login signs in with it, the app-password form moves to the password,
- * the feed prompt reads that account's feed. Hence `onSelect` rather than a
- * behaviour baked in here.
+ * prompt. Search runs against the public appview, so a guest can use it.
  */
 export default function BlueskyHandleInput(props: Props) {
   const combobox = useCombobox({
@@ -104,9 +93,8 @@ export default function BlueskyHandleInput(props: Props) {
               combobox.selectPreviousOption();
             }
 
-            // Enter takes the highlighted account rather than the half-typed
-            // text behind the dropdown. With nothing highlighted the event is
-            // left alone, so the surrounding form submits as it always did.
+            // With nothing highlighted the event is left alone, so the
+            // surrounding form submits as it always did.
             if (
               event.key === 'Enter' &&
               combobox.getSelectedOptionIndex() >= 0

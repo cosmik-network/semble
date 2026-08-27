@@ -48,8 +48,6 @@ export default function OAuthLoginForm(props: Props) {
             onSelect={(handle) => {
               setInputValue(handle);
               props.form.setFieldValue('handle', handle);
-              // Choosing an account is the whole form here — nothing is left
-              // to fill in, so the choice is the submission.
               props.onSelectHandle(handle);
             }}
             required

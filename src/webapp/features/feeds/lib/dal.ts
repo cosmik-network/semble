@@ -66,9 +66,7 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
 
 export const getBskyFollowingFeed = cache(
   async (params?: BskyFollowingParams) => {
-    // The API takes the subject from `identifier` when it is given and only
-    // falls back to the caller's session, so a named account's feed is public
-    // and a guest can read it.
+    // A named account's feed is public; only your own needs the session.
     if (!params?.identifier) {
       const session = await verifySessionOnClient({ redirectOnFail: true });
       if (!session) throw new NoSessionError();

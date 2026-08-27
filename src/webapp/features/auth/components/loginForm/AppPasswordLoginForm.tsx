@@ -50,8 +50,8 @@ export default function AppPasswordLoginForm(props: Props) {
             onSelect={(handle) => {
               setInputValue(handle);
               props.form.setFieldValue('handle', handle);
-              // Can't sign them in on the choice alone — the password is still
-              // required — so hand them the field that is.
+              // Can't sign them in on the choice alone, so hand them the
+              // field that is still needed.
               appPasswordRef.current?.focus();
             }}
             required

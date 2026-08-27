@@ -10,10 +10,7 @@ interface Props {
   activityTypes?: ActivityType[];
   includeKnownBots?: boolean;
   enabled?: boolean;
-  /**
-   * DID or handle whose Bluesky follows define the feed. Left out for the
-   * reader's own feed, which the API answers off their session instead.
-   */
+  /** DID or handle whose follows define the feed; omitted for your own. */
   identifier?: string;
 }
 
