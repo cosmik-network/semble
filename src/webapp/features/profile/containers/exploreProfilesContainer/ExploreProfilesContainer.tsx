@@ -66,11 +66,7 @@ export default function ExploreProfilesContainer() {
   const isPending =
     isAuthLoading ||
     isGuest ||
-    (view === 'bluesky'
-      ? bsky.isPending
-      : // The recommendations hook stays disabled (and "pending") with no
-        // seeds, so only treat that as loading while seeds are still coming.
-        !seedUrls || (seedUrls.length > 0 && recommended.isPending));
+    (view === 'bluesky' ? bsky.isPending : recommended.isPending);
 
   const error = view === 'bluesky' ? bsky.error : recommended.error;
 

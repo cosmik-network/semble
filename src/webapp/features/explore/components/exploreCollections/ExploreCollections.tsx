@@ -22,8 +22,6 @@ export default function ExploreCollections() {
   const seedUrls = useExploreSeedUrls();
   const recommended = useRecommendedCollections({ urls: seedUrls });
 
-  // Disabled with no seeds, and so pending forever; that's a result, not a load.
-  const isPending = !seedUrls || (seedUrls.length > 0 && recommended.isPending);
   const isRefreshing = !recommended.isPending && recommended.isFetching;
   const collections = (recommended.data?.collections ?? []).slice(
     0,
@@ -52,7 +50,7 @@ export default function ExploreCollections() {
         }
       />
 
-      {isPending ? (
+      {recommended.isPending ? (
         <ExploreCollectionsListSkeleton />
       ) : hasFailed ? (
         <ExploreCollectionsError />

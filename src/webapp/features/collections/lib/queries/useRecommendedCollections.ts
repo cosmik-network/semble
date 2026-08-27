@@ -3,25 +3,31 @@ import { getRecommendedCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 
 interface Props {
-  // Seed URLs to recommend from. The endpoint rejects an empty list from an
-  // authenticated caller, so the query stays disabled until there's at least
-  // one — see useGlobalFeedSeeds for where they come from when the reader's own
-  // library has none. Undefined, from a caller still resolving them, is the
-  // same story here: nothing to ask for yet.
+  /** Undefined while the caller is still resolving them. The endpoint rejects
+   * an empty list from an authenticated caller, so the query waits for one. */
   urls: string[] | undefined;
   enabled?: boolean;
 }
 
 export default function useRecommendedCollections(props: Props) {
+  const enabled = props.enabled ?? true;
   const urls = props.urls ?? [];
+  const hasSeeds = urls.length > 0;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: collectionKeys.recommended(urls),
     queryFn: () => getRecommendedCollections(urls),
-    enabled: (props.enabled ?? true) && urls.length > 0,
-    // Keep the current list on screen while a new set loads.
+    enabled: enabled && hasSeeds,
     placeholderData: keepPreviousData,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
+
+  return {
+    ...query,
+    // A query held back for want of seeds reports `pending` forever. That's an
+    // answer, not a load — only a caller still resolving seeds is waiting.
+    isPending:
+      enabled && (props.urls === undefined || (hasSeeds && query.isPending)),
+  };
 }

@@ -102,11 +102,7 @@ export default function ExploreCollectionsContainer() {
         {!isSearching ? (
           <ExploreCollectionsRecommendedContent
             collections={recommended.data?.collections ?? []}
-            isPending={
-              // Disabled with no seeds, and so pending forever; that's a
-              // result, not a load.
-              !seedUrls || (seedUrls.length > 0 && recommended.isPending)
-            }
+            isPending={recommended.isPending}
             isRefreshing={isRefreshing}
             error={recommended.error}
           />

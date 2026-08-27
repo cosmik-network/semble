@@ -35,7 +35,6 @@ interface Props {
   // and so has to see the same results this does.
   users: ReturnType<typeof useRecommendedUsers>;
   collections: ReturnType<typeof useRecommendedCollections>;
-  hasUrls: boolean;
   progressLoaded: boolean;
   pickCardsHref: string;
   onPickMoreCards: () => void;
@@ -78,11 +77,9 @@ export default function FollowStep(props: Props) {
   );
 
   // !progressLoaded is the "we don't know yet" frame — without it the empty
-  // branch wins for one frame. hasUrls covers the opposite case: with nothing
-  // stored the queries stay disabled at isPending forever.
+  // branch wins for one frame.
   const isPending =
-    !props.progressLoaded ||
-    (props.hasUrls && (users.isPending || collections.isPending));
+    !props.progressLoaded || users.isPending || collections.isPending;
 
   const isError = users.isError || collections.isError;
 

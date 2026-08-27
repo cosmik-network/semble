@@ -250,7 +250,6 @@ export default function OnboardingFlow() {
           <FollowStep
             users={suggestedUsers}
             collections={suggestedCollections}
-            hasUrls={seedUrls.length > 0}
             progressLoaded={isLoaded}
             pickCardsHref={`/onboarding?step=${currentStep - 1}`}
             onPickMoreCards={markStep}
