@@ -1,6 +1,7 @@
 'use client';
 
 import { SubscriptionScope } from '@semble/types';
+import { FollowSource } from '@/features/analytics/types';
 import FollowButton from '../followButton/FollowButton';
 import SubscribeButton from '../subscribeButton/SubscribeButton';
 import { useFollowState } from '../../lib/queries/useFollowState';
@@ -10,6 +11,7 @@ interface Props {
   targetId: string;
   targetType: FollowTargetType;
   followText?: string;
+  followSource?: FollowSource;
   initialIsFollowing?: boolean;
   initialIsSubscribed?: boolean;
   initialSubscriptionScopes?: SubscriptionScope[];
@@ -36,6 +38,7 @@ export default function FollowActions(props: Props) {
         targetType={props.targetType}
         initialIsFollowing={props.initialIsFollowing}
         followText={props.followText}
+        followSource={props.followSource}
       />
     </>
   );

@@ -3,6 +3,7 @@
 import { Container, Stack, SimpleGrid } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import { useSettings } from '@/providers/settings';
 import useOpenCollectionsWithContributor from '@/features/collections/lib/queries/useOpenCollectionsWithContributor';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
@@ -49,6 +50,7 @@ export default function ContributedToCollectionsContainer(props: Props) {
                   key={collection.id}
                   collection={collection}
                   showAuthor
+                  followSource={FollowSource.PROFILE_NETWORK}
                 />
               ))}
             </SimpleGrid>

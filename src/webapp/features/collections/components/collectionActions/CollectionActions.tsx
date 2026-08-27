@@ -9,6 +9,7 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import FollowActions from '@/features/follows/components/followActions/FollowActions';
+import { FollowSource } from '@/features/analytics/types';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
@@ -86,6 +87,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         <FollowActions
           targetId={collection.id}
           targetType="COLLECTION"
+          followSource={FollowSource.COLLECTION_PAGE}
           initialIsFollowing={collection.isFollowing}
           initialIsSubscribed={collection.isSubscribed}
           initialSubscriptionScopes={collection.subscriptionScopes}

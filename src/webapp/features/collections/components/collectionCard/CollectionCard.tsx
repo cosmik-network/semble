@@ -15,12 +15,15 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import CollectionCardActions from '../collectionCardActions/CollectionCardActions';
+import { FollowSource } from '@/features/analytics/types';
 import styles from './CollectionCard.module.css';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
   showAuthor?: boolean;
   collection: Collection;
+  /** Where the card is shown, reported with follow analytics. */
+  followSource?: FollowSource;
   /** Forwarded to CollectionCardActions' follow button. */
   onFollowChange?: (isFollowing: boolean) => void;
 }
@@ -125,6 +128,7 @@ export default function CollectionCard(props: Props) {
           </Group>
           <CollectionCardActions
             collection={collection}
+            followSource={props.followSource}
             onFollowChange={props.onFollowChange}
           />
         </Group>

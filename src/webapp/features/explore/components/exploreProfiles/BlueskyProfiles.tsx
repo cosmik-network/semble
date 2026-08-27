@@ -2,6 +2,7 @@
 
 import useSuspenseBskyFollowedUsers from '@/features/follows/lib/queries/useSuspenseBskyFollowedUsers';
 import ProfileSuggestionList from '@/features/profile/components/profileSuggestionList/ProfileSuggestionList';
+import { FollowSource } from '@/features/analytics/types';
 
 // One page of this size is the whole shelf — nothing fetches beyond it.
 const SHELF_SIZE = 10;
@@ -14,6 +15,7 @@ export default function BlueskyProfiles() {
   return (
     <ProfileSuggestionList
       layout="scroller"
+      followSource={FollowSource.BLUESKY_FOLLOWS}
       emptyMessage="No one from your Bluesky follows is here yet"
       users={data.pages.flatMap((page) => page.users)}
     />

@@ -3,6 +3,7 @@
 import { Container, Stack, SimpleGrid } from '@mantine/core';
 import useCollections from '../../lib/queries/useCollections';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import { Fragment, useState } from 'react';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
@@ -63,7 +64,11 @@ export default function CollectionsContainerContent(props: Props) {
             spacing="xs"
           >
             {collections.map((collection) => (
-              <CollectionCard key={collection.id} collection={collection} />
+              <CollectionCard
+                key={collection.id}
+                collection={collection}
+                followSource={FollowSource.PROFILE_PAGE}
+              />
             ))}
           </SimpleGrid>
         </InfiniteScroll>

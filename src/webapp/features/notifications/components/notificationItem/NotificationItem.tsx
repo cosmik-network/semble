@@ -3,6 +3,7 @@ import { NotificationType } from '@/api-client';
 import { Stack, Indicator, Group, Scroller, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
 import ConnectionCard from '@/features/connections/components/connectionCard/ConnectionCard';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
@@ -64,6 +65,7 @@ export default function NotificationItem(props: Props) {
                   targetId={notification.item.user.id}
                   targetType="USER"
                   initialIsFollowing={notification.item.user.isFollowing}
+                  followSource={FollowSource.NOTIFICATIONS}
                 />
               ) : undefined
             }
@@ -77,6 +79,7 @@ export default function NotificationItem(props: Props) {
                 <CollectionCard
                   collection={notification.item.collections[0]}
                   size="compact"
+                  followSource={FollowSource.NOTIFICATIONS}
                 />
               </Box>
             ) : (
@@ -84,7 +87,11 @@ export default function NotificationItem(props: Props) {
                 <Group gap="xs" wrap="nowrap">
                   {notification.item.collections.map((collection) => (
                     <Box key={collection.id} miw={'100%'} w={'100%'}>
-                      <CollectionCard collection={collection} size="compact" />
+                      <CollectionCard
+                        collection={collection}
+                        size="compact"
+                        followSource={FollowSource.NOTIFICATIONS}
+                      />
                     </Box>
                   ))}
                 </Group>

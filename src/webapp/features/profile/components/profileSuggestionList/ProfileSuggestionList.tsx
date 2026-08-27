@@ -4,10 +4,12 @@ import ProfileSuggestionCard, {
 } from '../profileSuggestionCard/ProfileSuggestionCard';
 import ExploreScroller from '@/features/explore/components/exploreScroller/ExploreScroller';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { FollowSource } from '@/features/analytics/types';
 
 interface Props {
   users: SuggestedUser[];
   emptyMessage: string;
+  followSource?: FollowSource;
   /** `scroller` for the explore shelf, `grid` for the full page. */
   layout: 'scroller' | 'grid';
 }
@@ -18,7 +20,11 @@ export default function ProfileSuggestionList(props: Props) {
   }
 
   const cards = props.users.map((user) => (
-    <ProfileSuggestionCard key={user.id} user={user} />
+    <ProfileSuggestionCard
+      key={user.id}
+      user={user}
+      followSource={props.followSource}
+    />
   ));
 
   if (props.layout === 'grid') {

@@ -4,6 +4,7 @@ import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 import { CollectionSortField } from '@semble/types';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
@@ -88,6 +89,7 @@ export default function ExploreCollectionsBrowseContent(props: Props) {
             key={collection.id}
             collection={collection}
             showAuthor={true}
+            followSource={FollowSource.EXPLORE}
           />
         ))}
       </SimpleGrid>

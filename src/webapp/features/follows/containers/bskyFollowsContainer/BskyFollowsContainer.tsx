@@ -15,13 +15,16 @@ import { getBskyFollowedUsers } from '../../lib/dal';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 import FollowButton from '../../components/followButton/FollowButton';
+import { FollowSource } from '@/features/analytics/types';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { FaBluesky } from 'react-icons/fa6';
 
 export default function BskyFollowsContainer() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useBskyFollowedUsers();
-  const { followMany, isPending: isFollowingAll } = useFollowManyUsers();
+  const { followMany, isPending: isFollowingAll } = useFollowManyUsers(
+    FollowSource.BLUESKY_FOLLOWS,
+  );
 
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
   const totalCount = data?.pages[0]?.pagination.totalCount ?? 0;
@@ -96,6 +99,7 @@ export default function BskyFollowsContainer() {
                         targetId={user.id}
                         targetType="USER"
                         initialIsFollowing={user.isFollowing}
+                        followSource={FollowSource.BLUESKY_FOLLOWS}
                         size="xs"
                       />
                     </Box>

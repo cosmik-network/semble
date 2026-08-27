@@ -5,6 +5,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Group, SimpleGrid, Stack } from '@mantine/core';
 import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiCollection } from 'react-icons/bi';
 import { useSettings } from '@/providers/settings';
@@ -83,7 +84,12 @@ export default function SembleCollectionsContainer(props: Props) {
           spacing="xs"
         >
           {allCollections.map((col) => (
-            <CollectionCard key={col.uri} collection={col} showAuthor />
+            <CollectionCard
+              key={col.uri}
+              collection={col}
+              showAuthor
+              followSource={FollowSource.SEMBLE_PAGE}
+            />
           ))}
         </SimpleGrid>
       </InfiniteScroll>

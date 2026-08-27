@@ -2,6 +2,7 @@
 
 import useSuspenseRecommendedUsers from '@/features/profile/lib/queries/useSuspenseRecommendedUsers';
 import ProfileSuggestionList from '@/features/profile/components/profileSuggestionList/ProfileSuggestionList';
+import { FollowSource } from '@/features/analytics/types';
 
 // This endpoint returns more than the shelf has room for, so cap it here.
 const SHELF_SIZE = 10;
@@ -17,6 +18,7 @@ export default function RecommendedProfiles(props: Props) {
   return (
     <ProfileSuggestionList
       layout="scroller"
+      followSource={FollowSource.RECOMMENDED}
       emptyMessage="No profiles to suggest yet"
       users={data.users.slice(0, SHELF_SIZE)}
     />

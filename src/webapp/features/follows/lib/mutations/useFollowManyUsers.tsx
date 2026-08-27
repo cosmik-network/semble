@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { BsExclamation } from 'react-icons/bs';
 import posthog from 'posthog-js';
+import { FollowSource } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { followManyUsers } from '../dal';
 import { followKeys } from '../followKeys';
 
-export function useFollowManyUsers() {
+export function useFollowManyUsers(followSource?: FollowSource) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -26,6 +27,7 @@ export function useFollowManyUsers() {
       if (shouldCaptureAnalytics()) {
         posthog.capture('targets_bulk_followed', {
           followed_count: result.followedCount,
+          follow_source: followSource,
         });
       }
       notifications.show({
