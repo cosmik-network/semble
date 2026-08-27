@@ -304,8 +304,6 @@ export default function UrlCardActions(props: Props) {
             onClose={() => setShowAddToModal(false)}
             url={props.cardContent.url}
             cardContent={props.cardContent}
-            cardId={props.id}
-            note={props.note?.text}
             isInYourLibrary={props.urlIsInLibrary}
             urlLibraryCount={props.urlLibraryCount}
             viaCardId={props.viaCardId}
