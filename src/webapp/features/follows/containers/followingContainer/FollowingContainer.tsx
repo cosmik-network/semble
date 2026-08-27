@@ -4,6 +4,8 @@ import { Container, Stack, Text, Center } from '@mantine/core';
 import useFollowingUsers from '../../lib/queries/useFollowingUsers';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { HiUsers } from 'react-icons/hi';
 
 interface Props {
   handle: string;
@@ -29,11 +31,7 @@ export default function FollowingContainer(props: Props) {
     <Container p="xs" size="xl">
       <Stack align="center">
         {allUsers.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              Not following anyone... yet
-            </Text>
-          </Center>
+          <EmptyState icon={HiUsers} message="Not following anyone... yet" />
         ) : (
           <InfiniteScroll
             dataLength={allUsers.length}

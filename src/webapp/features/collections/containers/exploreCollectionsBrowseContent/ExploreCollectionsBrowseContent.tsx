@@ -6,7 +6,7 @@ import { CollectionSortField } from '@semble/types';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
 import { CollectionFilterState } from '../../components/collectionFilters/CollectionFilters';
 import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
@@ -56,7 +56,7 @@ export default function ExploreCollectionsBrowseContent(props: Props) {
       !!props.filters.author;
 
     return (
-      <ProfileEmptyTab
+      <EmptyState
         message={
           isFiltered
             ? 'No collections match these filters'

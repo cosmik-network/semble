@@ -4,7 +4,7 @@ import { useState } from 'react';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import ExploreShelf from '../exploreShelf/ExploreShelf';
-import ExploreShelfEmpty from '../exploreShelfEmpty/ExploreShelfEmpty';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import ExploreScroller, {
   COLLECTION_TILE_WIDTH,
 } from '../exploreScroller/ExploreScroller';
@@ -48,7 +48,7 @@ export default function ExploreCollections() {
       ) : hasFailed ? (
         <ExploreCollectionsError />
       ) : collections.length === 0 ? (
-        <ExploreShelfEmpty message="No collections to suggest yet" />
+        <EmptyState message="No collections to suggest yet" />
       ) : (
         // A fresh fetch — even one that returns identical data — is a new row.
         <ExploreScroller

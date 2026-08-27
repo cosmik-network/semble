@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { CardSortField } from '@semble/types';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { CardSaveSource } from '@/features/analytics/types';
 import useSearchCards from '../../lib/queries/useSearchCards';
 import { CardFilterState } from '../../components/cardFilters/CardFilters';
@@ -53,7 +53,7 @@ export default function ExploreCardsSearchContent(props: Props) {
 
   if (allUrls.length === 0) {
     return (
-      <SembleEmptyTab
+      <EmptyState
         message={`No cards match “${props.searchQuery}”`}
         icon={FaRegNoteSticky}
       />

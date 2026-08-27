@@ -6,6 +6,7 @@ import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
 } from '../collectionSelector/CollectionListScrollArea';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   url: string;
@@ -76,13 +77,11 @@ export default function CollectionSelectorRecommended(props: Props) {
           </Stack>
         </CollectionListScrollArea>
       ) : (
-        <Stack align="center" justify="center" style={{ flex: 1 }} gap="xs">
-          <Text fz="lg" fw={600} c="gray">
-            No recommendations
-          </Text>
-          <Text fz="sm" c="gray" ta="center">
-            Save more cards to your collections to get recommendations
-          </Text>
+        <Stack justify="center" style={{ flex: 1 }}>
+          <EmptyState
+            message="No recommendations"
+            description="Save more cards to your collections to get recommendations"
+          />
         </Stack>
       )}
     </Stack>

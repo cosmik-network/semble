@@ -1,7 +1,7 @@
 'use client';
 
 import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { Grid } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -30,10 +30,7 @@ export default function LeafletMentionsContainer(props: Props) {
 
   if (allUrls.length === 0) {
     return (
-      <SembleEmptyTab
-        message="No mentions found"
-        icon={MdOutlineAlternateEmail}
-      />
+      <EmptyState message="No mentions found" icon={MdOutlineAlternateEmail} />
     );
   }
 

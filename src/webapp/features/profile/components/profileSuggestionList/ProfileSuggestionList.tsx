@@ -3,7 +3,7 @@ import ProfileSuggestionCard, {
   SuggestedUser,
 } from '../profileSuggestionCard/ProfileSuggestionCard';
 import ExploreScroller from '@/features/explore/components/exploreScroller/ExploreScroller';
-import ExploreShelfEmpty from '@/features/explore/components/exploreShelfEmpty/ExploreShelfEmpty';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   users: SuggestedUser[];
@@ -14,7 +14,7 @@ interface Props {
 
 export default function ProfileSuggestionList(props: Props) {
   if (props.users.length === 0) {
-    return <ExploreShelfEmpty message={props.emptyMessage} />;
+    return <EmptyState message={props.emptyMessage} />;
   }
 
   const cards = props.users.map((user) => (

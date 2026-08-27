@@ -5,7 +5,7 @@ import useCollections from '../../lib/queries/useCollections';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import { Fragment, useState } from 'react';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiCollection } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { CollectionSortField } from '@semble/types';
@@ -39,7 +39,7 @@ export default function CollectionsContainerContent(props: Props) {
   if (collections.length === 0) {
     return (
       <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab message="No collections" icon={BiCollection} />
+        <EmptyState message="No collections" icon={BiCollection} />
       </Container>
     );
   }

@@ -1,10 +1,11 @@
 'use client';
 
-import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { BiSearch } from 'react-icons/bi';
 import useSemanticSearch from '../../lib/queries/useSemanticSearch';
 import { UrlType } from '@semble/types';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Group, Stack } from '@mantine/core'; // Added Stack for better spacing
+import { Center, Grid, Group, Stack } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
@@ -53,7 +54,13 @@ export default function CardSearchResultsContainer(props: Props) {
       {error ? (
         <SearchResultsContainerError />
       ) : !isPending && props.query && allUrls.length === 0 ? (
-        <SearchEmptyResults query={props.query} type="cards" />
+        <Center py="xl">
+          <EmptyState
+            icon={BiSearch}
+            message="No cards found"
+            description="Try a different search term"
+          />
+        </Center>
       ) : (
         <InfiniteScroll
           dataLength={allUrls.length}

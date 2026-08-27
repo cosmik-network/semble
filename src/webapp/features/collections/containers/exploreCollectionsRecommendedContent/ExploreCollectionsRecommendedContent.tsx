@@ -4,7 +4,7 @@ import { SimpleGrid } from '@mantine/core';
 import type { CollectionDTO } from '@semble/types';
 import { BiCollection } from 'react-icons/bi';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
 import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
 import ExploreCollectionsRecommendedContentSkeleton from './Skeleton.ExploreCollectionsRecommendedContent';
@@ -29,10 +29,7 @@ export default function ExploreCollectionsRecommendedContent(props: Props) {
 
   if (props.collections.length === 0) {
     return (
-      <ProfileEmptyTab
-        message="No collections to suggest yet"
-        icon={BiCollection}
-      />
+      <EmptyState message="No collections to suggest yet" icon={BiCollection} />
     );
   }
 

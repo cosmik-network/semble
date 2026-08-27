@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { UrlType } from '@semble/types';
 import { BiLink } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useAuth } from '@/hooks/useAuth';
 import useGlobalFeedSeeds from '@/features/feeds/lib/queries/useGlobalFeedSeeds';
@@ -78,7 +78,7 @@ export default function ExploreCardsRecommendedContent(props: Props) {
   );
 
   if (allUrls.length === 0) {
-    return <SembleEmptyTab message="No recommendations found" icon={BiLink} />;
+    return <EmptyState message="No recommendations found" icon={BiLink} />;
   }
 
   return (

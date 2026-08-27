@@ -1,8 +1,9 @@
 'use client';
 
-import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Group, Stack } from '@mantine/core';
+import { Center, Grid, Group, Stack } from '@mantine/core';
 import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
@@ -51,7 +52,13 @@ export default function CollectionSearchResultsContainer(props: Props) {
       {error ? (
         <SearchResultsContainerError />
       ) : !isPending && props.query && allCollections.length === 0 ? (
-        <SearchEmptyResults query={props.query} type="collections" />
+        <Center py="xl">
+          <EmptyState
+            icon={BiSearch}
+            message="No collections found"
+            description="Try a different search term"
+          />
+        </Center>
       ) : (
         <InfiniteScroll
           dataLength={allCollections.length}

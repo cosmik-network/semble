@@ -24,6 +24,8 @@ import { FiPlus } from 'react-icons/fi';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { getCardsSortParams } from '@/features/cards/lib/utils';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 
 interface Props {
   rkey: string;
@@ -118,30 +120,31 @@ export default function CollectionContainerContent(props: Props) {
           </Grid>
         </InfiniteScroll>
       ) : (
-        <Stack align="center" gap="xs">
-          <Text fz="h3" fw={600} c="gray">
-            No {selectedUrlType} cards
-          </Text>
-          {!selectedUrlType && firstPage.author.handle == user?.handle && (
-            <Stack align="center" gap={'xs'}>
-              <Button
-                variant="light"
-                color="gray"
-                size="md"
-                rightSection={<FiPlus size={22} />}
-                onClick={() => setShowAddDrawer(true)}
-              >
-                Add your first card
-              </Button>
-              <Text ta={'center'} fw={500} c={'gray'}>
-                Need inspiration?{' '}
-                <Anchor href={'/explore'} fw={500} c={'grape'}>
-                  Explore cards from the community
-                </Anchor>
-              </Text>
-            </Stack>
-          )}
-        </Stack>
+        <EmptyState
+          icon={FaRegNoteSticky}
+          message={selectedUrlType ? `No ${selectedUrlType} cards` : 'No cards'}
+          button={
+            !selectedUrlType && firstPage.author.handle == user?.handle ? (
+              <Stack align="center" gap={'xs'}>
+                <Button
+                  variant="light"
+                  color="gray"
+                  size="md"
+                  rightSection={<FiPlus size={22} />}
+                  onClick={() => setShowAddDrawer(true)}
+                >
+                  Add your first card
+                </Button>
+                <Text ta={'center'} fw={500} c={'gray'}>
+                  Need inspiration?{' '}
+                  <Anchor href={'/explore'} fw={500} c={'grape'}>
+                    Explore cards from the community
+                  </Anchor>
+                </Text>
+              </Stack>
+            ) : undefined
+          }
+        />
       )}
 
       <Box>

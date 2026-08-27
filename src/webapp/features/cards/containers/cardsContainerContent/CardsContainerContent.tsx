@@ -4,7 +4,7 @@ import { CardSortField, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';
 import { Container, Divider, Grid, Stack } from '@mantine/core';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '../../components/urlCard/UrlCard';
 import useCards from '../../lib/queries/useCards';
@@ -62,7 +62,7 @@ export default function CardsContainerContent(props: Props) {
   if (allCards.length === 0) {
     return (
       <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab
+        <EmptyState
           message={
             props.query
               ? 'No results'

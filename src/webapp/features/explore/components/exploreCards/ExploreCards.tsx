@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
 import { CardSaveSource } from '@/features/analytics/types';
 import ExploreShelf from '../exploreShelf/ExploreShelf';
-import ExploreShelfEmpty from '../exploreShelfEmpty/ExploreShelfEmpty';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import ExploreScroller from '../exploreScroller/ExploreScroller';
 import { useCardShelf } from '../../lib/useCardShelf';
 import RefreshButton from '../refreshButton/RefreshButton';
@@ -31,7 +31,7 @@ export default function ExploreCards() {
       {shelf.hasFailed ? (
         <ExploreCardsError />
       ) : shelf.urls.length === 0 ? (
-        <ExploreShelfEmpty message="No recommendations yet" />
+        <EmptyState message="No recommendations yet" />
       ) : (
         <ExploreScroller
           key={shelf.shown}

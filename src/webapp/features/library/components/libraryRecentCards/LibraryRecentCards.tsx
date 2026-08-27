@@ -21,6 +21,7 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useSettings } from '@/providers/settings';
 import { FiPlus } from 'react-icons/fi';
 import { LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 export default function LibraryRecentCards() {
   const { desktopOpened } = useNavbarContext();
@@ -96,27 +97,29 @@ export default function LibraryRecentCards() {
         </Grid>
       ) : (
         <Fragment>
-          <Stack align="center" gap="xs">
-            <Text fz="h3" fw={600} c="gray">
-              No cards
-            </Text>
-            <Button
-              variant="light"
-              color="gray"
-              size="md"
-              rightSection={<FiPlus size={22} />}
-              onClick={() => setShowAddDrawer(true)}
-            >
-              Add your first card
-            </Button>
-
-            <Text ta={'center'} fw={500} c={'gray'}>
-              Need inspiration?{' '}
-              <Anchor href={'/explore'} fw={500} c={'grape'}>
-                Explore cards from the community
-              </Anchor>
-            </Text>
-          </Stack>
+          <EmptyState
+            icon={FaRegNoteSticky}
+            message="No cards"
+            button={
+              <Stack align="center" gap="xs">
+                <Button
+                  variant="light"
+                  color="gray"
+                  size="md"
+                  rightSection={<FiPlus size={22} />}
+                  onClick={() => setShowAddDrawer(true)}
+                >
+                  Add your first card
+                </Button>
+                <Text ta={'center'} fw={500} c={'gray'}>
+                  Need inspiration?{' '}
+                  <Anchor href={'/explore'} fw={500} c={'grape'}>
+                    Explore cards from the community
+                  </Anchor>
+                </Text>
+              </Stack>
+            }
+          />
         </Fragment>
       )}
 

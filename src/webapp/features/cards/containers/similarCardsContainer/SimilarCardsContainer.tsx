@@ -4,7 +4,7 @@ import useSimilarCards from '@/features/semble/lib/queries/useSimilarCards';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid, Group, Stack } from '@mantine/core';
 import SimilarUrlCard from '@/features/semble/components/similarUrlCard/SimilarUrlCard';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiLink } from 'react-icons/bi';
 import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters';
 import { useSearchParams, usePathname } from 'next/navigation';
@@ -42,7 +42,7 @@ export default function SimilarCardsContainer(props: Props) {
         loadMore={fetchNextPage}
       >
         {allSimilarUrls.length === 0 ? (
-          <SembleEmptyTab
+          <EmptyState
             message={`No similar ${selectedUrlType ? `${selectedUrlType} ` : ''}cards found`}
             icon={BiLink}
           />
