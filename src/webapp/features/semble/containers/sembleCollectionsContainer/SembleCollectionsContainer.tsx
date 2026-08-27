@@ -5,9 +5,9 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Group, SimpleGrid, Stack } from '@mantine/core';
 import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiCollection } from 'react-icons/bi';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   CollectionFiltersRoot,
   CollectionFiltersSortSelect,
@@ -35,7 +35,7 @@ export default function SembleCollectionsContainer(props: Props) {
     isPending,
   } = useSembleCollections({ url: props.url, sortBy });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -53,7 +53,7 @@ export default function SembleCollectionsContainer(props: Props) {
           </CollectionFiltersRoot>
         </Group>
 
-        <SembleEmptyTab message="No collections" icon={BiCollection} />
+        <EmptyState message="No collections" icon={BiCollection} />
       </Stack>
     );
   }

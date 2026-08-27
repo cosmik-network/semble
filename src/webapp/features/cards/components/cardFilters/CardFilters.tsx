@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createContext,
   use,
+  createElement,
+  useCallback,
   useState,
   ReactNode,
   useOptimistic,
@@ -17,14 +19,31 @@ import { getUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
 import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { IoMdCheckmark } from 'react-icons/io';
 import { FaAsterisk } from 'react-icons/fa';
 
+/** Every filter these controls can express. All fields optional = "no filter". */
+export interface CardFilterState {
+  sort?: CardSortField;
+  type?: UrlType;
+  uncollected?: boolean;
+}
+
+/**
+ * URL param names used by the uncontrolled mode. Deliberately unprefixed —
+ * several containers read these bare names straight off useSearchParams.
+ */
+const PARAMS = {
+  sort: 'sort',
+  type: 'type',
+  uncollected: 'uncollected',
+} as const;
+
 // context
 interface FilterContextValue {
-  router: ReturnType<typeof useRouter>;
-  searchParams: ReturnType<typeof useSearchParams>;
+  value: CardFilterState;
+  setValue: (patch: Partial<CardFilterState>) => void;
 }
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -36,86 +55,139 @@ const useFilterContext = () => {
   return ctx;
 };
 
+/** The active sort field, shared so every member agrees on the default. */
+function resolveSortField(value: CardFilterState): CardSortField {
+  return value.sort ?? CardSortField.UPDATED_AT;
+}
+
 // root
-export function CardFiltersRoot(props: { children: ReactNode }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface RootProps {
+  children: ReactNode;
+  /** Dropdown width. */
+  width?: number | string;
+  /** Pass both to drive the filters from local state instead of the URL. */
+  value?: CardFilterState;
+  onChange?: (next: CardFilterState) => void;
+}
+
+function FiltersShell(props: { width?: number | string; children: ReactNode }) {
+  return (
+    <Menu shadow="sm">
+      <Menu.Target>
+        <Button variant="light" color="gray" leftSection={<MdFilterList />}>
+          Filters
+        </Button>
+      </Menu.Target>
+      <Menu.Dropdown w={props.width ?? 200}>{props.children}</Menu.Dropdown>
+    </Menu>
+  );
+}
+
+/**
+ * Controlled: the caller owns the state, so there's no router involved and no
+ * need for useOptimistic — a useState update already paints immediately.
+ */
+function ControlledRoot(
+  props: RootProps & {
+    value: CardFilterState;
+    onChange: (next: CardFilterState) => void;
+  },
+) {
+  const { value, onChange } = props;
+
+  const setValue = useCallback(
+    (patch: Partial<CardFilterState>) => onChange({ ...value, ...patch }),
+    [value, onChange],
+  );
 
   return (
-    <FilterContext
-      value={{
-        router,
-        searchParams,
-      }}
-    >
-      <Menu shadow="sm">
-        <Menu.Target>
-          <Button variant="light" color="gray" leftSection={<MdFilterList />}>
-            Filters
-          </Button>
-        </Menu.Target>
-        <Menu.Dropdown w={200}>{props.children}</Menu.Dropdown>
-      </Menu>
+    <FilterContext value={{ value, setValue }}>
+      <FiltersShell width={props.width}>{props.children}</FiltersShell>
     </FilterContext>
   );
 }
 
-// sort select
-// sort select (menu-style)
-export function CardFiltersSortSelect() {
-  const ctx = useFilterContext();
+/** Uncontrolled: filters live in the URL, as they always have. */
+function UrlRoot(props: RootProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [, startTransition] = useTransition();
 
-  const sortFromUrl =
-    (ctx.searchParams.get('sort') as CardSortField) ?? CardSortField.UPDATED_AT;
+  const valueFromUrl: CardFilterState = {
+    sort: (searchParams.get(PARAMS.sort) as CardSortField) ?? undefined,
+    type: (searchParams.get(PARAMS.type) as UrlType) ?? undefined,
+    uncollected: searchParams.get(PARAMS.uncollected) === 'true',
+  };
 
-  const [optimisticSort, setOptimisticSort] =
-    useOptimistic<CardSortField>(sortFromUrl);
+  const [value, setOptimisticValue] =
+    useOptimistic<CardFilterState>(valueFromUrl);
 
-  const onChange = (next: CardSortField) => {
+  const setValue = (patch: Partial<CardFilterState>) => {
+    const next = { ...value, ...patch };
+
     startTransition(() => {
-      setOptimisticSort(next);
+      setOptimisticValue(next);
 
-      const params = new URLSearchParams(ctx.searchParams.toString());
-      params.set('sort', next);
+      const params = new URLSearchParams(searchParams.toString());
 
-      ctx.router.replace(`?${params.toString()}`, { scroll: false });
+      if (next.sort) params.set(PARAMS.sort, next.sort);
+      else params.delete(PARAMS.sort);
+
+      if (next.type) params.set(PARAMS.type, next.type);
+      else params.delete(PARAMS.type);
+
+      if (next.uncollected) params.set(PARAMS.uncollected, 'true');
+      else params.delete(PARAMS.uncollected);
+
+      router.replace(`?${params.toString()}`, { scroll: false });
     });
   };
 
   return (
+    <FilterContext value={{ value, setValue }}>
+      <FiltersShell width={props.width}>{props.children}</FiltersShell>
+    </FilterContext>
+  );
+}
+
+export function CardFiltersRoot(props: RootProps) {
+  // Branching on the presence of value/onChange keeps useSearchParams out of
+  // the tree entirely for controlled callers, so they don't need a Suspense
+  // boundary. The mode is fixed per call site, so hook order stays stable.
+  if (props.value && props.onChange) {
+    return (
+      <ControlledRoot
+        {...props}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
+  }
+
+  return <UrlRoot {...props} />;
+}
+
+// sort select
+export function CardFiltersSortSelect() {
+  const ctx = useFilterContext();
+  const active = resolveSortField(ctx.value);
+
+  const item = (field: CardSortField, label: string) => (
+    <Menu.Item
+      onClick={() => ctx.setValue({ sort: field })}
+      rightSection={active === field && <IoMdCheckmark />}
+      closeMenuOnClick={false}
+    >
+      {label}
+    </Menu.Item>
+  );
+
+  return (
     <Fragment>
       <Menu.Label>Sort</Menu.Label>
-
-      <Menu.Item
-        onClick={() => onChange(CardSortField.UPDATED_AT)}
-        rightSection={
-          optimisticSort === CardSortField.UPDATED_AT && <IoMdCheckmark />
-        }
-        closeMenuOnClick={false}
-      >
-        Newest
-      </Menu.Item>
-
-      <Menu.Item
-        onClick={() => onChange(CardSortField.CREATED_AT)}
-        rightSection={
-          optimisticSort === CardSortField.CREATED_AT && <IoMdCheckmark />
-        }
-        closeMenuOnClick={false}
-      >
-        Oldest
-      </Menu.Item>
-
-      <Menu.Item
-        onClick={() => onChange(CardSortField.LIBRARY_COUNT)}
-        rightSection={
-          optimisticSort === CardSortField.LIBRARY_COUNT && <IoMdCheckmark />
-        }
-        closeMenuOnClick={false}
-      >
-        Most Popular
-      </Menu.Item>
+      {item(CardSortField.UPDATED_AT, 'Newest')}
+      {item(CardSortField.CREATED_AT, 'Oldest')}
+      {item(CardSortField.LIBRARY_COUNT, 'Most Popular')}
     </Fragment>
   );
 }
@@ -123,37 +195,21 @@ export function CardFiltersSortSelect() {
 // type filter
 export function CardFiltersTypeFilter() {
   const ctx = useFilterContext();
-  const [, startTransition] = useTransition();
-
-  const typeFromUrl = ctx.searchParams.get('type') as UrlType | null;
-
-  const [optimisticType, setOptimisticType] = useOptimistic<UrlType | null>(
-    typeFromUrl,
-  );
-
   const [opened, setOpened] = useState(false);
 
+  const active = ctx.value.type ?? null;
+
   const onChange = (type?: UrlType) => {
-    const nextType = type ?? null;
-
-    startTransition(() => {
-      setOptimisticType(nextType);
-
-      const params = new URLSearchParams(ctx.searchParams.toString());
-      if (nextType) {
-        params.set('type', nextType);
-      } else {
-        params.delete('type');
-      }
-
-      ctx.router.replace(`?${params.toString()}`, { scroll: false });
-    });
-
+    ctx.setValue({ type });
     setOpened(false);
   };
 
-  const SelectedIcon =
-    optimisticType === null ? FaAsterisk : getUrlTypeIcon(optimisticType);
+  // Built as an element, not a capitalised component variable: getUrlTypeIcon
+  // only ever returns module-level icons, but rendering the result as <Icon />
+  // reads to the linter as a component defined during render.
+  const selectedIcon = createElement(
+    active === null ? FaAsterisk : getUrlTypeIcon(active),
+  );
 
   return (
     <Fragment>
@@ -162,11 +218,11 @@ export function CardFiltersTypeFilter() {
         <Popover.Target>
           <Menu.Item
             variant="light"
-            leftSection={<SelectedIcon />}
+            leftSection={selectedIcon}
             closeMenuOnClick={false}
             onClick={() => setOpened((o) => !o)}
           >
-            {optimisticType ? upperFirst(optimisticType) : 'All Cards'}
+            {active ? upperFirst(active) : 'All Cards'}
           </Menu.Item>
         </Popover.Target>
 
@@ -175,7 +231,7 @@ export function CardFiltersTypeFilter() {
             <Button
               size="xs"
               color="lime"
-              variant={optimisticType === null ? 'filled' : 'light'}
+              variant={active === null ? 'filled' : 'light'}
               leftSection={<FaAsterisk />}
               onClick={() => onChange()}
             >
@@ -190,7 +246,7 @@ export function CardFiltersTypeFilter() {
                   key={type}
                   size="xs"
                   color="lime"
-                  variant={optimisticType === type ? 'filled' : 'light'}
+                  variant={active === type ? 'filled' : 'light'}
                   leftSection={<Icon />}
                   onClick={() => onChange(type)}
                 >
@@ -205,40 +261,17 @@ export function CardFiltersTypeFilter() {
   );
 }
 
-// view toggle
 // uncollected toggle
 export function CardFiltersUncollectedToggle() {
   const ctx = useFilterContext();
-  const [, startTransition] = useTransition();
-
-  const uncollectedFromUrl = ctx.searchParams.get('uncollected') === 'true';
-
-  const [optimisticUncollected, setOptimisticUncollected] =
-    useOptimistic<boolean>(uncollectedFromUrl);
-
-  const onChange = () => {
-    const next = !optimisticUncollected;
-
-    startTransition(() => {
-      setOptimisticUncollected(next);
-
-      const params = new URLSearchParams(ctx.searchParams.toString());
-      if (next) {
-        params.set('uncollected', 'true');
-      } else {
-        params.delete('uncollected');
-      }
-
-      ctx.router.replace(`?${params.toString()}`, { scroll: false });
-    });
-  };
+  const active = ctx.value.uncollected ?? false;
 
   return (
     <Fragment>
       <Menu.Label>Status</Menu.Label>
       <Menu.Item
-        rightSection={optimisticUncollected && <IoMdCheckmark />}
-        onClick={onChange}
+        rightSection={active && <IoMdCheckmark />}
+        onClick={() => ctx.setValue({ uncollected: !active })}
         closeMenuOnClick={false}
       >
         Not in collection
@@ -249,7 +282,7 @@ export function CardFiltersUncollectedToggle() {
 
 // view toggle
 export function CardFiltersViewToggle() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   return (
     <Fragment>

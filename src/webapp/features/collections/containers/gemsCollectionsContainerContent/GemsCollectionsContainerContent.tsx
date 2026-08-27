@@ -6,8 +6,8 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { SimpleGrid } from '@mantine/core';
 import GemsCollectionsContainerError from './Error.GemsCollectionsContainerContent';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { useSettings } from '@/providers/settings';
 
 export default function GemsCollectionsContainerContent() {
   const {
@@ -21,7 +21,7 @@ export default function GemsCollectionsContainerContent() {
     searchText: '💎 2025',
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -30,9 +30,7 @@ export default function GemsCollectionsContainerContent() {
   }
 
   if (allCollections.length === 0) {
-    return (
-      <ProfileEmptyTab message="No collections found" icon={BiCollection} />
-    );
+    return <EmptyState message="No collections found" icon={BiCollection} />;
   }
 
   return (

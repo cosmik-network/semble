@@ -1,4 +1,4 @@
-import { Alert, Divider, ScrollArea, Stack, Text, Loader } from '@mantine/core';
+import { Divider, ScrollArea, Stack, Text, Loader } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import { Fragment, useState } from 'react';
 
@@ -6,6 +6,7 @@ import CollectionSelectorError from '../collectionSelector/Error.CollectionSelec
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
 import { Collection, CollectionAccessType } from '@semble/types';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   selectedCollections: Collection[];
@@ -31,7 +32,6 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = props.selectedCollections.length > 0;
 
-  // filter out selected from all to avoid duplication
   const unselectedCollections = allCollections.filter(
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
@@ -70,10 +70,7 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
                   )}
 
                   {!hasCollections ? (
-                    <Alert
-                      color="gray"
-                      title={`No results found for "${search}"`}
-                    />
+                    <EmptyState message={`No results found for "${search}"`} />
                   ) : (
                     <CollectionSelectorItemList
                       collections={allCollections}
@@ -88,7 +85,6 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
                 </Stack>
               ) : hasCollections ? (
                 <Stack gap={'xs'}>
-                  {/* selected collections */}
                   {hasSelectedCollections && (
                     <Fragment>
                       <Text fw={600} fz={'sm'} c={'gray'}>
@@ -106,7 +102,6 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
                     </Fragment>
                   )}
 
-                  {/* remaining collections */}
                   {unselectedCollections.length > 0 ? (
                     <CollectionSelectorItemList
                       collections={unselectedCollections}
@@ -115,19 +110,12 @@ export default function CollectionSelectorAtmosphereConf(props: Props) {
                     />
                   ) : (
                     !hasSelectedCollections && (
-                      <Alert
-                        color="gray"
-                        title="No AtmosphereConf collections available"
-                      />
+                      <EmptyState message="No AtmosphereConf collections available" />
                     )
                   )}
                 </Stack>
               ) : (
-                <Stack align="center" gap="xs">
-                  <Text fz="lg" fw={600} c="gray">
-                    No AtmosphereConf collections
-                  </Text>
-                </Stack>
+                <EmptyState message="No AtmosphereConf collections" />
               )}
             </Stack>
           </ScrollArea.Autosize>

@@ -1,154 +1,213 @@
 'use client';
 
+import { Suspense } from 'react';
+import { Button, Card, Container, Group, Stack, Text } from '@mantine/core';
+import { FaBluesky } from 'react-icons/fa6';
+import { LinkButton, LinkText } from '@/components/link/MantineLink';
+import { useLoginHref } from '@/hooks/useLoginHref';
+import { ActivitySource, ActivityType, UrlType } from '@semble/types';
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import useFollowingFeed from '@/features/feeds/lib/queries/useFollowingFeed';
-import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import {
-  Stack,
-  Text,
-  Center,
-  Container,
-  Box,
-  Loader,
-  Collapse,
-} from '@mantine/core';
+import useBskyFollowingFeed from '@/features/feeds/lib/queries/useBskyFollowingFeed';
+import { useSettings } from '@/providers/settings';
+import { useAuth } from '@/hooks/useAuth';
+import { feedViewRequiresAuth } from '@/features/feeds/lib/feedOptions';
+import { hasFeedFilters } from '@/features/feeds/lib/feedEmptyState';
+import FeedLoginCta from '@/features/feeds/components/feedLoginCta/FeedLoginCta';
+import FeedList from './FeedList';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
-import MyFeedContainerError from './Error.MyFeedContainer';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
-import { usePathname } from 'next/navigation';
-import { CardSaveSource } from '@/features/analytics/types';
-import { useState, useEffect } from 'react';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { BiRightArrowAlt } from 'react-icons/bi';
 
-export default function MyFeedContainer() {
-  const pathname = usePathname();
-  const { settings } = useUserSettings();
-  const selectedUrlType = settings.feedUrlType ?? undefined;
-  const selectedSource = settings.feedSource ?? undefined;
-  const selectedFeed = settings.feedView;
-  const includeKnownBots = settings.includeKnownBots;
+/** The filter arguments every feed query takes. */
+interface FeedFilters {
+  urlType?: UrlType;
+  source?: ActivitySource;
+  activityTypes?: ActivityType[];
+  includeKnownBots: boolean;
+}
 
-  const activityTypesFilter = settings.feedActivityType
-    ? [settings.feedActivityType]
-    : undefined;
+interface ViewProps {
+  filters: FeedFilters;
+  hasFilters: boolean;
+  onClearFilters: () => void;
+}
 
-  const globalFeed = useGlobalFeed({
-    urlType: selectedUrlType,
-    source: selectedSource,
-    activityTypes: activityTypesFilter,
-    includeKnownBots,
-  });
-  const followingFeed = useFollowingFeed({
-    urlType: selectedUrlType,
-    source: selectedSource,
-    activityTypes: activityTypesFilter,
-    includeKnownBots,
-    enabled: selectedFeed === 'following',
-  });
-
-  // Use the appropriate feed based on selection
-  const activeFeed = selectedFeed === 'following' ? followingFeed : globalFeed;
-
-  const {
-    data,
-    error,
-    isPending,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isRefetching,
-    refetch,
-  } = activeFeed;
-
-  // Ensure animation is visible even for fast refetches
-  const [showRefetchLoader, setShowRefetchLoader] = useState(false);
-  const MIN_DISPLAY_TIME = 400; // milliseconds
-
-  useEffect(() => {
-    if (isRefetching) {
-      setShowRefetchLoader(true);
-    } else if (showRefetchLoader) {
-      // Keep showing the loader for minimum time to ensure animation completes
-      const timer = setTimeout(() => {
-        setShowRefetchLoader(false);
-      }, MIN_DISPLAY_TIME);
-      return () => clearTimeout(timer);
-    }
-  }, [isRefetching, showRefetchLoader]);
-
-  const allActivities =
-    data?.pages.flatMap((page) => page.activities ?? []) ?? [];
-
-  if (isPending) {
-    return <MyFeedContainerSkeleton />;
-  }
-
-  if (error) {
-    return <MyFeedContainerError />;
-  }
+/*
+ * One component per view, each mounting only its own query: react-query omits
+ * `enabled` from `UseSuspenseInfiniteQueryOptions`, so a suspense query cannot
+ * be held back once its component has called it. A single component calling
+ * all three would request — and suspend on — the global feed while showing one
+ * of the other two.
+ */
+function GlobalFeed(props: ViewProps) {
+  const query = useGlobalFeed(props.filters);
 
   return (
-    <Container p="xs" size="xl">
-      <Collapse expanded={showRefetchLoader} transitionDuration={350}>
-        <Stack align="center" gap={'xs'}>
-          <Loader size={'sm'} color={'gray'} />
-          <Text fw={600} c={'gray'} mb={'sm'}>
-            Fetching the latest activities...
-          </Text>
-        </Stack>
-      </Collapse>
-      {allActivities.length === 0 ? (
-        <Center>
-          <Text fz="h3" fw={600} c="gray">
-            No activity to show yet
-          </Text>
-        </Center>
-      ) : (
-        <InfiniteScroll
-          dataLength={allActivities.length}
-          hasMore={!!hasNextPage}
-          isInitialLoading={isPending}
-          isLoading={isFetchingNextPage}
-          loadMore={fetchNextPage}
-        >
-          <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
-            <Stack gap={60}>
-              {allActivities.map((item) => (
-                <Box
-                  key={item.id}
-                  style={{
-                    contentVisibility: 'auto',
-                    containIntrinsicSize: 'auto 400px',
-                  }}
-                >
-                  <FeedItem
-                    item={item}
-                    analyticsContext={{
-                      saveSource: CardSaveSource.FEED,
-                      activeFilters: {
-                        urlType: selectedUrlType,
-                      },
-                      pagePath: pathname,
-                    }}
-                  />
-                </Box>
-              ))}
-            </Stack>
-          </Stack>
-        </InfiniteScroll>
-      )}
+    <FeedList
+      query={query}
+      view="global"
+      urlType={props.filters.urlType}
+      hasFilters={props.hasFilters}
+      onClearFilters={props.onClearFilters}
+    />
+  );
+}
 
-      <Box
-        pos={'fixed'}
-        bottom={0}
-        mt={'md'}
-        mx={{ base: 10, sm: 2.5 }}
-        mb={{ base: 100, sm: 'md' }}
-        style={{ zIndex: 2 }}
+function FollowingFeed(props: ViewProps) {
+  const query = useFollowingFeed(props.filters);
+
+  return (
+    <FeedList
+      query={query}
+      view="following"
+      urlType={props.filters.urlType}
+      hasFilters={props.hasFilters}
+      onClearFilters={props.onClearFilters}
+    />
+  );
+}
+
+function BskyFollowingFeed(props: ViewProps & { identifier?: string }) {
+  const query = useBskyFollowingFeed({
+    ...props.filters,
+    identifier: props.identifier,
+  });
+
+  return (
+    <FeedList
+      query={query}
+      view="bskyFollowing"
+      urlType={props.filters.urlType}
+      hasFilters={props.hasFilters}
+      onClearFilters={props.onClearFilters}
+    />
+  );
+}
+
+/**
+ * Whose follows a guest is reading, and the way back to the prompt — without
+ * it a mistyped handle sits in settings with nothing to undo it.
+ */
+function GuestBskyHandleBar(props: { handle: string; onChange: () => void }) {
+  const loginHref = useLoginHref();
+
+  return (
+    <Container p="xs" pb={0} size="xl">
+      <Card
+        radius="lg"
+        p={'sm'}
+        maw={600}
+        mx="auto"
+        w="100%"
+        bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))"
       >
-        <RefetchButton onRefetch={() => refetch()} />
-      </Box>
+        <Stack gap="sm">
+          <Group gap={'xs'} wrap="nowrap" miw={0}>
+            <FaBluesky size={16} color="#0085ff" style={{ flexShrink: 0 }} />
+            <Text fz="sm" fw={500} c="dimmed">
+              {'Saves from people '}
+              <LinkText
+                span
+                href={`/profile/${props.handle}`}
+                fw={600}
+                c="bright"
+              >
+                @{props.handle}
+              </LinkText>
+              {' follows on Bluesky'}
+            </Text>
+          </Group>
+          <Group gap={'xs'} wrap="nowrap" justify="flex-start">
+            <LinkButton
+              href={loginHref}
+              size="sm"
+              radius="xl"
+              variant="inverse"
+              rightSection={<BiRightArrowAlt size={22} />}
+            >
+              Log in to keep these
+            </LinkButton>
+            <Button
+              variant="default"
+              size="sm"
+              radius="xl"
+              onClick={props.onChange}
+            >
+              Change
+            </Button>
+          </Group>
+        </Stack>
+      </Card>
     </Container>
+  );
+}
+
+export default function MyFeedContainer() {
+  const { settings, updateSetting, updateSettings, isHydrated } = useSettings();
+  const { isAuthenticated } = useAuth();
+
+  // Until localStorage has been read, `settings` still holds the defaults, and
+  // mounting a feed now would request the wrong one — see the note above on why
+  // a suspense query cannot be held back once mounted. Only a hard load of this
+  // page reaches that state: `useSettings` reads the app-wide provider, which
+  // has already hydrated by the time anything navigates here from inside.
+  if (!isHydrated) return <MyFeedContainerSkeleton />;
+
+  const filters: FeedFilters = {
+    urlType: settings.feedUrlType ?? undefined,
+    source: settings.feedSource ?? undefined,
+    activityTypes: settings.feedActivityType
+      ? [settings.feedActivityType]
+      : undefined,
+    includeKnownBots: settings.includeKnownBots,
+  };
+
+  const viewProps: ViewProps = {
+    filters,
+    hasFilters: hasFeedFilters(settings),
+    onClearFilters: () =>
+      updateSettings({
+        feedUrlType: null,
+        feedSource: null,
+        feedActivityType: null,
+      }),
+  };
+
+  // `Dashboard` holds the whole tree behind a skeleton until the session
+  // resolves, so `isAuthenticated` is settled by the time this mounts.
+  const view = settings.feedView;
+
+  // `following` can only 401 for a guest, so the CTA stands in for it. The
+  // Bluesky view is answered for whichever account is named, so it is a real
+  // feed as soon as a guest has given us a handle.
+  if (feedViewRequiresAuth(view) && !isAuthenticated) {
+    if (view !== 'bskyFollowing' || !settings.bskyHandle) {
+      return <FeedLoginCta view={view} />;
+    }
+
+    return (
+      <Suspense fallback={<MyFeedContainerSkeleton />}>
+        <GuestBskyHandleBar
+          handle={settings.bskyHandle}
+          onChange={() => updateSetting('bskyHandle', null)}
+        />
+        <BskyFollowingFeed {...viewProps} identifier={settings.bskyHandle} />
+      </Suspense>
+    );
+  }
+
+  // The suspense `useGlobalFeed` throws would otherwise bubble past this
+  // container to the nearest ancestor boundary, blanking the page during a
+  // client-side transition from explore.
+  return (
+    <Suspense fallback={<MyFeedContainerSkeleton />}>
+      {view === 'following' ? (
+        <FollowingFeed {...viewProps} />
+      ) : view === 'bskyFollowing' ? (
+        <BskyFollowingFeed {...viewProps} />
+      ) : (
+        <GlobalFeed {...viewProps} />
+      )}
+    </Suspense>
   );
 }

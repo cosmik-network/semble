@@ -2,6 +2,7 @@
 
 import { Paper, Scroller, Tabs } from '@mantine/core';
 import TabItem from './TabItem';
+import TabCount from '@/components/tabCount/TabCount';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import useProfile from '../../lib/queries/useProfile';
@@ -16,10 +17,12 @@ export default function ProfileTabs(props: Props) {
   const currentTab = segment || 'activity'; // treat base route as 'activity'
   const basePath = `/profile/${props.handle}`;
   const { data: featureFlags } = useFeatureFlags();
-  const { data: profile } = useProfile({
+  const { data: profile, isError } = useProfile({
     didOrHandle: props.handle,
     includeStats: true,
   });
+  // undefined while loading, null when the stats request failed
+  const stats = isError ? null : profile;
 
   return (
     <Tabs value={currentTab}>
@@ -32,21 +35,27 @@ export default function ProfileTabs(props: Props) {
             <TabItem
               value="cards"
               href={`${basePath}/cards`}
-              count={profile?.urlCardCount}
+              rightSection={
+                <TabCount count={stats && (stats.urlCardCount ?? 0)} />
+              }
             >
               Cards
             </TabItem>
             <TabItem
               value="collections"
               href={`${basePath}/collections`}
-              count={profile?.collectionCount}
+              rightSection={
+                <TabCount count={stats && (stats.collectionCount ?? 0)} />
+              }
             >
               Collections
             </TabItem>
             <TabItem
               value="connections"
               href={`${basePath}/connections`}
-              count={profile?.connectionCount}
+              rightSection={
+                <TabCount count={stats && (stats.connectionCount ?? 0)} />
+              }
             >
               Connections
             </TabItem>

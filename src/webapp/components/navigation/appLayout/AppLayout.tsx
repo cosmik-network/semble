@@ -1,6 +1,7 @@
 'use client';
 
 import { AppShell } from '@mantine/core';
+import { BOTTOM_BAR_FOOTER } from '@/lib/consts/layout';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
@@ -29,9 +30,7 @@ export default function AppLayout(props: Props) {
         breakpoint: 'xl',
         collapsed: { mobile: true },
       }}
-      footer={{
-        height: { base: 85, sm: 0 },
-      }}
+      footer={BOTTOM_BAR_FOOTER}
     >
       <Suspense fallback={<NavbarSkeleton />}>
         <Navbar />

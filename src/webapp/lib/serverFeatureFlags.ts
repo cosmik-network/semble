@@ -30,6 +30,5 @@ export async function getServerFeatureFlags() {
     onboarding: show,
     bskyFollows: showForTeam,
     recommendedCollections: show,
-    newConnectionTypes: showForTeam,
   };
 }

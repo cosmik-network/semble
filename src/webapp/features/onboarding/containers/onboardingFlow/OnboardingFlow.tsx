@@ -19,8 +19,8 @@ import PickCardsStep from '../../components/steps/pickCardsStep/PickCardsStep';
 import FollowStep from '../../components/steps/followStep/FollowStep';
 import WhatNextStep from '../../components/steps/whatNextStep/WhatNextStep';
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
-import useRecommendedUsers from '../../lib/queries/useRecommendedUsers';
-import useRecommendedCollections from '../../lib/queries/useRecommendedCollections';
+import useRecommendedUsers from '@/features/profile/lib/queries/useRecommendedUsers';
+import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import {
   VISIBLE_COLLECTIONS,
   VISIBLE_USERS,
@@ -250,7 +250,6 @@ export default function OnboardingFlow() {
           <FollowStep
             users={suggestedUsers}
             collections={suggestedCollections}
-            hasUrls={seedUrls.length > 0}
             progressLoaded={isLoaded}
             pickCardsHref={`/onboarding?step=${currentStep - 1}`}
             onPickMoreCards={markStep}

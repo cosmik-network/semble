@@ -5,10 +5,10 @@ import useSearchCollections from '@/features/collections/lib/queries/useSearchCo
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 import { CollectionSortField } from '@semble/types';
 
@@ -31,7 +31,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -45,7 +45,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
 
   if (allCollections.length === 0) {
     return (
-      <ProfileEmptyTab
+      <EmptyState
         message="No AtmosphereConf collections found"
         icon={BiCollection}
       />

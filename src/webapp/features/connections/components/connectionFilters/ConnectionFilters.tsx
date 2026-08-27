@@ -11,7 +11,7 @@ import {
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
-import { useSelectableConnectionTypes } from '../../lib/useSelectableConnectionTypes';
+import { CONNECTION_TYPES } from '../../const/connectionTypes';
 
 // context
 interface FilterContextValue {
@@ -62,7 +62,6 @@ export function Root(props: RootProps) {
 // connection type filter
 export function ConnectionTypeFilter() {
   const ctx = useFilterContext();
-  const selectableTypes = useSelectableConnectionTypes();
   const [, startTransition] = useTransition();
 
   const [optimisticConnectionType, setOptimisticConnectionType] =
@@ -88,7 +87,7 @@ export function ConnectionTypeFilter() {
         All Types
       </Button>
 
-      {selectableTypes.map((typeConfig) => {
+      {CONNECTION_TYPES.map((typeConfig) => {
         const Icon = typeConfig.icon;
         return (
           <Button

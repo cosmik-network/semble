@@ -7,7 +7,8 @@ import {
   BiLink,
 } from 'react-icons/bi';
 import { BsPaperclip } from 'react-icons/bs';
-import { TbEqual, TbQuote } from 'react-icons/tb';
+import { LuArrowLeftRight } from 'react-icons/lu';
+import { TbBlockquote } from 'react-icons/tb';
 import { MdOutlinePsychologyAlt } from 'react-icons/md';
 import { ConnectionType } from '@semble/types';
 import { IconType } from 'react-icons';
@@ -18,12 +19,6 @@ export interface ConnectionTypeConfig {
   description: string;
   icon: IconType;
   notePlaceholder: string;
-  /**
-   * Gated behind the `newConnectionTypes` feature flag. Only affects whether
-   * the type can be *picked*; existing connections of this type still render
-   * everywhere, so lookups must keep using the full CONNECTION_TYPES list.
-   */
-  isNew?: boolean;
 }
 
 export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
@@ -88,16 +83,14 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     value: 'SAME_AS',
     label: 'Same as',
     description: 'The same thing in a different place (mirror, reupload, DOI)',
-    icon: TbEqual,
+    icon: LuArrowLeftRight,
     notePlaceholder: 'Note where this version differs, if at all...',
-    isNew: true,
   },
   {
     value: 'REFERENCES',
     label: 'References',
     description: 'Cites or points to the other',
-    icon: TbQuote,
+    icon: TbBlockquote,
     notePlaceholder: 'Describe what is referenced or cited...',
-    isNew: true,
   },
 ] as const;

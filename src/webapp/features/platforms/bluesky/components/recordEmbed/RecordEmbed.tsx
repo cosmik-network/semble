@@ -8,7 +8,7 @@ import {
 } from '@atproto/api';
 import { Stack, Group, Avatar, Box, Text, Card } from '@mantine/core';
 import PostEmbed from '../postEmbed/PostEmbed';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   embed: AppBskyEmbedRecord.View['record'];
@@ -25,7 +25,7 @@ export default function RecordEmbed(props: Props) {
   }
 
   const post = props.embed;
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   return (
     <Stack gap={'xs'}>

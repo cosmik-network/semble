@@ -5,11 +5,11 @@ import useSearchCollections from '@/features/collections/lib/queries/useSearchCo
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
 import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 
 export default function OpenCollectionsContainerContent() {
@@ -32,7 +32,7 @@ export default function OpenCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -46,10 +46,7 @@ export default function OpenCollectionsContainerContent() {
 
   if (allCollections.length === 0) {
     return (
-      <ProfileEmptyTab
-        message="No open collections found"
-        icon={BiCollection}
-      />
+      <EmptyState message="No open collections found" icon={BiCollection} />
     );
   }
 

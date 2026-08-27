@@ -1,6 +1,6 @@
 'use client';
 
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { getDomain } from '@/lib/utils/link';
 import {
   Anchor,
@@ -27,7 +27,7 @@ interface Props {
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
   const [imageError, setImageError] = useState(false);
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const marginUrl = getMarginUrl(props.uri, props.authorHandle);
 
   return (

@@ -15,7 +15,6 @@ interface FeatureFlags {
   recommendedCollections?: boolean;
   onboarding: boolean;
   bskyFollows: boolean;
-  newConnectionTypes: boolean;
 }
 
 async function fetchFeatureFlags(): Promise<FeatureFlags> {

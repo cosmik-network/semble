@@ -5,7 +5,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { Grid } from '@mantine/core';
 import SembleNotesContainerError from './Error.SembleNotesContainer';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useNavbarContext } from '@/providers/navbar';
 
@@ -32,7 +32,7 @@ export default function SembleNotesContainer(props: Props) {
   }
 
   if (allNotes.length === 0) {
-    return <SembleEmptyTab message="No notes" icon={FaRegNoteSticky} />;
+    return <EmptyState message="No notes" icon={FaRegNoteSticky} />;
   }
 
   return (

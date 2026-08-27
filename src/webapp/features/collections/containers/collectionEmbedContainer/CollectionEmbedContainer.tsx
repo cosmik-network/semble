@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { LinkAvatar, LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   rkey: string;
@@ -166,11 +167,7 @@ export default function CollectionEmbedContainer(props: Props) {
               </Grid>
             </InfiniteScroll>
           ) : (
-            <Stack align="center" gap="xs">
-              <Text fz="h3" fw={600} c="gray">
-                No cards
-              </Text>
-            </Stack>
+            <EmptyState message="No cards" />
           )}
         </Fragment>
 
