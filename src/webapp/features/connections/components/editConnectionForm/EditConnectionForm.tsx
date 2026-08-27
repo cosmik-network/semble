@@ -28,7 +28,6 @@ import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import { useSelectableConnectionTypes } from '../../lib/useSelectableConnectionTypes';
 
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
@@ -42,7 +41,6 @@ interface Props {
 }
 
 export default function EditConnectionForm(props: Props) {
-  const selectableTypes = useSelectableConnectionTypes();
   const updateConnection = useUpdateConnection();
 
   const typeCombobox = useCombobox({
@@ -286,7 +284,7 @@ export default function EditConnectionForm(props: Props) {
                 <Combobox.Dropdown>
                   <Combobox.Options>
                     <ScrollArea.Autosize type="scroll" mah={300}>
-                      {selectableTypes.map((type) => {
+                      {CONNECTION_TYPES.map((type) => {
                         const Icon = type.icon;
                         const isSelected =
                           form.values.connectionType === type.value;

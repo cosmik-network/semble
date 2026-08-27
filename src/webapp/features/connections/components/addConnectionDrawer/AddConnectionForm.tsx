@@ -24,7 +24,6 @@ import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import { useSelectableConnectionTypes } from '../../lib/useSelectableConnectionTypes';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -43,7 +42,6 @@ interface Props {
 }
 
 export default function AddConnectionForm(props: Props) {
-  const selectableTypes = useSelectableConnectionTypes();
   const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
   const onboarding = useOnboardingMilestones();
@@ -286,7 +284,7 @@ export default function AddConnectionForm(props: Props) {
           <Combobox.Dropdown>
             <Combobox.Options>
               <ScrollArea.Autosize type="scroll" mah={300}>
-                {selectableTypes.map((type) => {
+                {CONNECTION_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = form.values.connectionType === type.value;
                   return (

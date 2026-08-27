@@ -19,12 +19,6 @@ export interface ConnectionTypeConfig {
   description: string;
   icon: IconType;
   notePlaceholder: string;
-  /**
-   * Gated behind the `newConnectionTypes` feature flag. Only affects whether
-   * the type can be *picked*; existing connections of this type still render
-   * everywhere, so lookups must keep using the full CONNECTION_TYPES list.
-   */
-  isNew?: boolean;
 }
 
 export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
@@ -91,7 +85,6 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     description: 'The same thing in a different place (mirror, reupload, DOI)',
     icon: LuArrowLeftRight,
     notePlaceholder: 'Note where this version differs, if at all...',
-    isNew: true,
   },
   {
     value: 'REFERENCES',
@@ -99,6 +92,5 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     description: 'Cites or points to the other',
     icon: TbBlockquote,
     notePlaceholder: 'Describe what is referenced or cited...',
-    isNew: true,
   },
 ] as const;
