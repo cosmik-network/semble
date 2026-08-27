@@ -8,6 +8,7 @@ import {
 } from '@/api-client';
 import {
   ActionIcon,
+  Box,
   Button,
   Collapse,
   CopyButton,
@@ -15,7 +16,7 @@ import {
   Menu,
   Tooltip,
 } from '@mantine/core';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsPin, BsPinFill, BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
@@ -94,10 +95,16 @@ export default function UrlCardActions(props: Props) {
   const router = useRouter();
 
   return (
-    <Fragment>
+    <Box>
       {props.note && (
-        <Collapse expanded={showNote}>
-          <NoteCardInline note={props.note} cardAuthor={props.cardAuthor} />
+        <Collapse
+          expanded={showNote}
+          animateOpacity={false}
+          transitionDuration={150}
+        >
+          <Box pb="xs">
+            <NoteCardInline note={props.note} cardAuthor={props.cardAuthor} />
+          </Box>
         </Collapse>
       )}
       <Group justify="space-between">
@@ -327,6 +334,6 @@ export default function UrlCardActions(props: Props) {
           />
         </>
       )}
-    </Fragment>
+    </Box>
   );
 }
