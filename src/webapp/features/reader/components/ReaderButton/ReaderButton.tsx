@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActionIcon,
   Drawer,
@@ -18,12 +18,25 @@ import {
   Anchor,
   Container,
 } from '@mantine/core';
-import { TbBook2, TbExternalLink, TbLink, TbLinkOff } from 'react-icons/tb';
+import {
+  TbBook2,
+  TbExternalLink,
+  TbLink,
+  TbLinkOff,
+  TbList,
+} from 'react-icons/tb';
 import { MdErrorOutline } from 'react-icons/md';
 import {
   fetchReaderContent,
   type ReaderState,
 } from '../../lib/fetchReaderContent';
+import useReaderLinks, { type ReaderLink } from '../../lib/useReaderLinks';
+import useLinkInteractions from '../../lib/useLinkInteractions';
+import LinkActionsPopover from '../LinkActionsPopover/LinkActionsPopover';
+import LinkActionsSheet from '../LinkActionsSheet/LinkActionsSheet';
+import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
+import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
+import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import styles from './ReaderButton.module.css';
 
 interface Props {
@@ -61,6 +74,11 @@ export default function ReaderButton({ url }: Props) {
   const [state, setState] = useState<ReaderState>({ status: 'idle' });
   const [fontSize, setFontSize] = useState(FONT_SIZE_DEFAULT);
   const [removeLinks, setRemoveLinks] = useState(false);
+  const [linksDrawerOpen, setLinksDrawerOpen] = useState(false);
+  const [saveLink, setSaveLink] = useState<ReaderLink | null>(null);
+  const [connectLink, setConnectLink] = useState<ReaderLink | null>(null);
+
+  const articleRef = useRef<HTMLDivElement>(null);
 
   const displayedHtml =
     state.status === 'success'
@@ -68,6 +86,34 @@ export default function ReaderButton({ url }: Props) {
         ? state.data.content.replace(/<a[^>]*>([\s\S]*?)<\/a>/g, '$1')
         : state.data.content
       : '';
+
+  // Extracted from the original content so the list keeps working while
+  // the remove-links toggle is on
+  const links = useReaderLinks(
+    state.status === 'success' ? state.data.content : '',
+    url,
+  );
+
+  const {
+    hovered,
+    cancelHoverClose,
+    scheduleHoverClose,
+    closeHover,
+    pressedLink,
+    clearPressedLink,
+  } = useLinkInteractions(articleRef, displayedHtml);
+
+  function handleSaveLink(link: ReaderLink) {
+    closeHover();
+    clearPressedLink();
+    setSaveLink(link);
+  }
+
+  function handleConnectLink(link: ReaderLink) {
+    closeHover();
+    clearPressedLink();
+    setConnectLink(link);
+  }
 
   function openReader() {
     setOpened(true);
@@ -167,6 +213,7 @@ export default function ReaderButton({ url }: Props) {
 
                 <Box
                   component="article"
+                  ref={articleRef}
                   dangerouslySetInnerHTML={{ __html: displayedHtml }}
                   className={styles.readerContent}
                   style={{
@@ -181,10 +228,20 @@ export default function ReaderButton({ url }: Props) {
           </Container>
         </ScrollArea>
 
+        {hovered && (
+          <LinkActionsPopover
+            hovered={hovered}
+            onSave={() => handleSaveLink(hovered.link)}
+            onConnect={() => handleConnectLink(hovered.link)}
+            onMouseEnter={cancelHoverClose}
+            onMouseLeave={scheduleHoverClose}
+          />
+        )}
+
         {/* ── Sticky bottom bar ── */}
         <Box className={styles.bottomBar}>
           <Group px={'md'} py={'lg'} justify="space-between" align="center">
-            {/* Left: font size + link toggle */}
+            {/* Left: font size + link controls */}
             <Group gap="xs">
               <Tooltip label="Decrease font size" withArrow position="top">
                 <ActionIcon
@@ -240,6 +297,20 @@ export default function ReaderButton({ url }: Props) {
                   {removeLinks ? <TbLinkOff size={16} /> : <TbLink size={16} />}
                 </ActionIcon>
               </Tooltip>
+              {state.status === 'success' && (
+                <Tooltip label="View all links" withArrow position="top">
+                  <ActionIcon
+                    variant="light"
+                    color="gray"
+                    size="lg"
+                    radius="xl"
+                    onClick={() => setLinksDrawerOpen(true)}
+                    aria-label="View all links"
+                  >
+                    <TbList size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
             </Group>
 
             {/* Right: open original + close */}
@@ -270,6 +341,38 @@ export default function ReaderButton({ url }: Props) {
             </Group>
           </Group>
         </Box>
+
+        <LinkActionsSheet
+          link={pressedLink}
+          onClose={clearPressedLink}
+          onSave={handleSaveLink}
+          onConnect={handleConnectLink}
+        />
+
+        <ReaderLinksDrawer
+          opened={linksDrawerOpen}
+          onClose={() => setLinksDrawerOpen(false)}
+          links={links}
+          onSave={handleSaveLink}
+          onConnect={handleConnectLink}
+        />
+
+        {saveLink && (
+          <AddCardToModal
+            isOpen
+            onClose={() => setSaveLink(null)}
+            url={saveLink.href}
+            urlLibraryCount={0}
+          />
+        )}
+
+        <AddConnectionModal
+          isOpen={!!connectLink}
+          onClose={() => setConnectLink(null)}
+          sourceUrl={url}
+          targetUrl={connectLink?.href}
+          defaultConnectionType="LEADS_TO"
+        />
       </Drawer>
     </>
   );
