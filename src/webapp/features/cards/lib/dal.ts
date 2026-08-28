@@ -133,12 +133,14 @@ export const getRecommendedUrls = async (params?: {
   page?: number;
   limit?: number;
   weights?: Partial<RankingWeights>;
+  urlType?: UrlType;
 }) => {
   const client = createSembleClient();
   return client.getRecommendedUrls({
     queries: params?.queries?.length ? params.queries : undefined,
     page: params?.page,
     limit: params?.limit,
+    urlType: params?.urlType,
     ...params?.weights,
   });
 };

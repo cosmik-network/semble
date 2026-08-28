@@ -13,16 +13,6 @@ export const getRecommendedUrls = async (
   });
 };
 
-export const getRecommendedUsers = async (urls: string[]) => {
-  const client = createSembleClient();
-  return client.getRecommendedUsers({ urls });
-};
-
-export const getRecommendedCollections = async (urls: string[]) => {
-  const client = createSembleClient();
-  return client.getRecommendedCollections({ urls });
-};
-
 export const getOnboardingState = async () => {
   const client = createSembleClient();
   return client.getOnboardingState();

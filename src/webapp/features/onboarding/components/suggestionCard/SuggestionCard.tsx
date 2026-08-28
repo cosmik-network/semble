@@ -12,14 +12,17 @@ interface Props {
   description?: string;
   note?: ReactNode;
   action: ReactNode;
+  openInNewTab?: boolean;
 }
 
 export default function SuggestionCard(props: Props) {
+  const openInNewTab = props.openInNewTab ?? true;
+
   const linkProps = {
     href: props.href,
-    target: '_blank',
-    rel: 'noopener noreferrer',
-  } as const;
+    target: openInNewTab ? '_blank' : '_self',
+    rel: openInNewTab ? 'noopener noreferrer' : undefined,
+  };
 
   return (
     <Card withBorder radius={'lg'} p={'md'} h={'100%'}>

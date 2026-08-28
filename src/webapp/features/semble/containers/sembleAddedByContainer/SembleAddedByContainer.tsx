@@ -3,7 +3,7 @@
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid } from '@mantine/core';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { LuLibrary } from 'react-icons/lu';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 
@@ -26,7 +26,7 @@ export default function SembleAddedByContainer(props: Props) {
 
   if (allLibraries.length === 0) {
     return (
-      <SembleEmptyTab
+      <EmptyState
         message="No one has added this to their library yet"
         icon={LuLibrary}
       />

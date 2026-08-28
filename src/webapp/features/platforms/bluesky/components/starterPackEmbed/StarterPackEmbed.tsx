@@ -12,7 +12,7 @@ import {
   Text,
 } from '@mantine/core';
 import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
@@ -24,7 +24,7 @@ export default function StarterPackEmbed(props: Props) {
   }
 
   const image = getStarterPackImage(props.embed);
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (settings.cardView === 'grid') {
     return (

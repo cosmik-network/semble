@@ -4,14 +4,14 @@ import { AppBskyFeedDefs } from '@atproto/api';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 
 import { getFeedLink } from '../../lib/utils/link';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   feed: AppBskyFeedDefs.GeneratorView;
 }
 
 export default function FeedEmbed(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (settings.cardView === 'grid') {
     return (

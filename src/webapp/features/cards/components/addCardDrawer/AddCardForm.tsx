@@ -33,6 +33,7 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
+import { MAX_NOTE_LENGTH } from '../cardNoteEditor/CardNoteEditor';
 
 interface Props {
   onClose: () => void;
@@ -91,8 +92,6 @@ export default function AddCardForm(props: Props) {
       },
     },
   });
-
-  const MAX_NOTE_LENGTH = 500;
 
   useEffect(() => {
     if (props.initialUrl) {

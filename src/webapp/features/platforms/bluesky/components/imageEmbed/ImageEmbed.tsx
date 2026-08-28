@@ -5,14 +5,14 @@ import { Lightbox } from '@mantine-bites/lightbox';
 import { AspectRatio, SimpleGrid, Image, Spoiler, Button } from '@mantine/core';
 import { useState } from 'react';
 import styles from './ImageEmbed.module.css';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   images: AppBskyEmbedImages.ViewImage[];
 }
 
 export default function ImageEmbed(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const [lightboxOpened, setLightboxOpened] = useState(false);
 
   const lightboxImages = props.images.map((img) => ({

@@ -19,13 +19,14 @@ export class FakeBskyFollowsService implements IBskyFollowsService {
   constructor(private readonly userRepository: IUserRepository) {}
 
   async getSembleUsersFollowedOnBsky(
-    callerDid: string,
+    actorDid: string,
     _maxFollows?: number,
+    _viewerDid?: string,
   ): Promise<Result<Map<string, BskyFollowedProfile>>> {
     try {
-      // Candidate mock accounts the caller "follows" on Bluesky (excluding self)
+      // Candidate mock accounts the actor "follows" on Bluesky (excluding self)
       const candidates = this.getMockFollowedProfiles().filter(
-        (p) => p.did !== callerDid,
+        (p) => p.did !== actorDid,
       );
 
       // Intersect with real Semble users so results reflect local data
@@ -52,7 +53,7 @@ export class FakeBskyFollowsService implements IBskyFollowsService {
       // local DB but let the UI show a populated, paginated list.
       if (INCLUDE_GENERATED_MOCK_FOLLOWS) {
         this.getGeneratedMockProfiles().forEach((p) => {
-          if (p.did !== callerDid) {
+          if (p.did !== actorDid) {
             followed.set(p.did, p);
           }
         });

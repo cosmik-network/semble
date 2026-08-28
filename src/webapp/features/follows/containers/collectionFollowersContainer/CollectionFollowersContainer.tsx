@@ -1,9 +1,11 @@
 'use client';
 
-import { Container, Stack, Text, Center } from '@mantine/core';
+import { Container, Stack } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import useCollectionFollowers from '../../lib/queries/useCollectionFollowers';
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { HiUsers } from 'react-icons/hi';
 
 interface Props {
   collectionId: string;
@@ -19,11 +21,7 @@ export default function CollectionFollowersContainer(props: Props) {
     <Container p="xs" size="xl">
       <Stack align="center">
         {allUsers.length === 0 ? (
-          <Center>
-            <Text fz="h3" fw={600} c="gray">
-              Not followed by anyone... yet
-            </Text>
-          </Center>
+          <EmptyState icon={HiUsers} message="Not followed by anyone... yet" />
         ) : (
           <InfiniteScroll
             dataLength={allUsers.length}

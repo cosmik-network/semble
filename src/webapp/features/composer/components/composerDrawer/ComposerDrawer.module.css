@@ -1,0 +1,8 @@
+/*
+ * 3.75rem is the button's own height, from ActionIcon size="input-xl".
+ * No breakpoints: AppShell.Main already pads for the bottom bar, so the extra
+ * room the button needs is the same at every width.
+ */
+.fabClearance {
+  height: calc(3.75rem * var(--mantine-scale) + var(--mantine-spacing-md));
+}

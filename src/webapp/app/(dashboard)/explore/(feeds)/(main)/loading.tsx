@@ -1,5 +1,5 @@
-import MyFeedContainerSkeleton from '@/features/feeds/containers/myFeedContainer/Skeleton.MyFeedContainer';
+import ExploreContainerSkeleton from '@/features/explore/containers/exploreContainer/Skeleton.ExploreContainer';
 
 export default function Loading() {
-  return <MyFeedContainerSkeleton />;
+  return <ExploreContainerSkeleton />;
 }

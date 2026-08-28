@@ -24,7 +24,7 @@ import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import { useSelectableConnectionTypes } from '../../lib/useSelectableConnectionTypes';
+import type { ConnectionType } from '@semble/types';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -39,11 +39,12 @@ interface Props {
   sourceUrl?: string;
   /** When provided the target is prefilled. */
   targetUrl?: string;
+  /** Initial connection type; defaults to RELATED. */
+  defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddConnectionForm(props: Props) {
-  const selectableTypes = useSelectableConnectionTypes();
   const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
   const onboarding = useOnboardingMilestones();
@@ -60,7 +61,7 @@ export default function AddConnectionForm(props: Props) {
     initialValues: {
       sourceUrl: props.sourceUrl ?? '',
       targetUrl: props.targetUrl ?? '',
-      connectionType: 'RELATED',
+      connectionType: props.defaultConnectionType ?? 'RELATED',
       note: '',
     },
     validateInputOnChange: false,
@@ -254,7 +255,7 @@ export default function AddConnectionForm(props: Props) {
           position="bottom"
           width={320}
           onOptionSubmit={(value) => {
-            form.setFieldValue('connectionType', value);
+            form.setFieldValue('connectionType', value as ConnectionType);
             typeCombobox.closeDropdown();
           }}
         >
@@ -286,7 +287,7 @@ export default function AddConnectionForm(props: Props) {
           <Combobox.Dropdown>
             <Combobox.Options>
               <ScrollArea.Autosize type="scroll" mah={300}>
-                {selectableTypes.map((type) => {
+                {CONNECTION_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = form.values.connectionType === type.value;
                   return (
