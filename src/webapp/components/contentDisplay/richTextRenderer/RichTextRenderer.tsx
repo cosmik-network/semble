@@ -19,13 +19,13 @@ interface Props {
   facets?: AppBskyRichtextFacet.Main[];
 }
 
-export default function RichTextRenderer({
-  text,
-  linkProps = {},
-  textProps = {},
-  linkDisplay = 'short',
-  facets,
-}: Props) {
+export default function RichTextRenderer(props: Props) {
+  const text = props.text;
+  const linkProps = props.linkProps ?? {};
+  const textProps = props.textProps ?? {};
+  const linkDisplay = props.linkDisplay ?? 'short';
+  const facets = props.facets;
+
   const richText = new RichText({ text, facets });
   if (!facets?.length) {
     richText.detectFacetsWithoutResolution();
@@ -80,8 +80,8 @@ export default function RichTextRenderer({
         // hashtag
         if (segment.isTag()) {
           const tag = normalizeTag(segment.tag?.tag || '');
-          // Bluesky's tag charset is broader than Semble's; tags outside our
-          // grammar have no tag page, so leave them as plain text.
+          // Bluesky's tag charset is broader than Semble's
+          // tags outside our grammar have no tag page, so leave them as plain text.
           if (!new RegExp(`^${TAG_TOKEN_REGEX_SOURCE}$`).test(`#${tag}`)) {
             return (
               <span key={`tag-${i}`} className={textProps?.className}>
