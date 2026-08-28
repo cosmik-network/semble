@@ -5,7 +5,6 @@ import { tagKeys } from '../tagKeys';
 
 interface Props {
   tag: string;
-  /** Absent → blended list across all item types. */
   itemType?: TaggedItemType;
   user?: string;
   limit?: number;

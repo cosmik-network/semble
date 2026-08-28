@@ -24,10 +24,8 @@ type TaggedCollection = NonNullable<
 
 interface Props {
   tag: string;
-  /** Absent → blended list across all item types. */
   itemType?: TaggedItemType;
-  /** DID or handle; filters results to that user. */
-  user?: string;
+  handleOrDid?: string;
 }
 
 export default function TaggedItemsContainer(props: Props) {
@@ -36,7 +34,7 @@ export default function TaggedItemsContainer(props: Props) {
     useTaggedItems({
       tag: props.tag,
       itemType: props.itemType,
-      user: props.user,
+      user: props.handleOrDid,
     });
 
   const analyticsContext: CardSaveAnalyticsContext = {
@@ -88,8 +86,10 @@ export default function TaggedItemsContainer(props: Props) {
   const filters = (
     <Group gap={'xs'} justify="space-between" wrap="nowrap">
       <Text c="gray" fw={500} lineClamp={1}>
-        {props.user ? `Tagged by @${props.user}` : 'Everything tagged'} #
-        {props.tag}
+        {props.handleOrDid
+          ? `Tagged by @${props.handleOrDid}`
+          : 'Everything tagged'}{' '}
+        #{props.tag}
       </Text>
       <TagFilters.Root>
         <TagFilters.ItemTypeFilter />

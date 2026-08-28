@@ -21,7 +21,11 @@ export default async function Page(props: Props) {
       fallback={<CardSearchResultsContainerSkeleton />}
       key={`${decoded}|${itemType ?? ''}|${handle ?? ''}`}
     >
-      <TaggedItemsContainer tag={decoded} itemType={itemType} user={handle} />
+      <TaggedItemsContainer
+        tag={decoded}
+        itemType={itemType}
+        handleOrDid={handle}
+      />
     </Suspense>
   );
 }
