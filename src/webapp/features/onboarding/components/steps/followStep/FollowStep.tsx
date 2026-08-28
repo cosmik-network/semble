@@ -17,6 +17,7 @@ import type useRecommendedUsers from '@/features/profile/lib/queries/useRecommen
 import type useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { LinkButton } from '@/components/link/MantineLink';
@@ -63,6 +64,7 @@ function FollowActionButton({
       targetId={targetId}
       targetType={targetType}
       initialIsFollowing={isFollowing}
+      followSource={FollowSource.ONBOARDING}
       onFollowChange={(next) => onFollowChange(targetType, targetId, next)}
       size="xs"
     />
@@ -269,6 +271,7 @@ export default function FollowStep(props: Props) {
                     <CollectionCard
                       collection={collection}
                       showAuthor
+                      followSource={FollowSource.ONBOARDING}
                       onFollowChange={(next) =>
                         props.onFollowChange('COLLECTION', collection.id, next)
                       }

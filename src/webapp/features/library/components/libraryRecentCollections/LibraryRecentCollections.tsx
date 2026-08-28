@@ -1,6 +1,7 @@
 'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
@@ -77,7 +78,11 @@ function MyCollectionsList({
       spacing="xs"
     >
       {collections.map((collection) => (
-        <CollectionCard key={collection.id} collection={collection} />
+        <CollectionCard
+          key={collection.id}
+          collection={collection}
+          followSource={FollowSource.LIBRARY}
+        />
       ))}
     </SimpleGrid>
   );
@@ -113,7 +118,11 @@ function FollowingCollectionsList({
       spacing="xs"
     >
       {collections.map((collection) => (
-        <CollectionCard key={collection.id} collection={collection} />
+        <CollectionCard
+          key={collection.id}
+          collection={collection}
+          followSource={FollowSource.LIBRARY}
+        />
       ))}
     </SimpleGrid>
   );
@@ -149,7 +158,11 @@ function ContributedCollectionsList({
       spacing="xs"
     >
       {collections.map((collection) => (
-        <CollectionCard key={collection.id} collection={collection} />
+        <CollectionCard
+          key={collection.id}
+          collection={collection}
+          followSource={FollowSource.LIBRARY}
+        />
       ))}
     </SimpleGrid>
   );

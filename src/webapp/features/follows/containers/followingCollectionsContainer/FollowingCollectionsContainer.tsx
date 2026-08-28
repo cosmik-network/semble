@@ -11,6 +11,7 @@ import {
 import useFollowingCollections from '../../lib/queries/useFollowingCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import { useSettings } from '@/providers/settings';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiCollection } from 'react-icons/bi';
@@ -66,6 +67,7 @@ export default function FollowingCollectionsContainer(props: Props) {
                   key={collection.id}
                   collection={collection}
                   showAuthor
+                  followSource={FollowSource.PROFILE_NETWORK}
                 />
               ))}
             </SimpleGrid>

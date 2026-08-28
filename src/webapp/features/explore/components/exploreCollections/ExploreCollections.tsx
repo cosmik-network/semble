@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import ExploreShelf from '../exploreShelf/ExploreShelf';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
@@ -62,6 +63,7 @@ export default function ExploreCollections() {
               key={collection.id}
               collection={collection}
               showAuthor
+              followSource={FollowSource.RECOMMENDED}
             />
           ))}
         </ExploreScroller>

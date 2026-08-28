@@ -1,6 +1,7 @@
 'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
@@ -73,6 +74,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
             key={collection.id}
             collection={collection}
             showAuthor={true}
+            followSource={FollowSource.EXPLORE}
           />
         ))}
       </SimpleGrid>

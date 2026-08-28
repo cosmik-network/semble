@@ -4,6 +4,7 @@ import { SimpleGrid } from '@mantine/core';
 import type { CollectionDTO } from '@semble/types';
 import { BiCollection } from 'react-icons/bi';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
@@ -51,6 +52,7 @@ export default function ExploreCollectionsRecommendedContent(props: Props) {
           key={collection.id}
           collection={collection}
           showAuthor
+          followSource={FollowSource.RECOMMENDED}
         />
       ))}
     </SimpleGrid>

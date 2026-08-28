@@ -15,6 +15,7 @@ import {
   profileViewOptions,
 } from '@/features/explore/lib/profilesView';
 import ProfileSuggestionList from '../../components/profileSuggestionList/ProfileSuggestionList';
+import { FollowSource } from '@/features/analytics/types';
 import { SuggestedUser } from '@/features/profile/components/profileSuggestionCard/ProfileSuggestionCard';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useRecommendedUsers from '../../lib/queries/useRecommendedUsers';
@@ -80,6 +81,11 @@ export default function ExploreProfilesContainer() {
     <ProfileSuggestionList
       layout="grid"
       users={users}
+      followSource={
+        view === 'bluesky'
+          ? FollowSource.BLUESKY_FOLLOWS
+          : FollowSource.RECOMMENDED
+      }
       emptyMessage={
         view === 'bluesky'
           ? 'No one from your Bluesky follows is here yet'

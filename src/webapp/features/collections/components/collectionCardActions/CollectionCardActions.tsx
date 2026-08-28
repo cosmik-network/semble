@@ -5,6 +5,7 @@ import { ActionIcon, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { BsPencilFill, BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
+import { FollowSource } from '@/features/analytics/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getRecordKey } from '@/lib/utils/atproto';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
@@ -12,6 +13,8 @@ import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModa
 
 interface Props {
   collection: Collection;
+  /** Where the card is shown, reported with follow analytics. */
+  followSource?: FollowSource;
   /** Fires with the new follow state once the write lands. */
   onFollowChange?: (isFollowing: boolean) => void;
 }
@@ -32,6 +35,7 @@ export default function CollectionCardActions(props: Props) {
         targetId={collection.id}
         targetType="COLLECTION"
         initialIsFollowing={collection.isFollowing}
+        followSource={props.followSource}
         onFollowChange={props.onFollowChange}
         size="xs"
         onClick={(e) => e.stopPropagation()}

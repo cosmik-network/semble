@@ -4,6 +4,7 @@ import type { User } from '@semble/types';
 import SuggestionCard from '@/features/onboarding/components/suggestionCard/SuggestionCard';
 import BlueskyNote from '@/features/onboarding/components/blueskyNote/BlueskyNote';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
+import { FollowSource } from '@/features/analytics/types';
 
 /** A user carrying the one extra fact a suggestion needs. The recommender
  * returns it; the Bluesky-follows query tags it on. */
@@ -11,6 +12,7 @@ export type SuggestedUser = User & { followsOnBsky: boolean };
 
 interface Props {
   user: SuggestedUser;
+  followSource?: FollowSource;
 }
 
 export default function ProfileSuggestionCard(props: Props) {
@@ -32,6 +34,7 @@ export default function ProfileSuggestionCard(props: Props) {
           targetId={props.user.id}
           targetType="USER"
           initialIsFollowing={props.user.isFollowing}
+          followSource={props.followSource}
           size="xs"
         />
       }

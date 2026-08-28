@@ -7,6 +7,7 @@ import { Center, Grid, Group, Stack } from '@mantine/core';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 import { SearchFilters } from '../../components/searchFilters/SearchFilters';
 import { CollectionAccessType } from '@semble/types';
@@ -70,7 +71,11 @@ export default function CollectionSearchResultsContainer(props: Props) {
           <Grid gap="xs">
             {allCollections.map((collection) => (
               <Grid.Col key={collection.id} span={12}>
-                <CollectionCard collection={collection} showAuthor />
+                <CollectionCard
+                  collection={collection}
+                  showAuthor
+                  followSource={FollowSource.SEARCH_RESULTS}
+                />
               </Grid.Col>
             ))}
           </Grid>

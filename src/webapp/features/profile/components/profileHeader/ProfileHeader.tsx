@@ -20,6 +20,7 @@ import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FollowActions from '@/features/follows/components/followActions/FollowActions';
+import { FollowSource } from '@/features/analytics/types';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
 import { IoSearch } from 'react-icons/io5';
@@ -77,6 +78,7 @@ export default async function ProfileHeader(props: Props) {
                   <FollowActions
                     targetId={profile.id}
                     targetType="USER"
+                    followSource={FollowSource.PROFILE_PAGE}
                     initialIsFollowing={profile.isFollowing}
                     initialIsSubscribed={profile.isSubscribed}
                     initialSubscriptionScopes={profile.subscriptionScopes}
