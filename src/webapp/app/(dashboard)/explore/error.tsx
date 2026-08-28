@@ -1,7 +1,12 @@
 'use client';
 
-import ExploreContainerError from '@/features/explore/containers/exploreContainer/Error.ExploreContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <ExploreContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load explore" />
+    </Container>
+  );
 }

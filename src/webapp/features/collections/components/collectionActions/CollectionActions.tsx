@@ -102,8 +102,6 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         isOpen={showSaveToLibraryModal}
         onClose={() => setShowSaveToLibraryModal(false)}
         url={collectionPageUrl}
-        cardId={cardStatus.data.card?.id}
-        note={cardStatus.data.card?.note?.text}
         isInYourLibrary={isInYourLibrary}
         urlLibraryCount={urlLibraryCount}
       />

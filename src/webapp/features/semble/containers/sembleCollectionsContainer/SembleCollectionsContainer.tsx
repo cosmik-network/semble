@@ -3,7 +3,7 @@
 import useSembleCollections from '@/features/collections/lib/queries/useSembleCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Group, SimpleGrid, Stack } from '@mantine/core';
-import SembleCollectionsError from './Error.SembleCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiCollection } from 'react-icons/bi';
@@ -40,7 +40,7 @@ export default function SembleCollectionsContainer(props: Props) {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <SembleCollectionsError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   if (allCollections.length === 0) {

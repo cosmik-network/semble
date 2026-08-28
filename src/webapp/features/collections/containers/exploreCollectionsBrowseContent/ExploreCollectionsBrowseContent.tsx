@@ -9,7 +9,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
 import { CollectionFilterState } from '../../components/collectionFilters/CollectionFilters';
-import ExploreCollectionsContainerError from '../exploreCollectionsContainer/Error.ExploreCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ExploreCollectionsBrowseContentSkeleton from './Skeleton.ExploreCollectionsBrowseContent';
 
 const PAGE_SIZE = 24;
@@ -42,7 +42,7 @@ export default function ExploreCollectionsBrowseContent(props: Props) {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <ExploreCollectionsContainerError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   if (isLoading) {

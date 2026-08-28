@@ -6,7 +6,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
-import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
 import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
@@ -36,7 +36,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <AtmosphereConfCollectionsContainerError />;
+    return <ErrorState message="Could not load AtmosphereConf collections" />;
   }
 
   if (isLoading) {

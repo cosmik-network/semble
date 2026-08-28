@@ -1,7 +1,7 @@
 'use client';
 
-import SearchResultsContainerError from '@/features/search/containers/searchResultsContainer/Error.SearchResultsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <SearchResultsContainerError />;
+  return <ErrorState message="Could not load tagged items" />;
 }

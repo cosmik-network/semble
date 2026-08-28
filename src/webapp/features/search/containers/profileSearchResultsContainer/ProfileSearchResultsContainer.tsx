@@ -3,7 +3,7 @@
 import useProfileSearch from '../../lib/queries/useProfileSearch';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Center, Grid, Stack } from '@mantine/core';
-import ProfileSearchResultsContainerError from './Error.ProfileSearchResultsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import SearchProfileCard from '../../components/profileCard/SearchProfileCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiSearch } from 'react-icons/bi';
@@ -34,7 +34,7 @@ export default function ProfileSearchResultsContainer(props: Props) {
       <SearchQueryAlert query={props.query} count={allProfiles.length} />
 
       {error ? (
-        <ProfileSearchResultsContainerError />
+        <ErrorState message="Could not load profile search results" />
       ) : !isPending && allProfiles.length === 0 ? (
         <Center py="xl">
           <EmptyState

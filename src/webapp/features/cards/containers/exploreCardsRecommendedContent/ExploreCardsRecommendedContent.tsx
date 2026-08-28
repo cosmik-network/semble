@@ -11,7 +11,7 @@ import useGlobalFeedSeeds from '@/features/feeds/lib/queries/useGlobalFeedSeeds'
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
 import UrlViewGrid from '../../components/urlViewGrid/UrlViewGrid';
 import { dedupeUrlViews } from '../../lib/utils';
-import ExploreCardsContainerError from '../exploreCardsContainer/Error.ExploreCardsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ExploreCardsRecommendedContentSkeleton from './Skeleton.ExploreCardsRecommendedContent';
 
 interface Props {
@@ -66,7 +66,7 @@ export default function ExploreCardsRecommendedContent(props: Props) {
     : primary.isPending;
 
   if (error) {
-    return <ExploreCardsContainerError />;
+    return <ErrorState message="Could not load cards" />;
   }
 
   if (isPending) {

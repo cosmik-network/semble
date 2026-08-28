@@ -1,7 +1,12 @@
 'use client';
 
-import CollectionFollowersContainerError from '@/features/follows/containers/collectionFollowersContainer/Error.CollectionFollowersContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <CollectionFollowersContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load collection followers" />
+    </Container>
+  );
 }

@@ -10,7 +10,7 @@ import useSearchCards from '../../lib/queries/useSearchCards';
 import { CardFilterState } from '../../components/cardFilters/CardFilters';
 import UrlViewGrid from '../../components/urlViewGrid/UrlViewGrid';
 import { dedupeUrlViews } from '../../lib/utils';
-import ExploreCardsContainerError from '../exploreCardsContainer/Error.ExploreCardsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ExploreCardsSearchContentSkeleton from './Skeleton.ExploreCardsSearchContent';
 
 const PAGE_SIZE = 20;
@@ -40,7 +40,7 @@ export default function ExploreCardsSearchContent(props: Props) {
   });
 
   if (error) {
-    return <ExploreCardsContainerError />;
+    return <ErrorState message="Could not load cards" />;
   }
 
   if (isPending) {

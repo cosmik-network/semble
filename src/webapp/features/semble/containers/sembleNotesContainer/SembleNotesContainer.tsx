@@ -3,7 +3,7 @@
 import useSembleNotes from '@/features/semble/lib/queries/useSembleNotes';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid } from '@mantine/core';
-import SembleNotesContainerError from './Error.SembleNotesContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -28,7 +28,7 @@ export default function SembleNotesContainer(props: Props) {
   const allNotes = data?.pages.flatMap((page) => page.notes ?? []) ?? [];
 
   if (error) {
-    return <SembleNotesContainerError />;
+    return <ErrorState message="Could not load notes" />;
   }
 
   if (allNotes.length === 0) {

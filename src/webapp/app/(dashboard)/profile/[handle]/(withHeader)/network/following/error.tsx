@@ -1,7 +1,12 @@
 'use client';
 
-import FollowingContainerError from '@/features/follows/containers/followingContainer/Error.FollowingContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <FollowingContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load followings" />
+    </Container>
+  );
 }

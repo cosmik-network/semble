@@ -9,7 +9,7 @@ import ExploreScroller from '../exploreScroller/ExploreScroller';
 import { useCardShelf } from '../../lib/useCardShelf';
 import RefreshButton from '../refreshButton/RefreshButton';
 import ExploreCardsSkeleton from './Skeleton.ExploreCards';
-import ExploreCardsError from './Error.ExploreCards';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function ExploreCards() {
   const pathname = usePathname();
@@ -29,7 +29,7 @@ export default function ExploreCards() {
       }
     >
       {shelf.hasFailed ? (
-        <ExploreCardsError />
+        <ErrorState message="Could not load cards" />
       ) : shelf.urls.length === 0 ? (
         <EmptyState message="No recommendations yet" />
       ) : (

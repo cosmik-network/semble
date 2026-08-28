@@ -16,7 +16,7 @@ import {
 } from '@/features/explore/lib/profilesView';
 import ProfileSuggestionList from '../../components/profileSuggestionList/ProfileSuggestionList';
 import { SuggestedUser } from '@/features/profile/components/profileSuggestionCard/ProfileSuggestionCard';
-import ProfileSuggestionListError from '../../components/profileSuggestionList/Error.ProfileSuggestionList';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useRecommendedUsers from '../../lib/queries/useRecommendedUsers';
 import { ExploreProfilesListSkeleton } from './Skeleton.ExploreProfilesContainer';
 
@@ -93,7 +93,7 @@ export default function ExploreProfilesContainer() {
   const paginates = view === 'bluesky' && users.length > 0;
 
   const content = error ? (
-    <ProfileSuggestionListError />
+    <ErrorState message="Could not load profiles" />
   ) : isPending ? (
     <ExploreProfilesListSkeleton />
   ) : paginates ? (

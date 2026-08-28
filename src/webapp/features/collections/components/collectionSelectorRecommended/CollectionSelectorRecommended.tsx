@@ -1,6 +1,6 @@
 import { Loader, Stack, Text } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useRecommendedCollectionsForUrl from '../../lib/queries/useRecommendedCollectionsForUrl';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
@@ -35,7 +35,7 @@ export default function CollectionSelectorRecommended(props: Props) {
   };
 
   if (recommended.error) {
-    return <CollectionSelectorError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   return (

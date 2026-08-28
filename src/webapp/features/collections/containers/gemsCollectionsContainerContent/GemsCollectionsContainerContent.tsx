@@ -4,7 +4,7 @@ import CollectionCard from '@/features/collections/components/collectionCard/Col
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
-import GemsCollectionsContainerError from './Error.GemsCollectionsContainerContent';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { BiCollection } from 'react-icons/bi';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { useSettings } from '@/providers/settings';
@@ -26,7 +26,7 @@ export default function GemsCollectionsContainerContent() {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <GemsCollectionsContainerError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   if (allCollections.length === 0) {
