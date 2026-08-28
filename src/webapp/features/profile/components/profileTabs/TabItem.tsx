@@ -19,7 +19,6 @@ export default function TabItem(props: Props) {
     <Tabs.Tab
       value={props.value}
       className={classes.tab}
-      fw={600}
       rightSection={props.rightSection}
       onClick={() => router.push(props.href)}
     >
