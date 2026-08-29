@@ -1,4 +1,4 @@
-import TaggedCardsContainer from '@/features/tags/containers/taggedCardsContainer/TaggedCardsContainer';
+import TaggedConnectionsContainer from '@/features/tags/containers/taggedConnectionsContainer/TaggedConnectionsContainer';
 import CardSearchResultsContainerSkeleton from '@/features/search/containers/cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
 import { Suspense } from 'react';
 
@@ -17,7 +17,7 @@ export default async function Page(props: Props) {
       fallback={<CardSearchResultsContainerSkeleton />}
       key={`${decoded}|${handle ?? ''}`}
     >
-      <TaggedCardsContainer tag={decoded} handleOrDid={handle} />
+      <TaggedConnectionsContainer tag={decoded} handleOrDid={handle} />
     </Suspense>
   );
 }

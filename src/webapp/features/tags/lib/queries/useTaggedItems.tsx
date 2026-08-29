@@ -5,7 +5,7 @@ import { tagKeys } from '../tagKeys';
 
 interface Props {
   tag: string;
-  itemType?: TaggedItemType;
+  itemType: TaggedItemType;
   user?: string;
   limit?: number;
 }
@@ -16,7 +16,7 @@ export default function useTaggedItems(props: Props) {
   return useSuspenseInfiniteQuery({
     queryKey: tagKeys.itemsInfinite(
       props.tag,
-      props.itemType ?? 'all',
+      props.itemType,
       props.user,
       limit,
     ),
