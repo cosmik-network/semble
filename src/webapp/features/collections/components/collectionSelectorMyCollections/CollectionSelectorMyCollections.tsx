@@ -16,7 +16,6 @@ import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import useMyCollections from '../../lib/queries/useMyCollections';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
@@ -29,8 +28,8 @@ interface Props {
 }
 
 export default function CollectionSelectorMyCollections(props: Props) {
-  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useMyCollections();
+  const myCollections = useMyCollections();
+  const { data, error } = myCollections;
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
   const searchedCollections = useCollectionSearch({ query: debouncedSearch });
@@ -45,6 +44,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
     [];
 
   const hasCollections = allCollections.length > 0;
+  const listQuery = search ? searchedCollections : myCollections;
 
   const unselectedCollections = allCollections.filter(
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
@@ -125,41 +125,29 @@ export default function CollectionSelectorMyCollections(props: Props) {
               )}
             </Stack>
           ) : (
-            <CollectionListScrollArea>
+            <CollectionListScrollArea
+              onBottomReached={() => {
+                if (listQuery.hasNextPage && !listQuery.isFetchingNextPage)
+                  listQuery.fetchNextPage();
+              }}
+              isLoadingMore={listQuery.isFetchingNextPage}
+            >
               <Stack gap="xxs">
                 {createButton}
 
                 {search ? (
-                  <InfiniteScroll
-                    dataLength={searchResults.length}
-                    hasMore={!!searchedCollections.hasNextPage}
-                    isInitialLoading={false}
-                    isLoading={searchedCollections.isFetchingNextPage}
-                    loadMore={() => searchedCollections.fetchNextPage()}
-                    hideEndIndicator
-                  >
-                    <CollectionSelectorItemList
-                      collections={searchResults}
-                      selectedCollections={props.selectedCollections}
-                      onChange={handleCollectionChange}
-                    />
-                  </InfiniteScroll>
+                  <CollectionSelectorItemList
+                    collections={searchResults}
+                    selectedCollections={props.selectedCollections}
+                    onChange={handleCollectionChange}
+                  />
                 ) : (
-                  <InfiniteScroll
-                    dataLength={allCollections.length}
-                    hasMore={!!hasNextPage}
-                    isInitialLoading={false}
-                    isLoading={isFetchingNextPage}
-                    loadMore={() => fetchNextPage()}
-                    hideEndIndicator
-                  >
-                    <CollectionSelectorBrowseList
-                      selectedCollections={props.selectedCollections}
-                      unselectedCollections={unselectedCollections}
-                      onChange={handleCollectionChange}
-                      emptyMessage="No collections available"
-                    />
-                  </InfiniteScroll>
+                  <CollectionSelectorBrowseList
+                    selectedCollections={props.selectedCollections}
+                    unselectedCollections={unselectedCollections}
+                    onChange={handleCollectionChange}
+                    emptyMessage="No collections available"
+                  />
                 )}
               </Stack>
             </CollectionListScrollArea>

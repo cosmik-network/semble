@@ -15,7 +15,6 @@ import { useDebouncedValue } from '@mantine/hooks';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection, CollectionAccessType } from '@semble/types';
 import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
 import { useAuth } from '@/hooks/useAuth';
@@ -152,41 +151,29 @@ export default function CollectionSelectorOpenCollections(props: Props) {
               )}
             </Stack>
           ) : (
-            <CollectionListScrollArea>
+            <CollectionListScrollArea
+              onBottomReached={() => {
+                if (listQuery.hasNextPage && !listQuery.isFetchingNextPage)
+                  listQuery.fetchNextPage();
+              }}
+              isLoadingMore={listQuery.isFetchingNextPage}
+            >
               <Stack gap="xxs">
                 {createButton}
 
                 {search ? (
-                  <InfiniteScroll
-                    dataLength={allCollections.length}
-                    hasMore={!!listQuery.hasNextPage}
-                    isInitialLoading={false}
-                    isLoading={listQuery.isFetchingNextPage}
-                    loadMore={() => listQuery.fetchNextPage()}
-                    hideEndIndicator
-                  >
-                    <CollectionSelectorItemList
-                      collections={allCollections}
-                      selectedCollections={props.selectedCollections}
-                      onChange={handleCollectionChange}
-                    />
-                  </InfiniteScroll>
+                  <CollectionSelectorItemList
+                    collections={allCollections}
+                    selectedCollections={props.selectedCollections}
+                    onChange={handleCollectionChange}
+                  />
                 ) : (
-                  <InfiniteScroll
-                    dataLength={allCollections.length}
-                    hasMore={!!listQuery.hasNextPage}
-                    isInitialLoading={false}
-                    isLoading={listQuery.isFetchingNextPage}
-                    loadMore={() => listQuery.fetchNextPage()}
-                    hideEndIndicator
-                  >
-                    <CollectionSelectorBrowseList
-                      selectedCollections={props.selectedCollections}
-                      unselectedCollections={unselectedCollections}
-                      onChange={handleCollectionChange}
-                      emptyMessage="No open collections available"
-                    />
-                  </InfiniteScroll>
+                  <CollectionSelectorBrowseList
+                    selectedCollections={props.selectedCollections}
+                    unselectedCollections={unselectedCollections}
+                    onChange={handleCollectionChange}
+                    emptyMessage="No open collections available"
+                  />
                 )}
               </Stack>
             </CollectionListScrollArea>
