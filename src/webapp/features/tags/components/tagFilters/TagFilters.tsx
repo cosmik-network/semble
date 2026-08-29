@@ -17,7 +17,6 @@ import {
   Container,
   Combobox,
   useCombobox,
-  Select,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
@@ -27,7 +26,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createContext, use, useState, ReactNode } from 'react';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
-import { TaggedItemType } from '@semble/types';
 
 // context
 interface FilterContextValue {
@@ -38,10 +36,7 @@ interface FilterContextValue {
   setSearchQuery: (val: string) => void;
   selectedHandle: string;
   setSelectedHandle: (val: string) => void;
-  localItemType: TaggedItemType | null;
-  setLocalItemType: (val: TaggedItemType | null) => void;
   appliedHandle: string;
-  appliedItemType: TaggedItemType | null;
   hasFilters: boolean;
   router: ReturnType<typeof useRouter>;
   searchParams: ReturnType<typeof useSearchParams>;
@@ -63,22 +58,17 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
   const router = useRouter();
 
   const appliedHandle = searchParams.get('handle') ?? '';
-  const appliedItemType = searchParams.get('itemType') as TaggedItemType | null;
 
   const [searchQuery, setSearchQuery] = useState(appliedHandle);
   const [selectedHandle, setSelectedHandle] = useState(appliedHandle);
-  const [localItemType, setLocalItemType] = useState<TaggedItemType | null>(
-    appliedItemType,
-  );
 
   const handleOpen = () => {
     setSearchQuery(appliedHandle);
     setSelectedHandle(appliedHandle);
-    setLocalItemType(appliedItemType);
     setOpened(true);
   };
 
-  const hasFilters = !!appliedHandle || !!appliedItemType;
+  const hasFilters = !!appliedHandle;
 
   const defaultTrigger = (
     <Indicator offset={4} disabled={!hasFilters} zIndex={0}>
@@ -109,10 +99,7 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         setSearchQuery,
         selectedHandle,
         setSelectedHandle,
-        localItemType,
-        setLocalItemType,
         appliedHandle,
-        appliedItemType,
         hasFilters,
         router,
         searchParams,
@@ -140,39 +127,6 @@ export function Root(props: { children: ReactNode; trigger?: ReactNode }) {
         </Container>
       </Drawer>
     </FilterContext>
-  );
-}
-
-// item type filter
-export function ItemTypeFilter() {
-  const ctx = useFilterContext();
-
-  return (
-    <Select
-      variant="filled"
-      size="md"
-      label="Item Type"
-      placeholder="All"
-      clearable
-      value={ctx.localItemType}
-      onChange={(value) => {
-        const newValue = value as TaggedItemType | null;
-        ctx.setLocalItemType(newValue);
-
-        const params = new URLSearchParams(ctx.searchParams.toString());
-        if (newValue) {
-          params.set('itemType', newValue);
-        } else {
-          params.delete('itemType');
-        }
-        ctx.router.replace(`?${params.toString()}`, { scroll: false });
-      }}
-      data={[
-        { value: 'card', label: 'Cards' },
-        { value: 'connection', label: 'Connections' },
-        { value: 'collection', label: 'Collections' },
-      ]}
-    />
   );
 }
 
@@ -295,20 +249,14 @@ export function ProfileFilter() {
 export function Actions() {
   const ctx = useFilterContext();
 
-  const hasAnyActiveFilters =
-    !!ctx.appliedHandle ||
-    !!ctx.appliedItemType ||
-    !!ctx.selectedHandle ||
-    ctx.localItemType !== null;
+  const hasAnyActiveFilters = !!ctx.appliedHandle || !!ctx.selectedHandle;
 
   const handleClear = () => {
     const params = new URLSearchParams(ctx.searchParams.toString());
     params.delete('handle');
-    params.delete('itemType');
 
     ctx.setSearchQuery('');
     ctx.setSelectedHandle('');
-    ctx.setLocalItemType(null);
 
     ctx.router.replace(`?${params.toString()}`, { scroll: false });
   };
@@ -316,17 +264,9 @@ export function Actions() {
   return (
     <Stack gap="sm" mt="md">
       <Group justify="space-between" gap={'xs'} grow>
-        <Button
-          variant="light"
-          size="md"
-          color="gray"
-          onClick={() => ctx.setOpened(false)}
-        >
-          Cancel
-        </Button>
         {hasAnyActiveFilters && (
           <Button variant="light" size="md" color="red" onClick={handleClear}>
-            Clear all
+            Clear
           </Button>
         )}
 
@@ -340,7 +280,6 @@ export function Actions() {
 
 export const TagFilters = {
   Root,
-  ItemTypeFilter,
   ProfileFilter,
   Actions,
 };

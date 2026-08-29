@@ -1,6 +1,7 @@
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
-import { Container } from '@mantine/core';
+import TagTabs from '@/features/tags/components/tagTabs/TagTabs';
+import { Box, Container } from '@mantine/core';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
@@ -29,7 +30,20 @@ export default async function Layout(props: Props) {
       <Header title={`#${decoded}`}>
         <BackButton />
       </Header>
-      <Container p={'xs'} size={'sm'}>
+      <Box
+        style={{
+          position: 'sticky',
+          top: 55,
+          zIndex: 1,
+        }}
+        pt={'xs'}
+        bg={'var(--mantine-color-body)'}
+      >
+        <Container px={'xs'} pt={0} size={'sm'}>
+          <TagTabs tag={tag} />
+        </Container>
+      </Box>
+      <Container p={'xs'} pt={0} size={'sm'}>
         <Container py={'xs'} px={0} size={'xl'}>
           {props.children}
         </Container>
