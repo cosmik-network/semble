@@ -1,6 +1,4 @@
-import TaggedCardsContainer from '@/features/tags/containers/taggedCardsContainer/TaggedCardsContainer';
-import CardSearchResultsContainerSkeleton from '@/features/search/containers/cardSearchResultsContainer/Skeleton.CardSearchresultsContainerSkeleton';
-import { Suspense } from 'react';
+import TaggedItemsContainer from '@/features/tags/containers/taggedItemsContainer/TaggedItemsContainer';
 
 interface Props {
   params: Promise<{ tag: string }>;
@@ -13,11 +11,6 @@ export default async function Page(props: Props) {
   const decoded = decodeURIComponent(tag).toLowerCase();
 
   return (
-    <Suspense
-      fallback={<CardSearchResultsContainerSkeleton />}
-      key={`${decoded}|${handle ?? ''}`}
-    >
-      <TaggedCardsContainer tag={decoded} handleOrDid={handle} />
-    </Suspense>
+    <TaggedItemsContainer tag={decoded} itemType="card" handleOrDid={handle} />
   );
 }
