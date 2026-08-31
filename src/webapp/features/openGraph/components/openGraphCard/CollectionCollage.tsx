@@ -145,6 +145,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
       >
         <img
           src={tile.dataUri}
+          alt=""
           width={thumb}
           height={thumb}
           style={{
@@ -176,6 +177,7 @@ function renderTile(tile: CollageTile, width: number, height: number) {
         >
           <img
             src={tile.dataUri}
+            alt=""
             width={Math.round(thumb * 0.5)}
             height={Math.round(thumb * 0.5)}
           />

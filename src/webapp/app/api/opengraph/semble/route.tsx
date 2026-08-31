@@ -336,6 +336,7 @@ export async function GET(request: NextRequest) {
           (thumb.kind === 'image' ? (
             <img
               src={thumb.dataUri}
+              alt=""
               width={THUMB_SIZE}
               height={THUMB_SIZE}
               style={{
@@ -359,7 +360,7 @@ export async function GET(request: NextRequest) {
                 border: THUMB_BORDER,
               }}
             >
-              <img src={thumb.dataUri} width={96} height={96} />
+              <img src={thumb.dataUri} alt="" width={96} height={96} />
             </div>
           ))}
       </div>
