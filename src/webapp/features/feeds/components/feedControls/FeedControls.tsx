@@ -6,7 +6,7 @@ import { Fragment, useState } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import { TbSettings } from 'react-icons/tb';
-import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { getUrlTypeIcon, renderUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { FaAsterisk } from 'react-icons/fa';
@@ -74,11 +74,6 @@ export default function FeedControls() {
   };
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
-
-  const SelectedTypeIcon =
-    settings.feedUrlType === null
-      ? FaAsterisk
-      : getUrlTypeIcon(settings.feedUrlType);
 
   return (
     <Group gap={'xs'} justify="space-between" wrap="nowrap">
@@ -202,7 +197,13 @@ export default function FeedControls() {
               <Popover.Target>
                 <Menu.Item
                   variant="light"
-                  leftSection={<SelectedTypeIcon />}
+                  leftSection={
+                    settings.feedUrlType === null ? (
+                      <FaAsterisk />
+                    ) : (
+                      renderUrlTypeIcon(settings.feedUrlType)
+                    )
+                  }
                   closeMenuOnClick={false}
                   onClick={() => {
                     setTypePopoverOpened((o) => !o);

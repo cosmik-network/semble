@@ -1,6 +1,6 @@
 'use client';
 
-import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { getUrlTypeIcon, renderUrlTypeIcon } from '@/lib/utils/icon';
 import { Button, Group, Popover } from '@mantine/core';
 import { upperFirst } from '@mantine/hooks';
 import { UrlType } from '@semble/types';
@@ -20,9 +20,6 @@ export default function FeedFilters() {
   );
 
   const [, startTransition] = useTransition();
-
-  const SelectedIcon =
-    optimisticType === null ? MdFilterList : getUrlTypeIcon(optimisticType);
 
   const handleFilterClick = (type?: UrlType) => {
     const nextType = type ?? null;
@@ -49,7 +46,13 @@ export default function FeedFilters() {
         <Button
           variant="light"
           color="lime"
-          leftSection={<SelectedIcon />}
+          leftSection={
+            optimisticType === null ? (
+              <MdFilterList />
+            ) : (
+              renderUrlTypeIcon(optimisticType)
+            )
+          }
           onClick={() => setOpened((o) => !o)}
         >
           {optimisticType ? upperFirst(optimisticType) : 'All Cards'}

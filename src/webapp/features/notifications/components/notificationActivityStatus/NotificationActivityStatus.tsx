@@ -25,7 +25,7 @@ import styles from '../../../feeds/components/feedActivityStatus/FeedActivitySta
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
-import { getNotificationTypeIcon } from '../../lib/utils/icon';
+import { renderNotificationTypeIcon } from '../../lib/utils/icon';
 import {
   LinkAvatar,
   LinkMenuItem,
@@ -48,7 +48,7 @@ interface Props {
 export default function NotificationActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt);
-  const TypeIcon = getNotificationTypeIcon(props.type);
+  const typeIcon = renderNotificationTypeIcon(props.type, { size: 10 });
 
   const getActivityText = () => {
     const collections = props.collections ?? [];
@@ -339,7 +339,7 @@ export default function NotificationActivityStatus(props: Props) {
                 )}
                 alt={`${props.user.name}'s' avatar`}
               />
-              {TypeIcon && (
+              {typeIcon && (
                 <ThemeIcon
                   size={20}
                   radius="xl"
@@ -352,7 +352,7 @@ export default function NotificationActivityStatus(props: Props) {
                       '2px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))',
                   }}
                 >
-                  <TypeIcon size={10} />
+                  {typeIcon}
                 </ThemeIcon>
               )}
             </Box>
