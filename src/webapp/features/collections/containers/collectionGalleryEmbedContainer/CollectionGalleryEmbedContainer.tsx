@@ -278,7 +278,7 @@ function CollectionGalleryContent(props: Props) {
                   href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
                   target="_blank"
                 >
-                  <Image src={SembleLogo.src} h={20} />
+                  <Image src={SembleLogo.src} alt="Semble" h={20} />
                 </LinkActionIcon>
               </>
             )}

@@ -69,7 +69,7 @@ export default function UrlEmbedContainer(props: Props) {
             href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
             target="_blank"
           >
-            <Image src={SembleLogo.src} h={24} />
+            <Image src={SembleLogo.src} alt="Semble" h={24} />
           </LinkActionIcon>
         </Box>
       </SembleHeaderBackground>

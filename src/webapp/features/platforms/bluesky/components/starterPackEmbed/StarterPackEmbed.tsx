@@ -33,7 +33,7 @@ export default function StarterPackEmbed(props: Props) {
         <Group gap={'xs'} wrap="nowrap">
           {image && (
             <AspectRatio ratio={1 / 1}>
-              <Image src={image} radius={'sm'} w={50} h={50} />
+              <Image src={image} alt="" radius={'sm'} w={50} h={50} />
             </AspectRatio>
           )}
           <Stack gap={0}>
@@ -59,7 +59,7 @@ export default function StarterPackEmbed(props: Props) {
     >
       {image && (
         <CardSection>
-          <Image src={image} />
+          <Image src={image} alt="" />
         </CardSection>
       )}
       <Box p={'xs'}>
