@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import useProfile from '@/features/profile/lib/queries/useProfile';
+import { useProfileWithStats } from '@/features/profile/lib/queries/useProfile';
 import ProfileActivityFeed from './ProfileActivityFeed';
 import ProfileActivityContainerSkeleton from './Skeleton.ProfileActivityContainer';
 import { Container } from '@mantine/core';
@@ -13,9 +13,8 @@ interface Props {
 }
 
 export default function ProfileActivityContainer({ handle }: Props) {
-  const { data: profile } = useProfile({
+  const { data: profile } = useProfileWithStats({
     didOrHandle: handle,
-    includeStats: true,
   });
 
   if (!profile?.id) {

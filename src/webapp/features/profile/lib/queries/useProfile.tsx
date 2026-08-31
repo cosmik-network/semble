@@ -1,41 +1,22 @@
-import {
-  useSuspenseQuery,
-  useQuery,
-  UseQueryResult,
-  UseSuspenseQueryResult,
-} from '@tanstack/react-query';
+import { useSuspenseQuery, useQuery } from '@tanstack/react-query';
 import { getProfile } from '../dal';
 import { profileKeys } from '../profileKeys';
 
-type ProfileData = Awaited<ReturnType<typeof getProfile>>;
-
-interface PropsWithStats {
+interface Props {
   didOrHandle: string;
-  includeStats: true;
 }
 
-interface PropsWithoutStats {
-  didOrHandle: string;
-  includeStats?: false;
-}
-
-export default function useProfile(
-  props: PropsWithStats,
-): UseQueryResult<ProfileData>;
-export default function useProfile(
-  props: PropsWithoutStats,
-): UseSuspenseQueryResult<ProfileData>;
-export default function useProfile(props: PropsWithStats | PropsWithoutStats) {
-  if (props.includeStats) {
-    // Non-suspense: stats are progressive — tabs render immediately, counts fill in async
-    return useQuery({
-      queryKey: profileKeys.profile(props.didOrHandle, true),
-      queryFn: () => getProfile(props.didOrHandle, true),
-    });
-  }
-
+export default function useProfile(props: Props) {
   return useSuspenseQuery({
-    queryKey: profileKeys.profile(props.didOrHandle, props.includeStats),
-    queryFn: () => getProfile(props.didOrHandle, props.includeStats),
+    queryKey: profileKeys.profile(props.didOrHandle),
+    queryFn: () => getProfile(props.didOrHandle),
+  });
+}
+
+// Non-suspense: stats are progressive — tabs render immediately, counts fill in async
+export function useProfileWithStats(props: Props) {
+  return useQuery({
+    queryKey: profileKeys.profile(props.didOrHandle, true),
+    queryFn: () => getProfile(props.didOrHandle, true),
   });
 }
