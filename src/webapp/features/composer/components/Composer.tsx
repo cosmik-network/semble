@@ -61,7 +61,9 @@ interface Props {
 
 export default function Composer(props: Props) {
   const pathname = usePathname();
-  const [mode, setMode] = useState<ComposerMode>(props.initialMode ?? 'card');
+  // the user's explicit choice wins, otherwise follow whatever the parent asked for.
+  const [modeOverride, setModeOverride] = useState<ComposerMode | null>(null);
+  const mode = modeOverride ?? props.initialMode ?? 'card';
 
   // Card form state
   const [collectionSelectorOpened, { toggle: toggleCollectionSelector }] =
@@ -117,26 +119,19 @@ export default function Composer(props: Props) {
   const MAX_NOTE_LENGTH = 500;
 
   useEffect(() => {
-    if (props.initialMode) {
-      setMode(props.initialMode);
-    }
-  }, [props.initialMode]);
-
-  useEffect(() => {
     if (props.initialUrl) {
       cardForm.setValues({ url: props.initialUrl });
     }
   }, [props.initialUrl]);
 
-  // Reset state when drawer closes
-  useEffect(() => {
-    if (!props.isOpen) {
-      cardForm.reset();
-      collectionForm.reset();
-      setSelectedCollections(initialCollections);
-      setMode('card');
-    }
-  }, [props.isOpen]);
+  // Reset state on close; every close path funnels through here
+  const handleClose = () => {
+    cardForm.reset();
+    collectionForm.reset();
+    setSelectedCollections(initialCollections);
+    setModeOverride(null);
+    props.onClose();
+  };
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,10 +157,8 @@ export default function Composer(props: Props) {
     });
 
     // Close drawer immediately
-    props.onClose();
-    setSelectedCollections(initialCollections);
+    handleClose();
     window.history.replaceState({}, '', window.location.pathname);
-    cardForm.reset();
 
     addCard.mutate({ ...cardData, notificationId });
   };
@@ -182,11 +175,10 @@ export default function Composer(props: Props) {
     };
 
     // Close drawer immediately
-    props.onClose();
+    handleClose();
     if (props.onCollectionCreate) {
       props.onCollectionCreate();
     }
-    collectionForm.reset();
 
     createCollection.mutate(collectionData, {
       onError: () => {
@@ -208,7 +200,7 @@ export default function Composer(props: Props) {
     <>
       <Drawer
         opened={props.isOpen}
-        onClose={props.onClose}
+        onClose={handleClose}
         withCloseButton={false}
         size={'37rem'}
         padding={'sm'}
@@ -226,7 +218,7 @@ export default function Composer(props: Props) {
             </Drawer.Title>
             <SegmentedControl
               value={mode}
-              onChange={(value) => setMode(value as ComposerMode)}
+              onChange={(value) => setModeOverride(value as ComposerMode)}
               disabled={addCard.isPending || createCollection.isPending}
               radius={'xl'}
               mx="auto"
@@ -272,7 +264,7 @@ export default function Composer(props: Props) {
           {mode === 'connection' ? (
             <Suspense>
               <AddConnectionForm
-                onClose={props.onClose}
+                onClose={handleClose}
                 analyticsContext={analyticsContext}
               />
             </Suspense>
@@ -407,10 +399,7 @@ export default function Composer(props: Props) {
                     variant="light"
                     size="md"
                     color={'gray'}
-                    onClick={() => {
-                      props.onClose();
-                      setSelectedCollections(initialCollections);
-                    }}
+                    onClick={handleClose}
                   >
                     Cancel
                   </Button>
@@ -497,7 +486,7 @@ export default function Composer(props: Props) {
                     variant="light"
                     size="md"
                     color={'gray'}
-                    onClick={props.onClose}
+                    onClick={handleClose}
                   >
                     Cancel
                   </Button>
