@@ -3,6 +3,7 @@ import { GetUserStatsController } from '../controllers/GetUserStatsController';
 import { StatsApiKeyMiddleware } from '../middleware/StatsApiKeyMiddleware';
 import { IProductAnalyticsQueryRepository } from '../../../../analytics/domain/IProductAnalyticsQueryRepository';
 import { OnboardingStatsComposer } from '../../../../analytics/application/OnboardingStatsComposer';
+import { isRetentionSegmentBy } from '../../../../analytics/infrastructure/repositories/query-services/RetentionQueryService';
 
 export const createStatsRoutes = (
   router: Router,
@@ -107,6 +108,122 @@ export const createStatsRoutes = (
     } catch (error: any) {
       return res.status(400).json({
         message: error?.message ?? 'Failed to load activation funnel stats',
+      });
+    }
+  });
+
+  /**
+   * GET /api/stats/retention — weekly signup-cohort retention triangle
+   *
+   * Query params: endWeek?, weeks?  (see shared params above). The weeks select
+   * signup-cohort weeks; activity is counted through the end week and never
+   * into the current in-progress week, so every reported cell is final and a
+   * historical endWeek reproduces the triangle as it stood then.
+   *
+   * Retention is calendar-week anchored: a user's activity week is
+   * date_trunc('week', ts) and weekOffset = activity week − cohort week (in
+   * weeks). Offset 0 (activity in the signup week itself) is omitted — that's
+   * the activation funnel's territory.
+   *
+   * Reading it:
+   *   - a ROW is one cohort's retention curve;
+   *   - a COLUMN (fixed weekOffset across cohorts, activeUsers / cohortSize)
+   *     is the retention-rate-over-time trend, e.g. "W1 retention by signup
+   *     week". Cohorts are small (~30–50), so smooth client-side (e.g. 4-week
+   *     rolling average) when plotting trends.
+   *
+   * Response: RetentionStatsDTO
+   *   {
+   *     dataPoints: Array<{
+   *       cohortWeekStart: string;  // ISO date of the signup week's Monday
+   *       cohortSize: number;       // signups that week (minus internal accounts)
+   *       weeks: Array<{            // dense, weekOffset 1..N (N = completed
+   *                                 //   weeks since the cohort week)
+   *         weekOffset: number;
+   *         activeUsers: number;    // distinct cohort users with ANY activity
+   *                                 //   (card, collection, collection-add,
+   *                                 //   connection, follow) that week
+   *         curatingUsers: number;  // distinct cohort users with collection-add
+   *                                 //   OR connection that week (WAC definition)
+   *       }>;
+   *     }>;                         // chronological, oldest -> newest, gap-filled
+   *     periodStart: string;
+   *     periodEnd: string;
+   *   }
+   */
+  router.get('/retention', async (req: Request, res: Response) => {
+    try {
+      const { endWeek, weeks } = parseAnalyticsQuery(req);
+      const result = await productAnalyticsQueryRepository.getRetentionStats({
+        endWeek,
+        weeks,
+      });
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res
+        .status(400)
+        .json({ message: error?.message ?? 'Failed to load retention stats' });
+    }
+  });
+
+  /**
+   * GET /api/stats/retention/segments — retention split by a user attribute
+   *
+   * Weekly cohorts are too small to segment individually, so all cohorts in
+   * the range are POOLED and each segment gets one aggregate retention curve.
+   *
+   * Query params: endWeek?, weeks?  (see shared params above), plus:
+   *   segmentBy  (required) one of:
+   *     'onboardingState'    COMPLETED / SKIPPED / IN_PROGRESS / NOT_STARTED,
+   *                          or 'NONE' for users with no onboarding_state row.
+   *                          Only meaningful for cohorts since the onboarding
+   *                          launch (2026-08-13).
+   *     'notifiedFirstWeek'  'notified' / 'not_notified': received any
+   *                          notification within 7 days of signup. NOTE:
+   *                          correlational — notifications are themselves
+   *                          triggered by engagement.
+   *
+   * Rates are activeUsers / eligibleUsers (NOT userCount): eligibleUsers
+   * accounts for right-censoring — users who signed up recently haven't been
+   * around long enough to count toward the later offsets.
+   *
+   * Response: RetentionSegmentsStatsDTO
+   *   {
+   *     segmentBy: string;
+   *     dataPoints: Array<{           // sorted by userCount desc, segment asc
+   *       segment: string;
+   *       userCount: number;          // segment users in the pooled cohort range
+   *       weeks: Array<{              // dense, weekOffset 1..N (N = offsets
+   *                                   //   reachable by the OLDEST cohort in range)
+   *         weekOffset: number;
+   *         eligibleUsers: number;    // denominator for this offset
+   *         activeUsers: number;
+   *         curatingUsers: number;
+   *       }>;
+   *     }>;
+   *     periodStart: string;          // pooled cohort range
+   *     periodEnd: string;
+   *   }
+   */
+  router.get('/retention/segments', async (req: Request, res: Response) => {
+    try {
+      const { endWeek, weeks } = parseAnalyticsQuery(req);
+      const segmentBy = String(req.query.segmentBy ?? '');
+      if (!isRetentionSegmentBy(segmentBy)) {
+        return res.status(400).json({
+          message: "segmentBy must be 'onboardingState' or 'notifiedFirstWeek'",
+        });
+      }
+      const result =
+        await productAnalyticsQueryRepository.getRetentionSegmentsStats({
+          endWeek,
+          weeks,
+          segmentBy,
+        });
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error?.message ?? 'Failed to load retention segment stats',
       });
     }
   });
