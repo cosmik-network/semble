@@ -93,12 +93,15 @@ export default function AddCardForm(props: Props) {
     },
   });
 
+  // Stable useCallback, unlike the form object it comes from
+  const { setValues } = form;
+
   useEffect(() => {
     if (props.initialUrl) {
-      form.setValues({ url: props.initialUrl });
+      setValues({ url: props.initialUrl });
       rawUrlInput.current = props.initialUrl;
     }
-  }, [props.initialUrl]);
+  }, [props.initialUrl, setValues]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
