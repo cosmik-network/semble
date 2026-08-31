@@ -48,7 +48,7 @@ export default function LoginForm(props: Props) {
         redirect: props.redirectPath,
       });
 
-      window.location.href = authUrl;
+      window.location.assign(authUrl);
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
     } finally {
