@@ -19,12 +19,13 @@ interface Props {
 }
 
 export default function StarterPackEmbed(props: Props) {
+  const { settings } = useSettings();
+
   if (!AppBskyGraphStarterpack.isRecord(props.embed.record)) {
     return null;
   }
 
   const image = getStarterPackImage(props.embed);
-  const { settings } = useSettings();
 
   if (settings.cardView === 'grid') {
     return (
