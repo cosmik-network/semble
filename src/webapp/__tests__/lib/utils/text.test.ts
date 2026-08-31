@@ -59,7 +59,6 @@ describe('truncateText', () => {
     const text = 'some text';
 
     // Act
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = truncateText(text, 'not-a-number' as any);
 
     // Assert
@@ -107,7 +106,6 @@ describe('sanitizeText', () => {
 
   it('should return an empty string when input is not a string', () => {
     // Arrange — runtime guard for non-string inputs
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nonString = 42 as any;
 
     // Act

@@ -51,7 +51,6 @@ interface UrlGraphViewProps {
 
 export default function UrlGraphView({ url }: UrlGraphViewProps) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(undefined);
 
   // State for depth control (default 1 hop)

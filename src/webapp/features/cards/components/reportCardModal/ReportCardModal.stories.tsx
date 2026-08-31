@@ -4,7 +4,6 @@ import { Box, Button } from '@mantine/core';
 import ReportCardModal, { ReportSubmission } from './ReportCardModal';
 
 const mockResolve = async (input: ReportSubmission) => {
-  // eslint-disable-next-line no-console
   console.log('[mock] report submitted', input);
   await new Promise((r) => setTimeout(r, 800));
 };
@@ -26,7 +25,6 @@ const meta: Meta<typeof ReportCardModal> = {
     isOpen: true,
     cardId: 'card-mock-001',
     onClose: () => {
-      // eslint-disable-next-line no-console
       console.log('[mock] modal closed');
     },
     onSubmit: mockResolve,
