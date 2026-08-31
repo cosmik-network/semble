@@ -118,11 +118,14 @@ export default function Composer(props: Props) {
 
   const MAX_NOTE_LENGTH = 500;
 
+  // Stable useCallback, unlike the form object it comes from
+  const { setValues: setCardFormValues } = cardForm;
+
   useEffect(() => {
     if (props.initialUrl) {
-      cardForm.setValues({ url: props.initialUrl });
+      setCardFormValues({ url: props.initialUrl });
     }
-  }, [props.initialUrl]);
+  }, [props.initialUrl, setCardFormValues]);
 
   // Reset state on close; every close path funnels through here
   const handleClose = () => {
