@@ -9,6 +9,7 @@ import {
   Menu,
   Box,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { ConnectionWithSourceAndTarget, UrlView } from '@semble/types';
 import { getRelativeTime } from '@/lib/utils/time';
 import { sanitizeText } from '@/lib/utils/text';
@@ -96,9 +97,10 @@ export default function ConnectionStatus(props: Props) {
               hideLabel={'See less'}
               maxHeight={100}
             >
-              <Text fw={500} fs={'italic'} c={'gray'}>
-                {props.connection.note}
-              </Text>
+              <RichTextRenderer
+                text={props.connection.note}
+                textProps={{ fw: 500, fs: 'italic', c: 'gray' }}
+              />
             </Spoiler>
           )}
 

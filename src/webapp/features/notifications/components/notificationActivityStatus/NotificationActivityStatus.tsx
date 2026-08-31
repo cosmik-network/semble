@@ -12,6 +12,7 @@ import {
   Text,
   ThemeIcon,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import {
   NotificationItem,
   Collection,
@@ -41,6 +42,7 @@ interface Props {
   followButton?: React.ReactNode;
   note?: string;
   iconColor?: string;
+  mentionSource?: 'NOTE' | 'CONNECTION' | 'COLLECTION';
 }
 
 export default function NotificationActivityStatus(props: Props) {
@@ -161,6 +163,19 @@ export default function NotificationActivityStatus(props: Props) {
                 )}
               </Fragment>
             )}
+          </Fragment>
+        );
+      case NotificationType.USER_MENTIONED_YOU:
+        return (
+          <Fragment>
+            {userName}{' '}
+            <Text span>
+              {props.mentionSource === 'CONNECTION'
+                ? 'mentioned you in a connection'
+                : props.mentionSource === 'COLLECTION'
+                  ? 'mentioned you in a collection'
+                  : 'mentioned you in a note'}
+            </Text>
           </Fragment>
         );
       case NotificationType.USER_FOLLOWED_YOU:
@@ -357,9 +372,10 @@ export default function NotificationActivityStatus(props: Props) {
             hideLabel={'See less'}
             maxHeight={100}
           >
-            <Text fw={500} fs={'italic'} c={'gray'}>
-              {props.note}
-            </Text>
+            <RichTextRenderer
+              text={props.note}
+              textProps={{ fw: 500, fs: 'italic', c: 'gray' }}
+            />
           </Spoiler>
         )}
       </Stack>

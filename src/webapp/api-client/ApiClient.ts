@@ -6,6 +6,7 @@ import {
   UserClient,
   FeedClient,
   NotificationClient,
+  TagClient,
 } from './clients';
 import { createTsRestClient } from './tsRestClient';
 import type {
@@ -136,6 +137,11 @@ import type {
   // Search types
   SearchUrlsParams,
   SearchUrlsResponse,
+  // Tag types
+  GetTagsParams,
+  GetTagsResponse,
+  GetTaggedItemsParams,
+  GetTaggedItemsResponse,
   // Graph types
   GetGraphDataParams,
   GetGraphDataResponse,
@@ -162,6 +168,7 @@ export class ApiClient {
   private userClient: UserClient;
   private feedClient: FeedClient;
   private notificationClient: NotificationClient;
+  private tagClient: TagClient;
 
   constructor(
     private baseUrl: string,
@@ -175,6 +182,7 @@ export class ApiClient {
     this.userClient = new UserClient(client);
     this.feedClient = new FeedClient(client);
     this.notificationClient = new NotificationClient(client);
+    this.tagClient = new TagClient(client);
   }
 
   // Query operations - delegate to QueryClient
@@ -641,6 +649,17 @@ export class ApiClient {
   // Search operations
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
     return this.queryClient.searchUrls(params);
+  }
+
+  // Tag operations - delegate to TagClient
+  async getTags(params?: GetTagsParams): Promise<GetTagsResponse> {
+    return this.tagClient.getTags(params);
+  }
+
+  async getTaggedItems(
+    params: GetTaggedItemsParams,
+  ): Promise<GetTaggedItemsResponse> {
+    return this.tagClient.getTaggedItems(params);
   }
 
   // Graph operations

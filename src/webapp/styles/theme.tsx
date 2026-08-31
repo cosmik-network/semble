@@ -159,7 +159,7 @@ export const theme = createTheme({
     }),
     TabsTab: TabsTab.extend({
       defaultProps: {
-        fw: 500,
+        fw: 600,
         fz: 'md',
       },
     }),

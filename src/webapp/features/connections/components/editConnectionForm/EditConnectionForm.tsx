@@ -32,6 +32,7 @@ import { CONNECTION_TYPES } from '../../const/connectionTypes';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { ConnectionWithSourceAndTarget } from '@semble/types';
 import { BiSolidChevronDown } from 'react-icons/bi';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -415,7 +416,7 @@ export default function EditConnectionForm(props: Props) {
             </Text>
           </Group>
 
-          <Textarea
+          <NoteTextarea
             id="note"
             placeholder={
               CONNECTION_TYPES.find(
@@ -428,8 +429,8 @@ export default function EditConnectionForm(props: Props) {
             rows={3}
             maxLength={MAX_NOTE_LENGTH}
             aria-describedby="note-char-remaining"
-            key={form.key('note')}
-            {...form.getInputProps('note')}
+            value={form.values.note}
+            onValueChange={(v) => form.setFieldValue('note', v)}
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}

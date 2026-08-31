@@ -2,7 +2,7 @@ import { NotificationType } from '@semble/types';
 import { FaUserPlus } from 'react-icons/fa6';
 import { FiPlus } from 'react-icons/fi';
 import { BiLink } from 'react-icons/bi';
-import { MdNotificationsActive } from 'react-icons/md';
+import { MdNotificationsActive, MdOutlineAlternateEmail } from 'react-icons/md';
 import { IconType } from 'react-icons/lib';
 
 export const getNotificationTypeIcon = (
@@ -35,6 +35,8 @@ export const getNotificationTypeIcon = (
       return BiLink;
     case NotificationType.USER_CONNECTED_YOUR_COLLECTION:
       return BiLink;
+    case NotificationType.USER_MENTIONED_YOU:
+      return MdOutlineAlternateEmail;
     default:
       return null;
   }

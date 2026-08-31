@@ -3,10 +3,15 @@ import type {
   ConnectionCreatedNotificationItem,
   CardCollectionNotificationItem,
   FollowNotificationItem,
+  MentionNotificationItem,
 } from '@/api-client';
 import { NotificationType } from '@/api-client';
 
-export type NotificationKind = 'connection' | 'follow' | 'cardCollection';
+export type NotificationKind =
+  | 'connection'
+  | 'follow'
+  | 'cardCollection'
+  | 'mention';
 
 type ClassifiedNotification =
   | {
@@ -14,7 +19,8 @@ type ClassifiedNotification =
       item: ConnectionCreatedNotificationItem;
     }
   | { kind: 'follow'; item: FollowNotificationItem }
-  | { kind: 'cardCollection'; item: CardCollectionNotificationItem };
+  | { kind: 'cardCollection'; item: CardCollectionNotificationItem }
+  | { kind: 'mention'; item: MentionNotificationItem };
 
 export const classifyNotification = (
   item: NotificationItem,
@@ -37,5 +43,7 @@ export const classifyNotification = (
     case NotificationType.USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION:
     case NotificationType.USER_ADDED_SUBSCRIBED_COLLECTION:
       return { kind: 'cardCollection', item };
+    case NotificationType.USER_MENTIONED_YOU:
+      return { kind: 'mention', item };
   }
 };

@@ -81,6 +81,20 @@ export interface EnrichedNotificationResult {
     updatedAt: Date;
   }>;
 
+  // Mention notification specific data (optional, only for USER_MENTIONED_YOU)
+  mentionSource?: 'NOTE' | 'CONNECTION' | 'COLLECTION';
+  mentionCollection?: {
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+    accessType: string;
+    authorId: string;
+    cardCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+
   // Connection notification specific data (optional, only for connection notifications)
   connectionId?: string;
   connectionType?: string;
@@ -121,6 +135,15 @@ export interface INotificationRepository {
     connectionId: string,
     actorUserId: CuratorId,
   ): Promise<Result<Notification[]>>;
+  /**
+   * Mention notifications (type USER_MENTIONED_YOU) attached to a given
+   * item. Exactly one of the keys should be provided.
+   */
+  findMentionNotificationsByItem(item: {
+    cardId?: string;
+    connectionId?: string;
+    collectionId?: string;
+  }): Promise<Result<Notification[]>>;
   findFollowNotificationsByActorAndTarget(
     actorUserId: CuratorId,
     targetId: string,

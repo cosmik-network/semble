@@ -7,6 +7,7 @@ import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
 import { connectionKeys } from '@/features/connections/lib/connectionKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 
 export default function useRemoveCardFromLibrary() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function useRemoveCardFromLibrary() {
       queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
       // Invalidate all URL metadata queries with stats to update tab counts
       queryClient.invalidateQueries({
         predicate: (query): boolean => {

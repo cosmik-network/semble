@@ -81,4 +81,8 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
       NotificationTypeEnum.USER_CONNECTED_SUBSCRIBED_COLLECTION,
     );
   }
+
+  public static userMentionedYou(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_MENTIONED_YOU);
+  }
 }
