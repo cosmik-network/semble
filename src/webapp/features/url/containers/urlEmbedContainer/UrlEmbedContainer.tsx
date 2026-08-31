@@ -14,7 +14,7 @@ import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 import { BiCollection, BiLink } from 'react-icons/bi';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import { useRouter } from 'next/navigation';
 import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
 import SembleHeaderBackground from '@/features/semble/containers/sembleContainer/SembleHeaderBackground';
@@ -27,9 +27,8 @@ interface Props {
 }
 
 export default function UrlEmbedContainer(props: Props) {
-  const { data, isPending } = useUrlMetadata({
+  const { data, isPending } = useUrlMetadataWithStats({
     url: props.url,
-    includeStats: true,
   });
 
   const router = useRouter();

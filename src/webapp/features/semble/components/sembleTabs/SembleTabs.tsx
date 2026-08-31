@@ -15,7 +15,7 @@ import {
 import TabItem from './TabItem';
 import TabCount from '@/components/tabCount/TabCount';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
@@ -66,9 +66,8 @@ export default function SembleTabs(props: Props) {
     VALID_TABS.includes(tabParam) ? tabParam : 'similar',
   );
   const { data: featureFlags } = useFeatureFlags();
-  const { data: urlMetadata, isError } = useUrlMetadata({
+  const { data: urlMetadata, isError } = useUrlMetadataWithStats({
     url: props.url,
-    includeStats: true,
   });
 
   // undefined while loading, null when the stats request failed
