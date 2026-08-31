@@ -166,7 +166,7 @@ export default function EditCollectionModal(props: Props) {
                 />
                 {isMargin && (
                   <Text size="sm" c="dimmed">
-                    Collections made in Margin can't be changed to open.
+                    Collections made in Margin can&apos;t be changed to open.
                   </Text>
                 )}
               </Stack>

@@ -63,7 +63,7 @@ export default function BookmarkletPage() {
                 Get the bookmarklet
               </Title>
               <Text c="dimmed" fw={500} ta="center" maw={370}>
-                Drag this button to your browser's bookmarks bar.
+                Drag this button to your browser&apos;s bookmarks bar.
               </Text>
             </Stack>
             <Box dangerouslySetInnerHTML={createBookmarkletLink()} />
