@@ -101,7 +101,11 @@ export const theme = createTheme({
               '--button-bg': 'var(--mantine-color-bright)',
               '--button-hover': 'var(--mantine-color-bright)',
               '--button-color': 'var(--mantine-color-body)',
-              '--button-bd': 'transparent',
+              // Same computed border-width as the built-in variants (which
+              // render `1px solid transparent`) so toggling a button between
+              // variants doesn't shift its width.
+              '--button-bd':
+                'calc(0.0625rem * var(--mantine-scale)) solid transparent',
             },
           };
         }
