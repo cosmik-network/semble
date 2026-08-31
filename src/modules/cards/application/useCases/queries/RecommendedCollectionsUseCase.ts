@@ -5,7 +5,7 @@ import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { CollectionDTO, User } from '@semble/types';
 import {
   ICollectionQueryRepository,
-  CollectionQueryResultDTO,
+  CollectionWithMatchedUrlsDTO,
 } from '../../../domain/ICollectionQueryRepository';
 import { CollectionAccessType } from '../../../domain/Collection';
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
@@ -19,11 +19,16 @@ import {
 import { GlobalFeedSeedService } from 'src/modules/feeds/application/services/GlobalFeedSeedService';
 
 export interface RecommendedCollectionsRankingConfig {
+  // Applied to log1p(cardCount) so size helps but can't dominate
   cardCountWeight: number;
+  // Applied to log1p(followerCount) so a few followers matter, hundreds don't pile on
   followerWeight: number;
   // Max score contribution for update recency; decays exponentially with age
   recencyWeight: number;
   recencyHalfLifeDays: number;
+  // Bonus per additional seed URL the collection contains beyond the first;
+  // rewards collections relevant to several of the caller's URLs at once
+  urlOverlapWeight: number;
   // Flat bonus when the collection author is followed on Bluesky by the caller
   bskyFollowWeight: number;
   // 0 = fully deterministic ranking, 1 = maximum jitter (still skewed toward higher scores)
@@ -32,10 +37,11 @@ export interface RecommendedCollectionsRankingConfig {
 
 export const DEFAULT_COLLECTION_RANKING_CONFIG: RecommendedCollectionsRankingConfig =
   {
-    cardCountWeight: 1,
-    followerWeight: 3,
+    cardCountWeight: 2, // 100 cards ≈ +9, 1000 cards ≈ +14
+    followerWeight: 8, // 5 followers ≈ +14, 50 followers ≈ +31
     recencyWeight: 20,
     recencyHalfLifeDays: 14,
+    urlOverlapWeight: 10,
     bskyFollowWeight: 30,
     randomness: 0.5,
   };
@@ -132,7 +138,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
       }
 
       // 2. Dedupe by collection id, excluding the caller's own collections
-      const collectionsById = new Map<string, CollectionQueryResultDTO>();
+      const collectionsById = new Map<string, CollectionWithMatchedUrlsDTO>();
       urlCollections.forEach((collection) => {
         if (callingUserId && collection.authorId === callingUserId) return;
         collectionsById.set(collection.id, collection);
@@ -284,13 +290,21 @@ export class RecommendedCollectionsUseCase implements UseCase<
   }
 
   private computeRankKey(
-    collection: CollectionQueryResultDTO,
+    collection: CollectionWithMatchedUrlsDTO,
     followerCount: number,
     authorFollowedOnBsky: boolean,
   ): number {
+    // log1p dampens raw counts so huge collections and follower piles don't
+    // drown out recency and relevance signals
     let score =
-      this.config.cardCountWeight * collection.cardCount +
-      this.config.followerWeight * followerCount;
+      this.config.cardCountWeight * Math.log1p(collection.cardCount) +
+      this.config.followerWeight * Math.log1p(followerCount);
+
+    // Every candidate matches at least one seed URL; extra matches signal
+    // the collection is relevant to more of what the caller is looking at
+    score +=
+      this.config.urlOverlapWeight *
+      Math.max(0, collection.matchedUrls.length - 1);
 
     const ageDays =
       (Date.now() - collection.updatedAt.getTime()) / (1000 * 60 * 60 * 24);
