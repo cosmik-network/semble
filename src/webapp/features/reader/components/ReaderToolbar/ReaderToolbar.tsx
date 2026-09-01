@@ -42,7 +42,7 @@ export default function ReaderToolbar(props: Props) {
         radius="xl"
         shadow="md"
         withBorder
-        p={4}
+        p={'xs'}
         style={{ pointerEvents: 'auto' }}
       >
         <Group gap="xl">
