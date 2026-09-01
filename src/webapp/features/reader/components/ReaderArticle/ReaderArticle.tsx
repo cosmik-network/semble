@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import {
   Alert,
   Box,
@@ -30,16 +30,6 @@ export default function ReaderArticle(props: Props) {
 
   const content = reader.data?.content ?? '';
   const html = settings.showLinks ? content : stripLinks(content);
-
-  // The article is raw HTML, so retarget its links here to open in a new
-  // tab; navigating in place would destroy the reader
-  useEffect(() => {
-    const anchors = articleRef.current?.querySelectorAll('a[href]');
-    for (const anchor of Array.from(anchors ?? [])) {
-      anchor.setAttribute('target', '_blank');
-      anchor.setAttribute('rel', 'noopener noreferrer');
-    }
-  }, [html]);
 
   return (
     <ScrollArea style={{ flex: 1 }}>
