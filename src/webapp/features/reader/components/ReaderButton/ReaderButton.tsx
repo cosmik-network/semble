@@ -15,16 +15,12 @@ import {
   CloseButton,
   Skeleton,
   Button,
-  Anchor,
+  Badge,
   Container,
+  Divider,
+  Popover,
 } from '@mantine/core';
-import {
-  TbBook2,
-  TbExternalLink,
-  TbLink,
-  TbLinkOff,
-  TbList,
-} from 'react-icons/tb';
+import { TbBook2, TbExternalLink, TbLink } from 'react-icons/tb';
 import { MdErrorOutline } from 'react-icons/md';
 import {
   fetchReaderContent,
@@ -35,6 +31,8 @@ import useLinkInteractions from '../../lib/useLinkInteractions';
 import LinkActionsPopover from '../LinkActionsPopover/LinkActionsPopover';
 import LinkActionsSheet from '../LinkActionsSheet/LinkActionsSheet';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
+import ReaderTextSettings from '../ReaderTextSettings/ReaderTextSettings';
+import { getDomain } from '@/lib/utils/link';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import styles from './ReaderButton.module.css';
@@ -43,9 +41,6 @@ interface Props {
   url: string;
 }
 
-const FONT_SIZE_MIN = 14;
-const FONT_SIZE_MAX = 24;
-const FONT_SIZE_STEP = 2;
 const FONT_SIZE_DEFAULT = 17;
 
 function ArticleSkeleton() {
@@ -71,10 +66,12 @@ function ArticleSkeleton() {
 
 export default function ReaderButton({ url }: Props) {
   const [opened, setOpened] = useState(false);
+  const [linksDrawerOpen, setLinksDrawerOpen] = useState(false);
   const [state, setState] = useState<ReaderState>({ status: 'idle' });
   const [fontSize, setFontSize] = useState(FONT_SIZE_DEFAULT);
   const [removeLinks, setRemoveLinks] = useState(false);
-  const [linksDrawerOpen, setLinksDrawerOpen] = useState(false);
+  const [wide, setWide] = useState(false);
+  const [textSettingsOpen, setTextSettingsOpen] = useState(false);
   const [saveLink, setSaveLink] = useState<ReaderLink | null>(null);
   const [connectLink, setConnectLink] = useState<ReaderLink | null>(null);
 
@@ -106,12 +103,14 @@ export default function ReaderButton({ url }: Props) {
   function handleSaveLink(link: ReaderLink) {
     closeHover();
     clearPressedLink();
+    setLinksDrawerOpen(false);
     setSaveLink(link);
   }
 
   function handleConnectLink(link: ReaderLink) {
     closeHover();
     clearPressedLink();
+    setLinksDrawerOpen(false);
     setConnectLink(link);
   }
 
@@ -145,6 +144,9 @@ export default function ReaderButton({ url }: Props) {
         size="full"
         padding={0}
         withCloseButton={false}
+        // While the links drawer or a modal is stacked on top, Esc should only
+        // close it, not this drawer underneath
+        closeOnEscape={!linksDrawerOpen && !saveLink && !connectLink}
         styles={{
           content: { display: 'flex', flexDirection: 'column' },
           body: {
@@ -155,14 +157,28 @@ export default function ReaderButton({ url }: Props) {
           },
         }}
       >
+        {/* ── Top bar ── */}
+        <Group p="xs" justify="space-between" align="center">
+          <Text size="sm" c="dimmed" fw={600}>
+            {getDomain(url)}
+          </Text>
+          <CloseButton
+            radius="xl"
+            onClick={handleClose}
+            aria-label="Close reader mode"
+          />
+        </Group>
+        <Divider color="var(--mantine-color-default-border)" />
+
         {/* ── Scrollable article area ── */}
         <ScrollArea style={{ flex: 1 }}>
           <Container
-            size={'sm'}
+            size={wide ? 'md' : 'sm'}
             px="xl"
             style={{
               paddingTop: '2.5rem',
               paddingBottom: '3rem',
+              transition: 'max-width 0.25s ease',
             }}
           >
             {state.status === 'loading' && <ArticleSkeleton />}
@@ -239,120 +255,84 @@ export default function ReaderButton({ url }: Props) {
         )}
 
         {/* ── Sticky bottom bar ── */}
-        <Box className={styles.bottomBar}>
-          <Group px={'md'} py={'lg'} justify="space-between" align="center">
-            {/* Left: font size + link controls */}
-            <Group gap="xs">
-              <Tooltip label="Decrease font size" withArrow position="top">
-                <ActionIcon
-                  variant="light"
-                  color="gray"
-                  size="lg"
-                  radius="xl"
-                  onClick={() =>
-                    setFontSize((s) =>
-                      Math.max(FONT_SIZE_MIN, s - FONT_SIZE_STEP),
-                    )
-                  }
-                  disabled={fontSize <= FONT_SIZE_MIN}
-                  aria-label="Decrease font size"
-                >
-                  <Text size="xs" fw={700}>
-                    A-
-                  </Text>
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Increase font size" withArrow position="top">
-                <ActionIcon
-                  variant="light"
-                  color="gray"
-                  size="lg"
-                  radius="xl"
-                  onClick={() =>
-                    setFontSize((s) =>
-                      Math.min(FONT_SIZE_MAX, s + FONT_SIZE_STEP),
-                    )
-                  }
-                  disabled={fontSize >= FONT_SIZE_MAX}
-                  aria-label="Increase font size"
-                >
-                  <Text size="xs" fw={700}>
-                    A+
-                  </Text>
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip
-                label={removeLinks ? 'Show links' : 'Remove links'}
-                withArrow
-                position="top"
-              >
-                <ActionIcon
-                  variant={removeLinks ? 'filled' : 'light'}
-                  color={'gray'}
-                  size="lg"
-                  radius="xl"
-                  onClick={() => setRemoveLinks((v) => !v)}
-                  aria-label={removeLinks ? 'Show links' : 'Remove links'}
-                >
-                  {removeLinks ? <TbLinkOff size={16} /> : <TbLink size={16} />}
-                </ActionIcon>
-              </Tooltip>
-              {state.status === 'success' && (
-                <Tooltip label="View all links" withArrow position="top">
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="lg"
-                    radius="xl"
-                    onClick={() => setLinksDrawerOpen(true)}
-                    aria-label="View all links"
-                  >
-                    <TbList size={16} />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </Group>
-
-            {/* Right: open original + close */}
-            <Group gap="xs">
-              <Anchor
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="never"
-              >
+        <Divider color="var(--mantine-color-default-border)" />
+        <Group p={'xs'} gap="xs" justify="space-between" align="center">
+          <Group gap="xs">
+            <Popover
+              opened={textSettingsOpen}
+              onChange={setTextSettingsOpen}
+              position="top-start"
+              radius="lg"
+              shadow="md"
+              width={300}
+              withinPortal={false}
+            >
+              <Popover.Target>
                 <Button
-                  variant="light"
+                  variant={textSettingsOpen ? 'inverse' : 'light'}
                   color="gray"
                   size="sm"
                   radius="xl"
-                  rightSection={<TbExternalLink size={14} />}
+                  leftSection={
+                    <Text component="span" fw={700}>
+                      Aa
+                    </Text>
+                  }
+                  onClick={() => setTextSettingsOpen((o) => !o)}
+                  aria-label="Text settings"
                 >
-                  Open original
+                  Text
                 </Button>
-              </Anchor>
-
-              <CloseButton
-                size="lg"
-                radius={'xl'}
-                onClick={handleClose}
-                aria-label="Close reader mode"
+              </Popover.Target>
+              <ReaderTextSettings
+                fontSize={fontSize}
+                onFontSizeChange={setFontSize}
+                wide={wide}
+                onWideChange={setWide}
+                showLinks={!removeLinks}
+                onShowLinksChange={(show) => setRemoveLinks(!show)}
               />
-            </Group>
+            </Popover>
+
+            {state.status === 'success' && (
+              <Button
+                variant="light"
+                color="gray"
+                size="sm"
+                radius="xl"
+                leftSection={<TbLink size={16} />}
+                rightSection={
+                  <Badge size="xs" variant="filled" color="gray">
+                    {links.length}
+                  </Badge>
+                }
+                onClick={() => setLinksDrawerOpen(true)}
+                aria-label="View all links"
+              >
+                Links
+              </Button>
+            )}
           </Group>
-        </Box>
+          <Tooltip label="Open original" withArrow position="top">
+            <ActionIcon
+              component="a"
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="light"
+              color="gray"
+              size="lg"
+              radius="xl"
+              aria-label="Open original"
+            >
+              <TbExternalLink size={18} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
 
         <LinkActionsSheet
           link={pressedLink}
           onClose={clearPressedLink}
-          onSave={handleSaveLink}
-          onConnect={handleConnectLink}
-        />
-
-        <ReaderLinksDrawer
-          opened={linksDrawerOpen}
-          onClose={() => setLinksDrawerOpen(false)}
-          links={links}
           onSave={handleSaveLink}
           onConnect={handleConnectLink}
         />
@@ -363,6 +343,7 @@ export default function ReaderButton({ url }: Props) {
             onClose={() => setSaveLink(null)}
             url={saveLink.href}
             urlLibraryCount={0}
+            zIndex={300}
           />
         )}
 
@@ -372,8 +353,17 @@ export default function ReaderButton({ url }: Props) {
           sourceUrl={url}
           targetUrl={connectLink?.href}
           defaultConnectionType="LEADS_TO"
+          zIndex={300}
         />
       </Drawer>
+
+      <ReaderLinksDrawer
+        opened={linksDrawerOpen}
+        onClose={() => setLinksDrawerOpen(false)}
+        links={links}
+        onSave={handleSaveLink}
+        onConnect={handleConnectLink}
+      />
     </>
   );
 }

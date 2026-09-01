@@ -25,6 +25,7 @@ interface Props {
   viaCardId?: string;
   cardContent?: UrlCard['cardContent'];
   analyticsContext?: CardSaveAnalyticsContext;
+  zIndex?: number;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -122,7 +123,12 @@ export default function AddCardToModal(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       title="Save card"
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      zIndex={props.zIndex}
+      overlayProps={
+        props.zIndex
+          ? { ...DEFAULT_OVERLAY_PROPS, zIndex: props.zIndex - 1 }
+          : DEFAULT_OVERLAY_PROPS
+      }
       centered
       onClick={(e) => e.stopPropagation()}
     >
