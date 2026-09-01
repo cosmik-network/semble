@@ -12,5 +12,7 @@ export default function ReaderHeaderButton() {
   if (!featureFlags?.readerMode || !rawId) return null;
 
   const url = decodeURIComponent(rawId);
-  return <ReaderButton url={url} />;
+
+  // Key is used to reset reader state across /url navigations
+  return <ReaderButton key={url} url={url} />;
 }
