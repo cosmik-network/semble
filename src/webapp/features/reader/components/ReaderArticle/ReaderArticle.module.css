@@ -32,8 +32,6 @@
   color: var(--mantine-color-blue-6);
   text-decoration: underline;
   text-underline-offset: 3px;
-  /* Long-press opens our action sheet; suppress the iOS link callout */
-  -webkit-touch-callout: none;
 }
 
 .readerContent :global(a:hover) {

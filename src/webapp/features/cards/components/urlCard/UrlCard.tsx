@@ -38,6 +38,7 @@ interface Props {
   onTogglePinInCollection?: () => void;
   connectTooltipOpen?: boolean;
   saveTooltipOpen?: boolean;
+  modalZIndex?: number;
 }
 
 export default function UrlCard(props: Props) {
@@ -190,6 +191,7 @@ export default function UrlCard(props: Props) {
             onTogglePinInCollection={props.onTogglePinInCollection}
             connectTooltipOpen={props.connectTooltipOpen}
             saveTooltipOpen={props.saveTooltipOpen}
+            modalZIndex={props.modalZIndex}
           />
         </Stack>
       </Stack>
