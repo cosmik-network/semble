@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { buildSembleQuery } from '@/lib/utils/link';
 
 interface Props {
   viaCardId?: string;
@@ -17,15 +18,12 @@ export default function SemblePageClient(props: Props) {
   // Clean URL on mount if viaCardId exists
   useEffect(() => {
     if (props.viaCardId && !cleanedUrlRef.current) {
-      // Manually build query string to avoid re-encoding the URL
       const params = new URLSearchParams(window.location.search);
-      const queryParts: string[] = [];
-      params.forEach((value, key) => {
-        if (key !== 'viaCardId') {
-          queryParts.push(`${key}=${value}`);
-        }
-      });
-      window.history.replaceState(null, '', `?${queryParts.join('&')}`);
+      window.history.replaceState(
+        null,
+        '',
+        buildSembleQuery(params, { omit: 'viaCardId' }),
+      );
       cleanedUrlRef.current = true;
     }
   }, [props.viaCardId]);

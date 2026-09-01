@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { encodeUrlParam } from '@/lib/utils/link';
 import { SEMBLE_TAB_CHANGE_EVENT } from '../sembleStats/SembleStatItem';
 import {
   Box,
@@ -92,7 +93,7 @@ export default function SembleTabs(props: Props) {
         const newTab = val as TabValue;
         setActiveTab(newTab);
         const viaCardId = searchParams.get('viaCardId');
-        const qs = `id=${props.url}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
+        const qs = `id=${encodeUrlParam(props.url)}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
         window.history.replaceState(null, '', `?${qs}`);
       }}
     >

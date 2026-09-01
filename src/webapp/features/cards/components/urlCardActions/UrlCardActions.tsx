@@ -34,6 +34,7 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
+import { getSembleHref } from '@/lib/utils/link';
 
 interface Props {
   id: string;
@@ -236,7 +237,7 @@ export default function UrlCardActions(props: Props) {
             </CopyButton>
 
             <CopyButton
-              value={`${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.cardContent.url}`}
+              value={`${process.env.NEXT_PUBLIC_APP_URL}${getSembleHref(props.cardContent.url)}`}
             >
               {({ copy }) => (
                 <Menu.Item

@@ -7,7 +7,11 @@ import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { MouseEvent, Suspense } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
 import { useRouter } from 'next/navigation';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import styles from './UrlCard.module.css';
 import { useSettings } from '@/providers/settings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
@@ -55,12 +59,9 @@ export default function UrlCard(props: Props) {
     if (isCollectionPage(props.url) || isProfilePage(props.url)) {
       targetUrl = props.url;
     } else {
-      // Build URL with viaCardId first, then id last (since id contains a URL that might have query params)
-      if (props.viaCardId) {
-        targetUrl = `/url?viaCardId=${props.id}&id=${props.cardContent.url}`;
-      } else {
-        targetUrl = `/url?id=${props.cardContent.url}`;
-      }
+      targetUrl = getSembleHref(props.cardContent.url, {
+        viaCardId: props.viaCardId ? props.id : undefined,
+      });
     }
 
     // Register super properties and capture click event when navigating to semble page

@@ -16,7 +16,11 @@ import {
 import SembleLogo from '@/assets/semble-logo.svg';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment } from 'react';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -151,7 +155,7 @@ export default function CollectionEmbedContainer(props: Props) {
                           return;
                         }
 
-                        router.push(`/url?id=${card.cardContent.url}`);
+                        router.push(getSembleHref(card.cardContent.url));
                       }}
                     >
                       <Stack justify="space-between" gap={'sm'} flex={1}>
