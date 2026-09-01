@@ -12,16 +12,26 @@ import {
 
 export const FONT_SIZE_OPTIONS = [14, 17, 20, 24];
 
-interface Props {
+export interface ReaderSettings {
   fontSize: number;
-  onFontSizeChange: (size: number) => void;
   wide: boolean;
-  onWideChange: (wide: boolean) => void;
   showLinks: boolean;
-  onShowLinksChange: (show: boolean) => void;
+}
+
+export const DEFAULT_READER_SETTINGS: ReaderSettings = {
+  fontSize: 17,
+  wide: false,
+  showLinks: true,
+};
+
+interface Props {
+  settings: ReaderSettings;
+  onChange: (settings: ReaderSettings) => void;
 }
 
 export default function ReaderTextSettings(props: Props) {
+  const { settings } = props;
+
   return (
     <Popover.Dropdown p="md">
       <Stack gap="sm">
@@ -30,13 +40,15 @@ export default function ReaderTextSettings(props: Props) {
             Text size
           </Text>
           <Text size="xs" fw={600} c="dimmed">
-            {props.fontSize}px
+            {settings.fontSize}px
           </Text>
         </Group>
         <SegmentedControl
           fullWidth
-          value={String(props.fontSize)}
-          onChange={(value) => props.onFontSizeChange(Number(value))}
+          value={String(settings.fontSize)}
+          onChange={(value) =>
+            props.onChange({ ...settings, fontSize: Number(value) })
+          }
           data={FONT_SIZE_OPTIONS.map((size, index) => ({
             value: String(size),
             label: (
@@ -53,8 +65,10 @@ export default function ReaderTextSettings(props: Props) {
           </Text>
           <SegmentedControl
             size="xs"
-            value={props.wide ? 'wide' : 'cozy'}
-            onChange={(value) => props.onWideChange(value === 'wide')}
+            value={settings.wide ? 'wide' : 'cozy'}
+            onChange={(value) =>
+              props.onChange({ ...settings, wide: value === 'wide' })
+            }
             data={[
               { value: 'cozy', label: 'Cozy' },
               { value: 'wide', label: 'Wide' },
@@ -67,9 +81,12 @@ export default function ReaderTextSettings(props: Props) {
             Show links
           </Text>
           <Switch
-            checked={props.showLinks}
+            checked={settings.showLinks}
             onChange={(event) =>
-              props.onShowLinksChange(event.currentTarget.checked)
+              props.onChange({
+                ...settings,
+                showLinks: event.currentTarget.checked,
+              })
             }
             aria-label="Show links"
           />

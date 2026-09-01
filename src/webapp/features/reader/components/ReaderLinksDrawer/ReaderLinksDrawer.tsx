@@ -1,93 +1,82 @@
 'use client';
 
-import {
-  ActionIcon,
-  Anchor,
-  Drawer,
-  Group,
-  Stack,
-  Text,
-  Tooltip,
-} from '@mantine/core';
-import { FiPlus } from 'react-icons/fi';
-import { TbPlugConnected } from 'react-icons/tb';
+import { Suspense } from 'react';
+import { Drawer, ScrollArea, Stack, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { getDomain } from '@/lib/utils/link';
+import { useScrollFade } from '@/hooks/useScrollFade';
+import ReaderLinkCard from '../ReaderLinkCard/ReaderLinkCard';
+import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import type { ReaderLink } from '../../lib/useReaderLinks';
 
 interface Props {
   opened: boolean;
   onClose: () => void;
   links: ReaderLink[];
-  onSave: (link: ReaderLink) => void;
-  onConnect: (link: ReaderLink) => void;
+  articleUrl: string;
 }
 
 export default function ReaderLinksDrawer(props: Props) {
+  const isDesktop = useMediaQuery('(min-width: 48em)', false);
+  const { setViewport, maskImage, updateFade } = useScrollFade();
+
   return (
     <Drawer
       opened={props.opened}
       onClose={props.onClose}
-      position="bottom"
-      size="60%"
+      position={isDesktop ? 'right' : 'bottom'}
+      size={isDesktop ? 'md' : '80%'}
+      radius={0}
+      styles={{
+        content: { display: 'flex', flexDirection: 'column' },
+        body: {
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        },
+      }}
       title={
-        <Text fw={600}>
-          Links in this article
-          {props.links.length > 0 && ` (${props.links.length})`}
-        </Text>
+        <Stack gap={0}>
+          <Text fw={600}>Links on this page</Text>
+          <Text fw={500} size="xs" c="gray">
+            {getDomain(props.articleUrl)}
+          </Text>
+        </Stack>
       }
     >
       {props.links.length === 0 ? (
         <Text c="dimmed" py="md">
-          No links found in this article.
+          No links found on this page.
         </Text>
       ) : (
-        <Stack gap="sm" pb="md">
-          {props.links.map((link) => (
-            <Group key={link.href} justify="space-between" wrap="nowrap">
-              <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
-                <Anchor
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fw={500}
-                  c="bright"
-                  lineClamp={1}
-                >
-                  {link.text}
-                </Anchor>
-                <Text size="xs" c="dimmed" truncate>
-                  {getDomain(link.href)}
-                </Text>
-              </Stack>
-              <Group gap="xs" wrap="nowrap">
-                <Tooltip label="Save" withArrow position="top">
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="lg"
-                    radius="xl"
-                    onClick={() => props.onSave(link)}
-                    aria-label={`Save ${link.text}`}
-                  >
-                    <FiPlus size={16} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Connect" withArrow position="top">
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="lg"
-                    radius="xl"
-                    onClick={() => props.onConnect(link)}
-                    aria-label={`Connect ${link.text}`}
-                  >
-                    <TbPlugConnected size={16} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-            </Group>
-          ))}
-        </Stack>
+        <ScrollArea
+          type="auto"
+          style={{ flex: 1, minHeight: 0 }}
+          viewportRef={setViewport}
+          onScrollPositionChange={updateFade}
+          styles={{
+            viewport: maskImage
+              ? { maskImage, WebkitMaskImage: maskImage }
+              : undefined,
+          }}
+        >
+          <Stack gap="sm" pb="md">
+            <Suspense
+              fallback={props.links.map((link) => (
+                <UrlCardSkeleton key={link.href} />
+              ))}
+            >
+              {props.links.map((link) => (
+                <ReaderLinkCard
+                  key={link.href}
+                  link={link}
+                  articleUrl={props.articleUrl}
+                />
+              ))}
+            </Suspense>
+          </Stack>
+        </ScrollArea>
       )}
     </Drawer>
   );
