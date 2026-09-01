@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Alert,
   Box,
@@ -14,11 +14,7 @@ import {
 import { MdErrorOutline } from 'react-icons/md';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReaderContent } from '@/app/api/reader/route';
-import type { ReaderLink } from '../../lib/useReaderLinks';
-import useLinkInteractions from '../../lib/useLinkInteractions';
 import { stripLinks } from '../../lib/utils/stripLinks';
-import LinkActionsPopover from '../LinkActionsPopover/LinkActionsPopover';
-import LinkActionsSheet from '../LinkActionsSheet/LinkActionsSheet';
 import type { ReaderSettings } from '../ReaderTextSettings/ReaderTextSettings';
 import ReaderArticleSkeleton from './Skeleton.ReaderArticle';
 import styles from './ReaderArticle.module.css';
@@ -26,14 +22,8 @@ import styles from './ReaderArticle.module.css';
 interface Props {
   reader: UseQueryResult<ReaderContent>;
   settings: ReaderSettings;
-  onSaveLink: (link: ReaderLink) => void;
-  onConnectLink: (link: ReaderLink) => void;
 }
 
-/**
- * The scrollable article, plus the hover popover and long-press sheet for
- * acting on links inside it.
- */
 export default function ReaderArticle(props: Props) {
   const { reader, settings } = props;
   const articleRef = useRef<HTMLDivElement>(null);
@@ -41,109 +31,82 @@ export default function ReaderArticle(props: Props) {
   const content = reader.data?.content ?? '';
   const html = settings.showLinks ? content : stripLinks(content);
 
-  const {
-    hovered,
-    cancelHoverClose,
-    scheduleHoverClose,
-    closeHover,
-    pressedLink,
-    clearPressedLink,
-  } = useLinkInteractions(articleRef, html);
-
-  function act(handler: (link: ReaderLink) => void, link: ReaderLink) {
-    closeHover();
-    clearPressedLink();
-    handler(link);
-  }
+  // The article is raw HTML, so retarget its links here to open in a new
+  // tab; navigating in place would destroy the reader
+  useEffect(() => {
+    const anchors = articleRef.current?.querySelectorAll('a[href]');
+    for (const anchor of Array.from(anchors ?? [])) {
+      anchor.setAttribute('target', '_blank');
+      anchor.setAttribute('rel', 'noopener noreferrer');
+    }
+  }, [html]);
 
   return (
-    <>
-      <ScrollArea style={{ flex: 1 }}>
-        <Container
-          size={settings.wide ? 'md' : 'sm'}
-          px="xl"
-          style={{
-            paddingTop: '2.5rem',
-            paddingBottom: '7rem',
-            transition: 'max-width 0.25s ease',
-          }}
-        >
-          {reader.isPending && <ReaderArticleSkeleton />}
+    <ScrollArea style={{ flex: 1 }}>
+      <Container
+        size={settings.wide ? 'md' : 'sm'}
+        px="xl"
+        style={{
+          paddingTop: '2.5rem',
+          paddingBottom: '7rem',
+          transition: 'max-width 0.25s ease',
+        }}
+      >
+        {reader.isPending && <ReaderArticleSkeleton />}
 
-          {reader.isError && (
-            <Stack gap="md">
-              <Alert
-                icon={<MdErrorOutline size={20} />}
-                title="Could not load reader"
-                color="red"
-                variant="light"
-              >
-                {reader.error.message}
-              </Alert>
-              <Button
-                variant="default"
-                size="sm"
-                radius="xl"
-                onClick={() => reader.refetch()}
-              >
-                Try again
-              </Button>
-            </Stack>
-          )}
+        {reader.isError && (
+          <Stack gap="md">
+            <Alert
+              icon={<MdErrorOutline size={20} />}
+              title="Could not load reader"
+              color="red"
+              variant="light"
+            >
+              {reader.error.message}
+            </Alert>
+            <Button
+              variant="default"
+              size="sm"
+              radius="xl"
+              onClick={() => reader.refetch()}
+            >
+              Try again
+            </Button>
+          </Stack>
+        )}
 
-          {reader.data && (
-            <Stack gap="xs">
-              {reader.data.siteName && (
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-                  {reader.data.siteName}
-                </Text>
-              )}
-              {reader.data.title && (
-                <Title
-                  order={1}
-                  style={{ lineHeight: 1.2, fontSize: '1.75rem' }}
-                >
-                  {reader.data.title}
-                </Title>
-              )}
-              {reader.data.byline && (
-                <Text size="sm" c="dimmed" mt={2}>
-                  {reader.data.byline}
-                </Text>
-              )}
-              <Box
-                component="article"
-                ref={articleRef}
-                dangerouslySetInnerHTML={{ __html: html }}
-                className={styles.readerContent}
-                style={{
-                  fontSize: `${settings.fontSize}px`,
-                  lineHeight: 1.8,
-                  color: 'var(--mantine-color-text)',
-                  marginTop: '1.5rem',
-                }}
-              />
-            </Stack>
-          )}
-        </Container>
-      </ScrollArea>
-
-      {hovered && (
-        <LinkActionsPopover
-          hovered={hovered}
-          onSave={() => act(props.onSaveLink, hovered.link)}
-          onConnect={() => act(props.onConnectLink, hovered.link)}
-          onMouseEnter={cancelHoverClose}
-          onMouseLeave={scheduleHoverClose}
-        />
-      )}
-
-      <LinkActionsSheet
-        link={pressedLink}
-        onClose={clearPressedLink}
-        onSave={(link) => act(props.onSaveLink, link)}
-        onConnect={(link) => act(props.onConnectLink, link)}
-      />
-    </>
+        {reader.data && (
+          <Stack gap="xs">
+            {reader.data.siteName && (
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+                {reader.data.siteName}
+              </Text>
+            )}
+            {reader.data.title && (
+              <Title order={1} style={{ lineHeight: 1.2, fontSize: '1.75rem' }}>
+                {reader.data.title}
+              </Title>
+            )}
+            {reader.data.byline && (
+              <Text size="sm" c="dimmed" mt={2}>
+                {reader.data.byline}
+              </Text>
+            )}
+            <Box
+              component="article"
+              ref={articleRef}
+              dangerouslySetInnerHTML={{ __html: html }}
+              className={styles.readerContent}
+              style={{
+                fontSize: `${settings.fontSize}px`,
+                lineHeight: 1.8,
+                color: 'var(--mantine-color-text)',
+                marginTop: '1.5rem',
+              }}
+            />
+          </Stack>
+        )}
+      </Container>
+    </ScrollArea>
   );
 }

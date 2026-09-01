@@ -4,24 +4,19 @@ import { useState } from 'react';
 import { Button, Drawer } from '@mantine/core';
 import { TbBook2 } from 'react-icons/tb';
 import useReaderContent from '../../lib/queries/useReaderContent';
-import useReaderLinks, { type ReaderLink } from '../../lib/useReaderLinks';
+import useReaderLinks from '../../lib/useReaderLinks';
 import ReaderArticle from '../ReaderArticle/ReaderArticle';
 import ReaderToolbar from '../ReaderToolbar/ReaderToolbar';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
 import { DEFAULT_READER_SETTINGS } from '../ReaderTextSettings/ReaderTextSettings';
-import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
-import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 
 interface Props {
   url: string;
 }
 
-type LinkAction = { kind: 'save' | 'connect'; link: ReaderLink };
-
 export default function ReaderButton(props: Props) {
   const [opened, setOpened] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
-  const [linkAction, setLinkAction] = useState<LinkAction | null>(null);
   const [settings, setSettings] = useState(DEFAULT_READER_SETTINGS);
 
   const reader = useReaderContent({ url: props.url, enabled: opened });
@@ -29,9 +24,6 @@ export default function ReaderButton(props: Props) {
   // Extracted from the original content so the list keeps working while
   // the show-links toggle is off
   const links = useReaderLinks(reader.data?.content ?? '', props.url);
-
-  const saveLink = linkAction?.kind === 'save' ? linkAction.link : null;
-  const connectLink = linkAction?.kind === 'connect' ? linkAction.link : null;
 
   return (
     <>
@@ -53,9 +45,9 @@ export default function ReaderButton(props: Props) {
         size="full"
         p={0}
         withCloseButton={false}
-        // While the links drawer or a modal is stacked on top, Esc should only
-        // close it, not this drawer underneath
-        closeOnEscape={!linksOpen && !linkAction}
+        // While the links drawer is stacked on top, Esc should only close it,
+        // not this drawer underneath
+        closeOnEscape={!linksOpen}
         styles={{
           content: {
             position: 'relative',
@@ -70,12 +62,7 @@ export default function ReaderButton(props: Props) {
           },
         }}
       >
-        <ReaderArticle
-          reader={reader}
-          settings={settings}
-          onSaveLink={(link) => setLinkAction({ kind: 'save', link })}
-          onConnectLink={(link) => setLinkAction({ kind: 'connect', link })}
-        />
+        <ReaderArticle reader={reader} settings={settings} />
 
         <ReaderToolbar
           settings={settings}
@@ -83,25 +70,6 @@ export default function ReaderButton(props: Props) {
           linkCount={reader.data ? links.length : undefined}
           onOpenLinks={() => setLinksOpen(true)}
           onClose={() => setOpened(false)}
-        />
-
-        {saveLink && (
-          <AddCardToModal
-            isOpen
-            onClose={() => setLinkAction(null)}
-            url={saveLink.href}
-            urlLibraryCount={0}
-            zIndex={300}
-          />
-        )}
-
-        <AddConnectionModal
-          isOpen={!!connectLink}
-          onClose={() => setLinkAction(null)}
-          sourceUrl={props.url}
-          targetUrl={connectLink?.href}
-          defaultConnectionType="LEADS_TO"
-          zIndex={300}
         />
       </Drawer>
 
