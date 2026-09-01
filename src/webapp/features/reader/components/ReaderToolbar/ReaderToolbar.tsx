@@ -6,6 +6,7 @@ import {
   Badge,
   Button,
   Group,
+  Loader,
   Paper,
   Popover,
   Text,
@@ -27,6 +28,7 @@ interface Props {
 /** The pill floating over the bottom of the reader. */
 export default function ReaderToolbar(props: Props) {
   const [textSettingsOpen, setTextSettingsOpen] = useState(false);
+  const linksLoading = props.linkCount === undefined;
   const linksDisabled = !props.linkCount;
 
   return (
@@ -94,7 +96,7 @@ export default function ReaderToolbar(props: Props) {
               }
               withArrow
               position="top"
-              disabled={props.linkCount === undefined}
+              disabled={linksLoading}
             >
               <Button
                 variant="light"
@@ -104,9 +106,13 @@ export default function ReaderToolbar(props: Props) {
                 data-disabled={linksDisabled}
                 leftSection={<TbLink size={16} />}
                 rightSection={
-                  <Badge size="xs" variant="filled" color="gray" miw={20}>
-                    {props.linkCount ?? ''}
-                  </Badge>
+                  linksLoading ? (
+                    <Loader size={12} color="gray" />
+                  ) : (
+                    <Badge size="xs" variant="filled" color="gray" miw={20}>
+                      {props.linkCount}
+                    </Badge>
+                  )
                 }
                 onClick={() => {
                   if (!linksDisabled) props.onOpenLinks();
