@@ -51,7 +51,7 @@ export default function ReaderButton(props: Props) {
         onClose={() => setOpened(false)}
         position="bottom"
         size="full"
-        padding={0}
+        p={0}
         withCloseButton={false}
         // While the links drawer or a modal is stacked on top, Esc should only
         // close it, not this drawer underneath

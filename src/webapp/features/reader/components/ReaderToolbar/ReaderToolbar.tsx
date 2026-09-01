@@ -46,7 +46,7 @@ export default function ReaderToolbar(props: Props) {
         style={{ pointerEvents: 'auto' }}
       >
         <Group gap="xl">
-          <Group gap={0}>
+          <Group gap={'xs'}>
             <Popover
               opened={textSettingsOpen}
               onChange={setTextSettingsOpen}
@@ -58,10 +58,9 @@ export default function ReaderToolbar(props: Props) {
             >
               <Popover.Target>
                 <Button
-                  variant={textSettingsOpen ? 'inverse' : 'subtle'}
+                  variant="light"
                   color="gray"
                   size="sm"
-                  px="sm"
                   radius="xl"
                   leftSection={
                     <Text component="span" fw={700}>
@@ -84,16 +83,15 @@ export default function ReaderToolbar(props: Props) {
                 loads. Mantine fills a disabled button gray, so the disabled
                 style is overridden to just dim it. */}
             <Button
-              variant="subtle"
+              variant="light"
               color="gray"
               size="sm"
-              px="sm"
               radius="xl"
               disabled={linksDisabled}
               style={
                 linksDisabled
                   ? {
-                      background: 'transparent',
+                      background: 'var(--mantine-color-gray-light)',
                       color: 'var(--mantine-color-dimmed)',
                       cursor: 'default',
                     }
@@ -114,7 +112,7 @@ export default function ReaderToolbar(props: Props) {
 
           <Tooltip label="Close" withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              variant="light"
               color="gray"
               size={36}
               radius="xl"
