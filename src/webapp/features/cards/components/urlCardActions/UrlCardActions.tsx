@@ -59,6 +59,8 @@ interface Props {
   connectTooltipOpen?: boolean;
   /** Same, for the save tooltip. */
   saveTooltipOpen?: boolean;
+  /** Stacks the save and connect modals above a Drawer the card sits in. */
+  modalZIndex?: number;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -309,6 +311,7 @@ export default function UrlCardActions(props: Props) {
             urlLibraryCount={props.urlLibraryCount}
             viaCardId={props.viaCardId}
             analyticsContext={props.analyticsContext}
+            zIndex={props.modalZIndex}
           />
 
           <AddConnectionModal
@@ -317,6 +320,7 @@ export default function UrlCardActions(props: Props) {
             sourceUrl={props.cardContent.url}
             targetUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
+            zIndex={props.modalZIndex}
           />
 
           {props.currentCollection && (
