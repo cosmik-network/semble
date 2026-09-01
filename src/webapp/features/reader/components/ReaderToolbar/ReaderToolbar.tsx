@@ -88,18 +88,9 @@ export default function ReaderToolbar(props: Props) {
               size="sm"
               radius="xl"
               disabled={linksDisabled}
-              style={
-                linksDisabled
-                  ? {
-                      background: 'var(--mantine-color-gray-light)',
-                      color: 'var(--mantine-color-dimmed)',
-                      cursor: 'default',
-                    }
-                  : undefined
-              }
               leftSection={<TbLink size={16} />}
               rightSection={
-                <Badge size="xs" variant="filled" color="gray" miw={18}>
+                <Badge size="xs" variant="filled" color="gray" miw={20}>
                   {props.linkCount ?? ''}
                 </Badge>
               }
