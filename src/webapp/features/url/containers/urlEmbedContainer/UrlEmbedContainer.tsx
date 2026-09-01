@@ -16,7 +16,11 @@ import { BiCollection, BiLink } from 'react-icons/bi';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
 import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import { useRouter } from 'next/navigation';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import SembleHeaderBackground from '@/features/semble/containers/sembleContainer/SembleHeaderBackground';
 import UrlEmbedContainerSkeleton from './skeleton.UrlEmbedContainer';
 import { LinkActionIcon } from '@/components/link/MantineLink';
@@ -41,7 +45,7 @@ export default function UrlEmbedContainer(props: Props) {
       router.push(props.url);
       return;
     }
-    router.push(`/url?id=${encodeURIComponent(props.url)}`);
+    router.push(getSembleHref(props.url));
   };
 
   if (isPending) {
@@ -66,7 +70,7 @@ export default function UrlEmbedContainer(props: Props) {
             size="compact-xs"
             variant="transparent"
             radius={'xs'}
-            href={`${appUrl}/url?id=${encodeURIComponent(props.url)}`}
+            href={`${appUrl}${getSembleHref(props.url)}`}
             target="_blank"
           >
             <Image src={SembleLogo.src} alt="Semble" h={24} />

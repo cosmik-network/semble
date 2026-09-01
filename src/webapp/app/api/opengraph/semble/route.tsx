@@ -7,7 +7,7 @@ import {
   normalizeEmbedImageUrl,
 } from '@/features/openGraph/lib/utils/collage';
 import { abbreviateNumber, truncateText } from '@/lib/utils/text';
-import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
+import { getDomain } from '@/lib/utils/link';
 
 // Node runtime is required: fetchImageAsDataUri uses Buffer to base64-encode
 // the pre-fetched thumbnail. Do not switch to 'edge'.
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   if (url) {
     try {
       const result = await getUrlMetadata({
-        url: getUrlFromSlug([url]),
+        url,
         includeStats: true,
       });
 

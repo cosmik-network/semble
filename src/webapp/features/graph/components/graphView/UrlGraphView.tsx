@@ -24,6 +24,7 @@ import NodePopupDetail from '../nodePopups/NodePopupDetail';
 import GraphFilterPanel from './GraphFilterPanel';
 import { useRouter } from 'next/navigation';
 import styles from './GraphView.module.css';
+import { getSembleHref } from '@/lib/utils/link';
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
@@ -230,10 +231,10 @@ export default function UrlGraphView({ url }: UrlGraphViewProps) {
           route = `/collections/${node.metadata.handle}/${node.metadata.rkey}`;
           break;
         case 'URL':
-          route = `/url?id=${encodeURIComponent(node.metadata.url)}`;
+          route = getSembleHref(node.metadata.url);
           break;
         case 'NOTE':
-          route = `/url?id=${encodeURIComponent(node.metadata.parentUrl)}`;
+          route = getSembleHref(node.metadata.parentUrl);
           break;
         default:
           return;

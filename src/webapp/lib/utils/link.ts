@@ -26,6 +26,46 @@ export const getDisplayUrl = (url: string, maxPathLength = Infinity) => {
   }
 };
 
+// Escapes only the characters that break a query-string value so `?id=<url>`
+// stays readable in the address bar. `%` must go first.
+export const encodeUrlParam = (url: string) =>
+  url.replace(/[%#&+]/g, (c) => encodeURIComponent(c));
+
+// `id` goes last since it is the only value that can contain a query string
+export const getSembleHref = (
+  url: string,
+  opts?: { viaCardId?: string; sembleTab?: string },
+) => {
+  const parts: string[] = [];
+  if (opts?.viaCardId) parts.push(`viaCardId=${opts.viaCardId}`);
+  if (opts?.sembleTab) parts.push(`sembleTab=${opts.sembleTab}`);
+  parts.push(`id=${encodeUrlParam(url)}`);
+  return `/url?${parts.join('&')}`;
+};
+
+// Rebuilds a semble page query string from already-decoded params without
+// re-encoding anything but the `id` url
+export const buildSembleQuery = (
+  params: URLSearchParams,
+  opts?: { omit?: string; set?: Record<string, string> },
+) => {
+  const parts: string[] = [];
+  const pending = { ...(opts?.set ?? {}) };
+  params.forEach((value, key) => {
+    if (key === opts?.omit) return;
+    if (key in pending) {
+      parts.push(`${key}=${pending[key]}`);
+      delete pending[key];
+      return;
+    }
+    parts.push(`${key}=${key === 'id' ? encodeUrlParam(value) : value}`);
+  });
+  for (const [key, value] of Object.entries(pending)) {
+    parts.push(`${key}=${value}`);
+  }
+  return `?${parts.join('&')}`;
+};
+
 export const getUrlFromSlug = (slug: string[]) => {
   const decoded = slug.map(decodeURIComponent);
   const url = decoded.join('/');
