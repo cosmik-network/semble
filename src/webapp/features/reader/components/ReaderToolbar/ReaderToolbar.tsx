@@ -57,21 +57,28 @@ export default function ReaderToolbar(props: Props) {
               withinPortal={false}
             >
               <Popover.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="sm"
-                  radius="xl"
-                  leftSection={
-                    <Text component="span" fw={700}>
-                      Aa
-                    </Text>
-                  }
-                  onClick={() => setTextSettingsOpen((open) => !open)}
-                  aria-label="Text settings"
+                <Tooltip
+                  label="Text settings"
+                  withArrow
+                  position="top"
+                  disabled={textSettingsOpen}
                 >
-                  Text
-                </Button>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    radius="xl"
+                    leftSection={
+                      <Text component="span" fw={700}>
+                        Aa
+                      </Text>
+                    }
+                    onClick={() => setTextSettingsOpen((open) => !open)}
+                    aria-label="Text settings"
+                  >
+                    Text
+                  </Button>
+                </Tooltip>
               </Popover.Target>
               <ReaderTextSettings
                 settings={props.settings}
@@ -79,26 +86,36 @@ export default function ReaderToolbar(props: Props) {
               />
             </Popover>
 
-            {/* Always rendered so the bar keeps its width while the article
-                loads. Mantine fills a disabled button gray, so the disabled
-                style is overridden to just dim it. */}
-            <Button
-              variant="light"
-              color="gray"
-              size="sm"
-              radius="xl"
-              disabled={linksDisabled}
-              leftSection={<TbLink size={16} />}
-              rightSection={
-                <Badge size="xs" variant="filled" color="gray" miw={20}>
-                  {props.linkCount ?? ''}
-                </Badge>
+            <Tooltip
+              label={
+                props.linkCount === 0
+                  ? 'No links found in this article'
+                  : 'View all links'
               }
-              onClick={props.onOpenLinks}
-              aria-label="View all links"
+              withArrow
+              position="top"
+              disabled={props.linkCount === undefined}
             >
-              Links
-            </Button>
+              <Button
+                variant="light"
+                color="gray"
+                size="sm"
+                radius="xl"
+                data-disabled={linksDisabled}
+                leftSection={<TbLink size={16} />}
+                rightSection={
+                  <Badge size="xs" variant="filled" color="gray" miw={20}>
+                    {props.linkCount ?? ''}
+                  </Badge>
+                }
+                onClick={() => {
+                  if (!linksDisabled) props.onOpenLinks();
+                }}
+                aria-label="View all links"
+              >
+                Links
+              </Button>
+            </Tooltip>
           </Group>
 
           <Tooltip label="Close" withArrow position="top">
