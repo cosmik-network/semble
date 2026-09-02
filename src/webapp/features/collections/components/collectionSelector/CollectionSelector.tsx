@@ -17,7 +17,6 @@ import {
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
 import CollectionSelectorRecommended from '../collectionSelectorRecommended/CollectionSelectorRecommended';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
 import { FaSeedling, FaWandMagicSparkles } from 'react-icons/fa6';
@@ -40,8 +39,7 @@ interface Props {
 
 export default function CollectionSelector(props: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { data: featureFlags } = useFeatureFlags();
-  const showRecommended = !!featureFlags?.recommendedCollections && !!props.url;
+  const showRecommended = !!props.url;
 
   // Controlled so that clearing the URL (which hides the recommended tab)
   // falls back to a visible tab instead of stranding the selection on one
