@@ -16,7 +16,7 @@ interface Props {
   children: ReactNode;
 }
 
-export default function CollectionStatDrawer(props: Props) {
+export default function StatDrawer(props: Props) {
   const isDesktop = useMediaQuery('(min-width: 48em)', false);
 
   return (
