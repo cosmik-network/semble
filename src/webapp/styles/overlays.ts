@@ -1,3 +1,12 @@
+// Theme-level default for Modal/Drawer: same gradient + blur treatment as the
+// presets below, but a deep blue tint so it stays quiet. No zIndex here so
+// the component's own zIndex flows through to the overlay.
+export const SUBTLE_OVERLAY_PROPS = {
+  blur: 3,
+  gradient:
+    'linear-gradient(0deg, light-dark(rgba(20, 62, 114, 0.45), rgba(6, 26, 64, 0.75)), light-dark(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.05)))',
+};
+
 export const DEFAULT_OVERLAY_PROPS = {
   inset: 0,
   zIndex: 102,

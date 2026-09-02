@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import classes from './global.module.css';
+import { SUBTLE_OVERLAY_PROPS } from './overlays';
 
 import {
   createTheme,
@@ -16,6 +17,7 @@ import {
   Tooltip,
   Text,
   Combobox,
+  Drawer,
   Notification,
   Menu,
   SegmentedControl,
@@ -151,6 +153,12 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'lg',
         transitionProps: { transition: 'pop' },
+        overlayProps: SUBTLE_OVERLAY_PROPS,
+      },
+    }),
+    Drawer: Drawer.extend({
+      defaultProps: {
+        overlayProps: SUBTLE_OVERLAY_PROPS,
       },
     }),
     Spoiler: Spoiler.extend({
