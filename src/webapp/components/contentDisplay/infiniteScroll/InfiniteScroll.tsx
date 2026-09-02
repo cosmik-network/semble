@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, startTransition, useRef } from 'react';
+import { ReactNode, useEffect, startTransition } from 'react';
 import { Center, Button, Stack, Loader, Divider } from '@mantine/core';
 import { useIntersection } from '@mantine/hooks';
 
@@ -17,9 +17,8 @@ interface Props {
 }
 
 export default function InfiniteScroll(props: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const { ref, entry } = useIntersection({
-    root: containerRef.current,
+    root: null,
     threshold: 0,
     rootMargin: '0px 0px 1000px 0px',
   });

@@ -6,32 +6,29 @@ import { cardKeys } from '../cardKeys';
 // stats — the semble and collection tabs read noteCount and collectionCount
 // from it — and a caller that knows only part of that would have to invent the
 // rest. Partial knowledge belongs in cardKeys.urlStatus instead.
-interface PropsWithStats {
+interface Props {
   url: string;
-  includeStats: true;
 }
-
-interface PropsWithoutStats {
-  url: string;
-  includeStats?: false;
-}
-
-type Props = PropsWithStats | PropsWithoutStats;
 
 export default function useUrlMetadata(props: Props) {
-  if (props.includeStats) {
-    // Non-suspense: stats are progressive — tabs render immediately, counts fill in async
-    return useQuery({
-      queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
-      queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
-    });
-  }
-
   return useSuspenseQuery({
-    queryKey: cardKeys.urlMetadata(props.url, {
-      includeStats: props.includeStats,
-    }),
-    queryFn: () =>
-      getUrlMetadata({ url: props.url, includeStats: props.includeStats }),
+    queryKey: cardKeys.urlMetadata(props.url, {}),
+    queryFn: () => getUrlMetadata({ url: props.url }),
+  });
+}
+
+// Non-suspense: stats are progressive — tabs render immediately, counts fill in async
+export function useUrlMetadataWithStats(props: Props) {
+  return useQuery({
+    queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
+    queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
+  });
+}
+
+// Suspense variant of the stats query; shares its cache entry
+export function useSuspenseUrlMetadataWithStats(props: Props) {
+  return useSuspenseQuery({
+    queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
+    queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
   });
 }

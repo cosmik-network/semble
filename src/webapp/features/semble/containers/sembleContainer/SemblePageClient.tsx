@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+import { buildSembleQuery } from '@/lib/utils/link';
 
 interface Props {
   viaCardId?: string;
@@ -12,23 +13,20 @@ interface Props {
  * Uses children prop pattern to maintain server component status for nested components.
  */
 export default function SemblePageClient(props: Props) {
-  const [cleanedUrl, setCleanedUrl] = useState(false);
+  const cleanedUrlRef = useRef(false);
 
   // Clean URL on mount if viaCardId exists
   useEffect(() => {
-    if (props.viaCardId && !cleanedUrl) {
-      // Manually build query string to avoid re-encoding the URL
+    if (props.viaCardId && !cleanedUrlRef.current) {
       const params = new URLSearchParams(window.location.search);
-      const queryParts: string[] = [];
-      params.forEach((value, key) => {
-        if (key !== 'viaCardId') {
-          queryParts.push(`${key}=${value}`);
-        }
-      });
-      window.history.replaceState(null, '', `?${queryParts.join('&')}`);
-      setCleanedUrl(true);
+      window.history.replaceState(
+        null,
+        '',
+        buildSembleQuery(params, { omit: 'viaCardId' }),
+      );
+      cleanedUrlRef.current = true;
     }
-  }, [props.viaCardId, cleanedUrl]);
+  }, [props.viaCardId]);
 
   return <>{props.children}</>;
 }

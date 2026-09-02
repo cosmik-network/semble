@@ -18,6 +18,10 @@ export default function ProfileSearchResultsContainer(props: Props) {
     return <SearchQueryAlert query={props.query} />;
   }
 
+  return <ProfileSearchResults query={props.query} />;
+}
+
+function ProfileSearchResults(props: Props) {
   const {
     data,
     error,

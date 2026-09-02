@@ -1,4 +1,5 @@
 import { UpdateNoteCardUseCase } from '../../application/useCases/commands/UpdateNoteCardUseCase';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { FakeCardPublisher } from '../utils/FakeCardPublisher';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -44,7 +45,11 @@ describe('UpdateNoteCardUseCase', () => {
       cardCollectionService,
     );
 
-    useCase = new UpdateNoteCardUseCase(cardRepository, cardPublisher);
+    useCase = new UpdateNoteCardUseCase(
+      cardRepository,
+      cardPublisher,
+      new FakeEventPublisher(),
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();

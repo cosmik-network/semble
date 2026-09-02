@@ -9,6 +9,7 @@ export enum CardSaveSource {
   ADD_CARD_DRAWER = 'add_card_drawer',
   ONBOARDING = 'onboarding',
   RECOMMENDED = 'recommended',
+  READER = 'reader',
 }
 
 export enum FollowSource {

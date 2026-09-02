@@ -1,14 +1,8 @@
 'use client';
 
 import { Dispatch, SetStateAction, useState } from 'react';
-import {
-  Button,
-  Group,
-  Stack,
-  Text,
-  Textarea,
-  VisuallyHidden,
-} from '@mantine/core';
+import { Button, Group, Stack, Text, VisuallyHidden } from '@mantine/core';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import { notifications } from '@mantine/notifications';
 import { BsExclamation, BsTrash2Fill } from 'react-icons/bs';
 import useRemoveCardFromLibrary from '../../lib/mutations/useRemoveCardFromLibrary';
@@ -49,7 +43,7 @@ export default function CardNoteEditor(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      <Textarea
+      <NoteTextarea
         id="note"
         aria-label="Your note"
         placeholder="Add a note about this card"
@@ -60,7 +54,7 @@ export default function CardNoteEditor(props: Props) {
         maxLength={MAX_NOTE_LENGTH}
         aria-describedby="note-char-remaining"
         value={props.note ?? ''}
-        onChange={(e) => props.onChange(e.currentTarget.value)}
+        onValueChange={props.onChange}
       />
       <VisuallyHidden id="note-char-remaining" aria-live="polite">
         {`${MAX_NOTE_LENGTH - (props.note?.length ?? 0)} characters remaining`}

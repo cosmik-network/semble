@@ -32,6 +32,7 @@ import { BiSolidChevronDown } from 'react-icons/bi';
 import { CardSaveSource } from '@/features/analytics/types';
 import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -392,7 +393,7 @@ export default function AddConnectionForm(props: Props) {
             </Text>
           </Group>
 
-          <Textarea
+          <NoteTextarea
             id="note"
             placeholder={
               CONNECTION_TYPES.find(
@@ -405,8 +406,8 @@ export default function AddConnectionForm(props: Props) {
             rows={3}
             maxLength={MAX_NOTE_LENGTH}
             aria-describedby="note-char-remaining"
-            key={form.key('note')}
-            {...form.getInputProps('note')}
+            value={form.values.note}
+            onValueChange={(v) => form.setFieldValue('note', v)}
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}

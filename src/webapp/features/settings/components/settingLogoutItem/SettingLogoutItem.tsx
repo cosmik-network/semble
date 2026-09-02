@@ -6,7 +6,7 @@ import { IoMdLogOut } from 'react-icons/io';
 import SettingItemSkeleton from '../settingItem/Skeleton.SettingItem';
 
 export default function SettingLogoutItem() {
-  const { logout, isLoading } = useAuth();
+  const { logout, isLoading, isAuthenticated } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -17,6 +17,7 @@ export default function SettingLogoutItem() {
   };
 
   if (isLoading) return <SettingItemSkeleton />;
+  if (!isAuthenticated) return null;
 
   return (
     <Button

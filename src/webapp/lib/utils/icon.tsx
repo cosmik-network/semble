@@ -1,5 +1,6 @@
+import { ReactNode } from 'react';
 import { UrlType } from '@semble/types';
-import { IconType } from 'react-icons/lib';
+import { IconBaseProps, IconType } from 'react-icons/lib';
 import { GrArticle } from 'react-icons/gr';
 import { IoMdLink, IoMdBook } from 'react-icons/io';
 import { AiOutlineFileSearch } from 'react-icons/ai';
@@ -30,4 +31,15 @@ export const getUrlTypeIcon = (urlType?: UrlType): IconType => {
     default:
       return IoMdLink;
   }
+};
+
+// Element-returning variant for use directly in JSX; the icons are stable
+// module-level components, which the static-components lint rule can't see
+// through a component-scope variable.
+export const renderUrlTypeIcon = (
+  urlType?: UrlType,
+  props?: IconBaseProps,
+): ReactNode => {
+  const Icon = getUrlTypeIcon(urlType);
+  return <Icon {...props} />;
 };

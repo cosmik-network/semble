@@ -18,6 +18,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { BsExclamation } from 'react-icons/bs';
 import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -107,7 +108,7 @@ export default function CreateCollectionForm(props: Props) {
           {...form.getInputProps('name')}
         />
 
-        <Textarea
+        <NoteTextarea
           id="description"
           label="Description"
           placeholder="Describe what this collection is about"
@@ -115,8 +116,8 @@ export default function CreateCollectionForm(props: Props) {
           size="md"
           rows={3}
           maxLength={500}
-          key={form.key('description')}
-          {...form.getInputProps('description')}
+          value={form.values.description}
+          onValueChange={(v) => form.setFieldValue('description', v)}
         />
 
         <Select

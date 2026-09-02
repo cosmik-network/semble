@@ -19,6 +19,7 @@ import { MdOutlineEmojiNature } from 'react-icons/md';
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
 import { BiRightArrowAlt, BiSearch } from 'react-icons/bi';
+import { TbSettings } from 'react-icons/tb';
 import { LinkButton } from '@/components/link/MantineLink';
 import { useLoginHref } from '@/hooks/useLoginHref';
 import { useNavbarContext } from '@/providers/navbar';
@@ -84,6 +85,12 @@ export default function GuestNavbar() {
               href="/search"
               label="Search"
               icon={<BiSearch size={25} />}
+            />
+
+            <NavItem
+              href="/settings"
+              label="Settings"
+              icon={<TbSettings size={25} />}
             />
           </Stack>
         </Stack>

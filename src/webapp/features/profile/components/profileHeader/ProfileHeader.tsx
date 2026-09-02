@@ -48,7 +48,11 @@ export default async function ProfileHeader(props: Props) {
   return (
     <Fragment>
       {profile.bannerUrl ? (
-        <Image src={profile.bannerUrl} h={150} />
+        <Image
+          src={profile.bannerUrl}
+          alt={`${profile.name}'s banner`}
+          h={150}
+        />
       ) : (
         <Card h={150} bg={'var(--mantine-color-disabled)'} radius={0} />
       )}

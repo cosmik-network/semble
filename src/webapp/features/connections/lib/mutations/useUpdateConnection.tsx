@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 import { UpdateConnectionRequest } from '@semble/types';
 
 export default function useUpdateConnection() {
@@ -17,6 +18,8 @@ export default function useUpdateConnection() {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all feed queries to update connection items in feeds
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
+      // Invalidate tag queries so tags typed in the connection note appear in autocomplete
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
       // Invalidate all URL metadata queries with stats to update tab counts
       queryClient.invalidateQueries({
         predicate: (query): boolean => {

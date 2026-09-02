@@ -7,6 +7,7 @@ import { Group, Stack, Text } from '@mantine/core';
 import { CollectionAccessType } from '@semble/types';
 import { Suspense } from 'react';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 
 interface Props {
   rkey: string;
@@ -51,9 +52,10 @@ export default function SembleCollectionCardContent(props: Props) {
           />
         </Group>
         {collection.description && (
-          <Text c={'gray'} fz={'sm'} lineClamp={3}>
-            {collection.description}
-          </Text>
+          <RichTextRenderer
+            text={collection.description}
+            textProps={{ c: 'gray', fz: 'sm', lineClamp: 3 }}
+          />
         )}
       </Stack>
 

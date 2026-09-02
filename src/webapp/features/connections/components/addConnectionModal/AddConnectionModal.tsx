@@ -14,6 +14,7 @@ interface Props {
   targetUrl?: string;
   defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
+  zIndex?: number;
 }
 
 export default function AddConnectionModal(props: Props) {
@@ -22,7 +23,12 @@ export default function AddConnectionModal(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       title="New Connection"
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      zIndex={props.zIndex}
+      overlayProps={
+        props.zIndex
+          ? { ...DEFAULT_OVERLAY_PROPS, zIndex: props.zIndex - 1 }
+          : DEFAULT_OVERLAY_PROPS
+      }
       size="md"
       centered
       onClick={(e) => e.stopPropagation()}

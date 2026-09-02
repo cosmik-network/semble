@@ -8,6 +8,9 @@ import { UserFollowedTargetEvent } from '../../../modules/user/domain/events/Use
 import { UserUnfollowedTargetEvent } from '../../../modules/user/domain/events/UserUnfollowedTargetEvent';
 import { ConnectionCreatedEvent } from '../../../modules/cards/domain/events/ConnectionCreatedEvent';
 import { ConnectionRemovedEvent } from '../../../modules/cards/domain/events/ConnectionRemovedEvent';
+import { NoteCardUpdatedEvent } from '../../../modules/cards/domain/events/NoteCardUpdatedEvent';
+import { ConnectionUpdatedEvent } from '../../../modules/cards/domain/events/ConnectionUpdatedEvent';
+import { CollectionUpdatedEvent } from '../../../modules/cards/domain/events/CollectionUpdatedEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
 import { ConnectionId } from '../../../modules/cards/domain/value-objects/ConnectionId';
@@ -87,6 +90,24 @@ export interface SerializedConnectionRemovedEvent extends SerializedEvent {
   curatorId: string;
 }
 
+export interface SerializedNoteCardUpdatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.NOTE_CARD_UPDATED;
+  cardId: string;
+  curatorId: string;
+}
+
+export interface SerializedConnectionUpdatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.CONNECTION_UPDATED;
+  connectionId: string;
+  curatorId: string;
+}
+
+export interface SerializedCollectionUpdatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.COLLECTION_UPDATED;
+  collectionId: string;
+  authorId: string;
+}
+
 export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
@@ -96,7 +117,10 @@ export type SerializedEventUnion =
   | SerializedUserFollowedTargetEvent
   | SerializedUserUnfollowedTargetEvent
   | SerializedConnectionCreatedEvent
-  | SerializedConnectionRemovedEvent;
+  | SerializedConnectionRemovedEvent
+  | SerializedNoteCardUpdatedEvent
+  | SerializedConnectionUpdatedEvent
+  | SerializedCollectionUpdatedEvent;
 
 export class EventMapper {
   static toSerialized(event: IDomainEvent): SerializedEventUnion {
@@ -197,6 +221,36 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         connectionId: event.connectionId.getValue().toString(),
         curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof NoteCardUpdatedEvent) {
+      return {
+        eventType: EventNames.NOTE_CARD_UPDATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        cardId: event.cardId.getValue().toString(),
+        curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof ConnectionUpdatedEvent) {
+      return {
+        eventType: EventNames.CONNECTION_UPDATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        connectionId: event.connectionId.getValue().toString(),
+        curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof CollectionUpdatedEvent) {
+      return {
+        eventType: EventNames.COLLECTION_UPDATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        collectionId: event.collectionId.getValue().toString(),
+        authorId: event.authorId.value,
       };
     }
 
@@ -330,6 +384,40 @@ export class EventMapper {
         return ConnectionRemovedEvent.reconstruct(
           connectionId,
           curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.NOTE_CARD_UPDATED: {
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return NoteCardUpdatedEvent.reconstruct(
+          cardId,
+          curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CONNECTION_UPDATED: {
+        const connectionId = ConnectionId.createFromString(
+          eventData.connectionId,
+        ).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return ConnectionUpdatedEvent.reconstruct(
+          connectionId,
+          curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.COLLECTION_UPDATED: {
+        const collectionId = CollectionId.createFromString(
+          eventData.collectionId,
+        ).unwrap();
+        const authorId = CuratorId.create(eventData.authorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        return CollectionUpdatedEvent.reconstruct(
+          collectionId,
+          authorId,
           dateTimeOccurred,
         ).unwrap();
       }

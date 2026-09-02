@@ -20,18 +20,21 @@ import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
 import { FiChrome } from 'react-icons/fi';
 import { FaBluesky } from 'react-icons/fa6';
 import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
-import { Suspense } from 'react';
-import AccountSummarySkeleton from '../../components/accountSummary/Skeleton.AccountSummary';
+import { getServerSession } from '@/lib/auth/dal.server';
 
 export default async function SettingsContainer() {
-  const featureFlags = await getServerFeatureFlags();
+  const [featureFlags, session] = await Promise.all([
+    getServerFeatureFlags(),
+    getServerSession(),
+  ]);
+  // Only a definitive guest loses the auth-only items; 'unresolved' keeps them
+  // and lets the client repair the session.
+  const isGuest = session.status === 'guest';
 
   return (
     <Container p={'xs'} size={'xs'}>
       <Stack gap={'xl'}>
-        <Suspense fallback={<AccountSummarySkeleton />}>
-          <AccountSummary />
-        </Suspense>
+        <AccountSummary />
         <Stack gap={'lg'}>
           <ButtonGroup orientation="vertical">
             <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
@@ -45,10 +48,12 @@ export default async function SettingsContainer() {
             <SettingItem href="/settings/advanced" icon={MdScience}>
               Advanced
             </SettingItem>
-            <SettingItem href="/settings/api-keys" icon={MdKey}>
-              API Keys
-            </SettingItem>
-            {featureFlags.bskyFollows && (
+            {!isGuest && (
+              <SettingItem href="/settings/api-keys" icon={MdKey}>
+                API Keys
+              </SettingItem>
+            )}
+            {!isGuest && featureFlags.bskyFollows && (
               <SettingItem href="/settings/bluesky-follows" icon={FaBluesky}>
                 Bluesky follows
               </SettingItem>
@@ -105,7 +110,7 @@ export default async function SettingsContainer() {
               About
             </SettingItem>
           </ButtonGroup>
-          <SettingLogoutItem />
+          {!isGuest && <SettingLogoutItem />}
         </Stack>
       </Stack>
     </Container>

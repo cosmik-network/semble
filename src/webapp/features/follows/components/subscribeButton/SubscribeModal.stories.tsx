@@ -7,11 +7,9 @@ const meta: Meta<typeof SubscribeModal> = {
   args: {
     opened: true,
     onClose: () => {
-      // eslint-disable-next-line no-console
       console.log('[mock] modal closed');
     },
     onConfirm: (scopes) => {
-      // eslint-disable-next-line no-console
       console.log('[mock] confirmed scopes', scopes);
     },
   },

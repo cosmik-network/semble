@@ -10,8 +10,8 @@ interface Props {
 export default function Header(props: Props) {
   return (
     <Paper pos={'sticky'} top={0} radius={0} style={{ zIndex: 100 }}>
-      <Group gap={'xs'} p={'xs'} justify="space-between">
-        <Group gap={'xs'}>
+      <Group gap={'xs'} p={'xs'} justify="space-between" wrap="nowrap">
+        <Group gap={'xs'} wrap="nowrap" flex={1} miw={0}>
           {props.children}
           {props.title && (
             <Text fz={'lg'} fw={700} lineClamp={1}>

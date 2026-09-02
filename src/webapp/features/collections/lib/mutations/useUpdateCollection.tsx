@@ -2,6 +2,7 @@ import { CollectionAccessType } from '@semble/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateCollection } from '../dal';
 import { collectionKeys } from '../collectionKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 
 export default function useUpdateCollection() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function useUpdateCollection() {
       queryClient.invalidateQueries({
         queryKey: collectionKeys.all(),
       });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
     },
   });
 

@@ -101,6 +101,9 @@ export class GetMyNotificationsUseCase implements UseCase<
         notification.followCollections?.forEach((collection) => {
           userIds.add(collection.authorId);
         });
+        if (notification.mentionCollection) {
+          userIds.add(notification.mentionCollection.authorId);
+        }
       });
 
       // Bulk fetch all profiles using ProfileEnricher
@@ -128,7 +131,8 @@ export class GetMyNotificationsUseCase implements UseCase<
             n.type === 'USER_CONNECTED_YOUR_POST' ||
             n.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
             n.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
-            n.type === 'SUBSCRIBED_USER_MADE_CONNECTION'),
+            n.type === 'SUBSCRIBED_USER_MADE_CONNECTION' ||
+            n.type === 'USER_MENTIONED_YOU'),
       );
 
       const connectionMap = new Map<string, any>();
@@ -221,7 +225,8 @@ export class GetMyNotificationsUseCase implements UseCase<
               notification.type === 'USER_CONNECTED_YOUR_POST' ||
               notification.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
               notification.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
-              notification.type === 'SUBSCRIBED_USER_MADE_CONNECTION')
+              notification.type === 'SUBSCRIBED_USER_MADE_CONNECTION' ||
+              notification.type === 'USER_MENTIONED_YOU')
           ) {
             // Get the connection from the pre-fetched map
             const connection = connectionMap.get(metadata.connectionId);
@@ -268,6 +273,7 @@ export class GetMyNotificationsUseCase implements UseCase<
               createdAt: notification.createdAt.toISOString(),
               type: notification.type as any,
               read: notification.read,
+              mentionSource: notification.mentionSource,
               connection: {
                 connection: {
                   id: connection.connectionId.getStringValue(),
@@ -351,6 +357,58 @@ export class GetMyNotificationsUseCase implements UseCase<
             };
 
             notificationItems.push(connectionNotificationItem);
+            continue;
+          }
+
+          // Handle collection-description mention notifications
+          if (
+            notification.mentionSource === 'COLLECTION' &&
+            notification.mentionCollection
+          ) {
+            const collectionAuthorProfile = profileMap.get(
+              notification.mentionCollection.authorId,
+            );
+            if (!collectionAuthorProfile) {
+              continue;
+            }
+
+            notificationItems.push({
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                bannerUrl: actorProfile.bannerUrl,
+                description: actorProfile.description,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              mentionSource: notification.mentionSource,
+              mentionCollection: {
+                id: notification.mentionCollection.id,
+                uri: notification.mentionCollection.uri,
+                name: notification.mentionCollection.name,
+                description: notification.mentionCollection.description,
+                accessType: notification.mentionCollection
+                  .accessType as CollectionAccessType,
+                cardCount: notification.mentionCollection.cardCount,
+                createdAt:
+                  notification.mentionCollection.createdAt.toISOString(),
+                updatedAt:
+                  notification.mentionCollection.updatedAt.toISOString(),
+                author: {
+                  id: collectionAuthorProfile.id,
+                  name: collectionAuthorProfile.name,
+                  handle: collectionAuthorProfile.handle,
+                  avatarUrl: collectionAuthorProfile.avatarUrl,
+                  bannerUrl: collectionAuthorProfile.bannerUrl,
+                  description: collectionAuthorProfile.description,
+                },
+              },
+            } as NotificationItemDTO);
             continue;
           }
 
@@ -508,7 +566,8 @@ export class GetMyNotificationsUseCase implements UseCase<
             collections,
             type: notification.type as any, // Cast to NotificationType enum
             read: notification.read,
-          };
+            mentionSource: notification.mentionSource,
+          } as NotificationItemDTO;
 
           notificationItems.push(notificationItem);
         } catch (error) {

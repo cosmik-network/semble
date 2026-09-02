@@ -16,6 +16,7 @@ import MarginLogo from '@/components/MarginLogo';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import CollectionCardActions from '../collectionCardActions/CollectionCardActions';
 import { FollowSource } from '@/features/analytics/types';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import styles from './CollectionCard.module.css';
 
 interface Props {
@@ -86,9 +87,10 @@ export default function CollectionCard(props: Props) {
               )}
             </Group>
             {collection.description && (
-              <Text fz={'sm'} c={'gray'} lineClamp={3}>
-                {collection.description}
-              </Text>
+              <RichTextRenderer
+                text={collection.description}
+                textProps={{ fz: 'sm', c: 'gray', lineClamp: 3 }}
+              />
             )}
           </Stack>
 

@@ -82,9 +82,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     retry: false,
   });
 
+  // React Query guarantees refetch is stable, unlike the result object
+  const { refetch } = query;
   const refreshAuth = useCallback(async () => {
-    await query.refetch();
-  }, [query.refetch]);
+    await refetch();
+  }, [refetch]);
 
   useEffect(() => {
     // Handle other auth errors. Carry the current location so the user lands

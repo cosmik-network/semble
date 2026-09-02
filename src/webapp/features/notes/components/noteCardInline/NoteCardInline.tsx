@@ -1,6 +1,7 @@
 'use client';
 
-import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Card, Group, Stack } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import type { UrlCard, User } from '@/api-client';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
@@ -52,9 +53,10 @@ export default function NoteCardInline(props: Props) {
         </Group>
 
         {props.note && (
-          <Text fw={500} fz={'sm'} fs={'italic'} c={'gray'}>
-            {props.note.text}
-          </Text>
+          <RichTextRenderer
+            text={props.note.text}
+            textProps={{ fw: 500, fz: 'sm', fs: 'italic', c: 'gray' }}
+          />
         )}
       </Stack>
     </Card>

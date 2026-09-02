@@ -45,6 +45,8 @@ import { GetOnboardingStateController } from '../../../../modules/user/infrastru
 import { UpdateOnboardingStateController } from '../../../../modules/user/infrastructure/http/controllers/UpdateOnboardingStateController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { SearchCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/SearchCollectionsController';
+import { GetTagsController } from 'src/modules/cards/infrastructure/http/controllers/GetTagsController';
+import { GetTaggedItemsController } from 'src/modules/cards/infrastructure/http/controllers/GetTaggedItemsController';
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
@@ -139,6 +141,8 @@ export interface Controllers {
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
   searchCollectionsController: SearchCollectionsController;
+  getTagsController: GetTagsController;
+  getTaggedItemsController: GetTaggedItemsController;
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
@@ -370,6 +374,10 @@ export class ControllerFactory {
       ),
       searchCollectionsController: new SearchCollectionsController(
         useCases.searchCollectionsUseCase,
+      ),
+      getTagsController: new GetTagsController(useCases.getTagsUseCase),
+      getTaggedItemsController: new GetTaggedItemsController(
+        useCases.getTaggedItemsUseCase,
       ),
       getOpenCollectionsWithContributorController:
         new GetOpenCollectionsWithContributorController(

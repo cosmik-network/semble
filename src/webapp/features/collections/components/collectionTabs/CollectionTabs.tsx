@@ -9,7 +9,7 @@ import { getCollectionPageByAtUri } from '../../lib/dal';
 import { getCollectionContributors } from '../../lib/dal';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { CollectionAccessType } from '@semble/types';
-import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 
 interface Props {
   handle: string;
@@ -34,9 +34,8 @@ export default function CollectionTabs(props: Props) {
       }),
   });
 
-  const { data: urlMetadata, isError: isStatsError } = useUrlMetadata({
+  const { data: urlMetadata, isError: isStatsError } = useUrlMetadataWithStats({
     url: collectionUrl,
-    includeStats: true,
   });
 
   // Three independent sources, so each resolves — or fails — on its own.
