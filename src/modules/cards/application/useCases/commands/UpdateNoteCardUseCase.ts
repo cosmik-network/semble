@@ -8,6 +8,8 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { ICardPublisher } from '../../ports/ICardPublisher';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
+import { NoteCardUpdatedEvent } from '../../../domain/events/NoteCardUpdatedEvent';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface UpdateNoteCardDTO {
@@ -36,6 +38,7 @@ export class UpdateNoteCardUseCase implements UseCase<
   constructor(
     private cardRepository: ICardRepository,
     private cardPublisher: ICardPublisher,
+    private eventPublisher: IEventPublisher,
   ) {}
 
   async execute(
@@ -146,6 +149,12 @@ export class UpdateNoteCardUseCase implements UseCase<
       const saveResult = await this.cardRepository.save(card);
       if (saveResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveResult.error));
+      }
+
+      // Notify subscribers (e.g. mention notifications) about the edit
+      const eventResult = NoteCardUpdatedEvent.create(cardId, curatorId);
+      if (eventResult.isOk()) {
+        await this.eventPublisher.publishEvents([eventResult.value]);
       }
 
       return ok({

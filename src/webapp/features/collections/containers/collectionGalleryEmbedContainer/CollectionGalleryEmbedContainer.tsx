@@ -16,7 +16,11 @@ import {
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -184,7 +188,7 @@ function CollectionGalleryContent(props: Props) {
                       return;
                     }
 
-                    router.push(`/url?id=${currentCard.cardContent.url}`);
+                    router.push(getSembleHref(currentCard.cardContent.url));
                   }}
                 >
                   <Stack justify="space-between" gap={'xs'} flex={1}>
@@ -278,7 +282,7 @@ function CollectionGalleryContent(props: Props) {
                   href={`${appUrl}/profile/${props.handle}/collections/${props.rkey}`}
                   target="_blank"
                 >
-                  <Image src={SembleLogo.src} h={20} />
+                  <Image src={SembleLogo.src} alt="Semble" h={20} />
                 </LinkActionIcon>
               </>
             )}

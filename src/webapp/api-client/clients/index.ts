@@ -6,3 +6,4 @@ export * from './ConnectionClient';
 export * from './UserClient';
 export * from './FeedClient';
 export * from './NotificationClient';
+export * from './TagClient';

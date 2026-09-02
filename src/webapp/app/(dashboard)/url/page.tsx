@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getDomain } from '@/lib/utils/link';
+import { encodeUrlParam, getDomain } from '@/lib/utils/link';
 import { redirect } from 'next/navigation';
 import SemblePageClient from '@/features/semble/containers/sembleContainer/SemblePageClient';
 import SembleContainer from '@/features/semble/containers/sembleContainer/SembleContainer';
@@ -35,7 +35,7 @@ export async function generateMetadata({
     openGraph: {
       images: [
         {
-          url: `${process.env.APP_URL}/api/opengraph/semble?url=${url}`,
+          url: `${process.env.APP_URL}/api/opengraph/semble?url=${encodeUrlParam(url)}`,
           width: 1200,
           height: 630,
           alt: `Semble page for ${domain}`,
@@ -47,9 +47,7 @@ export async function generateMetadata({
 
 export default async function Page(props: Props) {
   const searchParams = await props.searchParams;
-  const url = searchParams.id
-    ? decodeURIComponent(searchParams.id)
-    : searchParams.id;
+  const url = searchParams.id;
   const viaCardId = searchParams.viaCardId;
 
   if (!url) {

@@ -1,7 +1,11 @@
 'use client';
 
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import { Card, Group, Stack, Text } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
 import { MouseEvent, Suspense } from 'react';
@@ -36,7 +40,7 @@ export default function ActivityCard(props: Props) {
       return;
     }
 
-    router.push(`/url?id=${props.cardContent.url}`);
+    router.push(getSembleHref(props.cardContent.url));
   };
 
   return (

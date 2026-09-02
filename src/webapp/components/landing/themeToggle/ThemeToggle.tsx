@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, Box, useMantineColorScheme } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useMounted } from '@mantine/hooks';
 import {
   MdOutlineDarkMode,
   MdOutlineLightMode,
@@ -25,9 +25,7 @@ const icons = {
  */
 export default function ThemeToggle() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const current = colorScheme as ColorScheme;
   const next = schemes[(schemes.indexOf(current) + 1) % schemes.length];

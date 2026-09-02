@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { buildSembleQuery } from '@/lib/utils/link';
 
 interface Props {
   paramToRemove: string;
@@ -17,14 +18,12 @@ export default function UrlParamCleaner(props: Props) {
   useEffect(() => {
     const paramValue = searchParams.get(props.paramToRemove);
     if (paramValue) {
-      // Manually build query string to avoid re-encoding the URL
-      const params: string[] = [];
-      searchParams.forEach((value, key) => {
-        if (key !== props.paramToRemove) {
-          params.push(`${key}=${value}`);
-        }
-      });
-      router.replace(`?${params.join('&')}`, { scroll: false });
+      router.replace(
+        buildSembleQuery(new URLSearchParams(searchParams.toString()), {
+          omit: props.paramToRemove,
+        }),
+        { scroll: false },
+      );
     }
   }, [searchParams, router, props.paramToRemove]);
 

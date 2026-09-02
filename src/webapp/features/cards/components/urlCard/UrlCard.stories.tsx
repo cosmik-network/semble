@@ -204,17 +204,19 @@ const ownedCollection: Collection = {
   },
 };
 
+function PinUnpinDemo(args: React.ComponentProps<typeof UrlCard>) {
+  const [isPinned, setIsPinned] = useState(false);
+  return (
+    <UrlCard
+      {...args}
+      isPinnedInCollection={isPinned}
+      onTogglePinInCollection={() => setIsPinned((prev) => !prev)}
+    />
+  );
+}
+
 export const PinUnpinInCollection: Story = {
-  render: (args) => {
-    const [isPinned, setIsPinned] = useState(false);
-    return (
-      <UrlCard
-        {...args}
-        isPinnedInCollection={isPinned}
-        onTogglePinInCollection={() => setIsPinned((prev) => !prev)}
-      />
-    );
-  },
+  render: (args) => <PinUnpinDemo {...args} />,
   args: {
     id: 'card-pin-toggle-008',
     currentCollection: ownedCollection,

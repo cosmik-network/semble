@@ -6,6 +6,7 @@ import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 
 export default function useCreateConnection() {
   const queryClient = useQueryClient();
@@ -29,6 +30,8 @@ export default function useCreateConnection() {
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       // Invalidate all collection queries so connection count updates in collection views
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      // Invalidate tag queries so tags typed in the connection note appear in autocomplete
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
 
       // Invalidate forward connections for source URL
       queryClient.invalidateQueries({

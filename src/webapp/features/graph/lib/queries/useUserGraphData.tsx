@@ -17,7 +17,6 @@ import type { GetGraphDataResponse } from '@semble/types';
  */
 export default function useUserGraphData(identifier: string) {
   const [pagesToLoad, setPagesToLoad] = useState<number[]>([1]);
-  const [totalPages, setTotalPages] = useState<number | null>(null);
 
   // Store processed data in state for incremental updates
   const [processedData, setProcessedData] = useState<ProcessedGraphData>({
@@ -40,6 +39,21 @@ export default function useUserGraphData(identifier: string) {
     })),
   });
 
+  // The latest successful page's pagination is authoritative for the total
+  const lastSuccess = [...queries].reverse().find((q) => q.isSuccess && q.data);
+  const latestPagination = (
+    lastSuccess?.data as GetGraphDataResponse | undefined
+  )?.pagination;
+  const totalPages = latestPagination?.totalPages ?? null;
+
+  // Queue the next page if available, by adjusting state during render
+  if (
+    latestPagination?.hasMore &&
+    !pagesToLoad.includes(latestPagination.currentPage + 1)
+  ) {
+    setPagesToLoad((prev) => [...prev, latestPagination.currentPage + 1]);
+  }
+
   // Incrementally merge new pages as they complete
   useEffect(() => {
     const successfulQueries = queries.filter((q) => q.isSuccess && q.data);
@@ -53,25 +67,6 @@ export default function useUserGraphData(identifier: string) {
         newPages.push({ page, data: q.data as GetGraphDataResponse });
       }
     });
-
-    // Update pagination metadata and queue next page
-    const latestData = successfulQueries[successfulQueries.length - 1]
-      .data as GetGraphDataResponse;
-
-    if (latestData?.pagination) {
-      setTotalPages(latestData.pagination.totalPages);
-
-      // Queue next page if available
-      if (
-        latestData.pagination.hasMore &&
-        !pagesToLoad.includes(latestData.pagination.currentPage + 1)
-      ) {
-        setPagesToLoad((prev) => [
-          ...prev,
-          latestData.pagination.currentPage + 1,
-        ]);
-      }
-    }
 
     // If no new pages, nothing to merge
     if (newPages.length === 0) return;

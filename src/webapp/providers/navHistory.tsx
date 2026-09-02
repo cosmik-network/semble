@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, use, useEffect, useState } from 'react';
+import React, { createContext, use, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface NavHistoryContext {
@@ -19,15 +19,18 @@ interface Props {
 
 export function NavHistoryProvider(props: Props) {
   const pathname = usePathname();
-  const [previousPath, setPreviousPath] = useState<string | null>(null);
-  const [currentPath, setCurrentPath] = useState<string>(pathname);
+  const [paths, setPaths] = useState<{
+    current: string;
+    previous: string | null;
+  }>({ current: pathname, previous: null });
 
-  useEffect(() => {
-    if (pathname !== currentPath) {
-      setPreviousPath(currentPath);
-      setCurrentPath(pathname);
-    }
-  }, [pathname, currentPath]);
+  // Track the previous path by adjusting state during render
+  // (https://react.dev/reference/react/useState#storing-information-from-previous-renders)
+  if (pathname !== paths.current) {
+    setPaths({ current: pathname, previous: paths.current });
+  }
+
+  const previousPath = paths.previous;
 
   return (
     <NavHistoryContext

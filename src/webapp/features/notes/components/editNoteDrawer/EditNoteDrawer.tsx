@@ -11,6 +11,7 @@ import { notifications } from '@mantine/notifications';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { BsExclamation } from 'react-icons/bs';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   isOpen: boolean;
@@ -79,7 +80,7 @@ export default function EditNoteDrawer(props: Props) {
       <Container size="sm" p={0}>
         <form onSubmit={handleUpdateNote}>
           <Stack>
-            <Textarea
+            <NoteTextarea
               id="note"
               label="Note"
               placeholder="Add a note about this card"
@@ -88,8 +89,8 @@ export default function EditNoteDrawer(props: Props) {
               rows={5}
               maxLength={500}
               required
-              key={form.key('note')}
-              {...form.getInputProps('note')}
+              value={form.values.note}
+              onValueChange={(v) => form.setFieldValue('note', v)}
             />
 
             <Group justify="space-between" gap={'xs'} grow>

@@ -31,7 +31,7 @@ export default function AtmosphereConfBanner() {
             </Text>
             <Text fw={700} fz={'sm'} c={'blue.1'} mt={'sm'} maw={450}>
               Want to feature your collection? Add #atmosphereConf to your
-              collection's name or description
+              collection&apos;s name or description
             </Text>
           </Stack>
           <LinkButton

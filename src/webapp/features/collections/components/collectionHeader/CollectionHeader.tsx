@@ -13,6 +13,7 @@ import {
   Divider,
   AvatarGroup,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, Suspense } from 'react';
 import CollectionContributorsSummary from '../collectionContributorsSummary/CollectionContributorsSummary';
@@ -106,9 +107,10 @@ export default function CollectionHeader(props: Props) {
                   )}
                 </Group>
                 {collection.description && (
-                  <Text c="gray" mt="lg" maw={700}>
-                    {collection.description}
-                  </Text>
+                  <RichTextRenderer
+                    text={collection.description}
+                    textProps={{ c: 'gray', mt: 'lg', maw: 700 }}
+                  />
                 )}
               </Stack>
             </Group>

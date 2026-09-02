@@ -16,6 +16,8 @@ interface Props {
 }
 
 export default function RecordEmbed(props: Props) {
+  const { settings } = useSettings();
+
   if (
     AppBskyEmbedRecord.isViewBlocked(props.embed) ||
     AppBskyEmbedRecord.isViewNotFound(props.embed) ||
@@ -25,7 +27,6 @@ export default function RecordEmbed(props: Props) {
   }
 
   const post = props.embed;
-  const { settings } = useSettings();
 
   return (
     <Stack gap={'xs'}>

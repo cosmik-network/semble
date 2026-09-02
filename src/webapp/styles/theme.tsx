@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import classes from './global.module.css';
+import { SUBTLE_OVERLAY_PROPS } from './overlays';
 
 import {
   createTheme,
@@ -16,6 +17,7 @@ import {
   Tooltip,
   Text,
   Combobox,
+  Drawer,
   Notification,
   Menu,
   SegmentedControl,
@@ -101,7 +103,11 @@ export const theme = createTheme({
               '--button-bg': 'var(--mantine-color-bright)',
               '--button-hover': 'var(--mantine-color-bright)',
               '--button-color': 'var(--mantine-color-body)',
-              '--button-bd': 'transparent',
+              // Same computed border-width as the built-in variants (which
+              // render `1px solid transparent`) so toggling a button between
+              // variants doesn't shift its width.
+              '--button-bd':
+                'calc(0.0625rem * var(--mantine-scale)) solid transparent',
             },
           };
         }
@@ -147,6 +153,12 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'lg',
         transitionProps: { transition: 'pop' },
+        overlayProps: SUBTLE_OVERLAY_PROPS,
+      },
+    }),
+    Drawer: Drawer.extend({
+      defaultProps: {
+        overlayProps: SUBTLE_OVERLAY_PROPS,
       },
     }),
     Spoiler: Spoiler.extend({
@@ -159,7 +171,7 @@ export const theme = createTheme({
     }),
     TabsTab: TabsTab.extend({
       defaultProps: {
-        fw: 500,
+        fw: 600,
         fz: 'md',
       },
     }),

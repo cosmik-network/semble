@@ -18,6 +18,7 @@ import { AppBskyFeedPost } from '@atproto/api';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
 import { getPostRkeyFromUri } from '../../lib/utils/link';
+import { getSembleHref } from '@/lib/utils/link';
 
 interface Props {
   post: PostView;
@@ -31,7 +32,9 @@ export default function BlueskyMentionPost(props: Props) {
     e.stopPropagation();
 
     router.push(
-      `/url?id=https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
+      getSembleHref(
+        `https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
+      ),
     );
   };
 

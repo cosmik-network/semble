@@ -5,7 +5,7 @@ import TabItem from './TabItem';
 import TabCount from '@/components/tabCount/TabCount';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import useProfile from '../../lib/queries/useProfile';
+import { useProfileWithStats } from '../../lib/queries/useProfile';
 
 interface Props {
   handle: string;
@@ -17,9 +17,8 @@ export default function ProfileTabs(props: Props) {
   const currentTab = segment || 'activity'; // treat base route as 'activity'
   const basePath = `/profile/${props.handle}`;
   const { data: featureFlags } = useFeatureFlags();
-  const { data: profile, isError } = useProfile({
+  const { data: profile, isError } = useProfileWithStats({
     didOrHandle: props.handle,
-    includeStats: true,
   });
   // undefined while loading, null when the stats request failed
   const stats = isError ? null : profile;

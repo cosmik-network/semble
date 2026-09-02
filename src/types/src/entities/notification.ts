@@ -19,6 +19,7 @@ export enum NotificationType {
   SUBSCRIBED_USER_MADE_CONNECTION = 'SUBSCRIBED_USER_MADE_CONNECTION',
   USER_ADDED_SUBSCRIBED_COLLECTION = 'USER_ADDED_SUBSCRIBED_COLLECTION',
   USER_CONNECTED_SUBSCRIBED_COLLECTION = 'USER_CONNECTED_SUBSCRIBED_COLLECTION',
+  USER_MENTIONED_YOU = 'USER_MENTIONED_YOU',
 }
 export const NotificationTypeSchema = z.enum([
   'USER_ADDED_YOUR_CARD',
@@ -35,7 +36,11 @@ export const NotificationTypeSchema = z.enum([
   'SUBSCRIBED_USER_MADE_CONNECTION',
   'USER_ADDED_SUBSCRIBED_COLLECTION',
   'USER_CONNECTED_SUBSCRIBED_COLLECTION',
+  'USER_MENTIONED_YOU',
 ]);
+
+export const MentionSourceSchema = z.enum(['NOTE', 'CONNECTION', 'COLLECTION']);
+export type MentionSource = z.infer<typeof MentionSourceSchema>;
 
 export const BaseNotificationItemSchema = z.object({
   id: z.string(),
@@ -92,9 +97,23 @@ export type ConnectionCreatedNotificationItem = z.infer<
   typeof ConnectionCreatedNotificationItemSchema
 >;
 
+// Mention notification: exactly one of card/connection/collection is set,
+// matching mentionSource.
+export const MentionNotificationItemSchema = BaseNotificationItemSchema.extend({
+  type: z.literal(NotificationType.USER_MENTIONED_YOU),
+  mentionSource: MentionSourceSchema,
+  card: UrlCardSchema.optional(),
+  connection: ConnectionWithSourceAndTargetSchema.optional(),
+  mentionCollection: CollectionSchema.optional(),
+});
+export type MentionNotificationItem = z.infer<
+  typeof MentionNotificationItemSchema
+>;
+
 export const NotificationItemSchema = z.union([
   CardCollectionNotificationItemSchema,
   FollowNotificationItemSchema,
   ConnectionCreatedNotificationItemSchema,
+  MentionNotificationItemSchema,
 ]);
 export type NotificationItem = z.infer<typeof NotificationItemSchema>;

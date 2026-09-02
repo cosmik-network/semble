@@ -1,4 +1,4 @@
-import { getUrlFromSlug } from '@/lib/utils/link';
+import { getSembleHref, getUrlFromSlug } from '@/lib/utils/link';
 import { redirect } from 'next/navigation';
 
 interface Props {
@@ -8,5 +8,5 @@ export default async function Page(props: Props) {
   const { id } = await props.params;
   const url = getUrlFromSlug(id);
 
-  redirect(`/url?id=${url}`);
+  redirect(getSembleHref(url));
 }

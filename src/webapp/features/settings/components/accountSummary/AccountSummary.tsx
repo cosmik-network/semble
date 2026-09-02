@@ -1,24 +1,27 @@
+'use client';
+
 import { Card, Group, Stack, Text } from '@mantine/core';
-import { createServerSembleClient } from '@/services/server.apiClient';
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import { useAuth } from '@/hooks/useAuth';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import AccountSummarySkeleton from './Skeleton.AccountSummary';
+import GuestAccountSummary from './GuestAccountSummary';
 import classes from './AccountSummary.module.css';
 
-export default async function AccountSummary() {
-  await verifySessionOnServer({ redirectOnFail: true });
+export default function AccountSummary() {
+  const { user, isLoading } = useAuth();
 
-  const client = await createServerSembleClient();
-  const profile = await client.getMyProfile();
+  if (isLoading) return <AccountSummarySkeleton />;
+  if (!user) return <GuestAccountSummary />;
 
   return (
     <Card p={'sm'} radius={'lg'} classNames={{ root: classes.root }}>
       <Group gap={'xs'}>
         <LinkAvatar
-          href={`/profile/${profile.handle}`}
-          src={profile.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
-          alt={`${profile.name}'s avatar`}
+          href={`/profile/${user.handle}`}
+          src={user.avatarUrl?.replace('avatar', 'avatar_thumbnail')}
+          alt={`${user.name}'s avatar`}
           size={'lg'}
           radius={'md'}
         />
@@ -26,13 +29,13 @@ export default async function AccountSummary() {
           <Stack gap={0}>
             <Group gap={'xs'} wrap="nowrap">
               <Text fw={600} fz={'lg'} c={'bright'}>
-                {profile.name}
+                {user.name}
               </Text>
-              {isBotAccount(profile) && <BotLabel />}
+              {isBotAccount(user) && <BotLabel />}
             </Group>
 
             <Text fw={600} fz={'lg'} c={'gray'}>
-              @{profile.handle}
+              @{user.handle}
             </Text>
           </Stack>
         </Stack>

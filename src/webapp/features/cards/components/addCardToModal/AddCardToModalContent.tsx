@@ -2,7 +2,7 @@
 
 import type { Collection, UrlCard } from '@semble/types';
 import { Button, Stack, Text } from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
@@ -49,13 +49,11 @@ export default function AddCardToModalContent(props: Props) {
 
   const collectionsWithCard = cardStatus.data.collections ?? [];
 
-  const [selectedCollections, setSelectedCollections] =
-    useState<Collection[]>(collectionsWithCard);
-
-  // Sync state with query data when it changes
-  useEffect(() => {
-    setSelectedCollections(cardStatus.data.collections ?? []);
-  }, [cardStatus.data.collections]);
+  // null = untouched: mirror the card's collections until the user edits
+  const [selectedOverride, setSelectedOverride] = useState<Collection[] | null>(
+    null,
+  );
+  const selectedCollections = selectedOverride ?? collectionsWithCard;
 
   const removeCard = useRemoveCardFromLibrary();
 
@@ -193,14 +191,14 @@ export default function AddCardToModalContent(props: Props) {
         onClose={props.onClose}
         onCancel={() => {
           props.onClose();
-          setSelectedCollections(cardStatus.data.collections ?? []);
+          setSelectedOverride(null);
         }}
         onSave={handleUpdateCard}
         isSaving={props.isSaving}
         onDeleteCard={cardStatus.data.card ? handleDeleteCard : undefined}
         isDeletingCard={removeCard.isPending}
         selectedCollections={selectedCollections}
-        onSelectedCollectionsChange={setSelectedCollections}
+        onSelectedCollectionsChange={setSelectedOverride}
       />
     </Stack>
   );

@@ -35,6 +35,8 @@ import { GetBskyFollowingFeedUseCase } from '../../../../modules/feeds/applicati
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { SearchCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/SearchCollectionsUseCase';
+import { GetTagsUseCase } from 'src/modules/cards/application/useCases/queries/GetTagsUseCase';
+import { GetTaggedItemsUseCase } from 'src/modules/cards/application/useCases/queries/GetTaggedItemsUseCase';
 import { GetOpenCollectionsWithContributorUseCase } from 'src/modules/cards/application/useCases/queries/GetOpenCollectionsWithContributorUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
@@ -173,6 +175,8 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   searchCollectionsUseCase: SearchCollectionsUseCase;
+  getTagsUseCase: GetTagsUseCase;
+  getTaggedItemsUseCase: GetTaggedItemsUseCase;
   getOpenCollectionsWithContributorUseCase: GetOpenCollectionsWithContributorUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
@@ -254,6 +258,15 @@ export class UseCaseFactory {
       services.profileService,
       services.identityResolutionService,
       repositories.followsRepository,
+    );
+
+    const getTagsUseCase = new GetTagsUseCase(repositories.tagQueryRepository);
+
+    const getTaggedItemsUseCase = new GetTaggedItemsUseCase(
+      repositories.tagQueryRepository,
+      repositories.cardQueryRepository,
+      services.profileService,
+      services.identityResolutionService,
     );
 
     const pagePartsSearchUseCase = new PagePartsSearchUseCase(
@@ -421,6 +434,7 @@ export class UseCaseFactory {
       updateNoteCardUseCase: new UpdateNoteCardUseCase(
         repositories.cardRepository,
         services.cardPublisher,
+        services.eventPublisher,
       ),
       updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
         repositories.cardRepository,
@@ -462,10 +476,12 @@ export class UseCaseFactory {
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
         services.collectionPublisher,
+        services.eventPublisher,
       ),
       updateCollectionUseCase: new UpdateCollectionUseCase(
         repositories.collectionRepository,
         services.collectionPublisher,
+        services.eventPublisher,
       ),
       deleteCollectionUseCase: new DeleteCollectionUseCase(
         repositories.collectionRepository,
@@ -486,6 +502,8 @@ export class UseCaseFactory {
         repositories.followsRepository,
       ),
       searchCollectionsUseCase,
+      getTagsUseCase,
+      getTaggedItemsUseCase,
       getOpenCollectionsWithContributorUseCase:
         new GetOpenCollectionsWithContributorUseCase(
           repositories.collectionQueryRepository,
@@ -545,6 +563,7 @@ export class UseCaseFactory {
       updateConnectionUseCase: new UpdateConnectionUseCase(
         repositories.connectionRepository,
         services.connectionPublisher,
+        services.eventPublisher,
       ),
       deleteConnectionUseCase: new DeleteConnectionUseCase(
         repositories.connectionRepository,
@@ -717,11 +736,13 @@ export class UseCaseFactory {
     const createCollectionUseCase = new CreateCollectionUseCase(
       repositories.collectionRepository,
       services.collectionPublisher,
+      services.eventPublisher,
     );
 
     const updateCollectionUseCase = new UpdateCollectionUseCase(
       repositories.collectionRepository,
       services.collectionPublisher,
+      services.eventPublisher,
     );
 
     const deleteCollectionUseCase = new DeleteCollectionUseCase(
@@ -740,6 +761,7 @@ export class UseCaseFactory {
     const updateConnectionUseCase = new UpdateConnectionUseCase(
       repositories.connectionRepository,
       services.connectionPublisher,
+      services.eventPublisher,
     );
 
     const deleteConnectionUseCase = new DeleteConnectionUseCase(

@@ -28,7 +28,7 @@ export default function LoginForm(props: Props) {
     if (isAuthenticated) {
       router.push(postLoginPath);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, postLoginPath, router]);
 
   // Takes the handle rather than reading it back off the form: a dropdown
   // selection submits before `form.values` has caught up with it.
@@ -48,7 +48,7 @@ export default function LoginForm(props: Props) {
         redirect: props.redirectPath,
       });
 
-      window.location.href = authUrl;
+      window.location.assign(authUrl);
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
     } finally {

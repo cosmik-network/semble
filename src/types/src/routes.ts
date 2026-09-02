@@ -116,6 +116,9 @@ export const paths = {
   connectionsByUser: '/network.cosmik.connection.listByUser',
   updateConnection: '/network.cosmik.connection.update',
   deleteConnection: '/network.cosmik.connection.delete',
+  // tags
+  getTags: '/network.cosmik.tag.list',
+  taggedItems: '/network.cosmik.tag.getItems',
   // search
   similarUrls: '/network.cosmik.search.getSimilarUrls',
   semantic: '/network.cosmik.search.semantic',
@@ -223,6 +226,10 @@ export const routes = {
     connectionsByUser: defineRoute(paths.connectionsByUser, 'GET', false),
     updateConnection: defineRoute(paths.updateConnection, 'POST', true),
     deleteConnection: defineRoute(paths.deleteConnection, 'POST', true),
+  },
+  tags: {
+    getTags: defineRoute(paths.getTags, 'GET', false),
+    taggedItems: defineRoute(paths.taggedItems, 'GET', false),
   },
   search: {
     similarUrls: defineRoute(paths.similarUrls, 'GET', false),

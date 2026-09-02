@@ -22,20 +22,13 @@ interface Props {
   onChange: (value: string) => void;
   /** An account picked out of the dropdown, by click or by Enter. */
   onSelect: (handle: string) => void;
-  /** Rendered at the end of the field while no search is in flight. */
   rightSection?: ReactNode;
   /** `form.key('handle')`, when the field belongs to a Mantine form. */
   inputKey?: string;
-  label?: string;
-  placeholder?: string;
   autoComplete?: string;
   required?: boolean;
 }
 
-/**
- * The Bluesky handle field, shared by the login forms and the signed-out feed
- * prompt. Search runs against the public appview, so a guest can use it.
- */
 export default function BlueskyHandleInput(props: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -70,8 +63,8 @@ export default function BlueskyHandleInput(props: Props) {
       <Combobox.Target>
         <TextInput
           key={props.inputKey}
-          label={props.label ?? 'Handle'}
-          placeholder={props.placeholder ?? 'you.bsky.social'}
+          label="Handle"
+          placeholder="you.bsky.social"
           autoComplete={props.autoComplete}
           required={props.required}
           value={props.value}
@@ -81,28 +74,6 @@ export default function BlueskyHandleInput(props: Props) {
           }}
           onFocus={() => combobox.openDropdown()}
           onBlur={() => combobox.closeDropdown()}
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowDown') {
-              event.preventDefault();
-              combobox.openDropdown();
-              combobox.selectNextOption();
-            }
-
-            if (event.key === 'ArrowUp') {
-              event.preventDefault();
-              combobox.selectPreviousOption();
-            }
-
-            // With nothing highlighted the event is left alone, so the
-            // surrounding form submits as it always did.
-            if (
-              event.key === 'Enter' &&
-              combobox.getSelectedOptionIndex() >= 0
-            ) {
-              event.preventDefault();
-              combobox.clickSelectedOption();
-            }
-          }}
           leftSection={<MdOutlineAlternateEmail size={22} />}
           rightSection={isFetching ? <Loader size={18} /> : props.rightSection}
           variant="filled"

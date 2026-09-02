@@ -7,6 +7,7 @@ import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
 import { connectionKeys } from '@/features/connections/lib/connectionKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
@@ -19,6 +20,7 @@ import { notifications } from '@mantine/notifications';
 import { Button, Group, Text } from '@mantine/core';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
+import { getSembleHref } from '@/lib/utils/link';
 
 export default function useAddCard(
   analyticsContext?: CardSaveAnalyticsContext,
@@ -68,7 +70,7 @@ export default function useAddCard(
                 color="gray"
                 onClick={() => {
                   notifications.hide(notificationId);
-                  router.push(`/url?id=${encodeURIComponent(variables.url)}`);
+                  router.push(getSembleHref(variables.url));
                 }}
               >
                 View
@@ -91,6 +93,7 @@ export default function useAddCard(
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
       queryClient.invalidateQueries({
         queryKey: collectionKeys.bySembleUrl(variables.url),
       });

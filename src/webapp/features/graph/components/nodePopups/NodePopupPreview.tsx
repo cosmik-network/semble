@@ -9,6 +9,7 @@ import styles from './NodePopup.module.css';
 import useGraphNodeUser from '../../lib/queries/useGraphNodeUser';
 import useGraphNodeCollection from '../../lib/queries/useGraphNodeCollection';
 import useGraphNodeUrl from '../../lib/queries/useGraphNodeUrl';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 
 interface Props {
   node: ExtendedGraphNode;
@@ -85,9 +86,10 @@ export default function NodePopupPreview({ node, position }: Props) {
         {node.type === 'COLLECTION' && (
           <>
             {collectionData.data?.description && (
-              <Text size="xs" c="dimmed" lineClamp={2}>
-                {collectionData.data.description}
-              </Text>
+              <RichTextRenderer
+                text={collectionData.data.description}
+                textProps={{ size: 'xs', c: 'dimmed', lineClamp: 2 }}
+              />
             )}
             {collectionData.data?.followerCount !== undefined && (
               <Text size="xs" c="dimmed">

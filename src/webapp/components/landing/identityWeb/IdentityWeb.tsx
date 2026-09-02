@@ -1,4 +1,5 @@
 import { Avatar, Text } from '@mantine/core';
+import Image from 'next/image';
 import MarginLogo from '@/assets/margin-logo.svg';
 import SembleIcon from '@/assets/icon.svg';
 import BlueskyIcon from '@/assets/icons/bluesky-icon.svg';
@@ -302,19 +303,19 @@ export default function IdentityWeb() {
             <div className={styles.chip}>
               {/* Marks with a `logoDark` swap for their white variant in
                   dark mode. */}
-              <img
+              <Image
                 className={`${styles.logo} ${app.tall ? styles.tall : ''} ${
                   app.logoDark ? styles.hideOnDark : ''
                 }`}
-                src={app.logo.src}
+                src={app.logo}
                 alt=""
               />
               {app.logoDark && (
-                <img
+                <Image
                   className={`${styles.logo} ${app.tall ? styles.tall : ''} ${
                     styles.hideOnLight
                   }`}
-                  src={app.logoDark.src}
+                  src={app.logoDark}
                   alt=""
                 />
               )}
