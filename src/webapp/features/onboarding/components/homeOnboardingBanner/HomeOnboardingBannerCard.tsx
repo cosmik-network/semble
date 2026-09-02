@@ -41,7 +41,7 @@ export default function HomeOnboardingBannerCard(props: Props) {
         gap={'md'}
         pos="relative"
       >
-        <Stack gap={4} miw={0}>
+        <Stack gap={'xxs'} miw={0} flex="999 0 auto">
           <Text fw={700} fz={'lg'} c={'bright'}>
             {props.isResuming ? 'Resume setup' : 'Set up your account'}
           </Text>
@@ -58,7 +58,7 @@ export default function HomeOnboardingBannerCard(props: Props) {
           />
         </Stack>
 
-        <LinkButton href={props.resume.href} w={{ base: '100%', sm: 'auto' }}>
+        <LinkButton href={props.resume.href} flex="1 0 auto">
           {props.isResuming ? 'Continue' : 'Get started'}
         </LinkButton>
       </Group>
