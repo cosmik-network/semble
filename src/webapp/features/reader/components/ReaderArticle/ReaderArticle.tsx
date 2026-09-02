@@ -14,6 +14,7 @@ import {
 import { MdErrorOutline } from 'react-icons/md';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReaderContent } from '@/app/api/reader/route';
+import { useScrollFade } from '@/hooks/useScrollFade';
 import { stripLinks } from '../../lib/utils/stripLinks';
 import type { ReaderSettings } from '../ReaderTextSettings/ReaderTextSettings';
 import ReaderArticleSkeleton from './Skeleton.ReaderArticle';
@@ -27,12 +28,22 @@ interface Props {
 export default function ReaderArticle(props: Props) {
   const { reader, settings } = props;
   const articleRef = useRef<HTMLDivElement>(null);
+  const { setViewport, maskImage, updateFade } = useScrollFade();
 
   const content = reader.data?.content ?? '';
   const html = settings.showLinks ? content : stripLinks(content);
 
   return (
-    <ScrollArea style={{ flex: 1 }}>
+    <ScrollArea
+      style={{ flex: 1 }}
+      viewportRef={setViewport}
+      onScrollPositionChange={updateFade}
+      styles={{
+        viewport: maskImage
+          ? { maskImage, WebkitMaskImage: maskImage }
+          : undefined,
+      }}
+    >
       <Container
         size={settings.wide ? 'md' : 'sm'}
         px="xl"
