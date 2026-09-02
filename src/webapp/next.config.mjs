@@ -7,6 +7,17 @@ const nextConfig = {
   serverExternalPackages: ['jsdom', '@mozilla/readability', 'dompurify'],
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  async redirects() {
+    return [
+      // These lists moved from tabs into modals on the collection page.
+      {
+        source:
+          '/profile/:handle/collections/:rkey/(followers|added-by|contributors)',
+        destination: '/profile/:handle/collections/:rkey',
+        permanent: false,
+      },
+    ];
+  },
   allowedDevOrigins: [
     '127.0.0.1',
     ...(process.env.NEXT_PUBLIC_APP_URL
