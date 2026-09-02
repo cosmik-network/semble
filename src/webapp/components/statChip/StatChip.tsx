@@ -11,7 +11,7 @@ import {
 import { ReactNode } from 'react';
 import { abbreviateNumber } from '@/lib/utils/text';
 
-export const STAT_CHIP_AVATAR_SIZE = 26;
+import { STAT_CHIP_AVATAR_SIZE } from './constants';
 
 export interface StatChipAvatar {
   key: string;
@@ -21,21 +21,23 @@ export interface StatChipAvatar {
 
 interface Props {
   onClick: () => void;
-  /** Shown when there are no avatars to preview. */
-  icon: ReactNode;
-  count: number;
-  label: string;
-  labelPlural: string;
+  /** Shown when there are no avatars to preview; without it a placeholder avatar is used. */
+  icon?: ReactNode;
+  count?: number;
+  label?: string;
+  labelPlural?: string;
+  /** Replaces the count + label text. */
+  content?: ReactNode;
   avatars?: StatChipAvatar[];
 }
 
-export default function CollectionStatChip(props: Props) {
+export default function StatChip(props: Props) {
   const avatars = props.avatars ?? [];
 
   return (
     <UnstyledButton onClick={props.onClick}>
       <Group gap={'xxs'} wrap="nowrap">
-        {avatars.length > 0 ? (
+        {avatars.length > 1 ? (
           <AvatarGroup spacing={8}>
             {avatars.map((avatar) => (
               <Avatar
@@ -46,7 +48,13 @@ export default function CollectionStatChip(props: Props) {
               />
             ))}
           </AvatarGroup>
-        ) : (
+        ) : avatars.length === 1 ? (
+          <Avatar
+            size={STAT_CHIP_AVATAR_SIZE}
+            src={avatars[0].src?.replace('avatar', 'avatar_thumbnail')}
+            alt={avatars[0].alt}
+          />
+        ) : props.icon ? (
           <ThemeIcon
             variant="light"
             color="blue"
@@ -55,15 +63,19 @@ export default function CollectionStatChip(props: Props) {
           >
             {props.icon}
           </ThemeIcon>
+        ) : (
+          <Avatar size={STAT_CHIP_AVATAR_SIZE} />
         )}
-        <Group gap={4} wrap="nowrap">
-          <Text fw={700} fz="sm" c="bright" span>
-            {abbreviateNumber(props.count)}
-          </Text>
-          <Text fw={500} fz="sm" c="dimmed" span>
-            {props.count === 1 ? props.label : props.labelPlural}
-          </Text>
-        </Group>
+        {props.content ?? (
+          <Group gap={4} wrap="nowrap">
+            <Text fw={700} fz="sm" c="bright" span>
+              {abbreviateNumber(props.count ?? 0)}
+            </Text>
+            <Text fw={500} fz="sm" c="dimmed" span>
+              {props.count === 1 ? props.label : props.labelPlural}
+            </Text>
+          </Group>
+        )}
       </Group>
     </UnstyledButton>
   );

@@ -1,14 +1,11 @@
-import { Card, Flex } from '@mantine/core';
-import CollectionStatChipSkeleton from './Skeleton.CollectionStatChip';
-import classes from './CollectionStats.module.css';
+import StatChipCard from '@/components/statChip/StatChipCard';
+import StatChipSkeleton from '@/components/statChip/Skeleton.StatChip';
 
 export default function CollectionStatsSkeleton() {
   return (
-    <Card p={'xxs'} radius={'md'} className={classes.root}>
-      <Flex wrap="wrap" align="center" columnGap="lg" rowGap="xs">
-        <CollectionStatChipSkeleton width={90} />
-        <CollectionStatChipSkeleton width={84} />
-      </Flex>
-    </Card>
+    <StatChipCard>
+      <StatChipSkeleton width={90} />
+      <StatChipSkeleton width={84} />
+    </StatChipCard>
   );
 }

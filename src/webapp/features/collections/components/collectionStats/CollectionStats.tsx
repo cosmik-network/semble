@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, Flex, Group } from '@mantine/core';
 import { ReactNode, Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Collection, CollectionAccessType } from '@semble/types';
@@ -16,12 +15,11 @@ import SembleAddedByContainer from '@/features/semble/containers/sembleAddedByCo
 import SembleAddedByContainerSkeleton from '@/features/semble/containers/sembleAddedByContainer/Skeleton.SembleAddedByContainer';
 import CollectionContributorsContainer from '../../containers/collectionContributorsContainer/CollectionContributorsContainer';
 import CollectionContributorsContainerSkeleton from '../../containers/collectionContributorsContainer/Skeleton.CollectionContributorsContainer';
-import CollectionStatDrawer from '../collectionStatDrawer/CollectionStatDrawer';
-import CollectionStatChip from './CollectionStatChip';
-import CollectionStatChipSkeleton from './Skeleton.CollectionStatChip';
-import classes from './CollectionStats.module.css';
-
-const PREVIEW_LIMIT = 3;
+import StatDrawer from '@/components/statDrawer/StatDrawer';
+import StatChip from '@/components/statChip/StatChip';
+import { STAT_CHIP_PREVIEW_LIMIT } from '@/components/statChip/constants';
+import StatChipSkeleton from '@/components/statChip/Skeleton.StatChip';
+import StatChipCard from '@/components/statChip/StatChipCard';
 
 interface Props {
   collection: Collection;
@@ -38,13 +36,13 @@ function FollowersChip(props: ChipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { data } = useCollectionFollowers({
     collectionId: props.collectionId,
-    limit: PREVIEW_LIMIT,
+    limit: STAT_CHIP_PREVIEW_LIMIT,
   });
   const page = data.pages[0];
 
   return (
     <>
-      <CollectionStatChip
+      <StatChip
         onClick={() => setIsOpen(true)}
         icon={<HiUsers />}
         count={page.pagination.totalCount}
@@ -56,7 +54,7 @@ function FollowersChip(props: ChipProps) {
           alt: `${user.name}'s avatar`,
         }))}
       />
-      <CollectionStatDrawer
+      <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Followers"
@@ -64,7 +62,7 @@ function FollowersChip(props: ChipProps) {
         errorMessage="Could not load collection followers"
       >
         <CollectionFollowersContainer collectionId={props.collectionId} />
-      </CollectionStatDrawer>
+      </StatDrawer>
     </>
   );
 }
@@ -73,13 +71,13 @@ function AddedByChip(props: ChipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { data } = useSembleLibraries({
     url: props.collectionUrl,
-    limit: PREVIEW_LIMIT,
+    limit: STAT_CHIP_PREVIEW_LIMIT,
   });
   const page = data.pages[0];
 
   return (
     <>
-      <CollectionStatChip
+      <StatChip
         onClick={() => setIsOpen(true)}
         icon={<LuLibrary />}
         count={page.pagination.totalCount}
@@ -91,7 +89,7 @@ function AddedByChip(props: ChipProps) {
           alt: `${item.user.name}'s avatar`,
         }))}
       />
-      <CollectionStatDrawer
+      <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Added by"
@@ -99,7 +97,7 @@ function AddedByChip(props: ChipProps) {
         errorMessage="Could not load libraries"
       >
         <SembleAddedByContainer url={props.collectionUrl} />
-      </CollectionStatDrawer>
+      </StatDrawer>
     </>
   );
 }
@@ -108,13 +106,13 @@ function ContributorsChip(props: ChipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { data } = useCollectionContributors({
     collectionId: props.collectionId,
-    limit: PREVIEW_LIMIT,
+    limit: STAT_CHIP_PREVIEW_LIMIT,
   });
   const page = data.pages[0];
 
   return (
     <>
-      <CollectionStatChip
+      <StatChip
         onClick={() => setIsOpen(true)}
         icon={<FaSeedling />}
         count={page.pagination.totalCount}
@@ -126,7 +124,7 @@ function ContributorsChip(props: ChipProps) {
           alt: `${user.name}'s avatar`,
         }))}
       />
-      <CollectionStatDrawer
+      <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Contributors"
@@ -134,7 +132,7 @@ function ContributorsChip(props: ChipProps) {
         errorMessage="Could not load collection contributors"
       >
         <CollectionContributorsContainer collectionId={props.collectionId} />
-      </CollectionStatDrawer>
+      </StatDrawer>
     </>
   );
 }
@@ -144,9 +142,7 @@ function ContributorsChip(props: ChipProps) {
 function ChipBoundary(props: { children: ReactNode }) {
   return (
     <ErrorBoundary fallback={null}>
-      <Suspense fallback={<CollectionStatChipSkeleton />}>
-        {props.children}
-      </Suspense>
+      <Suspense fallback={<StatChipSkeleton />}>{props.children}</Suspense>
     </ErrorBoundary>
   );
 }
@@ -161,20 +157,18 @@ export default function CollectionStats(props: Props) {
   };
 
   return (
-    <Card p={'xxs'} radius={'md'} className={classes.root}>
-      <Flex wrap="wrap" align="center" columnGap="lg" rowGap="xs">
+    <StatChipCard>
+      <ChipBoundary>
+        <FollowersChip {...chipProps} />
+      </ChipBoundary>
+      <ChipBoundary>
+        <AddedByChip {...chipProps} />
+      </ChipBoundary>
+      {collection.accessType === CollectionAccessType.OPEN && (
         <ChipBoundary>
-          <FollowersChip {...chipProps} />
+          <ContributorsChip {...chipProps} />
         </ChipBoundary>
-        <ChipBoundary>
-          <AddedByChip {...chipProps} />
-        </ChipBoundary>
-        {collection.accessType === CollectionAccessType.OPEN && (
-          <ChipBoundary>
-            <ContributorsChip {...chipProps} />
-          </ChipBoundary>
-        )}
-      </Flex>
-    </Card>
+      )}
+    </StatChipCard>
   );
 }
