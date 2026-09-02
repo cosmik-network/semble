@@ -1,12 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
 import { Drawer, ScrollArea, Stack, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { getDomain } from '@/lib/utils/link';
 import { useScrollFade } from '@/hooks/useScrollFade';
 import ReaderLinkCard from '../ReaderLinkCard/ReaderLinkCard';
-import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import type { ReaderLink } from '../../lib/useReaderLinks';
 
 interface Props {
@@ -62,19 +60,13 @@ export default function ReaderLinksDrawer(props: Props) {
           }}
         >
           <Stack gap="sm" pb="md">
-            <Suspense
-              fallback={props.links.map((link) => (
-                <UrlCardSkeleton key={link.href} />
-              ))}
-            >
-              {props.links.map((link) => (
-                <ReaderLinkCard
-                  key={link.href}
-                  link={link}
-                  articleUrl={props.articleUrl}
-                />
-              ))}
-            </Suspense>
+            {props.links.map((link) => (
+              <ReaderLinkCard
+                key={link.href}
+                link={link}
+                articleUrl={props.articleUrl}
+              />
+            ))}
           </Stack>
         </ScrollArea>
       )}
