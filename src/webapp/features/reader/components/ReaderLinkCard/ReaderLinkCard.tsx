@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useSettings } from '@/providers/settings';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
-import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import { useSuspenseUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import { CardSaveSource } from '@/features/analytics/types';
 import { getDomain, getSembleHref } from '@/lib/utils/link';
 import type { ReaderLink } from '../../lib/useReaderLinks';
@@ -56,7 +56,7 @@ function PlainLink(props: { link: ReaderLink }) {
 }
 
 function LoadedCard(props: Props) {
-  const { data } = useUrlMetadata({ url: props.link.href });
+  const { data } = useSuspenseUrlMetadataWithStats({ url: props.link.href });
 
   return (
     <UrlCard

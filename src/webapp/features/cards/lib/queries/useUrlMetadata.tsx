@@ -24,3 +24,11 @@ export function useUrlMetadataWithStats(props: Props) {
     queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
   });
 }
+
+// Suspense variant of the stats query; shares its cache entry
+export function useSuspenseUrlMetadataWithStats(props: Props) {
+  return useSuspenseQuery({
+    queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
+    queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
+  });
+}
