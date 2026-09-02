@@ -2,12 +2,14 @@
 
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Anchor, Stack, Text } from '@mantine/core';
+import { Anchor, Card, Stack, Text, Tooltip } from '@mantine/core';
+import { useRouter } from 'next/navigation';
+import { useSettings } from '@/providers/settings';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
 import { CardSaveSource } from '@/features/analytics/types';
-import { getDomain } from '@/lib/utils/link';
+import { getDomain, getSembleHref } from '@/lib/utils/link';
 import type { ReaderLink } from '../../lib/useReaderLinks';
 
 interface Props {
@@ -17,22 +19,39 @@ interface Props {
 }
 
 function PlainLink(props: { link: ReaderLink }) {
+  const router = useRouter();
+  const { settings } = useSettings();
+  const isList = settings.cardView === 'list';
+
   return (
-    <Stack gap={0}>
-      <Anchor
-        href={props.link.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        fw={500}
-        c="bright"
-        lineClamp={1}
-      >
-        {props.link.text}
-      </Anchor>
-      <Text size="xs" c="dimmed" truncate>
-        {getDomain(props.link.href)}
-      </Text>
-    </Stack>
+    <Card
+      component="article"
+      radius={isList ? 0 : 'lg'}
+      p={isList ? 'xs' : 'sm'}
+      withBorder={!isList}
+      style={{ cursor: 'pointer' }}
+      onClick={() => router.push(getSembleHref(props.link.href))}
+    >
+      <Stack gap={0}>
+        <Tooltip label={props.link.href}>
+          <Anchor
+            onClick={(e) => e.stopPropagation()}
+            href={props.link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            c="gray"
+            lineClamp={1}
+            w="fit-content"
+            fz="sm"
+          >
+            {getDomain(props.link.href)}
+          </Anchor>
+        </Tooltip>
+        <Text c="bright" lineClamp={2} fw={500}>
+          {props.link.text}
+        </Text>
+      </Stack>
+    </Card>
   );
 }
 

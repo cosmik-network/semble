@@ -59,7 +59,7 @@ export default function ReaderLinksDrawer(props: Props) {
               : undefined,
           }}
         >
-          <Stack gap="sm" pb="md">
+          <Stack gap="xs" pb="md">
             {props.links.map((link) => (
               <ReaderLinkCard
                 key={link.href}
