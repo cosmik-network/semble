@@ -10,6 +10,7 @@ primary_region = 'yyz'
   firehose-worker = "sh -c 'PROCESS_TYPE=firehose-worker npm run worker:firehose'"
   notification-worker = "sh -c 'PROCESS_TYPE=notification-worker npm run worker:notifications'"
   sync-worker = "sh -c 'PROCESS_TYPE=sync-worker npm run worker:sync'"
+  metadata-worker = "sh -c 'PROCESS_TYPE=metadata-worker npm run worker:metadata'"
 
 [http_service]
   internal_port = 3000
@@ -39,6 +40,10 @@ primary_region = 'yyz'
 [[restart]]
   policy = "always"
   processes = ["sync-worker"]
+
+[[restart]]
+  policy = "always"
+  processes = ["metadata-worker"]
 
 [[vm]]
   memory = '1gb'
@@ -72,6 +77,12 @@ primary_region = 'yyz'
 [[vm]]
   processes = ['sync-worker']
   memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['metadata-worker']
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
 

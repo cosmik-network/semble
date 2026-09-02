@@ -8,6 +8,8 @@ import { RevokeApiKeyUseCase } from '../../../../modules/user/application/use-ca
 import { GetOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/GetOnboardingStateUseCase';
 import { UpdateOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/UpdateOnboardingStateUseCase';
 import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase';
+import { UpdateUrlCardMetadataUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateUrlCardMetadataUseCase';
+import { UpdateConnectionUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateConnectionUrlMetadataUseCase';
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
 import { UpdateNoteCardUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateNoteCardUseCase';
@@ -106,6 +108,8 @@ export interface WorkerUseCases {
   syncAccountDataUseCase: SyncAccountDataUseCase;
   // Firehose-specific use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
+  updateUrlCardMetadataUseCase: UpdateUrlCardMetadataUseCase;
+  updateConnectionUrlMetadataUseCase: UpdateConnectionUrlMetadataUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
   removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   createCollectionUseCase: CreateCollectionUseCase;
@@ -718,6 +722,15 @@ export class UseCaseFactory {
       services.eventPublisher,
     );
 
+    const updateUrlCardMetadataUseCase = new UpdateUrlCardMetadataUseCase(
+      repositories.cardRepository,
+      services.cardPublisher,
+      services.eventPublisher,
+    );
+
+    const updateConnectionUrlMetadataUseCase =
+      new UpdateConnectionUrlMetadataUseCase(repositories.connectionRepository);
+
     const updateUrlCardAssociationsUseCase =
       new UpdateUrlCardAssociationsUseCase(
         repositories.cardRepository,
@@ -889,6 +902,8 @@ export class UseCaseFactory {
       indexUrlForSearchUseCase,
       createNotificationUseCase,
       addUrlToLibraryUseCase,
+      updateUrlCardMetadataUseCase,
+      updateConnectionUrlMetadataUseCase,
       updateUrlCardAssociationsUseCase,
       removeCardFromLibraryUseCase,
       createCollectionUseCase,

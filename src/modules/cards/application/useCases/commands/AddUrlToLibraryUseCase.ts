@@ -100,10 +100,15 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       let urlCard = existingUrlCardResult.value;
       if (!urlCard) {
-        // Fetch metadata for URL
+        // Fetch metadata for URL. Interactive saves use fast mode (block only
+        // on the quick service; the metadata worker enriches asynchronously).
+        // Firehose-mirrored records (publishedRecordId set) have no user
+        // waiting, so they take the full slow fetch up front.
+        const fetchMode = request.publishedRecordId ? 'slow' : 'fast';
         const metadataResult = await this.metadataService.fetchMetadata(
           url,
           true,
+          fetchMode,
         );
         let metadata: UrlMetadata;
         if (metadataResult.isOk()) {

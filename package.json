@@ -26,6 +26,7 @@
     "worker:firehose": "node dist/workers/firehose-worker.js",
     "worker:notifications": "node dist/workers/notification-worker.js",
     "worker:sync": "node dist/workers/sync-worker.js",
+    "worker:metadata": "node dist/workers/metadata-worker.js",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='.integration.test.|.e2e.test.|src/webapp/'",
     "test:integration": "jest --testPathPattern='.integration.test.'",

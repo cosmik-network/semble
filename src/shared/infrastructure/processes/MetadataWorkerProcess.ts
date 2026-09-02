@@ -4,18 +4,25 @@ import {
   WorkerServices,
 } from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
-import { CardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
-import { ConnectionCreatedEventHandler } from '../../../modules/search/application/eventHandlers/ConnectionCreatedEventHandler';
-import { UrlCardMetadataUpdatedEventHandler } from '../../../modules/search/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
+import { CardAddedToLibraryEventHandler } from '../../../modules/cards/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { ConnectionCreatedEventHandler } from '../../../modules/cards/application/eventHandlers/ConnectionCreatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
 import { IEventSubscriber } from '../../application/events/IEventSubscriber';
 import { Repositories } from '../http/factories/RepositoryFactory';
 
-export class SearchWorkerProcess extends BaseWorkerProcess {
+/**
+ * Enriches URL cards asynchronously: cards are created with fast metadata,
+ * this worker fetches the full (slow) metadata and updates the card + PDS
+ * record when the result is an improvement.
+ *
+ * Note: unlike the firehose worker this worker deliberately keeps PDS
+ * publishing enabled — republishing the enriched record is its job.
+ */
+export class MetadataWorkerProcess extends BaseWorkerProcess {
   constructor(configService: EnvironmentConfigService) {
-    super(configService, QueueNames.SEARCH);
+    super(configService, QueueNames.METADATA);
   }
 
   protected createServices(repositories: Repositories): WorkerServices {
@@ -26,15 +33,9 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     services: WorkerServices,
   ): Promise<void> {
     if (!services.redisConnection) {
-      throw new Error('Redis connection required for search worker');
+      throw new Error('Redis connection required for metadata worker');
     }
     await services.redisConnection.ping();
-
-    // Validate search service (which includes vector database health check)
-    const searchHealthResult = await services.searchService.healthCheck();
-    if (searchHealthResult.isErr() || !searchHealthResult.value) {
-      throw new Error('Search service connection required for search worker');
-    }
   }
 
   protected async registerHandlers(
@@ -45,8 +46,9 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
-      useCases.indexUrlForSearchUseCase,
       repositories.cardRepository,
+      services.metadataService,
+      useCases.updateUrlCardMetadataUseCase,
     );
 
     await subscriber.subscribe(
@@ -55,21 +57,14 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     );
 
     const connectionCreatedHandler = new ConnectionCreatedEventHandler(
-      useCases.indexUrlForSearchUseCase,
       repositories.connectionRepository,
+      services.metadataService,
+      useCases.updateConnectionUrlMetadataUseCase,
     );
 
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       connectionCreatedHandler,
-    );
-
-    const urlCardMetadataUpdatedHandler =
-      new UrlCardMetadataUpdatedEventHandler(useCases.indexUrlForSearchUseCase);
-
-    await subscriber.subscribe(
-      EventNames.URL_CARD_METADATA_UPDATED,
-      urlCardMetadataUpdatedHandler,
     );
   }
 }

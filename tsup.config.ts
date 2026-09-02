@@ -9,6 +9,7 @@ export default defineConfig({
     'workers/firehose-worker': 'src/workers/firehose-worker.ts',
     'workers/notification-worker': 'src/workers/notification-worker.ts',
     'workers/sync-worker': 'src/workers/sync-worker.ts',
+    'workers/metadata-worker': 'src/workers/metadata-worker.ts',
   },
   outDir: 'dist',
   target: 'node18',

@@ -42,6 +42,16 @@ export interface IFeedRepository {
   updateActivity(activity: FeedActivity): Promise<Result<void>>;
 
   /**
+   * Set the denormalized urlType on all CARD_COLLECTED activities for a card.
+   * Used when a card's metadata is enriched asynchronously after the
+   * activities were created.
+   */
+  updateUrlTypeByCardId(
+    cardId: string,
+    urlType: UrlType,
+  ): Promise<Result<void>>;
+
+  /**
    * Fan-out an activity to multiple followers' following feeds.
    *
    * @param activityId - Activity to distribute
