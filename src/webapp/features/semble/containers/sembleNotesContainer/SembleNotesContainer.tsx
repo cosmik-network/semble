@@ -3,9 +3,9 @@
 import useSembleNotes from '@/features/semble/lib/queries/useSembleNotes';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid } from '@mantine/core';
-import SembleNotesContainerError from './Error.SembleNotesContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
-import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { useNavbarContext } from '@/providers/navbar';
 
@@ -28,11 +28,11 @@ export default function SembleNotesContainer(props: Props) {
   const allNotes = data?.pages.flatMap((page) => page.notes ?? []) ?? [];
 
   if (error) {
-    return <SembleNotesContainerError />;
+    return <ErrorState message="Could not load notes" />;
   }
 
   if (allNotes.length === 0) {
-    return <SembleEmptyTab message="No notes" icon={FaRegNoteSticky} />;
+    return <EmptyState message="No notes" icon={FaRegNoteSticky} />;
   }
 
   return (

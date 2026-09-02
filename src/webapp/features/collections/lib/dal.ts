@@ -72,6 +72,28 @@ export const getCollections = cache(
   },
 );
 
+export const getRecommendedCollectionsForUrl = cache(
+  async (params: { url: string; limit?: number }) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new NoSessionError();
+    const client = createSembleClient();
+    const response = await client.getRecommendedCollectionsForUrl({
+      url: params.url,
+      limit: params.limit,
+    });
+
+    // Temp fix: filter out collections without uri
+    return {
+      myCollections: response.myCollections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+      openCollections: response.openCollections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
+  },
+);
+
 export const getMyCollections = cache(
   async (params?: PageParams & SearchParams) => {
     const session = await verifySessionOnClient({ redirectOnFail: true });
@@ -237,3 +259,8 @@ export const getCollectionContributors = cache(
     return response;
   },
 );
+
+export const getRecommendedCollections = async (urls: string[]) => {
+  const client = createSembleClient();
+  return client.getRecommendedCollections({ urls });
+};

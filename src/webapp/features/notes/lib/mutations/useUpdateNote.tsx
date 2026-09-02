@@ -4,6 +4,7 @@ import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { noteKeys } from '../noteKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 
 export default function useUpdateNote() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function useUpdateNote() {
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
     },
   });
 

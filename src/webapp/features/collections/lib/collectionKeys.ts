@@ -17,6 +17,7 @@ export const collectionKeys = {
     sortBy?: string,
     accessType?: CollectionAccessType,
     identifier?: string,
+    sortOrder?: SortOrder,
   ) =>
     [
       ...collectionKeys.all(),
@@ -26,8 +27,13 @@ export const collectionKeys = {
       sortBy,
       accessType,
       identifier,
+      sortOrder,
     ] as const,
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
+  recommended: (urls: string[]) =>
+    [...collectionKeys.all(), 'recommended', ...urls] as const,
+  recommendedForUrl: (url: string, limit?: number) =>
+    [...collectionKeys.all(), 'recommendedForUrl', url, limit] as const,
   infinite: (
     id?: string,
     limit?: number,

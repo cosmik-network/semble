@@ -7,7 +7,10 @@ import { publicContract } from '@semble/contract';
  * @param apiKey - Your Semble API key. Optional; without it only public
  *                 endpoints are accessible.
  * @param client - Optional client identifier (e.g. 'mcp', 'my-plugin'), sent
- *                 as the `X-Semble-Client` header for usage analytics.
+ *                 as the `X-Semble-Client` header for usage analytics. It is
+ *                 lowercased server-side and must then match
+ *                 `^[a-z0-9][a-z0-9_-]{0,31}$`; values that do not are ignored
+ *                 (the request still succeeds, but is not attributed).
  * @param baseUrl - The base URL for the Semble API (default: 'https://api.semble.so/xrpc').
  * @returns A Semble API client instance.
  */

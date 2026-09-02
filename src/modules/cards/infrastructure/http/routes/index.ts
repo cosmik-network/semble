@@ -27,6 +27,7 @@ import { SearchCollectionsController } from '../controllers/SearchCollectionsCon
 import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
+import { GetRecommendedCollectionsForUrlController } from '../controllers/GetRecommendedCollectionsForUrlController';
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
@@ -61,6 +62,7 @@ export function registerCardsModuleRoutes(
   getMyCollectionsController: GetMyCollectionsController,
   getCollectionsController: GetUserCollectionsController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
+  getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
   getCollectionFollowersController: GetCollectionFollowersController,
@@ -99,6 +101,7 @@ export function registerCardsModuleRoutes(
     getCollectionsController,
     getCollectionPageByAtUriController,
     getCollectionsForUrlController,
+    getRecommendedCollectionsForUrlController,
     searchCollectionsController,
     getOpenCollectionsWithContributorController,
     getCollectionFollowersController,

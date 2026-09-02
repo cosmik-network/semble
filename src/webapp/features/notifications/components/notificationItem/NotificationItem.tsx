@@ -3,6 +3,7 @@ import { NotificationType } from '@/api-client';
 import { Stack, Indicator, Group, Scroller, Box } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import NotificationActivityStatus from '../notificationActivityStatus/NotificationActivityStatus';
 import ConnectionCard from '@/features/connections/components/connectionCard/ConnectionCard';
 import FollowButton from '@/features/follows/components/followButton/FollowButton';
@@ -16,6 +17,63 @@ interface Props {
 
 export default function NotificationItem(props: Props) {
   const notification = classifyNotification(props.item);
+
+  // Mention notification - render the mentioning note/connection/collection
+  if (notification.kind === 'mention') {
+    const item = notification.item;
+    return (
+      <Indicator
+        disabled={item.read}
+        color="tangerine"
+        size={8}
+        offset={3}
+        position="top-start"
+      >
+        <Stack gap={'xs'} align="stretch" h={'100%'}>
+          <NotificationActivityStatus
+            user={item.user}
+            createdAt={item.createdAt}
+            type={item.type}
+            mentionSource={item.mentionSource}
+            note={
+              item.mentionSource === 'CONNECTION'
+                ? item.connection?.connection.note
+                : undefined
+            }
+            iconColor="blue"
+          />
+          {item.mentionSource === 'NOTE' && item.card && (
+            <UrlCard
+              id={item.card.id}
+              url={item.card.url}
+              uri={item.card.uri}
+              note={item.card.note}
+              cardAuthor={item.card.author}
+              cardContent={item.card.cardContent}
+              urlLibraryCount={item.card.urlLibraryCount}
+              urlIsInLibrary={item.card.urlInLibrary}
+              urlConnectionCount={item.card.urlConnectionCount ?? 0}
+              urlIsConnected={item.card.urlIsConnected}
+              authorHandle={item.user.handle}
+              viaCardId={item.card.id}
+              analyticsContext={props.analyticsContext}
+            />
+          )}
+          {item.mentionSource === 'CONNECTION' && item.connection && (
+            <ConnectionCard connection={item.connection} />
+          )}
+          {item.mentionSource === 'COLLECTION' && item.mentionCollection && (
+            <Box miw={'100%'} w={'100%'}>
+              <CollectionCard
+                collection={item.mentionCollection}
+                size="compact"
+              />
+            </Box>
+          )}
+        </Stack>
+      </Indicator>
+    );
+  }
 
   // Connection notification - render similar to feed item
   if (notification.kind === 'connection') {
@@ -64,6 +122,7 @@ export default function NotificationItem(props: Props) {
                   targetId={notification.item.user.id}
                   targetType="USER"
                   initialIsFollowing={notification.item.user.isFollowing}
+                  followSource={FollowSource.NOTIFICATIONS}
                 />
               ) : undefined
             }
@@ -77,6 +136,7 @@ export default function NotificationItem(props: Props) {
                 <CollectionCard
                   collection={notification.item.collections[0]}
                   size="compact"
+                  followSource={FollowSource.NOTIFICATIONS}
                 />
               </Box>
             ) : (
@@ -84,7 +144,11 @@ export default function NotificationItem(props: Props) {
                 <Group gap="xs" wrap="nowrap">
                   {notification.item.collections.map((collection) => (
                     <Box key={collection.id} miw={'100%'} w={'100%'}>
-                      <CollectionCard collection={collection} size="compact" />
+                      <CollectionCard
+                        collection={collection}
+                        size="compact"
+                        followSource={FollowSource.NOTIFICATIONS}
+                      />
                     </Box>
                   ))}
                 </Group>

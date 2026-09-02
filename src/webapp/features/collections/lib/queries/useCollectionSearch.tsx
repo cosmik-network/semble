@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function useCollectionSearch(props: Props) {
-  const limit = props.params?.limit ?? 10;
+  const limit = props.params?.limit ?? 15;
 
   const collections = useInfiniteQuery({
     queryKey: collectionKeys.search(props.query, limit),

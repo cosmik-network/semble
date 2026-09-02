@@ -96,6 +96,7 @@ describe('ConnectionCreatedEventHandler subscription dedup', () => {
       followsRepository,
       collectionUrlResolver,
       createNotificationUseCase,
+      { resolveMentionedUsers: jest.fn(async () => []) } as any,
     );
 
     await handler.handle(event);
@@ -176,6 +177,7 @@ describe('ConnectionCreatedEventHandler subscription dedup', () => {
       followsRepository,
       collectionUrlResolver,
       createNotificationUseCase,
+      { resolveMentionedUsers: jest.fn(async () => []) } as any,
     );
 
     await handler.handle(event);

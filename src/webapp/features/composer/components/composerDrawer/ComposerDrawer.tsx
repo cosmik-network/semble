@@ -1,12 +1,14 @@
 'use client';
 
 import { ActionIcon, Affix } from '@mantine/core';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavbarContext } from '@/providers/navbar';
 import { useSearchParams } from 'next/navigation';
+import { FLOATING_BOTTOM_OFFSET } from '@/lib/consts/layout';
 import Composer from '../Composer';
+import styles from './ComposerDrawer.module.css';
 
 export default function ComposerDrawer() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
@@ -16,24 +18,29 @@ export default function ComposerDrawer() {
   const [opened, setOpened] = useState(false);
 
   // share_target support. on android could be any of these.
-  const shareUrl = useSearchParams().get('addUrl');
-  const shareText = useSearchParams().get('addText');
-  const shareTitle = useSearchParams().get('addTitle');
-  const addUrl = shareUrl || shareText || shareTitle;
+  const searchParams = useSearchParams();
+  const addUrl =
+    searchParams.get('addUrl') ||
+    searchParams.get('addText') ||
+    searchParams.get('addTitle');
 
-  useEffect(() => {
-    if (addUrl) {
-      setOpened(true);
-    }
-  }, [addUrl]);
+  // Adjusted during render rather than in an effect. Tracking the previous
+  // share is what lets the reader close the composer again: the param stays in
+  // the URL, so `if (addUrl) open` alone would reopen on every render.
+  const [prevAddUrl, setPrevAddUrl] = useState<string | null>(null);
+  if (addUrl !== prevAddUrl) {
+    setPrevAddUrl(addUrl);
+    if (addUrl) setOpened(true);
+  }
 
   return (
     <Fragment key={shouldShowFab.toString()}>
+      <div className={styles.fabClearance} />
       {shouldShowFab && (
         <Affix
           mt={'md'}
           mx={{ base: 20, sm: 'xs' }}
-          mb={{ base: 100, sm: 'md' }}
+          mb={FLOATING_BOTTOM_OFFSET}
           style={{ zIndex: 101 }}
         >
           <ActionIcon

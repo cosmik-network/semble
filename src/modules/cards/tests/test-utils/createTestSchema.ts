@@ -433,6 +433,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS connections_curator_created_at_idx ON connections(curator_id, created_at DESC);
   `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS connections_curator_claim_idx ON connections(curator_id, source_value, target_value, connection_type);
+  `);
   // New indexes for stats query optimization
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_connections_created_at_connection_type ON connections(created_at, connection_type);

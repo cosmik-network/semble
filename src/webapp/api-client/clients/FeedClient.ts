@@ -4,6 +4,7 @@ import {
   GetGemActivityFeedParams,
   GetGlobalFeedParams,
   GetFollowingFeedParams,
+  GetBskyFollowingFeedParams,
   GetGlobalFeedResponse,
 } from '@semble/types';
 
@@ -47,6 +48,24 @@ export class FeedClient extends BaseClient {
   ): Promise<GetGlobalFeedResponse> {
     const res = await this.client.feeds.followingFeed({
       query: {
+        page: params?.page,
+        limit: params?.limit,
+        beforeActivityId: params?.beforeActivityId,
+        urlType: params?.urlType,
+        source: params?.source,
+        activityTypes: params?.activityTypes,
+        includeKnownBots: params?.includeKnownBots,
+      },
+    });
+    return unwrap<GetGlobalFeedResponse>(res);
+  }
+
+  async getBskyFollowingFeed(
+    params?: GetBskyFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    const res = await this.client.feeds.bskyFollowingFeed({
+      query: {
+        identifier: params?.identifier,
         page: params?.page,
         limit: params?.limit,
         beforeActivityId: params?.beforeActivityId,

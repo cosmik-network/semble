@@ -28,6 +28,7 @@ export * from './collections/getForUrl';
 export * from './collections/listContributed';
 export * from './collections/getFollowers';
 export * from './collections/getContributors';
+export * from './collections/recommendedForUrl';
 
 export * from './users/getProfile';
 export * from './users/login';
@@ -42,6 +43,7 @@ export * from './users/onboardingState';
 export * from './feeds/global';
 export * from './feeds/gem';
 export * from './feeds/following';
+export * from './feeds/bskyFollowing';
 
 export * from './notifications/list';
 export * from './notifications/unreadCount';
@@ -60,6 +62,9 @@ export * from './search/accounts';
 export * from './search/leaflet';
 export * from './search/searchUrls';
 export * from './search/recommended';
+
+export * from './tags/getTags';
+export * from './tags/getTaggedItems';
 
 export * from './graph/getData';
 export * from './graph/getUserData';

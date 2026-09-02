@@ -4,6 +4,7 @@ import { ActionIcon, CopyButton, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useSearchParams } from 'next/navigation';
 import { MdIosShare } from 'react-icons/md';
+import { getSembleHref } from '@/lib/utils/link';
 
 export default function ShareHeaderButton() {
   const searchParams = useSearchParams();
@@ -11,7 +12,7 @@ export default function ShareHeaderButton() {
 
   if (!rawId) return null;
 
-  const shareLink = `${process.env.NEXT_PUBLIC_APP_URL}/url?id=${rawId}`;
+  const shareLink = `${process.env.NEXT_PUBLIC_APP_URL}${getSembleHref(rawId)}`;
 
   return (
     <CopyButton value={shareLink}>

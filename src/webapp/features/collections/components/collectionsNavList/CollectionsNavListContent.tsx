@@ -1,9 +1,10 @@
 'use client';
 
 import { Stack } from '@mantine/core';
+import { useMounted } from '@mantine/hooks';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import CollectionNavSection from './CollectionNavSection';
 import {
   ContributedCollectionsNavItems,
@@ -13,14 +14,23 @@ import {
 
 export default function CollectionsNavListContent() {
   const { toggleMobile } = useNavbarContext();
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
   const { data: profile } = useMyProfile();
+
+  // The expanded flags come from localStorage, so the server renders the
+  // collapsed defaults. `SettingsProvider` sits outside this route segment and
+  // has already read storage by the time the nav hydrates, so passing the
+  // stored value straight through renders an expanded section against
+  // collapsed server HTML. React reports the mismatch and refuses to patch it,
+  // leaving a section React thinks is open but the DOM shows closed. Hold the
+  // server's value for the hydrating render and adopt the stored one after.
+  const mounted = useMounted();
 
   return (
     <Stack gap={0}>
       <CollectionNavSection
         label="My Collections"
-        opened={settings.collectionsNavExpanded}
+        opened={mounted && settings.collectionsNavExpanded}
         onChange={(opened) => updateSetting('collectionsNavExpanded', opened)}
         viewAllHref={`/profile/${profile.handle}/collections`}
         onNavigate={toggleMobile}
@@ -30,7 +40,7 @@ export default function CollectionsNavListContent() {
 
       <CollectionNavSection
         label="Following"
-        opened={settings.followingNavExpanded}
+        opened={mounted && settings.followingNavExpanded}
         onChange={(opened) => updateSetting('followingNavExpanded', opened)}
         viewAllHref={`/profile/${profile.handle}/network/collections-following`}
         onNavigate={toggleMobile}
@@ -40,7 +50,7 @@ export default function CollectionsNavListContent() {
 
       <CollectionNavSection
         label="Contributed To"
-        opened={settings.contributedToNavExpanded}
+        opened={mounted && settings.contributedToNavExpanded}
         onChange={(opened) => updateSetting('contributedToNavExpanded', opened)}
         viewAllHref={`/profile/${profile.handle}/network/contributed-to`}
         onNavigate={toggleMobile}

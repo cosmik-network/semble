@@ -15,7 +15,7 @@ import {
 import { RiRobot2Fill } from 'react-icons/ri';
 import { upperFirst } from '@mantine/hooks';
 import { ActivitySource, ActivityType, UrlType } from '@semble/types';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   activityTypeOptions,
   feedOptions,
@@ -28,7 +28,7 @@ const SOURCE_ALL: string = 'all';
 const ACTIVITY_TYPE_ALL: string = 'all';
 
 export default function FeedSettingsContainer() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting, updateSettings } = useSettings();
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
 
@@ -40,11 +40,13 @@ export default function FeedSettingsContainer() {
     settings.includeKnownBots === false;
 
   const handleReset = () => {
-    updateSetting('feedSource', null);
-    updateSetting('feedView', 'global');
-    updateSetting('feedActivityType', null);
-    updateSetting('feedUrlType', null);
-    updateSetting('includeKnownBots', false);
+    updateSettings({
+      feedSource: null,
+      feedView: 'global',
+      feedActivityType: null,
+      feedUrlType: null,
+      includeKnownBots: false,
+    });
   };
 
   return (
@@ -65,15 +67,20 @@ export default function FeedSettingsContainer() {
             onChange={(value) => {
               const nextSource =
                 value === SOURCE_ALL ? null : (value as ActivitySource);
-              updateSetting('feedSource', nextSource);
-              if (nextSource === ActivitySource.MARGIN) {
-                if (settings.feedView === 'following') {
-                  updateSetting('feedView', 'global');
-                }
-                if (settings.feedActivityType !== null) {
-                  updateSetting('feedActivityType', null);
-                }
-              }
+              // Margin serves neither a following feed nor an activity-type
+              // filter, so picking it resets both. Unconditionally: the guard
+              // this replaces only checked for 'following', so choosing Margin
+              // from the Bluesky feed left the reader on a view Margin cannot
+              // answer — with this control then disabled, and no way back.
+              updateSettings(
+                nextSource === ActivitySource.MARGIN
+                  ? {
+                      feedSource: nextSource,
+                      feedView: 'global',
+                      feedActivityType: null,
+                    }
+                  : { feedSource: nextSource },
+              );
             }}
             size="md"
             data={sourceOptions.map((option) => ({
@@ -92,8 +99,9 @@ export default function FeedSettingsContainer() {
           <Stack gap={4}>
             <Text fw={500}>Feed</Text>
             <Text fw={500} c={'gray'} fz={'sm'}>
-              Global shows activity from all accounts, while following only
-              shows people you follow
+              Whose activity you see. Global covers every account, Following
+              covers the people and collections you follow here, and Bluesky
+              following covers people you follow on Bluesky who are on Semble
             </Text>
           </Stack>
           <SegmentedControl

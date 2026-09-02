@@ -16,14 +16,18 @@ import {
 } from '@mantine/core';
 import CollectionSelectorMyCollections from '../collectionSelectorMyCollections/CollectionSelectorMyCollections';
 import CollectionSelectorOpenCollections from '../collectionSelectorOpenCollections/CollectionSelectorOpenCollections';
+import CollectionSelectorRecommended from '../collectionSelectorRecommended/CollectionSelectorRecommended';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import classes from './TabItem.module.css';
 import { Collection } from '@semble/types';
-import { FaSeedling } from 'react-icons/fa6';
+import { FaSeedling, FaWandMagicSparkles } from 'react-icons/fa6';
 import { BsTrash2Fill } from 'react-icons/bs';
 import { COLLECTION_PANEL_HEIGHT } from './CollectionListScrollArea';
 
 interface Props {
   isOpen: boolean;
+  // URL being saved; enables the recommended collections tab
+  url?: string;
   onClose: () => void;
   onCancel: () => void;
   onSave: (e: React.FormEvent) => void;
@@ -36,11 +40,22 @@ interface Props {
 
 export default function CollectionSelector(props: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { data: featureFlags } = useFeatureFlags();
+  const showRecommended = !!featureFlags?.recommendedCollections && !!props.url;
+
+  // Controlled so that clearing the URL (which hides the recommended tab)
+  // falls back to a visible tab instead of stranding the selection on one
+  // that no longer renders.
+  const [activeTab, setActiveTab] = useState<string | null>('myCollections');
+  const currentTab =
+    activeTab === 'recommended' && !showRecommended
+      ? 'myCollections'
+      : activeTab;
 
   return (
     <Stack gap={'xl'}>
       <FocusTrap.InitialFocus />
-      <Tabs defaultValue={'myCollections'} keepMounted={false}>
+      <Tabs value={currentTab} onChange={setActiveTab} keepMounted={false}>
         <Tabs.List grow mb={'xs'} style={{ flexWrap: 'nowrap' }}>
           {/* Stretched so tabs grow to fill the row when there is room,
               while still scrolling horizontally on overflow */}
@@ -53,6 +68,24 @@ export default function CollectionSelector(props: Props) {
             <Tabs.Tab classNames={classes} value="myCollections">
               My Collections
             </Tabs.Tab>
+            {showRecommended && (
+              <Tabs.Tab
+                classNames={classes}
+                leftSection={
+                  <ThemeIcon
+                    variant="light"
+                    radius={'xl'}
+                    size={'xs'}
+                    color="blue"
+                  >
+                    <FaWandMagicSparkles size={8} />
+                  </ThemeIcon>
+                }
+                value="recommended"
+              >
+                Recommended
+              </Tabs.Tab>
+            )}
             <Tabs.Tab
               classNames={classes}
               leftSection={
@@ -109,6 +142,15 @@ export default function CollectionSelector(props: Props) {
             />
           </Suspense>
         </Tabs.Panel>
+        {showRecommended && (
+          <Tabs.Panel value="recommended">
+            <CollectionSelectorRecommended
+              url={props.url!}
+              selectedCollections={props.selectedCollections}
+              onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+            />
+          </Tabs.Panel>
+        )}
       </Tabs>
 
       {/* Action Buttons */}

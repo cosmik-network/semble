@@ -14,6 +14,11 @@ interface PageParams {
   includeKnownBots?: boolean;
 }
 
+interface BskyFollowingParams extends PageParams {
+  /** DID or handle whose Bluesky follows define the feed. */
+  identifier?: string;
+}
+
 export const getGlobalFeed = cache(async (params?: PageParams) => {
   const client = createSembleClient();
   const response = await client.getGlobalFeed({
@@ -58,3 +63,26 @@ export const getFollowingFeed = cache(async (params?: PageParams) => {
 
   return response;
 });
+
+export const getBskyFollowingFeed = cache(
+  async (params?: BskyFollowingParams) => {
+    // A named account's feed is public; only your own needs the session.
+    if (!params?.identifier) {
+      const session = await verifySessionOnClient({ redirectOnFail: true });
+      if (!session) throw new NoSessionError();
+    }
+
+    const client = createSembleClient();
+    const response = await client.getBskyFollowingFeed({
+      identifier: params?.identifier,
+      page: params?.page,
+      limit: params?.limit,
+      urlType: params?.urlType,
+      source: params?.source,
+      activityTypes: params?.activityTypes,
+      includeKnownBots: params?.includeKnownBots,
+    });
+
+    return response;
+  },
+);

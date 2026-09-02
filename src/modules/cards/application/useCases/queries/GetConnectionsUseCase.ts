@@ -12,6 +12,7 @@ import { UrlMetadata, PaginationDTO } from '@semble/types';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { UrlMetadata as UrlMetadataVO } from '../../../domain/value-objects/UrlMetadata';
+import { toUrlMetadataProps } from '../../../domain/value-objects/urlMetadataMapping';
 import { URL } from '../../../domain/value-objects/URL';
 
 export interface GetConnectionsQuery {
@@ -138,17 +139,9 @@ export class GetConnectionsUseCase implements UseCase<
         for (const item of result.items) {
           if (item.sourceUrl === urlString && item.sourceUrlMetadata) {
             // Parse stored metadata
-            const metadataResult = UrlMetadataVO.create({
-              url: item.sourceUrlMetadata.url,
-              title: item.sourceUrlMetadata.title,
-              description: item.sourceUrlMetadata.description,
-              author: item.sourceUrlMetadata.author,
-              siteName: item.sourceUrlMetadata.siteName,
-              imageUrl: item.sourceUrlMetadata.imageUrl,
-              type: item.sourceUrlMetadata.type,
-              doi: item.sourceUrlMetadata.doi,
-              isbn: item.sourceUrlMetadata.isbn,
-            });
+            const metadataResult = UrlMetadataVO.create(
+              toUrlMetadataProps(item.sourceUrlMetadata),
+            );
             if (metadataResult.isOk()) {
               metadataMap.set(urlString, metadataResult.value);
               hasStoredMetadata = true;
@@ -156,17 +149,9 @@ export class GetConnectionsUseCase implements UseCase<
             }
           } else if (item.targetUrl === urlString && item.targetUrlMetadata) {
             // Parse stored metadata
-            const metadataResult = UrlMetadataVO.create({
-              url: item.targetUrlMetadata.url,
-              title: item.targetUrlMetadata.title,
-              description: item.targetUrlMetadata.description,
-              author: item.targetUrlMetadata.author,
-              siteName: item.targetUrlMetadata.siteName,
-              imageUrl: item.targetUrlMetadata.imageUrl,
-              type: item.targetUrlMetadata.type,
-              doi: item.targetUrlMetadata.doi,
-              isbn: item.targetUrlMetadata.isbn,
-            });
+            const metadataResult = UrlMetadataVO.create(
+              toUrlMetadataProps(item.targetUrlMetadata),
+            );
             if (metadataResult.isOk()) {
               metadataMap.set(urlString, metadataResult.value);
               hasStoredMetadata = true;

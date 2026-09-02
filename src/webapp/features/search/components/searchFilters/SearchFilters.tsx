@@ -30,7 +30,7 @@ import { createContext, use, useState, ReactNode } from 'react';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { UrlType, CollectionAccessType } from '@semble/types';
-import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { getUrlTypeIcon, renderUrlTypeIcon } from '@/lib/utils/icon';
 import { MdFilterList } from 'react-icons/md';
 import { FaSeedling } from 'react-icons/fa6';
 
@@ -293,9 +293,6 @@ export function UrlTypeFilter() {
   const ctx = useFilterContext();
   const [opened, setOpened] = useState(false);
 
-  const SelectedIcon =
-    ctx.localType === null ? MdFilterList : getUrlTypeIcon(ctx.localType);
-
   return (
     <Popover
       opened={opened}
@@ -308,7 +305,13 @@ export function UrlTypeFilter() {
           <Button
             variant="light"
             color="lime"
-            leftSection={<SelectedIcon />}
+            leftSection={
+              ctx.localType === null ? (
+                <MdFilterList />
+              ) : (
+                renderUrlTypeIcon(ctx.localType)
+              )
+            }
             onClick={() => setOpened((o) => !o)}
           >
             {ctx.localType ? upperFirst(ctx.localType) : 'All Cards'}

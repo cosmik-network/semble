@@ -10,6 +10,7 @@ import {
   Menu,
   Spoiler,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { MdEdit } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -126,9 +127,10 @@ export default function ProfileConnectionItem(props: Props) {
                   hideLabel={'See less'}
                   maxHeight={50}
                 >
-                  <Text fw={500} fs={'italic'} c={'gray'}>
-                    {props.connection.connection.note}
-                  </Text>
+                  <RichTextRenderer
+                    text={props.connection.connection.note}
+                    textProps={{ fw: 500, fs: 'italic', c: 'gray' }}
+                  />
                 </Spoiler>
               )}
             </Stack>

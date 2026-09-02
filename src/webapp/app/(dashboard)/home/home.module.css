@@ -1,0 +1,5 @@
+/* Collapse the banner slot entirely when HomeOnboardingBanner renders nothing
+   (not eligible, or dismissed client-side). */
+.bannerSlot:empty {
+  display: none;
+}

@@ -11,6 +11,7 @@ import { BatchProfileFetcher } from '../../../modules/cards/application/services
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { registerCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { registerConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
+import { registerTagRoutes } from '../../../modules/cards/infrastructure/http/routes/tagRoutes';
 import { registerGraphRoutes } from '../../../modules/cards/infrastructure/http/routes/graphRoutes';
 import { registerFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { registerSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
@@ -192,6 +193,15 @@ export const createExpressApp = async (
         header: 'X-API-Key',
         description: 'Pass your Semble API key in the X-API-Key header.',
       },
+      client_identification: {
+        header: 'X-Semble-Client',
+        required: false,
+        description:
+          'Optional. Send a short identifier for your integration (e.g. ' +
+          '"my-plugin") so Semble can understand which tools people use. ' +
+          'Values are lowercased; after lowercasing they must match ' +
+          '^[a-z0-9][a-z0-9_-]{0,31}$ or they are ignored.',
+      },
       meta: {
         openapi_url: `${apiBaseUrl}/api/openapi.json`,
         mcp_server_url: `${apiBaseUrl}/mcp`,
@@ -320,6 +330,7 @@ export const createExpressApp = async (
       controllers.getMyCollectionsController,
       controllers.getCollectionsController,
       controllers.getCollectionsForUrlController,
+      controllers.getRecommendedCollectionsForUrlController,
       controllers.searchCollectionsController,
       controllers.getOpenCollectionsWithContributorController,
       controllers.getCollectionFollowersController,
@@ -335,6 +346,13 @@ export const createExpressApp = async (
       controllers.deleteConnectionController,
       controllers.getConnectionsController,
       controllers.getConnectionsForUrlController,
+    );
+
+    registerTagRoutes(
+      router,
+      services.authMiddleware,
+      controllers.getTagsController,
+      controllers.getTaggedItemsController,
     );
 
     registerGraphRoutes(
@@ -355,6 +373,7 @@ export const createExpressApp = async (
       controllers.getGlobalFeedController,
       controllers.getGemActivityFeedController,
       controllers.getFollowingFeedController,
+      controllers.getBskyFollowingFeedController,
     );
 
     registerSearchRoutes(

@@ -9,6 +9,7 @@ export interface SemanticSearchUrlsParams {
   limit: number;
   threshold?: number; // Similarity threshold (0-1)
   urlType?: UrlType; // Optional URL type to filter results
+  topK?: number; // How many candidates to fetch from the index before filtering/limiting (defaults to an implementation-specific value derived from limit)
 }
 
 export interface UrlSearchResult {

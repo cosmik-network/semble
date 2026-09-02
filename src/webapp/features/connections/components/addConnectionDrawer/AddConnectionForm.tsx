@@ -24,6 +24,7 @@ import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
+import type { ConnectionType } from '@semble/types';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -31,6 +32,7 @@ import { BiSolidChevronDown } from 'react-icons/bi';
 import { CardSaveSource } from '@/features/analytics/types';
 import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -38,6 +40,8 @@ interface Props {
   sourceUrl?: string;
   /** When provided the target is prefilled. */
   targetUrl?: string;
+  /** Initial connection type; defaults to RELATED. */
+  defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -58,7 +62,7 @@ export default function AddConnectionForm(props: Props) {
     initialValues: {
       sourceUrl: props.sourceUrl ?? '',
       targetUrl: props.targetUrl ?? '',
-      connectionType: 'RELATED',
+      connectionType: props.defaultConnectionType ?? 'RELATED',
       note: '',
     },
     validateInputOnChange: false,
@@ -252,7 +256,7 @@ export default function AddConnectionForm(props: Props) {
           position="bottom"
           width={320}
           onOptionSubmit={(value) => {
-            form.setFieldValue('connectionType', value);
+            form.setFieldValue('connectionType', value as ConnectionType);
             typeCombobox.closeDropdown();
           }}
         >
@@ -389,7 +393,7 @@ export default function AddConnectionForm(props: Props) {
             </Text>
           </Group>
 
-          <Textarea
+          <NoteTextarea
             id="note"
             placeholder={
               CONNECTION_TYPES.find(
@@ -402,8 +406,8 @@ export default function AddConnectionForm(props: Props) {
             rows={3}
             maxLength={MAX_NOTE_LENGTH}
             aria-describedby="note-char-remaining"
-            key={form.key('note')}
-            {...form.getInputProps('note')}
+            value={form.values.note}
+            onValueChange={(v) => form.setFieldValue('note', v)}
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}

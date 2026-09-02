@@ -1,7 +1,12 @@
 'use client';
 
-import MyFeedContainerError from '@/features/feeds/containers/myFeedContainer/Error.MyFeedContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 export default function Error() {
-  return <MyFeedContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load explore" />
+    </Container>
+  );
 }

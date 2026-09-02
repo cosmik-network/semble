@@ -24,24 +24,26 @@ export class BskyFollowsService implements IBskyFollowsService {
   ) {}
 
   /**
-   * Get the Semble users that the caller follows on Bluesky, keyed by DID,
+   * Get the Semble users that `actorDid` follows on Bluesky, keyed by DID,
    * with the profile data included in the getFollows response.
-   * Fetches up to `maxFollows` follows via the caller's authenticated agent,
-   * then intersects them with the Semble user DB.
+   * Fetches up to `maxFollows` follows via the viewer's authenticated agent
+   * (falling back to the public agent), then intersects them with the Semble
+   * user DB.
    */
   async getSembleUsersFollowedOnBsky(
-    callerDid: string,
+    actorDid: string,
     maxFollows: number = MAX_BSKY_FOLLOWS,
+    viewerDid?: string,
   ): Promise<Result<Map<string, BskyFollowedProfile>>> {
     try {
-      const didResult = DID.create(callerDid);
+      const didResult = DID.create(viewerDid ?? actorDid);
       if (didResult.isErr()) {
-        return err(new Error(`Invalid caller DID: ${didResult.error.message}`));
+        return err(new Error(`Invalid viewer DID: ${didResult.error.message}`));
       }
 
       const followsResult = await this.fetchFollows(
         didResult.value,
-        callerDid,
+        actorDid,
         maxFollows,
       );
       if (followsResult.isErr()) {
@@ -80,18 +82,18 @@ export class BskyFollowsService implements IBskyFollowsService {
   }
 
   /**
-   * Fetch the caller's Bluesky follows with the authenticated agent, falling
-   * back to the public (unauthenticated) appview if auth is unavailable or the
-   * authenticated call fails. Follows are public data, so the fallback returns
-   * the same results for any account that isn't blocking the service.
+   * Fetch `actor`'s Bluesky follows with the viewer's authenticated agent,
+   * falling back to the public (unauthenticated) appview if auth is unavailable
+   * or the authenticated call fails. Follows are public data, so the fallback
+   * returns the same results for any account that isn't blocking the service.
    */
   private async fetchFollows(
-    callerDid: DID,
+    viewerDid: DID,
     actor: string,
     maxFollows: number,
   ): Promise<Result<Map<string, BskyFollowedProfile>>> {
     const agentResult =
-      await this.agentService.getAuthenticatedAgent(callerDid);
+      await this.agentService.getAuthenticatedAgent(viewerDid);
 
     if (agentResult.isOk()) {
       const authedResult = await this.paginateFollows(

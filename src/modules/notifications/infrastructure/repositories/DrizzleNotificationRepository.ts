@@ -299,6 +299,50 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     }
   }
 
+  async findMentionNotificationsByItem(item: {
+    cardId?: string;
+    connectionId?: string;
+    collectionId?: string;
+  }): Promise<Result<Notification[]>> {
+    try {
+      const key = item.cardId
+        ? sql`${notifications.metadata}->>'cardId' = ${item.cardId}`
+        : item.connectionId
+          ? sql`${notifications.metadata}->>'connectionId' = ${item.connectionId}`
+          : sql`${notifications.metadata}->>'collectionId' = ${item.collectionId}`;
+
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(and(eq(notifications.type, 'USER_MENTIONED_YOU'), key));
+
+      const matchingNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
+
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
+        }
+
+        matchingNotifications.push(domainResult.value);
+      }
+
+      return ok(matchingNotifications);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async findByConnectionAndActor(
     connectionId: string,
     actorUserId: CuratorId,
@@ -510,6 +554,22 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .map((n) => (n.metadata as any).targetId)
         .filter(Boolean);
 
+      // Collect collection IDs from COLLECTION mention notifications; they
+      // share the follow-collection fetch below.
+      const mentionCollectionIds = notificationsResult
+        .filter((n) => {
+          const metadata = n.metadata as any;
+          return (
+            metadata?.mentionSource === 'COLLECTION' &&
+            metadata?.collectionId != null
+          );
+        })
+        .map((n) => (n.metadata as any).collectionId)
+        .filter(Boolean);
+      const lookupCollectionIds = [
+        ...new Set([...followCollectionIds, ...mentionCollectionIds]),
+      ];
+
       // Collect connection IDs from CONNECTION notifications
       const connectionIds = notificationsResult
         .filter((n) => {
@@ -596,8 +656,8 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               )
               .where(inArray(collectionCards.cardId, cardIds))
           : Promise.resolve(emptyResult),
-        // Fetch collection data for follow notifications
-        followCollectionIds.length > 0
+        // Fetch collection data for follow + collection-mention notifications
+        lookupCollectionIds.length > 0
           ? this.db
               .select({
                 collectionId: collections.id,
@@ -615,7 +675,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
                 publishedRecords,
                 eq(collections.publishedRecordId, publishedRecords.id),
               )
-              .where(inArray(collections.id, followCollectionIds))
+              .where(inArray(collections.id, lookupCollectionIds))
           : Promise.resolve(emptyResult),
         // Fetch connection data for CONNECTION notifications
         connectionIds.length > 0
@@ -791,6 +851,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               createdAt: notification.createdAt,
               actorUserId: notification.actorUserId,
               connectionId: metadata.connectionId,
+              mentionSource: metadata.mentionSource,
               connectionType: connectionData.connectionType,
               connectionNote: connectionData.note,
               connectionCreatedAt: connectionData.createdAt,
@@ -802,6 +863,35 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               targetUrlMetadata: connectionData.targetUrlMetadata,
             });
           }
+          continue;
+        }
+
+        // Check if this is a collection-description mention notification
+        if (
+          metadata?.mentionSource === 'COLLECTION' &&
+          metadata?.collectionId != null
+        ) {
+          const collectionData = followCollectionMap.get(metadata.collectionId);
+          if (!collectionData) continue;
+          enrichedNotifications.push({
+            id: notification.id,
+            type: notification.type,
+            read: notification.read,
+            createdAt: notification.createdAt,
+            actorUserId: notification.actorUserId,
+            mentionSource: metadata.mentionSource,
+            mentionCollection: {
+              id: collectionData.collectionId,
+              uri: collectionData.collectionUri || undefined,
+              name: collectionData.collectionName,
+              description: collectionData.collectionDescription || undefined,
+              accessType: collectionData.collectionAccessType,
+              authorId: collectionData.collectionAuthorId,
+              cardCount: collectionData.collectionCardCount,
+              createdAt: collectionData.collectionCreatedAt,
+              updatedAt: collectionData.collectionUpdatedAt,
+            },
+          });
           continue;
         }
 
@@ -890,6 +980,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             read: notification.read,
             createdAt: notification.createdAt,
             actorUserId: notification.actorUserId,
+            mentionSource: metadata.mentionSource,
             cardAuthorId: card.authorId,
             cardId: card.id,
             cardUrl: card.url || '',

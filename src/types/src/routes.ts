@@ -71,6 +71,8 @@ export const paths = {
   collectionFollowers: '/network.cosmik.collection.getFollowers',
   collectionFollowersCount: '/network.cosmik.collection.getFollowerCount',
   collectionContributors: '/network.cosmik.collection.getContributors',
+  recommendedCollectionsForUrl:
+    '/network.cosmik.collection.getRecommendedForUrl',
   // users / actor
   myProfile: '/network.cosmik.actor.getMyProfile',
   userProfile: '/network.cosmik.actor.getProfile',
@@ -102,6 +104,7 @@ export const paths = {
   globalFeed: '/network.cosmik.feed.getGlobal',
   gemFeed: '/network.cosmik.feed.getGem',
   followingFeed: '/network.cosmik.feed.getFollowing',
+  bskyFollowingFeed: '/network.cosmik.feed.getBskyFollowing',
   // notifications
   myNotifications: '/network.cosmik.notification.list',
   unreadCount: '/network.cosmik.notification.getUnreadCount',
@@ -113,6 +116,9 @@ export const paths = {
   connectionsByUser: '/network.cosmik.connection.listByUser',
   updateConnection: '/network.cosmik.connection.update',
   deleteConnection: '/network.cosmik.connection.delete',
+  // tags
+  getTags: '/network.cosmik.tag.list',
+  taggedItems: '/network.cosmik.tag.getItems',
   // search
   similarUrls: '/network.cosmik.search.getSimilarUrls',
   semantic: '/network.cosmik.search.semantic',
@@ -170,6 +176,11 @@ export const routes = {
     followers: defineRoute(paths.collectionFollowers, 'GET', false),
     followersCount: defineRoute(paths.collectionFollowersCount, 'GET', false),
     contributors: defineRoute(paths.collectionContributors, 'GET', false),
+    recommendedForUrl: defineRoute(
+      paths.recommendedCollectionsForUrl,
+      'GET',
+      true,
+    ),
   },
   users: {
     myProfile: defineRoute(paths.myProfile, 'GET', true),
@@ -201,6 +212,7 @@ export const routes = {
     global: defineRoute(paths.globalFeed, 'GET', false),
     gem: defineRoute(paths.gemFeed, 'GET', false),
     following: defineRoute(paths.followingFeed, 'GET', true),
+    bskyFollowing: defineRoute(paths.bskyFollowingFeed, 'GET', true),
   },
   notifications: {
     myNotifications: defineRoute(paths.myNotifications, 'GET', true),
@@ -214,6 +226,10 @@ export const routes = {
     connectionsByUser: defineRoute(paths.connectionsByUser, 'GET', false),
     updateConnection: defineRoute(paths.updateConnection, 'POST', true),
     deleteConnection: defineRoute(paths.deleteConnection, 'POST', true),
+  },
+  tags: {
+    getTags: defineRoute(paths.getTags, 'GET', false),
+    taggedItems: defineRoute(paths.taggedItems, 'GET', false),
   },
   search: {
     similarUrls: defineRoute(paths.similarUrls, 'GET', false),

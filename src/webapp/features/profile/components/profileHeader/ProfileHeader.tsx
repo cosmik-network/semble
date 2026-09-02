@@ -20,6 +20,7 @@ import { Fragment, Suspense } from 'react';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import FollowActions from '@/features/follows/components/followActions/FollowActions';
+import { FollowSource } from '@/features/analytics/types';
 import ProfileFollowStats from '../profileFollowStats/ProfileFollowStats';
 import FollowStatsSkeleton from '../profileFollowStats/Skeleton.FollowStats';
 import { IoSearch } from 'react-icons/io5';
@@ -47,7 +48,11 @@ export default async function ProfileHeader(props: Props) {
   return (
     <Fragment>
       {profile.bannerUrl ? (
-        <Image src={profile.bannerUrl} h={150} />
+        <Image
+          src={profile.bannerUrl}
+          alt={`${profile.name}'s banner`}
+          h={150}
+        />
       ) : (
         <Card h={150} bg={'var(--mantine-color-disabled)'} radius={0} />
       )}
@@ -77,6 +82,7 @@ export default async function ProfileHeader(props: Props) {
                   <FollowActions
                     targetId={profile.id}
                     targetType="USER"
+                    followSource={FollowSource.PROFILE_PAGE}
                     initialIsFollowing={profile.isFollowing}
                     initialIsSubscribed={profile.isSubscribed}
                     initialSubscriptionScopes={profile.subscriptionScopes}

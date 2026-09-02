@@ -10,7 +10,10 @@ import { ConnectionNote } from '../../../domain/value-objects/ConnectionNote';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
-import { UrlType } from '../../../domain/value-objects/UrlType';
+import {
+  toUrlMetadataJSON,
+  toUrlMetadataProps,
+} from '../../../domain/value-objects/urlMetadataMapping';
 import { PublishedRecordDTO, PublishedRecordRefDTO } from './DTOTypes';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 
@@ -94,17 +97,9 @@ export class ConnectionMapper {
       // Parse source URL metadata if present
       let sourceUrlMetadata: UrlMetadata | undefined;
       if (dto.sourceUrlMetadata) {
-        const metadataResult = UrlMetadata.create({
-          url: dto.sourceUrlMetadata.url,
-          title: dto.sourceUrlMetadata.title,
-          description: dto.sourceUrlMetadata.description,
-          author: dto.sourceUrlMetadata.author,
-          siteName: dto.sourceUrlMetadata.siteName,
-          imageUrl: dto.sourceUrlMetadata.imageUrl,
-          type: dto.sourceUrlMetadata.type as UrlType,
-          doi: dto.sourceUrlMetadata.doi,
-          isbn: dto.sourceUrlMetadata.isbn,
-        });
+        const metadataResult = UrlMetadata.create(
+          toUrlMetadataProps(dto.sourceUrlMetadata),
+        );
         if (metadataResult.isOk()) {
           sourceUrlMetadata = metadataResult.value;
         }
@@ -113,17 +108,9 @@ export class ConnectionMapper {
       // Parse target URL metadata if present
       let targetUrlMetadata: UrlMetadata | undefined;
       if (dto.targetUrlMetadata) {
-        const metadataResult = UrlMetadata.create({
-          url: dto.targetUrlMetadata.url,
-          title: dto.targetUrlMetadata.title,
-          description: dto.targetUrlMetadata.description,
-          author: dto.targetUrlMetadata.author,
-          siteName: dto.targetUrlMetadata.siteName,
-          imageUrl: dto.targetUrlMetadata.imageUrl,
-          type: dto.targetUrlMetadata.type as UrlType,
-          doi: dto.targetUrlMetadata.doi,
-          isbn: dto.targetUrlMetadata.isbn,
-        });
+        const metadataResult = UrlMetadata.create(
+          toUrlMetadataProps(dto.targetUrlMetadata),
+        );
         if (metadataResult.isOk()) {
           targetUrlMetadata = metadataResult.value;
         }
@@ -191,34 +178,14 @@ export class ConnectionMapper {
     let sourceUrlMetadata: UrlMetadataJSON | undefined;
     if (connection.sourceUrlMetadata) {
       const metadata = connection.sourceUrlMetadata;
-      sourceUrlMetadata = {
-        url: metadata.url,
-        title: metadata.title,
-        description: metadata.description,
-        author: metadata.author,
-        siteName: metadata.siteName,
-        imageUrl: metadata.imageUrl,
-        type: metadata.type,
-        doi: metadata.doi,
-        isbn: metadata.isbn,
-      };
+      sourceUrlMetadata = toUrlMetadataJSON(metadata);
     }
 
     // Serialize target URL metadata if present
     let targetUrlMetadata: UrlMetadataJSON | undefined;
     if (connection.targetUrlMetadata) {
       const metadata = connection.targetUrlMetadata;
-      targetUrlMetadata = {
-        url: metadata.url,
-        title: metadata.title,
-        description: metadata.description,
-        author: metadata.author,
-        siteName: metadata.siteName,
-        imageUrl: metadata.imageUrl,
-        type: metadata.type,
-        doi: metadata.doi,
-        isbn: metadata.isbn,
-      };
+      targetUrlMetadata = toUrlMetadataJSON(metadata);
     }
 
     return {

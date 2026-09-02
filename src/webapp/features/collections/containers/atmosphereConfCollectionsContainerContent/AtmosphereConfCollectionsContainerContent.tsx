@@ -1,14 +1,15 @@
 'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import AtmosphereConfCollectionsContainerError from '../atmosphereConfCollectionsContainer/Error.AtmosphereConfCollectionsContainer';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import AtmosphereConfCollectionsContainerContentSkeleton from './Skeleton.AtmosphereConfCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 import { CollectionSortField } from '@semble/types';
 
@@ -31,12 +32,12 @@ export default function AtmosphereConfCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <AtmosphereConfCollectionsContainerError />;
+    return <ErrorState message="Could not load AtmosphereConf collections" />;
   }
 
   if (isLoading) {
@@ -45,7 +46,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
 
   if (allCollections.length === 0) {
     return (
-      <ProfileEmptyTab
+      <EmptyState
         message="No AtmosphereConf collections found"
         icon={BiCollection}
       />
@@ -73,6 +74,7 @@ export default function AtmosphereConfCollectionsContainerContent() {
             key={collection.id}
             collection={collection}
             showAuthor={true}
+            followSource={FollowSource.EXPLORE}
           />
         ))}
       </SimpleGrid>

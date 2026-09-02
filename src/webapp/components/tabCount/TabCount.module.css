@@ -1,0 +1,7 @@
+/* Skeleton and badge share a box so the count lands without shifting the tab.
+   Mantine scopes --badge-height-md to the badge root, so restate it here.
+   2rem is a two-digit badge's natural width — up to 99 costs no shift at all. */
+.count {
+  height: calc(1.25rem * var(--mantine-scale));
+  min-width: 2rem;
+}

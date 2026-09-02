@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { encodeUrlParam } from '@/lib/utils/link';
 import { SEMBLE_TAB_CHANGE_EVENT } from '../sembleStats/SembleStatItem';
 import {
   Box,
@@ -13,8 +14,9 @@ import {
   TabsPanel,
 } from '@mantine/core';
 import TabItem from './TabItem';
+import TabCount from '@/components/tabCount/TabCount';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import useUrlMetadata from '@/features/cards/lib/queries/useUrlMetadata';
+import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
@@ -65,12 +67,12 @@ export default function SembleTabs(props: Props) {
     VALID_TABS.includes(tabParam) ? tabParam : 'similar',
   );
   const { data: featureFlags } = useFeatureFlags();
-  const { data: urlMetadata } = useUrlMetadata({
+  const { data: urlMetadata, isError } = useUrlMetadataWithStats({
     url: props.url,
-    includeStats: true,
   });
 
-  const stats = urlMetadata?.stats;
+  // undefined while loading, null when the stats request failed
+  const stats = isError ? null : urlMetadata?.stats;
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -91,7 +93,7 @@ export default function SembleTabs(props: Props) {
         const newTab = val as TabValue;
         setActiveTab(newTab);
         const viaCardId = searchParams.get('viaCardId');
-        const qs = `id=${props.url}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
+        const qs = `id=${encodeUrlParam(props.url)}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
         window.history.replaceState(null, '', `?${qs}`);
       }}
     >
@@ -107,20 +109,35 @@ export default function SembleTabs(props: Props) {
             <TabsList style={{ flexWrap: 'nowrap' }}>
               <Scroller>
                 <TabItem value="similar">Similar cards</TabItem>
-                <TabItem value="collections" count={stats?.collectionCount}>
+                <TabItem
+                  value="collections"
+                  rightSection={
+                    <TabCount count={stats && stats.collectionCount} />
+                  }
+                >
                   Collections
                 </TabItem>
                 <TabItem value="mentions">Mentions</TabItem>
                 <TabItem
                   value="connections"
-                  count={stats?.connections.all.total}
+                  rightSection={
+                    <TabCount count={stats && stats.connections.all.total} />
+                  }
                 >
                   Connections
                 </TabItem>
-                <TabItem value="notes" count={stats?.noteCount}>
+                <TabItem
+                  value="notes"
+                  rightSection={<TabCount count={stats && stats.noteCount} />}
+                >
                   Notes
                 </TabItem>
-                <TabItem value="addedBy" count={stats?.libraryCount}>
+                <TabItem
+                  value="addedBy"
+                  rightSection={
+                    <TabCount count={stats && stats.libraryCount} />
+                  }
+                >
                   Added by
                 </TabItem>
                 {featureFlags?.graphView && (

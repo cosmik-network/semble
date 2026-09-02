@@ -1,6 +1,6 @@
 import { Image, Group, Text, Tooltip } from '@mantine/core';
 import { truncateText } from '@/lib/utils/text';
-import { getDomain } from '@/lib/utils/link';
+import { getDomain, getSembleHref } from '@/lib/utils/link';
 import { LinkCard } from '@/components/link/MantineLink';
 import styles from './CardChip.module.css';
 
@@ -14,7 +14,7 @@ export default function CardChip(props: Props) {
   return (
     <Tooltip label={getDomain(props.url)}>
       <LinkCard
-        href={`/url?id=${encodeURIComponent(props.url)}`}
+        href={getSembleHref(props.url)}
         radius={'md'}
         px={7}
         py={5}

@@ -2,19 +2,19 @@
 
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import useProfile from '@/features/profile/lib/queries/useProfile';
+import { useProfileWithStats } from '@/features/profile/lib/queries/useProfile';
 import ProfileActivityFeed from './ProfileActivityFeed';
 import ProfileActivityContainerSkeleton from './Skeleton.ProfileActivityContainer';
-import ProfileActivityContainerError from './Error.ProfileActivityContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 
 interface Props {
   handle: string;
 }
 
 export default function ProfileActivityContainer({ handle }: Props) {
-  const { data: profile } = useProfile({
+  const { data: profile } = useProfileWithStats({
     didOrHandle: handle,
-    includeStats: true,
   });
 
   if (!profile?.id) {
@@ -22,7 +22,13 @@ export default function ProfileActivityContainer({ handle }: Props) {
   }
 
   return (
-    <ErrorBoundary fallback={<ProfileActivityContainerError />}>
+    <ErrorBoundary
+      fallback={
+        <Container p="xs" size="xl">
+          <ErrorState message="Could not load activity" />
+        </Container>
+      }
+    >
       <Suspense fallback={<ProfileActivityContainerSkeleton />}>
         <ProfileActivityFeed profileId={profile.id} />
       </Suspense>

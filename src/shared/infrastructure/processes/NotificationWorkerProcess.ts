@@ -22,6 +22,11 @@ import { Repositories } from '../http/factories/RepositoryFactory';
 import { ConnectionCreatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionCreatedEventHandler';
 import { ConnectionRemovedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionRemovedEventHandler';
 import { CollectionUrlResolver } from 'src/modules/notifications/application/services/CollectionUrlResolver';
+import { MentionRecipientResolver } from 'src/modules/notifications/application/services/MentionRecipientResolver';
+import { NoteMentionBundleHandler } from 'src/modules/notifications/application/bundleHandlers/NoteMentionBundleHandler';
+import { NoteCardUpdatedEventHandler } from 'src/modules/notifications/application/eventHandlers/NoteCardUpdatedEventHandler';
+import { ConnectionUpdatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionUpdatedEventHandler';
+import { CollectionMentionEventHandler } from 'src/modules/notifications/application/eventHandlers/CollectionMentionEventHandler';
 import { BundleRecipientResolver } from 'src/modules/notifications/application/services/BundleRecipientResolver';
 
 export class NotificationWorkerProcess extends BaseWorkerProcess {
@@ -98,9 +103,21 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       bundleRecipientResolver,
     );
 
+    const mentionRecipientResolver = new MentionRecipientResolver(
+      services.identityResolutionService,
+      repositories.userRepository,
+    );
+
+    const noteMentionBundleHandler = new NoteMentionBundleHandler(
+      repositories.cardRepository,
+      mentionRecipientResolver,
+      services.notificationService,
+    );
+
     const bundlingSaga = new CardActivityBundlingSaga(services.sagaStateStore, [
       viaCardBundleHandler,
       urlMentionBundleHandler,
+      noteMentionBundleHandler,
       collectionContributionBundleHandler,
       subscriptionBundleHandler,
     ]);
@@ -142,10 +159,28 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       repositories.followsRepository,
       collectionUrlResolver,
       useCases.createNotificationUseCase,
+      mentionRecipientResolver,
     );
 
     const connectionRemovedHandler = new ConnectionRemovedEventHandler(
       repositories.notificationRepository,
+    );
+
+    // Mention handlers for edits and collection descriptions
+    const noteCardUpdatedHandler = new NoteCardUpdatedEventHandler(
+      repositories.cardRepository,
+      mentionRecipientResolver,
+      services.notificationService,
+    );
+    const connectionUpdatedHandler = new ConnectionUpdatedEventHandler(
+      repositories.connectionRepository,
+      mentionRecipientResolver,
+      services.notificationService,
+    );
+    const collectionMentionHandler = new CollectionMentionEventHandler(
+      repositories.collectionRepository,
+      mentionRecipientResolver,
+      services.notificationService,
     );
 
     // Card add events all funnel into the bundling saga.
@@ -184,6 +219,24 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_REMOVED,
       connectionRemovedHandler,
+    );
+
+    // Mention-related subscriptions
+    await subscriber.subscribe(
+      EventNames.NOTE_CARD_UPDATED,
+      noteCardUpdatedHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.CONNECTION_UPDATED,
+      connectionUpdatedHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.COLLECTION_CREATED,
+      collectionMentionHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.COLLECTION_UPDATED,
+      collectionMentionHandler,
     );
   }
 }

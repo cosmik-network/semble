@@ -5,7 +5,7 @@ import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { CollectionDTO, User } from '@semble/types';
 import {
   ICollectionQueryRepository,
-  CollectionQueryResultDTO,
+  CollectionWithMatchedUrlsDTO,
 } from '../../../domain/ICollectionQueryRepository';
 import { CollectionAccessType } from '../../../domain/Collection';
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
@@ -16,13 +16,19 @@ import {
   IBskyFollowsService,
   BskyFollowedProfile,
 } from 'src/modules/user/application/services/IBskyFollowsService';
+import { GlobalFeedSeedService } from 'src/modules/feeds/application/services/GlobalFeedSeedService';
 
 export interface RecommendedCollectionsRankingConfig {
+  // Applied to log1p(cardCount) so size helps but can't dominate
   cardCountWeight: number;
+  // Applied to log1p(followerCount) so a few followers matter, hundreds don't pile on
   followerWeight: number;
   // Max score contribution for update recency; decays exponentially with age
   recencyWeight: number;
   recencyHalfLifeDays: number;
+  // Bonus per additional seed URL the collection contains beyond the first;
+  // rewards collections relevant to several of the caller's URLs at once
+  urlOverlapWeight: number;
   // Flat bonus when the collection author is followed on Bluesky by the caller
   bskyFollowWeight: number;
   // 0 = fully deterministic ranking, 1 = maximum jitter (still skewed toward higher scores)
@@ -31,10 +37,11 @@ export interface RecommendedCollectionsRankingConfig {
 
 export const DEFAULT_COLLECTION_RANKING_CONFIG: RecommendedCollectionsRankingConfig =
   {
-    cardCountWeight: 1,
-    followerWeight: 3,
+    cardCountWeight: 2, // 100 cards ≈ +9, 1000 cards ≈ +14
+    followerWeight: 8, // 5 followers ≈ +14, 50 followers ≈ +31
     recencyWeight: 20,
     recencyHalfLifeDays: 14,
+    urlOverlapWeight: 10,
     bskyFollowWeight: 30,
     randomness: 0.5,
   };
@@ -42,8 +49,10 @@ export const DEFAULT_COLLECTION_RANKING_CONFIG: RecommendedCollectionsRankingCon
 const MAX_RESULTS = 20;
 
 export interface RecommendedCollectionsQuery {
-  urls: string[];
-  callingUserId: string;
+  // When empty and there's no calling user, seed URLs are drawn from random
+  // recent cards in the global feed.
+  urls?: string[];
+  callingUserId?: string;
 }
 
 export type RecommendedCollection = CollectionDTO & {
@@ -75,6 +84,9 @@ export class RecommendedCollectionsUseCase implements UseCase<
     private bskyFollowsService: IBskyFollowsService,
     private profileService: IProfileService,
     config?: Partial<RecommendedCollectionsRankingConfig>,
+    // Used to derive seed URLs for unauthenticated callers, who have no
+    // library to sample from. Absent in setups without a feed repository.
+    private globalFeedSeedService?: GlobalFeedSeedService,
   ) {
     this.config = { ...DEFAULT_COLLECTION_RANKING_CONFIG, ...config };
   }
@@ -88,36 +100,47 @@ export class RecommendedCollectionsUseCase implements UseCase<
     >
   > {
     try {
-      const urls = (query.urls || []).filter((u) => u.trim().length > 0);
+      const callingUserId = query.callingUserId;
+
+      let urls = (query.urls || []).filter((u) => u.trim().length > 0);
       if (urls.length === 0) {
-        return err(new ValidationError('At least one URL is required'));
-      }
-      if (!query.callingUserId) {
-        return err(new ValidationError('Calling user is required'));
+        if (callingUserId) {
+          // Authenticated callers are expected to supply the URLs they want
+          // recommendations for.
+          return err(new ValidationError('At least one URL is required'));
+        }
+        // Unauthenticated: seed from what the network has recently saved.
+        urls = await this.deriveUrlsFromGlobalFeed();
+        if (urls.length === 0) {
+          return ok({ collections: [] });
+        }
       }
 
-      // 1. In parallel: collections containing the URLs + Semble users followed on Bluesky
+      // 1. In parallel: collections containing the URLs + Semble users followed
+      // on Bluesky (only meaningful for an authenticated caller)
       const [urlCollections, bskyFollowedResult] = await Promise.all([
         this.collectionQueryRepo.getCollectionsForUrls(urls),
-        this.bskyFollowsService.getSembleUsersFollowedOnBsky(
-          query.callingUserId,
-        ),
+        callingUserId
+          ? this.bskyFollowsService.getSembleUsersFollowedOnBsky(callingUserId)
+          : undefined,
       ]);
 
       // Best-effort: recommendations still work if the Bluesky lookup fails
       let bskyFollowedProfiles = new Map<string, BskyFollowedProfile>();
-      if (bskyFollowedResult.isOk()) {
-        bskyFollowedProfiles = bskyFollowedResult.value;
-      } else {
-        console.warn(
-          `RecommendedCollectionsUseCase: failed to fetch Bluesky follows: ${bskyFollowedResult.error.message}`,
-        );
+      if (bskyFollowedResult) {
+        if (bskyFollowedResult.isOk()) {
+          bskyFollowedProfiles = bskyFollowedResult.value;
+        } else {
+          console.warn(
+            `RecommendedCollectionsUseCase: failed to fetch Bluesky follows: ${bskyFollowedResult.error.message}`,
+          );
+        }
       }
 
       // 2. Dedupe by collection id, excluding the caller's own collections
-      const collectionsById = new Map<string, CollectionQueryResultDTO>();
+      const collectionsById = new Map<string, CollectionWithMatchedUrlsDTO>();
       urlCollections.forEach((collection) => {
-        if (collection.authorId === query.callingUserId) return;
+        if (callingUserId && collection.authorId === callingUserId) return;
         collectionsById.set(collection.id, collection);
       });
       const candidates = Array.from(collectionsById.values());
@@ -128,20 +151,24 @@ export class RecommendedCollectionsUseCase implements UseCase<
 
       const candidateIds = candidates.map((c) => c.id);
 
-      // 3. Drop collections the calling user already follows on Semble
-      const followingResult =
-        await this.followsRepository.checkFollowingMultiple(
-          query.callingUserId,
-          candidateIds,
-          FollowTargetType.COLLECTION,
+      // 3. Drop collections the calling user already follows on Semble.
+      // Nothing to exclude for an unauthenticated caller.
+      let unfollowedCandidates = candidates;
+      if (callingUserId) {
+        const followingResult =
+          await this.followsRepository.checkFollowingMultiple(
+            callingUserId,
+            candidateIds,
+            FollowTargetType.COLLECTION,
+          );
+        if (followingResult.isErr()) {
+          return err(AppError.UnexpectedError.create(followingResult.error));
+        }
+        const followingMap = followingResult.value;
+        unfollowedCandidates = candidates.filter(
+          (c) => !followingMap.get(c.id),
         );
-      if (followingResult.isErr()) {
-        return err(AppError.UnexpectedError.create(followingResult.error));
       }
-      const followingMap = followingResult.value;
-      const unfollowedCandidates = candidates.filter(
-        (c) => !followingMap.get(c.id),
-      );
 
       if (unfollowedCandidates.length === 0) {
         return ok({ collections: [] });
@@ -234,6 +261,24 @@ export class RecommendedCollectionsUseCase implements UseCase<
     }
   }
 
+  /**
+   * Seeds from the network rather than a library: URLs of random recent cards
+   * out of the latest global feed activity. Returns an empty array when no
+   * feed seed service is configured or the feed yields nothing usable.
+   */
+  private async deriveUrlsFromGlobalFeed(): Promise<string[]> {
+    if (!this.globalFeedSeedService) {
+      return [];
+    }
+
+    const seedCards = await this.globalFeedSeedService.getSeedCards();
+    return [
+      ...new Set(
+        seedCards.map((card) => card.url).filter((url) => !!url?.trim()),
+      ),
+    ];
+  }
+
   private toAuthorProfile(bskyProfile: BskyFollowedProfile): User {
     return {
       id: bskyProfile.did,
@@ -245,13 +290,21 @@ export class RecommendedCollectionsUseCase implements UseCase<
   }
 
   private computeRankKey(
-    collection: CollectionQueryResultDTO,
+    collection: CollectionWithMatchedUrlsDTO,
     followerCount: number,
     authorFollowedOnBsky: boolean,
   ): number {
+    // log1p dampens raw counts so huge collections and follower piles don't
+    // drown out recency and relevance signals
     let score =
-      this.config.cardCountWeight * collection.cardCount +
-      this.config.followerWeight * followerCount;
+      this.config.cardCountWeight * Math.log1p(collection.cardCount) +
+      this.config.followerWeight * Math.log1p(followerCount);
+
+    // Every candidate matches at least one seed URL; extra matches signal
+    // the collection is relevant to more of what the caller is looking at
+    score +=
+      this.config.urlOverlapWeight *
+      Math.max(0, collection.matchedUrls.length - 1);
 
     const ageDays =
       (Date.now() - collection.updatedAt.getTime()) / (1000 * 60 * 60 * 24);

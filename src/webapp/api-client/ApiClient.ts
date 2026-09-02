@@ -6,6 +6,7 @@ import {
   UserClient,
   FeedClient,
   NotificationClient,
+  TagClient,
 } from './clients';
 import { createTsRestClient } from './tsRestClient';
 import type {
@@ -32,6 +33,7 @@ import type {
   GetMyCollectionsParams,
   GetGlobalFeedParams,
   GetFollowingFeedParams,
+  GetBskyFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -67,6 +69,8 @@ import type {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetRecommendedCollectionsForUrlParams,
+  GetRecommendedCollectionsForUrlResponse,
   GetSimilarUrlsForUrlParams,
   GetSimilarUrlsForUrlResponse,
   SemanticSearchUrlsParams,
@@ -133,6 +137,11 @@ import type {
   // Search types
   SearchUrlsParams,
   SearchUrlsResponse,
+  // Tag types
+  GetTagsParams,
+  GetTagsResponse,
+  GetTaggedItemsParams,
+  GetTaggedItemsResponse,
   // Graph types
   GetGraphDataParams,
   GetGraphDataResponse,
@@ -159,6 +168,7 @@ export class ApiClient {
   private userClient: UserClient;
   private feedClient: FeedClient;
   private notificationClient: NotificationClient;
+  private tagClient: TagClient;
 
   constructor(
     private baseUrl: string,
@@ -172,6 +182,7 @@ export class ApiClient {
     this.userClient = new UserClient(client);
     this.feedClient = new FeedClient(client);
     this.notificationClient = new NotificationClient(client);
+    this.tagClient = new TagClient(client);
   }
 
   // Query operations - delegate to QueryClient
@@ -264,6 +275,12 @@ export class ApiClient {
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
     return this.queryClient.getCollectionsForUrl(params);
+  }
+
+  async getRecommendedCollectionsForUrl(
+    params: GetRecommendedCollectionsForUrlParams,
+  ): Promise<GetRecommendedCollectionsForUrlResponse> {
+    return this.queryClient.getRecommendedCollectionsForUrl(params);
   }
 
   async getSimilarUrlsForUrl(
@@ -568,6 +585,12 @@ export class ApiClient {
     return this.feedClient.getFollowingFeed(params);
   }
 
+  async getBskyFollowingFeed(
+    params?: GetBskyFollowingFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getBskyFollowingFeed(params);
+  }
+
   // Notification operations - delegate to NotificationClient
   async getMyNotifications(
     params?: GetMyNotificationsParams,
@@ -626,6 +649,17 @@ export class ApiClient {
   // Search operations
   async searchUrls(params: SearchUrlsParams): Promise<SearchUrlsResponse> {
     return this.queryClient.searchUrls(params);
+  }
+
+  // Tag operations - delegate to TagClient
+  async getTags(params?: GetTagsParams): Promise<GetTagsResponse> {
+    return this.tagClient.getTags(params);
+  }
+
+  async getTaggedItems(
+    params: GetTaggedItemsParams,
+  ): Promise<GetTaggedItemsResponse> {
+    return this.tagClient.getTaggedItems(params);
   }
 
   // Graph operations

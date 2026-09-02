@@ -37,9 +37,36 @@ import { publishedRecords } from '../schema/publishedRecord.sql';
 import { connections } from '../schema/connection.sql';
 import { CardMapper, RawUrlCardData } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { toUrlMetadataView } from '../../../domain/value-objects/urlMetadataMapping';
 
 export class UrlCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
+
+  /**
+   * Of the given URLs, return the subset the user has saved as URL cards.
+   * Served by cards_author_url_idx (author_id, url).
+   */
+  async getUrlsSavedByUser(
+    userId: string,
+    urls: string[],
+  ): Promise<Set<string>> {
+    if (urls.length === 0) {
+      return new Set();
+    }
+
+    const rows = await this.db
+      .selectDistinct({ url: cards.url })
+      .from(cards)
+      .where(
+        and(
+          eq(cards.authorId, userId),
+          eq(cards.type, CardTypeEnum.URL),
+          inArray(cards.url, urls),
+        ),
+      );
+
+    return new Set(rows.map((row) => row.url as string));
+  }
 
   async getUrlCardsOfUser(
     userId: string,
@@ -1046,23 +1073,10 @@ export class UrlCardQueryService {
             id: lib.cardId,
             url: lib.url || '',
             uri: lib.publishedRecordUri || undefined,
-            cardContent: {
+            cardContent: toUrlMetadataView({
+              ...lib.contentData?.metadata,
               url: lib.contentData?.url,
-              title: lib.contentData?.metadata?.title,
-              description: lib.contentData?.metadata?.description,
-              author: lib.contentData?.metadata?.author,
-              publishedDate: lib.contentData?.metadata?.publishedDate
-                ? new Date(lib.contentData.metadata.publishedDate)
-                : undefined,
-              siteName: lib.contentData?.metadata?.siteName,
-              imageUrl: lib.contentData?.metadata?.imageUrl,
-              type: lib.contentData?.metadata?.type,
-              retrievedAt: lib.contentData?.metadata?.retrievedAt
-                ? new Date(lib.contentData.metadata.retrievedAt)
-                : undefined,
-              doi: lib.contentData?.metadata?.doi,
-              isbn: lib.contentData?.metadata?.isbn,
-            },
+            }),
             libraryCount: lib.libraryCount,
             urlLibraryCount,
             urlInLibrary: true, // By definition, if it's in this result, it's in a library
@@ -1960,23 +1974,10 @@ export class UrlCardQueryService {
 
         // Build metadata from contentData or create minimal metadata
         const metadata = contentData
-          ? {
+          ? toUrlMetadataView({
+              ...contentData,
               url: contentData.url || url,
-              title: contentData.title,
-              description: contentData.description,
-              author: contentData.author,
-              publishedDate: contentData.publishedDate
-                ? new Date(contentData.publishedDate)
-                : undefined,
-              siteName: contentData.siteName,
-              imageUrl: contentData.imageUrl,
-              type: contentData.type,
-              retrievedAt: contentData.retrievedAt
-                ? new Date(contentData.retrievedAt)
-                : undefined,
-              doi: contentData.doi,
-              isbn: contentData.isbn,
-            }
+            })
           : {
               url,
             };

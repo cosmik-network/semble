@@ -1,5 +1,6 @@
 import { Container, Group, Stack, Skeleton, Box } from '@mantine/core';
 import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
+import CollectionStatsSkeleton from '../collectionStats/Skeleton.CollectionStats';
 
 export default function CollectionHeaderSkeleton() {
   return (
@@ -27,40 +28,35 @@ export default function CollectionHeaderSkeleton() {
         }}
       />
       <Container p="xs" size="xl">
-        <Stack gap={'lg'}>
-          <Stack gap={'xs'}>
-            <Group justify="space-between" align="start">
-              <Stack gap={0}>
-                <Group gap={'xs'}>
-                  {/* "Collection" text */}
-                  <Skeleton w={120} h={20} />
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="flex-start" gap={'xs'}>
+            <Stack gap={0}>
+              {/* "Collection" text, and the Open badge on open collections */}
+              <Group gap={'xs'} h={24.8}>
+                <Skeleton w={120} h={18} />
+              </Group>
 
-                  {/* Open badge (optional) */}
-                  {/*<Skeleton w={67} h={20} />*/}
-                </Group>
+              {/* Title */}
+              <Group h={44.2}>
+                <Skeleton w={300} h={34} />
+              </Group>
+            </Stack>
 
-                {/* Title */}
-                <Skeleton w={300} h={42} mt={8} />
-
-                {/* Description */}
-                {/*<Skeleton w={'100%'} color="grape" h={22} mt={'lg'} />*/}
+            {/* Author + updated */}
+            <Group gap={'xs'} wrap="nowrap">
+              <Skeleton w={32} h={32} radius="md" />
+              <Stack gap={4}>
+                <Skeleton w={140} h={14} />
+                <Skeleton w={104} h={14} />
               </Stack>
             </Group>
+          </Group>
 
-            <Group justify="space-between" gap={'lg'}>
-              <Stack gap={'xs'}>
-                {/* Author + collaborators */}
-                <Group gap={5}>
-                  <Skeleton w={180} h={24} />
-                </Group>
-
-                {/* Stats section */}
-                <Skeleton w={'100%'} h={20} />
-              </Stack>
-
-              <CollectionActionsSkeleton />
-            </Group>
-          </Stack>
+          {/* Description — omitted: we can't know whether there is one */}
+          <Group justify="space-between" gap={'lg'} mt={'sm'}>
+            <CollectionStatsSkeleton />
+            <CollectionActionsSkeleton />
+          </Group>
         </Stack>
       </Container>
     </>

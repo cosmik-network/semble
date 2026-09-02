@@ -15,6 +15,8 @@ import {
   UrlRankingStats,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
+import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { GlobalFeedSeedService } from '../../../../feeds/application/services/GlobalFeedSeedService';
 
 export interface RecommendationRankingConfig {
   urlCardWeight: number;
@@ -55,6 +57,9 @@ export interface RecommendedCardsQuery {
   // Per-request overrides for the ranking weights. Anything omitted falls back
   // to the instance config. Distinct weights get their own cache entry.
   ranking?: Partial<RecommendationRankingConfig>;
+  // Restricts the vector search to URLs of this type. Part of the cache key, so
+  // changing it re-queries the vector DB rather than serving the previous set.
+  urlType?: string;
 }
 
 export interface RecommendedCardsResult {
@@ -85,6 +90,9 @@ export class RecommendedCardsUseCase implements UseCase<
     // the ranking is recomputed on every request.
     private redis?: Redis,
     config?: Partial<RecommendationRankingConfig>,
+    // Used to derive seed queries for unauthenticated callers, who have no
+    // library to sample from. Absent in setups without a feed repository.
+    private globalFeedSeedService?: GlobalFeedSeedService,
   ) {
     this.config = { ...DEFAULT_RANKING_CONFIG, ...config };
   }
@@ -128,6 +136,14 @@ export class RecommendedCardsUseCase implements UseCase<
       // Per-request weight overrides layered onto the instance config.
       const config = this.resolveConfig(query.ranking);
 
+      let urlType: UrlType | undefined;
+      if (query.urlType) {
+        if (!Object.values(UrlType).includes(query.urlType as UrlType)) {
+          return err(new ValidationError(`Invalid URL type: ${query.urlType}`));
+        }
+        urlType = query.urlType as UrlType;
+      }
+
       // Build (or read from cache) the full ranked list, then paginate over it.
       // The ranked order is stable per (queries, user, weights) so pages don't
       // reshuffle, and changing any weight ranks into a fresh cache entry.
@@ -135,6 +151,7 @@ export class RecommendedCardsUseCase implements UseCase<
         queries,
         config,
         query.callingUserId,
+        urlType,
       );
       if (rankedResult.isErr()) {
         return err(rankedResult.error);
@@ -165,11 +182,12 @@ export class RecommendedCardsUseCase implements UseCase<
   /**
    * Derives query strings for a caller who didn't provide any: title +
    * description of random recent library cards, falling back to the profile
-   * bio. Returns an empty array when nothing usable exists.
+   * bio. Unauthenticated callers instead seed from random recent cards in the
+   * global feed. Returns an empty array when nothing usable exists.
    */
   private async deriveQueries(callingUserId?: string): Promise<string[]> {
     if (!callingUserId) {
-      return [];
+      return this.deriveQueriesFromGlobalFeed();
     }
 
     const recentCards = await this.cardQueryRepository.getUrlCardsOfUser(
@@ -209,6 +227,27 @@ export class RecommendedCardsUseCase implements UseCase<
     return bio ? [bio] : [];
   }
 
+  /**
+   * Seeds from the network rather than a library: random recent cards out of
+   * the latest global feed activity. Returns an empty array when no feed seed
+   * service is configured or the feed yields nothing usable.
+   */
+  private async deriveQueriesFromGlobalFeed(): Promise<string[]> {
+    if (!this.globalFeedSeedService) {
+      return [];
+    }
+
+    const seedCards = await this.globalFeedSeedService.getSeedCards();
+
+    return seedCards
+      .map((card) =>
+        [card.cardContent.title?.trim(), card.cardContent.description?.trim()]
+          .filter(Boolean)
+          .join(' '),
+      )
+      .filter((query) => query.length > 0);
+  }
+
   private pickRandom<T>(items: T[], count: number): T[] {
     if (items.length <= count) {
       return items;
@@ -230,8 +269,9 @@ export class RecommendedCardsUseCase implements UseCase<
     queries: string[],
     config: RecommendationRankingConfig,
     callingUserId?: string,
+    urlType?: UrlType,
   ): Promise<Result<UrlView[], ValidationError | AppError.UnexpectedError>> {
-    const cacheKey = this.getCacheKey(queries, config, callingUserId);
+    const cacheKey = this.getCacheKey(queries, config, callingUserId, urlType);
 
     if (this.redis) {
       try {
@@ -251,6 +291,7 @@ export class RecommendedCardsUseCase implements UseCase<
       queries,
       config,
       callingUserId,
+      urlType,
     );
     if (rankedResult.isErr()) {
       return rankedResult;
@@ -301,6 +342,7 @@ export class RecommendedCardsUseCase implements UseCase<
     queries: string[],
     config: RecommendationRankingConfig,
     callingUserId?: string,
+    urlType?: UrlType,
   ): string {
     // Sort queries so ordering doesn't fragment the cache; scope to the caller
     // because the ranked set filters out URLs they've already saved.
@@ -314,7 +356,9 @@ export class RecommendedCardsUseCase implements UseCase<
       config.connectionWeight,
       config.randomness,
     ].join(',');
-    return `${CACHE_KEY_PREFIX}${callingUserId ?? 'anon'}:${weights}:${normalizedQueries}`;
+    // The URL type filter is part of the key so switching it re-queries the
+    // vector DB instead of serving the previously ranked (unfiltered) set.
+    return `${CACHE_KEY_PREFIX}${callingUserId ?? 'anon'}:${weights}:${urlType ?? 'all'}:${normalizedQueries}`;
   }
 
   /**
@@ -329,6 +373,7 @@ export class RecommendedCardsUseCase implements UseCase<
     queries: string[],
     config: RecommendationRankingConfig,
     callingUserId?: string,
+    urlType?: UrlType,
   ): Promise<Result<UrlView[], ValidationError | AppError.UnexpectedError>> {
     try {
       // 1. Run parallel semantic searches for each query string
@@ -337,6 +382,7 @@ export class RecommendedCardsUseCase implements UseCase<
           this.vectorDatabase.semanticSearchUrls({
             query: q,
             limit: VECTOR_SEARCH_LIMIT,
+            urlType,
           }),
         ),
       );

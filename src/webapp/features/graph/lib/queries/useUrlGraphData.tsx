@@ -15,10 +15,14 @@ import { calculateNodeSize, getNodeColor } from '../utils/nodeStyles';
  * Calculates connection counts, node sizes, and colors for all nodes
  */
 export default function useUrlGraphData(url: string, depth: number = 1) {
-  // Fetch URL sub-graph data
+  // Fetch URL sub-graph data. The fetch timestamp feeds the fade-in
+  // animation; stamped here because render must stay pure.
   const query = useQuery({
     queryKey: graphKeys.url(url, depth),
-    queryFn: () => apiClient.getUrlGraphData({ url, depth }),
+    queryFn: async () => ({
+      ...(await apiClient.getUrlGraphData({ url, depth })),
+      fetchedAt: Date.now(),
+    }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!url, // Only fetch if URL is provided
   });
@@ -52,7 +56,7 @@ export default function useUrlGraphData(url: string, depth: number = 1) {
           val: calculateNodeSize(connectionCount),
           color: getNodeColor(node.type),
           // Track when node was added for smooth fade-in animation
-          __addedAt: Date.now(),
+          __addedAt: query.data.fetchedAt,
         });
       }
     });

@@ -1,14 +1,16 @@
 'use client';
 
 import type { Collection, UrlCard } from '@semble/types';
-import { Stack } from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { Button, Stack, Text } from '@mantine/core';
+import { useState } from 'react';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
-import AddCardActions from '../addCardActions/AddCardActions';
 import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
 import { notifications } from '@mantine/notifications';
 import { BsExclamation } from 'react-icons/bs';
+import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
+import CardNoteEditor from '../cardNoteEditor/CardNoteEditor';
 
 interface Props {
   onClose: () => void;
@@ -30,27 +32,28 @@ interface Props {
     };
   }) => void;
   url: string;
-  cardId?: string;
-  note?: string;
   cardContent?: UrlCard['cardContent'];
+  urlLibraryCount: number;
+  isInYourLibrary?: boolean;
   viaCardId?: string;
   isSaving: boolean;
 }
 
 export default function AddCardToModalContent(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
-  const isMyCard = props?.cardId === cardStatus.data.card?.id;
-  const [note, setNote] = useState(isMyCard ? props.note : '');
+
+  // The viewer's own note for this URL, whoever's card opened the modal
+  const savedNote = cardStatus.data.card?.note?.text;
+  const [note, setNote] = useState(savedNote);
+  const [isEditingNote, setIsEditingNote] = useState(false);
 
   const collectionsWithCard = cardStatus.data.collections ?? [];
 
-  const [selectedCollections, setSelectedCollections] =
-    useState<Collection[]>(collectionsWithCard);
-
-  // Sync state with query data when it changes
-  useEffect(() => {
-    setSelectedCollections(cardStatus.data.collections ?? []);
-  }, [cardStatus.data.collections]);
+  // null = untouched: mirror the card's collections until the user edits
+  const [selectedOverride, setSelectedOverride] = useState<Collection[] | null>(
+    null,
+  );
+  const selectedCollections = selectedOverride ?? collectionsWithCard;
 
   const removeCard = useRemoveCardFromLibrary();
 
@@ -88,7 +91,10 @@ export default function AddCardToModalContent(props: Props) {
       (c) => !selectedCollections.some((selected) => selected.id === c.id),
     );
 
-    const hasNoteChanged = trimmedNote !== props.note;
+    // Only ever send a non-empty note: the update endpoint rejects an empty
+    // string and takes the collection changes in the same request down with
+    // it. Removing a note goes through the editor's delete action instead.
+    const hasNoteChanged = !!trimmedNote && trimmedNote !== savedNote;
     const hasAdded = addedCollections.length > 0;
     const hasRemoved = removedCollections.length > 0;
 
@@ -141,27 +147,58 @@ export default function AddCardToModalContent(props: Props) {
   };
 
   return (
-    <Stack>
-      <AddCardActions
-        note={isMyCard ? note : cardStatus.data.card?.note?.text}
-        noteId={cardStatus.data.card?.note?.id}
-        onUpdateNote={setNote}
-        onClose={props.onClose}
-      />
+    <Stack gap={'md'}>
+      <CardToBeAddedPreview
+        url={props.url}
+        title={props.cardContent?.title}
+        imageUrl={props.cardContent?.imageUrl}
+        libraryCount={props.urlLibraryCount}
+        isInYourLibrary={props.isInYourLibrary}
+        action={
+          !isEditingNote && (
+            <Button
+              variant="light"
+              size="xs"
+              color="gray"
+              leftSection={<MdOutlineStickyNote2 />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingNote(true);
+              }}
+            >
+              {savedNote ? 'Edit note' : 'Add note'}
+            </Button>
+          )
+        }
+      >
+        {isEditingNote && (
+          <CardNoteEditor
+            note={note}
+            onChange={setNote}
+            noteId={cardStatus.data.card?.note?.id}
+            onDeleted={props.onClose}
+            onCancel={() => {
+              setNote(savedNote);
+              setIsEditingNote(false);
+            }}
+          />
+        )}
+      </CardToBeAddedPreview>
 
       <CollectionSelector
         isOpen={true}
+        url={props.url}
         onClose={props.onClose}
         onCancel={() => {
           props.onClose();
-          setSelectedCollections(cardStatus.data.collections ?? []);
+          setSelectedOverride(null);
         }}
         onSave={handleUpdateCard}
         isSaving={props.isSaving}
         onDeleteCard={cardStatus.data.card ? handleDeleteCard : undefined}
         isDeletingCard={removeCard.isPending}
         selectedCollections={selectedCollections}
-        onSelectedCollectionsChange={setSelectedCollections}
+        onSelectedCollectionsChange={setSelectedOverride}
       />
     </Stack>
   );

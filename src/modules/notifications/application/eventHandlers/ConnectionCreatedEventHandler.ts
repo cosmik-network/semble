@@ -20,6 +20,7 @@ import { CollectionUrlResolver } from '../services/CollectionUrlResolver';
 import { CreateNotificationUseCase } from '../useCases/commands/CreateNotificationUseCase';
 import { NotificationType } from '@semble/types';
 import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
+import { MentionRecipientResolver } from '../services/MentionRecipientResolver';
 
 export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(
@@ -34,6 +35,7 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
     private followsRepository: IFollowsRepository,
     private collectionUrlResolver: CollectionUrlResolver,
     private createNotificationUseCase: CreateNotificationUseCase,
+    private mentionRecipientResolver: MentionRecipientResolver,
   ) {}
 
   async handle(event: ConnectionCreatedEvent): Promise<Result<void>> {
@@ -56,6 +58,30 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
         return ok(undefined);
       }
 
+      // Mention pass runs before the URL guard: card-to-card connections can
+      // still carry a mentioning note.
+      const mentionedDids = new Set<string>();
+      if (connection.note?.value) {
+        const mentionRecipients =
+          await this.mentionRecipientResolver.resolveMentionedUsers(
+            connection.note.value,
+          );
+        const reconcileResult =
+          await this.notificationService.reconcileMentionNotifications(
+            connection.curatorId,
+            { mentionSource: 'CONNECTION', connectionId: event.connectionId },
+            mentionRecipients,
+          );
+        if (reconcileResult.isErr()) {
+          console.error(
+            'Failed to reconcile connection mention notifications:',
+            reconcileResult.error.message,
+          );
+        } else {
+          mentionRecipients.forEach((id) => mentionedDids.add(id.value));
+        }
+      }
+
       // Only create notifications if both source and target are URLs
       if (!connection.source.url || !connection.target.url) {
         // One or both are cards, not URLs - skip notification
@@ -67,8 +93,10 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
       const curatorId = connection.curatorId;
       const appUrl = this.configService.getAppConfig().appUrl;
 
-      // Track content owners to exclude from generic notifications
-      const contentOwnerDids = new Set<string>();
+      // Track content owners to exclude from generic notifications.
+      // Mentioned users are seeded here so they get exactly one notification
+      // (the mention) rather than a second generic one.
+      const contentOwnerDids = new Set<string>(mentionedDids);
 
       // Parse URLs to detect Bluesky posts or Semble collections
       const parsedSourceUrl =

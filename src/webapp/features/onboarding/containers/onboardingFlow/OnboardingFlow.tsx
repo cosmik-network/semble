@@ -6,7 +6,7 @@ import { useSelection } from '@mantine/hooks';
 import { ErrorBoundary } from 'react-error-boundary';
 import { STEPS, clampStep, type StepId } from '../../lib/steps';
 import useOnboardingState from '../../lib/useOnboardingState';
-import { decodeAnswer, encodeAnswer } from '../../lib/otherAnswer';
+import { decodeAnswer, encodeFinalAnswer } from '../../lib/otherAnswer';
 import OnboardingHeader from '../../components/onboardingHeader/OnboardingHeader';
 import OnboardingFooter from '../../components/onboardingFooter/OnboardingFooter';
 import OnboardingScreen from '../../components/onboardingScreen/OnboardingScreen';
@@ -19,8 +19,8 @@ import PickCardsStep from '../../components/steps/pickCardsStep/PickCardsStep';
 import FollowStep from '../../components/steps/followStep/FollowStep';
 import WhatNextStep from '../../components/steps/whatNextStep/WhatNextStep';
 import useRecommendedCards from '../../lib/queries/useRecommendedCards';
-import useRecommendedUsers from '../../lib/queries/useRecommendedUsers';
-import useRecommendedCollections from '../../lib/queries/useRecommendedCollections';
+import useRecommendedUsers from '@/features/profile/lib/queries/useRecommendedUsers';
+import useRecommendedCollections from '@/features/collections/lib/queries/useRecommendedCollections';
 import {
   VISIBLE_COLLECTIONS,
   VISIBLE_USERS,
@@ -114,8 +114,8 @@ export default function OnboardingFlow() {
   // resume point is derived from which fields are non-null.
   const leaveAboutYou = () => {
     updateNow({
-      intention: encodeAnswer(intention.selected, intention.otherText),
-      referralSource: encodeAnswer(referral.selected, referral.otherText),
+      intention: encodeFinalAnswer(intention.selected, intention.otherText),
+      referralSource: encodeFinalAnswer(referral.selected, referral.otherText),
     });
     goNext();
   };
@@ -250,7 +250,6 @@ export default function OnboardingFlow() {
           <FollowStep
             users={suggestedUsers}
             collections={suggestedCollections}
-            hasUrls={seedUrls.length > 0}
             progressLoaded={isLoaded}
             pickCardsHref={`/onboarding?step=${currentStep - 1}`}
             onPickMoreCards={markStep}

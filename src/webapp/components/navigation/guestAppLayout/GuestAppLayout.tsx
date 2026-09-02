@@ -1,6 +1,7 @@
 'use client';
 
 import { AppShell } from '@mantine/core';
+import { BOTTOM_BAR_FOOTER } from '@/lib/consts/layout';
 import { useNavbarContext } from '@/providers/navbar';
 import GuestNavbar from '../guestNavbar/GuestNavbar';
 import GuestBottomBar from '../guestBottomBar/GuestBottomBar';
@@ -25,9 +26,7 @@ export default function GuestAppLayout(props: Props) {
         breakpoint: 'xl',
         collapsed: { mobile: true },
       }}
-      footer={{
-        height: { base: 85, sm: 0 },
-      }}
+      footer={BOTTOM_BAR_FOOTER}
     >
       <GuestNavbar />
 

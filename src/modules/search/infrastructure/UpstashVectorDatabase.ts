@@ -101,8 +101,10 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
     try {
-      // Fetch top 100 results (naive pagination approach)
-      const topK = Math.min(params.limit * 10, 100); // Get more results for pagination
+      // Callers can widen the net with topK; Upstash caps topK at 1000
+      const topK = params.topK
+        ? Math.min(params.topK, 1000)
+        : Math.min(params.limit * 10, 100);
       const filter = params.urlType ? `type = '${params.urlType}'` : undefined;
 
       let queryResult;

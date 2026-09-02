@@ -1,12 +1,12 @@
 'use client';
 
-import SembleCollectionsContainerError from '@/features/semble/containers/sembleCollectionsContainer/Error.SembleCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { Container } from '@mantine/core';
 
 export default function Error() {
   return (
     <Container p="xs" size="xl">
-      <SembleCollectionsContainerError />
+      <ErrorState message="Could not load collections" />
     </Container>
   );
 }

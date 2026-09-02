@@ -53,8 +53,8 @@ const FAQS: {
         </Anchor>
         , the protocol Bluesky is built on) rather than a closed platform. Your
         data and social connections live in a store you control instead of
-        inside one company's app, so they stay yours and can move with you
-        across other apps built on the same protocol. It's why you can join
+        inside one company&apos;s app, so they stay yours and can move with you
+        across other apps built on the same protocol. It&apos;s why you can join
         Semble with an account you already have and bring your existing
         connections along. The ecosystem of apps built on the AT Protocol is
         called the ATmosphere, it’s a wonderful and active community building a

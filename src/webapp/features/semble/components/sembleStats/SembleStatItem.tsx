@@ -2,6 +2,7 @@
 
 import { UnstyledButton } from '@mantine/core';
 import { ReactNode } from 'react';
+import { buildSembleQuery } from '@/lib/utils/link';
 
 export const SEMBLE_TAB_CHANGE_EVENT = 'semble:tab-change';
 
@@ -15,20 +16,11 @@ interface Props {
 export default function SembleStatItem(props: Props) {
   const handleClick = () => {
     const params = new URLSearchParams(window.location.search);
-    const queryParts: string[] = [];
-    let foundTab = false;
-    params.forEach((value, key) => {
-      if (key === 'sembleTab') {
-        queryParts.push(`sembleTab=${props.tab}`);
-        foundTab = true;
-      } else {
-        queryParts.push(`${key}=${value}`);
-      }
-    });
-    if (!foundTab) {
-      queryParts.push(`sembleTab=${props.tab}`);
-    }
-    window.history.replaceState(null, '', `?${queryParts.join('&')}`);
+    window.history.replaceState(
+      null,
+      '',
+      buildSembleQuery(params, { set: { sembleTab: props.tab } }),
+    );
     window.dispatchEvent(
       new CustomEvent<SembleStatTab>(SEMBLE_TAB_CHANGE_EVENT, {
         detail: props.tab,

@@ -1,9 +1,9 @@
 'use client';
 
-import SembleMentionsContainerError from '@/features/semble/containers/sembleMentionsContainer/Error.SembleMentionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useSearchBlueskyPosts from '../../lib/queries/useSearchBlueskyPosts';
 import { BlueskySearchSortOptions } from '../../lib/types';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { Grid, Group, Select } from '@mantine/core';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -27,15 +27,12 @@ export default function BlueskyMentionsContainer(props: Props) {
   const allPosts = data?.pages.flatMap((page) => page.posts ?? []) ?? [];
 
   if (error) {
-    return <SembleMentionsContainerError />;
+    return <ErrorState message="Could not load mentions" />;
   }
 
   if (allPosts.length === 0) {
     return (
-      <SembleEmptyTab
-        message="No mentions found"
-        icon={MdOutlineAlternateEmail}
-      />
+      <EmptyState message="No mentions found" icon={MdOutlineAlternateEmail} />
     );
   }
 

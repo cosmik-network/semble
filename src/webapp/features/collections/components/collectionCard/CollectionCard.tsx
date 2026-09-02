@@ -7,7 +7,7 @@ import { Card, Group, Stack, Text } from '@mantine/core';
 import CollectionCardPreview from '../collectionCardPreview/CollectionCardPreview';
 import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
 import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
@@ -15,12 +15,16 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import CollectionCardActions from '../collectionCardActions/CollectionCardActions';
+import { FollowSource } from '@/features/analytics/types';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import styles from './CollectionCard.module.css';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
   showAuthor?: boolean;
   collection: Collection;
+  /** Where the card is shown, reported with follow analytics. */
+  followSource?: FollowSource;
   /** Forwarded to CollectionCardActions' follow button. */
   onFollowChange?: (isFollowing: boolean) => void;
 }
@@ -30,7 +34,7 @@ export default function CollectionCard(props: Props) {
   const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
   const accessType = collection.accessType;
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const router = useRouter();
   const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 
@@ -68,40 +72,25 @@ export default function CollectionCard(props: Props) {
       <Stack justify="space-between" h="100%">
         <Stack gap={'xs'}>
           <Stack gap={0}>
-            <Group justify="space-between" wrap="nowrap">
-              <Group gap={4}>
-                <Text
-                  fw={500}
-                  lineClamp={1}
-                  c={
-                    accessType === CollectionAccessType.OPEN
-                      ? 'green'
-                      : 'bright'
-                  }
-                >
-                  {collection.name}
-                </Text>
-                {isMarginUri(collection.uri) && (
-                  <MarginLogo size={14} marginUrl={marginUrl} />
-                )}
-              </Group>
-
-              {props.showAuthor && (
-                <LinkAvatar
-                  href={`/profile/${collection.author.handle}`}
-                  src={collection.author.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${collection.author.handle}'s avatar`}
-                  size={'sm'}
-                />
+            <Group gap={4} wrap="nowrap">
+              <Text
+                fw={500}
+                lineClamp={1}
+                c={
+                  accessType === CollectionAccessType.OPEN ? 'green' : 'bright'
+                }
+              >
+                {collection.name}
+              </Text>
+              {isMarginUri(collection.uri) && (
+                <MarginLogo size={14} marginUrl={marginUrl} />
               )}
             </Group>
             {collection.description && (
-              <Text fz={'sm'} c={'gray'} lineClamp={3}>
-                {collection.description}
-              </Text>
+              <RichTextRenderer
+                text={collection.description}
+                textProps={{ fz: 'sm', c: 'gray', lineClamp: 3 }}
+              />
             )}
           </Stack>
 
@@ -120,14 +109,28 @@ export default function CollectionCard(props: Props) {
         </Stack>
 
         <Group justify="space-between" gap={'xs'} wrap="nowrap">
-          <Text c={'gray'} fz={'sm'}>
-            {collection.cardCount}{' '}
-            {collection.cardCount === 1 ? 'card' : 'cards'}
-            {' · '}
-            {time}
-          </Text>
+          <Group gap={'xs'} wrap="nowrap" miw={0}>
+            {props.showAuthor && (
+              <LinkAvatar
+                href={`/profile/${collection.author.handle}`}
+                src={collection.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${collection.author.handle}'s avatar`}
+                size={'sm'}
+              />
+            )}
+            <Text c={'gray'} fz={'sm'} lineClamp={1}>
+              {collection.cardCount}{' '}
+              {collection.cardCount === 1 ? 'card' : 'cards'}
+              {' · '}
+              {time}
+            </Text>
+          </Group>
           <CollectionCardActions
             collection={collection}
+            followSource={props.followSource}
             onFollowChange={props.onFollowChange}
           />
         </Group>

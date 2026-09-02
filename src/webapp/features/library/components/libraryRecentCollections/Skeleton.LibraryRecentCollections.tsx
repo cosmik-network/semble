@@ -1,0 +1,32 @@
+import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
+import { Stack, Group, Title, Skeleton, SimpleGrid } from '@mantine/core';
+import { BiCollection } from 'react-icons/bi';
+
+export default function LibraryRecentCollectionsSkeleton() {
+  return (
+    <Stack>
+      <Group justify="space-between">
+        <Group gap="xs">
+          <BiCollection size={22} />
+          <Title order={2}>Collections</Title>
+        </Group>
+        <Group gap="xs">
+          <Skeleton w={38} h={38} circle />
+          <Skeleton w={87} h={36} radius={'xl'} />
+        </Group>
+      </Group>
+
+      <Group gap="xs">
+        <Skeleton w={110} h={30} radius={'md'} />
+        <Skeleton w={82} h={30} radius={'md'} />
+        <Skeleton w={109} h={30} radius={'md'} />
+      </Group>
+
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <CollectionCardSkeleton key={i} />
+        ))}
+      </SimpleGrid>
+    </Stack>
+  );
+}

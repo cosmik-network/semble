@@ -1,7 +1,8 @@
 import { Fragment } from 'react';
-import { Alert, Divider, Stack, Text } from '@mantine/core';
+import { Divider, Stack, Text } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import { Collection } from '@semble/types';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   selectedCollections: Collection[];
@@ -15,7 +16,6 @@ export default function CollectionSelectorBrowseList(props: Props) {
 
   return (
     <Stack gap={'xxs'}>
-      {/* selected collections */}
       {hasSelectedCollections && (
         <Fragment>
           <Text fw={600} fz={'sm'} c={'gray'}>
@@ -32,7 +32,6 @@ export default function CollectionSelectorBrowseList(props: Props) {
         </Fragment>
       )}
 
-      {/* remaining collections */}
       {props.unselectedCollections.length > 0 ? (
         <CollectionSelectorItemList
           collections={props.unselectedCollections}
@@ -40,9 +39,7 @@ export default function CollectionSelectorBrowseList(props: Props) {
           onChange={props.onChange}
         />
       ) : (
-        !hasSelectedCollections && (
-          <Alert color="gray" title={props.emptyMessage} />
-        )
+        !hasSelectedCollections && <EmptyState message={props.emptyMessage} />
       )}
     </Stack>
   );

@@ -37,6 +37,12 @@ export interface CollectionQueryResultDTO {
   authorId: string;
 }
 
+// Collection with the subset of queried URLs it contains, used for ranking
+// recommended collections to save a URL to
+export interface CollectionWithMatchedUrlsDTO extends CollectionQueryResultDTO {
+  matchedUrls: string[];
+}
+
 export interface CollectionContainingCardDTO {
   id: string;
   uri?: string;
@@ -134,10 +140,44 @@ export interface ICollectionQueryRepository {
   ): Promise<PaginatedQueryResult<CollectionContributorDTO>>;
 
   /**
-   * Get all distinct collections containing URL cards with any of the given URLs
+   * Get all distinct collections containing URL cards with any of the given
+   * URLs, along with which of those URLs matched.
    * Used for recommendation scoring (no pagination)
    */
-  getCollectionsForUrls(urls: string[]): Promise<CollectionQueryResultDTO[]>;
+  getCollectionsForUrls(
+    urls: string[],
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
+
+  /**
+   * Get all distinct collections created by the given author that contain URL
+   * cards with any of the given URLs, along with which of those URLs matched.
+   * Used to recommend the author's own collections to save a URL to.
+   *
+   * `excludeUrl` drops collections that already contain a URL card with that
+   * URL, so recommendations only include collections the URL can still be
+   * added to.
+   */
+  getCollectionsForUrlsByAuthor(
+    urls: string[],
+    authorId: string,
+    excludeUrl?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
+
+  /**
+   * Get all distinct OPEN collections that contain URL cards with any of the
+   * given URLs, along with which of those URLs matched. Optionally excludes
+   * collections created by a given author (e.g. the calling user, whose own
+   * collections are recommended separately).
+   *
+   * `excludeUrl` drops collections that already contain a URL card with that
+   * URL, so recommendations only include collections the URL can still be
+   * added to.
+   */
+  getOpenCollectionsForUrls(
+    urls: string[],
+    excludeAuthorId?: string,
+    excludeUrl?: string,
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
    * Get the count of collections containing a specific URL

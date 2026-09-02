@@ -16,7 +16,7 @@ function Content() {
       <Center h={'75svh'}>
         <Stack align="center" maw={600} w={'100%'}>
           <Title order={2} ta={'center'}>
-            Let's find something great
+            Let&apos;s find something great
           </Title>
           <ExpandedSearchBar />
         </Stack>

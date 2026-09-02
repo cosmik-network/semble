@@ -61,6 +61,8 @@ const connectionType = z
     'RELATED',
     'SUPPLEMENT',
     'EXPLAINER',
+    'SAME_AS',
+    'REFERENCES',
   ])
   .describe(
     'The discourse-graph relationship from source to target. See the semble://connection-types resource for semantics.',

@@ -16,7 +16,11 @@ import {
 import SembleLogo from '@/assets/semble-logo.svg';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import UrlCardContent from '@/features/cards/components/urlCardContent/UrlCardContent';
-import { isCollectionPage, isProfilePage } from '@/lib/utils/link';
+import {
+  getSembleHref,
+  isCollectionPage,
+  isProfilePage,
+} from '@/lib/utils/link';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment } from 'react';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -24,6 +28,7 @@ import { useRouter } from 'next/navigation';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { LinkAvatar, LinkButton } from '@/components/link/MantineLink';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   rkey: string;
@@ -150,7 +155,7 @@ export default function CollectionEmbedContainer(props: Props) {
                           return;
                         }
 
-                        router.push(`/url?id=${card.cardContent.url}`);
+                        router.push(getSembleHref(card.cardContent.url));
                       }}
                     >
                       <Stack justify="space-between" gap={'sm'} flex={1}>
@@ -166,11 +171,7 @@ export default function CollectionEmbedContainer(props: Props) {
               </Grid>
             </InfiniteScroll>
           ) : (
-            <Stack align="center" gap="xs">
-              <Text fz="h3" fw={600} c="gray">
-                No cards
-              </Text>
-            </Stack>
+            <EmptyState message="No cards" />
           )}
         </Fragment>
 

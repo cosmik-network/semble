@@ -1,12 +1,12 @@
 'use client';
 
-import CollectionsContainerError from '@/features/collections/containers/collectionsContainer/Error.CollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { Container } from '@mantine/core';
 
 export default function Error() {
   return (
     <Container p="xs" size="xl">
-      <CollectionsContainerError />
+      <ErrorState message="Could not load collections" />
     </Container>
   );
 }

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   SupportedPlatform,
+  buildSembleQuery,
   detectUrlPlatform,
+  encodeUrlParam,
   getDisplayUrl,
   getDomain,
+  getSembleHref,
   getUrlFromSlug,
   isCollectionPage,
   isProfilePage,
@@ -118,6 +121,86 @@ describe('getDisplayUrl', () => {
 
     // Assert
     expect(result).toBe(url);
+  });
+});
+
+// ─────────────────────────────────────────────
+// encodeUrlParam / getSembleHref / buildSembleQuery
+// ─────────────────────────────────────────────
+describe('encodeUrlParam', () => {
+  it('should leave a plain URL readable', () => {
+    expect(encodeUrlParam('https://example.com/path?q=1')).toBe(
+      'https://example.com/path?q=1',
+    );
+  });
+
+  it('should escape the fragment so the browser does not strip it', () => {
+    expect(encodeUrlParam('https://example.com/path#section')).toBe(
+      'https://example.com/path%23section',
+    );
+  });
+
+  it('should escape query separators and existing escapes', () => {
+    expect(encodeUrlParam('https://example.com/a%20b?x=1&y=a+b')).toBe(
+      'https://example.com/a%2520b?x=1%26y=a%2Bb',
+    );
+  });
+
+  it('should round-trip through a single decode', () => {
+    const url = 'https://example.com/a%20b?x=1&y=a+b#frag';
+    expect(new URLSearchParams(`id=${encodeUrlParam(url)}`).get('id')).toBe(
+      url,
+    );
+  });
+});
+
+describe('getSembleHref', () => {
+  it('should build the semble page link with id last', () => {
+    expect(
+      getSembleHref('https://example.com/path#section', {
+        viaCardId: 'card-1',
+        sembleTab: 'notes',
+      }),
+    ).toBe(
+      '/url?viaCardId=card-1&sembleTab=notes&id=https://example.com/path%23section',
+    );
+  });
+
+  it('should omit unset options', () => {
+    expect(getSembleHref('https://example.com')).toBe(
+      '/url?id=https://example.com',
+    );
+  });
+});
+
+describe('buildSembleQuery', () => {
+  it('should re-encode only the id and keep other params raw', () => {
+    const params = new URLSearchParams(
+      '?id=https://example.com/a%23b&sembleTab=notes',
+    );
+    expect(buildSembleQuery(params)).toBe(
+      '?id=https://example.com/a%23b&sembleTab=notes',
+    );
+  });
+
+  it('should omit a param', () => {
+    const params = new URLSearchParams('?viaCardId=x&id=https://example.com');
+    expect(buildSembleQuery(params, { omit: 'viaCardId' })).toBe(
+      '?id=https://example.com',
+    );
+  });
+
+  it('should override an existing param in place and append a missing one', () => {
+    const existing = new URLSearchParams(
+      '?id=https://example.com&sembleTab=notes',
+    );
+    expect(buildSembleQuery(existing, { set: { sembleTab: 'similar' } })).toBe(
+      '?id=https://example.com&sembleTab=similar',
+    );
+    const missing = new URLSearchParams('?id=https://example.com');
+    expect(buildSembleQuery(missing, { set: { sembleTab: 'similar' } })).toBe(
+      '?id=https://example.com&sembleTab=similar',
+    );
   });
 });
 

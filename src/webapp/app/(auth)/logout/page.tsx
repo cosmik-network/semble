@@ -10,8 +10,9 @@ export default function LogoutPage() {
   useEffect(() => {
     logout().catch((error) => {
       console.error('Logout error:', error);
-      // Force redirect if logout fails
-      window.location.href = '/';
+      // Force a full reload to home if logout fails, so no half-cleared
+      // auth state survives
+      window.location.assign(window.location.origin);
     });
   }, [logout]);
 

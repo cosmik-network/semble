@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCollection } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
+import { tagKeys } from '@/features/tags/lib/tagKeys';
 import {
   CardSaveAnalyticsContext,
   CardSaveSource,
@@ -30,6 +31,7 @@ export default function useCreateCollection(
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
       queryClient.refetchQueries({ queryKey: collectionKeys.mine() });
 
       // Recorded from the id the server returned, not from the drawer's

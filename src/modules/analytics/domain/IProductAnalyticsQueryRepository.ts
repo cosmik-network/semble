@@ -48,6 +48,56 @@ export interface ActivationFunnelStatsDTO {
   periodEnd: string;
 }
 
+// Retention (weekly signup cohorts, calendar-week anchored)
+
+export interface RetentionWeekCell {
+  /** Calendar weeks after the cohort week (1..N; offset 0 is the funnel's job). */
+  weekOffset: number;
+  /** Distinct cohort users with ANY activity (card, collection, collection-add, connection, follow) that week. */
+  activeUsers: number;
+  /** Distinct cohort users who added to a collection OR created a connection that week (WAC definition). */
+  curatingUsers: number;
+}
+
+export interface RetentionCohortDataPoint {
+  cohortWeekStart: string; // ISO Monday of the signup week
+  cohortSize: number; // users whose linked_at is in this week (minus internal accounts)
+  /** Dense, offset 1..N where N = completed calendar weeks since the cohort week. */
+  weeks: RetentionWeekCell[];
+}
+
+export interface RetentionStatsDTO {
+  dataPoints: RetentionCohortDataPoint[]; // chronological, oldest -> newest, dense (gap-filled)
+  periodStart: string;
+  periodEnd: string;
+}
+
+// Segmented retention (cohorts pooled across the range, split by a user attribute)
+
+export type RetentionSegmentBy = 'onboardingState' | 'notifiedFirstWeek';
+
+export interface RetentionSegmentWeekCell {
+  weekOffset: number; // 1..N (N = offsets reachable by the oldest cohort in range)
+  /** Segment users signed up early enough for this offset to be a completed week — the rate denominator. */
+  eligibleUsers: number;
+  activeUsers: number; // of eligible, distinct users with any activity at this offset
+  curatingUsers: number; // of eligible, distinct users with collection-add or connection at this offset
+}
+
+export interface RetentionSegmentDataPoint {
+  /** Segment value, e.g. 'COMPLETED' / 'SKIPPED' / 'NONE', or 'notified' / 'not_notified'. */
+  segment: string;
+  userCount: number; // segment users in the pooled cohort range
+  weeks: RetentionSegmentWeekCell[];
+}
+
+export interface RetentionSegmentsStatsDTO {
+  segmentBy: RetentionSegmentBy;
+  dataPoints: RetentionSegmentDataPoint[]; // sorted by userCount desc, then segment asc
+  periodStart: string; // pooled cohort range
+  periodEnd: string;
+}
+
 // API usage (per-client-source request analytics over api_request_logs)
 
 export interface ApiUsageSourceWeekly {
@@ -171,6 +221,10 @@ export interface IProductAnalyticsQueryRepository {
   getActivationFunnelStats(
     options: AnalyticsWeekOptions,
   ): Promise<ActivationFunnelStatsDTO>;
+  getRetentionStats(options: AnalyticsWeekOptions): Promise<RetentionStatsDTO>;
+  getRetentionSegmentsStats(
+    options: AnalyticsWeekOptions & { segmentBy: RetentionSegmentBy },
+  ): Promise<RetentionSegmentsStatsDTO>;
   getOnboardingWeeklyStatsRaw(options: {
     endWeek?: string;
   }): Promise<OnboardingStatsRaw>;

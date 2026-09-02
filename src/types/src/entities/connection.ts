@@ -11,6 +11,8 @@ export const ConnectionTypeSchema = z.enum([
   'RELATED',
   'SUPPLEMENT',
   'EXPLAINER',
+  'SAME_AS',
+  'REFERENCES',
 ]);
 export type ConnectionType = z.infer<typeof ConnectionTypeSchema>;
 
