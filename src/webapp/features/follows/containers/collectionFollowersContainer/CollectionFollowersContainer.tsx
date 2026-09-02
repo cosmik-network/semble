@@ -18,7 +18,9 @@ export default function CollectionFollowersContainer(props: Props) {
   const allUsers = data?.pages.flatMap((page) => page.users ?? []) ?? [];
 
   if (allUsers.length === 0) {
-    return <EmptyState icon={HiUsers} message="Not followed by anyone... yet" />;
+    return (
+      <EmptyState icon={HiUsers} message="Not followed by anyone... yet" />
+    );
   }
 
   return (
