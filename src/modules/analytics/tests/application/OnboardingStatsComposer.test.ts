@@ -145,6 +145,12 @@ class StubQueryRepository implements IProductAnalyticsQueryRepository {
   getActivationFunnelStats(): never {
     throw new Error('not used');
   }
+  getRetentionStats(): never {
+    throw new Error('not used');
+  }
+  getRetentionSegmentsStats(): never {
+    throw new Error('not used');
+  }
   async getOnboardingWeeklyStatsRaw(): Promise<OnboardingStatsRaw> {
     return this.raw;
   }
