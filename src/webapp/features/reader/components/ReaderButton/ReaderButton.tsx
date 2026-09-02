@@ -67,7 +67,7 @@ export default function ReaderButton(props: Props) {
         <ReaderToolbar
           settings={settings}
           onSettingsChange={setSettings}
-          linkCount={reader.data ? links.length : undefined}
+          linkCount={reader.isPending ? undefined : links.length}
           onOpenLinks={() => setLinksOpen(true)}
           onClose={() => setOpened(false)}
         />
