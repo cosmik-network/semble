@@ -1,4 +1,38 @@
-.control {
-  width: 100%;
-  display: block;
+.frame {
+  container-type: inline-size;
+}
+
+/* Height scales with the card width so the same post looks right in a narrow
+   grid tile and a 600px feed column, with a hard ceiling for very wide cards.
+   A single image overrides --gallery-ratio with its own; anything taller than
+   the cap ratio is cover-cropped. */
+.gallery {
+  --gallery-cap-ratio: 16 / 9;
+  --gallery-max-height: 420px;
+  display: grid;
+  gap: var(--mantine-spacing-xxs);
+  aspect-ratio: var(--gallery-ratio, var(--gallery-cap-ratio));
+  max-height: min(
+    var(--gallery-max-height),
+    calc(100cqw / (var(--gallery-cap-ratio)))
+  );
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.gallery[data-layout='2'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.gallery[data-layout='3'] {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.gallery[data-layout='3'] > :first-child {
+  grid-row: span 2;
+}
+
+.gallery[data-layout='4'] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }

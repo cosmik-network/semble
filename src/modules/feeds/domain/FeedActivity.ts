@@ -77,6 +77,11 @@ export class FeedActivity extends Entity<ActivityProps> {
     return this.props.type.value === ActivityTypeEnum.CONNECTION_CREATED;
   }
 
+  // Refresh the denormalized urlType after the card's metadata is enriched
+  public updateUrlType(urlType: UrlType): void {
+    this.props.urlType = urlType;
+  }
+
   // Helper method to merge collections for deduplication
   public mergeCollections(newCollectionIds: CollectionId[]): void {
     if (!this.cardCollected) return;

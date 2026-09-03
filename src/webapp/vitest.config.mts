@@ -30,11 +30,9 @@ export default defineConfig({
               inline: [
                 '@mantine/code-highlight',
                 '@mantine/core',
-                '@mantine/dates',
-                '@mantine/dropzone',
                 '@mantine/form',
                 '@mantine/hooks',
-                '@mantine/modals',
+                '@mantine/lightbox',
                 '@mantine/notifications',
                 'react-icons',
               ],

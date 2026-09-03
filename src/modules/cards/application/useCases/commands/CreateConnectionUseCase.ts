@@ -162,7 +162,12 @@ export class CreateConnectionUseCase extends BaseUseCase<
         }
       }
 
-      // Fetch URL metadata for source and target if they are URLs
+      // Fetch URL metadata for source and target if they are URLs.
+      // Interactive saves use fast mode (the metadata worker enriches
+      // asynchronously after ConnectionCreatedEvent); firehose-mirrored
+      // records (publishedRecordId set) have no user waiting and take the
+      // full slow fetch up front.
+      const fetchMode = request.publishedRecordId ? 'slow' : 'fast';
       let sourceUrlMetadata: UrlMetadata | undefined;
       let targetUrlMetadata: UrlMetadata | undefined;
 
@@ -175,7 +180,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       if (source.type === UrlOrCardIdType.URL && source.url) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(source.url, true)
+            .fetchMetadata(source.url, true, fetchMode)
             .then((result) => ({
               type: 'source' as const,
               metadata: result.isOk() ? result.value : undefined,
@@ -191,7 +196,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
       if (target.type === UrlOrCardIdType.URL && target.url) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(target.url, true)
+            .fetchMetadata(target.url, true, fetchMode)
             .then((result) => ({
               type: 'target' as const,
               metadata: result.isOk() ? result.value : undefined,

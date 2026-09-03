@@ -75,8 +75,13 @@ export class GetUrlMetadataUseCase implements UseCase<
     const url = urlResult.value;
 
     try {
-      // Fetch metadata from external service
-      let metadataResult = await this.metadataService.fetchMetadata(url);
+      // Fetch metadata from external service. Fast mode: this endpoint powers
+      // latency-sensitive previews; persisted cards get enriched asynchronously.
+      let metadataResult = await this.metadataService.fetchMetadata(
+        url,
+        false,
+        'fast',
+      );
       if (metadataResult.isErr()) {
         metadataResult = UrlMetadata.create({ url: url.value });
         if (metadataResult.isErr()) {

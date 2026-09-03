@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/nextjs-vite';
 import '@mantine/core/styles.css';
-import '@mantine-bites/lightbox/styles.css';
+import '@mantine/lightbox/styles.css';
 import { MantineProvider, v8CssVariablesResolver } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '../styles/theme';
@@ -74,6 +74,7 @@ const preview: Preview = {
             theme={theme}
             cssVariablesResolver={v8CssVariablesResolver}
             forceColorScheme={colorScheme}
+            deduplicateInlineStyles
           >
             <SettingsProvider>
               <Story />

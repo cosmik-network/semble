@@ -9,6 +9,8 @@ import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { URL } from './value-objects/URL';
 import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
 import { CardRemovedFromLibraryEvent } from './events/CardRemovedFromLibraryEvent';
+import { UrlCardMetadataUpdatedEvent } from './events/UrlCardMetadataUpdatedEvent';
+import { UrlMetadata } from './value-objects/UrlMetadata';
 
 export const CARD_ERROR_MESSAGES = {
   CARD_TYPE_CONTENT_MISMATCH: 'Card type must match content type',
@@ -20,6 +22,7 @@ export const CARD_ERROR_MESSAGES = {
   LIBRARY_COUNT_MISMATCH:
     'Library count does not match library memberships length',
   CANNOT_CHANGE_CONTENT_TYPE: 'Cannot change card content to different type',
+  METADATA_UPDATE_URL_CARD_ONLY: 'Only URL cards can have metadata updated',
   ALREADY_IN_LIBRARY: "Card is already in user's library",
   NOT_IN_LIBRARY: "Card is not in user's library",
 } as const;
@@ -241,6 +244,46 @@ export class Card extends AggregateRoot<CardProps> {
     return ok(undefined);
   }
 
+  /**
+   * Replace this URL card's metadata (e.g. with an asynchronously fetched,
+   * richer version) and raise UrlCardMetadataUpdatedEvent.
+   */
+  public updateUrlMetadata(
+    newMetadata: UrlMetadata,
+  ): Result<void, CardValidationError> {
+    const urlContent = this.props.content.urlContent;
+    if (!this.isUrlCard || !urlContent || !this.props.url) {
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.METADATA_UPDATE_URL_CARD_ONLY,
+        ),
+      );
+    }
+
+    const newContentResult = CardContent.createUrlContent(
+      urlContent.url,
+      newMetadata,
+    );
+    if (newContentResult.isErr()) {
+      return err(new CardValidationError(newContentResult.error.message));
+    }
+
+    this.props.content = newContentResult.value;
+    this.props.updatedAt = new Date();
+
+    const domainEvent = UrlCardMetadataUpdatedEvent.create(
+      this.cardId,
+      this.props.curatorId,
+      this.props.url.value,
+    );
+    if (domainEvent.isErr()) {
+      return err(new CardValidationError(domainEvent.error.message));
+    }
+    this.addDomainEvent(domainEvent.value);
+
+    return ok(undefined);
+  }
+
   public addToLibrary(
     userId: CuratorId,
     addedAt?: Date,
@@ -337,9 +380,16 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
+    const previousRecordId = membership.publishedRecordId;
     membership.publishedRecordId = publishedRecordId;
 
-    if (!this.props.publishedRecordId) {
+    // Keep the card-level published record in sync: adopt this record if none
+    // is set yet, or follow it to the new CID if the card-level record was
+    // tracking the membership record that just got republished.
+    if (
+      !this.props.publishedRecordId ||
+      this.props.publishedRecordId.equals(previousRecordId)
+    ) {
       this.props.publishedRecordId = publishedRecordId;
     }
 

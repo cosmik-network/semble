@@ -7,6 +7,7 @@ import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { ConnectionCreatedEventHandler } from '../../../modules/feeds/application/eventHandlers/ConnectionCreatedEventHandler';
+import { UrlCardMetadataUpdatedEventHandler } from '../../../modules/feeds/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -64,6 +65,17 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       connectionCreatedHandler,
+    );
+
+    const urlCardMetadataUpdatedHandler =
+      new UrlCardMetadataUpdatedEventHandler(
+        repositories.cardRepository,
+        repositories.feedRepository,
+      );
+
+    await subscriber.subscribe(
+      EventNames.URL_CARD_METADATA_UPDATED,
+      urlCardMetadataUpdatedHandler,
     );
   }
 }

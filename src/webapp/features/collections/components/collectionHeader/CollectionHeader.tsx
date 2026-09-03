@@ -145,7 +145,13 @@ export default function CollectionHeader(props: Props) {
             )}
 
             <Group justify="space-between" gap={'lg'}>
-              <Suspense fallback={<CollectionStatsSkeleton />}>
+              <Suspense
+                fallback={
+                  <Box style={{ visibility: 'hidden' }}>
+                    <CollectionStatsSkeleton />
+                  </Box>
+                }
+              >
                 <CollectionStats
                   collection={collection}
                   handle={props.handle}

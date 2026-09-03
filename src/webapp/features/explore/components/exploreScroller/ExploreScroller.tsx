@@ -1,11 +1,9 @@
+'use client';
+
 import { Box, Group, Scroller } from '@mantine/core';
-import { Children, ReactNode } from 'react';
+import { Children, ReactNode, useState } from 'react';
 import styles from './ExploreScroller.module.css';
 
-/**
- * Collection tiles carry a preview strip of card thumbnails plus title,
- * author and stats, so they need more room than a single URL card.
- */
 export const COLLECTION_TILE_WIDTH = 420;
 
 interface Props {
@@ -26,6 +24,9 @@ interface Props {
  */
 export default function ExploreScroller(props: Props) {
   const itemWidth = props.itemWidth ?? 300;
+  // Read once: a later flip must not restart the animation on tiles already
+  // on screen. The next set mounts under a new key and reads it afresh.
+  const [animate] = useState(props.animateOnMount);
 
   return (
     <Scroller scrollAmount={itemWidth + 20}>
@@ -38,9 +39,7 @@ export default function ExploreScroller(props: Props) {
         {Children.map(props.children, (child, index) => (
           <Box
             className={
-              props.animateOnMount
-                ? `${styles.item} ${styles.animateIn}`
-                : styles.item
+              animate ? `${styles.item} ${styles.animateIn}` : styles.item
             }
             style={{
               width: itemWidth,

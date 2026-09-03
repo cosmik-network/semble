@@ -7,6 +7,10 @@ import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler as FeedCardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { CardAddedToLibraryEventHandler as MetadataCardAddedToLibraryEventHandler } from '../../../modules/cards/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { ConnectionCreatedEventHandler as MetadataConnectionCreatedEventHandler } from '../../../modules/cards/application/eventHandlers/ConnectionCreatedEventHandler';
+import { UrlCardMetadataUpdatedEventHandler as FeedUrlCardMetadataUpdatedEventHandler } from '../../../modules/feeds/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
+import { UrlCardMetadataUpdatedEventHandler as SearchUrlCardMetadataUpdatedEventHandler } from '../../../modules/search/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { CardActivityBundlingSaga } from '../../../modules/notifications/application/sagas/CardActivityBundlingSaga';
 import { CardActivityBufferingHandler } from '../../../modules/notifications/application/eventHandlers/CardActivityBufferingHandler';
 import { CardLibraryRemovalCleanupHandler } from '../../../modules/notifications/application/eventHandlers/CardLibraryRemovalCleanupHandler';
@@ -73,6 +77,29 @@ export class InMemoryEventWorkerProcess implements IProcess {
       new SearchCardAddedToLibraryEventHandler(
         useCases.indexUrlForSearchUseCase,
         repositories.cardRepository,
+      );
+
+    // Metadata enrichment handlers
+    const metadataCardAddedToLibraryHandler =
+      new MetadataCardAddedToLibraryEventHandler(
+        repositories.cardRepository,
+        services.metadataService,
+        useCases.updateUrlCardMetadataUseCase,
+      );
+    const metadataConnectionCreatedHandler =
+      new MetadataConnectionCreatedEventHandler(
+        repositories.connectionRepository,
+        services.metadataService,
+        useCases.updateConnectionUrlMetadataUseCase,
+      );
+    const feedUrlCardMetadataUpdatedHandler =
+      new FeedUrlCardMetadataUpdatedEventHandler(
+        repositories.cardRepository,
+        repositories.feedRepository,
+      );
+    const searchUrlCardMetadataUpdatedHandler =
+      new SearchUrlCardMetadataUpdatedEventHandler(
+        useCases.indexUrlForSearchUseCase,
       );
 
     // Notification bundle handlers
@@ -219,6 +246,24 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       searchCardAddedToLibraryHandler,
+    );
+
+    // Register metadata enrichment handlers
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_LIBRARY,
+      metadataCardAddedToLibraryHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.CONNECTION_CREATED,
+      metadataConnectionCreatedHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.URL_CARD_METADATA_UPDATED,
+      feedUrlCardMetadataUpdatedHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.URL_CARD_METADATA_UPDATED,
+      searchUrlCardMetadataUpdatedHandler,
     );
 
     // Register notification handlers — all card add events go through the

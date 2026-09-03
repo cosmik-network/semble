@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, Suspense, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Collection, CollectionAccessType } from '@semble/types';
 import { HiUsers } from 'react-icons/hi';
@@ -18,7 +18,6 @@ import CollectionContributorsContainerSkeleton from '../../containers/collection
 import StatDrawer from '@/components/statDrawer/StatDrawer';
 import StatChip from '@/components/statChip/StatChip';
 import { STAT_CHIP_PREVIEW_LIMIT } from '@/components/statChip/constants';
-import StatChipSkeleton from '@/components/statChip/Skeleton.StatChip';
 import StatChipCard from '@/components/statChip/StatChipCard';
 
 interface Props {
@@ -137,14 +136,9 @@ function ContributorsChip(props: ChipProps) {
   );
 }
 
-// Each chip loads on its own; a failed one disappears instead of taking the
-// header down with it.
+// A failed chip disappears instead of taking the header down with it.
 function ChipBoundary(props: { children: ReactNode }) {
-  return (
-    <ErrorBoundary fallback={null}>
-      <Suspense fallback={<StatChipSkeleton />}>{props.children}</Suspense>
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary fallback={null}>{props.children}</ErrorBoundary>;
 }
 
 export default function CollectionStats(props: Props) {

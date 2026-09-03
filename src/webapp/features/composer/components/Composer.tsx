@@ -5,9 +5,7 @@ import {
   Center,
   Container,
   Drawer,
-  Flex,
   Group,
-  Input,
   Select,
   Stack,
   SegmentedControl,
@@ -291,31 +289,25 @@ export default function Composer(props: Props) {
                   {...cardForm.getInputProps('url')}
                 />
 
-                <Stack gap={0}>
-                  <Flex justify="space-between">
-                    <Input.Label size="md" htmlFor="note">
-                      Note
-                    </Input.Label>
-                    <Text c={'gray'} aria-hidden>
+                <NoteTextarea
+                  label="Note"
+                  placeholder="Add a note about this card"
+                  variant="filled"
+                  size="md"
+                  rows={3}
+                  maxLength={MAX_NOTE_LENGTH}
+                  aria-describedby="note-char-remaining"
+                  value={cardForm.values.note}
+                  onValueChange={(v) => cardForm.setFieldValue('note', v)}
+                  bottomSection={
+                    <Text inherit ml="auto" aria-hidden>
                       {cardForm.getValues().note.length} / {MAX_NOTE_LENGTH}
                     </Text>
-                  </Flex>
-
-                  <NoteTextarea
-                    id="note"
-                    placeholder="Add a note about this card"
-                    variant="filled"
-                    size="md"
-                    rows={3}
-                    maxLength={MAX_NOTE_LENGTH}
-                    aria-describedby="note-char-remaining"
-                    value={cardForm.values.note}
-                    onValueChange={(v) => cardForm.setFieldValue('note', v)}
-                  />
-                  <VisuallyHidden id="note-char-remaining" aria-live="polite">
-                    {`${MAX_NOTE_LENGTH - cardForm.getValues().note.length} characters remaining`}
-                  </VisuallyHidden>
-                </Stack>
+                  }
+                />
+                <VisuallyHidden id="note-char-remaining" aria-live="polite">
+                  {`${MAX_NOTE_LENGTH - cardForm.getValues().note.length} characters remaining`}
+                </VisuallyHidden>
 
                 <Stack gap={5}>
                   <Text fw={500}>

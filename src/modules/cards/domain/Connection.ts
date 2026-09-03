@@ -152,6 +152,25 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     return ok(undefined);
   }
 
+  /**
+   * Replace the stored source/target URL metadata (e.g. with an
+   * asynchronously fetched, richer version). Metadata is not part of the
+   * AT Protocol connection record, so this needs no republish.
+   */
+  public updateUrlMetadata(update: {
+    sourceUrlMetadata?: UrlMetadata;
+    targetUrlMetadata?: UrlMetadata;
+  }): Result<void, ConnectionValidationError> {
+    if (update.sourceUrlMetadata) {
+      this.props.sourceUrlMetadata = update.sourceUrlMetadata;
+    }
+    if (update.targetUrlMetadata) {
+      this.props.targetUrlMetadata = update.targetUrlMetadata;
+    }
+    this.props.updatedAt = new Date();
+    return ok(undefined);
+  }
+
   public swap(): Result<void, ConnectionValidationError> {
     const tempSource = this.props.source;
     const tempSourceMetadata = this.props.sourceUrlMetadata;

@@ -82,7 +82,10 @@ export class BullMQEventPublisher implements IEventPublisher {
           QueueNames.SEARCH,
           QueueNames.NOTIFICATIONS,
           QueueNames.SYNC,
+          QueueNames.METADATA,
         ];
+      case EventNames.URL_CARD_METADATA_UPDATED:
+        return [QueueNames.FEEDS, QueueNames.SEARCH];
       case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS];
       case EventNames.CARD_REMOVED_FROM_LIBRARY:
@@ -94,7 +97,12 @@ export class BullMQEventPublisher implements IEventPublisher {
       case EventNames.USER_UNFOLLOWED_TARGET:
         return [QueueNames.NOTIFICATIONS];
       case EventNames.CONNECTION_CREATED:
-        return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS, QueueNames.SEARCH];
+        return [
+          QueueNames.FEEDS,
+          QueueNames.NOTIFICATIONS,
+          QueueNames.SEARCH,
+          QueueNames.METADATA,
+        ];
       case EventNames.CONNECTION_REMOVED:
         return [QueueNames.NOTIFICATIONS];
       case EventNames.COLLECTION_CREATED:
