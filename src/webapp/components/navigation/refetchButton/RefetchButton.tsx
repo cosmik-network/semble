@@ -1,8 +1,11 @@
 'use client';
 
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Box } from '@mantine/core';
 import { useWindowScroll, useDebouncedCallback } from '@mantine/hooks';
 import { LuRefreshCcw } from 'react-icons/lu';
+import { FLOATING_BOTTOM_OFFSET } from '@/lib/consts/layout';
+
+const DEBOUNCE_MS = 500;
 
 interface Props {
   onRefetch: () => void;
@@ -10,25 +13,30 @@ interface Props {
 
 export default function RefetchButton(props: Props) {
   const [_scroll, scrollTo] = useWindowScroll();
-  const DEBOUNCE_MS = 500;
 
-  // debounce the refetch so it only runs after user stops clicking for DEBOUNCE_MS
-  const debouncedRefetch = useDebouncedCallback(() => {
-    props.onRefetch();
-  }, DEBOUNCE_MS);
+  const debouncedRefetch = useDebouncedCallback(props.onRefetch, DEBOUNCE_MS);
 
   return (
-    <ActionIcon
-      size="input-lg"
-      radius="xl"
-      variant="default"
-      c="gray"
-      onClick={() => {
-        debouncedRefetch();
-        scrollTo({ y: 0 });
-      }}
+    <Box
+      pos={'fixed'}
+      bottom={0}
+      mt={'md'}
+      mx={{ base: 10, sm: 2.5 }}
+      mb={FLOATING_BOTTOM_OFFSET}
+      style={{ zIndex: 2 }}
     >
-      <LuRefreshCcw size={22} />
-    </ActionIcon>
+      <ActionIcon
+        size="input-lg"
+        radius="xl"
+        variant="default"
+        c="gray"
+        onClick={() => {
+          debouncedRefetch();
+          scrollTo({ y: 0 });
+        }}
+      >
+        <LuRefreshCcw size={22} />
+      </ActionIcon>
+    </Box>
   );
 }

@@ -11,6 +11,7 @@ import { BatchProfileFetcher } from '../../../modules/cards/application/services
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { registerCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { registerConnectionRoutes } from '../../../modules/cards/infrastructure/http/routes/connectionRoutes';
+import { registerTagRoutes } from '../../../modules/cards/infrastructure/http/routes/tagRoutes';
 import { registerGraphRoutes } from '../../../modules/cards/infrastructure/http/routes/graphRoutes';
 import { registerFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { registerSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
@@ -342,6 +343,13 @@ export const createExpressApp = (
       controllers.deleteConnectionController,
       controllers.getConnectionsController,
       controllers.getConnectionsForUrlController,
+    );
+
+    registerTagRoutes(
+      router,
+      services.authMiddleware,
+      controllers.getTagsController,
+      controllers.getTaggedItemsController,
     );
 
     registerGraphRoutes(

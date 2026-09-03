@@ -5,7 +5,7 @@ import { Card, Image, Stack, Text } from '@mantine/core';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { Fragment, useState } from 'react';
-import { Lightbox } from '@mantine-bites/lightbox';
+import { Lightbox } from '@mantine/lightbox';
 
 interface Props {
   id: string;
@@ -58,12 +58,15 @@ export default function ImageCard(props: Props) {
                 />
               </Card>
               <Lightbox
-                images={[{ src: props.cardContent.imageUrl }]}
+                slides={[
+                  {
+                    src: props.cardContent.imageUrl,
+                    alt: props.cardContent.title || 'Card image',
+                  },
+                ]}
                 opened={lightboxOpened}
                 onClose={() => setLightboxOpened(false)}
-                initialSlide={0}
-                withThumbnails={false}
-                withControls={false}
+                withNavigation={false}
               />
             </Fragment>
           )}

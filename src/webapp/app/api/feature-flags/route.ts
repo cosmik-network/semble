@@ -21,7 +21,6 @@ export async function GET() {
       onboarding: true,
       recommendedCollections: false,
       bskyFollows: false,
-      newConnectionTypes: false,
     });
   }
 }

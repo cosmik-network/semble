@@ -1,11 +1,13 @@
 'use client';
 
-import { Box, Center, Container, Stack, Text } from '@mantine/core';
+import { Box, Container, Stack } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { CardSaveSource } from '@/features/analytics/types';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { MdOutlineEmojiNature } from 'react-icons/md';
 
 interface Props {
   profileId: string;
@@ -23,11 +25,10 @@ export default function ProfileActivityFeed({ profileId }: Props) {
   if (allActivities.length === 0) {
     return (
       <Container p="xs" size="xl">
-        <Center>
-          <Text fz="h3" fw={600} c="gray">
-            No activity to show yet
-          </Text>
-        </Center>
+        <EmptyState
+          icon={MdOutlineEmojiNature}
+          message="No activity to show yet"
+        />
       </Container>
     );
   }

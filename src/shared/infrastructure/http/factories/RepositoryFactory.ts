@@ -9,6 +9,8 @@ import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/
 import { DrizzleCardQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardQueryRepository';
 import { DrizzleCollectionRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCollectionRepository';
 import { DrizzleCollectionQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCollectionQueryRepository';
+import { DrizzleTagQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleTagQueryRepository';
+import { ITagQueryRepository } from '../../../../modules/cards/domain/ITagQueryRepository';
 import { DrizzleConnectionRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleConnectionRepository';
 import { DrizzleConnectionQueryRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleConnectionQueryRepository';
 import { DrizzleAppPasswordSessionRepository } from 'src/modules/atproto/infrastructure/repositories/DrizzleAppPasswordSessionRepository';
@@ -16,6 +18,7 @@ import { InMemoryCardRepository } from '../../../../modules/cards/tests/utils/In
 import { InMemoryCardQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../../../../modules/cards/tests/utils/InMemoryCollectionRepository';
 import { InMemoryCollectionQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryCollectionQueryRepository';
+import { InMemoryTagQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryTagQueryRepository';
 import { InMemoryConnectionRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionRepository';
 import { InMemoryConnectionQueryRepository } from '../../../../modules/cards/tests/utils/InMemoryConnectionQueryRepository';
 import { InMemoryUserRepository } from '../../../../modules/user/tests/infrastructure/InMemoryUserRepository';
@@ -79,6 +82,7 @@ export interface Repositories {
   cardQueryRepository: ICardQueryRepository;
   collectionRepository: ICollectionRepository;
   collectionQueryRepository: ICollectionQueryRepository;
+  tagQueryRepository: ITagQueryRepository;
   connectionRepository: IConnectionRepository;
   connectionQueryRepository: IConnectionQueryRepository;
   graphQueryRepository: IGraphQueryRepository;
@@ -117,6 +121,11 @@ export class RepositoryFactory {
       );
       const connectionQueryRepository = new InMemoryConnectionQueryRepository(
         connectionRepository,
+      );
+      const tagQueryRepository = new InMemoryTagQueryRepository(
+        cardRepository,
+        connectionRepository,
+        collectionRepository,
       );
       const graphQueryRepository = InMemoryGraphQueryRepository.getInstance();
       const appPasswordSessionRepository =
@@ -161,6 +170,7 @@ export class RepositoryFactory {
         cardQueryRepository,
         collectionRepository,
         collectionQueryRepository,
+        tagQueryRepository,
         connectionRepository,
         connectionQueryRepository,
         graphQueryRepository,
@@ -195,6 +205,7 @@ export class RepositoryFactory {
       cardQueryRepository: new DrizzleCardQueryRepository(db),
       collectionRepository: new DrizzleCollectionRepository(db),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
+      tagQueryRepository: new DrizzleTagQueryRepository(db),
       connectionRepository: new DrizzleConnectionRepository(db),
       connectionQueryRepository: new DrizzleConnectionQueryRepository(db),
       graphQueryRepository: new DrizzleGraphQueryRepository(db),

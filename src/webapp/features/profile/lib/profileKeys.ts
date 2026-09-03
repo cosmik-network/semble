@@ -7,4 +7,6 @@ export const profileKeys = {
   // payload, so sharing the key would serve undefined counts.
   mineWithStats: () =>
     [...profileKeys.all(), 'mine', { includeStats: true }] as const,
+  recommended: (urls: string[]) =>
+    [...profileKeys.all(), 'recommended', ...urls] as const,
 };

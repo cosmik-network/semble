@@ -19,8 +19,9 @@ import NavbarToggle from '../NavbarToggle';
 import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 
 export default function NavbarSkeleton() {
+  // z-index clears the sticky Header (100), which the open mobile navbar covers
   return (
-    <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
+    <AppShellNavbar p={'xs'} style={{ zIndex: 101 }}>
       <Group justify="space-between">
         <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>

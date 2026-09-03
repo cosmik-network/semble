@@ -1,4 +1,5 @@
 import { UpdateCollectionUseCase } from '../../application/useCases/commands/UpdateCollectionUseCase';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -18,6 +19,7 @@ describe('UpdateCollectionUseCase', () => {
     useCase = new UpdateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
+      new FakeEventPublisher(),
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();

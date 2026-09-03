@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   CloseButton,
   Stack,
@@ -15,13 +14,13 @@ import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import useMyCollections from '../../lib/queries/useMyCollections';
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
 } from '../collectionSelector/CollectionListScrollArea';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 
 interface Props {
   selectedCollections: Collection[];
@@ -29,8 +28,8 @@ interface Props {
 }
 
 export default function CollectionSelectorMyCollections(props: Props) {
-  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useMyCollections();
+  const myCollections = useMyCollections();
+  const { data, error } = myCollections;
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
   const searchedCollections = useCollectionSearch({ query: debouncedSearch });
@@ -45,8 +44,8 @@ export default function CollectionSelectorMyCollections(props: Props) {
     [];
 
   const hasCollections = allCollections.length > 0;
+  const listQuery = search ? searchedCollections : myCollections;
 
-  // filter out selected from all to avoid duplication
   const unselectedCollections = allCollections.filter(
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
@@ -64,8 +63,25 @@ export default function CollectionSelectorMyCollections(props: Props) {
   };
 
   if (error) {
-    return <CollectionSelectorError />;
+    return <ErrorState message="Could not load collections" />;
   }
+
+  const isSearching = !!search && searchedCollections.isPending;
+
+  const isEmpty = search
+    ? !!searchedCollections.data && searchResults.length === 0
+    : !hasCollections;
+
+  const createButton = (search || !hasCollections) && (
+    <Button
+      variant="light"
+      color="gray"
+      leftSection={<FiPlus size={22} />}
+      onClick={() => setIsDrawerOpen(true)}
+    >
+      {search ? `Create new collection "${search}"` : 'Create new collection'}
+    </Button>
+  );
 
   return (
     <Fragment>
@@ -88,81 +104,54 @@ export default function CollectionSelectorMyCollections(props: Props) {
             }
           />
 
-          <CollectionListScrollArea>
-            <Stack gap="xxs">
-              {(search || !hasCollections) && (
-                <Button
-                  variant="light"
-                  color="grape"
-                  radius="md"
-                  leftSection={<FiPlus size={22} />}
-                  onClick={() => setIsDrawerOpen(true)}
-                >
-                  {search
-                    ? `Create new collection "${search}"`
-                    : 'Create new collection'}
-                </Button>
-              )}
-
-              {search ? (
-                <Stack gap={'xxs'}>
-                  {searchedCollections.isPending && (
-                    <Stack align="center">
-                      <Text fw={500} c="gray">
-                        Searching collections...
-                      </Text>
-                      <Loader color="gray" />
-                    </Stack>
-                  )}
-
-                  {searchedCollections.data &&
-                    (searchResults.length === 0 ? (
-                      <Alert
-                        color="gray"
-                        title={`No results found for "${search}"`}
-                      />
-                    ) : (
-                      <InfiniteScroll
-                        dataLength={searchResults.length}
-                        hasMore={!!searchedCollections.hasNextPage}
-                        isInitialLoading={searchedCollections.isPending}
-                        isLoading={searchedCollections.isFetchingNextPage}
-                        loadMore={() => searchedCollections.fetchNextPage()}
-                        hideEndIndicator
-                      >
-                        <CollectionSelectorItemList
-                          collections={searchResults}
-                          selectedCollections={props.selectedCollections}
-                          onChange={handleCollectionChange}
-                        />
-                      </InfiniteScroll>
-                    ))}
+          {isSearching || isEmpty ? (
+            <Stack justify="center" style={{ flex: 1 }}>
+              {isSearching ? (
+                <Stack align="center" gap="xs">
+                  <Text fw={500} c="gray">
+                    Searching collections...
+                  </Text>
+                  <Loader color="gray" />
                 </Stack>
-              ) : hasCollections ? (
-                <InfiniteScroll
-                  dataLength={allCollections.length}
-                  hasMore={!!hasNextPage}
-                  isInitialLoading={false}
-                  isLoading={isFetchingNextPage}
-                  loadMore={() => fetchNextPage()}
-                  hideEndIndicator
-                >
+              ) : (
+                <EmptyState
+                  message={
+                    search
+                      ? `No results found for "${search}"`
+                      : 'No collections'
+                  }
+                  button={createButton || undefined}
+                />
+              )}
+            </Stack>
+          ) : (
+            <CollectionListScrollArea
+              onBottomReached={() => {
+                if (listQuery.hasNextPage && !listQuery.isFetchingNextPage)
+                  listQuery.fetchNextPage();
+              }}
+              isLoadingMore={listQuery.isFetchingNextPage}
+            >
+              <Stack gap="xxs">
+                {createButton}
+
+                {search ? (
+                  <CollectionSelectorItemList
+                    collections={searchResults}
+                    selectedCollections={props.selectedCollections}
+                    onChange={handleCollectionChange}
+                  />
+                ) : (
                   <CollectionSelectorBrowseList
                     selectedCollections={props.selectedCollections}
                     unselectedCollections={unselectedCollections}
                     onChange={handleCollectionChange}
                     emptyMessage="No collections available"
                   />
-                </InfiniteScroll>
-              ) : (
-                <Stack align="center" gap="xs">
-                  <Text fz="lg" fw={600} c="gray">
-                    No collections
-                  </Text>
-                </Stack>
-              )}
-            </Stack>
-          </CollectionListScrollArea>
+                )}
+              </Stack>
+            </CollectionListScrollArea>
+          )}
         </Stack>
       </Stack>
 

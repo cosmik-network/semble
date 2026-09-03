@@ -12,6 +12,7 @@ import {
   Text,
   ThemeIcon,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import {
   NotificationItem,
   Collection,
@@ -24,7 +25,7 @@ import styles from '../../../feeds/components/feedActivityStatus/FeedActivitySta
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
-import { getNotificationTypeIcon } from '../../lib/utils/icon';
+import { renderNotificationTypeIcon } from '../../lib/utils/icon';
 import {
   LinkAvatar,
   LinkMenuItem,
@@ -41,12 +42,13 @@ interface Props {
   followButton?: React.ReactNode;
   note?: string;
   iconColor?: string;
+  mentionSource?: 'NOTE' | 'CONNECTION' | 'COLLECTION';
 }
 
 export default function NotificationActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt);
-  const TypeIcon = getNotificationTypeIcon(props.type);
+  const typeIcon = renderNotificationTypeIcon(props.type, { size: 10 });
 
   const getActivityText = () => {
     const collections = props.collections ?? [];
@@ -161,6 +163,19 @@ export default function NotificationActivityStatus(props: Props) {
                 )}
               </Fragment>
             )}
+          </Fragment>
+        );
+      case NotificationType.USER_MENTIONED_YOU:
+        return (
+          <Fragment>
+            {userName}{' '}
+            <Text span>
+              {props.mentionSource === 'CONNECTION'
+                ? 'mentioned you in a connection'
+                : props.mentionSource === 'COLLECTION'
+                  ? 'mentioned you in a collection'
+                  : 'mentioned you in a note'}
+            </Text>
           </Fragment>
         );
       case NotificationType.USER_FOLLOWED_YOU:
@@ -324,7 +339,7 @@ export default function NotificationActivityStatus(props: Props) {
                 )}
                 alt={`${props.user.name}'s' avatar`}
               />
-              {TypeIcon && (
+              {typeIcon && (
                 <ThemeIcon
                   size={20}
                   radius="xl"
@@ -337,7 +352,7 @@ export default function NotificationActivityStatus(props: Props) {
                       '2px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))',
                   }}
                 >
-                  <TypeIcon size={10} />
+                  {typeIcon}
                 </ThemeIcon>
               )}
             </Box>
@@ -357,9 +372,10 @@ export default function NotificationActivityStatus(props: Props) {
             hideLabel={'See less'}
             maxHeight={100}
           >
-            <Text fw={500} fs={'italic'} c={'gray'}>
-              {props.note}
-            </Text>
+            <RichTextRenderer
+              text={props.note}
+              textProps={{ fw: 500, fs: 'italic', c: 'gray' }}
+            />
           </Spoiler>
         )}
       </Stack>

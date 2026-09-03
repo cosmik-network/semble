@@ -1,15 +1,16 @@
 'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { CollectionAccessType, CollectionSortField } from '@semble/types';
-import OpenCollectionsContainerError from '../openCollectionsContainer/Error.OpenCollectionsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import OpenCollectionsContainerContentSkeleton from './Skeleton.OpenCollectionsContainerContent';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams } from 'next/navigation';
 
 export default function OpenCollectionsContainerContent() {
@@ -32,12 +33,12 @@ export default function OpenCollectionsContainerContent() {
     sortBy,
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <OpenCollectionsContainerError />;
+    return <ErrorState message="Could not load open collections" />;
   }
 
   if (isLoading) {
@@ -46,10 +47,7 @@ export default function OpenCollectionsContainerContent() {
 
   if (allCollections.length === 0) {
     return (
-      <ProfileEmptyTab
-        message="No open collections found"
-        icon={BiCollection}
-      />
+      <EmptyState message="No open collections found" icon={BiCollection} />
     );
   }
 
@@ -74,6 +72,7 @@ export default function OpenCollectionsContainerContent() {
             key={collection.id}
             collection={collection}
             showAuthor={true}
+            followSource={FollowSource.EXPLORE}
           />
         ))}
       </SimpleGrid>

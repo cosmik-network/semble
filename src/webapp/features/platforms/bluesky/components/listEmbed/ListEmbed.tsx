@@ -4,14 +4,14 @@ import { AppBskyGraphDefs } from '@atproto/api';
 import { BsFillPeopleFill } from 'react-icons/bs';
 import { Card, Group, Text } from '@mantine/core';
 import { getListLink } from '../../lib/utils/link';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   list: AppBskyGraphDefs.ListView;
 }
 
 export default function ListEmbed(props: Props) {
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   if (settings.cardView === 'grid') {
     return (

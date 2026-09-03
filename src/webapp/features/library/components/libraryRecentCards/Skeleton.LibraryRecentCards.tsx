@@ -1,0 +1,28 @@
+import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
+import { Stack, Group, Title, Skeleton, Grid, GridCol } from '@mantine/core';
+import { FaRegNoteSticky } from 'react-icons/fa6';
+
+export default function LibraryRecentCardsSkeleton() {
+  return (
+    <Stack>
+      <Group justify="space-between">
+        <Group gap="xs">
+          <FaRegNoteSticky size={22} />
+          <Title order={2}>Cards</Title>
+        </Group>
+        <Group gap="xs">
+          <Skeleton w={38} h={38} circle />
+          <Skeleton w={87} h={36} radius={'xl'} />
+        </Group>
+      </Group>
+
+      <Grid gap="xs">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
+            <UrlCardSkeleton />
+          </GridCol>
+        ))}
+      </Grid>
+    </Stack>
+  );
+}

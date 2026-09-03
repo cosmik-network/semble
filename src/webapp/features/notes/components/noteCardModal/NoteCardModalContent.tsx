@@ -9,10 +9,9 @@ import {
   Image,
   Textarea,
   Button,
-  Flex,
-  Input,
   VisuallyHidden,
 } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { UrlCard, User } from '@semble/types';
 import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
@@ -22,6 +21,7 @@ import { BsExclamation } from 'react-icons/bs';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -103,32 +103,27 @@ export default function NoteCardModalContent(props: Props) {
   if (editMode) {
     return (
       <Stack gap={'xs'}>
-        <Stack gap={0}>
-          <Flex justify="space-between">
-            <Input.Label size="md" htmlFor="note">
-              Your note
-            </Input.Label>
-            <Text c={'gray'} aria-hidden>
+        <NoteTextarea
+          label="Your note"
+          placeholder="Add a note about this card"
+          variant="filled"
+          size="md"
+          autosize
+          minRows={3}
+          maxRows={8}
+          maxLength={MAX_NOTE_LENGTH}
+          aria-describedby="note-char-remaining"
+          value={note ?? ''}
+          onValueChange={setNote}
+          bottomSection={
+            <Text inherit ml="auto" aria-hidden>
               {note?.length ?? 0} / {MAX_NOTE_LENGTH}
             </Text>
-          </Flex>
-
-          <Textarea
-            id="note"
-            placeholder="Add a note about this card"
-            variant="filled"
-            size="md"
-            autosize
-            minRows={3}
-            maxRows={8}
-            maxLength={MAX_NOTE_LENGTH}
-            value={note}
-            onChange={(e) => setNote(e.currentTarget.value)}
-          />
-          <VisuallyHidden id="note-char-remaining" aria-live="polite">
-            {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
-          </VisuallyHidden>
-        </Stack>
+          }
+        />
+        <VisuallyHidden id="note-char-remaining" aria-live="polite">
+          {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}
+        </VisuallyHidden>
 
         <Group gap={'xs'} wrap="nowrap">
           <Button
@@ -181,7 +176,9 @@ export default function NoteCardModalContent(props: Props) {
           </Group>
         </Group>
       )}
-      {props.note && <Text fs={'italic'}>{props.note.text}</Text>}
+      {props.note && (
+        <RichTextRenderer text={props.note.text} textProps={{ fs: 'italic' }} />
+      )}
       <Card withBorder component="article" p={'xs'} radius={'lg'}>
         <Stack>
           <Group gap={'sm'} wrap="nowrap">

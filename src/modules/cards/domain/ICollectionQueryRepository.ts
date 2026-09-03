@@ -140,10 +140,13 @@ export interface ICollectionQueryRepository {
   ): Promise<PaginatedQueryResult<CollectionContributorDTO>>;
 
   /**
-   * Get all distinct collections containing URL cards with any of the given URLs
+   * Get all distinct collections containing URL cards with any of the given
+   * URLs, along with which of those URLs matched.
    * Used for recommendation scoring (no pagination)
    */
-  getCollectionsForUrls(urls: string[]): Promise<CollectionQueryResultDTO[]>;
+  getCollectionsForUrls(
+    urls: string[],
+  ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
    * Get all distinct collections created by the given author that contain URL

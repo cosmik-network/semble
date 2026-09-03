@@ -1,7 +1,8 @@
 import type { UrlCard } from '@semble/types';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { Modal, Stack } from '@mantine/core';
+import { Button, Modal, Skeleton, Stack } from '@mantine/core';
 import { Suspense } from 'react';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
@@ -19,13 +20,12 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   url: string;
-  cardId?: string;
-  note?: string;
   isInYourLibrary?: boolean;
   urlLibraryCount: number;
   viaCardId?: string;
   cardContent?: UrlCard['cardContent'];
   analyticsContext?: CardSaveAnalyticsContext;
+  zIndex?: number;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -123,27 +123,50 @@ export default function AddCardToModal(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       title="Save card"
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      zIndex={props.zIndex}
+      overlayProps={
+        props.zIndex
+          ? { ...DEFAULT_OVERLAY_PROPS, zIndex: props.zIndex - 1 }
+          : DEFAULT_OVERLAY_PROPS
+      }
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Stack justify="space-between" gap={'xs'}>
-        <CardToBeAddedPreview
-          url={props.url}
-          title={props.cardContent?.title}
-          imageUrl={props.cardContent?.imageUrl}
-          libraryCount={props.urlLibraryCount}
-          isInYourLibrary={props.isInYourLibrary}
-        />
-        <Suspense fallback={<CollectionSelectorSkeleton />}>
+      <Stack justify="space-between" gap={'md'}>
+        <Suspense
+          fallback={
+            <>
+              <CardToBeAddedPreview
+                url={props.url}
+                title={props.cardContent?.title}
+                imageUrl={props.cardContent?.imageUrl}
+                libraryCount={props.urlLibraryCount}
+                isInYourLibrary={props.isInYourLibrary}
+                action={
+                  <Skeleton radius={'xl'}>
+                    <Button
+                      variant="light"
+                      size="xs"
+                      color="gray"
+                      leftSection={<MdOutlineStickyNote2 />}
+                    >
+                      Add note
+                    </Button>
+                  </Skeleton>
+                }
+              />
+              <CollectionSelectorSkeleton />
+            </>
+          }
+        >
           <AddCardToModalContent
             key={`${props.url}-${props.isOpen}`}
             onClose={props.onClose}
             onSubmit={handleSubmit}
             url={props.url}
-            cardId={props.cardId}
             cardContent={props.cardContent}
-            note={props.note}
+            urlLibraryCount={props.urlLibraryCount}
+            isInYourLibrary={props.isInYourLibrary}
             viaCardId={props.viaCardId}
             isSaving={addCard.isPending || updateCardAssociations.isPending}
           />

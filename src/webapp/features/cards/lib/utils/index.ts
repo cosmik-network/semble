@@ -1,4 +1,4 @@
-import { CardSortField, SortOrder } from '@semble/types';
+import { CardSortField, SortOrder, UrlView } from '@semble/types';
 
 export const getCardsSortParams = (field: CardSortField) => {
   switch (field) {
@@ -26,4 +26,18 @@ export const getCardsSortParams = (field: CardSortField) => {
         sortOrder: SortOrder.DESC,
       };
   }
+};
+
+/**
+ * Collapse repeats by URL. Both the recommendation and search endpoints can
+ * return the same URL more than once (and across pages), which would otherwise
+ * render duplicate cards sharing a React key.
+ */
+export const dedupeUrlViews = (urls: UrlView[]): UrlView[] => {
+  const seen = new Set<string>();
+  return urls.filter((urlView) => {
+    if (seen.has(urlView.url)) return false;
+    seen.add(urlView.url);
+    return true;
+  });
 };

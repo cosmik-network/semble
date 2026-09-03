@@ -9,6 +9,21 @@ export enum CardSaveSource {
   ADD_CARD_DRAWER = 'add_card_drawer',
   ONBOARDING = 'onboarding',
   RECOMMENDED = 'recommended',
+  READER = 'reader',
+}
+
+export enum FollowSource {
+  PROFILE_PAGE = 'profile_page',
+  COLLECTION_PAGE = 'collection_page',
+  PROFILE_NETWORK = 'profile_network',
+  NOTIFICATIONS = 'notifications',
+  RECOMMENDED = 'recommended',
+  EXPLORE = 'explore',
+  SEARCH_RESULTS = 'search_results',
+  SEMBLE_PAGE = 'semble_page',
+  LIBRARY = 'library',
+  ONBOARDING = 'onboarding',
+  BLUESKY_FOLLOWS = 'bluesky_follows',
 }
 
 export interface CardSaveAnalyticsContext {

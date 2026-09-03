@@ -9,6 +9,9 @@ export const EventNames = {
   USER_UNFOLLOWED_TARGET: 'USER_UNFOLLOWED_TARGET',
   CONNECTION_CREATED: 'ConnectionCreatedEvent',
   CONNECTION_REMOVED: 'ConnectionRemovedEvent',
+  NOTE_CARD_UPDATED: 'NoteCardUpdatedEvent',
+  CONNECTION_UPDATED: 'ConnectionUpdatedEvent',
+  COLLECTION_UPDATED: 'CollectionUpdatedEvent',
 } as const;
 
 export type EventName = (typeof EventNames)[keyof typeof EventNames];

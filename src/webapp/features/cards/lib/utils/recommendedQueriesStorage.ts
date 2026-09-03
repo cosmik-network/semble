@@ -1,11 +1,18 @@
 'use client';
 
 /**
- * The recommendation queries are pinned client-side (rather than in the URL) so
- * pagination and reloads read from the same cached ranked set without leaking
- * long query strings into the address bar. They're deliberately short-lived:
- * cleared on navigating away from the page, and treated as absent once older
- * than MAX_AGE_MS so a returning user gets fresh recommendations.
+ * The server derives recommendation queries from a *random* sample of the
+ * reader's recent cards, so an identical request twice returns two different
+ * topical sets. Pinning the resolved queries client-side (rather than in the
+ * URL, which would leak long query strings into the address bar) keeps a
+ * reload or a filter change reading from the same ranked set.
+ *
+ * Within a single ranked set, pagination carries the queries in the query's
+ * page param instead — this pin only spans separate requests.
+ *
+ * Deliberately short-lived: a pin older than MAX_AGE_MS is treated as absent,
+ * so a returning reader gets fresh recommendations. The refresh control clears
+ * it outright.
  */
 const STORAGE_KEY = 'recommended-cards-queries';
 const MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes

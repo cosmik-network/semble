@@ -1,6 +1,7 @@
 'use client';
 
-import CollectionContainerError from '@/features/collections/containers/collectionContainer/Error.CollectionContainer';
+import { Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { isNotFoundApiError } from '@/api-client/errors';
 import CollectionNotFound from './not-found';
 
@@ -20,5 +21,9 @@ export default function Error({ error }: Props) {
     return <CollectionNotFound />;
   }
 
-  return <CollectionContainerError />;
+  return (
+    <Container p="xs" size="xl">
+      <ErrorState message="Could not load collection" />
+    </Container>
+  );
 }

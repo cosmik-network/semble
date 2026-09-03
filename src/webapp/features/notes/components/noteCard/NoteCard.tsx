@@ -1,5 +1,6 @@
 import { User } from '@/api-client/ApiClient';
 import { Card, Group, Spoiler, Stack, Text } from '@mantine/core';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import { getRelativeTime } from '@/lib/utils/time';
 import { LinkAvatar, LinkText } from '@/components/link/MantineLink';
 
@@ -17,7 +18,7 @@ export default function NoteCard(props: Props) {
     <Card p={'sm'} radius={'lg'} h={'100%'} withBorder>
       <Stack justify="space-between" h={'100%'}>
         <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
-          <Text fs={'italic'}>{props.note}</Text>
+          <RichTextRenderer text={props.note} textProps={{ fs: 'italic' }} />
         </Spoiler>
 
         <Group gap={'xs'}>

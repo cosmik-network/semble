@@ -26,7 +26,7 @@ export default function BookmarkletPage() {
 
   const bookmarkletCode = `javascript:(function(){
     const currentUrl = window.location.href;
-    const sembleUrl = '${appUrl}/url?id=' + currentUrl;
+    const sembleUrl = '${appUrl}/url?id=' + encodeURIComponent(currentUrl);
     window.open(sembleUrl, '_blank');
 })();`;
 
@@ -63,7 +63,7 @@ export default function BookmarkletPage() {
                 Get the bookmarklet
               </Title>
               <Text c="dimmed" fw={500} ta="center" maw={370}>
-                Drag this button to your browser's bookmarks bar.
+                Drag this button to your browser&apos;s bookmarks bar.
               </Text>
             </Stack>
             <Box dangerouslySetInnerHTML={createBookmarkletLink()} />

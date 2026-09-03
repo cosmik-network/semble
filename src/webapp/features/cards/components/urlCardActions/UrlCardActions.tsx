@@ -8,6 +8,7 @@ import {
 } from '@/api-client';
 import {
   ActionIcon,
+  Box,
   Button,
   Collapse,
   CopyButton,
@@ -15,7 +16,7 @@ import {
   Menu,
   Tooltip,
 } from '@mantine/core';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { BsPin, BsPinFill, BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
@@ -33,6 +34,7 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
+import { getSembleHref } from '@/lib/utils/link';
 
 interface Props {
   id: string;
@@ -58,6 +60,8 @@ interface Props {
   connectTooltipOpen?: boolean;
   /** Same, for the save tooltip. */
   saveTooltipOpen?: boolean;
+  /** Stacks the save and connect modals above a Drawer the card sits in. */
+  modalZIndex?: number;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -94,16 +98,16 @@ export default function UrlCardActions(props: Props) {
   const router = useRouter();
 
   return (
-    <Fragment>
+    <Box>
       {props.note && (
-        <Collapse expanded={showNote}>
-          <NoteCardInline
-            note={props.note}
-            cardContent={props.cardContent}
-            cardAuthor={props.cardAuthor}
-            isOwner={isAuthenticated && isAuthor}
-            onClose={() => setShowNote(false)}
-          />
+        <Collapse
+          expanded={showNote}
+          animateOpacity={false}
+          transitionDuration={150}
+        >
+          <Box pb="xs">
+            <NoteCardInline note={props.note} cardAuthor={props.cardAuthor} />
+          </Box>
         </Collapse>
       )}
       <Group justify="space-between">
@@ -233,7 +237,7 @@ export default function UrlCardActions(props: Props) {
             </CopyButton>
 
             <CopyButton
-              value={`${process.env.NEXT_PUBLIC_APP_URL}/url?id=${props.cardContent.url}`}
+              value={`${process.env.NEXT_PUBLIC_APP_URL}${getSembleHref(props.cardContent.url)}`}
             >
               {({ copy }) => (
                 <Menu.Item
@@ -304,12 +308,11 @@ export default function UrlCardActions(props: Props) {
             onClose={() => setShowAddToModal(false)}
             url={props.cardContent.url}
             cardContent={props.cardContent}
-            cardId={props.id}
-            note={props.note?.text}
             isInYourLibrary={props.urlIsInLibrary}
             urlLibraryCount={props.urlLibraryCount}
             viaCardId={props.viaCardId}
             analyticsContext={props.analyticsContext}
+            zIndex={props.modalZIndex}
           />
 
           <AddConnectionModal
@@ -318,6 +321,7 @@ export default function UrlCardActions(props: Props) {
             sourceUrl={props.cardContent.url}
             targetUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
+            zIndex={props.modalZIndex}
           />
 
           {props.currentCollection && (
@@ -335,6 +339,6 @@ export default function UrlCardActions(props: Props) {
           />
         </>
       )}
-    </Fragment>
+    </Box>
   );
 }

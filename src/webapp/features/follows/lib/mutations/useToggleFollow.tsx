@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { BsExclamation } from 'react-icons/bs';
 import posthog from 'posthog-js';
+import { FollowSource } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
@@ -10,8 +12,12 @@ import { followTarget, unfollowTarget } from '../dal';
 import { followKeys } from '../followKeys';
 import { FollowTarget, SubscriptionState } from '../types';
 
-export function useToggleFollow(target: FollowTarget) {
+export function useToggleFollow(
+  target: FollowTarget,
+  followSource?: FollowSource,
+) {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
 
   const followStateKey = followKeys.followState(
     target.targetType,
@@ -76,6 +82,8 @@ export function useToggleFollow(target: FollowTarget) {
       if (next && shouldCaptureAnalytics()) {
         posthog.capture('target_followed', {
           target_type: target.targetType.toLowerCase(),
+          follow_source: followSource,
+          page_path: pathname,
         });
       }
     },

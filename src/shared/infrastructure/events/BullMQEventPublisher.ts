@@ -105,6 +105,11 @@ export class BullMQEventPublisher implements IEventPublisher {
         ];
       case EventNames.CONNECTION_REMOVED:
         return [QueueNames.NOTIFICATIONS];
+      case EventNames.COLLECTION_CREATED:
+      case EventNames.COLLECTION_UPDATED:
+      case EventNames.NOTE_CARD_UPDATED:
+      case EventNames.CONNECTION_UPDATED:
+        return [QueueNames.NOTIFICATIONS];
       default:
         return [QueueNames.FEEDS];
     }

@@ -2,16 +2,16 @@
 
 import { CardSortField, UrlType } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
-import CardsContainerError from '../cardsContainer/Error.CardsContainer';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { Container, Divider, Grid, Stack } from '@mantine/core';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import UrlCard from '../../components/urlCard/UrlCard';
 import useCards from '../../lib/queries/useCards';
 import { useNavbarContext } from '@/providers/navbar';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { Fragment } from 'react';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { CardSaveSource } from '@/features/analytics/types';
 import { getCardsSortParams } from '../../lib/utils';
@@ -24,7 +24,7 @@ interface Props {
 export default function CardsContainerContent(props: Props) {
   const pathname = usePathname();
   const { desktopOpened } = useNavbarContext();
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
 
   const searchParams = useSearchParams();
   const selectedUrlType = searchParams.get('type') as UrlType;
@@ -56,13 +56,17 @@ export default function CardsContainerContent(props: Props) {
   }
 
   if (error) {
-    return <CardsContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load cards" />
+      </Container>
+    );
   }
 
   if (allCards.length === 0) {
     return (
       <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab
+        <EmptyState
           message={
             props.query
               ? 'No results'

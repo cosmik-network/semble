@@ -1,11 +1,13 @@
 'use client';
 
-import SearchEmptyResults from '../../components/searchEmptyResults/SearchEmptyResults';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Grid, Group, Stack } from '@mantine/core';
-import SearchResultsContainerError from '../searchResultsContainer/Error.SearchResultsContainer';
+import { Center, Grid, Group, Stack } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import SearchQueryAlert from '../../components/searchQueryAlert/SearchQueryAlert';
 import { SearchFilters } from '../../components/searchFilters/SearchFilters';
 import { CollectionAccessType } from '@semble/types';
@@ -49,9 +51,15 @@ export default function CollectionSearchResultsContainer(props: Props) {
       </Group>
 
       {error ? (
-        <SearchResultsContainerError />
+        <ErrorState message="Could not load search results" />
       ) : !isPending && props.query && allCollections.length === 0 ? (
-        <SearchEmptyResults query={props.query} type="collections" />
+        <Center py="xl">
+          <EmptyState
+            icon={BiSearch}
+            message="No collections found"
+            description="Try a different search term"
+          />
+        </Center>
       ) : (
         <InfiniteScroll
           dataLength={allCollections.length}
@@ -63,7 +71,11 @@ export default function CollectionSearchResultsContainer(props: Props) {
           <Grid gap="xs">
             {allCollections.map((collection) => (
               <Grid.Col key={collection.id} span={12}>
-                <CollectionCard collection={collection} showAuthor />
+                <CollectionCard
+                  collection={collection}
+                  showAuthor
+                  followSource={FollowSource.SEARCH_RESULTS}
+                />
               </Grid.Col>
             ))}
           </Grid>

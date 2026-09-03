@@ -6,12 +6,12 @@ import { Fragment, useState } from 'react';
 import { FaSeedling } from 'react-icons/fa6';
 import { IoMdCheckmark } from 'react-icons/io';
 import { TbSettings } from 'react-icons/tb';
-import { getUrlTypeIcon } from '@/lib/utils/icon';
+import { getUrlTypeIcon, renderUrlTypeIcon } from '@/lib/utils/icon';
 import { upperFirst } from '@mantine/hooks';
 import { MdFilterList } from 'react-icons/md';
 import { FaAsterisk } from 'react-icons/fa';
 import { LinkButton } from '@/components/link/MantineLink';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 import {
   activityTypeOptions,
   feedOptions,
@@ -21,8 +21,11 @@ import {
 import Link from 'next/link';
 
 export default function FeedControls() {
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting, updateSettings } = useSettings();
 
+  // Every view is offered, guest or not: the two answered off the session
+  // render a login CTA in `MyFeedContainer` rather than an error, so picking
+  // one shows a reader what they would get instead of hiding it from them.
   const [typePopoverOpened, setTypePopoverOpened] = useState(false);
 
   const selectedSource =
@@ -31,16 +34,15 @@ export default function FeedControls() {
   const selectedFeed =
     feedOptions.find((o) => o.value === settings.feedView) || feedOptions[0];
 
+  // Margin serves neither a following feed nor an activity-type filter, so
+  // picking it resets both rather than leaving the feed on a combination it
+  // cannot answer.
   const handleSourceClick = (source: ActivitySource | null) => {
-    updateSetting('feedSource', source);
-    if (source === ActivitySource.MARGIN) {
-      if (settings.feedView === 'following') {
-        updateSetting('feedView', 'global');
-      }
-      if (settings.feedActivityType !== null) {
-        updateSetting('feedActivityType', null);
-      }
-    }
+    updateSettings(
+      source === ActivitySource.MARGIN
+        ? { feedSource: source, feedView: 'global', feedActivityType: null }
+        : { feedSource: source },
+    );
   };
 
   const handleFeedClick = (feed: FeedView) => {
@@ -63,18 +65,15 @@ export default function FeedControls() {
     settings.feedActivityType !== null;
 
   const handleClear = () => {
-    updateSetting('feedSource', null);
-    updateSetting('feedView', 'global');
-    updateSetting('feedUrlType', null);
-    updateSetting('feedActivityType', null);
+    updateSettings({
+      feedSource: null,
+      feedView: 'global',
+      feedUrlType: null,
+      feedActivityType: null,
+    });
   };
 
   const isMarginSource = settings.feedSource === ActivitySource.MARGIN;
-
-  const SelectedTypeIcon =
-    settings.feedUrlType === null
-      ? FaAsterisk
-      : getUrlTypeIcon(settings.feedUrlType);
 
   return (
     <Group gap={'xs'} justify="space-between" wrap="nowrap">
@@ -198,7 +197,13 @@ export default function FeedControls() {
               <Popover.Target>
                 <Menu.Item
                   variant="light"
-                  leftSection={<SelectedTypeIcon />}
+                  leftSection={
+                    settings.feedUrlType === null ? (
+                      <FaAsterisk />
+                    ) : (
+                      renderUrlTypeIcon(settings.feedUrlType)
+                    )
+                  }
                   closeMenuOnClick={false}
                   onClick={() => {
                     setTypePopoverOpened((o) => !o);

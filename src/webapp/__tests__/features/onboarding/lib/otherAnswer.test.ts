@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   decodeAnswer,
   encodeAnswer,
+  encodeFinalAnswer,
 } from '@/features/onboarding/lib/otherAnswer';
 
 describe('encodeAnswer', () => {
@@ -26,8 +27,8 @@ describe('encodeAnswer', () => {
     ]);
   });
 
-  it('drops whitespace-only text rather than storing a blank answer', () => {
-    expect(encodeAnswer(['other'], '   ')).toEqual(['other']);
+  it('keeps whitespace while editing, so typed spaces are not eaten', () => {
+    expect(encodeAnswer(['other'], 'a ')).toEqual(['other', 'other:a ']);
   });
 
   it('never emits a blank element, which would count without ranking', () => {
@@ -38,6 +39,19 @@ describe('encodeAnswer', () => {
     const encoded = encodeAnswer(['other'], 'x'.repeat(500));
 
     expect(encoded[1]).toHaveLength('other:'.length + 200);
+  });
+});
+
+describe('encodeFinalAnswer', () => {
+  it('drops whitespace-only text rather than storing a blank answer', () => {
+    expect(encodeFinalAnswer(['other'], '   ')).toEqual(['other']);
+  });
+
+  it('trims free text on the way into storage', () => {
+    expect(encodeFinalAnswer(['other'], '  a reading list  ')).toEqual([
+      'other',
+      'other:a reading list',
+    ]);
   });
 });
 

@@ -4,10 +4,10 @@ import useForwardConnections from '@/features/connections/lib/queries/useForward
 import useBackwardConnections from '@/features/connections/lib/queries/useBackwardConnections';
 import useAllConnections from '@/features/connections/lib/queries/useAllConnections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Box, Group, Stack } from '@mantine/core';
-import ConnectionsContainerError from './Error.ConnectionsContainer';
+import { Box, Group, Stack, Container } from '@mantine/core';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ConnectionItem from '@/features/connections/components/connectionItem/ConnectionItem';
-import SembleEmptyTab from '@/features/semble/components/sembleEmptyTab/SembleEmptyTab';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { BiLink } from 'react-icons/bi';
 import { useDisclosure } from '@mantine/hooks';
 import { ConnectionFilters } from '@/features/connections/components/connectionFilters/ConnectionFilters';
@@ -99,7 +99,11 @@ export default function ConnectionsContainer(props: Props) {
       : `No connections found ${direction} this`;
 
   if (forwardError || backwardError || allError) {
-    return <ConnectionsContainerError />;
+    return (
+      <Container p="xs" size="xl">
+        <ErrorState message="Could not load connections" />
+      </Container>
+    );
   }
 
   const connections =
@@ -147,7 +151,7 @@ export default function ConnectionsContainer(props: Props) {
         </Group>
 
         {connections.length === 0 && !isPending ? (
-          <SembleEmptyTab message={emptyMessage} icon={BiLink} />
+          <EmptyState message={emptyMessage} icon={BiLink} />
         ) : (
           <InfiniteScroll
             dataLength={connections.length}
@@ -158,8 +162,6 @@ export default function ConnectionsContainer(props: Props) {
           >
             <Stack gap="xl" mx={'auto'} maw={600} w={'100%'}>
               {connections.map((connection, index) => {
-                // Determine the actual direction for this specific connection
-                // If direction is 'all', check if the source URL matches props.url
                 const isForward =
                   direction === 'all'
                     ? connection.source.url === props.url

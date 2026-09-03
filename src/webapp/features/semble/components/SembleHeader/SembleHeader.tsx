@@ -1,13 +1,13 @@
-import { Stack, Grid, GridCol } from '@mantine/core';
+import { Stack, Grid, GridCol, Box } from '@mantine/core';
 import SembleStats from '../sembleStats/SembleStats';
 import { Suspense } from 'react';
 import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 import SembleActionsContainer from '../../containers/sembleActionsContainer/SembleActionsContainer';
 import UrlMetadataHeader from '../urlMetadataHeader/UrlMetadataHeader';
 import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataHeader';
-import SembleStatsSkeleton from '../sembleStats/Skeleton.SembleStats';
 import UrlMetadataImage from '../urlMetadataHeader/UrlMetadataImage';
 import UrlMetadataImageSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataImage';
+import SembleStatsSkeleton from '../sembleStats/Skeleton.SembleStats';
 import SembleHeaderMedia from './SembleHeaderMedia';
 
 interface Props {
@@ -47,7 +47,14 @@ export default function SembleHeader(props: Props) {
         </GridCol>
       </Grid>
 
-      <Suspense fallback={<SembleStatsSkeleton />} key={props.url}>
+      <Suspense
+        fallback={
+          <Box style={{ visibility: 'hidden' }}>
+            <SembleStatsSkeleton />
+          </Box>
+        }
+        key={props.url}
+      >
         <SembleStats url={props.url} />
       </Suspense>
     </Stack>

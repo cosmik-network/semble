@@ -4,17 +4,26 @@ import { followKeys } from '../followKeys';
 
 interface Props {
   limit?: number;
+  enabled?: boolean;
 }
 
-export default function useBskyFollowedUsers({ limit = 20 }: Props = {}) {
+export default function useBskyFollowedUsers({
+  limit = 20,
+  enabled = true,
+}: Props = {}) {
   const query = useInfiniteQuery({
     queryKey: followKeys.bskyFollowedUsers(limit),
+    enabled,
     initialPageParam: 1,
-    queryFn: ({ pageParam = 1 }) => {
-      return getBskyFollowedUsers({
-        limit,
-        page: pageParam,
-      });
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await getBskyFollowedUsers({ limit, page: pageParam });
+      return {
+        ...response,
+        users: (response.users ?? []).map((user) => ({
+          ...user,
+          followsOnBsky: true,
+        })),
+      };
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {

@@ -7,6 +7,7 @@ import { Collection, CollectionAccessType } from '../../../domain/Collection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface CreateCollectionDTO {
@@ -38,6 +39,7 @@ export class CreateCollectionUseCase implements UseCase<
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,
+    private eventPublisher: IEventPublisher,
   ) {}
 
   async execute(
@@ -106,6 +108,17 @@ export class CreateCollectionUseCase implements UseCase<
       const createResult = await this.collectionRepository.create(collection);
       if (createResult.isErr()) {
         return err(AppError.UnexpectedError.create(createResult.error));
+      }
+
+      // Publish CollectionCreatedEvent (raised in Collection.create) so the
+      // notification worker can process e.g. description mentions
+      if (collection.domainEvents.length > 0) {
+        const publishEventsResult = await this.eventPublisher.publishEvents(
+          collection.domainEvents,
+        );
+        if (publishEventsResult.isOk()) {
+          collection.clearEvents();
+        }
       }
 
       return ok({

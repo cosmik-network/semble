@@ -12,19 +12,20 @@ import {
   Text,
 } from '@mantine/core';
 import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
 }
 
 export default function StarterPackEmbed(props: Props) {
+  const { settings } = useSettings();
+
   if (!AppBskyGraphStarterpack.isRecord(props.embed.record)) {
     return null;
   }
 
   const image = getStarterPackImage(props.embed);
-  const { settings } = useUserSettings();
 
   if (settings.cardView === 'grid') {
     return (
@@ -32,7 +33,7 @@ export default function StarterPackEmbed(props: Props) {
         <Group gap={'xs'} wrap="nowrap">
           {image && (
             <AspectRatio ratio={1 / 1}>
-              <Image src={image} radius={'sm'} w={50} h={50} />
+              <Image src={image} alt="" radius={'sm'} w={50} h={50} />
             </AspectRatio>
           )}
           <Stack gap={0}>
@@ -58,7 +59,7 @@ export default function StarterPackEmbed(props: Props) {
     >
       {image && (
         <CardSection>
-          <Image src={image} />
+          <Image src={image} alt="" />
         </CardSection>
       )}
       <Box p={'xs'}>

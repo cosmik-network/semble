@@ -50,8 +50,11 @@ const meta: Meta<typeof ProfileTabs> = {
     },
   },
   decorators: [
-    (Story) => (
-      <QueryCacheSeed profile={mockProfile}>
+    // Stories override the seeded profile through the `profile` parameter.
+    (Story, context) => (
+      <QueryCacheSeed
+        profile={(context.parameters.profile as User) ?? mockProfile}
+      >
         <Suspense fallback={<Skeleton h={42} />}>
           <Story />
         </Suspense>
@@ -99,6 +102,18 @@ export const ConnectionsTab: Story = {
       navigation: {
         pathname: `/profile/${HANDLE}/connections`,
       },
+    },
+  },
+};
+
+/** A profile with nothing in it yet — zeroes render rather than disappearing. */
+export const ZeroCounts: Story = {
+  parameters: {
+    profile: {
+      ...mockProfile,
+      urlCardCount: 0,
+      collectionCount: 0,
+      connectionCount: 0,
     },
   },
 };

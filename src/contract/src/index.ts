@@ -6,6 +6,7 @@ import { feedsContract } from './contract/feeds';
 import { notificationsContract } from './contract/notifications';
 import { connectionsContract } from './contract/connections';
 import { searchContract } from './contract/search';
+import { tagsContract } from './contract/tags';
 import { graphContract } from './contract/graph';
 import { filterPublicRoutes } from './filter';
 
@@ -19,6 +20,7 @@ export type ContractType = {
   notifications: typeof notificationsContract;
   connections: typeof connectionsContract;
   search: typeof searchContract;
+  tags: typeof tagsContract;
   graph: typeof graphContract;
 };
 
@@ -30,6 +32,7 @@ export const contract: ContractType = c.router({
   notifications: notificationsContract,
   connections: connectionsContract,
   search: searchContract,
+  tags: tagsContract,
   graph: graphContract,
 } satisfies AppRouter);
 
@@ -47,5 +50,6 @@ export {
   notificationsContract,
   connectionsContract,
   searchContract,
+  tagsContract,
   graphContract,
 };

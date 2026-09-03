@@ -19,6 +19,10 @@ export const feedKeys = {
     includeKnownBots,
     actorIds,
   ],
+  // Seed cards sampled out of recent global feed activity, used to stand in
+  // for a library the reader doesn't have yet.
+  seeds: (poolSize: number, count: number) =>
+    [...feedKeys.all(), 'seeds', poolSize, count] as const,
   gems: () => [...feedKeys.all(), 'gems'] as const,
   gemsInfinite: (
     limit?: number,
@@ -51,5 +55,24 @@ export const feedKeys = {
       source,
       activityTypes,
       includeKnownBots,
+    ] as const,
+  bskyFollowing: () => [...feedKeys.all(), 'bskyFollowing'] as const,
+  bskyFollowingInfinite: (
+    limit?: number,
+    urlType?: UrlType,
+    source?: ActivitySource,
+    activityTypes?: ActivityType[],
+    includeKnownBots?: boolean,
+    identifier?: string,
+  ) =>
+    [
+      ...feedKeys.bskyFollowing(),
+      'infinite',
+      limit,
+      urlType,
+      source,
+      activityTypes,
+      includeKnownBots,
+      identifier,
     ] as const,
 };

@@ -24,7 +24,7 @@ import useCreateConnection from '../../lib/mutations/useCreateConnection';
 import {} from 'react-icons/io';
 import { LuChevronsUpDown, LuArrowUpDown } from 'react-icons/lu';
 import { CONNECTION_TYPES } from '../../const/connectionTypes';
-import { useSelectableConnectionTypes } from '../../lib/useSelectableConnectionTypes';
+import type { ConnectionType } from '@semble/types';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
@@ -32,6 +32,7 @@ import { BiSolidChevronDown } from 'react-icons/bi';
 import { CardSaveSource } from '@/features/analytics/types';
 import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 
 interface Props {
   onClose: () => void;
@@ -39,11 +40,12 @@ interface Props {
   sourceUrl?: string;
   /** When provided the target is prefilled. */
   targetUrl?: string;
+  /** Initial connection type; defaults to RELATED. */
+  defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
 export default function AddConnectionForm(props: Props) {
-  const selectableTypes = useSelectableConnectionTypes();
   const hasFixedSource = !!props.sourceUrl;
   const createConnection = useCreateConnection();
   const onboarding = useOnboardingMilestones();
@@ -60,7 +62,7 @@ export default function AddConnectionForm(props: Props) {
     initialValues: {
       sourceUrl: props.sourceUrl ?? '',
       targetUrl: props.targetUrl ?? '',
-      connectionType: 'RELATED',
+      connectionType: props.defaultConnectionType ?? 'RELATED',
       note: '',
     },
     validateInputOnChange: false,
@@ -254,7 +256,7 @@ export default function AddConnectionForm(props: Props) {
           position="bottom"
           width={320}
           onOptionSubmit={(value) => {
-            form.setFieldValue('connectionType', value);
+            form.setFieldValue('connectionType', value as ConnectionType);
             typeCombobox.closeDropdown();
           }}
         >
@@ -286,7 +288,7 @@ export default function AddConnectionForm(props: Props) {
           <Combobox.Dropdown>
             <Combobox.Options>
               <ScrollArea.Autosize type="scroll" mah={300}>
-                {selectableTypes.map((type) => {
+                {CONNECTION_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = form.values.connectionType === type.value;
                   return (
@@ -381,36 +383,30 @@ export default function AddConnectionForm(props: Props) {
           {targetSlot}
         </Stack>
 
-        <Stack gap={0}>
-          <Group justify="space-between">
-            <Input.Label size="md" htmlFor="note">
-              Note
-            </Input.Label>
-            <Text c={'gray'} aria-hidden>
+        <NoteTextarea
+          label="Note"
+          placeholder={
+            CONNECTION_TYPES.find(
+              (t) => t.value === form.values.connectionType,
+            )?.notePlaceholder ??
+            'Explain the relationship between these resources...'
+          }
+          variant="filled"
+          size="md"
+          rows={3}
+          maxLength={MAX_NOTE_LENGTH}
+          aria-describedby="note-char-remaining"
+          value={form.values.note}
+          onValueChange={(v) => form.setFieldValue('note', v)}
+          bottomSection={
+            <Text inherit ml="auto" aria-hidden>
               {form.getValues().note.length} / {MAX_NOTE_LENGTH}
             </Text>
-          </Group>
-
-          <Textarea
-            id="note"
-            placeholder={
-              CONNECTION_TYPES.find(
-                (t) => t.value === form.values.connectionType,
-              )?.notePlaceholder ??
-              'Explain the relationship between these resources...'
-            }
-            variant="filled"
-            size="md"
-            rows={3}
-            maxLength={MAX_NOTE_LENGTH}
-            aria-describedby="note-char-remaining"
-            key={form.key('note')}
-            {...form.getInputProps('note')}
-          />
-          <VisuallyHidden id="note-char-remaining" aria-live="polite">
-            {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
-          </VisuallyHidden>
-        </Stack>
+          }
+        />
+        <VisuallyHidden id="note-char-remaining" aria-live="polite">
+          {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
+        </VisuallyHidden>
 
         <Group justify="space-between" gap={'xs'} grow mt="auto" mb="md">
           <Button

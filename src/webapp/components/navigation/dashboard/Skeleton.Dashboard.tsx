@@ -1,6 +1,7 @@
 'use client';
 
 import { AppShell, Center, Stack, Text } from '@mantine/core';
+import { BOTTOM_BAR_FOOTER } from '@/lib/consts/layout';
 import { useNavbarContext } from '@/providers/navbar';
 import NavbarSkeleton from '../navbar/Skeleton.Navbar';
 import BottomBarSkeleton from '../bottomBar/Skeleton.BottomBar';
@@ -23,9 +24,7 @@ export default function DashboardSkeleton() {
         breakpoint: 'xl',
         collapsed: { mobile: true },
       }}
-      footer={{
-        height: { base: 85, sm: 0 },
-      }}
+      footer={BOTTOM_BAR_FOOTER}
     >
       <NavbarSkeleton />
 

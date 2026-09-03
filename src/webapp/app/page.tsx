@@ -208,7 +208,7 @@ function Content(props: {
                     'light-dark(var(--mantine-color-blue-2), rgba(35, 175, 237, 0.25))',
                 }}
               >
-                Watch: why we're building Semble
+                Watch: why we&apos;re building Semble
               </LinkButton>
               <Title order={1} fw={700} fz="2.4rem" ta={'center'}>
                 Save what matters <br /> Make sense of it together
@@ -379,7 +379,7 @@ function Content(props: {
                           <Text c="dimmed">
                             Community-built plugins and automations — sync your
                             links to Zotero, or use Airglow to sync your Bluesky
-                            follows and save links from posts you've liked
+                            follows and save links from posts you&apos;ve liked
                           </Text>
 
                           <Group gap={'xs'} mt="sm">

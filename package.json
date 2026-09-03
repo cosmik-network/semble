@@ -70,6 +70,7 @@
     "webapp:start": "cd src/webapp && npm run start",
     "webapp:storybook": "cd src/webapp && npm run storybook",
     "webapp:type-check": "cd src/webapp && npm run type-check",
+    "webapp:lint": "cd src/webapp && npm run lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

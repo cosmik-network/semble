@@ -9,8 +9,4 @@ export const onboardingKeys = {
       limit,
       ...queries,
     ] as const,
-  recommendedUsers: (urls: string[]) =>
-    [...onboardingKeys.all(), 'recommendedUsers', ...urls] as const,
-  recommendedCollections: (urls: string[]) =>
-    [...onboardingKeys.all(), 'recommendedCollections', ...urls] as const,
 };

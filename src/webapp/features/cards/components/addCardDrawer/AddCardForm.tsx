@@ -3,12 +3,9 @@
 import {
   Button,
   Drawer,
-  Flex,
   Group,
-  Input,
   Stack,
   Text,
-  Textarea,
   ThemeIcon,
   VisuallyHidden,
   Container,
@@ -33,6 +30,8 @@ import { FaSeedling } from 'react-icons/fa6';
 import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
+import { MAX_NOTE_LENGTH } from '../cardNoteEditor/CardNoteEditor';
 
 interface Props {
   onClose: () => void;
@@ -92,14 +91,15 @@ export default function AddCardForm(props: Props) {
     },
   });
 
-  const MAX_NOTE_LENGTH = 500;
+  // Stable useCallback, unlike the form object it comes from
+  const { setValues } = form;
 
   useEffect(() => {
     if (props.initialUrl) {
-      form.setValues({ url: props.initialUrl });
+      setValues({ url: props.initialUrl });
       rawUrlInput.current = props.initialUrl;
     }
-  }, [props.initialUrl]);
+  }, [props.initialUrl, setValues]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,31 +172,25 @@ export default function AddCardForm(props: Props) {
             }}
           />
 
-          <Stack gap={0}>
-            <Flex justify="space-between">
-              <Input.Label size="md" htmlFor="note">
-                Note
-              </Input.Label>
-              <Text c={'gray'} aria-hidden>
+          <NoteTextarea
+            label="Note"
+            placeholder="Add a note about this card"
+            variant="filled"
+            size="md"
+            rows={3}
+            maxLength={MAX_NOTE_LENGTH}
+            aria-describedby="note-char-remaining"
+            value={form.values.note}
+            onValueChange={(v) => form.setFieldValue('note', v)}
+            bottomSection={
+              <Text inherit ml="auto" aria-hidden>
                 {form.getValues().note.length} / {MAX_NOTE_LENGTH}
               </Text>
-            </Flex>
-
-            <Textarea
-              id="note"
-              placeholder="Add a note about this card"
-              variant="filled"
-              size="md"
-              rows={3}
-              maxLength={MAX_NOTE_LENGTH}
-              aria-describedby="note-char-remaining"
-              key={form.key('note')}
-              {...form.getInputProps('note')}
-            />
-            <VisuallyHidden id="note-char-remaining" aria-live="polite">
-              {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
-            </VisuallyHidden>
-          </Stack>
+            }
+          />
+          <VisuallyHidden id="note-char-remaining" aria-live="polite">
+            {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}
+          </VisuallyHidden>
 
           <Stack gap={5}>
             <Text fw={500}>

@@ -16,11 +16,11 @@ import {
 } from 'react-icons/md';
 import { BsGrid, BsListUl } from 'react-icons/bs';
 import { CiGrid2H } from 'react-icons/ci';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import { useSettings } from '@/providers/settings';
 
 export default function AppearanceContainer() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const { settings, updateSetting } = useUserSettings();
+  const { settings, updateSetting } = useSettings();
 
   return (
     <Container p="xs" size="xs">

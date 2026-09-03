@@ -16,7 +16,6 @@ import {
   Badge,
 } from '@mantine/core';
 import { MdOutlineEmojiNature } from 'react-icons/md';
-import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbSettings } from 'react-icons/tb';
 import { BiSearch } from 'react-icons/bi';
 
@@ -30,14 +29,15 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
 import Composer from '@/features/composer/components/Composer';
-import { HiOutlineHome } from 'react-icons/hi';
+import { HiOutlineHome, HiOutlineUserCircle } from 'react-icons/hi';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
 
+  // z-index clears the sticky Header (100), which the open mobile navbar covers
   return (
-    <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
+    <AppShellNavbar p={'xs'} style={{ zIndex: 101 }}>
       <Group justify="space-between">
         <Anchor href={'/home'} mx={2}>
           <Stack align="center" gap={6}>
@@ -77,9 +77,9 @@ export default function Navbar() {
             <NotificationNavItem />
 
             <NavItem
-              href={`/profile/${profile.handle}/cards`}
-              label="Cards"
-              icon={<FaRegNoteSticky size={25} />}
+              href={`/profile/${profile.handle}`}
+              label="Profile"
+              icon={<HiOutlineUserCircle size={25} />}
             />
             <NavItem
               href="/settings"

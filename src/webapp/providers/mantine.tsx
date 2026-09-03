@@ -3,7 +3,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/code-highlight/styles.css';
-import '@mantine-bites/lightbox/styles.css';
+import '@mantine/lightbox/styles.css';
 import { theme } from '@/styles/theme';
 import {
   MantineProvider as BaseProvider,
@@ -82,6 +82,7 @@ export default function MantineProvider(props: Props) {
       theme={theme}
       defaultColorScheme="auto"
       cssVariablesResolver={cssVariablesResolver}
+      deduplicateInlineStyles
     >
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
         <ThemeHotkey />

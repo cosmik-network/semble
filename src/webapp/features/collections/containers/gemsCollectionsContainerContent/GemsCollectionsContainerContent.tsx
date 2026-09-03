@@ -1,13 +1,14 @@
 'use client';
 
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import { FollowSource } from '@/features/analytics/types';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { SimpleGrid } from '@mantine/core';
-import GemsCollectionsContainerError from './Error.GemsCollectionsContainerContent';
+import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import { BiCollection } from 'react-icons/bi';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import { useUserSettings } from '@/features/settings/lib/queries/useUserSettings';
+import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
+import { useSettings } from '@/providers/settings';
 
 export default function GemsCollectionsContainerContent() {
   const {
@@ -21,18 +22,16 @@ export default function GemsCollectionsContainerContent() {
     searchText: '💎 2025',
   });
 
-  const { settings } = useUserSettings();
+  const { settings } = useSettings();
   const allCollections =
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   if (error) {
-    return <GemsCollectionsContainerError />;
+    return <ErrorState message="Could not load collections" />;
   }
 
   if (allCollections.length === 0) {
-    return (
-      <ProfileEmptyTab message="No collections found" icon={BiCollection} />
-    );
+    return <EmptyState message="No collections found" icon={BiCollection} />;
   }
 
   return (
@@ -56,6 +55,7 @@ export default function GemsCollectionsContainerContent() {
             key={collection.id}
             collection={collection}
             showAuthor={true}
+            followSource={FollowSource.EXPLORE}
           />
         ))}
       </SimpleGrid>

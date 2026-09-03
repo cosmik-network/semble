@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ScrollArea } from '@mantine/core';
+import { Center, Loader, ScrollArea } from '@mantine/core';
 import { useScrollFade } from '@/hooks/useScrollFade';
 
 // Total height of a selector tab panel (search input + collection list).
@@ -9,10 +9,12 @@ import { useScrollFade } from '@/hooks/useScrollFade';
 // few-collections states; the scroll area flexes to fill whatever the
 // search row doesn't use. Capped to a fraction of the viewport so the
 // modal doesn't overflow short screens (e.g. iPhone SE).
-export const COLLECTION_PANEL_HEIGHT = 'min(284px, 32dvh)';
+export const COLLECTION_PANEL_HEIGHT = 'min(284px, 35dvh)';
 
 interface Props {
   children: ReactNode;
+  onBottomReached?: () => void;
+  isLoadingMore?: boolean;
 }
 
 // Scroll container for the selector tabs' collection lists. Fills the
@@ -27,6 +29,7 @@ export default function CollectionListScrollArea(props: Props) {
       style={{ flex: 1, minHeight: 0 }}
       viewportRef={setViewport}
       onScrollPositionChange={updateFade}
+      onBottomReached={props.onBottomReached}
       styles={{
         viewport: maskImage
           ? { maskImage, WebkitMaskImage: maskImage }
@@ -34,6 +37,11 @@ export default function CollectionListScrollArea(props: Props) {
       }}
     >
       {props.children}
+      {props.isLoadingMore && (
+        <Center py="xs">
+          <Loader size="sm" color="gray" />
+        </Center>
+      )}
     </ScrollArea>
   );
 }
