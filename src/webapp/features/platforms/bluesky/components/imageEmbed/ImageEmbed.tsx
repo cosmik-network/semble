@@ -1,8 +1,8 @@
 'use client';
 
 import { AppBskyEmbedImages } from '@atproto/api';
-import { Lightbox } from '@mantine-bites/lightbox';
 import { AspectRatio, SimpleGrid, Image, Spoiler, Button } from '@mantine/core';
+import { Lightbox } from '@mantine/lightbox';
 import { useState } from 'react';
 import styles from './ImageEmbed.module.css';
 import { useSettings } from '@/providers/settings';
@@ -14,36 +14,30 @@ interface Props {
 export default function ImageEmbed(props: Props) {
   const { settings } = useSettings();
   const [lightboxOpened, setLightboxOpened] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  const lightboxImages = props.images.map((img) => ({
+  const lightboxSlides = props.images.map((img) => ({
     src: img.fullsize,
     alt: img.alt,
   }));
 
   const openLightbox = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
+    setLightboxIndex(index);
     setLightboxOpened(true);
   };
 
+  // The lightbox portals out of the DOM tree but React events still bubble to
+  // this component's ancestors, so stop them reaching the parent card's onClick.
   const lightbox = (
     <div onClick={(e) => e.stopPropagation()}>
-      <Lightbox.Root
+      <Lightbox
         opened={lightboxOpened}
         onClose={() => setLightboxOpened(false)}
-      >
-        <Lightbox.Toolbar>
-          <Lightbox.CloseButton />
-        </Lightbox.Toolbar>
-        <Lightbox.Controls />
-        <Lightbox.Counter />
-        <Lightbox.Slides>
-          {lightboxImages.map((img) => (
-            <Lightbox.Slide key={img.src}>
-              <Image src={img.src} alt={img.alt} />
-            </Lightbox.Slide>
-          ))}
-        </Lightbox.Slides>
-      </Lightbox.Root>
+        slides={lightboxSlides}
+        currentIndex={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+      />
     </div>
   );
 

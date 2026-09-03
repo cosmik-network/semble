@@ -29,11 +29,11 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@mantine-bites/lightbox": "^2.0.0",
     "@mantine/code-highlight": "9.6.0",
     "@mantine/core": "9.6.0",
     "@mantine/form": "9.6.0",
     "@mantine/hooks": "9.6.0",
+    "@mantine/lightbox": "9.6.0",
     "@mantine/notifications": "9.6.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",

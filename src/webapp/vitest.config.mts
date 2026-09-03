@@ -32,6 +32,7 @@ export default defineConfig({
                 '@mantine/core',
                 '@mantine/form',
                 '@mantine/hooks',
+                '@mantine/lightbox',
                 '@mantine/notifications',
                 'react-icons',
               ],

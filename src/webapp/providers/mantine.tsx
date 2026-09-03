@@ -3,7 +3,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/code-highlight/styles.css';
-import '@mantine-bites/lightbox/styles.css';
+import '@mantine/lightbox/styles.css';
 import { theme } from '@/styles/theme';
 import {
   MantineProvider as BaseProvider,
