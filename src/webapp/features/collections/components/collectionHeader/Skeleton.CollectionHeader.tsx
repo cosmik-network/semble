@@ -54,7 +54,9 @@ export default function CollectionHeaderSkeleton() {
 
           {/* Description — omitted: we can't know whether there is one */}
           <Group justify="space-between" gap={'lg'} mt={'sm'}>
-            <CollectionStatsSkeleton />
+            <Box style={{ visibility: 'hidden' }}>
+              <CollectionStatsSkeleton />
+            </Box>
             <CollectionActionsSkeleton />
           </Group>
         </Stack>

@@ -136,8 +136,7 @@ function ContributorsChip(props: ChipProps) {
   );
 }
 
-// A failed chip disappears instead of taking the header down with it. Loading
-// is left to the header's Suspense so all chips appear together.
+// A failed chip disappears instead of taking the header down with it.
 function ChipBoundary(props: { children: ReactNode }) {
   return <ErrorBoundary fallback={null}>{props.children}</ErrorBoundary>;
 }
