@@ -91,7 +91,15 @@ export default function CardNoteEditor(props: Props) {
           </Group>
         </Group>
       ) : (
-        <Group justify="flex-end" gap={'xs'} wrap="nowrap" mih={26}>
+        <Group justify="space-between" gap={'xs'} wrap="nowrap" mih={26}>
+          <Button
+            variant="light"
+            size="xs"
+            color="gray"
+            onClick={props.onCancel}
+          >
+            Cancel
+          </Button>
           {props.noteId && (
             <Button
               variant="light"
@@ -103,14 +111,6 @@ export default function CardNoteEditor(props: Props) {
               Delete note
             </Button>
           )}
-          <Button
-            variant="light"
-            size="xs"
-            color="gray"
-            onClick={props.onCancel}
-          >
-            Cancel
-          </Button>
         </Group>
       )}
     </Stack>
