@@ -409,9 +409,8 @@ export default function EditConnectionForm(props: Props) {
         <NoteTextarea
           label="Note"
           placeholder={
-            CONNECTION_TYPES.find(
-              (t) => t.value === form.values.connectionType,
-            )?.notePlaceholder ??
+            CONNECTION_TYPES.find((t) => t.value === form.values.connectionType)
+              ?.notePlaceholder ??
             'Explain the relationship between these resources...'
           }
           variant="filled"

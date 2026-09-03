@@ -380,9 +380,16 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
+    const previousRecordId = membership.publishedRecordId;
     membership.publishedRecordId = publishedRecordId;
 
-    if (!this.props.publishedRecordId) {
+    // Keep the card-level published record in sync: adopt this record if none
+    // is set yet, or follow it to the new CID if the card-level record was
+    // tracking the membership record that just got republished.
+    if (
+      !this.props.publishedRecordId ||
+      this.props.publishedRecordId.equals(previousRecordId)
+    ) {
       this.props.publishedRecordId = publishedRecordId;
     }
 

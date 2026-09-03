@@ -105,6 +105,29 @@ describe('UpdateUrlCardMetadataUseCase', () => {
     expect(events).toHaveLength(1);
   });
 
+  it('records the new CID on both the card and the creator membership after republishing', async () => {
+    const card = await createSavedUrlCard(
+      `at://${curatorId.value}/network.cosmik.card/rkey123`,
+    );
+
+    const result = await useCase.execute({
+      cardId: card.cardId.getStringValue(),
+      metadata: enrichedMetadata,
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap().republishedToPds).toBe(true);
+
+    const savedCard = (
+      await cardRepository.findById(card.cardId)
+    ).unwrap() as Card;
+    const newCid = `fake-cid-${card.cardId.getStringValue()}`;
+    expect(savedCard.publishedRecordId?.getValue().cid).toBe(newCid);
+    expect(
+      savedCard.getLibraryInfo(curatorId)?.publishedRecordId?.getValue().cid,
+    ).toBe(newCid);
+  });
+
   it('still updates the DB and publishes the event when the PDS republish fails', async () => {
     const card = await createSavedUrlCard(
       `at://${curatorId.value}/network.cosmik.card/rkey123`,
