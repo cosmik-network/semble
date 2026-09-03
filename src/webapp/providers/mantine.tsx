@@ -82,6 +82,7 @@ export default function MantineProvider(props: Props) {
       theme={theme}
       defaultColorScheme="auto"
       cssVariablesResolver={cssVariablesResolver}
+      deduplicateInlineStyles
     >
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
         <ThemeHotkey />

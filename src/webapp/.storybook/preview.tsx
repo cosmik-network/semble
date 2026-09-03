@@ -74,6 +74,7 @@ const preview: Preview = {
             theme={theme}
             cssVariablesResolver={v8CssVariablesResolver}
             forceColorScheme={colorScheme}
+            deduplicateInlineStyles
           >
             <SettingsProvider>
               <Story />
