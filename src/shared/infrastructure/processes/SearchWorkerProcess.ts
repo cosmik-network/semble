@@ -18,7 +18,9 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     super(configService, QueueNames.SEARCH);
   }
 
-  protected createServices(repositories: Repositories): WorkerServices {
+  protected createServices(
+    repositories: Repositories,
+  ): Promise<WorkerServices> {
     return ServiceFactory.createForWorker(this.configService, repositories);
   }
 

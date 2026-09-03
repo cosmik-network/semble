@@ -46,7 +46,7 @@ export class InMemoryEventWorkerProcess implements IProcess {
     console.log('Starting in-memory event worker...');
 
     const repositories = RepositoryFactory.create(this.configService);
-    const services = ServiceFactory.createForWorker(
+    const services = await ServiceFactory.createForWorker(
       this.configService,
       repositories,
     );

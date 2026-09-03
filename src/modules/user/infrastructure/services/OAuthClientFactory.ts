@@ -4,8 +4,7 @@ import {
   NodeSavedStateStore,
   NodeSavedSessionStore,
 } from '@atproto/oauth-client-node';
-import { InMemoryStateStore } from '../../tests/infrastructure/InMemoryStateStore';
-import { InMemorySessionStore } from '../../tests/infrastructure/InMemorySessionStore';
+import { JoseKey } from '@atproto/jwk-jose';
 import { configService } from 'src/shared/infrastructure/config';
 import { LockServiceFactory } from 'src/shared/infrastructure/locking';
 import { paths } from '@semble/types';
@@ -14,12 +13,13 @@ export class OAuthClientFactory {
   static getClientMetadata(
     baseUrl: string,
     appName: string = 'Semble',
-  ): { clientMetadata: OAuthClientMetadataInput } {
+  ): { clientMetadata: OAuthClientMetadataInput; useConfidential: boolean } {
     const url = baseUrl || 'http://127.0.0.1:3000';
     const enc = encodeURIComponent;
     const isTunnel = configService.isTunnelMode();
     const isLocal = configService.get().environment === 'local' && !isTunnel;
     const isProd = configService.get().environment === 'prod';
+    const useConfidential = this.isConfidentialEnabled(isLocal, isProd);
 
     const collections = configService.getAtProtoCollections();
 
@@ -63,46 +63,92 @@ export class OAuthClientFactory {
         grant_types: ['authorization_code', 'refresh_token'],
         response_types: ['code'],
         application_type: 'web',
-        token_endpoint_auth_method: 'none',
+        // Confidential clients get a 2-year PDS session cap and a 3-month
+        // refresh-inactivity window instead of the 2-week hard cap public
+        // clients get. The auth server requires token_endpoint_auth_signing_alg
+        // with private_key_jwt and rejects it with 'none', so the two fields
+        // must flip together. jwks is set in createClient once the key is
+        // loaded (never jwks_uri as well — the PDS rejects metadata carrying
+        // both).
+        token_endpoint_auth_method: useConfidential
+          ? 'private_key_jwt'
+          : 'none',
+        ...(useConfidential
+          ? { token_endpoint_auth_signing_alg: 'ES256' }
+          : {}),
         dpop_bound_access_tokens: true,
       },
+      useConfidential,
     };
   }
 
-  static createClient(
+  /**
+   * Confidential (private_key_jwt) mode is enabled only where a signing key
+   * is configured, and never for:
+   * - local (loopback client_ids can't host a metadata/JWKS document), or
+   * - prod (deliberately still a public client; flipping prod requires the
+   *   auth_session authMethod migration and must be an explicit code change).
+   */
+  private static isConfidentialEnabled(
+    isLocal: boolean,
+    isProd: boolean,
+  ): boolean {
+    if (isLocal || isProd) return false;
+    const { privateKeyPkcs8, keyId } = configService.getOAuthClientConfig();
+    return Boolean(privateKeyPkcs8 && keyId);
+  }
+
+  /**
+   * PDS sessions created (or upgraded) under private_key_jwt are pinned to
+   * this key's kid on both ends: the client stores the kid in the session and
+   * throws AuthMethodUnsatisfiableError (deleting the session) if it leaves
+   * the keyset, and the auth server rejects refreshes signed with any other
+   * key. Removing or replacing this key therefore force-logs-out every
+   * session pinned to it — treat rotation as a deliberate mass re-auth event,
+   * not routine hygiene.
+   */
+  private static async loadSigningKey(): Promise<JoseKey> {
+    const { privateKeyPkcs8, keyId } = configService.getOAuthClientConfig();
+    if (!privateKeyPkcs8 || !keyId) {
+      throw new Error(
+        'OAuth signing key requested but OAUTH_PRIVATE_KEY_PKCS8 / OAUTH_KEY_ID are not configured',
+      );
+    }
+    return JoseKey.fromPKCS8(privateKeyPkcs8, 'ES256', keyId);
+  }
+
+  static async createClient(
     stateStore: NodeSavedStateStore,
     sessionStore: NodeSavedSessionStore,
     baseUrl: string,
     appName: string = 'Semble',
-  ): NodeOAuthClient {
-    const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
+  ): Promise<NodeOAuthClient> {
+    const { clientMetadata, useConfidential } = this.getClientMetadata(
+      baseUrl,
+      appName,
+    );
     const lockService = LockServiceFactory.create();
+
+    let keyset: JoseKey[] | undefined;
+    if (useConfidential) {
+      const key = await this.loadSigningKey();
+      keyset = [key];
+      // Set jwks explicitly rather than letting NodeOAuthClient inject it
+      // from the keyset: key.publicJwk carries `d` as an own property with
+      // value undefined (`{...jwk, d: undefined}` upstream), and the
+      // library's metadata schema rejects any jwks key where `'d' in key`.
+      // The JSON round-trip drops undefined-valued properties.
+      clientMetadata.jwks = JSON.parse(
+        JSON.stringify({ keys: [key.publicJwk] }),
+      );
+    }
 
     const client = new NodeOAuthClient({
       clientMetadata,
       stateStore,
       sessionStore,
       requestLock: lockService.createRequestLock(),
-    });
-
-    this.registerSessionEventLogging(client);
-    return client;
-  }
-
-  static createInMemoryClient(
-    baseUrl: string,
-    appName: string = 'Semble',
-  ): NodeOAuthClient {
-    const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
-    const stateStore = InMemoryStateStore.getInstance();
-    const sessionStore = InMemorySessionStore.getInstance();
-    const lockService = LockServiceFactory.create();
-
-    const client = new NodeOAuthClient({
-      clientMetadata,
-      stateStore,
-      sessionStore,
-      requestLock: lockService.createRequestLock(),
+      keyset,
     });
 
     this.registerSessionEventLogging(client);
