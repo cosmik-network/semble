@@ -22,6 +22,8 @@
     "start": "PORT=4000 next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
+    "analyze": "next experimental-analyze",
+    "analyze:output": "next experimental-analyze --output",
     "type-check:watch": "tsc --noEmit --watch",
     "test": "vitest",
     "test:run": "vitest run",
