@@ -1,0 +1,47 @@
+'use client';
+
+import { AppBskyEmbedVideo } from '@atproto/api';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import {
+  defaultLayoutIcons,
+  DefaultVideoLayout,
+} from '@vidstack/react/player/layouts/default';
+import '@vidstack/react/player/styles/default/theme.css';
+import '@vidstack/react/player/styles/default/layouts/video.css';
+
+interface Props {
+  embed: AppBskyEmbedVideo.View;
+}
+
+export default function VideoPlayer(props: Props) {
+  return (
+    <MediaPlayer
+      crossOrigin
+      playsInline
+      viewType="video"
+      src={props.embed.playlist}
+      poster={props.embed.thumbnail ?? ''}
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        width: '100%',
+        height: '100%',
+        maxHeight: '200px',
+        borderRadius: 'var(--mantine-radius-md)',
+        overflow: 'hidden',
+        '--video-border': '0px',
+      }}
+    >
+      <MediaProvider />
+      <DefaultVideoLayout
+        thumbnails={props.embed.thumbnail}
+        icons={defaultLayoutIcons}
+        slots={{
+          settingsMenu: null,
+          captionButton: null,
+          airPlayButton: null,
+          googleCastButton: null,
+        }}
+      />
+    </MediaPlayer>
+  );
+}

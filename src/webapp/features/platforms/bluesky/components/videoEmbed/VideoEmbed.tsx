@@ -1,14 +1,10 @@
 'use client';
 
 import { AppBskyEmbedVideo } from '@atproto/api';
-import { AspectRatio } from '@mantine/core';
-import { MediaPlayer, MediaProvider } from '@vidstack/react';
-import {
-  defaultLayoutIcons,
-  DefaultVideoLayout,
-} from '@vidstack/react/player/layouts/default';
-import '@vidstack/react/player/styles/default/theme.css';
-import '@vidstack/react/player/styles/default/layouts/video.css';
+import { AspectRatio, Card, Image } from '@mantine/core';
+import dynamic from 'next/dynamic';
+
+const VideoPlayer = dynamic(() => import('./VideoPlayer'), { ssr: false });
 
 interface Props {
   embed: AppBskyEmbedVideo.View;
@@ -21,34 +17,23 @@ export default function VideoEmbed(props: Props) {
 
   return (
     <AspectRatio ratio={ratio} style={{ position: 'relative', zIndex: 0 }}>
-      <MediaPlayer
-        crossOrigin
-        playsInline
-        viewType="video"
-        src={props.embed.playlist}
-        poster={props.embed.thumbnail ?? ''}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          height: '100%',
-          maxHeight: '200px',
-          borderRadius: 'var(--mantine-radius-md)',
-          overflow: 'hidden',
-          '--video-border': '0px',
-        }}
-      >
-        <MediaProvider />
-        <DefaultVideoLayout
-          thumbnails={props.embed.thumbnail}
-          icons={defaultLayoutIcons}
-          slots={{
-            settingsMenu: null,
-            captionButton: null,
-            airPlayButton: null,
-            googleCastButton: null,
-          }}
+      {props.embed.thumbnail ? (
+        <Image
+          src={props.embed.thumbnail}
+          alt=""
+          fit="cover"
+          radius="md"
+          style={{ maxHeight: '200px' }}
         />
-      </MediaPlayer>
+      ) : (
+        <Card
+          p={0}
+          radius="md"
+          bg="var(--mantine-color-disabled)"
+          style={{ maxHeight: '200px' }}
+        />
+      )}
+      <VideoPlayer embed={props.embed} />
     </AspectRatio>
   );
 }
