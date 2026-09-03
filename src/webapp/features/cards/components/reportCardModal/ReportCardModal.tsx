@@ -128,23 +128,18 @@ export default function ReportCardModal(props: Props) {
           />
 
           <Stack gap={4}>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Additional details{' '}
-                {detailsRequired ? (
-                  <Text span c="red">
-                    *
-                  </Text>
-                ) : (
-                  <Text span c="dimmed" size="sm">
-                    (optional)
-                  </Text>
-                )}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {details.length} / {MAX_REPORT_DETAILS_LENGTH}
-              </Text>
-            </Group>
+            <Text size="sm" fw={500}>
+              Additional details{' '}
+              {detailsRequired ? (
+                <Text span c="red">
+                  *
+                </Text>
+              ) : (
+                <Text span c="dimmed" size="sm">
+                  (optional)
+                </Text>
+              )}
+            </Text>
             <Textarea
               placeholder="Add context that will help our moderators"
               variant="filled"
@@ -157,6 +152,11 @@ export default function ReportCardModal(props: Props) {
                 detailsRequired && details.length === 0
                   ? 'Please add a short description'
                   : undefined
+              }
+              bottomSection={
+                <Text inherit ml="auto" aria-hidden>
+                  {details.length} / {MAX_REPORT_DETAILS_LENGTH}
+                </Text>
               }
             />
           </Stack>

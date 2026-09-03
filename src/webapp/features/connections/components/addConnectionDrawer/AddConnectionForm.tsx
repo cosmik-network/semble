@@ -384,14 +384,9 @@ export default function AddConnectionForm(props: Props) {
         </Stack>
 
         <Stack gap={0}>
-          <Group justify="space-between">
-            <Input.Label size="md" htmlFor="note">
-              Note
-            </Input.Label>
-            <Text c={'gray'} aria-hidden>
-              {form.getValues().note.length} / {MAX_NOTE_LENGTH}
-            </Text>
-          </Group>
+          <Input.Label size="md" htmlFor="note">
+            Note
+          </Input.Label>
 
           <NoteTextarea
             id="note"
@@ -408,6 +403,11 @@ export default function AddConnectionForm(props: Props) {
             aria-describedby="note-char-remaining"
             value={form.values.note}
             onValueChange={(v) => form.setFieldValue('note', v)}
+            bottomSection={
+              <Text inherit ml="auto" aria-hidden>
+                {form.getValues().note.length} / {MAX_NOTE_LENGTH}
+              </Text>
+            }
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - form.getValues().note.length} characters remaining`}

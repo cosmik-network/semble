@@ -5,7 +5,6 @@ import {
   Center,
   Container,
   Drawer,
-  Flex,
   Group,
   Input,
   Select,
@@ -292,14 +291,9 @@ export default function Composer(props: Props) {
                 />
 
                 <Stack gap={0}>
-                  <Flex justify="space-between">
-                    <Input.Label size="md" htmlFor="note">
-                      Note
-                    </Input.Label>
-                    <Text c={'gray'} aria-hidden>
-                      {cardForm.getValues().note.length} / {MAX_NOTE_LENGTH}
-                    </Text>
-                  </Flex>
+                  <Input.Label size="md" htmlFor="note">
+                    Note
+                  </Input.Label>
 
                   <NoteTextarea
                     id="note"
@@ -311,6 +305,11 @@ export default function Composer(props: Props) {
                     aria-describedby="note-char-remaining"
                     value={cardForm.values.note}
                     onValueChange={(v) => cardForm.setFieldValue('note', v)}
+                    bottomSection={
+                      <Text inherit ml="auto" aria-hidden>
+                        {cardForm.getValues().note.length} / {MAX_NOTE_LENGTH}
+                      </Text>
+                    }
                   />
                   <VisuallyHidden id="note-char-remaining" aria-live="polite">
                     {`${MAX_NOTE_LENGTH - cardForm.getValues().note.length} characters remaining`}

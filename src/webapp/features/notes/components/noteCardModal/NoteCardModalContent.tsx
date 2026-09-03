@@ -9,7 +9,6 @@ import {
   Image,
   Textarea,
   Button,
-  Flex,
   Input,
   VisuallyHidden,
 } from '@mantine/core';
@@ -106,14 +105,9 @@ export default function NoteCardModalContent(props: Props) {
     return (
       <Stack gap={'xs'}>
         <Stack gap={0}>
-          <Flex justify="space-between">
-            <Input.Label size="md" htmlFor="note">
-              Your note
-            </Input.Label>
-            <Text c={'gray'} aria-hidden>
-              {note?.length ?? 0} / {MAX_NOTE_LENGTH}
-            </Text>
-          </Flex>
+          <Input.Label size="md" htmlFor="note">
+            Your note
+          </Input.Label>
 
           <NoteTextarea
             id="note"
@@ -126,6 +120,11 @@ export default function NoteCardModalContent(props: Props) {
             maxLength={MAX_NOTE_LENGTH}
             value={note ?? ''}
             onValueChange={setNote}
+            bottomSection={
+              <Text inherit ml="auto" aria-hidden>
+                {note?.length ?? 0} / {MAX_NOTE_LENGTH}
+              </Text>
+            }
           />
           <VisuallyHidden id="note-char-remaining" aria-live="polite">
             {`${MAX_NOTE_LENGTH - (note?.length ?? 0)} characters remaining`}

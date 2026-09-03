@@ -55,6 +55,11 @@ export default function CardNoteEditor(props: Props) {
         aria-describedby="note-char-remaining"
         value={props.note ?? ''}
         onValueChange={props.onChange}
+        bottomSection={
+          <Text inherit ml="auto" aria-hidden>
+            {props.note?.length ?? 0} / {MAX_NOTE_LENGTH}
+          </Text>
+        }
       />
       <VisuallyHidden id="note-char-remaining" aria-live="polite">
         {`${MAX_NOTE_LENGTH - (props.note?.length ?? 0)} characters remaining`}
@@ -86,31 +91,26 @@ export default function CardNoteEditor(props: Props) {
           </Group>
         </Group>
       ) : (
-        <Group justify="space-between" gap={'xs'} wrap="nowrap" mih={26}>
-          <Text c={'gray'} fz={'sm'} aria-hidden>
-            {props.note?.length ?? 0} / {MAX_NOTE_LENGTH}
-          </Text>
-          <Group gap={'xs'} wrap="nowrap">
-            {props.noteId && (
-              <Button
-                variant="light"
-                size="xs"
-                color="red"
-                leftSection={<BsTrash2Fill />}
-                onClick={() => setShowDeleteWarning(true)}
-              >
-                Delete note
-              </Button>
-            )}
+        <Group justify="flex-end" gap={'xs'} wrap="nowrap" mih={26}>
+          {props.noteId && (
             <Button
               variant="light"
               size="xs"
-              color="gray"
-              onClick={props.onCancel}
+              color="red"
+              leftSection={<BsTrash2Fill />}
+              onClick={() => setShowDeleteWarning(true)}
             >
-              Cancel
+              Delete note
             </Button>
-          </Group>
+          )}
+          <Button
+            variant="light"
+            size="xs"
+            color="gray"
+            onClick={props.onCancel}
+          >
+            Cancel
+          </Button>
         </Group>
       )}
     </Stack>
