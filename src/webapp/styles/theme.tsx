@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import classes from './global.module.css';
+import lightboxClasses from './lightbox.module.css';
 import { SUBTLE_OVERLAY_PROPS } from './overlays';
 
 import {
@@ -23,6 +24,7 @@ import {
   SegmentedControl,
   Anchor,
 } from '@mantine/core';
+import { Lightbox } from '@mantine/lightbox';
 
 export const theme = createTheme({
   primaryShade: {
@@ -214,6 +216,21 @@ export const theme = createTheme({
         radius: 'lg',
         withBorder: true,
         withCloseButton: true,
+      },
+    }),
+    Lightbox: Lightbox.extend({
+      defaultProps: {
+        closeOnClickOutside: true,
+      },
+      classNames: {
+        root: lightboxClasses.root,
+        overlay: lightboxClasses.overlay,
+        toolbar: lightboxClasses.toolbar,
+        toolbarButton: lightboxClasses.toolbarButton,
+        navigation: lightboxClasses.navigation,
+        navigationButton: lightboxClasses.navigationButton,
+        counter: lightboxClasses.counter,
+        caption: lightboxClasses.caption,
       },
     }),
     SegmentedControl: SegmentedControl.extend({
