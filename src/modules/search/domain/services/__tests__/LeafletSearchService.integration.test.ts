@@ -2,6 +2,7 @@ import { CompositeMetadataService } from '../../../../cards/infrastructure/Compo
 import { IFramelyMetadataService } from '../../../../cards/infrastructure/IFramelyMetadataService';
 import { CitoidMetadataService } from '../../../../cards/infrastructure/CitoidMetadataService';
 import { ConstellationLeafletSearchService } from '../ConstellationLeafletSearchService';
+import { HTMLMetadataService } from 'src/modules/cards/infrastructure/HTMLMetadataService';
 
 describe.skip('LeafletSearchService', () => {
   let service: ConstellationLeafletSearchService;
@@ -14,9 +15,11 @@ describe.skip('LeafletSearchService', () => {
       process.env.CITOID_BASE_URL || '',
       process.env.CITOID_API_KEY || '',
     );
+    const htmlService = new HTMLMetadataService();
     metadataService = new CompositeMetadataService(
       iframelyService,
       citoidService,
+      htmlService,
     );
     service = new ConstellationLeafletSearchService(metadataService);
   });

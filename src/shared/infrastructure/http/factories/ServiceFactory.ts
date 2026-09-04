@@ -90,6 +90,7 @@ import { BskyFollowsService } from '../../../../modules/user/application/service
 import { IBskyFollowsService } from '../../../../modules/user/application/services/IBskyFollowsService';
 import { CachedBskyFollowsService } from '../../../../modules/user/infrastructure/services/CachedBskyFollowsService';
 import { FakeBskyFollowsService } from '../../../../modules/user/infrastructure/services/FakeBskyFollowsService';
+import { HTMLMetadataService } from '../../../../modules/cards/infrastructure/HTMLMetadataService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -326,17 +327,20 @@ export class ServiceFactory {
       citoidConfig.baseUrl,
       citoidConfig.apiKey,
     );
+    const baseHtmlService = new HTMLMetadataService();
 
     // Apply caching conditionally (similar to profile service)
     const useMockPersistence = configService.shouldUseMockPersistence();
 
     let iframelyService: IMetadataService;
     let citoidService: IMetadataService;
+    let htmlService: IMetadataService;
 
     if (useMockPersistence) {
       // No caching for mock persistence
       iframelyService = baseIframelyService;
       citoidService = baseCitoidService;
+      htmlService = baseHtmlService;
     } else {
       // Create Redis connection for caching
       const redisConfig = configService.getRedisConfig();
@@ -355,12 +359,19 @@ export class ServiceFactory {
         'citoid',
         3600 * 24 * 7, // 7 day TTL
       );
+      htmlService = new CachedMetadataService(
+        baseHtmlService,
+        redis,
+        'html-metadata',
+        3600 * 24 * 7, // 7 day TTL
+      );
     }
 
     // Create composite metadata service
     const metadataService = new CompositeMetadataService(
       iframelyService,
       citoidService,
+      htmlService,
     );
 
     // Profile Service with Redis caching

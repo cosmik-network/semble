@@ -100,6 +100,7 @@
     "express": "^5.1.0",
     "ioredis": "^5.11.0",
     "jsonwebtoken": "^9.0.2",
+    "parse5": "^8.0.1",
     "postgres": "^3.4.5",
     "react-force-graph-2d": "^1.29.1",
     "redlock": "^5.0.0-beta.2",
