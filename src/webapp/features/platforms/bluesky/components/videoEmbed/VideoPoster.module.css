@@ -1,0 +1,17 @@
+.root {
+  position: absolute;
+  inset: 0;
+}
+
+.thumbnail {
+  position: absolute;
+  inset: 0;
+}
+
+.control {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -18,16 +18,14 @@ export default function VideoPlayer(props: Props) {
     <MediaPlayer
       crossOrigin
       playsInline
+      autoPlay
       viewType="video"
       src={props.embed.playlist}
       poster={props.embed.thumbnail ?? ''}
       onClick={(e) => e.stopPropagation()}
       style={{
-        width: '100%',
-        height: '100%',
-        maxHeight: '200px',
-        borderRadius: 'var(--mantine-radius-md)',
-        overflow: 'hidden',
+        position: 'absolute',
+        inset: 0,
         '--video-border': '0px',
       }}
     >

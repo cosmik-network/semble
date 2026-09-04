@@ -1,39 +1,41 @@
 'use client';
 
 import { AppBskyEmbedVideo } from '@atproto/api';
-import { AspectRatio, Card, Image } from '@mantine/core';
-import dynamic from 'next/dynamic';
+import { Box } from '@mantine/core';
+import { lazy, Suspense, useState } from 'react';
+import VideoPoster from './VideoPoster';
+import classes from './VideoEmbed.module.css';
 
-const VideoPlayer = dynamic(() => import('./VideoPlayer'), { ssr: false });
+const VideoPlayer = lazy(() => import('./VideoPlayer'));
 
 interface Props {
   embed: AppBskyEmbedVideo.View;
 }
 
 export default function VideoEmbed(props: Props) {
+  const [isPlaying, setIsPlaying] = useState(false);
   const ratio = props.embed.aspectRatio
     ? props.embed.aspectRatio.width / props.embed.aspectRatio.height
     : 16 / 9;
 
   return (
-    <AspectRatio ratio={ratio} style={{ position: 'relative', zIndex: 0 }}>
-      {props.embed.thumbnail ? (
-        <Image
-          src={props.embed.thumbnail}
-          alt=""
-          fit="cover"
-          radius="md"
-          style={{ maxHeight: '200px' }}
-        />
-      ) : (
-        <Card
-          p={0}
-          radius="md"
-          bg="var(--mantine-color-disabled)"
-          style={{ maxHeight: '200px' }}
-        />
-      )}
-      <VideoPlayer embed={props.embed} />
-    </AspectRatio>
+    <Box className={classes.frame} w="100%">
+      <Box className={classes.video} style={{ '--video-ratio': ratio }}>
+        {isPlaying ? (
+          <Suspense
+            fallback={
+              <VideoPoster thumbnail={props.embed.thumbnail} isLoading />
+            }
+          >
+            <VideoPlayer embed={props.embed} />
+          </Suspense>
+        ) : (
+          <VideoPoster
+            thumbnail={props.embed.thumbnail}
+            onPlay={() => setIsPlaying(true)}
+          />
+        )}
+      </Box>
+    </Box>
   );
 }
