@@ -36,3 +36,17 @@ export const getMyCollections = cache(async (params?: MyCollectionsParams) => {
     ),
   };
 });
+
+export const getOpenCollectionsWithContributor = cache(
+  async (params: { identifier: string; page?: number; limit?: number }) => {
+    const client = await createServerSembleClient();
+    const response = await client.getOpenCollectionsWithContributor(params);
+
+    return {
+      ...response,
+      collections: response.collections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
+  },
+);
