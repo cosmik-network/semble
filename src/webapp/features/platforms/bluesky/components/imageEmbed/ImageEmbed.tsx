@@ -64,6 +64,7 @@ export default function ImageEmbed(props: Props) {
           {images.map((img, i) => (
             <UnstyledButton
               key={i}
+              className={styles.tile}
               pos="relative"
               miw={0}
               mih={0}

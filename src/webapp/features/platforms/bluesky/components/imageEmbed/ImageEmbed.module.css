@@ -37,6 +37,22 @@
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 
+.tile > img {
+  transition: filter 120ms ease;
+}
+
+.tile {
+  @mixin hover {
+    & > img {
+      filter: brightness(0.85);
+    }
+  }
+
+  &:focus-visible > img {
+    filter: brightness(0.85);
+  }
+}
+
 .dots {
   position: absolute;
   top: 0;
