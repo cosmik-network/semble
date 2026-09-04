@@ -6,6 +6,15 @@
   }
 
   @mixin dark {
-    background-color: var(--mantine-color-dark-4);
+    background-color: var(--mantine-color-dark-6);
   }
+
+  &[data-grow] {
+    width: max-content;
+    flex: 1 1 auto;
+  }
+}
+
+.root[data-grow] .chips > * {
+  flex: 1 1 auto;
 }

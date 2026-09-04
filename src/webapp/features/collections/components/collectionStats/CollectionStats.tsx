@@ -136,7 +136,6 @@ function ContributorsChip(props: ChipProps) {
   );
 }
 
-// A failed chip disappears instead of taking the header down with it.
 function ChipBoundary(props: { children: ReactNode }) {
   return <ErrorBoundary fallback={null}>{props.children}</ErrorBoundary>;
 }
@@ -151,7 +150,7 @@ export default function CollectionStats(props: Props) {
   };
 
   return (
-    <StatChipCard>
+    <StatChipCard grow>
       <ChipBoundary>
         <FollowersChip {...chipProps} />
       </ChipBoundary>

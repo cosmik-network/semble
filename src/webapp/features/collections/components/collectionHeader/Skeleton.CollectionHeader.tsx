@@ -1,6 +1,7 @@
 import { Container, Group, Stack, Skeleton, Box } from '@mantine/core';
 import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
 import CollectionStatsSkeleton from '../collectionStats/Skeleton.CollectionStats';
+import classes from './CollectionHeader.module.css';
 
 export default function CollectionHeaderSkeleton() {
   return (
@@ -57,7 +58,9 @@ export default function CollectionHeaderSkeleton() {
             <Box style={{ visibility: 'hidden' }}>
               <CollectionStatsSkeleton />
             </Box>
-            <CollectionActionsSkeleton />
+            <Box className={classes.actions}>
+              <CollectionActionsSkeleton />
+            </Box>
           </Group>
         </Stack>
       </Container>
