@@ -46,6 +46,7 @@ export default function StatChip(props: Props) {
                 src={avatar.src?.replace('avatar', 'avatar_thumbnail')}
                 alt={avatar.alt}
                 radius={'sm'}
+                className={classes.avatar}
               />
             ))}
           </AvatarGroup>

@@ -1,4 +1,4 @@
-import { getUrlMetadata } from '@/features/cards/lib/dal';
+import { CardSortField, SortOrder } from '@semble/types';
 import { getLibrariesForUrl } from '../../lib/dal';
 import { STAT_CHIP_PREVIEW_LIMIT } from '@/components/statChip/constants';
 import { sanitizeText } from '@/lib/utils/text';
@@ -9,26 +9,25 @@ interface Props {
 }
 
 export default async function SembleStats(props: Props) {
-  const [{ stats }, libraries] = await Promise.all([
-    getUrlMetadata({ url: props.url, includeStats: true }),
-    getLibrariesForUrl(props.url, { limit: STAT_CHIP_PREVIEW_LIMIT }).catch(
-      () => null,
-    ),
-  ]);
-  const users = libraries?.libraries.map((item) => item.user) ?? [];
-  const total = stats?.libraryCount ?? users.length;
+  const libraries = await getLibrariesForUrl(props.url, {
+    limit: STAT_CHIP_PREVIEW_LIMIT,
+    sortBy: CardSortField.CREATED_AT,
+    sortOrder: SortOrder.ASC,
+  }).catch(() => null);
+  const items = libraries?.libraries ?? [];
+  const first = items[0];
 
-  if (total === 0 || users.length === 0) return null;
+  if (!first) return null;
 
   return (
     <SembleStatChip
       url={props.url}
-      total={total}
-      names={users.map((user) => sanitizeText(user.name) || user.handle)}
-      avatars={users.map((user) => ({
-        key: user.id,
-        src: user.avatarUrl,
-        alt: `${user.name}'s avatar`,
+      name={sanitizeText(first.user.name) || first.user.handle}
+      addedAt={first.card.createdAt}
+      avatars={items.map((item) => ({
+        key: item.user.id,
+        src: item.user.avatarUrl,
+        alt: `${item.user.name}'s avatar`,
       }))}
     />
   );
