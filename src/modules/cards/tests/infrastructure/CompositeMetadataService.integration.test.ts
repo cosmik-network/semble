@@ -2,6 +2,7 @@ import { CompositeMetadataService } from '../../infrastructure/CompositeMetadata
 import { IFramelyMetadataService } from '../../infrastructure/IFramelyMetadataService';
 import { CitoidMetadataService } from '../../infrastructure/CitoidMetadataService';
 import { URL } from '../../domain/value-objects/URL';
+import { HTMLMetadataService } from '../../infrastructure/HTMLMetadataService';
 
 describe('CompositeMetadataService Manual Tests', () => {
   let service: CompositeMetadataService;
@@ -13,7 +14,12 @@ describe('CompositeMetadataService Manual Tests', () => {
       process.env.CITOID_BASE_URL || '',
       process.env.CITOID_API_KEY || '',
     );
-    service = new CompositeMetadataService(iframelyService, citoidService);
+    const htmlService = new HTMLMetadataService();
+    service = new CompositeMetadataService(
+      iframelyService,
+      citoidService,
+      htmlService,
+    );
   });
 
   it('should fetch metadata for manual URL testing', async () => {

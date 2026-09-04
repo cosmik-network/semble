@@ -14,6 +14,9 @@ export interface UrlMetadataProps {
   retrievedAt?: Date;
   doi?: string;
   isbn?: string;
+  atCanonical?: string[];
+  atAuthors?: string[];
+  atMe?: string[];
 }
 
 /**
@@ -83,6 +86,18 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
 
   get isbn(): string | undefined {
     return this.props.isbn;
+  }
+
+  get atCanonical(): string[] {
+    return this.props.atCanonical || [];
+  }
+
+  get atAuthors(): string[] {
+    return this.props.atAuthors || [];
+  }
+
+  get atMe(): string[] {
+    return this.props.atMe || [];
   }
 
   private constructor(props: UrlMetadataProps) {

@@ -1,13 +1,17 @@
 import { IMetadataService } from '../domain/services/IMetadataService';
-import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
+import {
+  UrlMetadata,
+  UrlMetadataProps,
+} from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
 import { UrlType } from '../domain/value-objects/UrlType';
-import { Result, ok, err } from '../../../shared/core/Result';
+import { Result, err } from '../../../shared/core/Result';
 import { UrlClassifier } from './UrlClassifier';
 
 export enum DefaultServicePreference {
   IFRAMELY = 'iframely',
   CITOID = 'citoid',
+  HTML = 'html',
 }
 
 export interface CompositeMetadataServiceConfig {
@@ -17,17 +21,20 @@ export interface CompositeMetadataServiceConfig {
 export class CompositeMetadataService implements IMetadataService {
   private readonly iframelyService: IMetadataService;
   private readonly citoidService: IMetadataService;
+  private readonly htmlService: IMetadataService;
   private readonly config: CompositeMetadataServiceConfig;
 
   constructor(
     iframelyService: IMetadataService,
     citoidService: IMetadataService,
+    htmlService: IMetadataService,
     config: CompositeMetadataServiceConfig = {
       defaultService: DefaultServicePreference.IFRAMELY,
     },
   ) {
     this.iframelyService = iframelyService;
     this.citoidService = citoidService;
+    this.htmlService = htmlService;
     this.config = config;
   }
 
@@ -36,10 +43,13 @@ export class CompositeMetadataService implements IMetadataService {
     refetchStaleMetadata: boolean = false,
   ): Promise<Result<UrlMetadata>> {
     // Fetch metadata from both services concurrently
-    const [iframelyResult, citoidResult] = await Promise.allSettled([
-      this.iframelyService.fetchMetadata(url, refetchStaleMetadata),
-      this.citoidService.fetchMetadata(url, refetchStaleMetadata),
-    ]);
+    const [iframelyResult, citoidResult, htmlResult] = await Promise.allSettled(
+      [
+        this.iframelyService.fetchMetadata(url, refetchStaleMetadata),
+        this.citoidService.fetchMetadata(url, refetchStaleMetadata),
+        this.htmlService.fetchMetadata(url, refetchStaleMetadata),
+      ],
+    );
 
     // Extract successful results
     const iframelySuccess =
@@ -52,8 +62,13 @@ export class CompositeMetadataService implements IMetadataService {
         ? citoidResult.value.value
         : null;
 
+    const htmlSuccess =
+      htmlResult.status === 'fulfilled' && htmlResult.value.isOk()
+        ? htmlResult.value.value
+        : null;
+
     // If both failed, return an error
-    if (!iframelySuccess && !citoidSuccess) {
+    if (!iframelySuccess && !citoidSuccess && !htmlSuccess) {
       const iframelyError =
         iframelyResult.status === 'fulfilled'
           ? iframelyResult.value.isErr()
@@ -66,41 +81,67 @@ export class CompositeMetadataService implements IMetadataService {
             ? citoidResult.value.error
             : new Error('Citoid service failed')
           : new Error('Citoid service failed');
+      const htmlError =
+        htmlResult.status === 'fulfilled'
+          ? htmlResult.value.isErr()
+            ? htmlResult.value.error
+            : new Error('HTML service failed')
+          : new Error('HTML service failed');
 
       return err(
         new Error(
-          `Both metadata services failed. Iframely: ${iframelyError?.message}. Citoid: ${citoidError?.message}`,
+          `All metadata services failed. Iframely: ${iframelyError?.message}. Citoid: ${citoidError?.message}. HTML: ${htmlError?.message}`,
         ),
       );
     }
 
-    // If only one succeeded, use that one
-    if (iframelySuccess && !citoidSuccess) {
-      const finalMetadata = this.applyUrlClassification(iframelySuccess, url);
-      return ok(finalMetadata);
-    }
+    const classifiedType = UrlClassifier.classifyUrl(url.value);
 
-    if (citoidSuccess && !iframelySuccess) {
-      const finalMetadata = this.applyUrlClassification(citoidSuccess, url);
-      return ok(finalMetadata);
-    }
+    const props: UrlMetadataProps = {
+      url: url.value, // URL should always be the same
+      type:
+        classifiedType ||
+        htmlSuccess?.type ||
+        iframelySuccess?.type ||
+        citoidSuccess?.type,
+      title:
+        htmlSuccess?.title || iframelySuccess?.title || citoidSuccess?.title,
+      description:
+        htmlSuccess?.description ||
+        iframelySuccess?.description ||
+        citoidSuccess?.description,
+      author:
+        htmlSuccess?.author || iframelySuccess?.author || citoidSuccess?.author,
+      publishedDate:
+        htmlSuccess?.publishedDate ||
+        iframelySuccess?.publishedDate ||
+        citoidSuccess?.publishedDate,
+      siteName:
+        htmlSuccess?.siteName ||
+        iframelySuccess?.siteName ||
+        citoidSuccess?.siteName,
+      imageUrl:
+        htmlSuccess?.imageUrl ||
+        iframelySuccess?.imageUrl ||
+        citoidSuccess?.imageUrl,
+      retrievedAt:
+        htmlSuccess?.retrievedAt ||
+        iframelySuccess?.retrievedAt ||
+        citoidSuccess?.retrievedAt,
+      doi: htmlSuccess?.doi || iframelySuccess?.doi || citoidSuccess?.doi,
+      isbn: htmlSuccess?.isbn || iframelySuccess?.isbn || citoidSuccess?.isbn,
+      atCanonical:
+        htmlSuccess?.atCanonical ||
+        iframelySuccess?.atCanonical ||
+        citoidSuccess?.atCanonical,
+      atAuthors:
+        htmlSuccess?.atAuthors ||
+        iframelySuccess?.atAuthors ||
+        citoidSuccess?.atAuthors,
+      atMe: htmlSuccess?.atMe || iframelySuccess?.atMe || citoidSuccess?.atMe,
+    };
 
-    // Both succeeded, apply selection logic and merge missing fields
-    if (iframelySuccess && citoidSuccess) {
-      const selectedMetadata = this.selectBestMetadata(
-        iframelySuccess,
-        citoidSuccess,
-      );
-      const mergedMetadata = this.mergeMetadata(
-        selectedMetadata,
-        selectedMetadata === iframelySuccess ? citoidSuccess : iframelySuccess,
-      );
-      const finalMetadata = this.applyUrlClassification(mergedMetadata, url);
-      return ok(finalMetadata);
-    }
-
-    // This should never happen, but just in case
-    return err(new Error('Unexpected error in metadata selection'));
+    return UrlMetadata.create(props);
   }
 
   async isAvailable(): Promise<boolean> {
@@ -173,60 +214,12 @@ export class CompositeMetadataService implements IMetadataService {
   }
 
   /**
-   * Apply URL classification based on hardcoded regex patterns
-   * This overrides the type from metadata services if a pattern matches
+   * Get metadata from a specific service for debugging/testing purposes
    */
-  private applyUrlClassification(metadata: UrlMetadata, url: URL): UrlMetadata {
-    const classifiedType = UrlClassifier.classifyUrl(url.value);
-
-    if (classifiedType) {
-      // Override the type with the classified type
-      const updatedProps = {
-        url: metadata.url,
-        title: metadata.title,
-        description: metadata.description,
-        author: metadata.author,
-        publishedDate: metadata.publishedDate,
-        siteName: metadata.siteName,
-        imageUrl: metadata.imageUrl,
-        type: classifiedType, // Override with classified type
-        retrievedAt: metadata.retrievedAt,
-        doi: metadata.doi,
-        isbn: metadata.isbn,
-      };
-
-      // Create new UrlMetadata with updated type
-      return UrlMetadata.create(updatedProps).unwrap();
-    }
-
-    // No classification found, return original metadata
-    return metadata;
-  }
-
-  /**
-   * Merge metadata by taking missing fields from the fallback metadata
-   */
-  private mergeMetadata(
-    primary: UrlMetadata,
-    fallback: UrlMetadata,
-  ): UrlMetadata {
-    // Create merged props by taking primary values first, then fallback for missing fields
-    const mergedProps = {
-      url: primary.url, // URL should always be the same
-      title: primary.title || fallback.title,
-      description: primary.description || fallback.description,
-      author: primary.author || fallback.author,
-      publishedDate: primary.publishedDate || fallback.publishedDate,
-      siteName: primary.siteName || fallback.siteName,
-      imageUrl: primary.imageUrl || fallback.imageUrl,
-      type: primary.type || fallback.type,
-      retrievedAt: primary.retrievedAt || fallback.retrievedAt,
-      doi: primary.doi || fallback.doi,
-      isbn: primary.isbn || fallback.isbn,
-    };
-
-    // Create new UrlMetadata with merged props
-    // We know this will succeed since both primary and fallback are valid
-    return UrlMetadata.create(mergedProps).unwrap();
+  public async fetchFromHTML(
+    url: URL,
+    refetchStaleMetadata: boolean = false,
+  ): Promise<Result<UrlMetadata>> {
+    return this.htmlService.fetchMetadata(url, refetchStaleMetadata);
   }
 }

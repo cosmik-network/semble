@@ -23,6 +23,9 @@ export interface UrlMetadataJSON {
   retrievedAt?: string;
   doi?: string;
   isbn?: string;
+  atCanonical?: string[];
+  atAuthors?: string[];
+  atMe?: string[];
 }
 
 /** Wire shape returned by the API (dates as ISO strings), matching UrlMetadataSchema. */
@@ -61,6 +64,9 @@ export function toUrlMetadataJSON(metadata: UrlMetadata): UrlMetadataJSON {
     retrievedAt: toIso(metadata.retrievedAt),
     doi: metadata.doi,
     isbn: metadata.isbn,
+    atCanonical: metadata.atCanonical,
+    atAuthors: metadata.atAuthors,
+    atMe: metadata.atMe,
   } satisfies Required<{ [K in keyof UrlMetadataJSON]: unknown }>;
 }
 
@@ -80,6 +86,9 @@ export function toUrlMetadataProps(
     retrievedAt: toDate(json.retrievedAt),
     doi: json.doi,
     isbn: json.isbn,
+    atCanonical: json.atCanonical,
+    atAuthors: json.atAuthors,
+    atMe: json.atMe,
   } satisfies Required<{ [K in keyof UrlMetadataProps]: unknown }>;
 }
 
@@ -106,6 +115,9 @@ export function toUrlMetadataDTO(view: {
   retrievedAt?: Date | string;
   doi?: string;
   isbn?: string;
+  atCanonical?: string[];
+  atAuthors?: string[];
+  atMe?: string[];
 }): UrlMetadataDTO {
   return {
     url: view.url,
@@ -119,5 +131,8 @@ export function toUrlMetadataDTO(view: {
     retrievedAt: toIso(view.retrievedAt),
     doi: view.doi,
     isbn: view.isbn,
+    atCanonical: view.atCanonical,
+    atAuthors: view.atAuthors,
+    atMe: view.atMe,
   } satisfies Required<{ [K in keyof UrlMetadataDTO]: unknown }>;
 }
