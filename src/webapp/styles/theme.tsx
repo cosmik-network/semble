@@ -229,6 +229,7 @@ export const theme = createTheme({
         toolbarButton: lightboxClasses.toolbarButton,
         navigation: lightboxClasses.navigation,
         navigationButton: lightboxClasses.navigationButton,
+        slide: lightboxClasses.slide,
         counter: lightboxClasses.counter,
         caption: lightboxClasses.caption,
       },

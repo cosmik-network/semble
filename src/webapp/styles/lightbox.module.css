@@ -14,6 +14,17 @@
   padding: 0 var(--mantine-spacing-lg);
 }
 
+.toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.slide {
+  padding-block: var(--lightbox-toolbar-height);
+}
+
 .toolbarButton,
 .navigationButton {
   border-radius: var(--mantine-radius-xl);
