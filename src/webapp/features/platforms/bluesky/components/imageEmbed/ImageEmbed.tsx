@@ -10,11 +10,38 @@ interface Props {
   images: AppBskyEmbedImages.ViewImage[];
 }
 
+interface DotsProps {
+  count: number;
+  activeIndex: number;
+  onSelect: (index: number) => void;
+}
+
+function Dots(props: DotsProps) {
+  return (
+    <Box className={styles.dots}>
+      {Array.from({ length: props.count }, (_, i) => (
+        <UnstyledButton
+          key={i}
+          className={styles.dot}
+          aria-label={`Go to image ${i + 1} of ${props.count}`}
+          data-active={i === props.activeIndex || undefined}
+          onClick={() => props.onSelect(i)}
+        />
+      ))}
+    </Box>
+  );
+}
+
 export default function ImageEmbed(props: Props) {
   const [lightboxOpened, setLightboxOpened] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const images = props.images.slice(0, 4);
+  const slides = images.map((img) => ({
+    src: img.fullsize,
+    alt: img.alt,
+    caption: img.alt || undefined,
+  }));
   const single = images.length === 1 ? images[0].aspectRatio : undefined;
   const ratio = single ? single.width / single.height : undefined;
 
@@ -63,10 +90,28 @@ export default function ImageEmbed(props: Props) {
         <Lightbox
           opened={lightboxOpened}
           onClose={() => setLightboxOpened(false)}
-          slides={images.map((img) => ({ src: img.fullsize, alt: img.alt }))}
+          slides={slides}
           currentIndex={lightboxIndex}
           onIndexChange={setLightboxIndex}
-        />
+        >
+          <Lightbox.Toolbar />
+          <Lightbox.Slides>
+            {slides.map((slide, i) => (
+              <Lightbox.Slide key={i} slide={slide} index={i} />
+            ))}
+          </Lightbox.Slides>
+          {slides.length > 1 && (
+            <>
+              <Lightbox.Navigation />
+              <Dots
+                count={slides.length}
+                activeIndex={lightboxIndex}
+                onSelect={setLightboxIndex}
+              />
+            </>
+          )}
+          <Lightbox.Caption />
+        </Lightbox>
       </div>
     </>
   );

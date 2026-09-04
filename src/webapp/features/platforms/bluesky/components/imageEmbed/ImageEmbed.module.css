@@ -36,3 +36,38 @@
   grid-template-columns: 1fr 1fr;
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
+
+.dots {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--lightbox-toolbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.dot {
+  pointer-events: auto;
+  width: calc(0.5rem * var(--mantine-scale));
+  height: calc(0.5rem * var(--mantine-scale));
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--mantine-color-white);
+  opacity: 0.4;
+  transition:
+    width var(--lightbox-transition-duration) ease,
+    opacity var(--lightbox-transition-duration) ease;
+
+  @mixin hover {
+    opacity: 0.7;
+  }
+
+  &[data-active] {
+    width: calc(1.25rem * var(--mantine-scale));
+    opacity: 1;
+  }
+}

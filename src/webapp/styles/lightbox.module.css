@@ -46,6 +46,10 @@
   }
 }
 
+.counter {
+  display: none;
+}
+
 .caption {
   max-width: 40rem;
   max-height: 30vh;
