@@ -44,7 +44,9 @@ export default function BlueskySembleHeaderSkeleton() {
 
       <Stack gap={'xl'}>
         <SembleActionsContainerSkeleton />
-        <SembleStatsSkeleton />
+        <Box style={{ visibility: 'hidden' }}>
+          <SembleStatsSkeleton />
+        </Box>
       </Stack>
     </Stack>
   );
