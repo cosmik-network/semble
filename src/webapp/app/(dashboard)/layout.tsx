@@ -23,16 +23,13 @@ export default async function Layout(props: Props) {
   const queryClient = makeServerQueryClient();
 
   if (user) {
-    try {
-      await queryClient.prefetchInfiniteQuery({
-        queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
-        initialPageParam: 1,
-        queryFn: () =>
-          getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
-      });
-    } catch {
-      // Fall through to client fetching rather than failing the whole shell.
-    }
+    // Not awaited so the shell streams while it loads.
+    void queryClient.prefetchInfiniteQuery({
+      queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
+      initialPageParam: 1,
+      queryFn: () =>
+        getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
+    });
   }
 
   return (
