@@ -3,7 +3,7 @@
 import { Paper, Scroller, Tabs } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import TabItem from './TabItem';
+import LinkTab from '@/components/navigation/linkTab/LinkTab';
 import TabCount from '@/components/tabCount/TabCount';
 import { getCollectionPageByAtUri } from '../../lib/dal';
 import { collectionKeys } from '../../lib/collectionKeys';
@@ -46,20 +46,20 @@ export default function CollectionTabs(props: Props) {
       <Paper radius={0}>
         <Tabs.List style={{ flexWrap: 'nowrap' }}>
           <Scroller>
-            <TabItem
+            <LinkTab
               value="cards"
               href={basePath}
               rightSection={<TabCount count={details && details.cardCount} />}
             >
               Cards
-            </TabItem>
-            <TabItem value="similar-cards" href={`${basePath}/similar-cards`}>
+            </LinkTab>
+            <LinkTab value="similar-cards" href={`${basePath}/similar-cards`}>
               Similar cards
-            </TabItem>
-            <TabItem value="mentions" href={`${basePath}/mentions`}>
+            </LinkTab>
+            <LinkTab value="mentions" href={`${basePath}/mentions`}>
               Mentions
-            </TabItem>
-            <TabItem
+            </LinkTab>
+            <LinkTab
               value="connections"
               href={`${basePath}/connections`}
               rightSection={
@@ -67,14 +67,14 @@ export default function CollectionTabs(props: Props) {
               }
             >
               Connections
-            </TabItem>
-            <TabItem
+            </LinkTab>
+            <LinkTab
               value="appears-in"
               href={`${basePath}/appears-in`}
               rightSection={<TabCount count={stats && stats.collectionCount} />}
             >
               Appears in
-            </TabItem>
+            </LinkTab>
           </Scroller>
         </Tabs.List>
       </Paper>

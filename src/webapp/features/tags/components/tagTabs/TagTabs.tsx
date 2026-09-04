@@ -1,11 +1,10 @@
 'use client';
 
-import { Group, Scroller, Tabs, TabsList, TabsTab } from '@mantine/core';
+import { Group, Scroller, Tabs, TabsList } from '@mantine/core';
 import { BiCollection, BiLink } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import styles from './TagTabs.module.css';
+import LinkTab from '@/components/navigation/linkTab/LinkTab';
 
 /** The Cards tab is the base route; every other value is a child segment. */
 const DEFAULT_TAB = 'cards';
@@ -39,18 +38,14 @@ export default function TagTabs(props: Props) {
         <Scroller>
           <Group gap={0} wrap="nowrap">
             {TABS.map((tab) => (
-              <TabsTab
+              <LinkTab
                 key={tab.value}
                 value={tab.value}
-                classNames={styles}
+                href={buildTabHref(tab.value)}
                 leftSection={tab.icon}
-                // TabsTab isn't polymorphic, so renderRoot is how it gets an href.
-                renderRoot={(rootProps) => (
-                  <Link href={buildTabHref(tab.value)} {...rootProps} />
-                )}
               >
                 {tab.label}
-              </TabsTab>
+              </LinkTab>
             ))}
           </Group>
         </Scroller>
