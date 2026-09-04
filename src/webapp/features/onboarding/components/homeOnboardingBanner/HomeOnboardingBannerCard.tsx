@@ -66,7 +66,7 @@ export default function HomeOnboardingBannerCard(props: Props) {
       <ActionIcon
         variant="subtle"
         color="gray"
-        radius={'xl'}
+        radius={'md'}
         aria-label="Dismiss setup banner"
         onClick={dismiss}
         pos="absolute"
