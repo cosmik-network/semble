@@ -2,11 +2,8 @@
   container-type: inline-size;
 }
 
-/* Height scales with the card width so the same post looks right in a narrow
-   grid tile and a 600px feed column, with a hard ceiling for very wide cards.
-   A single image overrides --gallery-ratio with its own and is letterboxed on
-   black once it hits the cap, so the whole picture stays visible; grid tiles
-   are cover-cropped. */
+/* Height follows card width up to a cap. A single image keeps its own ratio
+   and letterboxes past the cap; grid tiles are cover-cropped. */
 .gallery {
   --gallery-cap-ratio: 16 / 9;
   --gallery-max-height: 420px;

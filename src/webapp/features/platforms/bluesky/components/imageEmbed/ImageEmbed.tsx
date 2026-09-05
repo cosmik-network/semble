@@ -71,11 +71,7 @@ export default function ImageEmbed(props: Props) {
               pos="relative"
               miw={0}
               mih={0}
-              bg={
-                single
-                  ? 'var(--mantine-color-black)'
-                  : 'var(--mantine-color-default-hover)'
-              }
+              bg="var(--mantine-color-default-hover)"
               aria-label={img.alt || 'Open image'}
               onClick={(e) => openLightbox(e, i)}
             >
@@ -92,8 +88,7 @@ export default function ImageEmbed(props: Props) {
           ))}
         </Box>
       </Box>
-      {/* The lightbox portals out of the DOM tree but React events still bubble
-          to this component's ancestors, so stop them reaching the card's onClick. */}
+      {/* Lightbox is portaled, but React events still bubble to the card's onClick. */}
       <div onClick={(e) => e.stopPropagation()}>
         <Lightbox
           opened={lightboxOpened}

@@ -15,7 +15,7 @@
   );
   overflow: hidden;
   border-radius: var(--mantine-radius-md);
-  background-color: var(--mantine-color-black);
+  background-color: var(--mantine-color-default-hover);
 }
 
 /* vidstack defaults the video element to 16:9; fill the frame instead. */
