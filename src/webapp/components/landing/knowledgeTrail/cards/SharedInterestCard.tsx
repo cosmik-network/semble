@@ -47,7 +47,7 @@ export default function SharedInterestCard() {
                   @{curator.handle}
                 </Text>
                 {curator.followsYou && (
-                  <Badge variant="light" color="gray" size="sm" mt={4}>
+                  <Badge variant="light" color="gray" radius="md" mt={4}>
                     Follows you
                   </Badge>
                 )}

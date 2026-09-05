@@ -111,7 +111,7 @@ export default async function ProfileHeader(props: Props) {
                 </Group>
                 <Group gap={'xs'}>
                   {profile.followsYou && (
-                    <Badge variant="light" color="gray">
+                    <Badge variant="light" color="gray" radius="md">
                       Follows you
                     </Badge>
                   )}
