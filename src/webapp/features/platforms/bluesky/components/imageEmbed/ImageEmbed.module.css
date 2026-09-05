@@ -88,3 +88,32 @@
     opacity: 1;
   }
 }
+
+.altText {
+  color: var(--mantine-color-white);
+  font-size: var(--mantine-font-size-md);
+  line-height: var(--mantine-line-height-md);
+  text-align: start;
+  overflow-wrap: anywhere;
+
+  &[data-clickable] {
+    cursor: pointer;
+  }
+
+  &[data-expanded] {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+}
+
+.altTextControl {
+  color: var(--mantine-color-white);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  opacity: 0.7;
+  transition: opacity var(--lightbox-transition-duration) ease;
+
+  @mixin hover {
+    opacity: 1;
+  }
+}

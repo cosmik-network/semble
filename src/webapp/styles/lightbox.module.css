@@ -62,13 +62,10 @@
 }
 
 .caption {
+  width: 100%;
   max-width: 40rem;
-  max-height: 30vh;
-  overflow-y: auto;
   margin-inline: auto;
   padding: var(--mantine-spacing-md) var(--mantine-spacing-lg)
     var(--mantine-spacing-lg);
-  font-size: var(--mantine-font-size-md);
   opacity: 1;
-  text-wrap: balance;
 }

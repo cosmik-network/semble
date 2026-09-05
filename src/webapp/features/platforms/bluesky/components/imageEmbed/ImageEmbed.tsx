@@ -4,6 +4,7 @@ import { AppBskyEmbedImages } from '@atproto/api';
 import { Box, Image, UnstyledButton } from '@mantine/core';
 import { Lightbox } from '@mantine/lightbox';
 import { useState } from 'react';
+import AltTextCaption from './AltTextCaption';
 import styles from './ImageEmbed.module.css';
 
 interface Props {
@@ -42,6 +43,7 @@ export default function ImageEmbed(props: Props) {
     alt: img.alt,
     caption: img.alt || undefined,
   }));
+  const currentCaption = slides[lightboxIndex]?.caption;
   const single = images.length === 1;
   const aspect = single ? images[0].aspectRatio : undefined;
   const ratio = aspect ? aspect.width / aspect.height : undefined;
@@ -116,7 +118,11 @@ export default function ImageEmbed(props: Props) {
               />
             </>
           )}
-          <Lightbox.Caption />
+          {currentCaption && (
+            <Lightbox.Caption>
+              <AltTextCaption key={lightboxIndex} text={currentCaption} />
+            </Lightbox.Caption>
+          )}
         </Lightbox>
       </div>
     </>
