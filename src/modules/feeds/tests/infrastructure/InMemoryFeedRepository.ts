@@ -7,6 +7,7 @@ import {
 import { FeedActivity, CardCollectedMetadata } from '../../domain/FeedActivity';
 import { ActivityId } from '../../domain/value-objects/ActivityId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
+import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 
 export class InMemoryFeedRepository implements IFeedRepository {
   private static instance: InMemoryFeedRepository | null = null;
@@ -233,6 +234,20 @@ export class InMemoryFeedRepository implements IFeedRepository {
     } catch (error) {
       return err(error as Error);
     }
+  }
+
+  async updateUrlTypeByCardId(
+    cardId: string,
+    urlType: UrlType,
+  ): Promise<Result<void>> {
+    for (const activity of this.activities) {
+      if (!activity.cardCollected) continue;
+      const metadata = activity.metadata as CardCollectedMetadata;
+      if (metadata.cardId === cardId) {
+        activity.updateUrlType(urlType);
+      }
+    }
+    return ok(undefined);
   }
 
   async fanOutActivityToFollowers(

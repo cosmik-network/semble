@@ -4,6 +4,7 @@ export const QueueNames = {
   ANALYTICS: 'analytics',
   NOTIFICATIONS: 'notifications',
   SYNC: 'sync',
+  METADATA: 'metadata',
 } as const;
 
 export type QueueName = (typeof QueueNames)[keyof typeof QueueNames];
@@ -43,5 +44,12 @@ export const QueueOptions = {
     removeOnComplete: 50,
     removeOnFail: 25,
     concurrency: 5, // Lower concurrency for sync operations to avoid rate limits
+  },
+  [QueueNames.METADATA]: {
+    attempts: 3,
+    backoff: { type: 'exponential' as const, delay: 3000 },
+    removeOnComplete: 50,
+    removeOnFail: 25,
+    concurrency: 5, // Each job does a slow metadata fetch + possible PDS write
   },
 } as const;

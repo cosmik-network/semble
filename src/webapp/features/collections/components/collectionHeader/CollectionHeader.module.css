@@ -1,0 +1,5 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex: 9999 1 auto;
+}

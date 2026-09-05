@@ -4,9 +4,9 @@ import type { UrlCard, Collection, User } from '@/api-client';
 import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
 import { BsPinFill } from 'react-icons/bs';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
-import { MouseEvent, Suspense } from 'react';
+import { Suspense } from 'react';
 import UrlCardContent from '../urlCardContent/UrlCardContent';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   getSembleHref,
   isCollectionPage,
@@ -46,60 +46,32 @@ interface Props {
 }
 
 export default function UrlCard(props: Props) {
-  const router = useRouter();
   const { settings } = useSettings();
 
-  const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-
-    let targetUrl: string;
-    const isNavigatingToSemble =
-      !isCollectionPage(props.url) && !isProfilePage(props.url);
-
-    if (isCollectionPage(props.url) || isProfilePage(props.url)) {
-      targetUrl = props.url;
-    } else {
-      targetUrl = getSembleHref(props.cardContent.url, {
+  const isInternalPage =
+    isCollectionPage(props.url) || isProfilePage(props.url);
+  const href = isInternalPage
+    ? props.url
+    : getSembleHref(props.cardContent.url, {
         viaCardId: props.viaCardId ? props.id : undefined,
       });
-    }
 
-    // Register super properties and capture click event when navigating to semble page
-    if (
-      isNavigatingToSemble &&
-      props.analyticsContext &&
-      shouldCaptureAnalytics()
-    ) {
-      // Register super properties for later card_saved event
-      posthog.register({
-        original_save_source: props.analyticsContext.saveSource,
-        original_active_filters: props.analyticsContext.activeFilters,
-      });
-
-      // Capture card clicked event
-      posthog.capture('card_clicked', {
-        card_id: props.id,
-        url: props.cardContent.url,
-        save_source: props.analyticsContext.saveSource,
-        active_filters: props.analyticsContext.activeFilters,
-        via_card_id: props.viaCardId,
-      });
-    }
-
-    // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
-    if (e.metaKey || e.ctrlKey || e.button === 1) {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+  const trackClick = () => {
+    if (isInternalPage || !props.analyticsContext || !shouldCaptureAnalytics())
       return;
-    }
 
-    router.push(targetUrl);
-  };
-
-  const handleAuxClick = (e: MouseEvent<HTMLElement>) => {
-    // Handle middle mouse button (button 1)
-    if (e.button === 1) {
-      handleNavigateToSemblePage(e);
-    }
+    // Super properties feed the card_saved event fired later on the semble page.
+    posthog.register({
+      original_save_source: props.analyticsContext.saveSource,
+      original_active_filters: props.analyticsContext.activeFilters,
+    });
+    posthog.capture('card_clicked', {
+      card_id: props.id,
+      url: props.cardContent.url,
+      save_source: props.analyticsContext.saveSource,
+      active_filters: props.analyticsContext.activeFilters,
+      via_card_id: props.viaCardId,
+    });
   };
 
   return (
@@ -111,9 +83,13 @@ export default function UrlCard(props: Props) {
       h={'100%'}
       withBorder={settings.cardView !== 'list'}
       className={styles.root}
-      onClick={handleNavigateToSemblePage}
-      onAuxClick={handleAuxClick}
     >
+      <Link
+        href={href}
+        className={styles.link}
+        onClick={trackClick}
+        aria-label={props.cardContent.title ?? props.cardContent.url}
+      />
       <Stack
         justify="space-between"
         flex={1}

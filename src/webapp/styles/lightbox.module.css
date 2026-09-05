@@ -1,0 +1,74 @@
+.root {
+  --lightbox-overlay-color: rgba(28, 25, 23, 0.88);
+  --lightbox-control-bg: rgba(28, 25, 23, 0.6);
+  --lightbox-control-bg-hover: rgba(28, 25, 23, 0.8);
+  --lightbox-toolbar-height: calc(4.5rem * var(--mantine-scale));
+}
+
+.overlay {
+  backdrop-filter: blur(3px);
+}
+
+.toolbar,
+.navigation {
+  padding: 0 var(--mantine-spacing-lg);
+}
+
+.toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.slide {
+  padding-block: var(--lightbox-toolbar-height);
+}
+
+.toolbarButton,
+.navigationButton {
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--lightbox-control-bg);
+  opacity: 1;
+  transition: background-color var(--lightbox-transition-duration) ease;
+
+  @mixin hover {
+    background-color: var(--lightbox-control-bg-hover);
+  }
+}
+
+.toolbarButton {
+  width: calc(2.75rem * var(--mantine-scale));
+  height: calc(2.75rem * var(--mantine-scale));
+
+  & > svg {
+    width: calc(1.5rem * var(--mantine-scale));
+    height: calc(1.5rem * var(--mantine-scale));
+  }
+}
+
+.navigationButton {
+  width: calc(3rem * var(--mantine-scale));
+  height: calc(3rem * var(--mantine-scale));
+
+  & > svg {
+    width: calc(1.75rem * var(--mantine-scale));
+    height: calc(1.75rem * var(--mantine-scale));
+  }
+}
+
+.counter {
+  display: none;
+}
+
+.caption {
+  max-width: 40rem;
+  max-height: 30vh;
+  overflow-y: auto;
+  margin-inline: auto;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg)
+    var(--mantine-spacing-lg);
+  font-size: var(--mantine-font-size-md);
+  opacity: 1;
+  text-wrap: balance;
+}

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { encodeUrlParam } from '@/lib/utils/link';
-import { SEMBLE_TAB_CHANGE_EVENT } from '../sembleStats/SembleStatItem';
 import {
   Box,
   Container,
@@ -24,9 +23,6 @@ import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/
 import SembleCollectionsContainer from '../../containers/sembleCollectionsContainer/SembleCollectionsContainer';
 import SembleCollectionsContainerSkeleton from '../../containers/sembleCollectionsContainer/Skeleton.SembleCollectionsContainer';
 
-import SembleAddedByContainer from '../../containers/sembleAddedByContainer/SembleAddedByContainer';
-import SembleAddedByContainerSkeleton from '../../containers/sembleAddedByContainer/Skeleton.SembleAddedByContainer';
-
 import SimilarCardsContainer from '@/features/cards/containers/similarCardsContainer/SimilarCardsContainer';
 import SimilarCardsContainerSkeleton from '@/features/cards/containers/similarCardsContainer/Skeleton.SimilarCardsContainer';
 import SembleMentionsContainer from '../../containers/sembleMentionsContainer/SembleMentionsContainer';
@@ -44,7 +40,6 @@ interface Props {
 type TabValue =
   | 'notes'
   | 'collections'
-  | 'addedBy'
   | 'similar'
   | 'mentions'
   | 'connections'
@@ -53,7 +48,6 @@ type TabValue =
 const VALID_TABS: TabValue[] = [
   'notes',
   'collections',
-  'addedBy',
   'similar',
   'mentions',
   'connections',
@@ -74,17 +68,6 @@ export default function SembleTabs(props: Props) {
   // undefined while loading, null when the stats request failed
   const stats = isError ? null : urlMetadata?.stats;
 
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<TabValue>).detail;
-      if (VALID_TABS.includes(detail)) {
-        setActiveTab(detail);
-      }
-    };
-    window.addEventListener(SEMBLE_TAB_CHANGE_EVENT, handler);
-    return () => window.removeEventListener(SEMBLE_TAB_CHANGE_EVENT, handler);
-  }, []);
-
   return (
     <Tabs
       keepMounted={false}
@@ -98,6 +81,7 @@ export default function SembleTabs(props: Props) {
       }}
     >
       <Box
+        mt="md"
         style={{
           position: 'sticky',
           top: 55,
@@ -132,14 +116,6 @@ export default function SembleTabs(props: Props) {
                 >
                   Notes
                 </TabItem>
-                <TabItem
-                  value="addedBy"
-                  rightSection={
-                    <TabCount count={stats && stats.libraryCount} />
-                  }
-                >
-                  Added by
-                </TabItem>
                 {featureFlags?.graphView && (
                   <TabItem value="graph">Graph</TabItem>
                 )}
@@ -162,15 +138,6 @@ export default function SembleTabs(props: Props) {
             key={props.url}
           >
             <SembleCollectionsContainer url={props.url} />
-          </Suspense>
-        </TabsPanel>
-
-        <TabsPanel value="addedBy">
-          <Suspense
-            fallback={<SembleAddedByContainerSkeleton />}
-            key={props.url}
-          >
-            <SembleAddedByContainer url={props.url} />
           </Suspense>
         </TabsPanel>
 

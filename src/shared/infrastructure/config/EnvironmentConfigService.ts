@@ -28,6 +28,12 @@ export interface EnvironmentConfig {
     accessTokenExpiresIn: number;
     refreshTokenExpiresIn: number;
   };
+  oauthClient: {
+    // ES256 private key (PKCS8 PEM, optionally base64-encoded for single-line
+    // secrets) used for private_key_jwt client authentication at the PDS.
+    privateKeyPkcs8?: string;
+    keyId?: string;
+  };
   atproto: {
     firehoseWebsocket: string;
     jetstreamWebsocket: string;
@@ -141,6 +147,12 @@ export class EnvironmentConfigService {
           process.env.REFRESH_TOKEN_EXPIRES_IN || '2592000',
         ),
       },
+      oauthClient: {
+        privateKeyPkcs8: this.parsePrivateKeyPem(
+          process.env.OAUTH_PRIVATE_KEY_PKCS8,
+        ),
+        keyId: process.env.OAUTH_KEY_ID,
+      },
       atproto: {
         firehoseWebsocket:
           process.env.ATPROTO_FIREHOSE_WEBSOCKET ||
@@ -251,7 +263,19 @@ export class EnvironmentConfigService {
   private applyEnvironmentSpecificConfig(): void {
     switch (this.config.environment) {
       case Environment.DEV:
-        // Override defaults with dev-specific values
+        // Dev runs as a confidential OAuth client (private_key_jwt); a
+        // missing key would silently fall back to a public client with
+        // 2-week PDS sessions, so fail loudly instead. Set the Fly secrets
+        // before deploying: OAUTH_PRIVATE_KEY_PKCS8 (base64 PKCS8 PEM) and
+        // OAUTH_KEY_ID.
+        if (
+          !this.config.oauthClient.privateKeyPkcs8 ||
+          !this.config.oauthClient.keyId
+        ) {
+          throw new Error(
+            'OAUTH_PRIVATE_KEY_PKCS8 and OAUTH_KEY_ID must be set in the dev environment',
+          );
+        }
         break;
       case Environment.PROD:
         // Override defaults with production-specific values
@@ -278,6 +302,10 @@ export class EnvironmentConfigService {
 
   public getAuthConfig() {
     return this.config.auth;
+  }
+
+  public getOAuthClientConfig() {
+    return this.config.oauthClient;
   }
 
   public getAtProtoConfig() {
@@ -397,6 +425,19 @@ export class EnvironmentConfigService {
 
     // Default to false (use mock persistence) unless explicitly enabled
     return false;
+  }
+
+  // Accepts the key either as a raw PKCS8 PEM or base64-encoded (Fly secrets
+  // are easier to manage as a single line). Returns undefined when unset.
+  private parsePrivateKeyPem(value: string | undefined): string | undefined {
+    if (!value) return undefined;
+    if (value.includes('-----BEGIN')) return value;
+    const decoded = Buffer.from(value, 'base64').toString('utf8');
+    if (decoded.includes('-----BEGIN')) return decoded;
+    console.warn(
+      '[config] OAUTH_PRIVATE_KEY_PKCS8 is neither a PEM nor base64-encoded PEM; ignoring',
+    );
+    return undefined;
   }
 
   // Parses an ISO 8601 instant, e.g. 2026-08-01T00:00:00Z. Returns undefined for

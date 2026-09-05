@@ -9,8 +9,7 @@ import { Suspense } from 'react';
 import CollectionCardPreviewSkeleton from '../collectionCardPreview/Skeleton.CollectionCardPreview';
 import { useSettings } from '@/providers/settings';
 import CollectionCardDebugView from '../collectionCardDebugView/CollectionCardDebugView';
-import { useRouter } from 'next/navigation';
-import { MouseEvent } from 'react';
+import Link from 'next/link';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { LinkAvatar } from '@/components/link/MantineLink';
@@ -35,40 +34,13 @@ export default function CollectionCard(props: Props) {
   const time = getRelativeTime(collection.updatedAt);
   const accessType = collection.accessType;
   const { settings } = useSettings();
-  const router = useRouter();
   const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 
-  const handleNavigateToCollection = (e: MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-
-    const targetUrl = `/profile/${collection.author.handle}/collections/${rkey}`;
-
-    // Open in new tab if Cmd+Click (Mac), Ctrl+Click (Windows/Linux), or middle click
-    if (e.metaKey || e.ctrlKey || e.button === 1) {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    router.push(targetUrl);
-  };
-
-  const handleAuxClick = (e: MouseEvent<HTMLElement>) => {
-    // Handle middle mouse button (button 1)
-    if (e.button === 1) {
-      handleNavigateToCollection(e);
-    }
-  };
+  const href = `/profile/${collection.author.handle}/collections/${rkey}`;
 
   return (
-    <Card
-      withBorder
-      radius={'lg'}
-      p={'sm'}
-      className={styles.root}
-      h={'100%'}
-      onClick={handleNavigateToCollection}
-      onAuxClick={handleAuxClick}
-    >
+    <Card withBorder radius={'lg'} p={'sm'} className={styles.root} h={'100%'}>
+      <Link href={href} className={styles.link} aria-label={collection.name} />
       <Stack justify="space-between" h="100%">
         <Stack gap={'xs'}>
           <Stack gap={0}>

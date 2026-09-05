@@ -1,4 +1,5 @@
 import { Stack, Skeleton, Card, Group, Box } from '@mantine/core';
+import ImageEmbedSkeleton from '../imageEmbed/Skeleton.ImageEmbed';
 
 export default function BlueskySemblePostSkeleton() {
   return (
@@ -35,7 +36,7 @@ export default function BlueskySemblePostSkeleton() {
             </Box>
 
             {/* Embed placeholder */}
-            <Skeleton w="100%" h={180} radius="md" />
+            <ImageEmbedSkeleton />
           </Stack>
         </Stack>
       </Card>

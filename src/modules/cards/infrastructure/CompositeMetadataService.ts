@@ -1,7 +1,9 @@
-import { IMetadataService } from '../domain/services/IMetadataService';
+import {
+  IMetadataService,
+  MetadataFetchMode,
+} from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
-import { UrlType } from '../domain/value-objects/UrlType';
 import { Result, ok, err } from '../../../shared/core/Result';
 import { UrlClassifier } from './UrlClassifier';
 
@@ -31,15 +33,64 @@ export class CompositeMetadataService implements IMetadataService {
     this.config = config;
   }
 
+  // Grace window fast mode gives the slower service before giving up on it —
+  // long enough for a Redis cache hit, far shorter than an upstream fetch.
+  private static readonly FAST_MODE_SECONDARY_TIMEOUT_MS = 150;
+
   async fetchMetadata(
     url: URL,
     refetchStaleMetadata: boolean = false,
+    mode: MetadataFetchMode = 'slow',
   ): Promise<Result<UrlMetadata>> {
     // Fetch metadata from both services concurrently
-    const [iframelyResult, citoidResult] = await Promise.allSettled([
-      this.iframelyService.fetchMetadata(url, refetchStaleMetadata),
-      this.citoidService.fetchMetadata(url, refetchStaleMetadata),
-    ]);
+    const iframelyPromise = this.iframelyService.fetchMetadata(
+      url,
+      refetchStaleMetadata,
+    );
+    const citoidPromise = this.citoidService.fetchMetadata(
+      url,
+      refetchStaleMetadata,
+    );
+
+    let iframelyResult: PromiseSettledResult<Result<UrlMetadata>>;
+    let citoidResult: PromiseSettledResult<Result<UrlMetadata>> | null;
+
+    if (mode === 'fast') {
+      // Block only on Iframely; merge Citoid in only if it settles within the
+      // grace window (a cache hit). Otherwise it keeps running in the
+      // background, warming the cache for the async slow pass.
+      [iframelyResult, citoidResult] = await Promise.all([
+        this.settle(iframelyPromise),
+        this.settleWithinTimeout(
+          citoidPromise,
+          CompositeMetadataService.FAST_MODE_SECONDARY_TIMEOUT_MS,
+        ),
+      ]);
+
+      if (!citoidResult) {
+        if (
+          iframelyResult.status === 'rejected' ||
+          iframelyResult.value.isErr()
+        ) {
+          // Iframely gave us nothing — waiting on Citoid beats returning an error
+          citoidResult = await this.settle(citoidPromise);
+        } else {
+          // Fire-and-forget: swallow late failures so they don't become
+          // unhandled rejections
+          citoidPromise.catch((error) => {
+            console.warn(
+              `Background Citoid fetch failed for ${url.value}:`,
+              error,
+            );
+          });
+        }
+      }
+    } else {
+      [iframelyResult, citoidResult] = await Promise.allSettled([
+        iframelyPromise,
+        citoidPromise,
+      ]);
+    }
 
     // Extract successful results
     const iframelySuccess =
@@ -48,7 +99,7 @@ export class CompositeMetadataService implements IMetadataService {
         : null;
 
     const citoidSuccess =
-      citoidResult.status === 'fulfilled' && citoidResult.value.isOk()
+      citoidResult?.status === 'fulfilled' && citoidResult.value.isOk()
         ? citoidResult.value.value
         : null;
 
@@ -61,7 +112,7 @@ export class CompositeMetadataService implements IMetadataService {
             : new Error('Iframely service failed')
           : new Error('Iframely service failed');
       const citoidError =
-        citoidResult.status === 'fulfilled'
+        citoidResult?.status === 'fulfilled'
           ? citoidResult.value.isErr()
             ? citoidResult.value.error
             : new Error('Citoid service failed')
@@ -103,6 +154,29 @@ export class CompositeMetadataService implements IMetadataService {
     return err(new Error('Unexpected error in metadata selection'));
   }
 
+  /** Await a promise and report its outcome without ever rejecting. */
+  private settle<T>(promise: Promise<T>): Promise<PromiseSettledResult<T>> {
+    return promise.then(
+      (value) => ({ status: 'fulfilled' as const, value }),
+      (reason) => ({ status: 'rejected' as const, reason }),
+    );
+  }
+
+  /** Like settle(), but resolves to null if the promise hasn't settled within timeoutMs. */
+  private settleWithinTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+  ): Promise<PromiseSettledResult<T> | null> {
+    return Promise.race([
+      this.settle(promise),
+      new Promise<null>((resolve) => {
+        const timer = setTimeout(() => resolve(null), timeoutMs);
+        // Don't keep the process alive just for this grace window
+        timer.unref?.();
+      }),
+    ]);
+  }
+
   async isAvailable(): Promise<boolean> {
     // Service is available if at least one of the underlying services is available
     const [iframelyAvailable, citoidAvailable] = await Promise.all([
@@ -117,25 +191,8 @@ export class CompositeMetadataService implements IMetadataService {
     iframelyMetadata: UrlMetadata,
     citoidMetadata: UrlMetadata,
   ): UrlMetadata {
-    const iframelyType = iframelyMetadata.type || UrlType.LINK;
-    const citoidType = citoidMetadata.type || UrlType.LINK;
-
-    // If one returns 'link' (generic) and the other returns something more specific
-    if (iframelyType === UrlType.LINK && citoidType !== UrlType.LINK) {
-      return citoidMetadata;
-    }
-
-    if (citoidType === UrlType.LINK && iframelyType !== UrlType.LINK) {
-      return iframelyMetadata;
-    }
-
-    // If both return different types, prefer Citoid (for scholarly content)
-    if (citoidType !== iframelyType) {
-      return citoidMetadata;
-    }
-
-    // Default to Iframely
-    return iframelyMetadata;
+    // Shared with UrlMetadata.computeEnrichment: Citoid is the specialist
+    return UrlMetadata.selectBest(iframelyMetadata, citoidMetadata);
   }
 
   /**
@@ -210,23 +267,7 @@ export class CompositeMetadataService implements IMetadataService {
     primary: UrlMetadata,
     fallback: UrlMetadata,
   ): UrlMetadata {
-    // Create merged props by taking primary values first, then fallback for missing fields
-    const mergedProps = {
-      url: primary.url, // URL should always be the same
-      title: primary.title || fallback.title,
-      description: primary.description || fallback.description,
-      author: primary.author || fallback.author,
-      publishedDate: primary.publishedDate || fallback.publishedDate,
-      siteName: primary.siteName || fallback.siteName,
-      imageUrl: primary.imageUrl || fallback.imageUrl,
-      type: primary.type || fallback.type,
-      retrievedAt: primary.retrievedAt || fallback.retrievedAt,
-      doi: primary.doi || fallback.doi,
-      isbn: primary.isbn || fallback.isbn,
-    };
-
-    // Create new UrlMetadata with merged props
-    // We know this will succeed since both primary and fallback are valid
-    return UrlMetadata.create(mergedProps).unwrap();
+    // Shared with UrlMetadata.computeEnrichment
+    return UrlMetadata.merge(primary, fallback);
   }
 }

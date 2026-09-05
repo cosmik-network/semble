@@ -10,23 +10,23 @@ import {
   Tooltip,
   Badge,
   Box,
-  Divider,
-  AvatarGroup,
 } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useCollection from '../../lib/queries/useCollection';
 import { Fragment, Suspense } from 'react';
-import CollectionContributorsSummary from '../collectionContributorsSummary/CollectionContributorsSummary';
 import CollectionActions from '../collectionActions/CollectionActions';
+import CollectionStats from '../collectionStats/CollectionStats';
 import { CollectionAccessType } from '@semble/types';
 import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
+import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
+import CollectionStatsSkeleton from '../collectionStats/Skeleton.CollectionStats';
 import { getRelativeTime } from '@/lib/utils/time';
 import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
-import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
+import classes from './CollectionHeader.module.css';
 
 interface Props {
   rkey: string;
@@ -72,147 +72,104 @@ export default function CollectionHeader(props: Props) {
         }}
       />
       <Container p="xs" size="xl">
-        <Stack gap={'lg'}>
-          <Stack gap={'xs'}>
-            <Group justify="space-between" align="start">
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="flex-start" gap={'xs'}>
+            <Stack gap={0}>
+              <Group gap={'xs'}>
+                <Text
+                  fw={700}
+                  c={
+                    collection.accessType === CollectionAccessType.OPEN
+                      ? 'green'
+                      : 'grape'
+                  }
+                >
+                  Collection
+                </Text>
+
+                {accessType === CollectionAccessType.OPEN && (
+                  <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
+                    <Badge
+                      color="green"
+                      leftSection={<FaSeedling />}
+                      variant="light"
+                    >
+                      Open
+                    </Badge>
+                  </Tooltip>
+                )}
+              </Group>
+              <Group gap={8}>
+                <Title order={1}>{collection.name}</Title>
+                {isMarginUri(collection.uri) && (
+                  <MarginLogo size={20} marginUrl={marginUrl} />
+                )}
+              </Group>
+            </Stack>
+
+            <Group gap={'xs'} wrap="nowrap">
+              <LinkAvatar
+                size={32}
+                href={`/profile/${collection.author.handle}`}
+                src={collection.author.avatarUrl?.replace(
+                  'avatar',
+                  'avatar_thumbnail',
+                )}
+                alt={`${collection.author.name}'s avatar`}
+              />
               <Stack gap={0}>
                 <Group gap={'xs'}>
-                  <Text
-                    fw={700}
-                    c={
-                      collection.accessType === CollectionAccessType.OPEN
-                        ? 'green'
-                        : 'grape'
-                    }
-                  >
-                    Collection
-                  </Text>
-
-                  {accessType === CollectionAccessType.OPEN && (
-                    <Tooltip label="This collection is open to everyone. Add cards to help it grow.">
-                      <Badge
-                        color="green"
-                        leftSection={<FaSeedling />}
-                        variant="light"
-                      >
-                        Open
-                      </Badge>
-                    </Tooltip>
-                  )}
-                </Group>
-                <Group gap={8}>
-                  <Title order={1}>{collection.name}</Title>
-                  {isMarginUri(collection.uri) && (
-                    <MarginLogo size={20} marginUrl={marginUrl} />
-                  )}
-                </Group>
-                {collection.description && (
-                  <RichTextRenderer
-                    text={collection.description}
-                    textProps={{ c: 'gray', mt: 'lg', maw: 700 }}
-                  />
-                )}
-              </Stack>
-            </Group>
-
-            <Group justify="space-between" gap={'lg'}>
-              <Stack gap={'xs'}>
-                <Group gap={5}>
-                  <AvatarGroup>
-                    <LinkAvatar
-                      size={'sm'}
-                      href={`/profile/${collection.author.handle}`}
-                      src={collection.author.avatarUrl?.replace(
-                        'avatar',
-                        'avatar_thumbnail',
-                      )}
-                      alt={`${collection.author.name}'s avatar`}
-                    />
-                  </AvatarGroup>
                   <Anchor
                     href={`/profile/${collection.author.handle}`}
                     fw={600}
                     fz={'sm'}
                     c="bright"
+                    lh={1.3}
                   >
                     {collection.author.name}
                   </Anchor>
                   {isBotAccount(collection.author) && <BotLabel />}
-                  <Suspense>
-                    <CollectionContributorsSummary
-                      collectionId={collection.id}
-                      handle={props.handle}
-                      rkey={props.rkey}
-                    />
-                  </Suspense>
                 </Group>
-                <Group gap={'xs'}>
-                  <Anchor
-                    href={`/profile/${collection.author.handle}/collections/${props.rkey}`}
-                    underline="never"
-                  >
-                    <Group gap={5}>
-                      <Text fw={500} fz={'sm'} c={'bright'}>
-                        {collection.cardCount}
-                      </Text>
-                      <Text fw={500} fz={'sm'} c={'dimmed'}>
-                        {collection.cardCount === 1 ? 'Card' : 'Cards'}
-                      </Text>
-                    </Group>
-                  </Anchor>
-
-                  <Divider orientation="vertical" />
-
-                  <>
-                    <Anchor
-                      href={`/profile/${collection.author.handle}/collections/${props.rkey}/followers`}
-                      underline="never"
-                    >
-                      <Group gap={5}>
-                        <Text fw={500} fz={'sm'} c={'bright'}>
-                          {collection.followerCount}
-                        </Text>
-                        <Text fw={500} fz={'sm'} c={'dimmed'}>
-                          {collection.followerCount === 1
-                            ? 'Follower'
-                            : 'Followers'}
-                        </Text>
-                      </Group>
-                    </Anchor>
-
-                    <Divider orientation="vertical" />
-                  </>
-
-                  <Group gap={5}>
-                    <Text fw={500} fz={'sm'} c={'bright'}>
-                      Created
-                    </Text>
-                    <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      {getRelativeTime(collection.createdAt)}
-                    </Text>
-                  </Group>
-
-                  <Divider orientation="vertical" />
-
-                  <Group gap={5}>
-                    <Text fw={500} fz={'sm'} c={'bright'}>
-                      Updated
-                    </Text>
-                    <Text fw={500} fz={'sm'} c={'dimmed'}>
-                      {getRelativeTime(collection.updatedAt)}
-                    </Text>
-                  </Group>
-                </Group>
+                <Text fz="sm" fw={500} c="gray" lh={1.3}>
+                  Updated {getRelativeTime(collection.updatedAt)}
+                </Text>
               </Stack>
+            </Group>
+          </Group>
 
-              <Suspense fallback={<CollectionActionsSkeleton />}>
-                <CollectionActions
-                  collection={{
-                    ...collection,
-                    rkey: props.rkey,
-                  }}
+          <Stack gap={'xs'} mt={'sm'}>
+            {collection.description && (
+              <RichTextRenderer
+                text={collection.description}
+                textProps={{ c: 'gray', maw: 700 }}
+              />
+            )}
+
+            <Group justify="space-between" gap={'lg'}>
+              <Suspense
+                fallback={
+                  <Box style={{ visibility: 'hidden' }}>
+                    <CollectionStatsSkeleton />
+                  </Box>
+                }
+              >
+                <CollectionStats
+                  collection={collection}
+                  handle={props.handle}
+                  rkey={props.rkey}
                 />
               </Suspense>
+
+              <Box className={classes.actions}>
+                <Suspense fallback={<CollectionActionsSkeleton />}>
+                  <CollectionActions
+                    collection={{
+                      ...collection,
+                      rkey: props.rkey,
+                    }}
+                  />
+                </Suspense>
+              </Box>
             </Group>
           </Stack>
         </Stack>

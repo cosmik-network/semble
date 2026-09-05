@@ -1,7 +1,7 @@
 'use client';
 
 import { Paper, Scroller, Tabs } from '@mantine/core';
-import TabItem from './TabItem';
+import LinkTab from '@/components/navigation/linkTab/LinkTab';
 import TabCount from '@/components/tabCount/TabCount';
 import { usePathname } from 'next/navigation';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
@@ -28,10 +28,10 @@ export default function ProfileTabs(props: Props) {
       <Paper radius={0}>
         <Tabs.List style={{ flexWrap: 'nowrap' }}>
           <Scroller>
-            <TabItem value="activity" href={basePath}>
+            <LinkTab value="activity" href={basePath}>
               Activity
-            </TabItem>
-            <TabItem
+            </LinkTab>
+            <LinkTab
               value="cards"
               href={`${basePath}/cards`}
               rightSection={
@@ -39,8 +39,8 @@ export default function ProfileTabs(props: Props) {
               }
             >
               Cards
-            </TabItem>
-            <TabItem
+            </LinkTab>
+            <LinkTab
               value="collections"
               href={`${basePath}/collections`}
               rightSection={
@@ -48,8 +48,8 @@ export default function ProfileTabs(props: Props) {
               }
             >
               Collections
-            </TabItem>
-            <TabItem
+            </LinkTab>
+            <LinkTab
               value="connections"
               href={`${basePath}/connections`}
               rightSection={
@@ -57,14 +57,14 @@ export default function ProfileTabs(props: Props) {
               }
             >
               Connections
-            </TabItem>
-            <TabItem value="network" href={`${basePath}/network`}>
+            </LinkTab>
+            <LinkTab value="network" href={`${basePath}/network`}>
               Network
-            </TabItem>
+            </LinkTab>
             {featureFlags?.graphView && (
-              <TabItem value="graph" href={`${basePath}/graph`}>
+              <LinkTab value="graph" href={`${basePath}/graph`}>
                 Graph
-              </TabItem>
+              </LinkTab>
             )}
           </Scroller>
         </Tabs.List>

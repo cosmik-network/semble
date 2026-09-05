@@ -4,6 +4,7 @@ import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events
 import { CardRemovedFromLibraryEvent } from '../../../modules/cards/domain/events/CardRemovedFromLibraryEvent';
 import { CardRemovedFromCollectionEvent } from '../../../modules/cards/domain/events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
+import { UrlCardMetadataUpdatedEvent } from '../../../modules/cards/domain/events/UrlCardMetadataUpdatedEvent';
 import { UserFollowedTargetEvent } from '../../../modules/user/domain/events/UserFollowedTargetEvent';
 import { UserUnfollowedTargetEvent } from '../../../modules/user/domain/events/UserUnfollowedTargetEvent';
 import { ConnectionCreatedEvent } from '../../../modules/cards/domain/events/ConnectionCreatedEvent';
@@ -52,6 +53,13 @@ export interface SerializedCardRemovedFromCollectionEvent extends SerializedEven
   cardId: string;
   collectionId: string;
   removedBy: string;
+}
+
+export interface SerializedUrlCardMetadataUpdatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.URL_CARD_METADATA_UPDATED;
+  cardId: string;
+  curatorId: string;
+  url: string;
 }
 
 export interface SerializedCollectionCreatedEvent extends SerializedEvent {
@@ -113,6 +121,7 @@ export type SerializedEventUnion =
   | SerializedCardAddedToCollectionEvent
   | SerializedCardRemovedFromLibraryEvent
   | SerializedCardRemovedFromCollectionEvent
+  | SerializedUrlCardMetadataUpdatedEvent
   | SerializedCollectionCreatedEvent
   | SerializedUserFollowedTargetEvent
   | SerializedUserUnfollowedTargetEvent
@@ -165,6 +174,17 @@ export class EventMapper {
         cardId: event.cardId.getValue().toString(),
         collectionId: event.collectionId.getValue().toString(),
         removedBy: event.removedBy.value,
+      };
+    }
+
+    if (event instanceof UrlCardMetadataUpdatedEvent) {
+      return {
+        eventType: EventNames.URL_CARD_METADATA_UPDATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        cardId: event.cardId.getValue().toString(),
+        curatorId: event.curatorId.value,
+        url: event.url,
       };
     }
 
@@ -314,6 +334,18 @@ export class EventMapper {
           cardId,
           collectionId,
           removedBy,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.URL_CARD_METADATA_UPDATED: {
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return UrlCardMetadataUpdatedEvent.reconstruct(
+          cardId,
+          curatorId,
+          eventData.url,
           dateTimeOccurred,
         ).unwrap();
       }

@@ -6,6 +6,7 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { ConnectionCreatedEventHandler } from '../../../modules/search/application/eventHandlers/ConnectionCreatedEventHandler';
+import { UrlCardMetadataUpdatedEventHandler } from '../../../modules/search/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -17,7 +18,9 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     super(configService, QueueNames.SEARCH);
   }
 
-  protected createServices(repositories: Repositories): WorkerServices {
+  protected createServices(
+    repositories: Repositories,
+  ): Promise<WorkerServices> {
     return ServiceFactory.createForWorker(this.configService, repositories);
   }
 
@@ -61,6 +64,14 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CONNECTION_CREATED,
       connectionCreatedHandler,
+    );
+
+    const urlCardMetadataUpdatedHandler =
+      new UrlCardMetadataUpdatedEventHandler(useCases.indexUrlForSearchUseCase);
+
+    await subscriber.subscribe(
+      EventNames.URL_CARD_METADATA_UPDATED,
+      urlCardMetadataUpdatedHandler,
     );
   }
 }

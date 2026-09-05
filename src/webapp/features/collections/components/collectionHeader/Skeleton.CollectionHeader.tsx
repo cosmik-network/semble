@@ -1,5 +1,7 @@
 import { Container, Group, Stack, Skeleton, Box } from '@mantine/core';
 import CollectionActionsSkeleton from '../collectionActions/Skeleton.CollectionActions';
+import CollectionStatsSkeleton from '../collectionStats/Skeleton.CollectionStats';
+import classes from './CollectionHeader.module.css';
 
 export default function CollectionHeaderSkeleton() {
   return (
@@ -27,40 +29,39 @@ export default function CollectionHeaderSkeleton() {
         }}
       />
       <Container p="xs" size="xl">
-        <Stack gap={'lg'}>
-          <Stack gap={'xs'}>
-            <Group justify="space-between" align="start">
-              <Stack gap={0}>
-                {/* "Collection" text, and the Open badge on open collections */}
-                <Group gap={'xs'} h={24.8}>
-                  <Skeleton w={120} h={18} />
-                </Group>
+        <Stack gap={'xs'}>
+          <Group justify="space-between" align="flex-start" gap={'xs'}>
+            <Stack gap={0}>
+              {/* "Collection" text, and the Open badge on open collections */}
+              <Group gap={'xs'} h={24.8}>
+                <Skeleton w={120} h={18} />
+              </Group>
 
-                {/* Title */}
-                <Group h={44.2}>
-                  <Skeleton w={300} h={34} />
-                </Group>
+              {/* Title */}
+              <Group h={44.2}>
+                <Skeleton w={300} h={34} />
+              </Group>
+            </Stack>
 
-                {/* Description — omitted: we can't know whether there is one */}
+            {/* Author + updated */}
+            <Group gap={'xs'} wrap="nowrap">
+              <Skeleton w={32} h={32} radius="md" />
+              <Stack gap={4}>
+                <Skeleton w={140} h={14} />
+                <Skeleton w={104} h={14} />
               </Stack>
             </Group>
+          </Group>
 
-            <Group justify="space-between" gap={'lg'}>
-              <Stack gap={'xs'}>
-                {/* Author + collaborators */}
-                <Group gap={5} h={26}>
-                  <Skeleton w={180} h={22} />
-                </Group>
-
-                {/* Stats section */}
-                <Group h={21.7}>
-                  <Skeleton w={340} h={16} />
-                </Group>
-              </Stack>
-
+          {/* Description — omitted: we can't know whether there is one */}
+          <Group justify="space-between" gap={'lg'} mt={'sm'}>
+            <Box style={{ visibility: 'hidden' }}>
+              <CollectionStatsSkeleton />
+            </Box>
+            <Box className={classes.actions}>
               <CollectionActionsSkeleton />
-            </Group>
-          </Stack>
+            </Box>
+          </Group>
         </Stack>
       </Container>
     </>

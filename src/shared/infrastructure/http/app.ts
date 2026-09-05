@@ -28,9 +28,9 @@ import { ServiceFactory } from './factories/ServiceFactory';
 import { UseCaseFactory } from './factories/UseCaseFactory';
 import { ControllerFactory } from './factories/ControllerFactory';
 
-export const createExpressApp = (
+export const createExpressApp = async (
   configService: EnvironmentConfigService,
-): Express => {
+): Promise<Express> => {
   const app = express();
   app.set('query parser', 'extended');
 
@@ -74,7 +74,10 @@ export const createExpressApp = (
 
   // Create all dependencies using factories
   const repositories = RepositoryFactory.create(configService);
-  const services = ServiceFactory.createForWebApp(configService, repositories);
+  const services = await ServiceFactory.createForWebApp(
+    configService,
+    repositories,
+  );
   const useCases = UseCaseFactory.createForWebApp(repositories, services);
 
   // Construct serviceDid for XRPC

@@ -1,5 +1,10 @@
-import { Skeleton } from '@mantine/core';
+import StatChipCard from '@/components/statChip/StatChipCard';
+import StatChipSkeleton from '@/components/statChip/Skeleton.StatChip';
 
 export default function SembleStatsSkeleton() {
-  return <Skeleton w={'100%'} maw={440} h={20} />;
+  return (
+    <StatChipCard>
+      <StatChipSkeleton width={150} />
+    </StatChipCard>
+  );
 }

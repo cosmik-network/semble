@@ -1,5 +1,5 @@
 import { createSembleClient } from '@/services/client.apiClient';
-import { UrlType } from '@semble/types';
+import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
@@ -8,17 +8,24 @@ interface PageParams {
   urlType?: UrlType;
 }
 
+interface CardSortParams {
+  sortBy?: CardSortField;
+  sortOrder?: SortOrder;
+}
+
 interface SimilarUrlsParams extends PageParams {
   threshold?: number;
 }
 
 export const getLibrariesForUrl = cache(
-  async (url: string, params?: PageParams) => {
+  async (url: string, params?: PageParams & CardSortParams) => {
     const client = createSembleClient();
     const response = await client.getLibrariesForUrl({
       url,
       page: params?.page,
       limit: params?.limit,
+      sortBy: params?.sortBy,
+      sortOrder: params?.sortOrder,
     });
 
     return response;

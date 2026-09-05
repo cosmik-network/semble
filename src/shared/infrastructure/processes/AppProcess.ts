@@ -28,7 +28,7 @@ export class AppProcess implements IProcess {
     }
 
     // Create and start Express app with config
-    const app = createExpressApp(this.configService);
+    const app = await createExpressApp(this.configService);
     const PORT = config.server.port;
     const HOST = config.server.host;
 

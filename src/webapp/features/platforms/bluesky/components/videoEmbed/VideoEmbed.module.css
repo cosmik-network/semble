@@ -1,0 +1,18 @@
+.frame {
+  container-type: inline-size;
+}
+
+.video {
+  --video-cap-ratio: 16 / 9;
+  --video-max-height: 420px;
+  position: relative;
+  z-index: 0;
+  aspect-ratio: var(--video-ratio);
+  max-height: min(
+    var(--video-max-height),
+    calc(100cqw / (var(--video-cap-ratio)))
+  );
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-disabled);
+}

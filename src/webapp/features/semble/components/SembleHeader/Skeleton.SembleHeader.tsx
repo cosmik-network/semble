@@ -1,4 +1,4 @@
-import { Stack, Grid, GridCol, Skeleton } from '@mantine/core';
+import { Stack, Grid, GridCol, Skeleton, Box } from '@mantine/core';
 import SembleStatsSkeleton from '../sembleStats/Skeleton.SembleStats';
 import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataHeader';
@@ -19,7 +19,9 @@ export default function SembleHeaderSkeleton() {
         </GridCol>
       </Grid>
 
-      <SembleStatsSkeleton />
+      <Box style={{ visibility: 'hidden' }}>
+        <SembleStatsSkeleton />
+      </Box>
     </Stack>
   );
 }

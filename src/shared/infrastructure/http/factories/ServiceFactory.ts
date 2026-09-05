@@ -113,6 +113,7 @@ export interface SharedServices {
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
+  cardPublisher: ICardPublisher;
   collectionPublisher: ICollectionPublisher;
   connectionPublisher: IConnectionPublisher;
   followPublisher: IFollowPublisher;
@@ -122,7 +123,6 @@ export interface SharedServices {
 export interface WebAppServices extends SharedServices {
   oauthProcessor: IOAuthProcessor;
   appPasswordProcessor: IAppPasswordProcessor;
-  cardPublisher: ICardPublisher;
   authMiddleware: AuthMiddleware;
   statsApiKeyMiddleware: StatsApiKeyMiddleware;
 }
@@ -149,15 +149,15 @@ export class ServiceFactory {
   static create(
     configService: EnvironmentConfigService,
     repositories: Repositories,
-  ): Services {
+  ): Promise<Services> {
     return this.createForWebApp(configService, repositories);
   }
 
-  static createForWebApp(
+  static async createForWebApp(
     configService: EnvironmentConfigService,
     repositories: Repositories,
-  ): WebAppServices {
-    const sharedServices = this.createSharedServices(
+  ): Promise<WebAppServices> {
+    const sharedServices = await this.createSharedServices(
       configService,
       repositories,
     );
@@ -181,16 +181,6 @@ export class ServiceFactory {
       ? new FakeAtProtoOAuthProcessor(sharedServices.tokenService)
       : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
-    const useFakePublishers = configService.shouldUseFakePublishers();
-    const collections = configService.getAtProtoCollections();
-
-    const cardPublisher = useFakePublishers
-      ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(
-          sharedServices.atProtoAgentService,
-          collections.card,
-        );
-
     const authMiddleware = new AuthMiddleware(
       sharedServices.tokenService,
       sharedServices.cookieService,
@@ -206,18 +196,17 @@ export class ServiceFactory {
       ...sharedServices,
       oauthProcessor,
       appPasswordProcessor,
-      cardPublisher,
       authMiddleware,
       statsApiKeyMiddleware,
     };
   }
 
-  static createForWorker(
+  static async createForWorker(
     configService: EnvironmentConfigService,
     repositories: Repositories,
     options?: WorkerServiceOptions,
-  ): WorkerServices {
-    const sharedServices = this.createSharedServices(
+  ): Promise<WorkerServices> {
+    const sharedServices = await this.createSharedServices(
       configService,
       repositories,
       options,
@@ -264,14 +253,14 @@ export class ServiceFactory {
     };
   }
 
-  private static createSharedServices(
+  private static async createSharedServices(
     configService: EnvironmentConfigService,
     repositories: Repositories,
     options?: WorkerServiceOptions,
-  ): SharedServices {
+  ): Promise<SharedServices> {
     const useMockAuth = configService.shouldUseMockAuth();
 
-    const nodeOauthClient = OAuthClientFactory.createClient(
+    const nodeOauthClient = await OAuthClientFactory.createClient(
       repositories.oauthStateStore,
       repositories.oauthSessionStore,
       oauthConfig.baseUrl,
@@ -572,6 +561,7 @@ export class ServiceFactory {
       cardLibraryService,
       cardCollectionService,
       eventPublisher,
+      cardPublisher,
       collectionPublisher,
       connectionPublisher,
       followPublisher,

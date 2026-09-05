@@ -1,11 +1,11 @@
 import SembleStats from '@/features/semble/components/sembleStats/SembleStats';
-import { Stack } from '@mantine/core';
+import { Stack, Box } from '@mantine/core';
 import SembleActionsContainer from '@/features/semble/containers/sembleActionsContainer/SembleActionsContainer';
 import { Suspense } from 'react';
 import SembleActionsContainerSkeleton from '@/features/semble/containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
+import SembleStatsSkeleton from '@/features/semble/components/sembleStats/Skeleton.SembleStats';
 import BlueskySemblePost from '../../components/blueskySemblePost/BlueskySemblePost';
 import BlueskySemblePostSkeleton from '../../components/blueskySemblePost/Skeleton.BlueskySemblePost';
-import SembleStatsSkeleton from '@/features/semble/components/sembleStats/Skeleton.SembleStats';
 
 interface Props {
   url: string;
@@ -39,7 +39,11 @@ export default async function BlueskySembleHeader(props: Props) {
         )}
 
         <Suspense
-          fallback={<SembleStatsSkeleton />}
+          fallback={
+            <Box style={{ visibility: 'hidden' }}>
+              <SembleStatsSkeleton />
+            </Box>
+          }
           key={props.url + 'added by summary'}
         >
           <SembleStats url={props.url} />

@@ -28,6 +28,7 @@ import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
+import { UrlType } from '../../../cards/domain/value-objects/UrlType';
 import { ActivitySource } from '@semble/types';
 import { KNOWN_BOT_DIDS } from '../../../../shared/constants/knownBots';
 
@@ -459,6 +460,27 @@ export class DrizzleFeedRepository implements IFeedRepository {
           urlType: dto.urlType,
         })
         .where(eq(feedActivities.id, dto.id));
+
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async updateUrlTypeByCardId(
+    cardId: string,
+    urlType: UrlType,
+  ): Promise<Result<void>> {
+    try {
+      await this.db
+        .update(feedActivities)
+        .set({ urlType })
+        .where(
+          and(
+            eq(feedActivities.cardId, cardId),
+            eq(feedActivities.type, ActivityTypeEnum.CARD_COLLECTED),
+          ),
+        );
 
       return ok(undefined);
     } catch (error) {

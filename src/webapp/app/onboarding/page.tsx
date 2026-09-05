@@ -19,42 +19,32 @@ interface Props {
 
 export default async function Page(props: Props) {
   await verifySessionOnServer({ redirectOnFail: true });
+  const { step } = await props.searchParams;
 
   const queryClient = makeServerQueryClient();
 
-  try {
-    await Promise.all([
-      // Seeds the record the flow reads, so the first client render already
-      // knows which screen to show — no flash, and no hydration flag.
-      queryClient.prefetchQuery({
-        queryKey: onboardingKeys.state(),
-        queryFn: getOnboardingState,
-      }),
+  // Not awaited so the page streams while they load.
+  void queryClient.prefetchQuery({
+    queryKey: onboardingKeys.state(),
+    queryFn: getOnboardingState,
+  });
 
-      queryClient.prefetchQuery({
-        queryKey: profileKeys.mineWithStats(),
-        queryFn: () => getMyProfile(true),
-      }),
+  void queryClient.prefetchQuery({
+    queryKey: profileKeys.mineWithStats(),
+    queryFn: () => getMyProfile(true),
+  });
 
-      // The last stage renders Composer, which calls useMyCollections — a
-      // suspense query — at the top of its body, so it suspends whether or not
-      // its drawer is open. This route sits outside (dashboard) and does not
-      // inherit that layout's identical prefetch.
-      queryClient.prefetchInfiniteQuery({
-        queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
-        initialPageParam: 1,
-        queryFn: () =>
-          getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
-      }),
-    ]);
-  } catch {
-    // Fall through to client fetching rather than failing the whole route,
-    // matching app/(dashboard)/layout.tsx.
-  }
+  // The last stage renders Composer, which calls useMyCollections — a
+  // suspense query — at the top of its body, so it suspends whether or not
+  // its drawer is open. This route sits outside (dashboard) and does not
+  // inherit that layout's identical prefetch.
+  void queryClient.prefetchInfiniteQuery({
+    queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
+    initialPageParam: 1,
+    queryFn: () => getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
+  });
 
-  // Which screen OnboardingFlow will settle on, from the same two inputs it
-  // uses. The record is already resolved and cache()d by the prefetch above.
-  const { step } = await props.searchParams;
+  // Awaited because the skeleton depends on it; shares the cache()d call above.
   const status = await getOnboardingState()
     .then((state) => state.onboardingState ?? 'NOT_STARTED')
     .catch(() => 'NOT_STARTED' as const);
