@@ -42,8 +42,9 @@ export default function ImageEmbed(props: Props) {
     alt: img.alt,
     caption: img.alt || undefined,
   }));
-  const single = images.length === 1 ? images[0].aspectRatio : undefined;
-  const ratio = single ? single.width / single.height : undefined;
+  const single = images.length === 1;
+  const aspect = single ? images[0].aspectRatio : undefined;
+  const ratio = aspect ? aspect.width / aspect.height : undefined;
 
   const openLightbox = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
@@ -68,7 +69,11 @@ export default function ImageEmbed(props: Props) {
               pos="relative"
               miw={0}
               mih={0}
-              bg="var(--mantine-color-default-hover)"
+              bg={
+                single
+                  ? 'var(--mantine-color-black)'
+                  : 'var(--mantine-color-default-hover)'
+              }
               aria-label={img.alt || 'Open image'}
               onClick={(e) => openLightbox(e, i)}
             >
@@ -79,7 +84,7 @@ export default function ImageEmbed(props: Props) {
                 inset={0}
                 w="100%"
                 h="100%"
-                fit="cover"
+                fit={single ? 'contain' : 'cover'}
               />
             </UnstyledButton>
           ))}
