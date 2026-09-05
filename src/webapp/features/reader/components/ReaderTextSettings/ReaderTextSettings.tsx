@@ -6,7 +6,6 @@ import {
   Popover,
   SegmentedControl,
   Stack,
-  Switch,
   Text,
 } from '@mantine/core';
 
@@ -83,17 +82,18 @@ export default function ReaderTextSettings(props: Props) {
         <Divider />
         <Group justify="space-between" align="center">
           <Text size="sm" fw={600}>
-            Show links
+            Links
           </Text>
-          <Switch
-            checked={settings.showLinks}
-            onChange={(event) =>
-              props.onChange({
-                ...settings,
-                showLinks: event.currentTarget.checked,
-              })
+          <SegmentedControl
+            size="xs"
+            value={settings.showLinks ? 'show' : 'hide'}
+            onChange={(value) =>
+              props.onChange({ ...settings, showLinks: value === 'show' })
             }
-            aria-label="Show links"
+            data={[
+              { value: 'show', label: 'Show' },
+              { value: 'hide', label: 'Hide' },
+            ]}
           />
         </Group>
       </Stack>
