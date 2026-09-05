@@ -39,7 +39,8 @@
 }
 
 .readerContent :global(blockquote) {
-  border-left: 3px solid var(--mantine-color-gray-4);
+  border-left: 3px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
   margin: 1.5em 0;
   padding: 0.4em 1.25em;
   color: var(--mantine-color-dimmed);
@@ -47,28 +48,44 @@
 }
 
 .readerContent :global(pre) {
-  background: var(--mantine-color-gray-0);
-  border: 1px solid var(--mantine-color-gray-2);
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
   border-radius: 8px;
   padding: 1em 1.25em;
   overflow-x: auto;
   font-size: 0.875em;
   line-height: 1.6;
   margin: 1.5em 0;
+  white-space: pre;
+  tab-size: 2;
+  font-family: var(--mantine-font-family-monospace, monospace);
 }
 
-.readerContent :global(code) {
-  background: var(--mantine-color-gray-1);
+.readerContent :global(code),
+.readerContent :global(kbd),
+.readerContent :global(samp) {
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
   border-radius: 4px;
   padding: 0.15em 0.4em;
   font-size: 0.875em;
   font-family: var(--mantine-font-family-monospace, monospace);
+  overflow-wrap: anywhere;
 }
 
-.readerContent :global(pre code) {
+.readerContent :global(pre code),
+.readerContent :global(pre samp) {
   background: none;
+  border-radius: 0;
   padding: 0;
   font-size: inherit;
+  overflow-wrap: normal;
 }
 
 .readerContent :global(ul),
@@ -108,7 +125,8 @@
 
 .readerContent :global(hr) {
   border: none;
-  border-top: 1px solid var(--mantine-color-gray-3);
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   margin: 2em 0;
 }
 
@@ -121,12 +139,16 @@
 
 .readerContent :global(th),
 .readerContent :global(td) {
-  border: 1px solid var(--mantine-color-gray-3);
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   padding: 0.5em 0.75em;
   text-align: left;
 }
 
 .readerContent :global(th) {
-  background: var(--mantine-color-gray-0);
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
   font-weight: 600;
 }
