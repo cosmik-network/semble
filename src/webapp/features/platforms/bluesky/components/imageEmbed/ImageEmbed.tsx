@@ -105,7 +105,12 @@ export default function ImageEmbed(props: Props) {
           <Lightbox.Toolbar />
           <Lightbox.Slides>
             {slides.map((slide, i) => (
-              <Lightbox.Slide key={i} slide={slide} index={i} />
+              <Lightbox.Slide
+                key={i}
+                slide={slide}
+                index={i}
+                onClick={() => setLightboxOpened(false)}
+              />
             ))}
           </Lightbox.Slides>
           {slides.length > 1 && (
