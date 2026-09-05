@@ -2,7 +2,10 @@
   --lightbox-overlay-color: rgba(28, 25, 23, 0.88);
   --lightbox-control-bg: rgba(28, 25, 23, 0.6);
   --lightbox-control-bg-hover: rgba(28, 25, 23, 0.8);
-  --lightbox-toolbar-height: calc(4.5rem * var(--mantine-scale));
+  --lightbox-toolbar-button-size: calc(2.75rem * var(--mantine-scale));
+  --lightbox-toolbar-height: calc(
+    var(--lightbox-toolbar-button-size) + 2 * var(--mantine-spacing-sm)
+  );
 }
 
 .overlay {
@@ -11,7 +14,7 @@
 
 .toolbar,
 .navigation {
-  padding: 0 var(--mantine-spacing-lg);
+  padding: 0 var(--mantine-spacing-sm);
 }
 
 .toolbar {
@@ -22,7 +25,7 @@
 }
 
 .slide {
-  padding-block: var(--lightbox-toolbar-height);
+  padding: var(--mantine-spacing-sm);
 }
 
 .toolbarButton,
@@ -38,8 +41,8 @@
 }
 
 .toolbarButton {
-  width: calc(2.75rem * var(--mantine-scale));
-  height: calc(2.75rem * var(--mantine-scale));
+  width: var(--lightbox-toolbar-button-size);
+  height: var(--lightbox-toolbar-button-size);
 
   & > svg {
     width: calc(1.5rem * var(--mantine-scale));
@@ -65,7 +68,7 @@
   width: 100%;
   max-width: 40rem;
   margin-inline: auto;
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg)
-    var(--mantine-spacing-lg);
+  padding: var(--mantine-spacing-xxs) var(--mantine-spacing-sm)
+    var(--mantine-spacing-sm);
   opacity: 1;
 }
