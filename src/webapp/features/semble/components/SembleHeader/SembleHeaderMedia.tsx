@@ -1,5 +1,3 @@
-'use client';
-
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { Card, AspectRatio } from '@mantine/core';
 import { ReactNode } from 'react';
