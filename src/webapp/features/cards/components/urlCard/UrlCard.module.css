@@ -1,3 +1,14 @@
 .root {
-  cursor: pointer;
+  position: relative;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* Paint interactive descendants above the link; :where lets self-positioned ones keep their layout. */
+:where(.root :is(a, button, input, textarea, select):not(.link)) {
+  position: relative;
 }
