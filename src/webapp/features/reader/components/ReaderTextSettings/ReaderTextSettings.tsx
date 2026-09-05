@@ -12,15 +12,23 @@ import {
 
 export const FONT_SIZE_OPTIONS = [14, 17, 20, 24];
 
+export type ReaderWidth = 'narrow' | 'cozy' | 'wide';
+
+export const READER_WIDTH_OPTIONS: { value: ReaderWidth; label: string }[] = [
+  { value: 'narrow', label: 'Narrow' },
+  { value: 'cozy', label: 'Cozy' },
+  { value: 'wide', label: 'Wide' },
+];
+
 export interface ReaderSettings {
   fontSize: number;
-  wide: boolean;
+  width: ReaderWidth;
   showLinks: boolean;
 }
 
 export const DEFAULT_READER_SETTINGS: ReaderSettings = {
   fontSize: 17,
-  wide: false,
+  width: 'cozy',
   showLinks: true,
 };
 
@@ -65,14 +73,11 @@ export default function ReaderTextSettings(props: Props) {
           </Text>
           <SegmentedControl
             size="xs"
-            value={settings.wide ? 'wide' : 'cozy'}
+            value={settings.width}
             onChange={(value) =>
-              props.onChange({ ...settings, wide: value === 'wide' })
+              props.onChange({ ...settings, width: value as ReaderWidth })
             }
-            data={[
-              { value: 'cozy', label: 'Cozy' },
-              { value: 'wide', label: 'Wide' },
-            ]}
+            data={READER_WIDTH_OPTIONS}
           />
         </Group>
         <Divider />

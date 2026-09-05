@@ -16,7 +16,10 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReaderContent } from '@/app/api/reader/route';
 import { useScrollFade } from '@/hooks/useScrollFade';
 import { stripLinks } from '../../lib/utils/stripLinks';
-import type { ReaderSettings } from '../ReaderTextSettings/ReaderTextSettings';
+import type {
+  ReaderSettings,
+  ReaderWidth,
+} from '../ReaderTextSettings/ReaderTextSettings';
 import ReaderArticleSkeleton from './Skeleton.ReaderArticle';
 import styles from './ReaderArticle.module.css';
 
@@ -24,6 +27,12 @@ interface Props {
   reader: UseQueryResult<ReaderContent>;
   settings: ReaderSettings;
 }
+
+const CONTAINER_SIZE: Record<ReaderWidth, 'xs' | 'sm' | 'md'> = {
+  narrow: 'xs',
+  cozy: 'sm',
+  wide: 'md',
+};
 
 export default function ReaderArticle(props: Props) {
   const { reader, settings } = props;
@@ -45,7 +54,7 @@ export default function ReaderArticle(props: Props) {
       }}
     >
       <Container
-        size={settings.wide ? 'md' : 'sm'}
+        size={CONTAINER_SIZE[settings.width]}
         px="xl"
         style={{
           paddingTop: '2.5rem',
