@@ -93,8 +93,8 @@ const testimonials = [
   },
 ];
 
-export default async function Page() {
-  const session = await verifySessionOnServer();
+export default function Page() {
+  const session = verifySessionOnServer();
 
   return (
     // overflowAnchor: Chrome's scroll anchoring compensates frame-by-frame while
@@ -122,7 +122,7 @@ export default async function Page() {
       <Box pos="relative" style={{ zIndex: 1 }}>
         {/* subtle tree shadows filling the gap between hero and footer */}
         <TreeShadows />
-        <Content isAuthenticated={!!session} />
+        <Content session={session} />
       </Box>
     </Box>
   );
@@ -136,7 +136,19 @@ async function TestimonialAvatar(props: { handle: string; name: string }) {
   );
 }
 
-function Content(props: { isAuthenticated: boolean }) {
+async function LoginButton(props: {
+  session: ReturnType<typeof verifySessionOnServer>;
+}) {
+  if (await props.session) return null;
+
+  return (
+    <LinkButton href="/login" size="sm" variant="inverse">
+      Log in
+    </LinkButton>
+  );
+}
+
+function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
   return (
     <Fragment>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
@@ -170,11 +182,9 @@ function Content(props: { isAuthenticated: boolean }) {
             style={{ flexShrink: 0 }}
           >
             <GetExtensionMenu />
-            {!props.isAuthenticated && (
-              <LinkButton href="/login" size="sm" variant="inverse">
-                Log in
-              </LinkButton>
-            )}
+            <Suspense>
+              <LoginButton session={props.session} />
+            </Suspense>
           </Group>
         </Group>
       </Container>
