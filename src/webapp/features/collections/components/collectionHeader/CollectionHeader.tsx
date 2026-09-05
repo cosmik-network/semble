@@ -149,7 +149,9 @@ export default function CollectionHeader(props: Props) {
               <Suspense
                 fallback={
                   <Box style={{ visibility: 'hidden' }}>
-                    <CollectionStatsSkeleton />
+                    <CollectionStatsSkeleton
+                      accessType={collection.accessType}
+                    />
                   </Box>
                 }
               >

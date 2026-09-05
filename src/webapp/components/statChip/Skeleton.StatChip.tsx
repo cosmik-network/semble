@@ -24,7 +24,7 @@ export default function StatChipSkeleton(props: Props) {
           />
         ))}
       </Group>
-      <Skeleton h={14} w={props.width ?? 90} radius="xl" />
+      <Skeleton h={14} my={4} w={props.width ?? 90} radius="xl" />
     </Group>
   );
 }
