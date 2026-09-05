@@ -38,7 +38,7 @@ export default function SembleProfileCardContent(props: Props) {
 
         <Group gap="xs">
           {profile.followsYou && (
-            <Badge variant="light" color="gray">
+            <Badge variant="light" color="gray" radius="sm">
               Follows you
             </Badge>
           )}

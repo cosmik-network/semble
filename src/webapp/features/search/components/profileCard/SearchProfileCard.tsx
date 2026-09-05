@@ -33,7 +33,7 @@ export default function SearchProfileCard(props: Props) {
         </Group>
 
         {props.profile.viewer?.followedBy && (
-          <Badge variant="light" color="gray">
+          <Badge variant="light" color="gray" radius="sm">
             Follows you
           </Badge>
         )}

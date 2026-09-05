@@ -62,7 +62,7 @@ export default function ProfileCard(props: Props) {
 
         <Group gap="xs">
           {props.profile.followsYou && (
-            <Badge variant="light" color="gray">
+            <Badge variant="light" color="gray" radius="sm">
               Follows you
             </Badge>
           )}
