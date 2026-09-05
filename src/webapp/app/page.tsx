@@ -35,7 +35,7 @@ import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
 import GetExtensionMenu from '@/components/landing/getExtensionMenu/GetExtensionMenu';
 import TreeShadows from '@/components/landing/treeShadows/TreeShadows';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
 import { LinkButton } from '@/components/link/MantineLink';
@@ -94,14 +94,7 @@ const testimonials = [
 ];
 
 export default async function Page() {
-  const [profiles, session] = await Promise.all([
-    Promise.all(testimonials.map((t) => getBlueskyProfile(t.handle))),
-    verifySessionOnServer(),
-  ]);
-  const testimonialsWithAvatars = testimonials.map((t, i) => ({
-    ...t,
-    avatar: profiles[i]?.avatar ?? null,
-  }));
+  const session = await verifySessionOnServer();
 
   return (
     // overflowAnchor: Chrome's scroll anchoring compensates frame-by-frame while
@@ -129,25 +122,21 @@ export default async function Page() {
       <Box pos="relative" style={{ zIndex: 1 }}>
         {/* subtle tree shadows filling the gap between hero and footer */}
         <TreeShadows />
-        <Content
-          testimonials={testimonialsWithAvatars}
-          isAuthenticated={!!session}
-        />
+        <Content isAuthenticated={!!session} />
       </Box>
     </Box>
   );
 }
 
-function Content(props: {
-  testimonials: {
-    name: string;
-    handle: string;
-    quote: string;
-    postUrl: string;
-    avatar: string | null;
-  }[];
-  isAuthenticated: boolean;
-}) {
+async function TestimonialAvatar(props: { handle: string; name: string }) {
+  const profile = await getBlueskyProfile(props.handle);
+
+  return (
+    <Avatar src={profile?.avatar ?? null} alt={props.name} radius={'xl'} />
+  );
+}
+
+function Content(props: { isAuthenticated: boolean }) {
   return (
     <Fragment>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
@@ -800,14 +789,15 @@ function Content(props: {
                     spacing={{ base: 'xl' }}
                     mt={{ base: '1rem' }}
                   >
-                    {props.testimonials.map((testimonial) => (
+                    {testimonials.map((testimonial) => (
                       <Stack key={testimonial.name} gap="xs" align="center">
                         <Group gap={'xs'}>
-                          <Avatar
-                            src={testimonial.avatar}
-                            alt={testimonial.name}
-                            radius={'xl'}
-                          />
+                          <Suspense fallback={<Avatar radius={'xl'} />}>
+                            <TestimonialAvatar
+                              handle={testimonial.handle}
+                              name={testimonial.name}
+                            />
+                          </Suspense>
                           <Text fw={600} fz="lg">
                             {testimonial.name}
                           </Text>
