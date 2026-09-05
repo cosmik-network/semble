@@ -7,6 +7,7 @@
   --video-max-height: 420px;
   position: relative;
   z-index: 0;
+  width: 100%;
   aspect-ratio: var(--video-ratio);
   max-height: min(
     var(--video-max-height),
@@ -14,5 +15,15 @@
   );
   overflow: hidden;
   border-radius: var(--mantine-radius-md);
-  background-color: var(--mantine-color-disabled);
+  background-color: var(--mantine-color-black);
+}
+
+/* vidstack defaults the video element to 16:9; fill the frame instead. */
+.video video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
 }

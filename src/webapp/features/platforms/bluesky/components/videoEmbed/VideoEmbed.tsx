@@ -2,11 +2,10 @@
 
 import { AppBskyEmbedVideo } from '@atproto/api';
 import { Box } from '@mantine/core';
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
 import VideoPoster from './VideoPoster';
+import VideoPlayer from './VideoPlayer';
 import classes from './VideoEmbed.module.css';
-
-const VideoPlayer = lazy(() => import('./VideoPlayer'));
 
 interface Props {
   embed: AppBskyEmbedVideo.View;
@@ -22,13 +21,7 @@ export default function VideoEmbed(props: Props) {
     <Box className={classes.frame} w="100%">
       <Box className={classes.video} style={{ '--video-ratio': ratio }}>
         {isPlaying ? (
-          <Suspense
-            fallback={
-              <VideoPoster thumbnail={props.embed.thumbnail} isLoading />
-            }
-          >
-            <VideoPlayer embed={props.embed} />
-          </Suspense>
+          <VideoPlayer embed={props.embed} />
         ) : (
           <VideoPoster
             thumbnail={props.embed.thumbnail}
