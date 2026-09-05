@@ -1,10 +1,11 @@
 'use client';
 
-import { Drawer, Text } from '@mantine/core';
+import { Drawer, ScrollArea, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
+import { useScrollFade } from '@/hooks/useScrollFade';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 
 export default function StatDrawer(props: Props) {
   const isDesktop = useMediaQuery('(min-width: 48em)', false);
+  const { setViewport, maskImage, updateFade } = useScrollFade();
 
   return (
     <Drawer
@@ -28,10 +30,31 @@ export default function StatDrawer(props: Props) {
       title={<Text fw={600}>{props.title}</Text>}
       overlayProps={DEFAULT_OVERLAY_PROPS}
       onClick={(e) => e.stopPropagation()}
+      styles={{
+        content: { display: 'flex', flexDirection: 'column' },
+        body: {
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        },
+      }}
     >
-      <ErrorBoundary fallback={<ErrorState message={props.errorMessage} />}>
-        <Suspense fallback={props.skeleton}>{props.children}</Suspense>
-      </ErrorBoundary>
+      <ScrollArea
+        type="auto"
+        style={{ flex: 1, minHeight: 0 }}
+        viewportRef={setViewport}
+        onScrollPositionChange={updateFade}
+        styles={{
+          viewport: maskImage
+            ? { maskImage, WebkitMaskImage: maskImage }
+            : undefined,
+        }}
+      >
+        <ErrorBoundary fallback={<ErrorState message={props.errorMessage} />}>
+          <Suspense fallback={props.skeleton}>{props.children}</Suspense>
+        </ErrorBoundary>
+      </ScrollArea>
     </Drawer>
   );
 }
