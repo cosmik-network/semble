@@ -6,6 +6,7 @@ import useCollectionContributors from '../../lib/queries/useCollectionContributo
 import ProfileCard from '@/features/profile/components/profileCard/ProfileCard';
 import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 import { HiUsers } from 'react-icons/hi';
+import { FaSeedling } from 'react-icons/fa6';
 
 interface Props {
   collectionId: string;
@@ -39,8 +40,13 @@ export default function CollectionContributorsContainer(props: Props) {
             }}
           >
             <ProfileCard profile={user}>
-              {user.contributionCount && (
-                <Badge variant="light" color="blue">
+              {user.contributionCount > 0 && (
+                <Badge
+                  variant="light"
+                  color="green"
+                  radius="md"
+                  leftSection={<FaSeedling size={10} />}
+                >
                   {user.contributionCount}{' '}
                   {user.contributionCount === 1
                     ? 'Contribution'
