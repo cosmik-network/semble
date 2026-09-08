@@ -27,10 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-interface Props {
-  children: React.ReactNode;
-}
-
 export default function Layout(props: Props) {
   return <Fragment>{props.children}</Fragment>;
 }

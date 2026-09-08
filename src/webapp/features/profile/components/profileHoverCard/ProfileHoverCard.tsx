@@ -65,10 +65,7 @@ export default function ProfileHoverCard(props: Props) {
 
             {/* Follow stats */}
             <Group gap="xs">
-              <Anchor
-                href={`/profile/${profile.handle}/network`}
-                underline="never"
-              >
+              <Anchor href={`/profile/${profile.handle}`} underline="never">
                 <Text fw={500} c={'bright'} span>
                   {profile.followerCount}
                 </Text>
@@ -78,10 +75,7 @@ export default function ProfileHoverCard(props: Props) {
                 </Text>
               </Anchor>
 
-              <Anchor
-                href={`/profile/${profile.handle}/network/following`}
-                underline="never"
-              >
+              <Anchor href={`/profile/${profile.handle}`} underline="never">
                 <Text fw={500} c={'bright'} span>
                   {profile.followingCount}
                 </Text>

@@ -176,8 +176,8 @@ export default function LibraryRecentCollections() {
 
   const viewAllHref = {
     mine: `/profile/${profile.handle}/collections`,
-    following: `/profile/${profile.handle}/network/collections-following`,
-    contributed: `/profile/${profile.handle}/network/contributed-to`,
+    following: `/profile/${profile.handle}`,
+    contributed: `/profile/${profile.handle}/contributions`,
   }[filter];
 
   return (

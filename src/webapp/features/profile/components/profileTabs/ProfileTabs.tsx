@@ -58,8 +58,8 @@ export default function ProfileTabs(props: Props) {
             >
               Connections
             </LinkTab>
-            <LinkTab value="network" href={`${basePath}/network`}>
-              Network
+            <LinkTab value="contributions" href={`${basePath}/contributions`}>
+              Contributions
             </LinkTab>
             {featureFlags?.graphView && (
               <LinkTab value="graph" href={`${basePath}/graph`}>

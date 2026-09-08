@@ -53,18 +53,18 @@ test.describe('Profile tab navigation', () => {
     await expect(tab).toHaveAttribute('data-active', 'true');
   });
 
-  test('can navigate to Network tab', async ({ page }) => {
-    const tab = page.getByRole('tab', { name: /Network/ });
+  test('can navigate to Contributions tab', async ({ page }) => {
+    const tab = page.getByRole('tab', { name: /Contributions/ });
     await tab.click();
 
-    await expect(page).toHaveURL(`${BASE}/network`);
+    await expect(page).toHaveURL(`${BASE}/contributions`);
     await expect(tab).toHaveAttribute('data-active', 'true');
   });
 
   test('tabs do not redirect to /login (profile is public)', async ({
     page,
   }) => {
-    const tabRoutes = ['cards', 'collections', 'connections', 'network'];
+    const tabRoutes = ['cards', 'collections', 'connections', 'contributions'];
 
     for (const route of tabRoutes) {
       const response = await page.goto(`${BASE}/${route}`);

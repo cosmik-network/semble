@@ -42,7 +42,7 @@ export default function CollectionsNavListContent() {
         label="Following"
         opened={mounted && settings.followingNavExpanded}
         onChange={(opened) => updateSetting('followingNavExpanded', opened)}
-        viewAllHref={`/profile/${profile.handle}/network/collections-following`}
+        viewAllHref={`/profile/${profile.handle}`}
         onNavigate={toggleMobile}
       >
         <FollowingCollectionsNavItems identifier={profile.handle} />
@@ -52,7 +52,7 @@ export default function CollectionsNavListContent() {
         label="Contributed To"
         opened={mounted && settings.contributedToNavExpanded}
         onChange={(opened) => updateSetting('contributedToNavExpanded', opened)}
-        viewAllHref={`/profile/${profile.handle}/network/contributed-to`}
+        viewAllHref={`/profile/${profile.handle}/contributions`}
         onNavigate={toggleMobile}
       >
         <ContributedCollectionsNavItems identifier={profile.handle} />
