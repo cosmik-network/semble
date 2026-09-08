@@ -127,25 +127,3 @@ export const getCollectionFollowers = cache(
     return response;
   },
 );
-
-export const getFollowersCount = cache(async (identifier: string) => {
-  const client = createSembleClient();
-  const response = await client.getFollowersCount({ identifier });
-  return response;
-});
-
-export const getFollowingCollectionsCount = cache(
-  async (identifier: string) => {
-    const client = createSembleClient();
-    const response = await client.getFollowingCollectionsCount({ identifier });
-    return response;
-  },
-);
-
-export const getCollectionFollowersCount = cache(
-  async (collectionId: string) => {
-    const client = createSembleClient();
-    const response = await client.getCollectionFollowersCount({ collectionId });
-    return response;
-  },
-);

@@ -94,14 +94,7 @@ export function useToggleFollow(
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
 
-      if (target.targetType === 'USER') {
-        queryClient.invalidateQueries({
-          queryKey: followKeys.followersCount(target.targetId),
-        });
-      } else {
-        queryClient.invalidateQueries({
-          queryKey: followKeys.collectionFollowersCount(target.targetId),
-        });
+      if (target.targetType === 'COLLECTION') {
         queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       }
     },
