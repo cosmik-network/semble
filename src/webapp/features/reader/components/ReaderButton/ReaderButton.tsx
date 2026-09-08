@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button, Drawer } from '@mantine/core';
 import { useWindowEvent } from '@mantine/hooks';
-import { TbBook2 } from 'react-icons/tb';
+import { RiArticleLine } from 'react-icons/ri';
 import useReaderContent from '../../lib/queries/useReaderContent';
 import useReaderLinks from '../../lib/useReaderLinks';
 import {
@@ -51,7 +51,7 @@ export default function ReaderButton(props: Props) {
         variant="light"
         color="gray"
         radius="xl"
-        leftSection={<TbBook2 size={18} />}
+        leftSection={<RiArticleLine size={18} />}
         onClick={() => setOpened(true)}
         aria-label="Open reader mode"
       >
