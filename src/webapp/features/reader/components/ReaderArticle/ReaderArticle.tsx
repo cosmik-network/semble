@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import {
   Alert,
   Box,
@@ -11,11 +10,12 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { MdErrorOutline } from 'react-icons/md';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReaderContent } from '@/app/api/reader/route';
 import { useScrollFade } from '@/hooks/useScrollFade';
-import { stripLinks } from '../../lib/utils/stripLinks';
+import { parseReaderContent } from '../../lib/parseReaderContent';
 import type {
   ReaderSettings,
   ReaderWidth,
@@ -26,6 +26,7 @@ import styles from './ReaderArticle.module.css';
 interface Props {
   reader: UseQueryResult<ReaderContent>;
   settings: ReaderSettings;
+  articleUrl: string;
 }
 
 const CONTAINER_SIZE: Record<ReaderWidth, 'xs' | 'sm' | 'md'> = {
@@ -35,12 +36,22 @@ const CONTAINER_SIZE: Record<ReaderWidth, 'xs' | 'sm' | 'md'> = {
 };
 
 export default function ReaderArticle(props: Props) {
-  const { reader, settings } = props;
-  const articleRef = useRef<HTMLDivElement>(null);
+  const { reader, settings, articleUrl } = props;
   const { setViewport, maskImage, updateFade } = useScrollFade();
 
+  // Hover opens the popover and click opens the link; on touch, tap opens the popover
+  const isHoverDevice = useMediaQuery(
+    '(hover: hover) and (pointer: fine)',
+    true,
+    { getInitialValueInEffect: false },
+  );
+
   const content = reader.data?.content ?? '';
-  const html = settings.showLinks ? content : stripLinks(content);
+  const article = parseReaderContent(content, {
+    articleUrl,
+    showLinks: settings.showLinks,
+    isHoverDevice,
+  });
 
   return (
     <ScrollArea
@@ -104,8 +115,6 @@ export default function ReaderArticle(props: Props) {
             )}
             <Box
               component="article"
-              ref={articleRef}
-              dangerouslySetInnerHTML={{ __html: html }}
               className={styles.readerContent}
               style={{
                 fontSize: `${settings.fontSize}px`,
@@ -113,7 +122,9 @@ export default function ReaderArticle(props: Props) {
                 color: 'var(--mantine-color-text)',
                 marginTop: '1.5rem',
               }}
-            />
+            >
+              {article}
+            </Box>
           </Stack>
         )}
       </Container>

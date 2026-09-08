@@ -36,6 +36,11 @@
 
 .readerContent :global(a:hover) {
   color: var(--mantine-color-blue-8);
+  background: light-dark(
+    var(--mantine-color-blue-0),
+    var(--mantine-color-dark-5)
+  );
+  border-radius: 4px;
 }
 
 .readerContent :global(blockquote) {

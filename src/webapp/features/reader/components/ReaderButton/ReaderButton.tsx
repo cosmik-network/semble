@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import { Button, Drawer } from '@mantine/core';
+import { useWindowEvent } from '@mantine/hooks';
 import { TbBook2 } from 'react-icons/tb';
 import useReaderContent from '../../lib/queries/useReaderContent';
 import useReaderLinks from '../../lib/useReaderLinks';
+import {
+  isReaderLinkOverlayOpen,
+  ReaderLinkProvider,
+  useReaderLinkReducer,
+} from '../../lib/readerLinkState';
 import ReaderArticle from '../ReaderArticle/ReaderArticle';
 import ReaderToolbar from '../ReaderToolbar/ReaderToolbar';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
+import ReaderLinkModals from '../ReaderLinkModals/ReaderLinkModals';
 import { DEFAULT_READER_SETTINGS } from '../ReaderTextSettings/ReaderTextSettings';
 
 interface Props {
@@ -18,6 +25,7 @@ export default function ReaderButton(props: Props) {
   const [opened, setOpened] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_READER_SETTINGS);
+  const [linkState, dispatchLink] = useReaderLinkReducer();
 
   const reader = useReaderContent({ url: props.url, enabled: opened });
 
@@ -25,8 +33,20 @@ export default function ReaderButton(props: Props) {
   // the show-links toggle is off
   const links = useReaderLinks(reader.data?.content ?? '', props.url);
 
+  const closeReader = () => {
+    setOpened(false);
+    dispatchLink({ type: 'reset' });
+  };
+
+  // Popovers never hold focus, so Escape is handled here
+  useWindowEvent('keydown', (e) => {
+    if (e.key === 'Escape' && linkState.activeId !== null) {
+      dispatchLink({ type: 'dismiss' });
+    }
+  });
+
   return (
-    <>
+    <ReaderLinkProvider state={linkState} dispatch={dispatchLink}>
       <Button
         variant="light"
         color="gray"
@@ -40,14 +60,13 @@ export default function ReaderButton(props: Props) {
 
       <Drawer
         opened={opened}
-        onClose={() => setOpened(false)}
+        onClose={closeReader}
         position="bottom"
         size="full"
         p={0}
         withCloseButton={false}
-        // While the links drawer is stacked on top, Esc should only close it,
-        // not this drawer underneath
-        closeOnEscape={!linksOpen}
+        // Esc should close only what is stacked on top
+        closeOnEscape={!linksOpen && !isReaderLinkOverlayOpen(linkState)}
         styles={{
           content: {
             position: 'relative',
@@ -62,14 +81,18 @@ export default function ReaderButton(props: Props) {
           },
         }}
       >
-        <ReaderArticle reader={reader} settings={settings} />
+        <ReaderArticle
+          reader={reader}
+          settings={settings}
+          articleUrl={props.url}
+        />
 
         <ReaderToolbar
           settings={settings}
           onSettingsChange={setSettings}
           linkCount={reader.isPending ? undefined : links.length}
           onOpenLinks={() => setLinksOpen(true)}
-          onClose={() => setOpened(false)}
+          onClose={closeReader}
         />
       </Drawer>
 
@@ -79,6 +102,8 @@ export default function ReaderButton(props: Props) {
         links={links}
         articleUrl={props.url}
       />
-    </>
+
+      <ReaderLinkModals articleUrl={props.url} />
+    </ReaderLinkProvider>
   );
 }

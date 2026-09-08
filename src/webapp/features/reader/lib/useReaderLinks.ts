@@ -1,24 +1,13 @@
 import { useMemo } from 'react';
+import {
+  normalizeUrl,
+  toReaderLink,
+  type ReaderLink,
+} from './utils/readerLink';
 
-export interface ReaderLink {
-  href: string;
-  text: string;
-}
+export type { ReaderLink } from './utils/readerLink';
 
-function normalizeUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    u.hash = '';
-    return u.toString().replace(/\/$/, '');
-  } catch {
-    return url;
-  }
-}
-
-/**
- * Extracts saveable links from the reader article HTML: http(s) only,
- * deduped by href, excluding links back to the article itself.
- */
+/** Extracts saveable links from the reader article HTML, deduped by href. */
 export function extractReaderLinks(
   content: string,
   articleUrl: string,
@@ -26,23 +15,22 @@ export function extractReaderLinks(
   if (typeof DOMParser === 'undefined') return [];
 
   const doc = new DOMParser().parseFromString(content, 'text/html');
-  const normalizedArticleUrl = normalizeUrl(articleUrl);
   const seen = new Set<string>();
   const links: ReaderLink[] = [];
 
   for (const anchor of Array.from(doc.querySelectorAll('a[href]'))) {
-    const href = anchor.getAttribute('href') ?? '';
-    if (!/^https?:\/\//i.test(href)) continue;
+    const link = toReaderLink(
+      anchor.getAttribute('href') ?? '',
+      anchor.textContent ?? '',
+      articleUrl,
+    );
+    if (!link) continue;
 
-    const normalized = normalizeUrl(href);
-    if (normalized === normalizedArticleUrl) continue;
+    const normalized = normalizeUrl(link.href);
     if (seen.has(normalized)) continue;
     seen.add(normalized);
 
-    links.push({
-      href,
-      text: anchor.textContent?.trim() || href,
-    });
+    links.push(link);
   }
 
   return links;
