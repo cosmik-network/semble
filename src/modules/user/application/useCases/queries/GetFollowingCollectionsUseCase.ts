@@ -172,7 +172,7 @@ export class GetFollowingCollectionsUseCase implements UseCase<
             name: collection.name.value,
             author,
             description: collection.description?.value,
-            accessType: collection.accessType.value,
+            accessType: collection.accessType,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt.toISOString(),
             updatedAt: collection.updatedAt.toISOString(),
