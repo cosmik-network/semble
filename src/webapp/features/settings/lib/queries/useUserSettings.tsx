@@ -10,6 +10,7 @@ export interface UserSettings {
   collectionsNavExpanded: boolean;
   followingNavExpanded: boolean;
   contributedToNavExpanded: boolean;
+  cardsNavExpanded: boolean;
   feedSource: ActivitySource | null;
   feedView: FeedView;
   feedUrlType: UrlType | null;
@@ -22,13 +23,14 @@ export interface UserSettings {
   bskyHandle: string | null;
 }
 
-const defaultSettings: UserSettings = {
+export const defaultSettings: UserSettings = {
   tinkerMode: false,
   cardView: 'grid',
   collectionView: 'grid',
   collectionsNavExpanded: false,
   followingNavExpanded: false,
   contributedToNavExpanded: false,
+  cardsNavExpanded: false,
   feedSource: null,
   feedView: 'global',
   feedUrlType: null,
@@ -54,8 +56,8 @@ const defaultSettings: UserSettings = {
  * anything in a later hydration pass renders, so a component that renders a
  * stored value inside a Suspense boundary now hydrates against server HTML
  * built from the defaults, and React refuses to patch the mismatch up.
- * `CollectionsNavListContent` is the one place this bites today, and it holds
- * the server's value for one render with `useMounted()` from `@mantine/hooks`.
+ * `LibraryNav` is the one place this bites today, and it holds the server's
+ * value for one render with `useMounted()` from `@mantine/hooks`.
  * Anything else that SSRs a stored setting from inside a streamed boundary
  * needs to do the same.
  */

@@ -1,6 +1,5 @@
 'use client';
 
-import CollectionsNavList from '@/features/collections/components/collectionsNavList/CollectionsNavList';
 import NavItem from '../navItem/NavItem';
 import {
   AppShellSection,
@@ -22,7 +21,6 @@ import { BiSearch } from 'react-icons/bi';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
 import { Suspense, useState } from 'react';
-import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
@@ -30,6 +28,7 @@ import { track } from '@vercel/analytics';
 import NotificationNavItem from '@/features/notifications/components/notificationNavItem/NotificationNavItem';
 import Composer from '@/features/composer/components/Composer';
 import { HiOutlineHome, HiOutlineUserCircle } from 'react-icons/hi';
+import LibraryNav from '@/features/library/components/libraryNav/LibraryNav';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
@@ -90,9 +89,7 @@ export default function Navbar() {
         </Stack>
 
         <Divider my={'sm'} />
-        <Suspense fallback={<CollectionsNavListSkeleton />}>
-          <CollectionsNavList />
-        </Suspense>
+        <LibraryNav />
       </AppShellSection>
       <AppShellSection>
         <Button

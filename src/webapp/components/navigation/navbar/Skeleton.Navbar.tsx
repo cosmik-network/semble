@@ -16,7 +16,7 @@ import {
 
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
-import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
+import LibraryNavSkeleton from '@/features/library/components/libraryNav/Skeleton.LibraryNav';
 
 export default function NavbarSkeleton() {
   // z-index clears the sticky Header (100), which the open mobile navbar covers
@@ -54,8 +54,7 @@ export default function NavbarSkeleton() {
 
         <Divider mb={'sm'} mt={'18'} />
 
-        {/* Collections List Skeleton */}
-        <CollectionsNavListSkeleton />
+        <LibraryNavSkeleton />
       </AppShellSection>
 
       <AppShellSection>
