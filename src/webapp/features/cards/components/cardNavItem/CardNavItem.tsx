@@ -1,5 +1,7 @@
-import { Image } from '@mantine/core';
+import { Center, Image } from '@mantine/core';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { BiWorld } from 'react-icons/bi';
 import { useNavbarContext } from '@/providers/navbar';
 import { LinkNavLink } from '@/components/link/MantineLink';
 import { getDomain, getSembleHref } from '@/lib/utils/link';
@@ -15,6 +17,7 @@ export default function CardNavItem(props: Props) {
   const { toggleMobile } = useNavbarContext();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [imageError, setImageError] = useState(false);
   // Active on this card's semble page, /url?id=<url>
   const isActive = pathname === '/url' && searchParams.get('id') === props.url;
 
@@ -29,7 +32,7 @@ export default function CardNavItem(props: Props) {
       classNames={{ root: isActive ? styles.navLinkActive : styles.navLink }}
       onClick={toggleMobile}
       leftSection={
-        props.imageUrl ? (
+        props.imageUrl && !imageError ? (
           <Image
             src={props.imageUrl}
             alt=""
@@ -37,8 +40,13 @@ export default function CardNavItem(props: Props) {
             h={24}
             fit="cover"
             radius={'sm'}
+            onError={() => setImageError(true)}
           />
-        ) : undefined
+        ) : (
+          <Center w={24} h={24} className={styles.imagePlaceholder}>
+            <BiWorld size={16} />
+          </Center>
+        )
       }
     />
   );

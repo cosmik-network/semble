@@ -13,3 +13,13 @@
     color: var(--mantine-color-white);
   }
 }
+
+.imagePlaceholder {
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-dimmed);
+  background-color: var(--mantine-color-gray-1);
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-5);
+  }
+}
