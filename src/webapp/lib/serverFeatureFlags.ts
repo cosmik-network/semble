@@ -26,7 +26,6 @@ export async function getServerFeatureFlags() {
     following: true,
     connections: true,
     graphView: false,
-    readerMode: showForTeam,
     onboarding: show,
     bskyFollows: showForTeam,
   };
