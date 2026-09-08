@@ -81,8 +81,8 @@ export default function FeedControls() {
         <Menu width={200} position="bottom-start" shadow="md">
           <Menu.Target>
             <Button variant="light" color="cyan" leftSection={<MdFilterList />}>
-              {selectedSource?.label}
-              {` / ${selectedFeed?.label}`}
+              {settings.feedSource && `${selectedSource?.label} / `}
+              {selectedFeed?.label}
               {settings.feedUrlType && ` / ${upperFirst(settings.feedUrlType)}`}
               {settings.feedActivityType &&
                 ` / ${activityTypeOptions.find((o) => o.value === settings.feedActivityType)?.label}`}
