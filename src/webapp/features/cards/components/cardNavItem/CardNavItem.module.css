@@ -1,0 +1,15 @@
+.navLink {
+  color: var(--mantine-color-gray-6);
+
+  @mixin dark {
+    color: var(--mantine-color-gray-4);
+  }
+}
+
+.navLinkActive {
+  color: var(--mantine-color-dark-filled);
+
+  @mixin dark {
+    color: var(--mantine-color-white);
+  }
+}

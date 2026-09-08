@@ -10,6 +10,9 @@ import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { getFollowingCollections } from '@/features/follows/lib/dal.server';
 import { followKeys } from '@/features/follows/lib/followKeys';
 import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
+import { getMyUrlCards } from '@/features/cards/lib/dal.server';
+import { cardKeys } from '@/features/cards/lib/cardKeys';
+import { NAV_CARDS_LIMIT } from '@/features/cards/lib/constants';
 import { makeServerQueryClient } from '@/lib/queryClient';
 
 export const metadata: Metadata = {
@@ -61,6 +64,12 @@ export default async function Layout(props: Props) {
           page: 1,
           limit: NAV_COLLECTIONS_LIMIT,
         }),
+    });
+
+    void queryClient.prefetchInfiniteQuery({
+      queryKey: cardKeys.mine(NAV_CARDS_LIMIT),
+      initialPageParam: 1,
+      queryFn: () => getMyUrlCards({ page: 1, limit: NAV_CARDS_LIMIT }),
     });
   }
 
