@@ -1,33 +1,13 @@
 import { err, ok, Result } from 'src/shared/core/Result';
 import { IAppPasswordSessionRepository } from '../repositories/IAppPasswordSessionRepository';
-import { AtpAgent, AtpSessionData } from '@atproto/api';
+import { AtpSessionData } from '@atproto/api';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
-import { IdResolver } from '@atproto/identity';
-
-export async function createAppPasswordAgent(identifier: string) {
-  const resolver = new IdResolver();
-  const did = identifier.startsWith('did:')
-    ? identifier
-    : await resolver.handle.resolve(identifier);
-  if (!did) throw new Error('Could not resolve account handle');
-  const identity = await resolver.did.resolveAtprotoData(did);
-  const endpoint = new URL(identity.pds);
-  if (
-    endpoint.protocol !== 'https:' ||
-    endpoint.username ||
-    endpoint.password
-  ) {
-    throw new Error(
-      'Account PDS must be an HTTPS endpoint without credentials',
-    );
-  }
-  return { did, agent: new AtpAgent({ service: endpoint }) };
-}
+import { createPdsAgent } from './PdsAgent';
 
 export class AppPasswordSessionService implements IAppPasswordSessionService {
   constructor(
     private readonly appPasswordSessionRepository: IAppPasswordSessionRepository,
-    private readonly createAgent = createAppPasswordAgent,
+    private readonly createAgent = createPdsAgent,
   ) {}
   async getSession(did: string): Promise<Result<AtpSessionData>> {
     const sessionResult =
