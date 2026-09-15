@@ -29,7 +29,7 @@ import { BiCollection } from 'react-icons/bi';
 import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
-import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
+import { COMPOSER_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
@@ -73,7 +73,7 @@ export default function Composer(props: Props) {
     useState(initialCollections);
 
   const { data: collections } = useMyCollections({
-    limit: NAV_COLLECTIONS_LIMIT,
+    limit: COMPOSER_COLLECTIONS_LIMIT,
   });
   const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
