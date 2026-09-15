@@ -44,7 +44,6 @@ export default function QuestionGroup(props: Props) {
                 key={option.id}
                 value={option.id}
                 label={option.label}
-                radius={'xl'}
                 size="md"
               />
             ))}

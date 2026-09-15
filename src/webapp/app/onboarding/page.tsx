@@ -6,7 +6,7 @@ import { getMyProfile } from '@/features/profile/lib/dal.server';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { getMyCollections } from '@/features/collections/lib/dal.server';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
-import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
+import { COMPOSER_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { getOnboardingState } from '@/features/onboarding/lib/dal.server';
 import { onboardingKeys } from '@/features/onboarding/lib/onboardingKeys';
 import OnboardingFlow from '@/features/onboarding/containers/onboardingFlow/OnboardingFlow';
@@ -39,9 +39,10 @@ export default async function Page(props: Props) {
   // its drawer is open. This route sits outside (dashboard) and does not
   // inherit that layout's identical prefetch.
   void queryClient.prefetchInfiniteQuery({
-    queryKey: collectionKeys.mine(NAV_COLLECTIONS_LIMIT, undefined),
+    queryKey: collectionKeys.mine(COMPOSER_COLLECTIONS_LIMIT, undefined),
     initialPageParam: 1,
-    queryFn: () => getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
+    queryFn: () =>
+      getMyCollections({ page: 1, limit: COMPOSER_COLLECTIONS_LIMIT }),
   });
 
   // Awaited because the skeleton depends on it; shares the cache()d call above.
