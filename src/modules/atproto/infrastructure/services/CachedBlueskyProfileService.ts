@@ -170,18 +170,17 @@ export class CachedBlueskyProfileService implements IProfileService {
   ): Promise<Map<string, UserProfile>> {
     const toFetch = userIds.filter((id) => !this.inFlight.has(id));
     if (toFetch.length > 0) {
-      const batchPromise: Promise<Map<string, UserProfile>> = this.fetchAndCache(
-        toFetch,
-      ).finally(() => {
-        // Identity-guarded: only remove the entry if it still belongs to
-        // this batch. A newer registration for the same id may have
-        // replaced it before this `finally` microtask runs.
-        for (const id of toFetch) {
-          if (this.inFlight.get(id) === batchPromise) {
-            this.inFlight.delete(id);
+      const batchPromise: Promise<Map<string, UserProfile>> =
+        this.fetchAndCache(toFetch).finally(() => {
+          // Identity-guarded: only remove the entry if it still belongs to
+          // this batch. A newer registration for the same id may have
+          // replaced it before this `finally` microtask runs.
+          for (const id of toFetch) {
+            if (this.inFlight.get(id) === batchPromise) {
+              this.inFlight.delete(id);
+            }
           }
-        }
-      });
+        });
       for (const id of toFetch) this.inFlight.set(id, batchPromise);
     }
 

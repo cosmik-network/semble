@@ -84,7 +84,9 @@ describe('BlueskyProfileService.getProfiles', () => {
   it('fetches all profiles in one appview call and maps fields', async () => {
     const callLog: string[][] = [];
     const agentService = {
-      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+      getUnauthenticatedAgent: jest
+        .fn()
+        .mockReturnValue(ok(makeBatchAgent(callLog))),
     } as unknown as IAgentService;
     const service = new BlueskyProfileService(agentService);
 
@@ -104,11 +106,16 @@ describe('BlueskyProfileService.getProfiles', () => {
   it('chunks requests above 25 actors', async () => {
     const callLog: string[][] = [];
     const agentService = {
-      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+      getUnauthenticatedAgent: jest
+        .fn()
+        .mockReturnValue(ok(makeBatchAgent(callLog))),
     } as unknown as IAgentService;
     const service = new BlueskyProfileService(agentService);
 
-    const ids = Array.from({ length: 30 }, (_, i) => `did:plc:u${String(i).padStart(3, '0')}`);
+    const ids = Array.from(
+      { length: 30 },
+      (_, i) => `did:plc:u${String(i).padStart(3, '0')}`,
+    );
     const result = await service.getProfiles(ids);
 
     expect(result.isOk()).toBe(true);
@@ -120,11 +127,16 @@ describe('BlueskyProfileService.getProfiles', () => {
   it('omits unresolvable ids from the map without erroring', async () => {
     const callLog: string[][] = [];
     const agentService = {
-      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+      getUnauthenticatedAgent: jest
+        .fn()
+        .mockReturnValue(ok(makeBatchAgent(callLog))),
     } as unknown as IAgentService;
     const service = new BlueskyProfileService(agentService);
 
-    const result = await service.getProfiles(['did:plc:aaaa', 'did:plc:missing1']);
+    const result = await service.getProfiles([
+      'did:plc:aaaa',
+      'did:plc:missing1',
+    ]);
 
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {

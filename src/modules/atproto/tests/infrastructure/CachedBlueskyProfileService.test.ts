@@ -208,7 +208,10 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
 
   it('stale-while-revalidate: stale entry served immediately, refreshed in background', async () => {
     const { service, redis, upstream } = makeService();
-    upstream.profiles.set('did:plc:a', { ...profile('did:plc:a'), name: 'Fresh' });
+    upstream.profiles.set('did:plc:a', {
+      ...profile('did:plc:a'),
+      name: 'Fresh',
+    });
     const thirteenHoursAgo = Date.now() - 13 * 3600 * 1000;
     redis.store.set('profile:v1:did:plc:a', {
       value: JSON.stringify({
@@ -225,7 +228,8 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     const result = await service.getProfiles(['did:plc:a']);
 
     expect(result.isOk()).toBe(true);
-    if (result.isOk()) expect(result.value.get('did:plc:a')!.name).toBe('Stale');
+    if (result.isOk())
+      expect(result.value.get('did:plc:a')!.name).toBe('Stale');
 
     await refreshDone;
     expect(upstream.batchCalls).toHaveLength(1);
@@ -243,7 +247,8 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     const result = await service.getProfiles(['did:plc:a']);
 
     expect(result.isOk()).toBe(true);
-    if (result.isOk()) expect(result.value.get('did:plc:a')!.name).toBe('Name did:plc:a');
+    if (result.isOk())
+      expect(result.value.get('did:plc:a')!.name).toBe('Name did:plc:a');
     expect(upstream.batchCalls).toHaveLength(0);
   });
 
@@ -258,9 +263,9 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
           },
         ]),
       ),
-      findByFollowersAndTarget: jest.fn().mockResolvedValue(
-        ok([{ followerId: { value: 'did:plc:b' } }]),
-      ),
+      findByFollowersAndTarget: jest
+        .fn()
+        .mockResolvedValue(ok([{ followerId: { value: 'did:plc:b' } }])),
     });
     const { service, upstream } = makeService({ follows });
     for (const id of ['did:plc:a', 'did:plc:b', 'did:plc:caller']) {
@@ -293,9 +298,9 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
       findByFollowerAndTargets: jest
         .fn()
         .mockResolvedValue(err(new Error('db down'))),
-      findByFollowersAndTarget: jest.fn().mockResolvedValue(
-        ok([{ followerId: { value: 'did:plc:a' } }]),
-      ),
+      findByFollowersAndTarget: jest
+        .fn()
+        .mockResolvedValue(ok([{ followerId: { value: 'did:plc:a' } }])),
     });
     const { service, upstream } = makeService({ follows });
     upstream.profiles.set('did:plc:a', profile('did:plc:a'));
@@ -314,9 +319,11 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
 
   it('reverse follow-status query failure leaves followsYou undefined while isFollowing still populated', async () => {
     const follows = makeFollowsRepo({
-      findByFollowerAndTargets: jest.fn().mockResolvedValue(
-        ok([{ targetId: 'did:plc:a', isSubscribed: false }]),
-      ),
+      findByFollowerAndTargets: jest
+        .fn()
+        .mockResolvedValue(
+          ok([{ targetId: 'did:plc:a', isSubscribed: false }]),
+        ),
       findByFollowersAndTarget: jest
         .fn()
         .mockResolvedValue(err(new Error('db down'))),
@@ -338,7 +345,9 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     const follows = makeFollowsRepo({
       findByFollowerAndTargets: jest
         .fn()
-        .mockResolvedValue(ok([{ targetId: 'did:plc:a', isSubscribed: false }])),
+        .mockResolvedValue(
+          ok([{ targetId: 'did:plc:a', isSubscribed: false }]),
+        ),
     });
     const { service, redis, upstream } = makeService({ follows });
     upstream.profiles.set('did:plc:a', profile('did:plc:a'));
@@ -404,9 +413,7 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     ).inFlight;
     const fetchWithSingleFlight = (
       service as unknown as {
-        fetchWithSingleFlight(
-          ids: string[],
-        ): Promise<Map<string, UserProfile>>;
+        fetchWithSingleFlight(ids: string[]): Promise<Map<string, UserProfile>>;
       }
     ).fetchWithSingleFlight.bind(service);
 

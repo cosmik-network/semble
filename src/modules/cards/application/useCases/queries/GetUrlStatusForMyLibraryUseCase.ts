@@ -189,7 +189,10 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
 
             // Enrich collections with full data
             const enrichedCollections = fullCollections.map(
-              ({ summary: collection, full: fullCollection }): CollectionDTO => {
+              ({
+                summary: collection,
+                full: fullCollection,
+              }): CollectionDTO => {
                 const authorProfile = authorProfiles.get(
                   fullCollection.authorId.value,
                 );

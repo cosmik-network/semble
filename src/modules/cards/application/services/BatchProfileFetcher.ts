@@ -58,9 +58,7 @@ export class BatchProfileFetcher {
     if (batchResult.isErr()) {
       if (!skipFailures) {
         return err(
-          new Error(
-            `Failed to fetch profiles: ${batchResult.error.message}`,
-          ),
+          new Error(`Failed to fetch profiles: ${batchResult.error.message}`),
         );
       }
       profileMap = new Map();
