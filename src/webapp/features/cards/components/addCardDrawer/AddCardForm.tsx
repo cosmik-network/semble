@@ -23,6 +23,7 @@ import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { track } from '@vercel/analytics';
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
+import { COMPOSER_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { Collection, CollectionAccessType } from '@semble/types';
@@ -49,7 +50,9 @@ export default function AddCardForm(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
 
-  const { data: collections } = useMyCollections({ limit: 30 });
+  const { data: collections } = useMyCollections({
+    limit: COMPOSER_COLLECTIONS_LIMIT,
+  });
   const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 

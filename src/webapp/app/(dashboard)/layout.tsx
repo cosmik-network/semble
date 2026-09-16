@@ -9,7 +9,10 @@ import {
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { getFollowingCollections } from '@/features/follows/lib/dal.server';
 import { followKeys } from '@/features/follows/lib/followKeys';
-import { NAV_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
+import {
+  NAV_COLLECTIONS_LIMIT,
+  COMPOSER_COLLECTIONS_LIMIT,
+} from '@/features/collections/lib/constants';
 import { getMyUrlCards } from '@/features/cards/lib/dal.server';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { NAV_CARDS_LIMIT } from '@/features/cards/lib/constants';
@@ -37,6 +40,18 @@ export default async function Layout(props: Props) {
       initialPageParam: 1,
       queryFn: () =>
         getMyCollections({ page: 1, limit: NAV_COLLECTIONS_LIMIT }),
+    });
+
+    // Navbar mounts Composer (closed) on every page, and Composer's
+    // collection picker is a suspense query. Without this seed it throws
+    // NoSessionError during SSR (its client DAL cannot authenticate on the
+    // server), which errors a streaming boundary and can hold the response
+    // open until the function times out.
+    void queryClient.prefetchInfiniteQuery({
+      queryKey: collectionKeys.mine(COMPOSER_COLLECTIONS_LIMIT, undefined),
+      initialPageParam: 1,
+      queryFn: () =>
+        getMyCollections({ page: 1, limit: COMPOSER_COLLECTIONS_LIMIT }),
     });
 
     void queryClient.prefetchInfiniteQuery({
