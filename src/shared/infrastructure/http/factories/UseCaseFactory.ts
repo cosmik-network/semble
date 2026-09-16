@@ -519,7 +519,6 @@ export class UseCaseFactory {
         repositories.cardRepository,
         repositories.cardQueryRepository,
         repositories.collectionQueryRepository,
-        repositories.collectionRepository,
         services.profileService,
         repositories.followsRepository,
         services.eventPublisher,

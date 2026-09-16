@@ -6,11 +6,9 @@ import { IEventPublisher } from '../../../../../shared/application/events/IEvent
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
-import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
-import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CollectionDTO, UrlCard } from '@semble/types';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
@@ -43,7 +41,6 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
     private cardRepository: ICardRepository,
     private cardQueryRepository: ICardQueryRepository,
     private collectionQueryRepository: ICollectionQueryRepository,
-    private collectionRepo: ICollectionRepository,
     private profileService: IProfileService,
     private followsRepository: IFollowsRepository,
     eventPublisher: IEventPublisher,
@@ -98,11 +95,15 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
         );
 
         if (cardView) {
-          // Get card author profile
-          const authorProfileResult = await this.profileService.getProfile(
-            cardView.authorId,
-            curatorId.value,
-          );
+          // Card author profile and the collections list are independent —
+          // fetch them in parallel
+          const [authorProfileResult, collections] = await Promise.all([
+            this.profileService.getProfile(cardView.authorId, curatorId.value),
+            this.collectionQueryRepository.getCollectionsContainingCardForUser(
+              card.cardId.getStringValue(),
+              curatorId.value,
+            ),
+          ]);
 
           if (authorProfileResult.isErr()) {
             return err(
@@ -146,40 +147,19 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
             note: cardView.note, // This includes the note if it exists
           };
 
-          // Get collections containing this card for the user
+          // Enrich collections: one batched profile fetch and one batched
+          // follow-status query, in parallel
           try {
-            const collections =
-              await this.collectionQueryRepository.getCollectionsContainingCardForUser(
-                card.cardId.getStringValue(),
+            const authorIds = [...new Set(collections.map((c) => c.authorId))];
+            const [authorProfilesResult, followsResult] = await Promise.all([
+              this.profileService.getProfiles(authorIds),
+              this.followsRepository.findByFollowerAndTargets(
                 curatorId.value,
-              );
+                collections.map((c) => c.id),
+                FollowTargetType.COLLECTION,
+              ),
+            ]);
 
-            // Phase 1: fetch full collections in parallel (unchanged)
-            const fullCollections = await Promise.all(
-              collections.map(async (collection) => {
-                // Fetch full collection to get dates and cardCount
-                const collectionIdResult = CollectionId.createFromString(
-                  collection.id,
-                );
-                if (collectionIdResult.isErr()) {
-                  throw new Error(`Invalid collection ID: ${collection.id}`);
-                }
-                const collectionResult = await this.collectionRepo.findById(
-                  collectionIdResult.value,
-                );
-                if (collectionResult.isErr() || !collectionResult.value) {
-                  throw new Error(`Collection not found: ${collection.id}`);
-                }
-                return { summary: collection, full: collectionResult.value };
-              }),
-            );
-
-            // Phase 2: one batched profile fetch for all authors
-            const authorIds = [
-              ...new Set(fullCollections.map((c) => c.full.authorId.value)),
-            ];
-            const authorProfilesResult =
-              await this.profileService.getProfiles(authorIds);
             if (authorProfilesResult.isErr()) {
               throw new Error(
                 `Failed to fetch author profiles: ${authorProfilesResult.error.message}`,
@@ -187,18 +167,18 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
             }
             const authorProfiles = authorProfilesResult.value;
 
-            // Enrich collections with full data
-            const enrichedCollections = fullCollections.map(
-              ({
-                summary: collection,
-                full: fullCollection,
-              }): CollectionDTO => {
-                const authorProfile = authorProfiles.get(
-                  fullCollection.authorId.value,
-                );
+            const followedCollectionIds = new Set(
+              followsResult.isOk()
+                ? followsResult.value.map((f) => f.targetId)
+                : [],
+            );
+
+            result.collections = collections.map(
+              (collection): CollectionDTO => {
+                const authorProfile = authorProfiles.get(collection.authorId);
                 if (!authorProfile) {
                   throw new Error(
-                    `Failed to fetch author profile for ${fullCollection.authorId.value}`,
+                    `Failed to fetch author profile for ${collection.authorId}`,
                   );
                 }
 
@@ -207,7 +187,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                   uri: collection.uri,
                   name: collection.name,
                   description: collection.description,
-                  accessType: fullCollection.accessType,
+                  accessType: collection.accessType as CollectionDTO['accessType'],
                   author: {
                     id: authorProfile.id,
                     name: authorProfile.name,
@@ -215,30 +195,13 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                     avatarUrl: authorProfile.avatarUrl,
                     description: authorProfile.bio,
                   },
-                  cardCount: fullCollection.cardCount,
-                  createdAt: fullCollection.createdAt.toISOString(),
-                  updatedAt: fullCollection.updatedAt.toISOString(),
+                  cardCount: collection.cardCount,
+                  createdAt: collection.createdAt.toISOString(),
+                  updatedAt: collection.updatedAt.toISOString(),
+                  isFollowing: followedCollectionIds.has(collection.id),
                 };
               },
             );
-
-            // Add follow status for collections
-            const followChecks = await Promise.all(
-              enrichedCollections.map((c) =>
-                this.followsRepository.findByFollowerAndTarget(
-                  curatorId.value,
-                  c.id,
-                  FollowTargetType.COLLECTION,
-                ),
-              ),
-            );
-
-            enrichedCollections.forEach((collection, i) => {
-              collection.isFollowing =
-                followChecks[i]?.isOk() && followChecks[i].value !== null;
-            });
-
-            result.collections = enrichedCollections;
           } catch (error) {
             // Propagate authentication errors
             if (error instanceof AuthenticationError) {

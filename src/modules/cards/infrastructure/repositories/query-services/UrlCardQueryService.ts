@@ -1153,9 +1153,6 @@ export class UrlCardQueryService {
         )
         .limit(1); // Only get the first note if multiple exist
 
-      const noteResult = await noteQuery;
-      const note = noteResult.length > 0 ? noteResult[0] : undefined;
-
       // Get urlLibraryCount for this URL (count of unique users who have cards with this URL)
       const urlLibraryCountQuery = this.db
         .select({
@@ -1165,30 +1162,32 @@ export class UrlCardQueryService {
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, card.url)));
 
-      const urlLibraryCountResult = await urlLibraryCountQuery;
+      // Get urlInLibrary if callingUserId is provided: whether the calling
+      // user has any card with this URL
+      const urlInLibraryQuery = callingUserId
+        ? this.db
+            .select({
+              id: cards.id,
+            })
+            .from(cards)
+            .where(
+              and(
+                eq(cards.authorId, callingUserId),
+                eq(cards.type, CardTypeEnum.URL),
+                eq(cards.url, card.url),
+              ),
+            )
+            .limit(1)
+        : undefined;
+
+      const [noteResult, urlLibraryCountResult, urlInLibraryResult] =
+        await Promise.all([noteQuery, urlLibraryCountQuery, urlInLibraryQuery]);
+
+      const note = noteResult.length > 0 ? noteResult[0] : undefined;
       const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
-
-      // Get urlInLibrary if callingUserId is provided
-      let urlInLibrary: boolean | undefined;
-      if (callingUserId) {
-        // Check if the calling user has any card with this URL
-        const urlInLibraryQuery = this.db
-          .select({
-            id: cards.id,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.authorId, callingUserId),
-              eq(cards.type, CardTypeEnum.URL),
-              eq(cards.url, card.url),
-            ),
-          )
-          .limit(1);
-
-        const urlInLibraryResult = await urlInLibraryQuery;
-        urlInLibrary = urlInLibraryResult.length > 0;
-      }
+      const urlInLibrary = urlInLibraryResult
+        ? urlInLibraryResult.length > 0
+        : undefined;
 
       // Create raw card data for mapping
       const rawCardData = {

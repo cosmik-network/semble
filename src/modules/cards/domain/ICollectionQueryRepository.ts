@@ -48,6 +48,11 @@ export interface CollectionContainingCardDTO {
   uri?: string;
   name: string;
   description?: string;
+  authorId: string;
+  accessType: string;
+  cardCount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Raw repository DTO - what the repository returns (not enriched)
