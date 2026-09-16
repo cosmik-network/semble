@@ -111,10 +111,16 @@ export class BlueskyProfileService implements IProfileService {
     const failures: string[] = [];
     for (const chunkResult of chunkResults) {
       if (chunkResult.status === 'rejected') {
+        console.warn(
+          `getProfiles chunk failed: ${String(chunkResult.reason)}`,
+        );
         failures.push(String(chunkResult.reason));
         continue;
       }
       if (!chunkResult.value.success) {
+        console.warn(
+          `getProfiles chunk failed: ${JSON.stringify(chunkResult.value)}`,
+        );
         failures.push(JSON.stringify(chunkResult.value));
         continue;
       }

@@ -92,7 +92,7 @@ describe('BatchProfileFetcher.fetchProfileMap', () => {
     }
   });
 
-  it('propagates total failure as err even with skipFailures when no fallback', async () => {
+  it('total failure: ok(empty) with skipFailures, err without', async () => {
     const service = new BatchOnlyProfileService();
     service.fail = true;
     const fetcher = new BatchProfileFetcher(service);

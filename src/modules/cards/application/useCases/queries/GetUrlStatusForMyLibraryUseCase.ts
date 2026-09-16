@@ -105,10 +105,6 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
           );
 
           if (authorProfileResult.isErr()) {
-            // Propagate authentication errors
-            if (authorProfileResult.error instanceof AuthenticationError) {
-              return err(authorProfileResult.error);
-            }
             return err(
               AppError.UnexpectedError.create(authorProfileResult.error),
             );

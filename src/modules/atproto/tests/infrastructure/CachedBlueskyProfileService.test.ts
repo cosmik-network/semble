@@ -162,7 +162,7 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     expect(upstream.batchCalls[0]).toEqual(
       expect.arrayContaining(['did:plc:a', 'did:plc:b']),
     );
-    expect(redis.store.has('profile:did:plc:a')).toBe(true);
+    expect(redis.store.has('profile:v1:did:plc:a')).toBe(true);
   });
 
   it('warm cache: one MGET, zero upstream calls', async () => {
@@ -210,7 +210,7 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     const { service, redis, upstream } = makeService();
     upstream.profiles.set('did:plc:a', { ...profile('did:plc:a'), name: 'Fresh' });
     const thirteenHoursAgo = Date.now() - 13 * 3600 * 1000;
-    redis.store.set('profile:did:plc:a', {
+    redis.store.set('profile:v1:did:plc:a', {
       value: JSON.stringify({
         v: 1,
         storedAt: thirteenHoursAgo,
@@ -229,13 +229,13 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
 
     await refreshDone;
     expect(upstream.batchCalls).toHaveLength(1);
-    const cached = JSON.parse(redis.store.get('profile:did:plc:a')!.value);
+    const cached = JSON.parse(redis.store.get('profile:v1:did:plc:a')!.value);
     expect(cached.profile.name).toBe('Fresh');
   });
 
   it('legacy plain-profile cache values are read as fresh hits', async () => {
     const { service, redis, upstream } = makeService();
-    redis.store.set('profile:did:plc:a', {
+    redis.store.set('profile:v1:did:plc:a', {
       value: JSON.stringify(profile('did:plc:a')), // no envelope
       ttl: 43200,
     });
@@ -345,7 +345,7 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
 
     await service.getProfiles(['did:plc:a'], 'did:plc:caller');
 
-    const cached = JSON.parse(redis.store.get('profile:did:plc:a')!.value);
+    const cached = JSON.parse(redis.store.get('profile:v1:did:plc:a')!.value);
     expect(cached.profile.isFollowing).toBeUndefined();
     expect(cached.profile.followsYou).toBeUndefined();
   });
@@ -360,6 +360,22 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
 
     expect(result.isOk()).toBe(true);
     if (result.isOk()) expect(result.value.has('did:plc:a')).toBe(true);
+  });
+
+  it('total upstream failure with warm redis: ok(empty map), no negative entries written, and a warning is logged', async () => {
+    const upstream = new RecordingProfileService();
+    upstream.failAll = true;
+    const { service, redis } = makeService({ upstream });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = await service.getProfiles(['did:plc:a']);
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) expect(result.value.size).toBe(0);
+    expect(redis.store.has('profile:v1:did:plc:a')).toBe(false);
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
   });
 
   it('single-flight cleanup only removes the in-flight entry it owns (identity-guarded delete)', async () => {
@@ -432,7 +448,7 @@ describe('CachedBlueskyProfileService.getProfiles', () => {
     });
     const { service, redis } = makeService({ upstream: upstream as any });
     const thirteenHoursAgo = Date.now() - 13 * 3600 * 1000;
-    redis.store.set('profile:did:plc:a', {
+    redis.store.set('profile:v1:did:plc:a', {
       value: JSON.stringify({
         v: 1,
         storedAt: thirteenHoursAgo,

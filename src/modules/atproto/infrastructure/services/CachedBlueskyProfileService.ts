@@ -23,7 +23,10 @@ export class CachedBlueskyProfileService implements IProfileService {
   // Unresolvable ids are remembered briefly so feeds don't hammer the
   // appview for deleted accounts on every request.
   private readonly NEGATIVE_TTL_SECONDS = 600; // 10 minutes
-  private readonly CACHE_KEY_PREFIX = 'profile:';
+  // v1 envelope isn't parseable by pre-envelope readers, so a fresh prefix
+  // prevents mixed-version deploys from serving envelopes as profiles; old
+  // `profile:` entries simply age out.
+  private readonly CACHE_KEY_PREFIX = 'profile:v1:';
 
   // Single-flight: at most one upstream resolution per userId at a time.
   private readonly inFlight = new Map<
@@ -116,6 +119,13 @@ export class CachedBlueskyProfileService implements IProfileService {
         missedIds.push(userId);
         return;
       }
+      if (typeof parsed !== 'object' || parsed === null) {
+        // Cached JSON was a non-object primitive (e.g. a bare string/number)
+        // — treat as a per-id miss rather than letting the outer catch
+        // bypass the cache for the whole batch.
+        missedIds.push(userId);
+        return;
+      }
       if ('v' in parsed && parsed.v === 1) {
         if (parsed.notFound) {
           return; // negative hit: known-missing, excluded from result
@@ -202,6 +212,13 @@ export class CachedBlueskyProfileService implements IProfileService {
   ): Promise<Map<string, UserProfile>> {
     const result = await this.profileService.getProfiles(userIds);
     if (result.isErr()) {
+      // Logged once per failed batch (not per id) so a total appview
+      // outage is visible even though the caller-facing behavior is
+      // absence semantics (ok, empty map), not an error surface.
+      console.warn(
+        `Upstream getProfiles failed for batch of ${userIds.length} id(s):`,
+        result.error.message,
+      );
       throw result.error;
     }
     const profiles = result.value;
