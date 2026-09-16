@@ -192,8 +192,12 @@ export class GetConnectionsForUrlUseCase implements UseCase<
             if (urlResult.isErr()) {
               return { url: urlString, metadata: null };
             }
+            // Fast mode: latency-sensitive read path; the metadata worker
+            // enriches persisted cards asynchronously.
             const metadataResult = await this.metadataService.fetchMetadata(
               urlResult.value,
+              false,
+              'fast',
             );
             if (metadataResult.isOk()) {
               return { url: urlString, metadata: metadataResult.value };

@@ -37,6 +37,11 @@ export class CompositeMetadataService implements IMetadataService {
   // long enough for a Redis cache hit, far shorter than an upstream fetch.
   private static readonly FAST_MODE_SECONDARY_TIMEOUT_MS = 150;
 
+  // Cap on waiting for Citoid when Iframely failed in fast mode. Without it a
+  // hung Citoid upstream holds the request until the gateway kills it (~29s).
+  // Slow mode remains unbounded — those callers want metadata at any cost.
+  private static readonly FAST_MODE_FALLBACK_TIMEOUT_MS = 5_000;
+
   async fetchMetadata(
     url: URL,
     refetchStaleMetadata: boolean = false,
@@ -72,9 +77,15 @@ export class CompositeMetadataService implements IMetadataService {
           iframelyResult.status === 'rejected' ||
           iframelyResult.value.isErr()
         ) {
-          // Iframely gave us nothing — waiting on Citoid beats returning an error
-          citoidResult = await this.settle(citoidPromise);
-        } else {
+          // Iframely gave us nothing — waiting on Citoid beats returning an
+          // error, but only up to a bound: fast mode must not hang on a
+          // degraded Citoid upstream.
+          citoidResult = await this.settleWithinTimeout(
+            citoidPromise,
+            CompositeMetadataService.FAST_MODE_FALLBACK_TIMEOUT_MS,
+          );
+        }
+        if (!citoidResult) {
           // Fire-and-forget: swallow late failures so they don't become
           // unhandled rejections
           citoidPromise.catch((error) => {
