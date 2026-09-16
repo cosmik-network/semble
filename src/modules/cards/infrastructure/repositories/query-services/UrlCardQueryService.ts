@@ -1012,14 +1012,18 @@ export class UrlCardQueryService {
         .limit(limit)
         .offset(offset);
 
-      const librariesResult = await librariesQuery;
-
-      // Get total count (needed even if current page is empty)
-      const totalCountResult = await this.db
+      // Total count is needed even if the current page is empty; independent
+      // of the page query, so run both concurrently
+      const totalCountQuery = this.db
         .select({ count: count() })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+
+      const [librariesResult, totalCountResult] = await Promise.all([
+        librariesQuery,
+        totalCountQuery,
+      ]);
 
       const totalCount = totalCountResult[0]?.count || 0;
 
@@ -1048,9 +1052,7 @@ export class UrlCardQueryService {
           ),
         );
 
-      const notesResult = await notesQuery;
-
-      // Get urlLibraryCount for this URL
+      // Get urlLibraryCount for this URL; independent of the notes query
       const urlLibraryCountQuery = this.db
         .select({
           count: countDistinct(libraryMemberships.userId),
@@ -1059,7 +1061,10 @@ export class UrlCardQueryService {
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
 
-      const urlLibraryCountResult = await urlLibraryCountQuery;
+      const [notesResult, urlLibraryCountResult] = await Promise.all([
+        notesQuery,
+        urlLibraryCountQuery,
+      ]);
       const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
 
       const hasMore = offset + librariesResult.length < totalCount;
@@ -1153,9 +1158,6 @@ export class UrlCardQueryService {
         )
         .limit(1); // Only get the first note if multiple exist
 
-      const noteResult = await noteQuery;
-      const note = noteResult.length > 0 ? noteResult[0] : undefined;
-
       // Get urlLibraryCount for this URL (count of unique users who have cards with this URL)
       const urlLibraryCountQuery = this.db
         .select({
@@ -1165,30 +1167,32 @@ export class UrlCardQueryService {
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, card.url)));
 
-      const urlLibraryCountResult = await urlLibraryCountQuery;
+      // Get urlInLibrary if callingUserId is provided: whether the calling
+      // user has any card with this URL
+      const urlInLibraryQuery = callingUserId
+        ? this.db
+            .select({
+              id: cards.id,
+            })
+            .from(cards)
+            .where(
+              and(
+                eq(cards.authorId, callingUserId),
+                eq(cards.type, CardTypeEnum.URL),
+                eq(cards.url, card.url),
+              ),
+            )
+            .limit(1)
+        : undefined;
+
+      const [noteResult, urlLibraryCountResult, urlInLibraryResult] =
+        await Promise.all([noteQuery, urlLibraryCountQuery, urlInLibraryQuery]);
+
+      const note = noteResult.length > 0 ? noteResult[0] : undefined;
       const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
-
-      // Get urlInLibrary if callingUserId is provided
-      let urlInLibrary: boolean | undefined;
-      if (callingUserId) {
-        // Check if the calling user has any card with this URL
-        const urlInLibraryQuery = this.db
-          .select({
-            id: cards.id,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.authorId, callingUserId),
-              eq(cards.type, CardTypeEnum.URL),
-              eq(cards.url, card.url),
-            ),
-          )
-          .limit(1);
-
-        const urlInLibraryResult = await urlInLibraryQuery;
-        urlInLibrary = urlInLibraryResult.length > 0;
-      }
+      const urlInLibrary = urlInLibraryResult
+        ? urlInLibraryResult.length > 0
+        : undefined;
 
       // Create raw card data for mapping
       const rawCardData = {
@@ -1789,6 +1793,9 @@ export class UrlCardQueryService {
         return new Map();
       }
 
+      // All queries below are independent of one another, so they are built
+      // first and executed in a single parallel batch at the end.
+
       // 1. Get URL library counts (distinct users per URL)
       const urlLibraryCountsQuery = this.db
         .select({
@@ -1800,42 +1807,21 @@ export class UrlCardQueryService {
         .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
         .groupBy(cards.url);
 
-      const urlLibraryCountsResult = await urlLibraryCountsQuery;
-
-      // Build map of URL to library count
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, Number(row.count));
-        }
-      });
-
       // 2. Get URLs that calling user has (if callingUserId provided)
-      let urlInLibraryMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
-        urlInLibraryMap = new Map();
-
-        const userUrlsQuery = this.db
-          .select({
-            url: cards.url,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.type, CardTypeEnum.URL),
-              eq(cards.authorId, callingUserId),
-              inArray(cards.url, urls),
-            ),
-          );
-
-        const userUrlsResult = await userUrlsQuery;
-
-        userUrlsResult.forEach((row) => {
-          if (row.url) {
-            urlInLibraryMap!.set(row.url, true);
-          }
-        });
-      }
+      const userUrlsQuery = callingUserId
+        ? this.db
+            .select({
+              url: cards.url,
+            })
+            .from(cards)
+            .where(
+              and(
+                eq(cards.type, CardTypeEnum.URL),
+                eq(cards.authorId, callingUserId),
+                inArray(cards.url, urls),
+              ),
+            )
+        : undefined;
 
       // 3. Get connection counts for each URL (total connections where URL is source or target)
       // Query connections where URLs are sources
@@ -1870,11 +1856,87 @@ export class UrlCardQueryService {
         )
         .groupBy(connections.targetValue);
 
-      const [sourceConnectionCounts, targetConnectionCounts] =
-        await Promise.all([
-          sourceConnectionCountsQuery,
-          targetConnectionCountsQuery,
-        ]);
+      // 4. Get URLs that calling user has connections with (if callingUserId provided)
+      // Query for URLs where user's connections have them as source
+      const userSourceConnectionsQuery = callingUserId
+        ? this.db
+            .select({
+              url: connections.sourceValue,
+            })
+            .from(connections)
+            .where(
+              and(
+                eq(connections.curatorId, callingUserId),
+                eq(connections.sourceType, 'URL'),
+                inArray(connections.sourceValue, urls),
+                eq(connections.targetType, 'URL'),
+              ),
+            )
+        : undefined;
+
+      // Query for URLs where user's connections have them as target
+      const userTargetConnectionsQuery = callingUserId
+        ? this.db
+            .select({
+              url: connections.targetValue,
+            })
+            .from(connections)
+            .where(
+              and(
+                eq(connections.curatorId, callingUserId),
+                eq(connections.targetType, 'URL'),
+                inArray(connections.targetValue, urls),
+                eq(connections.sourceType, 'URL'),
+              ),
+            )
+        : undefined;
+
+      // 5. Get sample card metadata for each URL (one card per URL)
+      // DISTINCT ON keeps only the most recently updated card per URL
+      const sampleCardsQuery = this.db
+        .selectDistinctOn([cards.url], {
+          url: cards.url,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .orderBy(asc(cards.url), desc(cards.updatedAt));
+
+      const [
+        urlLibraryCountsResult,
+        userUrlsResult,
+        sourceConnectionCounts,
+        targetConnectionCounts,
+        userSourceConnections,
+        userTargetConnections,
+        sampleCardsResult,
+      ] = await Promise.all([
+        urlLibraryCountsQuery,
+        userUrlsQuery,
+        sourceConnectionCountsQuery,
+        targetConnectionCountsQuery,
+        userSourceConnectionsQuery,
+        userTargetConnectionsQuery,
+        sampleCardsQuery,
+      ]);
+
+      // Build map of URL to library count
+      const urlLibraryCountMap = new Map<string, number>();
+      urlLibraryCountsResult.forEach((row) => {
+        if (row.url) {
+          urlLibraryCountMap.set(row.url, Number(row.count));
+        }
+      });
+
+      let urlInLibraryMap: Map<string, boolean> | undefined;
+      if (userUrlsResult) {
+        urlInLibraryMap = new Map();
+        userUrlsResult.forEach((row) => {
+          if (row.url) {
+            urlInLibraryMap!.set(row.url, true);
+          }
+        });
+      }
 
       // Build map of URL to connection count (combining source and target counts)
       const urlConnectionCountMap = new Map<string, number>();
@@ -1892,67 +1954,16 @@ export class UrlCardQueryService {
         }
       });
 
-      // 4. Get URLs that calling user has connections with (if callingUserId provided)
+      // Mark URLs as connected if they appear in either source or target
       let urlIsConnectedMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
+      if (userSourceConnections && userTargetConnections) {
         urlIsConnectedMap = new Map();
-
-        // Query for URLs where user's connections have them as source
-        const userSourceConnectionsQuery = this.db
-          .select({
-            url: connections.sourceValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls),
-              eq(connections.targetType, 'URL'),
-            ),
-          );
-
-        // Query for URLs where user's connections have them as target
-        const userTargetConnectionsQuery = this.db
-          .select({
-            url: connections.targetValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls),
-              eq(connections.sourceType, 'URL'),
-            ),
-          );
-
-        const [userSourceConnections, userTargetConnections] =
-          await Promise.all([
-            userSourceConnectionsQuery,
-            userTargetConnectionsQuery,
-          ]);
-
-        // Mark URLs as connected if they appear in either source or target
         [...userSourceConnections, ...userTargetConnections].forEach((row) => {
           if (row.url) {
             urlIsConnectedMap!.set(row.url, true);
           }
         });
       }
-
-      // 5. Get sample card metadata for each URL (one card per URL)
-      // DISTINCT ON keeps only the most recently updated card per URL
-      const sampleCardsQuery = this.db
-        .selectDistinctOn([cards.url], {
-          url: cards.url,
-          contentData: cards.contentData,
-        })
-        .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .orderBy(asc(cards.url), desc(cards.updatedAt));
-
-      const sampleCardsResult = await sampleCardsQuery;
 
       // Build map of URL to sample card
       const sampleCardMap = new Map<string, any>();

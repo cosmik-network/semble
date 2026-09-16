@@ -144,6 +144,11 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: collections.name,
           description: collections.description,
           uri: publishedRecords.uri,
+          authorId: collections.authorId,
+          accessType: collections.accessType,
+          cardCount: collections.cardCount,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
         })
         .from(collectionCards)
         .innerJoin(
@@ -167,6 +172,11 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         uri: result.uri || undefined,
         name: result.name,
         description: result.description || undefined,
+        authorId: result.authorId,
+        accessType: result.accessType,
+        cardCount: result.cardCount,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
       }));
     } catch (error) {
       console.error('Error in getCollectionsContainingCardForUser:', error);
