@@ -19,6 +19,29 @@ function makeAgent(): Agent {
   } as unknown as Agent;
 }
 
+function makeBatchAgent(callLog: string[][]): Agent {
+  return {
+    getProfiles: async ({ actors }: { actors: string[] }) => {
+      callLog.push([...actors]);
+      return {
+        success: true,
+        data: {
+          profiles: actors
+            .filter((a) => !a.includes('missing'))
+            .map((a) => ({
+              did: a,
+              handle: `${a.slice(-4)}.bsky.social`,
+              displayName: `User ${a.slice(-4)}`,
+              avatar: 'https://example.com/a.jpg',
+              banner: 'https://example.com/b.jpg',
+              description: 'bio',
+            })),
+        },
+      };
+    },
+  } as unknown as Agent;
+}
+
 describe('BlueskyProfileService', () => {
   it('never touches the caller session — profile reads are unauthenticated', async () => {
     const agentService = {
@@ -54,5 +77,71 @@ describe('BlueskyProfileService', () => {
 
     expect(result.isErr()).toBe(true);
     expect(agentService.getAuthenticatedAgent).not.toHaveBeenCalled();
+  });
+});
+
+describe('BlueskyProfileService.getProfiles', () => {
+  it('fetches all profiles in one appview call and maps fields', async () => {
+    const callLog: string[][] = [];
+    const agentService = {
+      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+    } as unknown as IAgentService;
+    const service = new BlueskyProfileService(agentService);
+
+    const result = await service.getProfiles(['did:plc:aaaa', 'did:plc:bbbb']);
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value.size).toBe(2);
+      const a = result.value.get('did:plc:aaaa')!;
+      expect(a.name).toBe('User aaaa');
+      expect(a.handle).toBe('aaaa.bsky.social');
+      expect(a.bio).toBe('bio');
+    }
+    expect(callLog).toHaveLength(1);
+  });
+
+  it('chunks requests above 25 actors', async () => {
+    const callLog: string[][] = [];
+    const agentService = {
+      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+    } as unknown as IAgentService;
+    const service = new BlueskyProfileService(agentService);
+
+    const ids = Array.from({ length: 30 }, (_, i) => `did:plc:u${String(i).padStart(3, '0')}`);
+    const result = await service.getProfiles(ids);
+
+    expect(result.isOk()).toBe(true);
+    expect(callLog).toHaveLength(2);
+    expect(callLog[0]).toHaveLength(25);
+    expect(callLog[1]).toHaveLength(5);
+  });
+
+  it('omits unresolvable ids from the map without erroring', async () => {
+    const callLog: string[][] = [];
+    const agentService = {
+      getUnauthenticatedAgent: jest.fn().mockReturnValue(ok(makeBatchAgent(callLog))),
+    } as unknown as IAgentService;
+    const service = new BlueskyProfileService(agentService);
+
+    const result = await service.getProfiles(['did:plc:aaaa', 'did:plc:missing1']);
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value.has('did:plc:aaaa')).toBe(true);
+      expect(result.value.has('did:plc:missing1')).toBe(false);
+    }
+  });
+
+  it('returns empty map for empty input without calling the agent', async () => {
+    const agentService = {
+      getUnauthenticatedAgent: jest.fn(),
+    } as unknown as IAgentService;
+    const service = new BlueskyProfileService(agentService);
+
+    const result = await service.getProfiles([]);
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) expect(result.value.size).toBe(0);
+    expect(agentService.getUnauthenticatedAgent).not.toHaveBeenCalled();
   });
 });

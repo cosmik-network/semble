@@ -145,4 +145,18 @@ export class CachedBlueskyProfileService implements IProfileService {
   async warmCache(userId: string, callerId?: string): Promise<void> {
     await this.getProfile(userId, callerId);
   }
+
+  async getProfiles(
+    userIds: string[],
+    callerId?: string,
+  ): Promise<Result<Map<string, UserProfile>>> {
+    const map = new Map<string, UserProfile>();
+    for (const userId of [...new Set(userIds)]) {
+      const result = await this.getProfile(userId, callerId);
+      if (result.isOk()) {
+        map.set(userId, result.value);
+      }
+    }
+    return ok(map);
+  }
 }

@@ -78,4 +78,18 @@ export class FakeBlueskyProfileService implements IProfileService {
       bio: 'This is Alice - a mock profile for testing purposes (https://semble.so/), made by @cosmik.network.',
     };
   }
+
+  async getProfiles(
+    userIds: string[],
+    callerId?: string,
+  ): Promise<Result<Map<string, UserProfile>>> {
+    const map = new Map<string, UserProfile>();
+    for (const userId of [...new Set(userIds)]) {
+      const result = await this.getProfile(userId, callerId);
+      if (result.isOk()) {
+        map.set(userId, result.value);
+      }
+    }
+    return ok(map);
+  }
 }
