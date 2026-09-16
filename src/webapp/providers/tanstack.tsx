@@ -3,7 +3,7 @@
 import {
   QueryClient,
   QueryClientProvider,
-  isServer,
+  environmentManager,
 } from '@tanstack/react-query';
 import { ApiError } from '@/api-client/errors';
 import { logoutUser } from '@/lib/auth/dal';
@@ -18,7 +18,7 @@ function handleAuthError(error: unknown) {
 let browserQueryClient: QueryClient | undefined = undefined;
 
 function getQueryClient() {
-  if (isServer) {
+  if (environmentManager.isServer()) {
     // Server: always make a new query client
     return makeQueryClient(handleAuthError);
   } else {

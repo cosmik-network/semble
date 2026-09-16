@@ -3,6 +3,7 @@ import {
   QueryCache,
   MutationCache,
   defaultShouldDehydrateQuery,
+  environmentManager,
 } from '@tanstack/react-query';
 import {
   isNotFoundApiError,
@@ -18,8 +19,37 @@ type ErrorHandler = (error: unknown) => void;
  */
 export function makeQueryClient(onError?: ErrorHandler) {
   return new QueryClient({
-    queryCache: new QueryCache({ onError: (error) => onError?.(error) }),
-    mutationCache: new MutationCache({ onError: (error) => onError?.(error) }),
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        // A query erroring during SSR corrupts the streaming render (errored
+        // suspense boundaries can wedge the response stream open until the
+        // function times out), and the injected auth handler must never run
+        // there — logoutUser() is browser-only. Log the key so the offending
+        // query is identifiable in Vercel logs, and skip the handler.
+        if (environmentManager.isServer()) {
+          console.error(
+            '[SSR] query error:',
+            JSON.stringify(query.queryKey),
+            error,
+          );
+          return;
+        }
+        onError?.(error);
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        if (environmentManager.isServer()) {
+          console.error(
+            '[SSR] mutation error:',
+            JSON.stringify(mutation.options.mutationKey ?? null),
+            error,
+          );
+          return;
+        }
+        onError?.(error);
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
