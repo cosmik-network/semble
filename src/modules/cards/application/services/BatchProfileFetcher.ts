@@ -44,67 +44,56 @@ export class BatchProfileFetcher {
     const skipFailures = options?.skipFailures ?? false;
     const includeFallback = options?.includeFallback ?? false;
 
-    // Remove duplicates
     const uniqueUserIds = Array.from(new Set(userIds));
-
-    // Fetch all profiles in parallel
-    const profilePromises = uniqueUserIds.map((userId) =>
-      this.profileService.getProfile(userId, callingUserId),
-    );
-
-    const profileResults = await Promise.all(profilePromises);
-
-    // Build the profile map
-    const profileMap = new Map<string, UserProfile>();
-    const errors: string[] = [];
-
-    for (let i = 0; i < uniqueUserIds.length; i++) {
-      const userId = uniqueUserIds[i];
-      const profileResult = profileResults[i];
-
-      if (!userId) {
-        errors.push('Missing user ID at index ' + i);
-        continue;
-      }
-
-      if (!profileResult) {
-        errors.push(`No profile result for user ${userId}`);
-        continue;
-      }
-
-      if (profileResult.isErr()) {
-        const errorMsg = `Failed to fetch profile for user ${userId}: ${
-          profileResult.error instanceof Error
-            ? profileResult.error.message
-            : 'Unknown error'
-        }`;
-        errors.push(errorMsg);
-
-        if (skipFailures && includeFallback) {
-          // Create a fallback profile
-          const fallback = ProfileMapper.createFallbackProfile(userId);
-          profileMap.set(userId, {
-            id: fallback.id,
-            name: fallback.name,
-            handle: fallback.handle,
-          });
-        }
-        continue;
-      }
-
-      // Successfully fetched profile
-      profileMap.set(userId, profileResult.value);
+    if (uniqueUserIds.length === 0) {
+      return ok(new Map());
     }
 
-    // If we have errors and we're not skipping failures, return an error
-    if (errors.length > 0 && !skipFailures) {
+    const batchResult = await this.profileService.getProfiles(
+      uniqueUserIds,
+      callingUserId,
+    );
+
+    let profileMap: Map<string, UserProfile>;
+    if (batchResult.isErr()) {
+      if (!skipFailures) {
+        return err(
+          new Error(
+            `Failed to fetch profiles: ${batchResult.error.message}`,
+          ),
+        );
+      }
+      profileMap = new Map();
+    } else {
+      profileMap = new Map(batchResult.value);
+    }
+
+    const missingIds = uniqueUserIds.filter((id) => !profileMap.has(id));
+
+    if (missingIds.length > 0 && !skipFailures) {
       return err(
         new Error(
-          `Failed to fetch some profiles:\n${errors.slice(0, 5).join('\n')}${
-            errors.length > 5 ? `\n... and ${errors.length - 5} more` : ''
+          `Failed to fetch some profiles:\n${missingIds
+            .slice(0, 5)
+            .map((id) => `Profile not found for user ${id}`)
+            .join('\n')}${
+            missingIds.length > 5
+              ? `\n... and ${missingIds.length - 5} more`
+              : ''
           }`,
         ),
       );
+    }
+
+    if (skipFailures && includeFallback) {
+      for (const userId of missingIds) {
+        const fallback = ProfileMapper.createFallbackProfile(userId);
+        profileMap.set(userId, {
+          id: fallback.id,
+          name: fallback.name,
+          handle: fallback.handle,
+        });
+      }
     }
 
     return ok(profileMap);
