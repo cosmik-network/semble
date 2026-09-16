@@ -3,6 +3,16 @@ import { Label, SubscriptionScope } from '@semble/types';
 
 export interface IProfileService {
   getProfile(userId: string, callerId?: string): Promise<Result<UserProfile>>;
+
+  /**
+   * Batch profile fetch. Returns a map keyed by the input userIds; ids that
+   * cannot be resolved are absent from the map (absence is not an error).
+   * err() is reserved for total failure (e.g. agent unavailable).
+   */
+  getProfiles(
+    userIds: string[],
+    callerId?: string,
+  ): Promise<Result<Map<string, UserProfile>>>;
 }
 
 export interface UserProfile {

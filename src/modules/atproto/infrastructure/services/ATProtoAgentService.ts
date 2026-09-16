@@ -16,6 +16,22 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 // 'updated' event clears the entry immediately.
 const DEAD_SESSION_TTL_MS = 60_000;
 
+// Upper bound for unauthenticated appview/PDS calls. These are read-only
+// lookups (handle resolution, public profiles); a degraded upstream must
+// fail fast instead of holding inbound requests open for minutes.
+const UNAUTHENTICATED_FETCH_TIMEOUT_MS = 5_000;
+
+function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const timeoutSignal = AbortSignal.timeout(UNAUTHENTICATED_FETCH_TIMEOUT_MS);
+  const signal = init?.signal
+    ? AbortSignal.any([init.signal, timeoutSignal])
+    : timeoutSignal;
+  return fetch(input, { ...init, signal });
+}
+
 /**
  * Only session-terminal failures should be negative-cached: a missing row or
  * a rejected/revoked refresh token stays dead until the user re-authenticates.
@@ -51,6 +67,7 @@ export class ATProtoAgentService implements IAgentService {
     return ok(
       new Agent({
         service: ATPROTO_SERVICE_ENDPOINTS.UNAUTHENTICATED_BSKY_SERVICE,
+        fetch: fetchWithTimeout,
       }),
     );
   }
@@ -88,6 +105,7 @@ export class ATProtoAgentService implements IAgentService {
       return ok(
         new Agent({
           service: pdsEndpoint,
+          fetch: fetchWithTimeout,
         }),
       );
     } catch (error) {
