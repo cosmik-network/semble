@@ -135,7 +135,9 @@ export class CachedBlueskyProfileService implements IProfileService {
     });
 
     if (staleIds.length > 0) {
-      void this.fetchAndCache(staleIds)
+      // Route through single-flight so concurrent requests hitting the same
+      // stale entry don't each fire their own upstream refresh.
+      void this.fetchWithSingleFlight(staleIds)
         .catch((error) =>
           console.warn('Background profile refresh failed:', error),
         )
@@ -158,8 +160,17 @@ export class CachedBlueskyProfileService implements IProfileService {
   ): Promise<Map<string, UserProfile>> {
     const toFetch = userIds.filter((id) => !this.inFlight.has(id));
     if (toFetch.length > 0) {
-      const batchPromise = this.fetchAndCache(toFetch).finally(() => {
-        for (const id of toFetch) this.inFlight.delete(id);
+      const batchPromise: Promise<Map<string, UserProfile>> = this.fetchAndCache(
+        toFetch,
+      ).finally(() => {
+        // Identity-guarded: only remove the entry if it still belongs to
+        // this batch. A newer registration for the same id may have
+        // replaced it before this `finally` microtask runs.
+        for (const id of toFetch) {
+          if (this.inFlight.get(id) === batchPromise) {
+            this.inFlight.delete(id);
+          }
+        }
       });
       for (const id of toFetch) this.inFlight.set(id, batchPromise);
     }
@@ -227,20 +238,18 @@ export class CachedBlueskyProfileService implements IProfileService {
     return profiles;
   }
 
-  /** Both follow directions for the whole page in two parallel queries. */
+  /**
+   * Both follow directions for the whole page in two parallel queries.
+   *
+   * On a query failure the corresponding fields are left unset (undefined,
+   * i.e. "unknown") rather than defaulted to false — a transient DB error
+   * must not render as "not following" for every profile on the page.
+   */
   private async fetchFollowStatus(
     userIds: string[],
     callerId: string,
   ): Promise<Map<string, Partial<UserProfile>>> {
     const statusMap = new Map<string, Partial<UserProfile>>();
-    for (const userId of userIds) {
-      statusMap.set(userId, {
-        isFollowing: false,
-        isSubscribed: false,
-        subscriptionScopes: undefined,
-        followsYou: false,
-      });
-    }
 
     const [forwardResult, reverseResult] = await Promise.all([
       this.followsRepository.findByFollowerAndTargets(
@@ -256,6 +265,14 @@ export class CachedBlueskyProfileService implements IProfileService {
     ]);
 
     if (forwardResult.isOk()) {
+      for (const userId of userIds) {
+        statusMap.set(userId, {
+          ...statusMap.get(userId),
+          isFollowing: false,
+          isSubscribed: false,
+          subscriptionScopes: undefined,
+        });
+      }
       for (const follow of forwardResult.value) {
         statusMap.set(follow.targetId, {
           ...statusMap.get(follow.targetId),
@@ -266,8 +283,20 @@ export class CachedBlueskyProfileService implements IProfileService {
             | undefined,
         });
       }
+    } else {
+      console.warn(
+        'Forward follow-status query failed; isFollowing left unknown:',
+        forwardResult.error,
+      );
     }
+
     if (reverseResult.isOk()) {
+      for (const userId of userIds) {
+        statusMap.set(userId, {
+          ...statusMap.get(userId),
+          followsYou: false,
+        });
+      }
       for (const follow of reverseResult.value) {
         const followerId = follow.followerId.value;
         statusMap.set(followerId, {
@@ -275,6 +304,11 @@ export class CachedBlueskyProfileService implements IProfileService {
           followsYou: true,
         });
       }
+    } else {
+      console.warn(
+        'Reverse follow-status query failed; followsYou left unknown:',
+        reverseResult.error,
+      );
     }
 
     return statusMap;
