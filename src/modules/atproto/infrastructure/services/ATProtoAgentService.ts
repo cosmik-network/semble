@@ -1,3 +1,4 @@
+import { createPdsAgent } from './PdsAgent';
 import { AtpAgent, Agent } from '@atproto/api';
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { IdResolver } from '@atproto/identity';
@@ -177,9 +178,7 @@ export class ATProtoAgentService implements IAgentService {
       const session = appPasswordSessionResult.value;
       if (session) {
         // Create an Agent with the session
-        const agent = new AtpAgent({
-          service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-        });
+        const { agent } = await createPdsAgent(did.value);
 
         // Resume the session
         await agent.resumeSession(session);
@@ -232,9 +231,7 @@ export class ATProtoAgentService implements IAgentService {
           await this.appPasswordSessionService.getSession(serviceAccountDid);
         if (existingSessionResult.isOk()) {
           const session = existingSessionResult.value;
-          const agent = new AtpAgent({
-            service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-          });
+          const { agent } = await createPdsAgent(session.did);
           await agent.resumeSession(session);
           return ok(agent);
         }
@@ -256,9 +253,7 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       const session = newSessionResult.value;
-      const agent = new AtpAgent({
-        service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-      });
+      const { agent } = await createPdsAgent(session.did);
       await agent.resumeSession(session);
 
       return ok(agent);

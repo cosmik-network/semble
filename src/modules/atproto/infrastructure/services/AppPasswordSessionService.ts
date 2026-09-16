@@ -1,12 +1,13 @@
 import { err, ok, Result } from 'src/shared/core/Result';
 import { IAppPasswordSessionRepository } from '../repositories/IAppPasswordSessionRepository';
-import { AtpAgent, AtpSessionData } from '@atproto/api';
+import { AtpSessionData } from '@atproto/api';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
-import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
+import { createPdsAgent } from './PdsAgent';
 
 export class AppPasswordSessionService implements IAppPasswordSessionService {
   constructor(
     private readonly appPasswordSessionRepository: IAppPasswordSessionRepository,
+    private readonly createAgent = createPdsAgent,
   ) {}
   async getSession(did: string): Promise<Result<AtpSessionData>> {
     const sessionResult =
@@ -14,29 +15,38 @@ export class AppPasswordSessionService implements IAppPasswordSessionService {
     if (sessionResult.isErr()) {
       return err(sessionResult.error);
     }
-    const agent = new AtpAgent({
-      service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-    });
-
     const sessionWithAppPassword = sessionResult.value;
     if (!sessionWithAppPassword) {
       return err(new Error(`No session found for DID: ${did}`));
     }
     try {
-      await agent.resumeSession(sessionResult.value.session);
+      const { agent } = await this.createAgent(did);
+      await agent.resumeSession(sessionWithAppPassword.session);
       const session = agent.session;
-      if (!session) {
-        return err(new Error(`Failed to resume session for DID: ${did}`));
+      if (!session || session.did !== did || !session.active) {
+        throw new Error(
+          'Restored session does not belong to an active target account',
+        );
       }
+      const saved = await this.appPasswordSessionRepository.saveSession(did, {
+        session,
+        appPassword: sessionWithAppPassword.appPassword,
+      });
+      if (saved.isErr()) return err(saved.error);
       return ok(session);
     } catch (error) {
       try {
+        const { agent } = await this.createAgent(did);
         await agent.login({
           identifier: sessionWithAppPassword.session.did,
           password: sessionWithAppPassword.appPassword,
         });
         const updatedSession = agent.session;
-        if (!updatedSession) {
+        if (
+          !updatedSession ||
+          updatedSession.did !== did ||
+          !updatedSession.active
+        ) {
           return err(
             new Error(`Failed to login with app password for DID: ${did}`),
           );
@@ -71,19 +81,18 @@ export class AppPasswordSessionService implements IAppPasswordSessionService {
     identifier: string,
     appPassword: string,
   ): Promise<Result<AtpSessionData>> {
-    const agent = new AtpAgent({
-      service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-    });
-
     try {
+      const { did, agent } = await this.createAgent(identifier);
       await agent.login({
-        identifier,
+        identifier: did,
         password: appPassword,
       });
       const session = agent.session;
-      if (!session) {
+      if (!session || session.did !== did || !session.active) {
         return err(
-          new Error(`Failed to create session for identifier: ${identifier}`),
+          new Error(
+            `Failed to create an active session for identifier: ${identifier}`,
+          ),
         );
       }
       const saveResult = await this.appPasswordSessionRepository.saveSession(
