@@ -126,33 +126,29 @@ export class GetFollowingCollectionsUseCase implements UseCase<
         authorIds.add(collection.authorId.value);
       }
 
-      // Fetch all author profiles
-      const profilePromises = Array.from(authorIds).map((authorId) =>
-        this.profileService.getProfile(authorId, query.callingUserId),
+      // Fetch all author profiles in one batched call
+      const authorIdsArray = Array.from(authorIds);
+      const profilesResult = await this.profileService.getProfiles(
+        authorIdsArray,
+        query.callingUserId,
       );
-
-      const profileResults = await Promise.all(profilePromises);
       const profileMap = new Map<string, any>();
 
-      const authorIdsArray = Array.from(authorIds);
-      for (let i = 0; i < authorIdsArray.length; i++) {
-        const profileResult = profileResults[i];
-        const authorId = authorIdsArray[i];
-        if (!profileResult || !authorId) {
-          continue;
+      if (profilesResult.isOk()) {
+        for (const authorId of authorIdsArray) {
+          const profile = profilesResult.value.get(authorId);
+          if (!profile) {
+            console.error(`Failed to fetch profile for ${authorId}`);
+            continue;
+          }
+          profileMap.set(authorId, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          });
         }
-        if (profileResult.isErr()) {
-          console.error(`Failed to fetch profile for ${authorId}`);
-          continue;
-        }
-        const profile = profileResult.value;
-        profileMap.set(authorId, {
-          id: profile.id,
-          name: profile.name,
-          handle: profile.handle,
-          avatarUrl: profile.avatarUrl,
-          description: profile.bio,
-        });
       }
 
       // Build collections array in the order of follows (reverse chronological)

@@ -158,9 +158,9 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                 curatorId.value,
               );
 
-            // Enrich collections with full data
-            const enrichedCollections = await Promise.all(
-              collections.map(async (collection): Promise<CollectionDTO> => {
+            // Phase 1: fetch full collections in parallel (unchanged)
+            const fullCollections = await Promise.all(
+              collections.map(async (collection) => {
                 // Fetch full collection to get dates and cardCount
                 const collectionIdResult = CollectionId.createFromString(
                   collection.id,
@@ -174,25 +174,34 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                 if (collectionResult.isErr() || !collectionResult.value) {
                   throw new Error(`Collection not found: ${collection.id}`);
                 }
-                const fullCollection = collectionResult.value;
+                return { summary: collection, full: collectionResult.value };
+              }),
+            );
 
-                // Fetch author profile
-                const authorProfileResult =
-                  await this.profileService.getProfile(
-                    fullCollection.authorId.value,
-                  );
-                if (authorProfileResult.isErr()) {
-                  // Propagate authentication errors
-                  if (
-                    authorProfileResult.error instanceof AuthenticationError
-                  ) {
-                    throw authorProfileResult.error;
-                  }
+            // Phase 2: one batched profile fetch for all authors
+            const authorIds = [
+              ...new Set(fullCollections.map((c) => c.full.authorId.value)),
+            ];
+            const authorProfilesResult =
+              await this.profileService.getProfiles(authorIds);
+            if (authorProfilesResult.isErr()) {
+              throw new Error(
+                `Failed to fetch author profiles: ${authorProfilesResult.error.message}`,
+              );
+            }
+            const authorProfiles = authorProfilesResult.value;
+
+            // Enrich collections with full data
+            const enrichedCollections = fullCollections.map(
+              ({ summary: collection, full: fullCollection }): CollectionDTO => {
+                const authorProfile = authorProfiles.get(
+                  fullCollection.authorId.value,
+                );
+                if (!authorProfile) {
                   throw new Error(
-                    `Failed to fetch author profile: ${authorProfileResult.error.message}`,
+                    `Failed to fetch author profile for ${fullCollection.authorId.value}`,
                   );
                 }
-                const authorProfile = authorProfileResult.value;
 
                 return {
                   id: collection.id,
@@ -211,7 +220,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                   createdAt: fullCollection.createdAt.toISOString(),
                   updatedAt: fullCollection.updatedAt.toISOString(),
                 };
-              }),
+              },
             );
 
             // Add follow status for collections
