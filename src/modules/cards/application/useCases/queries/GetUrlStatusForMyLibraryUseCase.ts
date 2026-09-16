@@ -187,7 +187,8 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                   uri: collection.uri,
                   name: collection.name,
                   description: collection.description,
-                  accessType: collection.accessType as CollectionDTO['accessType'],
+                  accessType:
+                    collection.accessType as CollectionDTO['accessType'],
                   author: {
                     id: authorProfile.id,
                     name: authorProfile.name,

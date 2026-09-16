@@ -530,7 +530,6 @@ export class UseCaseFactory {
       getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
-        repositories.collectionRepository,
         repositories.followsRepository,
       ),
       getRecommendedCollectionsForUrlUseCase:
@@ -547,7 +546,6 @@ export class UseCaseFactory {
         repositories.connectionQueryRepository,
         repositories.cardQueryRepository,
         services.profileService,
-        services.metadataService,
       ),
 
       // Connection use cases
