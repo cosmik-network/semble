@@ -21,8 +21,28 @@ type AuthResult = {
   reason?: 'no_credentials' | 'reauth_required';
 };
 
-// Prevent concurrent refresh attempts
-let refreshPromise: Promise<Response> | null = null;
+/**
+ * Outcome of a token refresh, as plain data. The refresh is deduplicated
+ * across concurrent requests, so it must not return a Response: a Response
+ * body is one-shot and, worse, would hand one user's Set-Cookie tokens to
+ * every request sharing the promise. Each caller builds its own response.
+ */
+type RefreshOutcome =
+  | { ok: true; user: GetProfileResponse; setCookie: string | null }
+  | {
+      ok: false;
+      reason?: 'reauth_required';
+      /** Cookie-clearing headers from the backend, when it sent them. */
+      setCookie?: string | null;
+      /** Clear auth cookies on the way out. */
+      clearCookies: boolean;
+    };
+
+// Deduplicate concurrent refresh attempts PER REFRESH TOKEN. This route can
+// serve concurrent requests from different users in one instance (Fluid
+// compute), so a single shared promise would leak one user's session to
+// another.
+const refreshPromises = new Map<string, Promise<RefreshOutcome>>();
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,43 +84,57 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Use mutex to prevent concurrent refresh attempts
-      if (!refreshPromise) {
-        refreshPromise = performTokenRefresh(refreshToken, request);
+      // Deduplicate concurrent refreshes of the SAME token only.
+      let pending = refreshPromises.get(refreshToken);
+      if (!pending) {
+        pending = performTokenRefresh(refreshToken, request).finally(() => {
+          refreshPromises.delete(refreshToken);
+        });
+        refreshPromises.set(refreshToken, pending);
       }
 
       try {
-        const result = await refreshPromise;
-        if (ENABLE_AUTH_LOGGING) {
-          console.log(`[auth/me] Token refresh completed successfully`);
+        const outcome = await pending;
+
+        if (outcome.ok) {
+          if (ENABLE_AUTH_LOGGING) {
+            console.log(`[auth/me] Token refresh completed successfully`);
+          }
+          return new Response(
+            JSON.stringify({ isAuth: true, user: outcome.user }),
+            {
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'Set-Cookie': outcome.setCookie || '',
+              },
+            },
+          );
         }
-        return result;
+
+        const response = NextResponse.json<AuthResult>(
+          {
+            isAuth: false,
+            ...(outcome.reason ? { reason: outcome.reason } : {}),
+          },
+          { status: 401 },
+        );
+        if (outcome.clearCookies) {
+          // Prefer the backend's own cookie-clearing headers when it sent them.
+          if (outcome.setCookie) {
+            response.headers.set('Set-Cookie', outcome.setCookie);
+          } else {
+            deleteAuthCookies(response);
+          }
+        }
+        return response;
       } catch (error: any) {
         if (ENABLE_AUTH_LOGGING) {
           console.log(`[auth/me] Token refresh error: ${error}`);
         }
         console.error('Token refresh error:', error);
 
-        // If this is a refresh failure with backend response, forward the cookie-clearing headers
-        if (error.backendResponse) {
-          const response = NextResponse.json<AuthResult>(
-            { isAuth: false, reason: 'reauth_required' },
-            { status: 401 },
-          );
-
-          // Forward the Set-Cookie headers from backend to clear cookies
-          const setCookieHeader =
-            error.backendResponse.headers.get('set-cookie');
-          if (setCookieHeader) {
-            response.headers.set('Set-Cookie', setCookieHeader);
-          } else {
-            deleteAuthCookies(response);
-          }
-
-          return response;
-        }
-
-        // For other errors, clear cookies manually
+        // Unexpected (network-level) refresh failure: clear cookies manually
         if (ENABLE_AUTH_LOGGING) {
           console.log('[auth/me] Clearing cookies due to token refresh error');
         }
@@ -110,8 +144,6 @@ export async function GET(request: NextRequest) {
         );
         deleteAuthCookies(response);
         return response;
-      } finally {
-        refreshPromise = null;
       }
     }
 
@@ -199,7 +231,6 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Auth me error:', error);
-    refreshPromise = null; // Reset on error
     return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
 }
@@ -207,7 +238,7 @@ export async function GET(request: NextRequest) {
 async function performTokenRefresh(
   refreshToken: string,
   request: NextRequest,
-): Promise<Response> {
+): Promise<RefreshOutcome> {
   if (ENABLE_AUTH_LOGGING) {
     console.log(`[auth/me] Sending refresh request to backend`);
   }
@@ -228,10 +259,13 @@ async function performTokenRefresh(
         `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
       );
     }
-    // Create error with backend response to preserve cookie-clearing headers
-    const error = new Error(`Refresh failed: ${refreshResponse.status}`) as any;
-    error.backendResponse = refreshResponse;
-    throw error;
+    // Session is dead; pass along the backend's cookie-clearing headers.
+    return {
+      ok: false,
+      reason: 'reauth_required',
+      setCookie: refreshResponse.headers.get('set-cookie'),
+      clearCookies: true,
+    };
   }
 
   // Get new tokens from response
@@ -248,15 +282,13 @@ async function performTokenRefresh(
   });
 
   if (!profileResponse.ok) {
-    return NextResponse.json<AuthResult>(
-      {
-        isAuth: false,
-        ...(profileResponse.status === 401
-          ? { reason: 'reauth_required' as const }
-          : {}),
-      },
-      { status: 401 },
-    );
+    return {
+      ok: false,
+      ...(profileResponse.status === 401
+        ? { reason: 'reauth_required' as const }
+        : {}),
+      clearCookies: false,
+    };
   }
 
   const user = await profileResponse.json();
@@ -269,12 +301,7 @@ async function performTokenRefresh(
         `[auth/me] ATProto session invalid for user: ${user.id} - forcing re-login (post-refresh)`,
       );
     }
-    const response = NextResponse.json<AuthResult>(
-      { isAuth: false, reason: 'reauth_required' },
-      { status: 401 },
-    );
-    deleteAuthCookies(response);
-    return response;
+    return { ok: false, reason: 'reauth_required', clearCookies: true };
   }
 
   if (ENABLE_AUTH_LOGGING) {
@@ -282,12 +309,10 @@ async function performTokenRefresh(
       `[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`,
     );
   }
-  // Return user profile with backend's Set-Cookie headers
-  return new Response(JSON.stringify({ isAuth: true, user }), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
-    },
-  });
+  // Success: the caller returns the profile with the backend's Set-Cookie.
+  return {
+    ok: true,
+    user,
+    setCookie: refreshResponse.headers.get('set-cookie'),
+  };
 }
