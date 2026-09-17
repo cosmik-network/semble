@@ -39,7 +39,6 @@ describe('GetCollectionsForUrlUseCase', () => {
     useCase = new GetCollectionsForUrlUseCase(
       collectionQueryRepository,
       profileService,
-      collectionRepository,
       followsRepository,
     );
 
@@ -798,7 +797,6 @@ describe('GetCollectionsForUrlUseCase', () => {
       const errorUseCase = new GetCollectionsForUrlUseCase(
         errorCollectionQueryRepository,
         profileService,
-        collectionRepository,
         followsRepository,
       );
 

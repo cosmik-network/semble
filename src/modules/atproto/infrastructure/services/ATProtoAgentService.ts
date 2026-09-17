@@ -1,3 +1,4 @@
+import { createPdsAgent } from './PdsAgent';
 import { AtpAgent, Agent } from '@atproto/api';
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { IdResolver } from '@atproto/identity';
@@ -14,6 +15,22 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 // can't observe via events) is picked up quickly; on this machine the
 // 'updated' event clears the entry immediately.
 const DEAD_SESSION_TTL_MS = 60_000;
+
+// Upper bound for unauthenticated appview/PDS calls. These are read-only
+// lookups (handle resolution, public profiles); a degraded upstream must
+// fail fast instead of holding inbound requests open for minutes.
+const UNAUTHENTICATED_FETCH_TIMEOUT_MS = 5_000;
+
+function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const timeoutSignal = AbortSignal.timeout(UNAUTHENTICATED_FETCH_TIMEOUT_MS);
+  const signal = init?.signal
+    ? AbortSignal.any([init.signal, timeoutSignal])
+    : timeoutSignal;
+  return fetch(input, { ...init, signal });
+}
 
 /**
  * Only session-terminal failures should be negative-cached: a missing row or
@@ -50,6 +67,7 @@ export class ATProtoAgentService implements IAgentService {
     return ok(
       new Agent({
         service: ATPROTO_SERVICE_ENDPOINTS.UNAUTHENTICATED_BSKY_SERVICE,
+        fetch: fetchWithTimeout,
       }),
     );
   }
@@ -87,6 +105,7 @@ export class ATProtoAgentService implements IAgentService {
       return ok(
         new Agent({
           service: pdsEndpoint,
+          fetch: fetchWithTimeout,
         }),
       );
     } catch (error) {
@@ -177,9 +196,7 @@ export class ATProtoAgentService implements IAgentService {
       const session = appPasswordSessionResult.value;
       if (session) {
         // Create an Agent with the session
-        const agent = new AtpAgent({
-          service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-        });
+        const { agent } = await createPdsAgent(did.value);
 
         // Resume the session
         await agent.resumeSession(session);
@@ -232,9 +249,7 @@ export class ATProtoAgentService implements IAgentService {
           await this.appPasswordSessionService.getSession(serviceAccountDid);
         if (existingSessionResult.isOk()) {
           const session = existingSessionResult.value;
-          const agent = new AtpAgent({
-            service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-          });
+          const { agent } = await createPdsAgent(session.did);
           await agent.resumeSession(session);
           return ok(agent);
         }
@@ -256,9 +271,7 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       const session = newSessionResult.value;
-      const agent = new AtpAgent({
-        service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
-      });
+      const { agent } = await createPdsAgent(session.did);
       await agent.resumeSession(session);
 
       return ok(agent);

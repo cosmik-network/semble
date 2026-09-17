@@ -65,4 +65,81 @@ export class BlueskyProfileService implements IProfileService {
       );
     }
   }
+
+  private static readonly GET_PROFILES_MAX_ACTORS = 25;
+
+  /**
+   * Batch variant of getProfile using app.bsky.actor.getProfiles (25 actors
+   * per call). Unauthenticated for the same reasons as getProfile; ids the
+   * appview does not return (deleted/deactivated) are absent from the map.
+   */
+  async getProfiles(
+    userIds: string[],
+    _callerId?: string,
+  ): Promise<Result<Map<string, UserProfile>>> {
+    const uniqueIds = [...new Set(userIds)];
+    const profileMap = new Map<string, UserProfile>();
+    if (uniqueIds.length === 0) {
+      return ok(profileMap);
+    }
+
+    const agentResult = this.agentService.getUnauthenticatedAgent();
+    if (agentResult.isErr()) {
+      return err(
+        new Error(
+          `Failed to get unauthenticated agent: ${agentResult.error.message}`,
+        ),
+      );
+    }
+    const agent = agentResult.value;
+
+    const chunks: string[][] = [];
+    for (
+      let i = 0;
+      i < uniqueIds.length;
+      i += BlueskyProfileService.GET_PROFILES_MAX_ACTORS
+    ) {
+      chunks.push(
+        uniqueIds.slice(i, i + BlueskyProfileService.GET_PROFILES_MAX_ACTORS),
+      );
+    }
+
+    const chunkResults = await Promise.allSettled(
+      chunks.map((actors) => agent.getProfiles({ actors })),
+    );
+
+    const failures: string[] = [];
+    for (const chunkResult of chunkResults) {
+      if (chunkResult.status === 'rejected') {
+        console.warn(`getProfiles chunk failed: ${String(chunkResult.reason)}`);
+        failures.push(String(chunkResult.reason));
+        continue;
+      }
+      if (!chunkResult.value.success) {
+        console.warn(
+          `getProfiles chunk failed: ${JSON.stringify(chunkResult.value)}`,
+        );
+        failures.push(JSON.stringify(chunkResult.value));
+        continue;
+      }
+      for (const profile of chunkResult.value.data.profiles) {
+        profileMap.set(profile.did, {
+          id: profile.did,
+          name: profile.displayName || profile.handle,
+          handle: profile.handle,
+          avatarUrl: profile.avatar,
+          bannerUrl: profile.banner,
+          bio: profile.description,
+          labels: profile.labels,
+        });
+      }
+    }
+
+    // Partial failure degrades to a partial map; only total failure errors.
+    if (failures.length === chunks.length && chunks.length > 0) {
+      return err(new Error(`All getProfiles chunks failed: ${failures[0]}`));
+    }
+
+    return ok(profileMap);
+  }
 }

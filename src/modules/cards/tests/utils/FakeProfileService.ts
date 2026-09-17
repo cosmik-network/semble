@@ -42,4 +42,17 @@ export class FakeProfileService implements IProfileService {
   getAllProfiles(): UserProfile[] {
     return Array.from(this.profiles.values());
   }
+
+  async getProfiles(
+    userIds: string[],
+  ): Promise<Result<Map<string, UserProfile>>> {
+    const map = new Map<string, UserProfile>();
+    for (const userId of [...new Set(userIds)]) {
+      const result = await this.getProfile(userId);
+      if (result.isOk()) {
+        map.set(userId, result.value);
+      }
+    }
+    return ok(map);
+  }
 }

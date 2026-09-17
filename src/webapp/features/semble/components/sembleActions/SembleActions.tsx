@@ -1,7 +1,10 @@
 'use client';
 
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
-import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
+import { useQuery } from '@tanstack/react-query';
+import { getCardFromMyLibrary } from '@/features/cards/lib/dal';
+import { cardKeys } from '@/features/cards/lib/cardKeys';
+import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import { Button, Group } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
@@ -20,8 +23,18 @@ interface Props {
 
 export default function SembleActions(props: Props) {
   const pathname = usePathname();
-  const cardStatus = useGetCardFromMyLibrary({ url: props.url });
-  const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
+  // The buttons only need urlInLibrary, which the (fast) metadata query
+  // already carries — the metadata call shares its cache entry with the rest
+  // of the page. The full my-library status (card content, note, collections)
+  // is only needed once the modal opens, so it loads in the background
+  // instead of blocking the buttons behind the slower endpoint.
+  const metadata = useUrlMetadataWithStats({ url: props.url });
+  const cardStatus = useQuery({
+    queryKey: cardKeys.byUrl(props.url),
+    queryFn: () => getCardFromMyLibrary(props.url),
+  });
+  const isInYourLibrary =
+    metadata.data?.urlInLibrary ?? cardStatus.data?.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
   const [showAddConnectionModal, setShowAddConnectionModal] = useState(false);
 
@@ -30,10 +43,6 @@ export default function SembleActions(props: Props) {
     data?.pages.flatMap((page) => page.libraries ?? []) ?? [];
 
   const urlLibraryCount = allLibraries.length ?? 0;
-
-  if (cardStatus.error) {
-    return null;
-  }
 
   return (
     <Fragment>
@@ -76,8 +85,8 @@ export default function SembleActions(props: Props) {
         isOpen={showAddToModal}
         onClose={() => setShowAddToModal(false)}
         url={props.url}
-        cardContent={cardStatus.data.card?.cardContent}
-        isInYourLibrary={cardStatus.data.card?.urlInLibrary}
+        cardContent={cardStatus.data?.card?.cardContent}
+        isInYourLibrary={isInYourLibrary}
         urlLibraryCount={urlLibraryCount}
         viaCardId={props.viaCardId}
         analyticsContext={{

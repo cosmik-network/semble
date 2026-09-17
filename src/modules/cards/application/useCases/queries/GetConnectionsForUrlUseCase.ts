@@ -11,7 +11,6 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { UserProfileDTO, UrlMetadata, PaginationDTO } from '@semble/types';
 import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
-import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { UrlMetadata as UrlMetadataVO } from '../../../domain/value-objects/UrlMetadata';
 import { toUrlMetadataProps } from '../../../domain/value-objects/urlMetadataMapping';
 
@@ -77,7 +76,6 @@ export class GetConnectionsForUrlUseCase implements UseCase<
     private connectionQueryRepo: IConnectionQueryRepository,
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
-    private metadataService: IMetadataService,
   ) {}
 
   async execute(
@@ -124,16 +122,21 @@ export class GetConnectionsForUrlUseCase implements UseCase<
         ]),
       );
 
-      // Fetch curator profiles using ProfileEnricher
+      // Curator profiles and URL library info are independent — fetch in
+      // parallel. No external metadata fetches on this read path: stored
+      // connection metadata is used when present, and the library-info batch
+      // already carries sample-card metadata as a fallback.
       const profileEnricher = new ProfileEnricher(this.profileService);
-      const profileMapResult = await profileEnricher.buildProfileMap(
-        uniqueCuratorIds,
-        query.callingUserId,
-        {
+      const [profileMapResult, urlLibraryInfoMap] = await Promise.all([
+        profileEnricher.buildProfileMap(uniqueCuratorIds, query.callingUserId, {
           skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: false,
-        },
-      );
+        }),
+        this.cardQueryRepo.getBatchUrlLibraryInfo(
+          uniqueUrls,
+          query.callingUserId,
+        ),
+      ]);
 
       if (profileMapResult.isErr()) {
         return err(
@@ -145,81 +148,23 @@ export class GetConnectionsForUrlUseCase implements UseCase<
 
       const profileMap = profileMapResult.value;
 
-      // Build initial metadata map from stored metadata in connection records
-      const metadataMap = new Map<string, UrlMetadataVO | null>();
-      const urlsNeedingFetch: string[] = [];
-
-      // Check each unique URL to see if we have stored metadata
-      for (const urlString of uniqueUrls) {
-        // Find if this URL appears as source or target in any connection with metadata
-        let hasStoredMetadata = false;
-
-        for (const item of result.items) {
-          if (item.sourceUrl === urlString && item.sourceUrlMetadata) {
-            // Parse stored metadata
+      // Build metadata map from stored metadata in connection records
+      const metadataMap = new Map<string, UrlMetadataVO>();
+      for (const item of result.items) {
+        for (const [urlString, stored] of [
+          [item.sourceUrl, item.sourceUrlMetadata],
+          [item.targetUrl, item.targetUrlMetadata],
+        ] as const) {
+          if (stored && !metadataMap.has(urlString)) {
             const metadataResult = UrlMetadataVO.create(
-              toUrlMetadataProps(item.sourceUrlMetadata),
+              toUrlMetadataProps(stored),
             );
             if (metadataResult.isOk()) {
               metadataMap.set(urlString, metadataResult.value);
-              hasStoredMetadata = true;
-              break;
-            }
-          } else if (item.targetUrl === urlString && item.targetUrlMetadata) {
-            // Parse stored metadata
-            const metadataResult = UrlMetadataVO.create(
-              toUrlMetadataProps(item.targetUrlMetadata),
-            );
-            if (metadataResult.isOk()) {
-              metadataMap.set(urlString, metadataResult.value);
-              hasStoredMetadata = true;
-              break;
             }
           }
         }
-
-        // If no stored metadata found, add to fetch list
-        if (!hasStoredMetadata) {
-          urlsNeedingFetch.push(urlString);
-        }
       }
-
-      // Fetch metadata from external service only for URLs without stored metadata
-      if (urlsNeedingFetch.length > 0) {
-        const metadataResults = await Promise.allSettled(
-          urlsNeedingFetch.map(async (urlString) => {
-            const urlResult = URL.create(urlString);
-            if (urlResult.isErr()) {
-              return { url: urlString, metadata: null };
-            }
-            const metadataResult = await this.metadataService.fetchMetadata(
-              urlResult.value,
-            );
-            if (metadataResult.isOk()) {
-              return { url: urlString, metadata: metadataResult.value };
-            }
-            // Fallback to minimal metadata if fetch fails
-            const fallbackResult = UrlMetadataVO.create({ url: urlString });
-            return {
-              url: urlString,
-              metadata: fallbackResult.isOk() ? fallbackResult.value : null,
-            };
-          }),
-        );
-
-        // Add fetched metadata to the map
-        metadataResults.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            metadataMap.set(result.value.url, result.value.metadata);
-          }
-        });
-      }
-
-      // Fetch URL library info for counts and in-library status
-      const urlLibraryInfoMap = await this.cardQueryRepo.getBatchUrlLibraryInfo(
-        uniqueUrls,
-        query.callingUserId,
-      );
 
       // Convert to the format expected by the rest of the code
       const urlDataMap = new Map<
@@ -237,28 +182,41 @@ export class GetConnectionsForUrlUseCase implements UseCase<
         const urlInfo = urlLibraryInfoMap.get(url);
         const urlMetadata = metadataMap.get(url);
 
-        if (urlInfo && urlMetadata) {
-          // Convert UrlMetadataVO to UrlMetadata DTO with dates as ISO strings
-          const metadata: UrlMetadata = {
-            url: urlMetadata.url,
-            title: urlMetadata.title,
-            description: urlMetadata.description,
-            author: urlMetadata.author,
-            siteName: urlMetadata.siteName,
-            imageUrl: urlMetadata.imageUrl,
-            type: urlMetadata.type,
-            doi: urlMetadata.doi,
-            isbn: urlMetadata.isbn,
-          };
+        // Stored connection metadata first, then the sample-card metadata
+        // from the library-info batch, then just the URL itself
+        const metadata: UrlMetadata = urlMetadata
+          ? {
+              url: urlMetadata.url,
+              title: urlMetadata.title,
+              description: urlMetadata.description,
+              author: urlMetadata.author,
+              siteName: urlMetadata.siteName,
+              imageUrl: urlMetadata.imageUrl,
+              type: urlMetadata.type,
+              doi: urlMetadata.doi,
+              isbn: urlMetadata.isbn,
+            }
+          : urlInfo
+            ? {
+                url: urlInfo.metadata.url,
+                title: urlInfo.metadata.title,
+                description: urlInfo.metadata.description,
+                author: urlInfo.metadata.author,
+                siteName: urlInfo.metadata.siteName,
+                imageUrl: urlInfo.metadata.imageUrl,
+                type: urlInfo.metadata.type,
+                doi: urlInfo.metadata.doi,
+                isbn: urlInfo.metadata.isbn,
+              }
+            : { url };
 
-          urlDataMap.set(url, {
-            metadata,
-            urlLibraryCount: urlInfo.urlLibraryCount,
-            urlInLibrary: urlInfo.urlInLibrary,
-            urlConnectionCount: urlInfo.urlConnectionCount,
-            urlIsConnected: urlInfo.urlIsConnected,
-          });
-        }
+        urlDataMap.set(url, {
+          metadata,
+          urlLibraryCount: urlInfo?.urlLibraryCount ?? 0,
+          urlInLibrary: urlInfo?.urlInLibrary,
+          urlConnectionCount: urlInfo?.urlConnectionCount,
+          urlIsConnected: urlInfo?.urlIsConnected,
+        });
       });
 
       // Map items with enriched data

@@ -41,6 +41,19 @@ describe('GetFollowingFeedUseCase spill-over', () => {
         handle: `${userId}.test`,
       });
     },
+    async getProfiles(
+      userIds: string[],
+    ): Promise<Result<Map<string, UserProfile>>> {
+      const map = new Map<string, UserProfile>();
+      for (const userId of userIds) {
+        map.set(userId, {
+          id: userId,
+          name: 'Test User',
+          handle: `${userId}.test`,
+        });
+      }
+      return ok(map);
+    },
   };
 
   // Card query stub: returns a valid URL card view for any requested card id.

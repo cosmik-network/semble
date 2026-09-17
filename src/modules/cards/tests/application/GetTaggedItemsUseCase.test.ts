@@ -15,6 +15,17 @@ const authorDid = 'did:plc:author1';
 const profileService: IProfileService = {
   getProfile: async (userId: string) =>
     ok({ id: userId, name: `Name of ${userId}`, handle: `${userId}.handle` }),
+  getProfiles: async (userIds: string[]) => {
+    const map = new Map();
+    for (const userId of userIds) {
+      map.set(userId, {
+        id: userId,
+        name: `Name of ${userId}`,
+        handle: `${userId}.handle`,
+      });
+    }
+    return ok(map);
+  },
 };
 
 const identityResolver = {

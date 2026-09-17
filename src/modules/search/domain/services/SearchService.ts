@@ -82,8 +82,14 @@ export class SearchService {
     },
   ): Promise<Result<UrlView[]>> {
     try {
-      // 1. Get metadata for the URL to extract title + description
-      const metadataResult = await this.metadataService.fetchMetadata(url);
+      // 1. Get metadata for the URL to extract title + description. Fast
+      // mode: this only feeds the vector query text, so don't block the
+      // request on the slow citation service.
+      const metadataResult = await this.metadataService.fetchMetadata(
+        url,
+        false,
+        'fast',
+      );
       if (metadataResult.isErr()) {
         return err(
           new Error(
@@ -140,8 +146,13 @@ export class SearchService {
     },
   ): Promise<Result<{ all: UrlView[]; savedByUser: UrlView[] }>> {
     try {
-      // 1. Metadata -> chunk -> search query (fetched once for both views)
-      const metadataResult = await this.metadataService.fetchMetadata(url);
+      // 1. Metadata -> chunk -> search query (fetched once for both views).
+      // Fast mode: only feeds the vector query text.
+      const metadataResult = await this.metadataService.fetchMetadata(
+        url,
+        false,
+        'fast',
+      );
       if (metadataResult.isErr()) {
         return err(
           new Error(

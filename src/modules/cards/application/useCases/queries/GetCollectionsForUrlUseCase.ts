@@ -7,7 +7,6 @@ import {
 } from '../../../domain/ICollectionQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
-import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { GetCollectionsForUrlResponse, Collection, User } from '@semble/types';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
 import { FollowTargetType } from 'src/modules/user/domain/value-objects/FollowTargetType';
@@ -39,7 +38,6 @@ export class GetCollectionsForUrlUseCase implements UseCase<
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
-    private collectionRepo: ICollectionRepository,
     private followsRepository: IFollowsRepository,
   ) {}
 
@@ -72,20 +70,26 @@ export class GetCollectionsForUrlUseCase implements UseCase<
         },
       );
 
-      // Build profile map using ProfileEnricher utility
+      // Build profile map using ProfileEnricher utility; the follow-status
+      // lookup only needs collection ids, so it runs in parallel
       const profileEnricher = new ProfileEnricher(this.profileService);
       const uniqueAuthorIds = Array.from(
         new Set(result.items.map((item) => item.authorId)),
       );
 
-      const profileMapResult = await profileEnricher.buildProfileMap(
-        uniqueAuthorIds,
-        query.callingUserId,
-        {
+      const [profileMapResult, followsResult] = await Promise.all([
+        profileEnricher.buildProfileMap(uniqueAuthorIds, query.callingUserId, {
           skipFailures: true, // Skip profiles that fail to resolve
           mapToUser: false, // Use inline profile (without isFollowing)
-        },
-      );
+        }),
+        query.callingUserId
+          ? this.followsRepository.findByFollowerAndTargets(
+              query.callingUserId,
+              result.items.map((item) => item.id),
+              FollowTargetType.COLLECTION,
+            )
+          : null,
+      ]);
 
       if (profileMapResult.isErr()) {
         return err(profileMapResult.error);
@@ -117,14 +121,7 @@ export class GetCollectionsForUrlUseCase implements UseCase<
         .filter((collection) => collection !== null) as Collection[];
 
       // Add follow status if callingUserId is provided
-      if (query.callingUserId) {
-        const followsResult =
-          await this.followsRepository.findByFollowerAndTargets(
-            query.callingUserId,
-            enrichedCollections.map((c) => c.id),
-            FollowTargetType.COLLECTION,
-          );
-
+      if (followsResult) {
         const followedCollectionIds = new Set(
           followsResult.isOk()
             ? followsResult.value.map((follow) => follow.targetId)

@@ -91,6 +91,17 @@ export interface IFollowsRepository {
   ): Promise<Result<Follow[]>>;
 
   /**
+   * Reverse batch lookup: returns the Follow records where any of the given
+   * followerIds follow the single target. Used to compute followsYou for a
+   * page of profiles in one query.
+   */
+  findByFollowersAndTarget(
+    followerIds: string[],
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>>;
+
+  /**
    * Get paginated list of entities that a user follows.
    *
    * @param followerId - DID of the follower

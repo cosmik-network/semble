@@ -393,6 +393,95 @@ export class DrizzleFollowsRepository implements IFollowsRepository {
     }
   }
 
+  async findByFollowersAndTarget(
+    followerIds: string[],
+    targetId: string,
+    targetType: FollowTargetType,
+  ): Promise<Result<Follow[]>> {
+    try {
+      if (followerIds.length === 0) {
+        return ok([]);
+      }
+
+      const results = await this.db
+        .select({
+          follow: follows,
+          publishedRecord: publishedRecords,
+        })
+        .from(follows)
+        .leftJoin(
+          publishedRecords,
+          eq(follows.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(
+            inArray(follows.followerId, followerIds),
+            eq(follows.targetId, targetId),
+            eq(follows.targetType, targetType.value),
+          ),
+        );
+
+      const followEntities: Follow[] = [];
+
+      for (const row of results) {
+        const followerDid = DID.create(row.follow.followerId);
+        if (followerDid.isErr()) {
+          console.error(
+            `Invalid follower DID: ${row.follow.followerId}`,
+            followerDid.error,
+          );
+          continue;
+        }
+
+        const targetTypeVO = FollowTargetType.create(
+          row.follow.targetType as FollowTargetTypeEnum,
+        );
+        if (targetTypeVO.isErr()) {
+          console.error(
+            `Invalid target type: ${row.follow.targetType}`,
+            targetTypeVO.error,
+          );
+          continue;
+        }
+
+        // Reconstruct publishedRecordId if present
+        let publishedRecordId: PublishedRecordId | undefined;
+        if (row.publishedRecord) {
+          publishedRecordId = PublishedRecordId.create({
+            uri: row.publishedRecord.uri,
+            cid: row.publishedRecord.cid,
+          });
+        }
+
+        const followResult = Follow.create(
+          {
+            followerId: followerDid.value,
+            targetId: row.follow.targetId,
+            targetType: targetTypeVO.value,
+            publishedRecordId,
+            createdAt: row.follow.createdAt,
+            isSubscribed: row.follow.isSubscribed,
+            subscribedAt: row.follow.subscribedAt ?? undefined,
+            subscriptionScopes: row.follow.subscriptionScopes ?? undefined,
+          },
+          new UniqueEntityID(
+            `${row.follow.followerId}:${row.follow.targetId}:${row.follow.targetType}`,
+          ),
+        );
+
+        if (followResult.isOk()) {
+          followEntities.push(followResult.value);
+        } else {
+          console.error('Failed to create Follow entity:', followResult.error);
+        }
+      }
+
+      return ok(followEntities);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async getFollowing(
     followerId: string,
     targetType: FollowTargetType,
