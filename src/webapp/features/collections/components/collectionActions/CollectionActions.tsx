@@ -3,7 +3,7 @@ import { Group, Menu, ActionIcon } from '@mantine/core';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
 import { BsThreeDots, BsPencilFill, BsTrash2Fill } from 'react-icons/bs';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
@@ -173,13 +173,21 @@ function AuthorCollectionMenu({ collection }: Props) {
 export default function CollectionActions(props: Props) {
   const { isAuthenticated, user } = useAuth();
 
+  // AuthenticatedCollectionActions runs authed suspense queries
+  // (useGetCardFromMyLibrary) whose client DAL cannot authenticate during SSR
+  // — rendered on the server they throw NoSessionError and corrupt the
+  // streaming render. Mount them only in the browser; the Suspense fallback
+  // covers the first paint.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const isAuthor =
     isAuthenticated && user?.handle === props.collection.author?.handle;
 
   return (
     <Fragment>
       <Group gap={'xs'}>
-        {isAuthenticated && (
+        {mounted && isAuthenticated && (
           <AuthenticatedCollectionActions collection={props.collection} />
         )}
 
