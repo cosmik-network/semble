@@ -43,6 +43,7 @@ interface Props {
   connectTooltipOpen?: boolean;
   saveTooltipOpen?: boolean;
   modalZIndex?: number;
+  menuWithinPortal?: boolean;
 }
 
 export default function UrlCard(props: Props) {
@@ -169,6 +170,7 @@ export default function UrlCard(props: Props) {
             connectTooltipOpen={props.connectTooltipOpen}
             saveTooltipOpen={props.saveTooltipOpen}
             modalZIndex={props.modalZIndex}
+            menuWithinPortal={props.menuWithinPortal}
           />
         </Stack>
       </Stack>

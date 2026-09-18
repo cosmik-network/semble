@@ -7,29 +7,22 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react';
-import type { ReaderLink } from './utils/readerLink';
-
-export type ReaderLinkModal = 'add' | 'connect';
 
 export interface ReaderLinkState {
   activeId: number | null;
-  /** Last opened link. Its modals mount closed from here so they animate in later. */
-  preparedLink: ReaderLink | null;
-  modal: ReaderLinkModal | null;
+  /** Last opened link; its card stays mounted so its modals outlive the popover */
+  preparedId: number | null;
 }
 
 export type ReaderLinkAction =
-  | { type: 'open'; id: number; link: ReaderLink }
+  | { type: 'open'; id: number }
   | { type: 'close'; id: number }
   | { type: 'dismiss' }
-  | { type: 'request'; modal: ReaderLinkModal; link: ReaderLink }
-  | { type: 'closeModal' }
   | { type: 'reset' };
 
 export const initialReaderLinkState: ReaderLinkState = {
   activeId: null,
-  preparedLink: null,
-  modal: null,
+  preparedId: null,
 };
 
 export function readerLinkReducer(
@@ -38,7 +31,7 @@ export function readerLinkReducer(
 ): ReaderLinkState {
   switch (action.type) {
     case 'open':
-      return { ...state, activeId: action.id, preparedLink: action.link };
+      return { activeId: action.id, preparedId: action.id };
     case 'close':
       // Stale close from a link that already lost the popover
       return state.activeId === action.id
@@ -46,21 +39,9 @@ export function readerLinkReducer(
         : state;
     case 'dismiss':
       return state.activeId === null ? state : { ...state, activeId: null };
-    case 'request':
-      return {
-        activeId: null,
-        preparedLink: action.link,
-        modal: action.modal,
-      };
-    case 'closeModal':
-      return { ...state, modal: null };
     case 'reset':
       return initialReaderLinkState;
   }
-}
-
-export function isReaderLinkOverlayOpen(state: ReaderLinkState): boolean {
-  return state.activeId !== null || state.modal !== null;
 }
 
 export function useReaderLinkReducer() {

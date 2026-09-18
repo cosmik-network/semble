@@ -7,22 +7,23 @@ import {
   useReaderLinkState,
 } from '../../lib/readerLinkState';
 import type { ReaderLink } from '../../lib/utils/readerLink';
-import ReaderLinkActions from '../ReaderLinkActions/ReaderLinkActions';
+import ReaderLinkCard from '../ReaderLinkCard/ReaderLinkCard';
 
 interface Props {
   /** Distinguishes repeated hrefs */
   id: number;
   link: ReaderLink;
+  articleUrl: string;
   isHoverDevice: boolean;
   children: ReactNode;
 }
 
 export default function ReaderArticleLink(props: Props) {
-  const { activeId } = useReaderLinkState();
+  const { activeId, preparedId } = useReaderLinkState();
   const dispatch = useReaderLinkDispatch();
   const opened = activeId === props.id;
 
-  const open = () => dispatch({ type: 'open', id: props.id, link: props.link });
+  const open = () => dispatch({ type: 'open', id: props.id });
   const close = () => dispatch({ type: 'close', id: props.id });
 
   const { openDropdown, closeDropdown } = useDelayedHover({
@@ -45,11 +46,18 @@ export default function ReaderArticleLink(props: Props) {
       width={320}
       radius="lg"
       shadow="md"
-      withArrow
+      // Hiding must not unmount the card's open modals
+      keepMounted
+      keepMountedMode="display-none"
       // Position against the hovered line of a wrapped anchor
       middlewares={{ flip: true, shift: true, inline: true }}
       styles={{
-        dropdown: { maxWidth: 'calc(100vw - 2 * var(--mantine-spacing-md))' },
+        dropdown: {
+          maxWidth: 'calc(100vw - 2 * var(--mantine-spacing-md))',
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+        },
       }}
     >
       <Popover.Target>
@@ -72,16 +80,14 @@ export default function ReaderArticleLink(props: Props) {
           {props.children}
         </a>
       </Popover.Target>
-      <Popover.Dropdown p="sm" {...hoverHandlers}>
-        <ReaderLinkActions
-          link={props.link}
-          onAdd={() =>
-            dispatch({ type: 'request', modal: 'add', link: props.link })
-          }
-          onConnect={() =>
-            dispatch({ type: 'request', modal: 'connect', link: props.link })
-          }
-        />
+      <Popover.Dropdown {...hoverHandlers}>
+        {preparedId === props.id && (
+          <ReaderLinkCard
+            link={props.link}
+            articleUrl={props.articleUrl}
+            menuWithinPortal={false}
+          />
+        )}
       </Popover.Dropdown>
     </Popover>
   );

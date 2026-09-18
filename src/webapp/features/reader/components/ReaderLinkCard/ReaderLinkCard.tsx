@@ -16,6 +16,7 @@ interface Props {
   link: ReaderLink;
   /** The article being read */
   articleUrl: string;
+  menuWithinPortal?: boolean;
 }
 
 function PlainLink(props: { link: ReaderLink }) {
@@ -69,8 +70,9 @@ function LoadedCard(props: Props) {
       urlIsConnected={data.urlIsConnected}
       semblePageUrl={props.articleUrl}
       analyticsContext={{ saveSource: CardSaveSource.READER }}
-      // Above the reader and links drawers, like the reader's own modals
+      // Above the reader and links drawers
       modalZIndex={300}
+      menuWithinPortal={props.menuWithinPortal}
     />
   );
 }

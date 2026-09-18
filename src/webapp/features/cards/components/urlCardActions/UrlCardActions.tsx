@@ -62,6 +62,8 @@ interface Props {
   saveTooltipOpen?: boolean;
   /** Stacks the save and connect modals above a Drawer the card sits in. */
   modalZIndex?: number;
+  /** False keeps the menu inside a hover popover the card sits in. */
+  menuWithinPortal?: boolean;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -206,7 +208,7 @@ export default function UrlCardActions(props: Props) {
           )}
         </Group>
 
-        <Menu shadow="sm">
+        <Menu shadow="sm" withinPortal={props.menuWithinPortal}>
           <Menu.Target>
             <ActionIcon
               variant="light"
