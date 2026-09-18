@@ -49,6 +49,10 @@ const SEED_CARD_COUNT = 3;
 const CACHE_KEY_PREFIX = 'recommended-cards:';
 const CACHE_TTL_SECONDS = 3600; // 1 hour
 
+// TEMP: URLs to exclude from recommendations. Applied after the cache read so
+// previously cached ranked sets are filtered too. Remove once handled properly.
+const BLOCKED_URLS = new Set(['https://www.whitehouse.gov/science/']);
+
 export interface RecommendedCardsQuery {
   queries?: string[];
   callingUserId?: string;
@@ -156,7 +160,9 @@ export class RecommendedCardsUseCase implements UseCase<
       if (rankedResult.isErr()) {
         return err(rankedResult.error);
       }
-      const allUrls = rankedResult.value;
+      const allUrls = rankedResult.value.filter(
+        (urlView) => !BLOCKED_URLS.has(urlView.url),
+      );
 
       const totalCount = allUrls.length;
       const startIndex = (page - 1) * limit;
