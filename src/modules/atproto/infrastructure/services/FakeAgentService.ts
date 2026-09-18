@@ -8,21 +8,26 @@ export class FakeAgentService implements IAgentService {
   getUnauthenticatedAgent(): Result<Agent, Error> {
     try {
       // Create a mock agent - in a real implementation this would be a proper Agent instance
+      const toProfile = (actor: string) => {
+        const mockData = this.getMockDataForUserId(actor);
+        return {
+          did: actor,
+          handle: mockData.handle,
+          displayName: mockData.name,
+          description: mockData.bio,
+          avatar: mockData.avatarUrl,
+          banner: mockData.bannerUrl,
+        };
+      };
       const mockAgent = {
-        getProfile: async ({ actor }: { actor: string }) => {
-          const mockData = this.getMockDataForUserId(actor);
-          return {
-            success: true,
-            data: {
-              did: actor,
-              handle: mockData.handle,
-              displayName: mockData.name,
-              description: mockData.bio,
-              avatar: mockData.avatarUrl,
-              banner: mockData.bannerUrl,
-            },
-          };
-        },
+        getProfile: async ({ actor }: { actor: string }) => ({
+          success: true,
+          data: toProfile(actor),
+        }),
+        getProfiles: async ({ actors }: { actors: string[] }) => ({
+          success: true,
+          data: { profiles: actors.map(toProfile) },
+        }),
         resolveHandle: async ({ handle }: { handle: string }) => {
           const mockData = this.getMockDataForHandle(handle);
           return {
