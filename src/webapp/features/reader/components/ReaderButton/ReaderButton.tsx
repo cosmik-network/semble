@@ -7,14 +7,12 @@ import { RiArticleLine } from 'react-icons/ri';
 import useReaderContent from '../../lib/queries/useReaderContent';
 import useReaderLinks from '../../lib/useReaderLinks';
 import {
-  isReaderLinkOverlayOpen,
   ReaderLinkProvider,
   useReaderLinkReducer,
 } from '../../lib/readerLinkState';
 import ReaderArticle from '../ReaderArticle/ReaderArticle';
 import ReaderToolbar from '../ReaderToolbar/ReaderToolbar';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
-import ReaderLinkModals from '../ReaderLinkModals/ReaderLinkModals';
 import { DEFAULT_READER_SETTINGS } from '../ReaderTextSettings/ReaderTextSettings';
 
 interface Props {
@@ -66,7 +64,7 @@ export default function ReaderButton(props: Props) {
         p={0}
         withCloseButton={false}
         // Esc should close only what is stacked on top
-        closeOnEscape={!linksOpen && !isReaderLinkOverlayOpen(linkState)}
+        closeOnEscape={!linksOpen && linkState.activeId === null}
         styles={{
           content: {
             position: 'relative',
@@ -102,8 +100,6 @@ export default function ReaderButton(props: Props) {
         links={links}
         articleUrl={props.url}
       />
-
-      <ReaderLinkModals articleUrl={props.url} />
     </ReaderLinkProvider>
   );
 }

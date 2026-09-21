@@ -48,6 +48,7 @@ export function parseReaderContent(html: string, options: Options): ReactNode {
         <ReaderArticleLink
           id={nextId++}
           link={link}
+          articleUrl={options.articleUrl}
           isHoverDevice={options.isHoverDevice}
         >
           {domToReact(children, parserOptions)}
