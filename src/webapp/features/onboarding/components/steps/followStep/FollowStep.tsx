@@ -154,7 +154,7 @@ export default function FollowStep(props: Props) {
     <Stack gap={'xl'}>
       <StepHeading
         title="Find people and collections to follow"
-        description="These are the people curating the kind of content your just selected. Follow them or their collections to easily keep track of their activity. You can also connect with people you may already know from Bluesky."
+        description="These are the people curating the kind of content you just selected. Follow them or their collections to easily keep track of their activity. You can also connect with people you may already know from Bluesky."
       />
 
       {isError && (
