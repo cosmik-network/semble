@@ -14,6 +14,7 @@ interface Props {
   name: string;
   addedAt: string;
   avatars?: StatChipAvatar[];
+  totalCount?: number;
 }
 
 export default function SembleStatChip(props: Props) {
@@ -25,6 +26,7 @@ export default function SembleStatChip(props: Props) {
         <StatChip
           onClick={() => setIsOpen(true)}
           avatars={props.avatars}
+          avatarsTotal={props.totalCount}
           content={
             <Group gap={4} wrap="nowrap">
               <Text fw={500} fz="sm" c="dimmed" span>

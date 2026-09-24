@@ -24,6 +24,7 @@ export default async function SembleStats(props: Props) {
       url={props.url}
       name={sanitizeText(first.user.name) || first.user.handle}
       addedAt={first.card.createdAt}
+      totalCount={libraries?.pagination.totalCount}
       avatars={items.map((item) => ({
         key: item.user.id,
         src: item.user.avatarUrl,
