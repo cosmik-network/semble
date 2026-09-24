@@ -1,2 +1,2 @@
-// Must match the prefetch in app/(dashboard)/layout.tsx or the client refetches.
+// Number of cards shown in the sidebar nav.
 export const NAV_CARDS_LIMIT = 7;

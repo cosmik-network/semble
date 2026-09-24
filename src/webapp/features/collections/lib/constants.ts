@@ -1,6 +1,5 @@
 // Number of collections shown in each sidebar nav section (mine/following/
-// contributed). Must match the matching prefetch in app/(dashboard)/layout.tsx
-// or the client refetches.
+// contributed).
 export const NAV_COLLECTIONS_LIMIT = 7;
 
 // Number of "my collections" offered by Composer's collection picker when

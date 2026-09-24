@@ -2,13 +2,23 @@
 
 import { Collection } from '@semble/types';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
-import useMyCollections from '../../lib/queries/useMyCollections';
-import useFollowingCollections from '@/features/follows/lib/queries/useFollowingCollections';
-import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
+import { useMyCollectionsInfinite } from '../../lib/queries/useMyCollections';
+import { useFollowingCollectionsInfinite } from '@/features/follows/lib/queries/useFollowingCollections';
+import { useOpenCollectionsWithContributorInfinite } from '../../lib/queries/useOpenCollectionsWithContributor';
+import LibraryNavSectionSkeleton from '@/features/library/components/libraryNav/Skeleton.LibraryNavSection';
 import { NAV_COLLECTIONS_LIMIT } from '../../lib/constants';
 import { getRecordKey } from '@/lib/utils/atproto';
 
-function CollectionNavItemsList(props: { collections: Collection[] }) {
+function CollectionNavItemsList(props: {
+  collections: Collection[] | undefined;
+  isPending: boolean;
+  error: Error | null;
+}) {
+  if (props.error) throw props.error;
+  if (props.isPending || !props.collections) {
+    return <LibraryNavSectionSkeleton />;
+  }
+
   return (
     <>
       {props.collections.map((collection) => (
@@ -26,34 +36,45 @@ function CollectionNavItemsList(props: { collections: Collection[] }) {
 }
 
 export function MyCollectionsNavItems() {
-  const { data } = useMyCollections({ limit: NAV_COLLECTIONS_LIMIT });
+  const { data, error, isPending } = useMyCollectionsInfinite({
+    limit: NAV_COLLECTIONS_LIMIT,
+  });
 
-  const collections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  return <CollectionNavItemsList collections={collections} />;
+  return (
+    <CollectionNavItemsList
+      collections={data?.pages.flatMap((page) => page.collections ?? [])}
+      isPending={isPending}
+      error={error}
+    />
+  );
 }
 
 export function FollowingCollectionsNavItems(props: { identifier: string }) {
-  const { data } = useFollowingCollections({
+  const { data, error, isPending } = useFollowingCollectionsInfinite({
     identifier: props.identifier,
     limit: NAV_COLLECTIONS_LIMIT,
   });
 
-  const collections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  return <CollectionNavItemsList collections={collections} />;
+  return (
+    <CollectionNavItemsList
+      collections={data?.pages.flatMap((page) => page.collections ?? [])}
+      isPending={isPending}
+      error={error}
+    />
+  );
 }
 
 export function ContributedCollectionsNavItems(props: { identifier: string }) {
-  const { data } = useOpenCollectionsWithContributor({
+  const { data, error, isPending } = useOpenCollectionsWithContributorInfinite({
     identifier: props.identifier,
     limit: NAV_COLLECTIONS_LIMIT,
   });
 
-  const collections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  return <CollectionNavItemsList collections={collections} />;
+  return (
+    <CollectionNavItemsList
+      collections={data?.pages.flatMap((page) => page.collections ?? [])}
+      isPending={isPending}
+      error={error}
+    />
+  );
 }
