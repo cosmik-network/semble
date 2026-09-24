@@ -1,10 +1,11 @@
 'use client';
 
-import { NavLink, Skeleton, Stack, Text } from '@mantine/core';
+import { NavLink, Stack, Text } from '@mantine/core';
 import { ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LinkNavLink } from '@/components/link/MantineLink';
 import { useNavbarContext } from '@/providers/navbar';
+import LibraryNavSectionSkeleton from './Skeleton.LibraryNavSection';
 
 interface Props {
   label: string;
@@ -16,15 +17,6 @@ interface Props {
   onViewAll?: () => void;
   errorMessage: string;
   children: ReactNode;
-}
-
-function ListSkeleton() {
-  return (
-    <Stack gap={0} px={'sm'}>
-      <Skeleton h={25} my={'xxs'} w={'100%'} />
-      <Skeleton h={25} my={'xxs'} w={'100%'} />
-    </Stack>
-  );
 }
 
 export default function LibraryNavSection(props: Props) {
@@ -47,7 +39,9 @@ export default function LibraryNavSection(props: Props) {
             </Text>
           }
         >
-          <Suspense fallback={<ListSkeleton />}>{props.children}</Suspense>
+          <Suspense fallback={<LibraryNavSectionSkeleton />}>
+            {props.children}
+          </Suspense>
         </ErrorBoundary>
         {props.viewAllHref ? (
           <LinkNavLink

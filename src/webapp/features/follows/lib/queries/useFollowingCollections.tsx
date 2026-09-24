@@ -1,4 +1,7 @@
-import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useSuspenseInfiniteQuery,
+} from '@tanstack/react-query';
 import { getFollowingCollections } from '../dal';
 import { followKeys } from '../followKeys';
 
@@ -12,6 +15,30 @@ export default function useFollowingCollections({
   limit = 20,
 }: Props) {
   const query = useSuspenseInfiniteQuery({
+    queryKey: followKeys.followingCollections(identifier, limit),
+    initialPageParam: 1,
+    queryFn: ({ pageParam = 1 }) => {
+      return getFollowingCollections(identifier, {
+        limit,
+        page: pageParam,
+      });
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination.hasMore) {
+        return lastPage.pagination.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  return query;
+}
+
+export function useFollowingCollectionsInfinite({
+  identifier,
+  limit = 20,
+}: Props) {
+  const query = useInfiniteQuery({
     queryKey: followKeys.followingCollections(identifier, limit),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {

@@ -28,7 +28,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
 import { IoMdCheckmark, IoMdLink } from 'react-icons/io';
 import { track } from '@vercel/analytics';
-import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
+import { useMyCollectionsInfinite } from '@/features/collections/lib/queries/useMyCollections';
 import { COMPOSER_COLLECTIONS_LIMIT } from '@/features/collections/lib/constants';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
@@ -72,9 +72,10 @@ export default function Composer(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
 
-  const { data: collections } = useMyCollections({
-    limit: COMPOSER_COLLECTIONS_LIMIT,
-  });
+  const { data: collections, isPending: collectionsPending } =
+    useMyCollectionsInfinite({
+      limit: COMPOSER_COLLECTIONS_LIMIT,
+    });
   const allCollections =
     collections?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
@@ -324,7 +325,7 @@ export default function Composer(props: Props) {
                         leftSection={<BiCollection size={22} />}
                         disabled={addCard.isPending}
                       >
-                        {myCollections.length === 0
+                        {myCollections.length === 0 && !collectionsPending
                           ? 'Create a collection'
                           : 'Manage & Create'}
                       </Button>
