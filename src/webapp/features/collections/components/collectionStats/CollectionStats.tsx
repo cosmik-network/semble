@@ -56,7 +56,11 @@ function FollowersChip(props: ChipProps) {
       <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Followers"
+        title={
+          page.pagination.totalCount
+            ? `Followers (${page.pagination.totalCount})`
+            : 'Followers'
+        }
         skeleton={<CollectionFollowersContainerSkeleton />}
         errorMessage="Could not load collection followers"
       >
@@ -91,7 +95,11 @@ function AddedByChip(props: ChipProps) {
       <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Added by"
+        title={
+          page.pagination.totalCount
+            ? `Added by (${page.pagination.totalCount})`
+            : 'Added by'
+        }
         skeleton={<SembleAddedByContainerSkeleton />}
         errorMessage="Could not load libraries"
       >
@@ -126,7 +134,11 @@ function ContributorsChip(props: ChipProps) {
       <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Contributors"
+        title={
+          page.pagination.totalCount
+            ? `Contributors (${page.pagination.totalCount})`
+            : 'Contributors'
+        }
         skeleton={<CollectionContributorsContainerSkeleton />}
         errorMessage="Could not load collection contributors"
       >
