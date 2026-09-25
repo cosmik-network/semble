@@ -29,15 +29,18 @@ interface Props {
   /** Replaces the count + label text. */
   content?: ReactNode;
   avatars?: StatChipAvatar[];
+  /** Total number of people behind the avatars; the remainder is shown as a +n avatar. */
+  avatarsTotal?: number;
 }
 
 export default function StatChip(props: Props) {
   const avatars = props.avatars ?? [];
+  const overflow = Math.max((props.avatarsTotal ?? 0) - avatars.length, 0);
 
   return (
     <UnstyledButton onClick={props.onClick} className={classes.root}>
       <Group gap={'xxs'} justify="center" wrap="nowrap">
-        {avatars.length > 1 ? (
+        {avatars.length > 1 || (avatars.length > 0 && overflow > 0) ? (
           <AvatarGroup spacing={8}>
             {avatars.map((avatar) => (
               <Avatar
@@ -49,6 +52,15 @@ export default function StatChip(props: Props) {
                 className={classes.avatar}
               />
             ))}
+            {overflow > 0 && (
+              <Avatar
+                size={STAT_CHIP_AVATAR_SIZE}
+                radius={'sm'}
+                className={classes.avatar}
+              >
+                +{abbreviateNumber(overflow)}
+              </Avatar>
+            )}
           </AvatarGroup>
         ) : avatars.length === 1 ? (
           <Avatar
