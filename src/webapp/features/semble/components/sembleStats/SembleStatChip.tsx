@@ -45,7 +45,9 @@ export default function SembleStatChip(props: Props) {
       <StatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Added by"
+        title={
+          props.totalCount ? `Added by (${props.totalCount})` : 'Added by'
+        }
         skeleton={<SembleAddedByContainerSkeleton />}
         errorMessage="Could not load libraries"
       >
