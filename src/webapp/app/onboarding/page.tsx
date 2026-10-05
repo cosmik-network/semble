@@ -23,27 +23,36 @@ export default async function Page(props: Props) {
 
   const queryClient = makeServerQueryClient();
 
-  // Not awaited so the page streams while they load.
-  void queryClient.prefetchQuery({
-    queryKey: onboardingKeys.state(),
-    queryFn: getOnboardingState,
-  });
+  // Awaited (in parallel) rather than streamed as pending promises: a
+  // rejected un-awaited prefetch is serialized into the RSC payload and
+  // surfaces as an unhandled Server Components render error (the bare "This
+  // page couldn't load" screen). prefetch* never rejects, so awaiting leaves
+  // a failed query un-dehydrated and the client refetches it. See
+  // .agent/logs/20260917_nextjs_ssr_issue.md.
+  //
+  // The collections seed exists because the last stage renders Composer,
+  // which calls useMyCollections — a suspense query — at the top of its
+  // body, so it suspends whether or not its drawer is open. This route sits
+  // outside (dashboard) and does not inherit that layout's identical
+  // prefetch.
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: onboardingKeys.state(),
+      queryFn: getOnboardingState,
+    }),
 
-  void queryClient.prefetchQuery({
-    queryKey: profileKeys.mineWithStats(),
-    queryFn: () => getMyProfile(true),
-  });
+    queryClient.prefetchQuery({
+      queryKey: profileKeys.mineWithStats(),
+      queryFn: () => getMyProfile(true),
+    }),
 
-  // The last stage renders Composer, which calls useMyCollections — a
-  // suspense query — at the top of its body, so it suspends whether or not
-  // its drawer is open. This route sits outside (dashboard) and does not
-  // inherit that layout's identical prefetch.
-  void queryClient.prefetchInfiniteQuery({
-    queryKey: collectionKeys.mine(COMPOSER_COLLECTIONS_LIMIT, undefined),
-    initialPageParam: 1,
-    queryFn: () =>
-      getMyCollections({ page: 1, limit: COMPOSER_COLLECTIONS_LIMIT }),
-  });
+    queryClient.prefetchInfiniteQuery({
+      queryKey: collectionKeys.mine(COMPOSER_COLLECTIONS_LIMIT, undefined),
+      initialPageParam: 1,
+      queryFn: () =>
+        getMyCollections({ page: 1, limit: COMPOSER_COLLECTIONS_LIMIT }),
+    }),
+  ]);
 
   // Awaited because the skeleton depends on it; shares the cache()d call above.
   const status = await getOnboardingState()
