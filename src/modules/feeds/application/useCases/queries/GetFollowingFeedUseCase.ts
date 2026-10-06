@@ -122,12 +122,12 @@ export class GetFollowingFeedUseCase implements UseCase<
       let feed = feedResult.value;
 
       // Spill-over: once the fan-out following feed is drained, continue with the
-      // global feed scoped to the DIDs the caller follows. The scoped global feed
-      // is a SUPERSET of the fan-out feed (all activity by followed users, ordered
-      // by the same created_at DESC key), so we continue it at the SAME combined
-      // offset rather than restarting it — this seamlessly skips past the items
-      // already shown in the following phase and surfaces the older history that
-      // was never fanned out.
+      // global feed scoped to the DIDs the caller follows, so new followers
+      // don't see an empty feed. The scoped global feed only covers followed
+      // users (not followed collections), so the boundary page MERGES the
+      // remaining fan-out items with it rather than replacing them. The
+      // transition is best-effort: a few items around the boundary may be
+      // skipped or repeated.
       //
       // Uses page-based (offset) pagination to match the webapp, which paginates
       // by page number and ignores nextCursor. Only engages when no cursor is
@@ -142,17 +142,11 @@ export class GetFollowingFeedUseCase implements UseCase<
 
         // No follows → no overflow possible; keep the following feed as-is.
         if (followedDids.length > 0) {
-          const offset = (page - 1) * limit;
-          const followingTotal = feed.totalCount ?? 0;
-
-          if (offset + limit >= followingTotal) {
-            // This page reaches or passes the end of the fan-out feed. Serve it
-            // (and everything after) from the scoped global feed at the same
-            // combined offset, so the two feeds stitch together in one order.
-            // (>= so the last full fan-out page is served by global too, letting
-            // its hasMore correctly signal whether older overflow history exists.)
+          // hasMore comes from the limit+1 fetch, so !hasMore means this page
+          // reaches the end of the fan-out feed (no COUNT(*) needed).
+          if (!feed.hasMore) {
             const globalResult = await this.feedRepository.getGlobalFeed({
-              page, // same page/offset into the (superset) global feed
+              page,
               limit,
               urlType,
               source: query.source,
@@ -163,7 +157,26 @@ export class GetFollowingFeedUseCase implements UseCase<
             if (globalResult.isErr()) {
               return err(AppError.UnexpectedError.create(globalResult.error));
             }
-            feed = globalResult.value;
+            const global = globalResult.value;
+
+            // Keep the remaining fan-out items (they may come from followed
+            // collections, which the scoped global feed can't return) and fill
+            // the rest of the page with global items, newest first.
+            const seen = new Set(
+              feed.activities.map((a) => a.activityId.getStringValue()),
+            );
+            const merged = [
+              ...feed.activities,
+              ...global.activities.filter(
+                (a) => !seen.has(a.activityId.getStringValue()),
+              ),
+            ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+            feed = {
+              activities: merged.slice(0, limit),
+              hasMore: global.hasMore || merged.length > limit,
+              nextCursor: global.nextCursor,
+            };
           }
           // else: fully inside the fan-out feed — keep the following-feed page.
           // Its hasMore is true (more fan-out items remain before the boundary).

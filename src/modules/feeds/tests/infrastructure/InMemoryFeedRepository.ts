@@ -321,8 +321,10 @@ export class InMemoryFeedRepository implements IFeedRepository {
         offset + limit,
       );
 
-      const totalCount = filteredActivities.length;
-      const hasMore = offset + paginatedActivities.length < totalCount;
+      // Mirror the Drizzle repo: no totalCount for the following feed, so the
+      // use case must rely on hasMore alone.
+      const hasMore =
+        offset + paginatedActivities.length < filteredActivities.length;
 
       let nextCursor: ActivityId | undefined;
       if (hasMore && paginatedActivities.length > 0) {
@@ -332,7 +334,6 @@ export class InMemoryFeedRepository implements IFeedRepository {
 
       return ok({
         activities: paginatedActivities,
-        totalCount,
         hasMore,
         nextCursor,
       });

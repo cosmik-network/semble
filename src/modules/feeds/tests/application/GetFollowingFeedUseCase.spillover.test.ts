@@ -95,13 +95,11 @@ describe('GetFollowingFeedUseCase spill-over', () => {
     },
   };
 
-  const actorId = () => CuratorId.create(FOLLOWED).unwrap();
-
-  /** Create a CARD_COLLECTED activity authored by FOLLOWED at a fixed time. */
-  function activityAt(seconds: number): FeedActivity {
+  /** Create a CARD_COLLECTED activity (default actor FOLLOWED) at a fixed time. */
+  function activityAt(seconds: number, actor: string = FOLLOWED): FeedActivity {
     const cardId = CardId.createFromString(`card-${seconds}`).unwrap();
     return FeedActivity.createCardCollected(
-      actorId(),
+      CuratorId.create(actor).unwrap(),
       cardId,
       undefined,
       undefined,
@@ -262,5 +260,62 @@ describe('GetFollowingFeedUseCase spill-over', () => {
       following[1]!.activityId.getStringValue(),
     ]);
     expect(p1.pagination.hasMore).toBe(false);
+  });
+  it('serves fan-out items from non-followed actors (e.g. via collection follows) before the boundary', async () => {
+    // Fan-out also carries activity from actors the caller doesn't follow as a
+    // user (e.g. someone adding to a followed collection). The scoped global
+    // feed can't return those, so pages fully inside the fan-out feed must be
+    // served from it.
+    const viaCollection = activityAt(60, 'did:plc:notfollowed');
+    const following = [viaCollection, activityAt(50), activityAt(49)];
+
+    for (const a of following) {
+      await feedRepo.addActivity(a);
+      await feedRepo.fanOutActivityToFollowers(
+        a.activityId,
+        [CALLER],
+        a.createdAt,
+      );
+    }
+
+    const p1 = (
+      await useCase.execute({ callingUserId: CALLER, page: 1, limit: 2 })
+    ).unwrap();
+    expect(p1.activities.map((x) => x.id)).toEqual([
+      following[0]!.activityId.getStringValue(),
+      following[1]!.activityId.getStringValue(),
+    ]);
+    expect(p1.pagination.hasMore).toBe(true);
+  });
+  it('keeps fan-out items from non-followed actors when the fan-out feed is shorter than a page', async () => {
+    // New follower: the fan-out feed only has 2 items, both from followed
+    // collections, while the followed user has older un-fanned-out history.
+    const viaCollection = [
+      activityAt(60, 'did:plc:notfollowed'),
+      activityAt(55, 'did:plc:notfollowed'),
+    ];
+    const globalOnly = [activityAt(50), activityAt(49)];
+
+    for (const a of viaCollection) {
+      await feedRepo.addActivity(a);
+      await feedRepo.fanOutActivityToFollowers(
+        a.activityId,
+        [CALLER],
+        a.createdAt,
+      );
+    }
+    for (const a of globalOnly) {
+      await feedRepo.addActivity(a);
+    }
+
+    const p1 = (
+      await useCase.execute({ callingUserId: CALLER, page: 1, limit: 3 })
+    ).unwrap();
+    expect(p1.activities.map((x) => x.id)).toEqual([
+      viaCollection[0]!.activityId.getStringValue(),
+      viaCollection[1]!.activityId.getStringValue(),
+      globalOnly[0]!.activityId.getStringValue(),
+    ]);
+    expect(p1.pagination.hasMore).toBe(true);
   });
 });
