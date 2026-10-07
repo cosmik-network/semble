@@ -9,7 +9,13 @@ import { UserAuthenticationService } from '../../../../modules/user/infrastructu
 import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
 import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
 import { CitoidMetadataService } from '../../../../modules/cards/infrastructure/CitoidMetadataService';
-import { CompositeMetadataService } from '../../../../modules/cards/infrastructure/CompositeMetadataService';
+import {
+  CompositeMetadataService,
+  DefaultServicePreference,
+  UrlOverrideMetadataSource,
+} from '../../../../modules/cards/infrastructure/CompositeMetadataService';
+import { OpenReviewUrlMetadataService } from '../../../../modules/cards/infrastructure/OpenReviewUrlMetadataService';
+import { RedisOpenReviewTokenStore } from '../../../../modules/cards/infrastructure/OpenReviewTokenStore';
 import { CachedMetadataService } from '../../../../modules/cards/infrastructure/CachedMetadataService';
 import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
@@ -315,17 +321,25 @@ export class ServiceFactory {
       citoidConfig.baseUrl,
       citoidConfig.apiKey,
     );
+    const openReviewConfig = configService.getOpenReviewConfig();
+    const hasOpenReviewCredentials =
+      !!openReviewConfig.email && !!openReviewConfig.password;
 
     // Apply caching conditionally (similar to profile service)
     const useMockPersistence = configService.shouldUseMockPersistence();
 
     let iframelyService: IMetadataService;
     let citoidService: IMetadataService;
+    let openReviewService: IMetadataService;
 
     if (useMockPersistence) {
-      // No caching for mock persistence
+      // No caching for mock persistence; token kept in memory
       iframelyService = baseIframelyService;
       citoidService = baseCitoidService;
+      openReviewService = new OpenReviewUrlMetadataService(
+        openReviewConfig.email,
+        openReviewConfig.password,
+      );
     } else {
       // Create Redis connection for caching
       const redisConfig = configService.getRedisConfig();
@@ -344,12 +358,37 @@ export class ServiceFactory {
         'citoid',
         3600 * 24 * 7, // 7 day TTL
       );
+      // Access token shared across processes via Redis
+      openReviewService = new CachedMetadataService(
+        new OpenReviewUrlMetadataService(
+          openReviewConfig.email,
+          openReviewConfig.password,
+          new RedisOpenReviewTokenStore(redis),
+        ),
+        redis,
+        'openreview',
+        3600 * 24 * 7, // 7 day TTL
+      );
+    }
+
+    // URL-specific services whose metadata overrides the general services
+    const urlOverrides: UrlOverrideMetadataSource[] = [];
+    if (hasOpenReviewCredentials) {
+      urlOverrides.push({
+        name: 'OpenReview',
+        canHandle: (url) => OpenReviewUrlMetadataService.canHandle(url),
+        service: openReviewService,
+      });
     }
 
     // Create composite metadata service
     const metadataService = new CompositeMetadataService(
       iframelyService,
       citoidService,
+      {
+        defaultService: DefaultServicePreference.IFRAMELY,
+        urlOverrides,
+      },
     );
 
     // Profile Service with Redis caching

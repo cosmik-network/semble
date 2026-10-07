@@ -12,8 +12,20 @@ export enum DefaultServicePreference {
   CITOID = 'citoid',
 }
 
+/**
+ * A service that owns metadata for a specific class of URLs. When it handles
+ * a URL and succeeds, its values override whatever the general services
+ * returned; the general services only fill fields it leaves empty.
+ */
+export interface UrlOverrideMetadataSource {
+  name: string;
+  canHandle(url: URL): boolean;
+  service: IMetadataService;
+}
+
 export interface CompositeMetadataServiceConfig {
   defaultService: DefaultServicePreference;
+  urlOverrides?: UrlOverrideMetadataSource[];
 }
 
 export class CompositeMetadataService implements IMetadataService {
@@ -46,6 +58,45 @@ export class CompositeMetadataService implements IMetadataService {
     url: URL,
     refetchStaleMetadata: boolean = false,
     mode: MetadataFetchMode = 'slow',
+  ): Promise<Result<UrlMetadata>> {
+    const override = this.config.urlOverrides?.find((o) => o.canHandle(url));
+    if (!override) {
+      return this.fetchFromGeneralServices(url, refetchStaleMetadata, mode);
+    }
+
+    // Run the override alongside the general services so we can fall back to
+    // them if it fails, and fill fields it doesn't provide (e.g. imageUrl)
+    const [overrideResult, generalResult] = await Promise.all([
+      this.settle(override.service.fetchMetadata(url, refetchStaleMetadata)),
+      this.fetchFromGeneralServices(url, refetchStaleMetadata, mode),
+    ]);
+
+    if (overrideResult.status === 'fulfilled' && overrideResult.value.isOk()) {
+      const overrideMetadata = overrideResult.value.value;
+      return ok(
+        generalResult.isOk()
+          ? this.mergeMetadata(overrideMetadata, generalResult.value)
+          : overrideMetadata,
+      );
+    }
+
+    const overrideError =
+      overrideResult.status === 'fulfilled'
+        ? overrideResult.value.isErr()
+          ? overrideResult.value.error
+          : undefined
+        : overrideResult.reason;
+    console.warn(
+      `${override.name} metadata fetch failed for ${url.value}, falling back to general services:`,
+      overrideError,
+    );
+    return generalResult;
+  }
+
+  private async fetchFromGeneralServices(
+    url: URL,
+    refetchStaleMetadata: boolean,
+    mode: MetadataFetchMode,
   ): Promise<Result<UrlMetadata>> {
     // Fetch metadata from both services concurrently
     const iframelyPromise = this.iframelyService.fetchMetadata(

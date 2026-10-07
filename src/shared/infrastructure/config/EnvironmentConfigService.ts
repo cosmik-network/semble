@@ -76,6 +76,10 @@ export interface EnvironmentConfig {
     baseUrl: string;
     apiKey: string;
   };
+  openReview: {
+    email: string;
+    password: string;
+  };
   upstash: {
     vectorUrl: string;
     vectorToken: string;
@@ -226,6 +230,10 @@ export class EnvironmentConfigService {
         baseUrl: process.env.CITOID_BASE_URL || '',
         apiKey: process.env.CITOID_API_KEY || '',
       },
+      openReview: {
+        email: process.env.OPENREVIEW_EMAIL || '',
+        password: process.env.OPENREVIEW_PASSWORD || '',
+      },
       upstash: {
         vectorUrl: process.env.UPSTASH_VECTOR_REST_URL || '',
         vectorToken: process.env.UPSTASH_VECTOR_REST_TOKEN || '',
@@ -337,6 +345,10 @@ export class EnvironmentConfigService {
 
   public getCitoidConfig() {
     return this.config.citoid;
+  }
+
+  public getOpenReviewConfig() {
+    return this.config.openReview;
   }
 
   public getUpstashConfig() {
