@@ -18,6 +18,10 @@
 * [You control your data](basic-concepts/you-control-your-data.md)
 * [Connections](basic-concepts/connections.md)
 
+## How to Semble
+
+* [Semble for research](how-to-semble/semble-for-research.md)
+
 ## Developer Guide
 
 * [Semble API](https://app.gitbook.com/o/5H90GKkf0JM9jldlC8Do/s/3NFfuFxvVQgDCu2Sbovu/)
