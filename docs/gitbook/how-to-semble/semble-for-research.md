@@ -1,5 +1,4 @@
 ---
-description: Examples of how researchers use Semble
 icon: flask-gear
 ---
 
