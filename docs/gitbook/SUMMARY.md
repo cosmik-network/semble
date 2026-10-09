@@ -20,7 +20,6 @@
 
 ## How to Semble
 
-* [Semble for research (old)](how-to-semble/semble-for-research-old.md)
 * [Semble for Research](how-to-semble/semble-for-research.md)
 
 ## Developer Guide
