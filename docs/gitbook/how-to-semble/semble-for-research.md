@@ -68,9 +68,11 @@ You can create a connection from any card in Semble, or with the browser extensi
 * **Save and open items on Semble** from within Zotero.
 * **Carry your tags and connections over** from Zotero, if you turn that setting on.
 
-Many researchers have built reading lists and literature surveys in Zotero over years, with no good way to share them. [A quick Semble search](https://semble.so/search/collections?query=zotero) shows example Zotero collections researchers have published.
+Many researchers have built reading lists and literature surveys in Zotero over years, with no good way to share them. [This Semble search](https://semble.so/search/collections?query=zotero) shows example Zotero collections researchers have already published.
 
+{% hint style="info" icon="circle-exclamation" %}
 Remember that anything you publish to Semble is public, so sync only the collections you're happy to share.
+{% endhint %}
 
 ## Maintain a living literature review
 
