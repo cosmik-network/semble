@@ -9,17 +9,7 @@ Semble helps you share what you're reading, follow what your field is reading, a
 
 ## At a glance
 
-| If you want to…                                                    | Try this                                                                                                                            | Effort                                |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Hear what others say about a paper or post you saved               | [Save it as a card](semble-for-research.md#get-updates-on-the-links-you-care-about) and let the notifications come to you           | One click                             |
-| Get alerts when a curator or collection you trust adds something   | [Subscribe to them](semble-for-research.md#set-alerts-for-the-curators-and-collections-you-trust), as you would set a Scholar alert | Two clicks                            |
-| Point others to the best commentary and critiques of a paper       | [Connect them to the paper](semble-for-research.md#share-your-expertise-through-connections) with a typed relation                  | A few clicks                          |
-| Share your reference library, or part of it                        | [Sync Zotero collections](semble-for-research.md#share-your-zotero-library) with the Zemble plugin                                  | Install a plugin                      |
-| Keep a public, up-to-date reading list for your topic              | [Run a living literature review](semble-for-research.md#maintain-a-living-literature-review) as a Semble collection                 | Create a collection                   |
-| Share what you find at a conference with people who can't be there | [Start an open conference collection](semble-for-research.md#share-a-conference-with-people-who-cant-be-there)                      | Create a collection                   |
-| Let people outside your lab see what it's reading                  | [Pipe your Discord or Slack links](semble-for-research.md#open-up-your-labs-discord-or-slack) into a collection                     | Set up a bot                          |
-| Get your writing to people who'd want to read it                   | [Connect your post to what it references](semble-for-research.md#help-your-writing-find-its-readers)                                | A few clicks per post, or automate it |
-| Keep working in your own notes tool                                | [Integrate your tool for thought](semble-for-research.md#integrate-your-own-tool-for-thought) through the Semble API or MCP         | Some scripting                        |
+<table><thead><tr><th>If you want to…</th><th>Try this</th><th data-hidden>Effort</th></tr></thead><tbody><tr><td>Hear what others say about a paper or post you saved</td><td><a href="semble-for-research.md#get-updates-on-the-links-you-care-about">Save it as a card</a> and let the notifications come to you</td><td>One click</td></tr><tr><td>Get alerts when a curator or collection you trust adds something</td><td><a href="semble-for-research.md#set-alerts-for-the-curators-and-collections-you-trust">Subscribe to them</a>, as you would set a Scholar alert</td><td>Two clicks</td></tr><tr><td>Point others to the best commentary and critiques of a paper</td><td><a href="semble-for-research.md#share-your-expertise-through-connections">Connect them to the paper</a> with a typed relation</td><td>A few clicks</td></tr><tr><td>Share your reference library, or part of it</td><td><a href="semble-for-research.md#share-your-zotero-library">Sync Zotero collections</a> with the Zemble plugin</td><td>Install a plugin</td></tr><tr><td>Keep a public, up-to-date reading list for your topic</td><td><a href="semble-for-research.md#maintain-a-living-literature-review">Run a living literature review</a> as a Semble collection</td><td>Create a collection</td></tr><tr><td>Share what you find at a conference with people who can't be there</td><td><a href="semble-for-research.md#share-a-conference-with-people-who-cant-be-there">Start an open conference collection</a></td><td>Create a collection</td></tr><tr><td>Let people outside your lab see what it's reading</td><td><a href="semble-for-research.md#open-up-your-labs-discord-or-slack">Pipe your Discord or Slack links</a> into a collection</td><td>Set up a bot</td></tr><tr><td>Get your writing to people who'd want to read it</td><td><a href="semble-for-research.md#help-your-writing-find-its-readers">Connect your post to what it references</a></td><td>A few clicks per post, or automate it</td></tr><tr><td>Keep working in your own notes tool</td><td><a href="semble-for-research.md#integrate-your-own-tool-for-thought">Integrate your tool for thought</a> through the Semble API or MCP</td><td>Some scripting</td></tr></tbody></table>
 
 New to Semble? Start with the [quickstart.md](../getting-started/quickstart.md "mention").
 
@@ -31,13 +21,13 @@ What comes back is a [connection](../basic-concepts/connections.md): another lin
 
 * **A rebuttal.** Someone links a response to an essay you saved with an `opposes` relation, and you read the two together.
 * **A summary.** Someone attaches an `explainer` to a long post still sitting in your queue, so you get the gist before you get to it.
-* **The surrounding discussion.** Every link has a [Semble page](https://docs.cosmik.network/semble/basic-concepts/semble-page) that gathers the blog posts, threads and papers people have connected to it from around the web.
+* **The surrounding discussion.** Every link has a [Semble page](../basic-concepts/semble-page.md) that gathers the blog posts, threads and papers people have connected to it from around the web.
 
 A connection notifies everyone who holds that card, so one person's thirty seconds of curation reaches every reader of the piece. We call this pattern [sensors, not just bookmarks](https://blog.cosmik.network/sensors-not-bookmarks).
 
 ## Set alerts for the curators and collections you trust
 
-If you already use Google Scholar alerts, [subscriptions](https://blog.cosmik.network/subscriptions-launch) will feel familiar. Subscribe to a person or a collection and their new activity reaches you as a notification, so it doesn't get lost in your feed.
+If you already use Google Scholar alerts to stay updated on new citations to articles you care about, [subscriptions](https://blog.cosmik.network/subscriptions-launch) will feel familiar. Subscribe to a person or a collection and their new activity reaches you as a notification, so it doesn't get lost in your feed.
 
 | Scholar alert you may have     | Semble equivalent                       | You're notified when…                                  |
 | ------------------------------ | --------------------------------------- | ------------------------------------------------------ |
@@ -53,33 +43,33 @@ Subscriptions also suit shared work. Subscribe to an open collection your lab or
 
 ## Share your expertise through connections
 
-You know your field well enough to tell which commentary on a paper is worth reading. A [connection](https://docs.cosmik.network/semble/basic-concepts/connections) lets you mark that for everyone else. Link the paper to the piece that matters, pick a relation type, and add a note saying why.
+You know your field well enough to tell which commentary on a paper is worth reading. A [connection](../basic-concepts/connections.md) lets you mark that for everyone else. Link the paper to the piece that matters, pick a relation type, and add a note saying why.
 
-| You've spotted…                                | Connect it as | Example                                               |
-| ---------------------------------------------- | ------------- | ----------------------------------------------------- |
-| A thoughtful blog post about a paper           | `helpful`     | An essay that puts the paper's claims in context      |
-| A social media post that explains a paper well | `explainer`   | A thread that walks through the key findings          |
-| Related work the paper is missing              | `related`     | An earlier study the authors didn't cite              |
-| An important critique in another paper         | `opposes`     | A paper whose evidence contradicts the original claim |
+| You've spotted…                                | Connect it as | Example                                                    |
+| ---------------------------------------------- | ------------- | ---------------------------------------------------------- |
+| A thoughtful blog post about a paper           | `helpful`     | An essay that puts the paper's claims in context           |
+| A social media post that explains a paper well | `explainer`   | A thread that walks through the key findings               |
+| Related work the paper is missing              | `related`     | An earlier study the authors didn't cite (maybe yours ;) ) |
+| An important critique in another paper         | `opposes`     | A paper whose evidence contradicts the original claim      |
 
 Your connection appears on the paper's Semble page and notifies everyone who has saved it. Each connection shows who made it, so readers can weigh it by its curator.
 
-A paper's reference list is fixed on publication, and the discussion that follows is scattered across blogs and social platforms. Connections gather that discussion in one place and keep it growing. It takes you a few seconds, and it saves every later reader the search.
+A paper's reference list is fixed on publication, and the discussion that follows is scattered across blogs and social platforms. Connections gather that discussion in one place and keep it growing. It takes you a few seconds, and it saves every later reader (or your future self) the search.
 
 You can create a connection from any card in Semble, or with the browser extension while you read.
 
 ## Share your Zotero library
 
-[Zemble](https://chrisshank.github.io/zemble/) is a Zotero plugin that connects your library to Semble. It suits you if you'd like to share references publicly and see what others are reading around them.
+[Zemble](https://chrisshank.github.io/zemble/), built by [Chris Shank](https://semble.so/profile/chrisshank.com), is a Zotero plugin that connects your library to Semble. It suits you if you'd like to share references publicly and see what others are reading around them.
 
 * **Publish the collections you choose.** Sync a Zotero collection to a Semble collection. You don't have to share your whole library.
 * **See Semble activity inside Zotero.** New columns show who else has added an item, which collections it sits in, and what it's connected to.
 * **Save and open items on Semble** from within Zotero.
 * **Carry your tags and connections over** from Zotero, if you turn that setting on.
 
-Many researchers have built reading lists and literature surveys in Zotero over years, with no good way to share them. Researchers have used Zemble to publish collections on topics from democracy at work to [bone systems research](https://semble.so/profile/byarielm.fyi/collections/3mqpwcbjtle2t).
+Many researchers have built reading lists and literature surveys in Zotero over years, with no good way to share them. [A quick Semble search](https://semble.so/search/collections?query=zotero) shows example Zotero collections researchers have published.
 
-Zemble is an early preview built by Chris Shank. Anything you publish to Semble is public, so sync only the collections you're happy to share.
+Remember that anything you publish to Semble is public, so sync only the collections you're happy to share.
 
 ## Maintain a living literature review
 
@@ -101,7 +91,7 @@ If you're attending a conference, a Semble collection is a simple way to share t
 
 It complements live-posting from an event. The feed carries the live conversation. The collection holds the links, where they stay findable and can be connected to other work after the conference ends.
 
-For [IC2S2 2026](https://bsky.app/profile/rafmbatista.bsky.social/post/3mrsdqevkws2x), Rafael Batista opened a collection that any attendee could add their paper to.
+For an example see this [post](https://bsky.app/profile/rafmbatista.bsky.social/post/3mrsdqevkws2x) and [collection](https://semble.so/profile/rafmbatista.bsky.social/collections/3mrqcs4ckb22b) by Rafael Batista.
 
 To try it at your next conference:
 
@@ -119,14 +109,10 @@ People outside the lab can follow the collection without joining the chat. It al
 
 Two community-built bridges for Discord:
 
-| Tool                                                            | What it does                                                               | Built by       |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------- |
-| [disjecta](https://disjecta.portable.agency/)                   | Syncs URLs from any Discord channel to a Semble collection                 | @burrito.space |
-| [ATProto-links-bot](https://github.com/borgr/ATProto-links-bot) | Relays paper links from a lab Discord to Semble, Bluesky, Mastodon and RSS | Leshem Choshen |
-
-Leshem Choshen's lab uses the second one to share its reading publicly at [@colab-links.bsky.social](https://bsky.app/profile/colab-links.bsky.social).
-
-For Slack, the same pattern can be built on the [Semble API](https://docs.cosmik.network/semble-api/semble-api).
+| Tool                                                            | What it does                                                               | Built by              |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------- |
+| [disjecta](https://disjecta.portable.agency/)                   | Syncs URLs from any Discord channel to a Semble collection                 | @burrito.space        |
+| [ATProto-links-bot](https://github.com/borgr/ATProto-links-bot) | Relays paper links from a lab Discord to Semble, Bluesky, Mastodon and RSS | @lchoshen.bsky.social |
 
 ## Help your writing find its readers
 
@@ -165,7 +151,7 @@ Two ways to build one:
 | Semble API | A script or plugin that syncs notes, pages or bookmarks                    | [Semble API](https://docs.cosmik.network/semble-api/semble-api) |
 | Semble MCP | An AI assistant that saves links from your notes and connects them for you | [Semble MCP](https://docs.cosmik.network/semble-mcp/semble-mcp) |
 
-If you build one, tell us at hello@cosmik.network.
+If you build one, tell us at hello@cosmik.network or tag us [@semble.so](https://bsky.app/profile/semble.so) on Bluesky/AT Protocol.
 
 ## Further reading
 
