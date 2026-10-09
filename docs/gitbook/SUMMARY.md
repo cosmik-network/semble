@@ -20,14 +20,11 @@
 
 ## How to Semble
 
-* [Semble for research](how-to-semble/semble-for-research.md)
+* [Semble for research (old)](how-to-semble/semble-for-research-old.md)
+* [Semble for Research](how-to-semble/semble-for-research.md)
 
 ## Developer Guide
 
 * [Semble API](https://app.gitbook.com/o/5H90GKkf0JM9jldlC8Do/s/3NFfuFxvVQgDCu2Sbovu/)
 * [Getting Started with the Semble PDS Client](developer-guide/getting-started.md)
 * [Semble Lexicon Reference](developer-guide/semble-lexicon-reference.md)
-
-***
-
-* [Semble for Research](semble-for-research.md)
