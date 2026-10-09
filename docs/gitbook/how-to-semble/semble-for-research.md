@@ -61,6 +61,8 @@ You can create a connection from any card in Semble, or with the browser extensi
 
 [Zemble](https://chrisshank.github.io/zemble/), built by [Chris Shank](https://semble.so/profile/chrisshank.com), is a Zotero plugin that connects your library to Semble. It suits you if you'd like to share references publicly and see what others are reading around them.
 
+<figure><img src="../.gitbook/assets/image (8).png" alt=""><figcaption><p>Zotero with Zemble plugin enabled</p></figcaption></figure>
+
 * **Publish the collections you choose.** Sync a Zotero collection to a Semble collection. You don't have to share your whole library.
 * **See Semble activity inside Zotero.** New columns show who else has added an item, which collections it sits in, and what it's connected to.
 * **Save and open items on Semble** from within Zotero.
@@ -119,22 +121,17 @@ When you publish a post, preprint or note, add it to Semble and connect it to th
 
 You can do this by hand, or automate it with the [Semble API](https://docs.cosmik.network/semble-api/semble-api) so that each new post is added and connected as you publish. The [next section](semble-for-research.md#integrate-your-own-tool-for-thought) shows an example.
 
-An announcement post reaches your followers, an audience you have to build first. Connection notifications reach people who have shown interest in what you're writing about, whether or not they follow you. That matters most if you're new to a field or work in a niche one.
-
-Think of it as citation alerts for the open web, with two differences:
-
-* **Any kind of source.** Connections work for blog posts, podcasts and social posts as well as papers, and they arrive in minutes instead of months.
-* **Everything you've saved.** You hear about new work connected to anything in your library, not only to papers you wrote.
+An announcement post reaches your followers, an audience you have to build first. Connection notifications on Semble reach people who have shown interest in what you're writing about, whether or not they follow you. That is especially helpful if you're new to a field or work in a niche one.
 
 Read more in [Connecting with your readers on Semble](https://blog.cosmik.network/connecting-readers).
-
-Semble isn't yet built for this at high volume. If you add many connections at once, people holding those cards will get many notifications. Batching that activity is one fix we're looking at.
 
 ## Integrate your own tool for thought
 
 You can keep your notes where they are and let an integration publish to Semble for you. The pattern from the previous section then runs on its own.
 
-Anthony, who writes as [The Paper Pilot](https://paperpilot.dev/), synced his digital garden to Semble. Every page in the garden is a card, and every reference a page makes is a connection. His [open source](https://paperpilot.dev/garden/open-source) page, for example, has its own [Semble page](https://semble.so/url?id=https://paperpilot.dev/garden/open-source).
+[The Paper Pilot](https://paperpilot.dev/) digital garden is synced to Semble. Every page in the garden is a card, and every reference a page makes is a connection. For example, the [open source](https://paperpilot.dev/garden/open-source) page has its own [Semble page](https://semble.so/url?id=https://paperpilot.dev/garden/open-source).
+
+<figure><img src="../.gitbook/assets/image (7).png" alt=""><figcaption><p>A page in the Paper Pilot digital garden, and its link to the corresponding Semble page.</p></figcaption></figure>
 
 What you get from an integration like this:
 
