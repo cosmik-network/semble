@@ -1,6 +1,7 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getGlobalFeed } from '../dal';
 import { feedKeys } from '../feedKeys';
+import { skipEmptyPages } from '../skipEmptyPages';
 import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 
 interface Props {
@@ -26,16 +27,18 @@ export default function useGlobalFeed(props?: Props) {
     ),
     staleTime: 10000,
     initialPageParam: 1,
-    queryFn: ({ pageParam = 1 }) => {
-      return getGlobalFeed({
-        limit,
-        page: pageParam,
-        urlType: props?.urlType,
-        source: props?.source,
-        activityTypes: props?.activityTypes,
-        includeKnownBots: props?.includeKnownBots,
-        actorIds: props?.actorIds,
-      });
+    queryFn: ({ pageParam = 1, signal }) => {
+      return skipEmptyPages(pageParam, signal, (page) =>
+        getGlobalFeed({
+          limit,
+          page,
+          urlType: props?.urlType,
+          source: props?.source,
+          activityTypes: props?.activityTypes,
+          includeKnownBots: props?.includeKnownBots,
+          actorIds: props?.actorIds,
+        }),
+      );
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {

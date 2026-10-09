@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Stack } from '@mantine/core';
+import { Box, Button, Center, Container, Stack } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { GetGlobalFeedResponse, UrlType } from '@semble/types';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
@@ -70,7 +70,21 @@ export default function FeedList(props: Props) {
   return (
     <Container p="xs" size="xl">
       <RefetchLoader isRefetching={isRefetching} subject="activities" />
-      {allActivities.length === 0 ? (
+      {allActivities.length === 0 && hasNextPage ? (
+        // Every page so far was filtered out server-side. A button rather than
+        // InfiniteScroll, whose sentinel would stay visible and auto-fetch
+        // through the whole feed.
+        <Center py="xl">
+          <Button
+            variant="light"
+            color="gray"
+            loading={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            Load more
+          </Button>
+        </Center>
+      ) : allActivities.length === 0 ? (
         <Box py="xl">
           <FeedEmptyState
             view={props.view}
