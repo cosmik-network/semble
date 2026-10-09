@@ -36,6 +36,8 @@ export default function useAddCard(
       collectionIds?: string[];
       viaCardId?: string;
       notificationId?: string;
+      /** Replaces the success notification's content */
+      message?: React.ReactNode;
     }) => {
       return addUrlToLibrary(newCard.url, {
         note: newCard.note,
@@ -56,7 +58,7 @@ export default function useAddCard(
           id: notificationId,
           color: 'green',
           title: null,
-          message: (
+          message: variables.message ?? (
             <Group
               gap="xs"
               justify="space-between"

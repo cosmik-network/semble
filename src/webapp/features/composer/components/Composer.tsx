@@ -40,6 +40,7 @@ import { BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
 import { TbPlugConnected } from 'react-icons/tb';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
+import useUrlInLibrary from '@/features/cards/lib/queries/useUrlInLibrary';
 
 type ComposerMode = 'card' | 'collection' | 'connection';
 
@@ -104,6 +105,8 @@ export default function Composer(props: Props) {
     },
   });
 
+  const urlInLibrary = useUrlInLibrary();
+
   // Collection form state
   const createCollection = useCreateCollection(analyticsContext);
   const collectionForm = useForm({
@@ -135,7 +138,7 @@ export default function Composer(props: Props) {
     props.onClose();
   };
 
-  const handleAddCard = (e: React.FormEvent) => {
+  const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault();
     track('add new card');
 
@@ -162,7 +165,8 @@ export default function Composer(props: Props) {
     handleClose();
     window.history.replaceState({}, '', window.location.pathname);
 
-    addCard.mutate({ ...cardData, notificationId });
+    const newCard = await urlInLibrary.narrowToNew(cardData, notificationId);
+    if (newCard) addCard.mutate({ ...newCard, notificationId });
   };
 
   const handleCreateCollection = (e: React.FormEvent) => {
