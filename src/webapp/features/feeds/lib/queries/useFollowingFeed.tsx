@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getFollowingFeed } from '../dal';
 import { feedKeys } from '../feedKeys';
+import { skipEmptyPages } from '../skipEmptyPages';
 import { UrlType, ActivitySource, ActivityType } from '@semble/types';
 
 interface Props {
@@ -27,15 +28,17 @@ export default function useFollowingFeed(props?: Props) {
     staleTime: 10000,
     initialPageParam: 1,
     enabled,
-    queryFn: ({ pageParam = 1 }) => {
-      return getFollowingFeed({
-        limit,
-        page: pageParam,
-        urlType: props?.urlType,
-        source: props?.source,
-        activityTypes: props?.activityTypes,
-        includeKnownBots: props?.includeKnownBots,
-      });
+    queryFn: ({ pageParam = 1, signal }) => {
+      return skipEmptyPages(pageParam, signal, (page) =>
+        getFollowingFeed({
+          limit,
+          page,
+          urlType: props?.urlType,
+          source: props?.source,
+          activityTypes: props?.activityTypes,
+          includeKnownBots: props?.includeKnownBots,
+        }),
+      );
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
