@@ -24,7 +24,7 @@ export interface ConnectionTypeConfig {
 export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
   {
     value: 'RELATED',
-    label: 'Related',
+    label: 'Relates to',
     description: 'Generally connected or associated',
     icon: BiLink,
     notePlaceholder: 'Describe how these are related...',
@@ -52,7 +52,7 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
   },
   {
     value: 'HELPFUL',
-    label: 'Helpful',
+    label: 'Adds context to',
     description: 'Provides useful context or background',
     icon: BiHelpCircle,
     notePlaceholder: 'Describe what context or background this provides...',
@@ -66,14 +66,14 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
   },
   {
     value: 'EXPLAINER',
-    label: 'Explainer',
+    label: 'Explains',
     description: 'Explains or summarizes for a broader audience',
     icon: MdOutlinePsychologyAlt,
     notePlaceholder: 'Describe how this explains or clarifies...',
   },
   {
     value: 'SUPPLEMENT',
-    label: 'Supplement',
+    label: 'Supplements',
     description:
       'Accompanying resources (e.g. data, code, other supplemental material)',
     icon: BsPaperclip,
