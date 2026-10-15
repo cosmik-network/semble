@@ -17,6 +17,8 @@ export const searchKeys = {
       urlType,
       userId,
     ] as const,
+  semanticSearchPreview: (query: string, limit: number, urlType?: string) =>
+    [...searchKeys.semanticSearch(query), 'preview', limit, urlType] as const,
   profileSearch: (query: string) =>
     [...searchKeys.all(), 'profile', query] as const,
   profileSearchInfinite: (query: string, limit?: number) =>
