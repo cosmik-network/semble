@@ -17,21 +17,19 @@ import {
   Container,
   Combobox,
   useCombobox,
-  Popover,
   Select,
   ThemeIcon,
 } from '@mantine/core';
 import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { TbAdjustmentsHorizontal } from 'react-icons/tb';
-import { useDebouncedValue, upperFirst } from '@mantine/hooks';
+import { useDebouncedValue } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createContext, use, useState, ReactNode } from 'react';
 import { searchBlueskyUsers } from '@/features/platforms/bluesky/lib/dal';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import { UrlType, CollectionAccessType } from '@semble/types';
-import { getUrlTypeIcon, renderUrlTypeIcon } from '@/lib/utils/icon';
-import { MdFilterList } from 'react-icons/md';
+import UrlTypeSelect from '../urlTypeSelect/UrlTypeSelect';
 import { FaSeedling } from 'react-icons/fa6';
 
 // context
@@ -291,84 +289,25 @@ export function ProfileFilter() {
 // url type filter (with popover)
 export function UrlTypeFilter() {
   const ctx = useFilterContext();
-  const [opened, setOpened] = useState(false);
 
   return (
-    <Popover
-      opened={opened}
-      onChange={setOpened}
-      position="top-start"
-      shadow="sm"
-    >
-      <Popover.Target>
-        <Stack gap={0} align="start">
-          <Button
-            variant="light"
-            color="lime"
-            leftSection={
-              ctx.localType === null ? (
-                <MdFilterList />
-              ) : (
-                renderUrlTypeIcon(ctx.localType)
-              )
-            }
-            onClick={() => setOpened((o) => !o)}
-          >
-            {ctx.localType ? upperFirst(ctx.localType) : 'All Cards'}
-          </Button>
-        </Stack>
-      </Popover.Target>
+    <Stack gap={0} align="start">
+      <UrlTypeSelect
+        value={ctx.localType}
+        onChange={(type) => {
+          ctx.setLocalType(type);
 
-      <Popover.Dropdown maw={300}>
-        <Group gap={6}>
-          <Button
-            size="xs"
-            color="lime"
-            variant={ctx.localType === null ? 'filled' : 'light'}
-            onClick={() => {
-              ctx.setLocalType(null);
-              setOpened(false);
-
-              // remove filter immediately
-              const params = new URLSearchParams(ctx.searchParams.toString());
-              params.delete('urlType');
-              ctx.router.replace(`?${params.toString()}`, { scroll: false });
-            }}
-          >
-            All Cards
-          </Button>
-
-          {Object.values(UrlType).map((type) => {
-            const Icon = getUrlTypeIcon(type);
-
-            return (
-              <Button
-                key={type}
-                size="xs"
-                color="lime"
-                variant={ctx.localType === type ? 'filled' : 'light'}
-                leftSection={<Icon />}
-                onClick={() => {
-                  ctx.setLocalType(type);
-                  setOpened(false);
-
-                  // apply filter immediately
-                  const params = new URLSearchParams(
-                    ctx.searchParams.toString(),
-                  );
-                  params.set('urlType', type);
-                  ctx.router.replace(`?${params.toString()}`, {
-                    scroll: false,
-                  });
-                }}
-              >
-                {upperFirst(type)}
-              </Button>
-            );
-          })}
-        </Group>
-      </Popover.Dropdown>
-    </Popover>
+          // apply filter immediately
+          const params = new URLSearchParams(ctx.searchParams.toString());
+          if (type) {
+            params.set('urlType', type);
+          } else {
+            params.delete('urlType');
+          }
+          ctx.router.replace(`?${params.toString()}`, { scroll: false });
+        }}
+      />
+    </Stack>
   );
 }
 
