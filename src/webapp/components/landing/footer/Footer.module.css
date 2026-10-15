@@ -1,0 +1,139 @@
+/* Phones: a vertical trail, each stop's title beside its pin and its links
+   wrapping underneath. From sm up: four columns on one horizontal line. */
+.trail {
+  --pin-size: 16px;
+  --trail-line: 3px dashed
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  --stop-gap: 1.75rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--stop-gap);
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--mantine-spacing-lg);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: calc(var(--pin-size) / 2 - 1.5px);
+      left: calc(var(--pin-size) / 2);
+      right: 0;
+      border-top: var(--trail-line);
+    }
+  }
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--pin-size) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--mantine-spacing-md);
+  row-gap: 8px;
+
+  /* Joins this pin to the next one down; the pins paint over its ends. */
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    bottom: calc(-1 * var(--stop-gap) - 12px);
+    left: calc(var(--pin-size) / 2 - 1.5px);
+    border-left: var(--trail-line);
+  }
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    &:not(:last-child)::after {
+      content: none;
+    }
+  }
+}
+
+.pin,
+.pinAccent {
+  position: relative;
+  z-index: 1;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 3px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  background-color: var(--mantine-color-body);
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    margin-bottom: 12px;
+  }
+}
+
+/* The brand tangerine, same as the logo. */
+.pinAccent {
+  border-color: var(--mantine-color-tangerine-6);
+  background-color: var(--mantine-color-tangerine-6);
+}
+
+.title {
+  grid-column: 2;
+}
+
+.linkList {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px var(--mantine-spacing-lg);
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: var(--mantine-color-dimmed);
+  transition: color 120ms ease;
+
+  &:hover {
+    color: var(--mantine-color-bright);
+  }
+}
+
+/* Centred when it wraps on phones; credits and links at either end above. */
+.credits {
+  justify-content: center;
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    justify-content: space-between;
+  }
+}
+
+/* The photo is a fixed-height layer pinned to the bottom, so however tall the
+   content above gets, it always sits on the plain body colour. */
+.photoFade {
+  background: linear-gradient(
+    to bottom,
+    var(--mantine-color-body) 0%,
+    transparent 55%
+  );
+}
+
+/* Keeps the white end row readable over the photo's mid-tone greens. */
+.photoScrim {
+  background: linear-gradient(
+    to bottom,
+    transparent 55%,
+    rgba(20, 32, 12, 0.5) 100%
+  );
+}

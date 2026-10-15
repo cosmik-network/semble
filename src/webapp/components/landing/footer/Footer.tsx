@@ -1,288 +1,271 @@
 import {
-  ActionIcon,
   Anchor,
   BackgroundImage,
   Box,
-  Button,
-  Container,
   Group,
   Stack,
   Image,
   Text,
+  Title,
 } from '@mantine/core';
-import { FaBluesky, FaDiscord, FaGithub } from 'react-icons/fa6';
-import TangledIcon from '@/assets/icons/tangled-icon.svg';
-import CosmikLogo from '@/assets/cosmik-logo-full.svg';
+import { Suspense, type ReactNode } from 'react';
+import { TbStackForward } from 'react-icons/tb';
+import { MdOutlineInstallMobile } from 'react-icons/md';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
+import ChromeIcon from '@/assets/icons/chrome-icon.svg';
+import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
 import FooterBG from '@/assets/footer-bg.webp';
 import FooterDarkBG from '@/assets/footer-bg-dark.webp';
-import ThemeToggle from '@/components/landing/themeToggle/ThemeToggle';
-import BlogUpdates from '../blogUpdates/BlogUpdates';
+import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
+import LatestPosts from '@/components/landing/latestPosts/LatestPosts';
+import styles from './Footer.module.css';
+
+const BROWSER_ICON_SIZE = 17;
+
+const LINK_GROUPS: {
+  title: string;
+  accent?: boolean;
+  links: { label: string; href: string; icon?: ReactNode }[];
+}[] = [
+  {
+    title: 'Get Semble',
+    accent: true,
+    links: [
+      {
+        label: 'Chrome',
+        href: 'https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg',
+        icon: (
+          <Image
+            src={ChromeIcon.src}
+            alt=""
+            w={BROWSER_ICON_SIZE}
+            h={BROWSER_ICON_SIZE}
+          />
+        ),
+      },
+      {
+        label: 'Firefox',
+        href: 'https://addons.mozilla.org/en-US/firefox/addon/semble/',
+        icon: (
+          <Image
+            src={FirefoxIcon.src}
+            alt=""
+            w={BROWSER_ICON_SIZE}
+            h={BROWSER_ICON_SIZE}
+          />
+        ),
+      },
+      {
+        label: 'iOS shortcut',
+        href: '/ios-shortcut',
+        icon: <TbStackForward size={BROWSER_ICON_SIZE} aria-hidden="true" />,
+      },
+      {
+        label: 'Web app',
+        href: '/install-app',
+        icon: (
+          <MdOutlineInstallMobile size={BROWSER_ICON_SIZE} aria-hidden="true" />
+        ),
+      },
+    ],
+  },
+  {
+    title: 'Learn',
+    links: [
+      { label: 'Docs', href: 'https://docs.cosmik.network/semble' },
+      { label: 'Blog', href: 'https://blog.cosmik.network/' },
+      { label: 'FAQ', href: '#faq' },
+    ],
+  },
+  {
+    title: 'Community',
+    links: [
+      { label: 'Bluesky', href: 'https://bsky.app/profile/semble.so' },
+      { label: 'Discord', href: 'https://discord.gg/vq7KzPkhCs' },
+      {
+        label: 'Give feedback',
+        href: 'https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c',
+      },
+    ],
+  },
+  {
+    title: 'Open source',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/cosmik-network/semble' },
+      { label: 'Tangled', href: 'https://tangled.org/@cosmik.network/semble' },
+      {
+        label: 'Report an issue',
+        href: 'https://github.com/cosmik-network/semble/issues',
+      },
+    ],
+  },
+];
 
 export default function Footer() {
-  // mt={0}: the blog + subscribe block above this is meant to read as the
-  // footer's top band, so the only space between them is this Box's top padding
-  // — which falls inside the top fade below, where the background is still body
-  // colour rather than the photo.
   return (
-    <Box
-      component="footer"
-      pt={{ base: '3rem', md: '5rem' }}
-      pb={'0'}
-      mt={0}
-      pos="relative"
-      style={{
-        overflow: 'hidden',
-        minHeight: 'clamp(280px, 32vw, 420px)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-      }}
-    >
-      <Box pos="relative" style={{ zIndex: 1 }}>
-        <BlogUpdates />
+    <Box component="footer" pos="relative" style={{ overflow: 'hidden' }}>
+      <Box
+        aria-hidden="true"
+        pos="absolute"
+        left={0}
+        right={0}
+        bottom={0}
+        h={{ base: 320, sm: 420 }}
+      >
+        <BackgroundImage
+          src={FooterBG.src}
+          darkHidden
+          pos="absolute"
+          inset={0}
+          style={{ backgroundPosition: 'bottom center' }}
+        />
+        <BackgroundImage
+          src={FooterDarkBG.src}
+          lightHidden
+          pos="absolute"
+          inset={0}
+          style={{ backgroundPosition: 'bottom center' }}
+        />
+        <Box className={styles.photoFade} pos="absolute" inset={0} />
+        <Box className={styles.photoScrim} pos="absolute" inset={0} />
       </Box>
 
-      {/* light mode bg */}
-      <BackgroundImage
-        src={FooterBG.src}
-        darkHidden
-        pos="absolute"
-        inset={0}
-        style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
-      />
-
-      {/* dark mode bg */}
-      <BackgroundImage
-        src={FooterDarkBG.src}
-        lightHidden
-        pos="absolute"
-        inset={0}
-        style={{ backgroundPosition: 'bottom center', zIndex: 0 }}
-      />
-
-      {/* darkening overlay */}
-      <Box
-        pos="absolute"
-        inset={0}
-        style={{
-          zIndex: 0,
-          background: 'rgba(0, 0, 0, 0.1)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* light mode top fade — keeps the top blending to white at any height */}
-      <Box
-        darkHidden
-        pos="absolute"
-        inset={0}
-        style={{
-          zIndex: 0,
-          background:
-            'linear-gradient(to bottom, var(--mantine-color-white) 0%, rgba(255, 255, 255, 0.6) 25%, transparent 60%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* dark mode top fade */}
-      <Box
-        lightHidden
-        pos="absolute"
-        inset={0}
-        style={{
-          zIndex: 0,
-          background:
-            'linear-gradient(to bottom, var(--mantine-color-body) 0%, transparent 60%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      <Container size="xl" p="sm" w="100%" pos="relative" style={{ zIndex: 1 }}>
-        <Stack align="center" gap="xs">
-          <Group gap="0">
-            <ActionIcon
-              component="a"
-              href="https://bsky.app/profile/semble.so"
-              target="_blank"
-              variant="subtle"
-              color="white"
-              radius="xl"
-              size="xl"
-              m={0}
-            >
-              <FaBluesky size={22} />
-            </ActionIcon>
-            <ActionIcon
-              component="a"
-              href="https://tangled.org/@cosmik.network/semble"
-              target="_blank"
-              variant="subtle"
-              color="white"
-              radius="xl"
-              size="xl"
-            >
-              <Image src={TangledIcon.src} alt="Tangled logo" w="auto" h={22} />
-            </ActionIcon>
-            <ActionIcon
-              component="a"
-              href="https://github.com/cosmik-network/semble"
-              target="_blank"
-              variant="subtle"
-              color="white"
-              radius="xl"
-              size="xl"
-            >
-              <FaGithub size={22} />
-            </ActionIcon>
-            <ActionIcon
-              component="a"
-              href="https://discord.gg/vq7KzPkhCs"
-              target="_blank"
-              variant="subtle"
-              color="white"
-              radius="xl"
-              size="xl"
-            >
-              <FaDiscord size={22} />
-            </ActionIcon>
-
-            {/* dot separator — a fixed-size element, so it can't collapse or
-                mis-align the way a stretched vertical rule does */}
-            <Box
-              w={4}
-              h={4}
-              mx="sm"
-              style={{
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-              }}
-            />
-
-            <ThemeToggle />
-          </Group>
-
-          <Stack align="center" gap="xs" mb="md">
-            <Group justify="center" gap="lg" wrap="wrap">
-              <Anchor
-                href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Chrome extension
-              </Anchor>
-              <Anchor
-                href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Firefox extension
-              </Anchor>
-              <Anchor
-                href={
-                  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
-                }
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                iOS shortcut
-              </Anchor>
-            </Group>
-            <Group justify="center" gap="lg" wrap="wrap">
-              <Anchor
-                href="https://docs.cosmik.network/semble"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Semble Docs
-              </Anchor>
-              <Anchor
-                href="https://blog.cosmik.network/"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Blog
-              </Anchor>
-              <Anchor
-                href="https://userinput.app/#/s/did:plc:k7wclckeajmuibxbamtbejjg/3mofstjavqb2c"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Give Feedback
-              </Anchor>
-              <Anchor
-                href="https://github.com/cosmik-network/semble/issues"
-                target="_blank"
-                c="white"
-                fw={600}
-              >
-                Submit an Issue
-              </Anchor>
-            </Group>
-          </Stack>
-
-          <Stack align="center" gap="0">
-            <Text c="white" fw={600} ta="center">
-              Made by &nbsp;
-              <Anchor
-                href="https://cosmik.network/"
-                target="_blank"
-                style={{ verticalAlign: 'middle' }}
-              >
-                <Box
-                  component="span"
-                  display="inline-flex"
-                  style={{ verticalAlign: 'middle' }}
-                >
-                  {/* light logo */}
-                  <Image
-                    src={CosmikLogo.src}
-                    alt="Cosmik logo"
-                    w={92}
-                    h={28.4}
-                    darkHidden
-                  />
-                  {/* dark logo */}
-                  <Image
-                    src={CosmikLogoWhite.src}
-                    alt="Cosmik logo white"
-                    w={92}
-                    h={28.4}
-                    lightHidden
-                  />
-                </Box>
-              </Anchor>
-              &nbsp;&nbsp;
-              <Text c="white" fw={600} span>
-                with support from&nbsp;
-                <Anchor
-                  href="https://coefficientgiving.org/"
-                  target="_blank"
-                  c="white"
-                  fw={700}
-                >
-                  Coefficient Giving
-                </Anchor>{' '}
-                and{' '}
-                <Anchor
-                  href="https://astera.org/"
-                  target="_blank"
-                  c="white"
-                  fw={700}
-                >
-                  Astera
-                </Anchor>
-              </Text>
+      <Stack
+        pos="relative"
+        align="center"
+        gap="6rem"
+        maw={1120}
+        mx="auto"
+        px="sm"
+        pt={{ base: '6rem', md: '9rem' }}
+      >
+        {/* Same header pattern as the landing page's sections above. */}
+        <Stack
+          component="section"
+          aria-labelledby="team-notes-heading"
+          align="center"
+          gap="xl"
+          w="100%"
+        >
+          <Stack align="center" gap="xs">
+            <Title order={2} id="team-notes-heading" ta="center" maw={400}>
+              Notes from the team
+            </Title>
+            <Text fw={500} fz="lg" c="dimmed" ta="center" maw={320}>
+              Monthly updates and essays on building Semble, straight to your
+              inbox.
             </Text>
           </Stack>
+
+          <Box w="100%" maw={400}>
+            <EmailSubscribe />
+          </Box>
+
+          <Suspense fallback={null}>
+            <LatestPosts />
+          </Suspense>
         </Stack>
-      </Container>
+
+        {/* The dashed line and stops reuse the landing page's trail
+            connectors; the orange stop marks Semble itself, as in IdentityWeb. */}
+        <Box className={styles.trail}>
+          {LINK_GROUPS.map((group) => {
+            const headingId = `footer-${group.title.toLowerCase().replace(' ', '-')}`;
+
+            return (
+              <Box
+                key={group.title}
+                component="nav"
+                aria-labelledby={headingId}
+                className={styles.stop}
+              >
+                <span
+                  className={group.accent ? styles.pinAccent : styles.pin}
+                  aria-hidden="true"
+                />
+                <Text
+                  component="h3"
+                  id={headingId}
+                  className={styles.title}
+                  fz="md"
+                  fw={700}
+                  c="bright"
+                >
+                  {group.title}
+                </Text>
+                <Box className={styles.linkList}>
+                  {group.links.map((link) => {
+                    const isExternal = link.href.startsWith('http');
+
+                    return (
+                      <Anchor
+                        key={link.label}
+                        className={styles.link}
+                        href={link.href}
+                        target={isExternal ? '_blank' : undefined}
+                        rel={isExternal ? 'noopener noreferrer' : undefined}
+                        fz="0.9375rem"
+                        fw={600}
+                        underline="never"
+                      >
+                        {link.icon}
+                        {link.label}
+                      </Anchor>
+                    );
+                  })}
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+
+        <Group
+          className={styles.credits}
+          gap="4px 24px"
+          w="100%"
+          mt={{ base: 120, sm: 180 }}
+          pb="md"
+          c="white"
+          fw={500}
+          ta="center"
+        >
+          <Group gap={6} justify="center">
+            Made by
+            <Anchor
+              href="https://cosmik.network/"
+              target="_blank"
+              display="flex"
+            >
+              <Image src={CosmikLogoWhite.src} alt="Cosmik" w={80} h="auto" />
+            </Anchor>
+            <span>
+              with support from{' '}
+              <Anchor
+                href="https://coefficientgiving.org/"
+                target="_blank"
+                c="white"
+                fw={700}
+                inherit
+              >
+                Coefficient Giving
+              </Anchor>{' '}
+              and{' '}
+              <Anchor
+                href="https://astera.org/"
+                target="_blank"
+                c="white"
+                fw={700}
+                inherit
+              >
+                Astera
+              </Anchor>
+            </span>
+          </Group>
+          <Anchor href="/privacy-policy" c="white" fw={600} inherit>
+            Privacy policy
+          </Anchor>
+        </Group>
+      </Stack>
     </Box>
   );
 }

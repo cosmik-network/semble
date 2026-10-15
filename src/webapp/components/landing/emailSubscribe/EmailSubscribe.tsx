@@ -3,8 +3,8 @@ import { COSMIK_BLOG_PUBLICATION_URI } from '@/features/platforms/leaflet/lib/bl
 
 export default function EmailSubscribe() {
   return (
-    <Card p={'xxs'} radius={'xl'} withBorder>
-      <form action="https://leaflet.pub/api/subscribe_email" method="post">
+    <form action="https://leaflet.pub/api/subscribe_email" method="post">
+      <Card p={'xxs'} radius={'xl'} withBorder>
         <Group gap={'xs'} wrap="nowrap">
           <input
             type="hidden"
@@ -14,23 +14,22 @@ export default function EmailSubscribe() {
           {/* miw={0} lets the field shrink past its intrinsic width, so the
               pill still fits a 320px viewport. */}
           <TextInput
+            aria-label="Email address"
             type="email"
             name="email"
-            placeholder="your@email.com"
+            placeholder="you@example.com"
             required
-            size="xs"
             radius={'xl'}
             variant="unstyled"
-            mx={'5'}
+            mx={'xs'}
             flex={1}
             miw={0}
-            w={{ base: 200, xs: 270 }}
           />
-          <Button type="submit" size="xs">
+          <Button type="submit" variant="inverse">
             Subscribe
           </Button>
         </Group>
-      </form>
-    </Card>
+      </Card>
+    </form>
   );
 }
