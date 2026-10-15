@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Stack } from '@mantine/core';
+import { Box, Button, Center, Container, Stack } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
@@ -21,6 +21,24 @@ export default function ProfileActivityFeed({ profileId }: Props) {
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
+
+  if (allActivities.length === 0 && hasNextPage) {
+    // See FeedList: a button, since InfiniteScroll would auto-fetch unbounded.
+    return (
+      <Container p="xs" size="xl">
+        <Center py="xl">
+          <Button
+            variant="light"
+            color="gray"
+            loading={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            Load more
+          </Button>
+        </Center>
+      </Container>
+    );
+  }
 
   if (allActivities.length === 0) {
     return (

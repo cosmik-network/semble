@@ -607,7 +607,13 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Box>
               </Stack>
 
-              <Stack align="center" gap={'xl'} w="100%">
+              <Stack
+                id="faq"
+                align="center"
+                gap={'xl'}
+                w="100%"
+                style={{ scrollMarginTop: '1rem' }}
+              >
                 <Stack align="center" gap={'xs'}>
                   <Badge variant="default" color="gray">
                     FAQ

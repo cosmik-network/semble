@@ -33,6 +33,7 @@ import { usePathname } from 'next/navigation';
 import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import { MAX_NOTE_LENGTH } from '../cardNoteEditor/CardNoteEditor';
+import useUrlInLibrary from '../../lib/queries/useUrlInLibrary';
 
 interface Props {
   onClose: () => void;
@@ -94,6 +95,8 @@ export default function AddCardForm(props: Props) {
     },
   });
 
+  const urlInLibrary = useUrlInLibrary();
+
   // Stable useCallback, unlike the form object it comes from
   const { setValues } = form;
 
@@ -104,7 +107,7 @@ export default function AddCardForm(props: Props) {
     }
   }, [props.initialUrl, setValues]);
 
-  const handleAddCard = (e: React.FormEvent) => {
+  const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Auto-confirm a valid URL that was typed/pasted but not explicitly selected
@@ -147,7 +150,8 @@ export default function AddCardForm(props: Props) {
     rawUrlInput.current = '';
     form.reset();
 
-    addCard.mutate({ ...cardData, notificationId });
+    const newCard = await urlInLibrary.narrowToNew(cardData, notificationId);
+    if (newCard) addCard.mutate({ ...newCard, notificationId });
   };
 
   return (

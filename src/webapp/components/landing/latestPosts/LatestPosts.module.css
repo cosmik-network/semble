@@ -1,0 +1,9 @@
+.post {
+  color: var(--mantine-color-bright);
+  text-decoration: none;
+  transition: transform 120ms ease;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+}

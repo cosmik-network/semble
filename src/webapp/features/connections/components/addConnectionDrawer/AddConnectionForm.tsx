@@ -5,14 +5,12 @@ import {
   Button,
   Card,
   Combobox,
-  Divider,
   Group,
   Input,
   ScrollArea,
   Stack,
   Text,
   Textarea,
-  ThemeIcon,
   Tooltip,
   useCombobox,
   VisuallyHidden,
@@ -28,11 +26,11 @@ import type { ConnectionType } from '@semble/types';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
-import { BiSolidChevronDown } from 'react-icons/bi';
 import { CardSaveSource } from '@/features/analytics/types';
 import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
+import ConnectionFlow from '../connectionFlow/ConnectionFlow';
 
 interface Props {
   onClose: () => void;
@@ -363,22 +361,7 @@ export default function AddConnectionForm(props: Props) {
         <Stack gap={0}>
           {sourceSlot}
 
-          <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
-
-          {connectionTypeSelector}
-
-          <Stack align="center" gap={0}>
-            <Divider orientation="vertical" size={'md'} h={20} mx={'auto'} />
-
-            <ThemeIcon
-              size={'xs'}
-              color={'var(--mantine-color-disabled-border)'}
-              c={'gray'}
-              radius={'xl'}
-            >
-              <BiSolidChevronDown size={12} />
-            </ThemeIcon>
-          </Stack>
+          <ConnectionFlow>{connectionTypeSelector}</ConnectionFlow>
 
           {targetSlot}
         </Stack>

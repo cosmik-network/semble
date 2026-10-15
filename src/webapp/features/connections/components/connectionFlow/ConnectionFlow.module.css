@@ -1,0 +1,130 @@
+/* One streak runs down the upper segment, passes behind the relation pill, runs
+   down the lower segment and lands on the chevron. All three share the cycle so
+   the delays below keep them in step. Keyframe percentages are tuned to
+   --flow-cycle; rescale them if it changes so motion speed stays the same. */
+.segment,
+.arrival {
+  --flow-cycle: 4500ms;
+  --flow-color: var(--mantine-color-green-filled);
+  /* Matches Card/Paper withBorder. */
+  --flow-border: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+}
+
+.segment {
+  position: relative;
+  width: 2px;
+  height: 20px;
+  margin-inline: auto;
+  background: var(--flow-border);
+  /* Clip vertically only so the glow can spill sideways. */
+  clip-path: inset(0 -10px);
+}
+
+/* Comet: faint tail, bright leading head with a hot white core. */
+.segment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--flow-color) 35%, transparent) 45%,
+    var(--flow-color) 80%,
+    color-mix(in srgb, var(--flow-color), white 60%) 94%,
+    transparent
+  );
+  filter: drop-shadow(0 0 2px var(--flow-color))
+    drop-shadow(0 0 6px var(--flow-color));
+  transform: translateY(-100%);
+  animation: streak var(--flow-cycle) cubic-bezier(0.4, 0, 0.6, 1) infinite both;
+}
+
+.segment[data-position='after']::after {
+  animation-delay: 900ms;
+}
+
+.arrival {
+  --ti-bg: var(--flow-border);
+  position: relative;
+  overflow: visible;
+  animation: arrive var(--flow-cycle) ease-out 1400ms infinite both;
+}
+
+/* Shockwave ring that expands off the chevron as the streak lands. */
+.arrival::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--flow-color);
+  pointer-events: none;
+  animation: ripple var(--flow-cycle) cubic-bezier(0.2, 0.6, 0.3, 1) 1400ms
+    infinite both;
+}
+
+@keyframes streak {
+  0% {
+    transform: translateY(-100%);
+  }
+  13.7%,
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes arrive {
+  0%,
+  16.2%,
+  100% {
+    background-color: var(--flow-border);
+    color: var(--mantine-color-gray-filled);
+    transform: scale(1);
+    box-shadow: none;
+  }
+  3.7% {
+    background-color: var(--flow-color);
+    color: var(--mantine-color-white);
+    transform: scale(1.22);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--flow-color) 25%, transparent),
+      0 0 14px var(--flow-color);
+  }
+  8.1% {
+    transform: scale(0.95);
+  }
+  11.2% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes ripple {
+  0%,
+  2.5% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  3.7% {
+    opacity: 0.25;
+  }
+  19.9%,
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment::after,
+  .arrival,
+  .arrival::after {
+    animation: none;
+  }
+
+  .segment::after,
+  .arrival::after {
+    display: none;
+  }
+}
