@@ -24,12 +24,10 @@ const BROWSER_ICON_SIZE = 17;
 
 const LINK_GROUPS: {
   title: string;
-  accent?: boolean;
   links: { label: string; href: string; icon?: ReactNode }[];
 }[] = [
   {
     title: 'Get Semble',
-    accent: true,
     links: [
       {
         label: 'Chrome',
@@ -167,7 +165,7 @@ export default function Footer() {
         </Stack>
 
         {/* The dashed line and stops reuse the landing page's trail
-            connectors; the orange stop marks Semble itself, as in IdentityWeb. */}
+            connectors. */}
         <Box className={styles.trail}>
           {LINK_GROUPS.map((group) => {
             const headingId = `footer-${group.title.toLowerCase().replace(' ', '-')}`;
@@ -180,7 +178,7 @@ export default function Footer() {
                 className={styles.stop}
               >
                 <span
-                  className={group.accent ? styles.pinAccent : styles.pin}
+                  className={styles.pin}
                   aria-hidden="true"
                 />
                 <Text

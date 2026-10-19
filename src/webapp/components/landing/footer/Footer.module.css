@@ -58,8 +58,7 @@
   }
 }
 
-.pin,
-.pinAccent {
+.pin {
   position: relative;
   z-index: 1;
   width: var(--pin-size);
@@ -73,12 +72,6 @@
   @media (min-width: $mantine-breakpoint-sm) {
     margin-bottom: 12px;
   }
-}
-
-/* The brand tangerine, same as the logo. */
-.pinAccent {
-  border-color: var(--mantine-color-tangerine-6);
-  background-color: var(--mantine-color-tangerine-6);
 }
 
 .title {
