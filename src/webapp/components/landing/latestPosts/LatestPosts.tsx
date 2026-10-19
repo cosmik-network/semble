@@ -15,13 +15,7 @@ export default async function LatestPosts() {
   if (posts.length === 0) return null;
 
   return (
-    <SimpleGrid
-      cols={{ base: 1, sm: 3 }}
-      spacing="xs"
-      w="100%"
-      maw={900}
-      mt="md"
-    >
+    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xs" w="100%" maw={900}>
       {posts.map((post) => (
         <Card
           key={post.url}
