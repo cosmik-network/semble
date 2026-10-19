@@ -18,18 +18,17 @@ import FooterBG from '@/assets/footer-bg.webp';
 import FooterDarkBG from '@/assets/footer-bg-dark.webp';
 import EmailSubscribe from '@/components/landing/emailSubscribe/EmailSubscribe';
 import LatestPosts from '@/components/landing/latestPosts/LatestPosts';
+import { COSMIK_BLOG_URL } from '@/features/platforms/leaflet/lib/blog';
 import styles from './Footer.module.css';
 
 const BROWSER_ICON_SIZE = 17;
 
 const LINK_GROUPS: {
   title: string;
-  accent?: boolean;
   links: { label: string; href: string; icon?: ReactNode }[];
 }[] = [
   {
     title: 'Get Semble',
-    accent: true,
     links: [
       {
         label: 'Chrome',
@@ -151,23 +150,26 @@ export default function Footer() {
             <Title order={2} id="team-notes-heading" ta="center" maw={400}>
               Notes from the team
             </Title>
-            <Text fw={500} fz="lg" c="dimmed" ta="center" maw={320}>
-              Monthly updates and essays on building Semble, straight to your
-              inbox.
+            <Text fw={500} fz="lg" c="dimmed" ta="center" maw={360}>
+              Monthly updates and essays on building Semble. Read them on{' '}
+              <Anchor href={COSMIK_BLOG_URL} target="_blank" c="blue" inherit>
+                our blog
+              </Anchor>{' '}
+              or get them straight to your inbox.
             </Text>
           </Stack>
-
-          <Box w="100%" maw={400}>
-            <EmailSubscribe />
-          </Box>
 
           <Suspense fallback={null}>
             <LatestPosts />
           </Suspense>
+
+          <Box w="100%" maw={400}>
+            <EmailSubscribe />
+          </Box>
         </Stack>
 
         {/* The dashed line and stops reuse the landing page's trail
-            connectors; the orange stop marks Semble itself, as in IdentityWeb. */}
+            connectors. */}
         <Box className={styles.trail}>
           {LINK_GROUPS.map((group) => {
             const headingId = `footer-${group.title.toLowerCase().replace(' ', '-')}`;
@@ -179,10 +181,7 @@ export default function Footer() {
                 aria-labelledby={headingId}
                 className={styles.stop}
               >
-                <span
-                  className={group.accent ? styles.pinAccent : styles.pin}
-                  aria-hidden="true"
-                />
+                <span className={styles.pin} aria-hidden="true" />
                 <Text
                   component="h3"
                   id={headingId}
