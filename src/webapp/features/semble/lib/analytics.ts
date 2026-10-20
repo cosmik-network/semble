@@ -3,8 +3,8 @@ import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { CardSaveSource } from '@/features/analytics/types';
 import {
   EntrySource,
-  ItemDestination,
-  ItemTarget,
+  ItemClick,
+  ListDepth,
 } from '@/features/analytics/pageVisit';
 
 export type SembleTab =
@@ -73,9 +73,17 @@ export function trackSembleTabViewed(url: string, tab: SembleTab) {
 export function trackSembleItemClicked(
   url: string,
   tab: SembleTab,
-  click: { target: ItemTarget; destination: ItemDestination },
+  click: ItemClick,
 ) {
   capture(url, 'semble_page:item_clicked', { tab, ...click });
+}
+
+export function trackSembleListDepth(
+  url: string,
+  tab: SembleTab,
+  depth: ListDepth,
+) {
+  capture(url, 'semble_page:list_depth', { tab, ...depth });
 }
 
 export function trackSembleAction(url: string, action: SembleAction) {

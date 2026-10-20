@@ -2,8 +2,8 @@ import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import {
   EntrySource,
-  ItemDestination,
-  ItemTarget,
+  ItemClick,
+  ListDepth,
 } from '@/features/analytics/pageVisit';
 
 export type CollectionTab =
@@ -74,9 +74,17 @@ export function trackCollectionTabViewed(rkey: string, tab: CollectionTab) {
 export function trackCollectionItemClicked(
   rkey: string,
   tab: CollectionTab,
-  click: { target: ItemTarget; destination: ItemDestination },
+  click: ItemClick,
 ) {
   capture(rkey, 'collection_page:item_clicked', { tab, ...click });
+}
+
+export function trackCollectionListDepth(
+  rkey: string,
+  tab: CollectionTab,
+  depth: ListDepth,
+) {
+  capture(rkey, 'collection_page:list_depth', { tab, ...depth });
 }
 
 export function trackCollectionAction(rkey: string, action: CollectionAction) {

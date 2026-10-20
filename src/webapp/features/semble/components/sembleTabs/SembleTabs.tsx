@@ -158,7 +158,11 @@ export default function SembleTabs(props: Props) {
             fallback={<SimilarCardsContainerSkeleton />}
             key={props.url}
           >
-            <SimilarCardsContainer url={props.url} semblePageUrl={props.url} />
+            <SimilarCardsContainer
+              url={props.url}
+              semblePageUrl={props.url}
+              depthVisit={{ page: 'semble_page', url: props.url }}
+            />
           </Suspense>
         </TabsPanel>
 

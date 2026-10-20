@@ -22,6 +22,26 @@ export type ItemDestination =
   | 'external_url'
   | 'none';
 
+export interface ItemClick {
+  target: ItemTarget;
+  destination: ItemDestination;
+  /** 1-based place in the list, for lists that mark their items */
+  list_position?: number;
+  /** The list's type filter when the item was clicked */
+  list_url_type?: string;
+}
+
+/** How far down an infinite list a visitor got; see useListDepth */
+export interface ListDepth {
+  /** 1-based position of the furthest item that was at least half visible */
+  max_position_seen: number;
+  items_loaded: number;
+  pages_loaded: number;
+  /** Every page was loaded, so there was nothing further to scroll to */
+  reached_end: boolean;
+  url_type?: string;
+}
+
 export function isEntrySource(
   value: string | null | undefined,
 ): value is (typeof ENTRY_SOURCES)[number] {
@@ -58,12 +78,25 @@ export const ITEM_CLICK_SELECTOR = 'a[href], [data-analytics-target]';
 /**
  * Classifies a click on an item in a tab. Links are classified by their href;
  * anything else must opt in with `data-analytics-target` (and optionally
- * `data-analytics-destination`), so filters and menus are not counted.
+ * `data-analytics-destination`), so filters and menus are not counted. Lists
+ * that mark each item with `data-analytics-position` (and optionally
+ * `data-analytics-url-type`) also get where the item sits.
  */
-export function describeItemClick(el: HTMLElement): {
-  target: ItemTarget;
-  destination: ItemDestination;
-} | null {
+export function describeItemClick(el: HTMLElement): ItemClick | null {
+  const click = classifyItem(el);
+  if (!click) return null;
+
+  const listItem = el.closest<HTMLElement>('[data-analytics-position]');
+  if (!listItem) return click;
+
+  return {
+    ...click,
+    list_position: Number(listItem.dataset.analyticsPosition),
+    list_url_type: listItem.dataset.analyticsUrlType,
+  };
+}
+
+function classifyItem(el: HTMLElement): ItemClick | null {
   const target = el.dataset.analyticsTarget as ItemTarget | undefined;
   if (target) {
     return {

@@ -112,6 +112,7 @@ export default function useUpdateCardAssociations(
             : undefined,
           via_card_id: variables.viaCardId,
           page_path: analyticsContext.pagePath,
+          list_position: analyticsContext.listPosition,
           ...variables.collectionPicks,
         };
 

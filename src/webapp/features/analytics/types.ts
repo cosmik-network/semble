@@ -35,6 +35,8 @@ export interface CardSaveAnalyticsContext {
     profileFilter?: string;
   };
   pagePath?: string;
+  /** 1-based place of the card in the list it was saved from */
+  listPosition?: number;
 }
 
 /** How the collections a save added were picked; see useCollectionPicks */
@@ -63,4 +65,5 @@ export interface CardSaveEventProperties extends Partial<CollectionPickEventProp
   };
   via_card_id?: string;
   page_path?: string;
+  list_position?: number;
 }
