@@ -14,6 +14,7 @@ import ReaderArticle from '../ReaderArticle/ReaderArticle';
 import ReaderToolbar from '../ReaderToolbar/ReaderToolbar';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
 import { DEFAULT_READER_SETTINGS } from '../ReaderTextSettings/ReaderTextSettings';
+import { trackSembleAction } from '@/features/semble/lib/analytics';
 
 interface Props {
   url: string;
@@ -50,7 +51,10 @@ export default function ReaderButton(props: Props) {
         color="gray"
         radius="xl"
         leftSection={<RiArticleLine size={18} />}
-        onClick={() => setOpened(true)}
+        onClick={() => {
+          setOpened(true);
+          trackSembleAction(props.url, 'reader');
+        }}
         aria-label="Open reader mode"
       >
         Reader

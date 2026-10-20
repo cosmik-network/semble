@@ -31,7 +31,9 @@ function PlainLink(props: { link: ReaderLink }) {
       p={isList ? 'xs' : 'sm'}
       withBorder={!isList}
       style={{ cursor: 'pointer' }}
-      onClick={() => router.push(getSembleHref(props.link.href))}
+      onClick={() =>
+        router.push(getSembleHref(props.link.href, { ref: 'semble_page' }))
+      }
     >
       <Stack gap={0}>
         <Tooltip label={props.link.href}>

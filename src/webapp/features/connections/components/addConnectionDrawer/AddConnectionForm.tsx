@@ -41,6 +41,8 @@ interface Props {
   /** Initial connection type; defaults to RELATED. */
   defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
+  /** Fires once the connection has been created */
+  onCreated?: () => void;
 }
 
 export default function AddConnectionForm(props: Props) {
@@ -157,6 +159,7 @@ export default function AddConnectionForm(props: Props) {
           ) {
             onboarding.recordConnectionCreated(data.connectionId);
           }
+          if (data?.connectionId) props.onCreated?.();
 
           props.onClose();
           notifications.show({

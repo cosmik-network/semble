@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, MouseEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { encodeUrlParam } from '@/lib/utils/link';
 import {
@@ -32,18 +32,19 @@ import ConnectionsContainer from '@/features/connections/containers/connectionsC
 import ConnectionsContainerSkeleton from '@/features/connections/containers/connectionsContainer/Skeleton.ConnectionsContainer';
 
 import UrlGraphView from '@/features/graph/components/graphView/UrlGraphView';
+import {
+  describeSembleItemClick,
+  SEMBLE_ITEM_CLICK_SELECTOR,
+  SembleTab,
+  trackSembleItemClicked,
+  trackSembleTabViewed,
+} from '../../lib/analytics';
 
 interface Props {
   url: string;
 }
 
-type TabValue =
-  | 'notes'
-  | 'collections'
-  | 'similar'
-  | 'mentions'
-  | 'connections'
-  | 'graph';
+type TabValue = SembleTab;
 
 const VALID_TABS: TabValue[] = [
   'notes',
@@ -68,6 +69,19 @@ export default function SembleTabs(props: Props) {
   // undefined while loading, null when the stats request failed
   const stats = isError ? null : urlMetadata?.stats;
 
+  const handleItemClick = (e: MouseEvent<HTMLElement>) => {
+    const target = e.target as Element;
+    // React bubbles events out of portals (modals, menus); only count clicks
+    // that land in the panel itself
+    if (!e.currentTarget.contains(target)) return;
+
+    const item = target.closest<HTMLElement>(SEMBLE_ITEM_CLICK_SELECTOR);
+    if (!item || !e.currentTarget.contains(item)) return;
+
+    const click = describeSembleItemClick(item);
+    if (click) trackSembleItemClicked(props.url, activeTab, click);
+  };
+
   return (
     <Tabs
       keepMounted={false}
@@ -75,6 +89,7 @@ export default function SembleTabs(props: Props) {
       onChange={(val) => {
         const newTab = val as TabValue;
         setActiveTab(newTab);
+        if (newTab !== activeTab) trackSembleTabViewed(props.url, newTab);
         const viaCardId = searchParams.get('viaCardId');
         const qs = `id=${encodeUrlParam(props.url)}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
         window.history.replaceState(null, '', `?${qs}`);
@@ -125,7 +140,7 @@ export default function SembleTabs(props: Props) {
         </Paper>
       </Box>
 
-      <Container px={'xs'} size={'xl'} mt="md">
+      <Container px={'xs'} size={'xl'} mt="md" onClickCapture={handleItemClick}>
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />} key={props.url}>
             <SembleNotesContainer url={props.url} />

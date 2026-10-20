@@ -16,6 +16,10 @@ import styles from './UrlCard.module.css';
 import { useSettings } from '@/providers/settings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import {
+  SembleEntrySource,
+  sembleRefFromSaveSource,
+} from '@/features/semble/lib/analytics';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
@@ -38,6 +42,8 @@ interface Props {
   showAuthor?: boolean;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  /** entry_source for the semble page this card opens; derived from analyticsContext when omitted */
+  sembleRef?: SembleEntrySource;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
   connectTooltipOpen?: boolean;
@@ -55,6 +61,11 @@ export default function UrlCard(props: Props) {
     ? props.url
     : getSembleHref(props.cardContent.url, {
         viaCardId: props.viaCardId ? props.id : undefined,
+        ref:
+          props.sembleRef ??
+          (props.semblePageUrl
+            ? 'semble_page'
+            : sembleRefFromSaveSource(props.analyticsContext?.saveSource)),
       });
 
   const trackClick = () => {

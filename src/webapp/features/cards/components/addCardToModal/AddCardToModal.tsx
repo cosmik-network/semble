@@ -26,6 +26,8 @@ interface Props {
   cardContent?: UrlCard['cardContent'];
   analyticsContext?: CardSaveAnalyticsContext;
   zIndex?: number;
+  /** Fires once the save lands, on the same terms as the `card_saved` event */
+  onSaved?: () => void;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -79,6 +81,7 @@ export default function AddCardToModal(props: Props) {
           // The card itself is recorded by useAddCard, which also covers that
           // composer path.
           onSuccess: () => {
+            props.onSaved?.();
             if (isOnboardingSave) onboarding.recordSaveGuideCompleted();
           },
         },
@@ -108,6 +111,7 @@ export default function AddCardToModal(props: Props) {
           // fires on here. Gated on the same addToLibrary flag, so merely
           // removing a card from a collection is not counted.
           onSuccess: () => {
+            if (updateData.addToLibrary) props.onSaved?.();
             if (!isOnboardingSave || !updateData.addToLibrary) return;
 
             onboarding.recordCardSaved(props.url);

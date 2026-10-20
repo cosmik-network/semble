@@ -129,6 +129,7 @@ export default function UrlCardActions(props: Props) {
               color={'gray'}
               size="xs"
               radius={'xl'}
+              data-analytics-target="save"
               leftSection={
                 props.urlLibraryCount > 0 ? (
                   props.urlIsInLibrary ? (
@@ -169,6 +170,7 @@ export default function UrlCardActions(props: Props) {
               color={props.urlIsConnected ? 'green' : 'gray'}
               size="xs"
               radius={'xl'}
+              data-analytics-target="connect"
               leftSection={
                 props.urlConnectionCount > 0 ? (
                   <TbPlugConnected size={15} />

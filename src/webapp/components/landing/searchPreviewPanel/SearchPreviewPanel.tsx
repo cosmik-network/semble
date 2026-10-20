@@ -140,7 +140,7 @@ function PreviewRow(props: { urlView: UrlView; onClick: () => void }) {
 
   return (
     <LinkNavLink
-      href={getSembleHref(props.urlView.url)}
+      href={getSembleHref(props.urlView.url, { ref: 'search' })}
       onClick={props.onClick}
       px={8}
       py={4}

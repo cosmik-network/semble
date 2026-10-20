@@ -11,6 +11,7 @@ interface Props {
     id: string | undefined;
     viaCardId?: string;
     sembleTab?: string;
+    ref?: string;
   }>;
 }
 
@@ -56,7 +57,11 @@ export default async function Page(props: Props) {
 
   return (
     <Suspense fallback={<SembleContainerSkeleton />} key={url + 'container'}>
-      <SemblePageClient viaCardId={viaCardId}>
+      <SemblePageClient
+        url={url}
+        viaCardId={viaCardId}
+        entryRef={searchParams.ref}
+      >
         <SembleContainer url={url} viaCardId={viaCardId} />
       </SemblePageClient>
     </Suspense>

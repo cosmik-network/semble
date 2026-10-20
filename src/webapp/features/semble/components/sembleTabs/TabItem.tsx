@@ -2,7 +2,6 @@ import { TabsTab } from '@mantine/core';
 import { ReactNode } from 'react';
 import classes from './TabItem.module.css';
 import { track } from '@vercel/analytics';
-import posthog from 'posthog-js';
 
 interface Props {
   value: string;
@@ -18,7 +17,6 @@ export default function TabItem(props: Props) {
       rightSection={props.rightSection}
       onClick={() => {
         track(`Semble: ${props.value} tab`);
-        posthog.capture(`Semble: ${props.value} tab`);
       }}
     >
       {props.children}

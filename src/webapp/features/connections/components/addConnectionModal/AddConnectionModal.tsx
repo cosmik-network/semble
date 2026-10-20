@@ -15,6 +15,8 @@ interface Props {
   defaultConnectionType?: ConnectionType;
   analyticsContext?: CardSaveAnalyticsContext;
   zIndex?: number;
+  /** Fires once the connection has been created */
+  onCreated?: () => void;
 }
 
 export default function AddConnectionModal(props: Props) {
@@ -40,6 +42,7 @@ export default function AddConnectionModal(props: Props) {
           targetUrl={props.targetUrl}
           defaultConnectionType={props.defaultConnectionType}
           analyticsContext={props.analyticsContext}
+          onCreated={props.onCreated}
         />
       </Suspense>
     </Modal>

@@ -14,7 +14,7 @@ export default function CardChip(props: Props) {
   return (
     <Tooltip label={getDomain(props.url)}>
       <LinkCard
-        href={getSembleHref(props.url)}
+        href={getSembleHref(props.url, { ref: 'semble_page' })}
         radius={'md'}
         px={7}
         py={5}

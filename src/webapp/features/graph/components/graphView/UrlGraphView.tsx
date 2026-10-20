@@ -231,10 +231,12 @@ export default function UrlGraphView({ url }: UrlGraphViewProps) {
           route = `/collections/${node.metadata.handle}/${node.metadata.rkey}`;
           break;
         case 'URL':
-          route = getSembleHref(node.metadata.url);
+          route = getSembleHref(node.metadata.url, { ref: 'semble_page' });
           break;
         case 'NOTE':
-          route = getSembleHref(node.metadata.parentUrl);
+          route = getSembleHref(node.metadata.parentUrl, {
+            ref: 'semble_page',
+          });
           break;
         default:
           return;

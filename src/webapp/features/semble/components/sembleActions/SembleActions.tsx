@@ -15,6 +15,7 @@ import { CardSaveSource } from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { trackSembleAction } from '../../lib/analytics';
 
 interface Props {
   url: string;
@@ -79,6 +80,7 @@ export default function SembleActions(props: Props) {
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
         sourceUrl={props.url}
+        onCreated={() => trackSembleAction(props.url, 'connect')}
       />
 
       <AddCardToModal
@@ -93,6 +95,7 @@ export default function SembleActions(props: Props) {
           saveSource: CardSaveSource.SEMBLE_PAGE,
           pagePath: pathname,
         }}
+        onSaved={() => trackSembleAction(props.url, 'save')}
       />
     </Fragment>
   );
