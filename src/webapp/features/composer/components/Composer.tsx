@@ -40,6 +40,7 @@ import { BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
 import { TbPlugConnected } from 'react-icons/tb';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
+import useCollectionPicks from '@/features/collections/lib/useCollectionPicks';
 import useUrlInLibrary from '@/features/cards/lib/queries/useUrlInLibrary';
 
 type ComposerMode = 'card' | 'collection' | 'connection';
@@ -72,6 +73,7 @@ export default function Composer(props: Props) {
     : [];
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
+  const picks = useCollectionPicks();
 
   const { data: collections, isPending: collectionsPending } =
     useMyCollectionsInfinite({
@@ -134,6 +136,7 @@ export default function Composer(props: Props) {
     cardForm.reset();
     collectionForm.reset();
     setSelectedCollections(initialCollections);
+    picks.reset();
     setModeOverride(null);
     props.onClose();
   };
@@ -148,6 +151,9 @@ export default function Composer(props: Props) {
       note: cardForm.getValues().note,
       collectionIds: selectedCollections.map((c) => c.id),
     };
+
+    // Taken before the close below resets the picks
+    const describePicks = picks.snapshot();
 
     // Show loading toast immediately
     const notificationId = `add-card-${Date.now()}`;
@@ -166,7 +172,17 @@ export default function Composer(props: Props) {
     window.history.replaceState({}, '', window.location.pathname);
 
     const newCard = await urlInLibrary.narrowToNew(cardData, notificationId);
-    if (newCard) addCard.mutate({ ...newCard, notificationId });
+    if (!newCard) return;
+
+    // A collection the drawer was opened from came preselected, not picked
+    const addedIds = newCard.collectionIds.filter(
+      (id) => !initialCollections.some((c) => c.id === id),
+    );
+    addCard.mutate({
+      ...newCard,
+      notificationId,
+      collectionPicks: describePicks(addedIds),
+    });
   };
 
   const handleCreateCollection = (e: React.FormEvent) => {
@@ -372,6 +388,17 @@ export default function Composer(props: Props) {
                               ) : undefined
                             }
                             onClick={() => {
+                              if (
+                                selectedCollections.some((c) => c.id === col.id)
+                              ) {
+                                picks.tracker.unpick(col.id);
+                              } else {
+                                picks.tracker.pick(
+                                  col.id,
+                                  'composer_chip',
+                                  false,
+                                );
+                              }
                               setSelectedCollections((prev) => {
                                 if (prev.some((c) => c.id === col.id)) {
                                   return prev.filter((c) => c.id !== col.id);
@@ -530,6 +557,7 @@ export default function Composer(props: Props) {
             onSave={toggleCollectionSelector}
             selectedCollections={selectedCollections}
             onSelectedCollectionsChange={setSelectedCollections}
+            pickTracker={picks.tracker}
           />
         </Container>
       </Drawer>

@@ -33,6 +33,7 @@ import { usePathname } from 'next/navigation';
 import UrlSearchInput from '@/features/connections/components/addConnectionDrawer/UrlSearchInput';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import { MAX_NOTE_LENGTH } from '../cardNoteEditor/CardNoteEditor';
+import useCollectionPicks from '@/features/collections/lib/useCollectionPicks';
 import useUrlInLibrary from '../../lib/queries/useUrlInLibrary';
 
 interface Props {
@@ -50,6 +51,7 @@ export default function AddCardForm(props: Props) {
     : [];
   const [selectedCollections, setSelectedCollections] =
     useState(initialCollections);
+  const picks = useCollectionPicks();
 
   const { data: collections } = useMyCollections({
     limit: COMPOSER_COLLECTIONS_LIMIT,
@@ -132,6 +134,9 @@ export default function AddCardForm(props: Props) {
       collectionIds: selectedCollections.map((c) => c.id),
     };
 
+    // Taken before the close below resets the picks
+    const describePicks = picks.snapshot();
+
     // Show loading toast immediately
     const notificationId = `add-card-${Date.now()}`;
     notifications.show({
@@ -147,11 +152,22 @@ export default function AddCardForm(props: Props) {
     // Close drawer immediately
     props.onClose();
     setSelectedCollections(initialCollections);
+    picks.reset();
     rawUrlInput.current = '';
     form.reset();
 
     const newCard = await urlInLibrary.narrowToNew(cardData, notificationId);
-    if (newCard) addCard.mutate({ ...newCard, notificationId });
+    if (!newCard) return;
+
+    // A collection the drawer was opened from came preselected, not picked
+    const addedIds = newCard.collectionIds.filter(
+      (id) => !initialCollections.some((c) => c.id === id),
+    );
+    addCard.mutate({
+      ...newCard,
+      notificationId,
+      collectionPicks: describePicks(addedIds),
+    });
   };
 
   return (
@@ -251,6 +267,11 @@ export default function AddCardForm(props: Props) {
                         ) : undefined
                       }
                       onClick={() => {
+                        if (selectedCollections.some((c) => c.id === col.id)) {
+                          picks.tracker.unpick(col.id);
+                        } else {
+                          picks.tracker.pick(col.id, 'composer_chip', false);
+                        }
                         setSelectedCollections((prev) => {
                           // already selected, remove
                           if (prev.some((c) => c.id === col.id)) {
@@ -315,6 +336,7 @@ export default function AddCardForm(props: Props) {
               onSave={toggleCollectionSelector}
               selectedCollections={selectedCollections}
               onSelectedCollectionsChange={setSelectedCollections}
+              pickTracker={picks.tracker}
             />
           </Suspense>
         </Container>

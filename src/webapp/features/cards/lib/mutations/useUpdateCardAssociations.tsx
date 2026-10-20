@@ -10,6 +10,7 @@ import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
   CardSaveEventProperties,
+  CollectionPickEventProperties,
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { notifications } from '@mantine/notifications';
@@ -31,6 +32,7 @@ export default function useUpdateCardAssociations(
       viaCardId?: string;
       addToLibrary?: boolean;
       notificationId?: string;
+      collectionPicks?: CollectionPickEventProperties;
     }) => {
       return client.updateUrlCardAssociations({
         cardId: updatedCard.cardId,
@@ -110,6 +112,7 @@ export default function useUpdateCardAssociations(
             : undefined,
           via_card_id: variables.viaCardId,
           page_path: analyticsContext.pagePath,
+          ...variables.collectionPicks,
         };
 
         posthog.capture('card_saved', eventProperties);

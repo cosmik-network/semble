@@ -11,6 +11,8 @@ import { notifications } from '@mantine/notifications';
 import { BsExclamation } from 'react-icons/bs';
 import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 import CardNoteEditor from '../cardNoteEditor/CardNoteEditor';
+import useCollectionPicks from '@/features/collections/lib/useCollectionPicks';
+import { CollectionPickEventProperties } from '@/features/analytics/types';
 
 interface Props {
   onClose: () => void;
@@ -21,6 +23,7 @@ interface Props {
       note?: string;
       collectionIds: string[];
       viaCardId?: string;
+      collectionPicks?: CollectionPickEventProperties;
     };
     updateData?: {
       cardId: string;
@@ -29,6 +32,7 @@ interface Props {
       removeFromCollectionIds?: string[];
       addToLibrary?: boolean;
       viaCardId?: string;
+      collectionPicks?: CollectionPickEventProperties;
     };
   }) => void;
   url: string;
@@ -56,6 +60,7 @@ export default function AddCardToModalContent(props: Props) {
   const selectedCollections = selectedOverride ?? collectionsWithCard;
 
   const removeCard = useRemoveCardFromLibrary();
+  const picks = useCollectionPicks();
 
   const handleDeleteCard = () => {
     const cardId = cardStatus.data.card?.id;
@@ -94,6 +99,10 @@ export default function AddCardToModalContent(props: Props) {
     // Only ever send a non-empty note: the update endpoint rejects an empty
     // string and takes the collection changes in the same request down with
     // it. Removing a note goes through the editor's delete action instead.
+    // Only what this save adds: collections the card was already in are left
+    // out of the pick counts
+    const collectionPicks = picks.snapshot()(addedCollections.map((c) => c.id));
+
     const hasNoteChanged = !!trimmedNote && trimmedNote !== savedNote;
     const hasAdded = addedCollections.length > 0;
     const hasRemoved = removedCollections.length > 0;
@@ -113,6 +122,7 @@ export default function AddCardToModalContent(props: Props) {
           note: trimmedNote,
           collectionIds: selectedCollections.map((c) => c.id),
           viaCardId: props.viaCardId,
+          collectionPicks,
         },
       });
       return;
@@ -126,7 +136,8 @@ export default function AddCardToModalContent(props: Props) {
       removeFromCollectionIds?: string[];
       addToLibrary?: boolean;
       viaCardId?: string;
-    } = { cardId: cardStatus.data.card.id };
+      collectionPicks?: CollectionPickEventProperties;
+    } = { cardId: cardStatus.data.card.id, collectionPicks };
 
     if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
     if (hasAdded)
@@ -199,6 +210,7 @@ export default function AddCardToModalContent(props: Props) {
         isDeletingCard={removeCard.isPending}
         selectedCollections={selectedCollections}
         onSelectedCollectionsChange={setSelectedOverride}
+        pickTracker={picks.tracker}
       />
     </Stack>
   );

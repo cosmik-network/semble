@@ -12,6 +12,7 @@ import posthog from 'posthog-js';
 import {
   CardSaveAnalyticsContext,
   CardSaveEventProperties,
+  CollectionPickEventProperties,
   CardSaveSource,
 } from '@/features/analytics/types';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
@@ -38,6 +39,7 @@ export default function useAddCard(
       notificationId?: string;
       /** Replaces the success notification's content */
       message?: React.ReactNode;
+      collectionPicks?: CollectionPickEventProperties;
     }) => {
       return addUrlToLibrary(newCard.url, {
         note: newCard.note,
@@ -137,6 +139,7 @@ export default function useAddCard(
             : undefined,
           via_card_id: variables.viaCardId,
           page_path: analyticsContext.pagePath,
+          ...variables.collectionPicks,
         };
 
         posthog.capture('card_saved', eventProperties);

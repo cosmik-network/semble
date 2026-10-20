@@ -9,6 +9,7 @@ import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 import {
   CardSaveAnalyticsContext,
   CardSaveSource,
+  CollectionPickEventProperties,
 } from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
@@ -47,6 +48,7 @@ export default function AddCardToModal(props: Props) {
       note?: string;
       collectionIds: string[];
       viaCardId?: string;
+      collectionPicks?: CollectionPickEventProperties;
     };
     updateData?: {
       cardId: string;
@@ -55,6 +57,7 @@ export default function AddCardToModal(props: Props) {
       removeFromCollectionIds?: string[];
       addToLibrary?: boolean;
       viaCardId?: string;
+      collectionPicks?: CollectionPickEventProperties;
     };
   }) => {
     track('add or update existing card');

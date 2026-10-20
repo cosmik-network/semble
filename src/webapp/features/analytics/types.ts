@@ -37,7 +37,20 @@ export interface CardSaveAnalyticsContext {
   pagePath?: string;
 }
 
-export interface CardSaveEventProperties {
+/** How the collections a save added were picked; see useCollectionPicks */
+export interface CollectionPickEventProperties {
+  collections_from_my_collections: number;
+  collections_from_recommended: number;
+  collections_from_open_collections: number;
+  collections_from_composer_chip: number;
+  collections_created: number;
+  collections_via_search: number;
+  collection_tabs_viewed: string[];
+  collection_tabs_searched: string[];
+  searched_collections: boolean;
+}
+
+export interface CardSaveEventProperties extends Partial<CollectionPickEventProperties> {
   save_source: CardSaveSource;
   is_new_card: boolean;
   has_note: boolean;
