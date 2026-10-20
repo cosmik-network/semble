@@ -1,9 +1,10 @@
 import { Collection, CollectionAccessType } from '@semble/types';
 import { Group, Menu, ActionIcon } from '@mantine/core';
+import { useMounted } from '@mantine/hooks';
 import EditCollectionModal from '../editCollectionModal/EditCollectionModal';
 import DeleteCollectionModal from '../deleteCollectionModal/DeleteCollectionModal';
 import { BsThreeDots, BsPencilFill, BsTrash2Fill } from 'react-icons/bs';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
@@ -178,8 +179,7 @@ export default function CollectionActions(props: Props) {
   // — rendered on the server they throw NoSessionError and corrupt the
   // streaming render. Mount them only in the browser; the Suspense fallback
   // covers the first paint.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const isAuthor =
     isAuthenticated && user?.handle === props.collection.author?.handle;
