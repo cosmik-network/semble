@@ -25,6 +25,7 @@ const nextConfig = {
       : []),
   ],
   experimental: {
+    agentUpgrade: 'security',
     optimizePackageImports: [
       '@mantine/core',
       '@mantine/hooks',

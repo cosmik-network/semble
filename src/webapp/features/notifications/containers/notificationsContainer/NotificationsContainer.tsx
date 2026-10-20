@@ -9,7 +9,7 @@ import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteS
 import RefetchLoader from '@/components/contentDisplay/refetchLoader/RefetchLoader';
 import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 import useMarkNotificationsAsRead from '../../lib/mutations/useMarkNotificationsAsRead';
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import useMarkAllNotificationsAsRead from '../../lib/mutations/useMarkAllNotificationsAsRead';
 import { IoCheckmarkDoneSharp } from 'react-icons/io5';
 import useUnreadNotificationCount from '../../lib/queries/useUnreadNotificationCount';
@@ -48,20 +48,23 @@ export default function NotificationsContainer() {
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (!hasMarkedAsRead.current && allNotifications.length > 0) {
-        const unreadIds = allNotifications
-          .filter((notification) => !notification.read)
-          .map((notification) => notification.id);
+  const markUnreadAsRead = useEffectEvent(() => {
+    if (!hasMarkedAsRead.current && allNotifications.length > 0) {
+      const unreadIds = allNotifications
+        .filter((notification) => !notification.read)
+        .map((notification) => notification.id);
 
-        if (unreadIds.length > 0) {
-          hasMarkedAsRead.current = true;
-          markAsRead.mutate({ notificationIds: unreadIds });
-        }
+      if (unreadIds.length > 0) {
+        hasMarkedAsRead.current = true;
+        markAsRead.mutate({ notificationIds: unreadIds });
       }
-    };
-  }, [allNotifications, markAsRead]);
+    }
+  });
+
+  // Mark notifications as read when leaving the page, not on re-renders
+  useEffect(() => {
+    return () => markUnreadAsRead();
+  }, []);
 
   if (isPending) {
     return <NotificationsContainerSkeleton />;
