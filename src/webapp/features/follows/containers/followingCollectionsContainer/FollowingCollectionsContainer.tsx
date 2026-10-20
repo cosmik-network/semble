@@ -43,6 +43,7 @@ export default function FollowingCollectionsContainer(props: Props) {
             collection={collection}
             showAuthor
             followSource={FollowSource.PROFILE_NETWORK}
+            entryRef="profile"
           />
         ))}
       </Stack>

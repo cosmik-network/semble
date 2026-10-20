@@ -51,6 +51,7 @@ export default function ContributedToCollectionsContainer(props: Props) {
                   collection={collection}
                   showAuthor
                   followSource={FollowSource.PROFILE_NETWORK}
+                  entryRef="profile"
                 />
               ))}
             </SimpleGrid>

@@ -17,6 +17,8 @@ import CollectionCardActions from '../collectionCardActions/CollectionCardAction
 import { FollowSource } from '@/features/analytics/types';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import styles from './CollectionCard.module.css';
+import { getCollectionHref } from '@/lib/utils/link';
+import { EntrySource } from '@/features/analytics/pageVisit';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
@@ -26,6 +28,8 @@ interface Props {
   followSource?: FollowSource;
   /** Forwarded to CollectionCardActions' follow button. */
   onFollowChange?: (isFollowing: boolean) => void;
+  /** Where the card is listed, sent as the collection page's entry_source */
+  entryRef?: EntrySource;
 }
 
 export default function CollectionCard(props: Props) {
@@ -36,7 +40,9 @@ export default function CollectionCard(props: Props) {
   const { settings } = useSettings();
   const marginUrl = getMarginUrl(collection.uri, collection.author.handle);
 
-  const href = `/profile/${collection.author.handle}/collections/${rkey}`;
+  const href = getCollectionHref(collection.author.handle, rkey, {
+    ref: props.entryRef,
+  });
 
   return (
     <Card withBorder radius={'lg'} p={'sm'} className={styles.root} h={'100%'}>

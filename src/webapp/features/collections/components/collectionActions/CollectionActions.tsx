@@ -16,6 +16,7 @@ import { IoMdCheckmark } from 'react-icons/io';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { trackCollectionAction } from '../../lib/analytics';
 
 interface Props {
   collection: Collection & {
@@ -91,6 +92,12 @@ function AuthenticatedCollectionActions({ collection }: Props) {
           initialIsFollowing={collection.isFollowing}
           initialIsSubscribed={collection.isSubscribed}
           initialSubscriptionScopes={collection.subscriptionScopes}
+          onFollowChange={(isFollowing) =>
+            trackCollectionAction(
+              collection.rkey,
+              isFollowing ? 'follow' : 'unfollow',
+            )
+          }
         />
       )}
 
@@ -98,6 +105,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
         sourceUrl={collectionPageUrl}
+        onCreated={() => trackCollectionAction(collection.rkey, 'connect')}
       />
 
       <AddCardToModal
@@ -106,6 +114,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         url={collectionPageUrl}
         isInYourLibrary={isInYourLibrary}
         urlLibraryCount={urlLibraryCount}
+        onSaved={() => trackCollectionAction(collection.rkey, 'save')}
       />
 
       {user && (

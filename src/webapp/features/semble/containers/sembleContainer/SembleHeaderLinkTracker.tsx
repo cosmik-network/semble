@@ -2,6 +2,7 @@
 
 import { MouseEvent } from 'react';
 import { trackSembleAction } from '../../lib/analytics';
+import { isExternalHref } from '@/features/analytics/pageVisit';
 
 interface Props {
   url: string;
@@ -21,9 +22,7 @@ export default function SembleHeaderLinkTracker(props: Props) {
     const href = target.closest('a[href]')?.getAttribute('href');
     if (!href) return;
 
-    if (new URL(href, window.location.href).origin !== window.location.origin) {
-      trackSembleAction(props.url, 'open_link');
-    }
+    if (isExternalHref(href)) trackSembleAction(props.url, 'open_link');
   };
 
   return <div onClickCapture={handleClick}>{props.children}</div>;

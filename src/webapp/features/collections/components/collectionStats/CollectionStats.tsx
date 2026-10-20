@@ -19,6 +19,7 @@ import StatDrawer from '@/components/statDrawer/StatDrawer';
 import StatChip from '@/components/statChip/StatChip';
 import { STAT_CHIP_PREVIEW_LIMIT } from '@/components/statChip/constants';
 import StatChipCard from '@/components/statChip/StatChipCard';
+import { trackCollectionAction } from '../../lib/analytics';
 
 interface Props {
   collection: Collection;
@@ -29,6 +30,7 @@ interface Props {
 interface ChipProps {
   collectionId: string;
   collectionUrl: string;
+  rkey: string;
 }
 
 function FollowersChip(props: ChipProps) {
@@ -42,7 +44,10 @@ function FollowersChip(props: ChipProps) {
   return (
     <>
       <StatChip
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          trackCollectionAction(props.rkey, 'view_followers');
+        }}
         icon={<HiUsers />}
         count={page.pagination.totalCount}
         label="Follower"
@@ -159,6 +164,7 @@ export default function CollectionStats(props: Props) {
   const chipProps: ChipProps = {
     collectionId: collection.id,
     collectionUrl,
+    rkey: props.rkey,
   };
 
   return (

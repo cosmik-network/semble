@@ -33,12 +33,14 @@ import ConnectionsContainerSkeleton from '@/features/connections/containers/conn
 
 import UrlGraphView from '@/features/graph/components/graphView/UrlGraphView';
 import {
-  describeSembleItemClick,
-  SEMBLE_ITEM_CLICK_SELECTOR,
   SembleTab,
   trackSembleItemClicked,
   trackSembleTabViewed,
 } from '../../lib/analytics';
+import {
+  describeItemClick,
+  findClickedItem,
+} from '@/features/analytics/pageVisit';
 
 interface Props {
   url: string;
@@ -70,15 +72,10 @@ export default function SembleTabs(props: Props) {
   const stats = isError ? null : urlMetadata?.stats;
 
   const handleItemClick = (e: MouseEvent<HTMLElement>) => {
-    const target = e.target as Element;
-    // React bubbles events out of portals (modals, menus); only count clicks
-    // that land in the panel itself
-    if (!e.currentTarget.contains(target)) return;
+    const item = findClickedItem(e.currentTarget, e.target as Element);
+    if (!item) return;
 
-    const item = target.closest<HTMLElement>(SEMBLE_ITEM_CLICK_SELECTOR);
-    if (!item || !e.currentTarget.contains(item)) return;
-
-    const click = describeSembleItemClick(item);
+    const click = describeItemClick(item);
     if (click) trackSembleItemClicked(props.url, activeTab, click);
   };
 

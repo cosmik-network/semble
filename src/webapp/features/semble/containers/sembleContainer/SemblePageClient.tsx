@@ -4,12 +4,8 @@ import { useRef, useEffect } from 'react';
 import { buildSembleQuery } from '@/lib/utils/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavHistory } from '@/providers/navHistory';
-import {
-  hasStartedSembleVisit,
-  isSembleEntrySource,
-  SembleEntrySource,
-  startSembleVisit,
-} from '../../lib/analytics';
+import { hasStartedSembleVisit, startSembleVisit } from '../../lib/analytics';
+import { resolveEntrySource } from '@/features/analytics/pageVisit';
 
 interface Props {
   /** The page's subject url. Omitted on embeds, which start no visit. */
@@ -17,20 +13,6 @@ interface Props {
   viaCardId?: string;
   entryRef?: string;
   children: React.ReactNode;
-}
-
-function resolveEntrySource(
-  entryRef: string | undefined,
-  hasNavigated: boolean,
-): SembleEntrySource {
-  if (isSembleEntrySource(entryRef)) return entryRef;
-
-  const fromSemble =
-    !!document.referrer &&
-    new URL(document.referrer).origin === window.location.origin;
-
-  // No ref on an in-app arrival means a link that is not tagged yet
-  return hasNavigated || fromSemble ? 'other' : 'external';
 }
 
 /**

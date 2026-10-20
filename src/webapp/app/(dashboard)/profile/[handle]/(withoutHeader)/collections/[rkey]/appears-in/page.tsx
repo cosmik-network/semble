@@ -12,7 +12,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <Container p="xs" size="xl">
-      <SembleCollectionsContainer url={url} />
+      <SembleCollectionsContainer url={url} entryRef="collection" />
     </Container>
   );
 }

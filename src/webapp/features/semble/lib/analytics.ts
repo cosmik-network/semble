@@ -1,19 +1,11 @@
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import { CardSaveSource } from '@/features/analytics/types';
-
-export const SEMBLE_ENTRY_SOURCES = [
-  'feed',
-  'search',
-  'semble_page',
-  'collection',
-  'profile',
-  'extension',
-  'external',
-] as const;
-
-/** `other` is an internal navigation whose link carried no `ref` */
-export type SembleEntrySource = (typeof SEMBLE_ENTRY_SOURCES)[number] | 'other';
+import {
+  EntrySource,
+  ItemDestination,
+  ItemTarget,
+} from '@/features/analytics/pageVisit';
 
 export type SembleTab =
   | 'similar'
@@ -23,27 +15,13 @@ export type SembleTab =
   | 'notes'
   | 'graph';
 
-export type SembleItemTarget =
-  | 'open'
-  | 'save'
-  | 'follow'
-  | 'connect'
-  | 'external';
-
-export type SembleItemDestination =
-  | 'semble_page'
-  | 'collection_page'
-  | 'profile'
-  | 'external_url'
-  | 'none';
-
 export type SembleAction = 'save' | 'connect' | 'reader' | 'open_link';
 
 interface SembleVisit {
   visit_id: string;
   url: string;
   is_logged_in: boolean;
-  entry_source: SembleEntrySource;
+  entry_source: EntrySource;
 }
 
 // Module level rather than context: the reader button lives in the /url
@@ -54,16 +32,10 @@ export function hasStartedSembleVisit() {
   return currentVisit !== null;
 }
 
-export function isSembleEntrySource(
-  value: string | null | undefined,
-): value is (typeof SEMBLE_ENTRY_SOURCES)[number] {
-  return SEMBLE_ENTRY_SOURCES.includes(value as never);
-}
-
 /** The `ref` a card link should carry, from where the card is listed */
 export function sembleRefFromSaveSource(
   saveSource?: CardSaveSource,
-): SembleEntrySource | undefined {
+): EntrySource | undefined {
   switch (saveSource) {
     case CardSaveSource.FEED:
       return 'feed';
@@ -101,7 +73,7 @@ export function trackSembleTabViewed(url: string, tab: SembleTab) {
 export function trackSembleItemClicked(
   url: string,
   tab: SembleTab,
-  click: { target: SembleItemTarget; destination: SembleItemDestination },
+  click: { target: ItemTarget; destination: ItemDestination },
 ) {
   capture(url, 'semble_page:item_clicked', { tab, ...click });
 }
@@ -109,43 +81,3 @@ export function trackSembleItemClicked(
 export function trackSembleAction(url: string, action: SembleAction) {
   capture(url, 'semble_page:action', { action });
 }
-
-function destinationFromPath(pathname: string): SembleItemDestination {
-  if (pathname === '/url') return 'semble_page';
-  if (pathname.includes('/collections/')) return 'collection_page';
-  if (pathname.startsWith('/profile/')) return 'profile';
-  return 'none';
-}
-
-/**
- * Classifies a click inside a semble tab. Links are classified by their href;
- * anything else must opt in with `data-analytics-target` (and optionally
- * `data-analytics-destination`), so filters and menus are not counted.
- */
-export function describeSembleItemClick(el: HTMLElement): {
-  target: SembleItemTarget;
-  destination: SembleItemDestination;
-} | null {
-  const target = el.dataset.analyticsTarget as SembleItemTarget | undefined;
-  if (target) {
-    return {
-      target,
-      destination:
-        (el.dataset.analyticsDestination as SembleItemDestination) ?? 'none',
-    };
-  }
-
-  const href = el.getAttribute('href');
-  if (!href) return null;
-
-  const resolved = new URL(href, window.location.href);
-  if (resolved.origin !== window.location.origin) {
-    return { target: 'external', destination: 'external_url' };
-  }
-  return {
-    target: 'open',
-    destination: destinationFromPath(resolved.pathname),
-  };
-}
-
-export const SEMBLE_ITEM_CLICK_SELECTOR = 'a[href], [data-analytics-target]';

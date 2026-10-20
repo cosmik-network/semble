@@ -3,6 +3,7 @@
 import { ActionIcon, CopyButton, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { MdIosShare } from 'react-icons/md';
+import { trackCollectionAction } from '../../lib/analytics';
 
 interface Props {
   handle: string;
@@ -28,6 +29,7 @@ export default function CollectionShareHeaderButton(props: Props) {
             onClick={(e) => {
               e.stopPropagation();
               copy();
+              trackCollectionAction(props.rkey, 'share');
 
               if (copied) return;
               notifications.show({

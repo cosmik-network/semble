@@ -16,10 +16,8 @@ import styles from './UrlCard.module.css';
 import { useSettings } from '@/providers/settings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
-import {
-  SembleEntrySource,
-  sembleRefFromSaveSource,
-} from '@/features/semble/lib/analytics';
+import { sembleRefFromSaveSource } from '@/features/semble/lib/analytics';
+import { EntrySource } from '@/features/analytics/pageVisit';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
@@ -43,7 +41,7 @@ interface Props {
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
   /** entry_source for the semble page this card opens; derived from analyticsContext when omitted */
-  sembleRef?: SembleEntrySource;
+  sembleRef?: EntrySource;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
   connectTooltipOpen?: boolean;

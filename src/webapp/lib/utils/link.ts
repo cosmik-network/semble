@@ -31,6 +31,14 @@ export const getDisplayUrl = (url: string, maxPathLength = Infinity) => {
 export const encodeUrlParam = (url: string) =>
   url.replace(/[%#&+]/g, (c) => encodeURIComponent(c));
 
+// ref records where the visit came from for analytics (entry_source)
+export const getCollectionHref = (
+  handle: string,
+  rkey: string,
+  opts?: { ref?: string },
+) =>
+  `/profile/${handle}/collections/${rkey}${opts?.ref ? `?ref=${opts.ref}` : ''}`;
+
 // `id` goes last since it is the only value that can contain a query string
 export const getSembleHref = (
   url: string,
