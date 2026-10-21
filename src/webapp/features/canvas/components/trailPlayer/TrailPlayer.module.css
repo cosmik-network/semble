@@ -1,0 +1,14 @@
+.root {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, calc(100% - 32px));
+  pointer-events: all;
+  z-index: 450;
+}
+
+.progress {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

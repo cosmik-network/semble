@@ -1,0 +1,41 @@
+.dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--mantine-color-body);
+  border: 2px solid var(--mantine-color-blue-filled);
+  cursor: crosshair;
+  pointer-events: all;
+  z-index: 300;
+  transition: transform 120ms ease;
+}
+
+.dot:hover,
+.dot[data-dragging] {
+  transform: scale(1.35);
+  background: var(--mantine-color-blue-filled);
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 300;
+}
+
+.line {
+  stroke: var(--mantine-color-blue-filled);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.target {
+  fill: none;
+  stroke: var(--mantine-color-blue-filled);
+  stroke-width: 2;
+}

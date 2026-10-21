@@ -1,0 +1,14 @@
+.root {
+  position: absolute;
+  top: var(--mantine-spacing-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  pointer-events: all;
+  z-index: 450;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

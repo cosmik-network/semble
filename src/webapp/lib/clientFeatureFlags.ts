@@ -11,6 +11,7 @@ interface FeatureFlags {
   following: boolean;
   connections: boolean;
   graphView: boolean;
+  canvas: boolean;
   recommendedCollections?: boolean;
   onboarding: boolean;
   bskyFollows: boolean;

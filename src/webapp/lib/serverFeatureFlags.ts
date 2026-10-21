@@ -26,6 +26,8 @@ export async function getServerFeatureFlags() {
     following: true,
     connections: true,
     graphView: false,
+    // tldraw needs a license key outside localhost
+    canvas: process.env.VERCEL_ENV !== 'production',
     onboarding: show,
     bskyFollows: showForTeam,
   };

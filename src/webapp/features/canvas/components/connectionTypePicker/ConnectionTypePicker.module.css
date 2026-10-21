@@ -1,0 +1,7 @@
+.root {
+  position: absolute;
+  width: 340px;
+  transform: translate(-50%, 16px);
+  pointer-events: all;
+  z-index: 400;
+}

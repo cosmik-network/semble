@@ -1,0 +1,20 @@
+.root {
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px;
+  border-radius: var(--mantine-radius-xl);
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.title {
+  padding: 0 var(--mantine-spacing-xs) 0 2px;
+}

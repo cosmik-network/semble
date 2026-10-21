@@ -1,0 +1,36 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.tab {
+  color: var(--mantine-color-dimmed);
+
+  @mixin hover {
+    color: var(--mantine-color-bright);
+  }
+}
+
+.tab[data-active] {
+  color: var(--mantine-color-bright);
+}

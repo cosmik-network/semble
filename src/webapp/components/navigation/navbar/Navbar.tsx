@@ -29,10 +29,13 @@ import NotificationNavItem from '@/features/notifications/components/notificatio
 import Composer from '@/features/composer/components/Composer';
 import { HiOutlineHome, HiOutlineUserCircle } from 'react-icons/hi';
 import LibraryNav from '@/features/library/components/libraryNav/LibraryNav';
+import { LuSquareDashedMousePointer } from 'react-icons/lu';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
   const { data: profile } = useMyProfile();
+  const { data: featureFlags } = useFeatureFlags();
 
   // z-index clears the sticky Header (100), which the open mobile navbar covers
   return (
@@ -74,6 +77,14 @@ export default function Navbar() {
             />
 
             <NotificationNavItem />
+
+            {featureFlags?.canvas && (
+              <NavItem
+                href="/canvas"
+                label="Canvas"
+                icon={<LuSquareDashedMousePointer size={25} />}
+              />
+            )}
 
             <NavItem
               href={`/profile/${profile.handle}`}

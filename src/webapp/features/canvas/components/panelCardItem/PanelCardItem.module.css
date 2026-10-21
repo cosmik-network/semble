@@ -1,0 +1,24 @@
+.root {
+  position: relative;
+  cursor: grab;
+}
+
+.root:active {
+  cursor: grabbing;
+}
+
+.action {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  box-shadow: var(--mantine-shadow-xs);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.root:hover .action,
+.root:focus-within .action,
+.action[data-on-canvas] {
+  opacity: 1;
+}

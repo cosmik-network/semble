@@ -25,7 +25,9 @@ export const createConnection = cache(
     try {
       const response = await client.createConnection(params);
       return response;
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   },
 );
 

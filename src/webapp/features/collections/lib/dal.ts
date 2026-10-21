@@ -207,6 +207,19 @@ export const getCollectionPageByAtUri = cache(
   },
 );
 
+export const getCollectionPageById = cache(
+  async (collectionId: string, params?: PageParams & SearchParams) => {
+    const client = createSembleClient();
+    return client.getCollectionPage(collectionId, {
+      page: params?.page,
+      limit: params?.limit,
+      sortBy: params?.cardSortBy,
+      sortOrder: params?.sortOrder,
+      urlType: params?.urlType,
+    });
+  },
+);
+
 export const searchCollections = cache(
   async (params?: PageParams & SearchParams) => {
     const client = createSembleClient();

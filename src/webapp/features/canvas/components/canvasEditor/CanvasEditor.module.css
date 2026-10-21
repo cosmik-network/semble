@@ -1,0 +1,128 @@
+.root {
+  --canvas-bg: light-dark(
+    var(--mantine-color-stone-1),
+    var(--mantine-color-dark-8)
+  );
+  --canvas-border: var(--mantine-color-default-border);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  background: var(--canvas-bg);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 0 var(--mantine-spacing-sm) var(--mantine-spacing-sm);
+  gap: var(--mantine-spacing-sm);
+}
+
+.canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--canvas-border);
+  overflow: hidden;
+}
+
+/* Re-skin tldraw's UI with the app's Mantine tokens */
+.canvas :global(.tl-container) {
+  --tl-font-sans: var(--mantine-font-family);
+  --tl-radius-2: var(--mantine-radius-md);
+  --tl-radius-3: 12px;
+  --tl-radius-4: var(--mantine-radius-xl);
+}
+
+.canvas :global(.tl-theme__light),
+.canvas :global(.tl-theme__dark) {
+  --tl-color-background: light-dark(
+    var(--mantine-color-stone-0),
+    var(--mantine-color-dark-7)
+  );
+  --tl-color-panel: var(--mantine-color-body);
+  --tl-color-panel-contrast: var(--canvas-border);
+  --tl-color-divider: var(--canvas-border);
+  --tl-color-low: light-dark(
+    var(--mantine-color-stone-1),
+    var(--mantine-color-dark-6)
+  );
+  --tl-color-muted-2: light-dark(
+    var(--mantine-color-stone-1),
+    var(--mantine-color-dark-5)
+  );
+  --tl-color-text-0: var(--mantine-color-text);
+  --tl-color-text-1: var(--mantine-color-text);
+  --tl-color-text-3: var(--mantine-color-dimmed);
+  --tl-color-primary: var(--mantine-color-tangerine-6);
+  --tl-color-selected: var(--mantine-color-tangerine-6);
+  --tl-color-focus: var(--mantine-color-tangerine-4);
+  --tl-color-selection-stroke: var(--mantine-color-tangerine-6);
+  --tl-color-selection-fill: rgba(255, 100, 0, 0.1);
+  --tl-shadow-2: var(--mantine-shadow-sm), 0 0 0 1px var(--canvas-border);
+  --tl-shadow-3: var(--mantine-shadow-md), 0 0 0 1px var(--canvas-border);
+  --tl-shadow-4: var(--mantine-shadow-lg), 0 0 0 1px var(--canvas-border);
+}
+
+.canvas :global(.tlui-menu) {
+  padding: 4px 0;
+}
+
+.canvas :global(.tlui-button__menu) {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+}
+
+.canvas :global(.tlui-kbd) {
+  color: var(--mantine-color-dimmed);
+}
+
+/* Toolbar: a pill like the app's buttons, active tool inverted */
+.canvas :global(.tlui-main-toolbar__tools) {
+  padding: 0 4px;
+}
+
+.canvas :global(.tlui-button__tool::after) {
+  inset: 6px;
+  border-radius: 999px;
+}
+
+.canvas
+  :global(
+    .tlui-button__tool[aria-pressed='true']:not(
+        :disabled,
+        [data-disabled]
+      )::after
+  ) {
+  background: var(--mantine-color-bright);
+}
+
+.canvas :global(.tlui-button__tool[aria-pressed='true']) {
+  color: var(--mantine-color-body);
+}
+
+/* Connection type sits on its arrow as a pill */
+.canvas :global(.tl-shape[data-shape-type='arrow'] .tl-text-label__inner) {
+  padding: 2px 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  background: var(--mantine-color-body);
+  /* tldraw sizes this inline for regular-weight text; the bold label needs its own width */
+  width: max-content !important;
+  min-width: max-content !important;
+  flex-shrink: 0;
+}
+
+.canvas :global(.tl-shape[data-shape-type='arrow'] .tl-text-content) {
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow: none;
+  white-space: nowrap;
+  padding: 0;
+  width: max-content;
+  max-width: none;
+}

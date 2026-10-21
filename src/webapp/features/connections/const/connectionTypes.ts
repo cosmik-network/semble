@@ -94,3 +94,6 @@ export const CONNECTION_TYPES: readonly ConnectionTypeConfig[] = [
     notePlaceholder: 'Describe what is referenced or cited...',
   },
 ] as const;
+
+export const NON_DIRECTIONAL_CONNECTION_TYPES: ReadonlySet<ConnectionType> =
+  new Set<ConnectionType>(['SAME_AS']);

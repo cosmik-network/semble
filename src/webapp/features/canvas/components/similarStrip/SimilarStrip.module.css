@@ -1,0 +1,60 @@
+.root {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  pointer-events: all;
+  z-index: 400;
+  overflow: hidden;
+  animation: fadeIn 120ms ease-out;
+}
+
+.fill {
+  flex: 1;
+}
+
+.row {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm)
+    var(--mantine-spacing-sm);
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: x proximity;
+}
+
+.row > * {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+}
+
+.tile {
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+.thumb {
+  background: light-dark(
+    var(--mantine-color-stone-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+.more {
+  align-self: stretch;
+  flex-basis: 64px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

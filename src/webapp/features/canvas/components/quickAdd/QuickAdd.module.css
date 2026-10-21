@@ -1,0 +1,23 @@
+.root {
+  position: absolute;
+  transform: translate(-50%, -24px);
+  width: 360px;
+  pointer-events: all;
+  z-index: 450;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--mantine-radius-md);
+}
+
+.option[data-active] {
+  background: light-dark(
+    var(--mantine-color-stone-1),
+    var(--mantine-color-dark-5)
+  );
+}

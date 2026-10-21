@@ -1,0 +1,37 @@
+.root {
+  width: 100%;
+  height: 100%;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-lg);
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+  overflow: hidden;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.root[data-hinted] {
+  border-color: var(--mantine-color-blue-filled);
+  background: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.12));
+  box-shadow: 0 0 0 3px
+    light-dark(var(--mantine-color-blue-1), rgba(34, 139, 230, 0.25));
+}
+
+.header {
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.root[data-collapsed] .header {
+  border-bottom: none;
+}
+
+.controls {
+  pointer-events: all;
+}

@@ -148,9 +148,6 @@ export default function AddConnectionForm(props: Props) {
       },
       {
         onSuccess: (data) => {
-          // Gated on the id, not on reaching onSuccess: the connections DAL
-          // swallows its errors and resolves undefined, so a failed create
-          // lands here too and would otherwise be recorded as a real one.
           if (
             data?.connectionId &&
             props.analyticsContext?.saveSource === CardSaveSource.ONBOARDING
