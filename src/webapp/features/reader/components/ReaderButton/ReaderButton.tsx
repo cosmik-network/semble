@@ -14,6 +14,7 @@ import ReaderArticle from '../ReaderArticle/ReaderArticle';
 import ReaderToolbar from '../ReaderToolbar/ReaderToolbar';
 import ReaderLinksDrawer from '../ReaderLinksDrawer/ReaderLinksDrawer';
 import { DEFAULT_READER_SETTINGS } from '../ReaderTextSettings/ReaderTextSettings';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 interface Props {
   url: string;
@@ -24,6 +25,9 @@ export default function ReaderButton(props: Props) {
   const [linksOpen, setLinksOpen] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_READER_SETTINGS);
   const [linkState, dispatchLink] = useReaderLinkReducer();
+  // Hide while following a link so the page skeleton shows; the reader
+  // remounts on the new page
+  const isNavigating = useSembleNavigation()?.isNavigating;
 
   const reader = useReaderContent({ url: props.url, enabled: opened });
 
@@ -57,7 +61,7 @@ export default function ReaderButton(props: Props) {
       </Button>
 
       <Drawer
-        opened={opened}
+        opened={opened && !isNavigating}
         onClose={closeReader}
         position="bottom"
         size="full"
@@ -95,7 +99,7 @@ export default function ReaderButton(props: Props) {
       </Drawer>
 
       <ReaderLinksDrawer
-        opened={linksOpen}
+        opened={linksOpen && !isNavigating}
         onClose={() => setLinksOpen(false)}
         links={links}
         articleUrl={props.url}

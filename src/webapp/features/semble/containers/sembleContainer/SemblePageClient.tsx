@@ -2,6 +2,8 @@
 
 import { useRef, useEffect } from 'react';
 import { buildSembleQuery } from '@/lib/utils/link';
+import { useSembleNavigation } from '../../lib/sembleNavigation';
+import SembleContainerSkeleton from './Skeleton.SembleContainer';
 
 interface Props {
   viaCardId?: string;
@@ -9,11 +11,13 @@ interface Props {
 }
 
 /**
- * Client wrapper that cleans viaCardId from URL after server captures it.
+ * Client wrapper that cleans viaCardId from URL after server captures it,
+ * and shows the skeleton while navigating to another semble page.
  * Uses children prop pattern to maintain server component status for nested components.
  */
 export default function SemblePageClient(props: Props) {
   const cleanedUrlRef = useRef(false);
+  const isNavigating = useSembleNavigation()?.isNavigating;
 
   // Clean URL on mount if viaCardId exists
   useEffect(() => {
@@ -28,5 +32,5 @@ export default function SemblePageClient(props: Props) {
     }
   }, [props.viaCardId]);
 
-  return <>{props.children}</>;
+  return isNavigating ? <SembleContainerSkeleton /> : props.children;
 }
