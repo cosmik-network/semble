@@ -25,6 +25,7 @@ import GraphFilterPanel from './GraphFilterPanel';
 import { useRouter } from 'next/navigation';
 import styles from './GraphView.module.css';
 import { getSembleHref } from '@/lib/utils/link';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
@@ -52,6 +53,7 @@ interface UrlGraphViewProps {
 
 export default function UrlGraphView({ url }: UrlGraphViewProps) {
   const router = useRouter();
+  const navigateToSemble = useSembleNavigation()?.navigate ?? router.push;
   const graphRef = useRef<any>(undefined);
 
   // State for depth control (default 1 hop)
@@ -242,9 +244,14 @@ export default function UrlGraphView({ url }: UrlGraphViewProps) {
           return;
       }
 
-      router.push(route);
+      // Other routes show their own loading.tsx
+      if (node.type === 'URL' || node.type === 'NOTE') {
+        navigateToSemble(route);
+      } else {
+        router.push(route);
+      }
     },
-    [filteredGraphData, router],
+    [filteredGraphData, router, navigateToSemble],
   );
 
   // Close detail popup

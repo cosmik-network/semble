@@ -11,6 +11,7 @@ import { useSuspenseUrlMetadataWithStats } from '@/features/cards/lib/queries/us
 import { CardSaveSource } from '@/features/analytics/types';
 import { getDomain, getSembleHref } from '@/lib/utils/link';
 import type { ReaderLink } from '../../lib/useReaderLinks';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 interface Props {
   link: ReaderLink;
@@ -21,6 +22,7 @@ interface Props {
 
 function PlainLink(props: { link: ReaderLink }) {
   const router = useRouter();
+  const navigate = useSembleNavigation()?.navigate ?? router.push;
   const { settings } = useSettings();
   const isList = settings.cardView === 'list';
 
@@ -32,7 +34,7 @@ function PlainLink(props: { link: ReaderLink }) {
       withBorder={!isList}
       style={{ cursor: 'pointer' }}
       onClick={() =>
-        router.push(getSembleHref(props.link.href, { ref: 'semble_page' }))
+        navigate(getSembleHref(props.link.href, { ref: 'semble_page' }))
       }
     >
       <Stack gap={0}>

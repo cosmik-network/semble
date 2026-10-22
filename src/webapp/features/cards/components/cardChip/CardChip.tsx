@@ -1,7 +1,10 @@
+'use client';
+
 import { Image, Group, Text, Tooltip } from '@mantine/core';
 import { truncateText } from '@/lib/utils/text';
 import { getDomain, getSembleHref } from '@/lib/utils/link';
 import { LinkCard } from '@/components/link/MantineLink';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 import styles from './CardChip.module.css';
 
 interface Props {
@@ -11,10 +14,21 @@ interface Props {
 }
 
 export default function CardChip(props: Props) {
+  const sembleNavigation = useSembleNavigation();
+  const href = getSembleHref(props.url, { ref: 'semble_page' });
+
   return (
     <Tooltip label={getDomain(props.url)}>
       <LinkCard
-        href={getSembleHref(props.url, { ref: 'semble_page' })}
+        href={href}
+        onNavigate={
+          sembleNavigation
+            ? (e) => {
+                e.preventDefault();
+                sembleNavigation.navigate(href);
+              }
+            : undefined
+        }
         radius={'md'}
         px={7}
         py={5}

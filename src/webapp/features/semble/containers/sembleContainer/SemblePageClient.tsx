@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavHistory } from '@/providers/navHistory';
 import { hasStartedSembleVisit, startSembleVisit } from '../../lib/analytics';
 import { resolveEntrySource } from '@/features/analytics/pageVisit';
+import { useSembleNavigation } from '../../lib/sembleNavigation';
+import SembleContainerSkeleton from './Skeleton.SembleContainer';
 
 interface Props {
   /** The page's subject url. Omitted on embeds, which start no visit. */
@@ -16,8 +18,9 @@ interface Props {
 }
 
 /**
- * Client wrapper that starts the analytics visit and cleans viaCardId and ref
- * from the URL after server captures them.
+ * Client wrapper that starts the analytics visit, cleans viaCardId and ref
+ * from the URL after server captures them, and shows the skeleton while
+ * navigating to another semble page.
  * Uses children prop pattern to maintain server component status for nested components.
  */
 export default function SemblePageClient(props: Props) {
@@ -25,6 +28,7 @@ export default function SemblePageClient(props: Props) {
   const visitStartedRef = useRef(false);
   const { isAuthenticated, isLoading } = useAuth();
   const { canGoBack } = useNavHistory();
+  const isNavigating = useSembleNavigation()?.isNavigating;
 
   // Clean URL on mount if viaCardId or ref exists
   useEffect(() => {
@@ -55,5 +59,5 @@ export default function SemblePageClient(props: Props) {
     });
   }, [isLoading, isAuthenticated, canGoBack, props.url, props.entryRef]);
 
-  return <>{props.children}</>;
+  return isNavigating ? <SembleContainerSkeleton /> : props.children;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { encodeUrlParam, getDomain } from '@/lib/utils/link';
+import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { redirect } from 'next/navigation';
 import SemblePageClient from '@/features/semble/containers/sembleContainer/SemblePageClient';
 import SembleContainer from '@/features/semble/containers/sembleContainer/SembleContainer';
@@ -28,11 +29,13 @@ export async function generateMetadata({
 
   if (!url) return {};
 
+  const { metadata } = await getUrlMetadata({ url });
   const domain = getDomain(url);
+  const title = metadata.title ? `${metadata.title} (${domain})` : domain;
 
   return {
-    title: `${domain}`,
-    description: `Semble page for ${domain}`,
+    title,
+    description: metadata.description ?? `Semble page for ${title}`,
     openGraph: {
       images: [
         {

@@ -22,6 +22,7 @@ import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
 import { LinkAvatar } from '@/components/link/MantineLink';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 interface Props {
   id: string;
@@ -52,6 +53,7 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const { settings } = useSettings();
+  const sembleNavigation = useSembleNavigation();
 
   const isInternalPage =
     isCollectionPage(props.url) || isProfilePage(props.url);
@@ -98,6 +100,14 @@ export default function UrlCard(props: Props) {
         href={href}
         className={styles.link}
         onClick={trackClick}
+        onNavigate={
+          sembleNavigation && !isInternalPage
+            ? (e) => {
+                e.preventDefault();
+                sembleNavigation.navigate(href);
+              }
+            : undefined
+        }
         aria-label={props.cardContent.title ?? props.cardContent.url}
       />
       <Stack
