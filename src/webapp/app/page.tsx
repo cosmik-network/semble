@@ -9,22 +9,16 @@ import {
   Box,
   Center,
   Group,
-  Card,
   Anchor,
   Avatar,
-  Button,
   Badge,
 } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import DarkBG from '@/assets/semble-bg-dark.webp';
 import CtaSignup from '@/assets/cta-signup.webp';
 import CtaSignupDark from '@/assets/cta-signup-dark.webp';
-import ClaudeIcon from '@/assets/icons/claude-icon.svg';
-import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
-import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import ChromeIcon from '@/assets/icons/chrome-icon.svg';
 import FirefoxIcon from '@/assets/icons/firefox-icon.svg';
-import SafariIcon from '@/assets/icons/safari-icon.svg';
 import SembleLogo from '@/assets/semble-logo-full.svg';
 import Footer from '@/components/landing/footer/Footer';
 import FAQ from '@/components/landing/faq/FAQ';
@@ -35,13 +29,12 @@ import IdentityWeb from '@/components/landing/identityWeb/IdentityWeb';
 import HeaderSearchBar from '@/components/landing/headerSearchBar/HeaderSearchBar';
 import GetExtensionMenu from '@/components/landing/getExtensionMenu/GetExtensionMenu';
 import TreeShadows from '@/components/landing/treeShadows/TreeShadows';
+import ExtendBento from '@/components/landing/extendBento/ExtendBento';
 import { Fragment, Suspense } from 'react';
 import AuthButtons from '@/components/landing/authButtons/AuthButtons';
 import { IoPlayCircle } from 'react-icons/io5';
 import { LinkButton } from '@/components/link/MantineLink';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import { IoMdCode, IoMdColorWand } from 'react-icons/io';
-import { PiPlugsConnectedFill, PiPuzzlePieceBold } from 'react-icons/pi';
 import { TbStackForward } from 'react-icons/tb';
 import { MdOutlineInstallMobile } from 'react-icons/md';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
@@ -317,245 +310,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Stack>
 
                 <Stack gap={'md'} align="center">
-                  <SimpleGrid
-                    cols={{ base: 1, xs: 2 }}
-                    spacing={{ base: 'xs' }}
-                    mt={{ base: '1rem' }}
-                    maw={900}
-                  >
-                    <Card
-                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                      radius={'lg'}
-                    >
-                      <Stack justify="space-between" h="100%">
-                        <IoMdCode
-                          size={28}
-                          color="var(--mantine-color-green-6)"
-                        />
-
-                        <Stack gap="xs">
-                          <Text fw={600} fz="lg">
-                            API
-                          </Text>
-                          <Text c="dimmed">
-                            Integrate Semble with your own workflow. Showcase
-                            your collections on your website. Build your own
-                            client or something completely new{' '}
-                          </Text>
-
-                          <Group gap={'xs'} mt="sm">
-                            <Button
-                              component="a"
-                              href="https://docs.cosmik.network/semble-api"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              rightSection={<BiRightArrowAlt size={16} />}
-                            >
-                              API docs
-                            </Button>
-                          </Group>
-                        </Stack>
-                      </Stack>
-                    </Card>
-
-                    <Card
-                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                      radius={'lg'}
-                    >
-                      <Stack justify="space-between" h="100%">
-                        <PiPlugsConnectedFill
-                          size={28}
-                          color="var(--mantine-color-green-6)"
-                        />
-
-                        <Stack gap="xs">
-                          <Text fw={600} fz="lg">
-                            Plugins
-                          </Text>
-                          <Text c="dimmed">
-                            Community-built plugins and automations — sync your
-                            links to Zotero, or use Airglow to sync your Bluesky
-                            follows and save links from posts you&apos;ve liked
-                          </Text>
-
-                          <Group gap={'xs'} mt="sm">
-                            <Button
-                              component="a"
-                              href="https://github.com/ChrisShank/zemble/releases/tag/v0.0.5"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              leftSection={
-                                <Image
-                                  src={ZoteroIcon.src}
-                                  alt=""
-                                  w={14}
-                                  h={14}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Zotero plugin
-                            </Button>
-                            <Button
-                              component="a"
-                              href="https://airglow.run/automations/all?q=semble"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              leftSection={
-                                <Image
-                                  src={AirglowIcon.src}
-                                  alt=""
-                                  w={16}
-                                  h={16}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Airglow automations
-                            </Button>
-                          </Group>
-                        </Stack>
-                      </Stack>
-                    </Card>
-
-                    <Card
-                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                      radius={'lg'}
-                    >
-                      <Stack justify="space-between" h="100%">
-                        <IoMdColorWand
-                          size={28}
-                          color="var(--mantine-color-green-6)"
-                        />
-
-                        <Stack gap="xs">
-                          <Text fw={600} fz="lg">
-                            MCP
-                          </Text>
-                          <Text c="dimmed">
-                            Connect Semble to Claude and other AI tools over
-                            MCP. Ask your library questions and act on it right
-                            in your assistant
-                          </Text>
-
-                          <Group gap={'xs'} mt="sm">
-                            <Button
-                              component="a"
-                              href="https://docs.cosmik.network/semble-mcp"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              leftSection={
-                                <Image
-                                  src={ClaudeIcon.src}
-                                  alt=""
-                                  w={16}
-                                  h={16}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Claude plugin
-                            </Button>
-                          </Group>
-                        </Stack>
-                      </Stack>
-                    </Card>
-
-                    <Card
-                      bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))"
-                      radius={'lg'}
-                    >
-                      <Stack justify="space-between" h="100%">
-                        <PiPuzzlePieceBold
-                          size={28}
-                          color="var(--mantine-color-green-6)"
-                        />
-
-                        <Stack gap="xs">
-                          <Text fw={600} fz="lg">
-                            Web extension
-                          </Text>
-
-                          <Text c="dimmed">
-                            Save from anywhere. Organize your links. Find
-                            related content. Discover new connections
-                          </Text>
-
-                          <Group gap={'xs'} mt="sm">
-                            <Button
-                              component="a"
-                              href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              leftSection={
-                                <Image
-                                  src={ChromeIcon.src}
-                                  alt=""
-                                  w={16}
-                                  h={16}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Chrome
-                            </Button>
-                            <Button
-                              component="a"
-                              href="https://addons.mozilla.org/en-US/firefox/addon/semble/"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              leftSection={
-                                <Image
-                                  src={FirefoxIcon.src}
-                                  alt=""
-                                  w={16}
-                                  h={16}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Firefox
-                            </Button>
-                            <Button
-                              size="compact-sm"
-                              radius="xl"
-                              variant="default"
-                              disabled
-                              leftSection={
-                                <Image
-                                  src={SafariIcon.src}
-                                  alt=""
-                                  w={16}
-                                  h={16}
-                                  fit="contain"
-                                />
-                              }
-                            >
-                              Safari coming soon
-                            </Button>
-                          </Group>
-                        </Stack>
-                      </Stack>
-                    </Card>
-                  </SimpleGrid>
+                  <ExtendBento />
 
                   <Text fw={500} fz="sm" c="gray" ta="center" maw={400}>
                     See what people are building in the{' '}
