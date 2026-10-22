@@ -12,6 +12,14 @@ export const createStatsRoutes = (
   productAnalyticsQueryRepository: IProductAnalyticsQueryRepository,
   onboardingStatsComposer: OnboardingStatsComposer,
 ) => {
+  // TEMPORARY: stats routes disabled while investigating DB latency.
+  // Remove this middleware to re-enable.
+  router.use((_req: Request, res: Response) => {
+    return res
+      .status(503)
+      .json({ message: 'Stats endpoints are temporarily disabled' });
+  });
+
   // All stats routes require API key authentication
   router.use(statsApiKeyMiddleware.ensureAuthenticated());
 
