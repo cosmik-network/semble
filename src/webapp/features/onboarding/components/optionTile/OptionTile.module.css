@@ -1,4 +1,7 @@
 .tile {
+  /* Card is a flex column; centre the body when a taller tile in the row
+     stretches this one */
+  justify-content: center;
   cursor: pointer;
   background-color: transparent;
   transition: background-color 150ms ease;
