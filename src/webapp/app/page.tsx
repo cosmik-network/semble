@@ -40,6 +40,7 @@ import { MdOutlineInstallMobile } from 'react-icons/md';
 import { getBlueskyProfile } from '@/features/platforms/bluesky/lib/dal';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
 import Script from 'next/script';
+import LandingVisitTracker from '@/features/landing/components/landingVisitTracker/LandingVisitTracker';
 
 // CTA artwork. Drawn as a CSS background rather than an <img> so the browser
 // skips the layer for the inactive colour scheme — a hidden <img> still fetches
@@ -115,7 +116,9 @@ export default function Page() {
       <Box pos="relative" style={{ zIndex: 1 }}>
         {/* subtle tree shadows filling the gap between hero and footer */}
         <TreeShadows />
-        <Content session={session} />
+        <LandingVisitTracker>
+          <Content session={session} />
+        </LandingVisitTracker>
       </Box>
     </Box>
   );
@@ -145,7 +148,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
   return (
     <Fragment>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
-      <Container size="xl" p="sm" my="auto">
+      <Container size="xl" p="sm" my="auto" data-analytics-section="header">
         <Group justify="space-between" wrap="nowrap" gap="sm">
           {/* md+: flex={1} makes left/right spacers equal so the search bar is
               perfectly centered (original look). Below md they shrink to their
@@ -185,7 +188,12 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
       <Center mih="100svh" pt={{ base: '2rem', xs: '5rem' }}>
         <Container size="xl" p="sm" my="auto">
           <Stack gap="5rem" align="center">
-            <Stack gap="xs" align="center" maw={700}>
+            <Stack
+              gap="xs"
+              align="center"
+              maw={700}
+              data-analytics-section="hero"
+            >
               <LinkButton
                 href={'https://atmosphereconf.org/event/OD6Gd0A'}
                 size="compact-sm"
@@ -236,7 +244,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
             </Stack>
 
             <Stack gap={'9rem'} mt={'5rem'}>
-              <Stack align="center" gap={'xs'}>
+              <Stack align="center" gap={'xs'} data-analytics-section="curate">
                 <Badge variant="default" color="tangerine">
                   Curate
                 </Badge>
@@ -260,7 +268,11 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Box>
               </Stack>
 
-              <Stack align="center" gap={'xl'}>
+              <Stack
+                align="center"
+                gap={'xl'}
+                data-analytics-section="discover"
+              >
                 <Stack align="center" gap={'xs'}>
                   <Badge variant="default" color="blue">
                     Discover
@@ -282,7 +294,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Box>
               </Stack>
 
-              <Stack align="center" gap={'xl'}>
+              <Stack align="center" gap={'xl'} data-analytics-section="extend">
                 <Stack align="center" gap={'xs'}>
                   <Badge variant="default" color="green">
                     Extend
@@ -338,7 +350,11 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Stack>
               </Stack>
 
-              <Stack align="center" gap={'xs'}>
+              <Stack
+                align="center"
+                gap={'xs'}
+                data-analytics-section="yours_to_keep"
+              >
                 <Badge variant="default" color="grape">
                   Yours to keep
                 </Badge>
@@ -364,6 +380,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
 
               <Stack
                 id="faq"
+                data-analytics-section="faq"
                 align="center"
                 gap={'xl'}
                 w="100%"
@@ -383,7 +400,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
               {/* The artwork is an absolute layer behind the copy, so the
                   section is sized by its content instead of by a fixed image
                   box — it survives the copy growing or shrinking. */}
-              <Box pos="relative" w="100%">
+              <Box pos="relative" w="100%" data-analytics-section="signup_cta">
                 {/* light mode cta bg */}
                 <Box
                   pos="absolute"
@@ -534,7 +551,11 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
                 </Stack>
               </Box>
 
-              <Stack align="center" gap={'xl'}>
+              <Stack
+                align="center"
+                gap={'xl'}
+                data-analytics-section="testimonials"
+              >
                 <Stack gap={'xl'} align="center">
                   <Stack gap={'xs'} align="center">
                     <Title order={2} ta={'center'} maw={400}>

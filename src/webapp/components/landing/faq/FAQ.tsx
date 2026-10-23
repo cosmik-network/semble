@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Accordion, Anchor, Text } from '@mantine/core';
 import { FiPlus, FiMinus } from 'react-icons/fi';
+import { trackLandingFaqOpened } from '@/features/landing/lib/analytics';
 
 const FAQS: {
   value: string;
@@ -110,7 +111,10 @@ export default function FAQ() {
     <Accordion
       multiple
       value={value}
-      onChange={setValue}
+      onChange={(next) => {
+        next.filter((v) => !value.includes(v)).forEach(trackLandingFaqOpened);
+        setValue(next);
+      }}
       variant="separated"
       chevronPosition="right"
       disableChevronRotation
