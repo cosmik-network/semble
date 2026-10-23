@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react';
+import { SubmitEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react';
 import { Box } from '@mantine/core';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -95,7 +95,7 @@ export default function LandingVisitTracker(props: { children: ReactNode }) {
     });
   };
 
-  const onSubmitCapture = (e: FormEvent) => {
+  const onSubmitCapture = (e: SubmitEvent) => {
     const form = (e.target as HTMLElement).dataset.analyticsForm;
     if (!form) return;
     trackLandingFormSubmitted(
