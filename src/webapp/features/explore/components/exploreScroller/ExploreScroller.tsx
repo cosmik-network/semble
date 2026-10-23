@@ -38,6 +38,7 @@ export default function ExploreScroller(props: Props) {
       >
         {Children.map(props.children, (child, index) => (
           <Box
+            data-analytics-position={index + 1}
             className={
               animate ? `${styles.item} ${styles.animateIn}` : styles.item
             }
