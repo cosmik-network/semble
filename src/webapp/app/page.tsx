@@ -195,7 +195,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
               data-analytics-section="hero"
             >
               <LinkButton
-                href={'https://atmosphereconf.org/event/OD6Gd0A'}
+                href={'https://www.youtube.com/watch?v=ptOMKK1lC4Q'}
                 size="compact-sm"
                 variant="default"
                 rightSection={<IoPlayCircle />}
