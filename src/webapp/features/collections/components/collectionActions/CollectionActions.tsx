@@ -10,7 +10,10 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import FollowActions from '@/features/follows/components/followActions/FollowActions';
-import { FollowSource } from '@/features/analytics/types';
+import {
+  ConnectionCreateSource,
+  FollowSource,
+} from '@/features/analytics/types';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
@@ -105,7 +108,9 @@ function AuthenticatedCollectionActions({ collection }: Props) {
       <AddConnectionModal
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
+        createSource={ConnectionCreateSource.COLLECTION_PAGE}
         sourceUrl={collectionPageUrl}
+        sourceInLibrary={isInYourLibrary}
         onCreated={() => trackCollectionAction(collection.rkey, 'connect')}
       />
 

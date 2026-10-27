@@ -26,6 +26,58 @@ export enum FollowSource {
   BLUESKY_FOLLOWS = 'bluesky_follows',
 }
 
+/** Where the new connection form was opened from */
+export enum ConnectionCreateSource {
+  CARD = 'card',
+  SEMBLE_PAGE = 'semble_page',
+  COLLECTION_PAGE = 'collection_page',
+  COMPOSER = 'composer',
+}
+
+/** How a link ended up in one end of a new connection */
+export type ConnectionLinkInputMethod =
+  // The link the form was opened for, e.g. the card the connect button is on
+  | 'fixed'
+  // Filled in by the opener: the semble page in its similar cards tab, or the
+  // article in the reader
+  | 'prefilled'
+  | 'recent_card'
+  | 'search_card'
+  | 'search_collection'
+  // Typed or pasted, then confirmed with "Add this link" or by submitting
+  | 'pasted';
+
+export interface ConnectionCreatedEventProperties {
+  create_source: ConnectionCreateSource;
+  /** The list the card was in, when created from a card's connect button */
+  card_context?: CardSaveSource;
+  connection_type: string;
+  default_connection_type: string;
+  connection_type_changed: boolean;
+  /** The two ends ended up the other way round from how the form opened */
+  swapped: boolean;
+  swap_clicks: number;
+  has_note: boolean;
+  source_input_method?: ConnectionLinkInputMethod;
+  target_input_method?: ConnectionLinkInputMethod;
+  searched_links: boolean;
+  /**
+   * Left out when the UI doesn't know: pasted links, collection search
+   * results, and the prefilled semble page link
+   */
+  source_in_library?: boolean;
+  target_in_library?: boolean;
+  page_path?: string;
+}
+
+export interface ConnectionUpdatedEventProperties {
+  connection_type: string;
+  previous_connection_type: string;
+  connection_type_changed: boolean;
+  swapped: boolean;
+  note_change: 'added' | 'edited' | 'removed' | 'unchanged';
+}
+
 export interface CardSaveAnalyticsContext {
   saveSource: CardSaveSource;
   activeFilters?: {

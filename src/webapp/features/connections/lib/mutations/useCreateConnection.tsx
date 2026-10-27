@@ -7,6 +7,9 @@ import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { tagKeys } from '@/features/tags/lib/tagKeys';
+import posthog from 'posthog-js';
+import { ConnectionCreatedEventProperties } from '@/features/analytics/types';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 export default function useCreateConnection() {
   const queryClient = useQueryClient();
@@ -17,11 +20,23 @@ export default function useCreateConnection() {
       targetUrl: string;
       connectionType?: ConnectionType;
       note?: string;
+      analytics?: ConnectionCreatedEventProperties;
     }) => {
-      return createConnection(params);
+      const { analytics: _analytics, ...request } = params;
+      return createConnection(request);
     },
 
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      // The DAL swallows its errors and resolves undefined, so only a returned
+      // id means the connection was really created
+      if (
+        data?.connectionId &&
+        variables.analytics &&
+        shouldCaptureAnalytics()
+      ) {
+        posthog.capture('connection_created', variables.analytics);
+      }
+
       // Invalidate all connection queries
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all feed queries so the new connection appears in feeds

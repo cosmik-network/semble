@@ -34,7 +34,10 @@ import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { FaSeedling } from 'react-icons/fa6';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import { CardSaveSource } from '@/features/analytics/types';
+import {
+  CardSaveSource,
+  ConnectionCreateSource,
+} from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { BsExclamation } from 'react-icons/bs';
 import AddConnectionForm from '@/features/connections/components/addConnectionDrawer/AddConnectionForm';
@@ -287,6 +290,7 @@ export default function Composer(props: Props) {
             <Suspense>
               <AddConnectionForm
                 onClose={handleClose}
+                createSource={ConnectionCreateSource.COMPOSER}
                 analyticsContext={analyticsContext}
               />
             </Suspense>

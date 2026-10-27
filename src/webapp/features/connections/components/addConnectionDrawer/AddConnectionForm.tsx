@@ -26,16 +26,42 @@ import type { ConnectionType } from '@semble/types';
 import UrlSearchInput from './UrlSearchInput';
 import SourceCardPreview from './SourceCardPreview';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
-import { CardSaveSource } from '@/features/analytics/types';
-import type { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import {
+  CardSaveSource,
+  ConnectionCreateSource,
+} from '@/features/analytics/types';
+import type {
+  CardSaveAnalyticsContext,
+  ConnectionLinkInputMethod,
+} from '@/features/analytics/types';
 import useOnboardingMilestones from '@/features/onboarding/lib/useOnboardingMilestones';
 import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import ConnectionFlow from '../connectionFlow/ConnectionFlow';
 
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** How a link got into the form, for the `connection_created` event */
+interface LinkPick {
+  method: ConnectionLinkInputMethod;
+  /** Whether the user already has it in their library, when the UI knows */
+  inLibrary?: boolean;
+}
+
 interface Props {
   onClose: () => void;
+  /** Where the form was opened from, for the `connection_created` event */
+  createSource: ConnectionCreateSource;
   /** When provided the source is fixed (connecting from a card). When omitted both URLs are searchable. */
   sourceUrl?: string;
+  /** Whether the fixed source is in the user's library, when the opener knows */
+  sourceInLibrary?: boolean;
   /** When provided the target is prefilled. */
   targetUrl?: string;
   /** Initial connection type; defaults to RELATED. */
@@ -53,6 +79,38 @@ export default function AddConnectionForm(props: Props) {
   // Track the raw input values so we can auto-confirm valid URLs on submit
   const rawSourceInput = useRef(props.sourceUrl ?? '');
   const rawTargetInput = useRef(props.targetUrl ?? '');
+
+  // Analytics only. Keyed by URL rather than by end, so a swap carries each
+  // link's pick along with it.
+  const initialLinkPicks = () => {
+    const picks = new Map<string, LinkPick>();
+    if (props.sourceUrl) {
+      picks.set(props.sourceUrl, {
+        method: 'fixed',
+        inLibrary: props.sourceInLibrary,
+      });
+    }
+    if (props.targetUrl) picks.set(props.targetUrl, { method: 'prefilled' });
+    return picks;
+  };
+  const linkPicks = useRef(initialLinkPicks());
+  const swapClicks = useRef(0);
+  const searchedLinks = useRef(false);
+
+  const handleUrlSelect =
+    (field: 'sourceUrl' | 'targetUrl') =>
+    (url: string, method?: ConnectionLinkInputMethod, inLibrary?: boolean) => {
+      if (url && method) linkPicks.current.set(url, { method, inLibrary });
+      form.setFieldValue(field, url);
+    };
+
+  const handleRawInput = (raw: typeof rawSourceInput) => (value: string) => {
+    raw.current = value;
+    // Pasting a link also runs a search; only words count as searching
+    if (value.trim() && !isValidUrl(value.trim())) {
+      searchedLinks.current = true;
+    }
+  };
 
   const typeCombobox = useCombobox({
     onDropdownClose: () => typeCombobox.resetSelectedOption(),
@@ -96,6 +154,7 @@ export default function AddConnectionForm(props: Props) {
   const MAX_NOTE_LENGTH = 500;
 
   const handleSwapUrls = () => {
+    swapClicks.current += 1;
     const currentSource = form.values.sourceUrl;
     const currentTarget = form.values.targetUrl;
     form.setFieldValue('sourceUrl', currentTarget);
@@ -109,7 +168,7 @@ export default function AddConnectionForm(props: Props) {
     if (!form.values.sourceUrl && rawSourceInput.current) {
       try {
         new URL(rawSourceInput.current);
-        form.setFieldValue('sourceUrl', rawSourceInput.current);
+        handleUrlSelect('sourceUrl')(rawSourceInput.current, 'pasted');
       } catch {
         // not a valid URL, let validation handle it
       }
@@ -117,7 +176,7 @@ export default function AddConnectionForm(props: Props) {
     if (!form.values.targetUrl && rawTargetInput.current) {
       try {
         new URL(rawTargetInput.current);
-        form.setFieldValue('targetUrl', rawTargetInput.current);
+        handleUrlSelect('targetUrl')(rawTargetInput.current, 'pasted');
       } catch {
         // not a valid URL, let validation handle it
       }
@@ -139,6 +198,10 @@ export default function AddConnectionForm(props: Props) {
       return;
     }
 
+    const defaultConnectionType = props.defaultConnectionType ?? 'RELATED';
+    const sourcePick = linkPicks.current.get(values.sourceUrl);
+    const targetPick = linkPicks.current.get(values.targetUrl);
+
     createConnection.mutate(
       {
         sourceUrl: values.sourceUrl,
@@ -147,6 +210,27 @@ export default function AddConnectionForm(props: Props) {
           ? (values.connectionType as any)
           : undefined,
         note: values.note || undefined,
+        analytics: {
+          create_source: props.createSource,
+          card_context:
+            props.createSource === ConnectionCreateSource.CARD
+              ? props.analyticsContext?.saveSource
+              : undefined,
+          connection_type: values.connectionType,
+          default_connection_type: defaultConnectionType,
+          connection_type_changed:
+            values.connectionType !== defaultConnectionType,
+          swapped: swapClicks.current % 2 === 1,
+          swap_clicks: swapClicks.current,
+          has_note: !!values.note.trim(),
+          source_input_method: sourcePick?.method,
+          target_input_method: targetPick?.method,
+          searched_links: searchedLinks.current,
+          source_in_library: sourcePick?.inLibrary,
+          target_in_library: targetPick?.inLibrary,
+          page_path:
+            props.analyticsContext?.pagePath ?? window.location.pathname,
+        },
       },
       {
         onSuccess: (data) => {
@@ -184,6 +268,9 @@ export default function AddConnectionForm(props: Props) {
         },
         onSettled: () => {
           form.reset();
+          linkPicks.current = initialLinkPicks();
+          swapClicks.current = 0;
+          searchedLinks.current = false;
         },
       },
     );
@@ -205,10 +292,8 @@ export default function AddConnectionForm(props: Props) {
         placeholder="Search or paste a link"
         value={form.values.sourceUrl}
         error={form.errors.sourceUrl}
-        onUrlSelect={(url) => form.setFieldValue('sourceUrl', url)}
-        onInputChange={(raw) => {
-          rawSourceInput.current = raw;
-        }}
+        onUrlSelect={handleUrlSelect('sourceUrl')}
+        onInputChange={handleRawInput(rawSourceInput)}
       />
       {form.errors.sourceUrl && (
         <Text size="sm" c="red" mt="xs">
@@ -227,10 +312,8 @@ export default function AddConnectionForm(props: Props) {
         placeholder="Search or paste a link"
         value={form.values.targetUrl}
         error={form.errors.targetUrl}
-        onUrlSelect={(url) => form.setFieldValue('targetUrl', url)}
-        onInputChange={(raw) => {
-          rawTargetInput.current = raw;
-        }}
+        onUrlSelect={handleUrlSelect('targetUrl')}
+        onInputChange={handleRawInput(rawTargetInput)}
       />
       {form.errors.targetUrl && (
         <Text size="sm" c="red" mt="xs">

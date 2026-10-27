@@ -11,7 +11,10 @@ import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import { track } from '@vercel/analytics';
-import { CardSaveSource } from '@/features/analytics/types';
+import {
+  CardSaveSource,
+  ConnectionCreateSource,
+} from '@/features/analytics/types';
 import { usePathname } from 'next/navigation';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
@@ -79,7 +82,9 @@ export default function SembleActions(props: Props) {
       <AddConnectionModal
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
+        createSource={ConnectionCreateSource.SEMBLE_PAGE}
         sourceUrl={props.url}
+        sourceInLibrary={isInYourLibrary}
         onCreated={() => trackSembleAction(props.url, 'connect')}
       />
 

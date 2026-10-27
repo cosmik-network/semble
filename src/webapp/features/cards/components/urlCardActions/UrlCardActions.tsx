@@ -30,7 +30,10 @@ import { useRouter } from 'next/navigation';
 import { IoMdCheckmark } from 'react-icons/io';
 import { notifications } from '@mantine/notifications';
 import { BiCopy } from 'react-icons/bi';
-import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import {
+  CardSaveAnalyticsContext,
+  ConnectionCreateSource,
+} from '@/features/analytics/types';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
 import { AiOutlineDisconnect } from 'react-icons/ai';
@@ -322,7 +325,9 @@ export default function UrlCardActions(props: Props) {
           <AddConnectionModal
             isOpen={showAddConnectionModal}
             onClose={() => setShowAddConnectionModal(false)}
+            createSource={ConnectionCreateSource.CARD}
             sourceUrl={props.cardContent.url}
+            sourceInLibrary={props.urlIsInLibrary}
             targetUrl={props.semblePageUrl}
             analyticsContext={props.analyticsContext}
             zIndex={props.modalZIndex}
