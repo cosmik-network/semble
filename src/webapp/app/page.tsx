@@ -187,7 +187,7 @@ function Content(props: { session: ReturnType<typeof verifySessionOnServer> }) {
           <Stack gap="5rem" align="center">
             <Stack gap="xs" align="center" maw={700}>
               <LinkButton
-                href={'https://atmosphereconf.org/event/OD6Gd0A'}
+                href={'https://www.youtube.com/watch?v=ptOMKK1lC4Q'}
                 size="compact-sm"
                 variant="default"
                 rightSection={<IoPlayCircle />}
