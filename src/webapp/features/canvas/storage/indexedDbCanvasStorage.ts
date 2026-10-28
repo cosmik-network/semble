@@ -9,6 +9,7 @@ import {
   type CanvasStorage,
   type OpenedCanvas,
 } from './canvasStorage';
+import { countLinks } from '../model/linkCards';
 
 export const CANVAS_DB_NAME = 'semble-canvas';
 const DB_VERSION = 1;
@@ -18,6 +19,7 @@ const THUMBNAILS = 'thumbnails';
 const LINK_INFO = 'linkInfo';
 
 const SAVE_THROTTLE_MS = 500;
+export const THUMBNAIL_IDLE_MS = 2000;
 
 const sessionKey = (id: string) => `semble:canvas-session:${id}`;
 
@@ -53,8 +55,20 @@ interface Options {
 
 export class IndexedDbCanvasStorage implements CanvasStorage {
   private db: Promise<IDBDatabase> | null = null;
+  private listeners = new Set<() => void>();
 
   constructor(private options: Options) {}
+
+  subscribe(listener: () => void) {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private changed() {
+    this.listeners.forEach((listener) => listener());
+  }
 
   private openDb() {
     this.db ??= new Promise((resolve, reject) => {
@@ -69,9 +83,8 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
           'ownerDid',
         );
         db.createObjectStore(DOCUMENTS);
-        // Unused until thumbnails and link cards land; created now to skip a
-        // version upgrade
         db.createObjectStore(THUMBNAILS);
+        // Unused until link cards land; created now to skip a version upgrade
         db.createObjectStore(LINK_INFO);
       };
       req.onsuccess = () => {
@@ -99,7 +112,90 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
     const tx = (await this.openDb()).transaction(CANVASES, 'readwrite');
     tx.objectStore(CANVASES).add(record);
     await transactionDone(tx);
+    this.changed();
     return record;
+  }
+
+  async listCanvases(ownerDid: string) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, THUMBNAILS],
+      'readonly',
+    );
+    const records = await request<CanvasRecord[]>(
+      tx.objectStore(CANVASES).index('ownerDid').getAll(ownerDid),
+    );
+    const thumbnails = await Promise.all(
+      records.map((record) =>
+        request<string | undefined>(tx.objectStore(THUMBNAILS).get(record.id)),
+      ),
+    );
+    return records
+      .map((record, i) => ({ ...record, thumbnail: thumbnails[i] ?? null }))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  async getCanvas(id: string) {
+    const tx = (await this.openDb()).transaction(CANVASES, 'readonly');
+    const record = await request<CanvasRecord | undefined>(
+      tx.objectStore(CANVASES).get(id),
+    );
+    return record ?? null;
+  }
+
+  async renameCanvas(id: string, name: string) {
+    const tx = (await this.openDb()).transaction(CANVASES, 'readwrite');
+    const canvases = tx.objectStore(CANVASES);
+    const req = canvases.get(id);
+    req.onsuccess = () => {
+      const record: CanvasRecord | undefined = req.result;
+      if (record) {
+        canvases.put({ ...record, name, updatedAt: new Date().toISOString() });
+      }
+    };
+    await transactionDone(tx);
+    this.changed();
+  }
+
+  async duplicateCanvas(id: string) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO],
+      'readwrite',
+    );
+    const [record, doc, thumbnail, linkInfo] = await Promise.all([
+      request<CanvasRecord | undefined>(tx.objectStore(CANVASES).get(id)),
+      request<CanvasDocument | undefined>(tx.objectStore(DOCUMENTS).get(id)),
+      request<string | undefined>(tx.objectStore(THUMBNAILS).get(id)),
+      request<unknown>(tx.objectStore(LINK_INFO).get(id)),
+    ]);
+    if (!record) throw new Error(`Canvas ${id} doesn't exist`);
+    const now = new Date().toISOString();
+    const copy: CanvasRecord = {
+      ...record,
+      id: crypto.randomUUID(),
+      name: `Copy of ${record.name}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    tx.objectStore(CANVASES).add(copy);
+    if (doc) tx.objectStore(DOCUMENTS).add(doc, copy.id);
+    if (thumbnail) tx.objectStore(THUMBNAILS).add(thumbnail, copy.id);
+    if (linkInfo) tx.objectStore(LINK_INFO).add(linkInfo, copy.id);
+    await transactionDone(tx);
+    this.changed();
+    return copy;
+  }
+
+  async deleteCanvas(id: string) {
+    const stores = [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO];
+    const tx = (await this.openDb()).transaction(stores, 'readwrite');
+    for (const store of stores) tx.objectStore(store).delete(id);
+    await transactionDone(tx);
+    this.changed();
+    try {
+      localStorage.removeItem(sessionKey(id));
+    } catch {
+      // A leftover session is harmless: it's keyed by an id nothing reuses
+    }
   }
 
   async openCanvas(
@@ -132,9 +228,13 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
     onError: (error: unknown) => void,
   ): CanvasSaver {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let thumbnailTimer: ReturnType<typeof setTimeout> | null = null;
     let dirty = false;
+    let thumbnailStale = false;
     let stopped = false;
     let writing = Promise.resolve();
+    let writingThumbnail = Promise.resolve();
+    let captures = 0;
 
     const write = async () => {
       try {
@@ -164,10 +264,39 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       return writing;
     };
 
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') void flush();
+    // Capturing is too slow to repeat on every save, so it waits for a pause
+    const captureThumbnail = () => {
+      if (thumbnailTimer) clearTimeout(thumbnailTimer);
+      thumbnailTimer = null;
+      if (!thumbnailStale) return writingThumbnail;
+      thumbnailStale = false;
+      // Started now, while a closing board can still draw itself
+      const captured = source.getThumbnail();
+      const capture = ++captures;
+      writingThumbnail = captured.then(
+        async (thumbnail) => {
+          // A slower, older capture mustn't overwrite a newer one
+          if (capture !== captures) return;
+          try {
+            await this.writeThumbnail(id, thumbnail);
+          } catch (error) {
+            onError(error);
+          }
+        },
+        // Keep the last thumbnail rather than report a save error
+        () => {},
+      );
+      return writingThumbnail;
     };
-    const onPageHide = () => void flush();
+
+    const leave = async () => {
+      await Promise.all([flush(), captureThumbnail()]);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') void leave();
+    };
+    const onPageHide = () => void leave();
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', onPageHide);
 
@@ -175,16 +304,38 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       documentChanged() {
         if (stopped) return;
         dirty = true;
+        thumbnailStale = true;
         timer ??= setTimeout(() => void flush(), SAVE_THROTTLE_MS);
+        if (thumbnailTimer) clearTimeout(thumbnailTimer);
+        thumbnailTimer = setTimeout(
+          () => void captureThumbnail(),
+          THUMBNAIL_IDLE_MS,
+        );
       },
       stop() {
         document.removeEventListener('visibilitychange', onVisibilityChange);
         window.removeEventListener('pagehide', onPageHide);
-        const flushed = flush();
+        const left = leave();
         stopped = true;
-        return flushed;
+        return left;
       },
     };
+  }
+
+  private async writeThumbnail(id: string, thumbnail: string | null) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, THUMBNAILS],
+      'readwrite',
+    );
+    const req = tx.objectStore(CANVASES).getKey(id);
+    req.onsuccess = () => {
+      if (req.result === undefined) return;
+      const thumbnails = tx.objectStore(THUMBNAILS);
+      if (thumbnail) thumbnails.put(thumbnail, id);
+      else thumbnails.delete(id);
+    };
+    await transactionDone(tx);
+    this.changed();
   }
 
   private async writeDocument(id: string, doc: CanvasDocument) {
@@ -200,12 +351,14 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       if (!record) return;
       canvases.put({
         ...record,
+        linkCount: countLinks(doc.store),
         tldrawVersion: this.options.tldrawVersion,
         updatedAt: new Date().toISOString(),
       });
       tx.objectStore(DOCUMENTS).put(doc, id);
     };
     await transactionDone(tx);
+    this.changed();
   }
 }
 

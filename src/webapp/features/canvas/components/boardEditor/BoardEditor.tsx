@@ -10,29 +10,21 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
 import {
   attachCanvasController,
-  TLDRAW_VERSION,
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
 import { isBoardTool } from '../../model/boardTools';
 import type { CanvasServer } from '../../server/canvasServer';
-import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
-import { IndexedDbCanvasStorage } from '../../storage/indexedDbCanvasStorage';
+import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
-
-// The header replaces the main and page menus: a board has one page
-const components: TLComponents = {
-  MenuPanel: () => <BoardHeader title={DEFAULT_CANVAS_NAME} />,
-  Toolbar: BoardToolbar,
-};
 
 // Removing tools here also removes their keyboard shortcuts
 const overrides: TLUiOverrides = {
@@ -51,7 +43,6 @@ const overrides: TLUiOverrides = {
 };
 
 const server: CanvasServer = {};
-const storage = new IndexedDbCanvasStorage({ tldrawVersion: TLDRAW_VERSION });
 
 function showSaveError(error: unknown) {
   console.warn(error);
@@ -84,6 +75,14 @@ export default function BoardEditor(props: Props) {
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  // The header replaces the main and page menus: a board has one page
+  const components = useMemo<TLComponents>(
+    () => ({
+      MenuPanel: () => <BoardHeader canvasId={props.canvasId} />,
+      Toolbar: BoardToolbar,
+    }),
+    [props.canvasId],
+  );
 
   useEffect(() => {
     if (!editor || !ownerDid) return;
@@ -91,7 +90,7 @@ export default function BoardEditor(props: Props) {
     const controller = attachCanvasController({
       editor,
       server,
-      storage,
+      storage: canvasStorage,
       canvasId: props.canvasId,
       ownerDid,
       onStorageError: showSaveError,

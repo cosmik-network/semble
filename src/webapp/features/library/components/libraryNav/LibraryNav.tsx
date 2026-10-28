@@ -4,6 +4,7 @@ import { Stack, Text } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import { useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
+import { BsEasel } from 'react-icons/bs';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import StatDrawer from '@/components/statDrawer/StatDrawer';
 import FollowingCollectionsContainer from '@/features/follows/containers/followingCollectionsContainer/FollowingCollectionsContainer';
@@ -20,10 +21,14 @@ import {
   FollowingCollectionsNavItems,
   MyCollectionsNavItems,
 } from '@/features/collections/components/collectionsNavList/CollectionNavSectionItems';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import CanvasNavItems from '@/features/canvas/components/canvasNavItems/CanvasNavItems';
+import NewCanvasNavButton from '@/features/canvas/components/newCanvasNavButton/NewCanvasNavButton';
 import LibraryNavSection from './LibraryNavSection';
 
 type ExpandedKey =
   | 'cardsNavExpanded'
+  | 'canvasesNavExpanded'
   | 'collectionsNavExpanded'
   | 'followingNavExpanded'
   | 'contributedToNavExpanded';
@@ -31,6 +36,7 @@ type ExpandedKey =
 export default function LibraryNav() {
   const { settings, updateSetting } = useSettings();
   const { data: profile } = useMyProfile();
+  const { data: featureFlags } = useFeatureFlags();
   const [followingDrawerOpen, setFollowingDrawerOpen] = useState(false);
 
   // Stored flags would mismatch the server's collapsed HTML during hydration;
@@ -70,6 +76,19 @@ export default function LibraryNav() {
         >
           <MyCollectionsNavItems />
         </LibraryNavSection>
+
+        {featureFlags?.canvas && (
+          <LibraryNavSection
+            label="Canvases"
+            icon={<BsEasel size={20} />}
+            viewAllHref="/canvas"
+            errorMessage="Could not load canvases"
+            action={<NewCanvasNavButton />}
+            {...expanded('canvasesNavExpanded')}
+          >
+            <CanvasNavItems />
+          </LibraryNavSection>
+        )}
 
         <LibraryNavSection
           label="Following"

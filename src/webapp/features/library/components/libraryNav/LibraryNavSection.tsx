@@ -1,6 +1,6 @@
 'use client';
 
-import { NavLink, Stack, Text } from '@mantine/core';
+import { Box, NavLink, Stack, Text } from '@mantine/core';
 import { ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LinkNavLink } from '@/components/link/MantineLink';
@@ -16,13 +16,15 @@ interface Props {
   viewAllHref?: string;
   onViewAll?: () => void;
   errorMessage: string;
+  /** Shown beside the chevron, e.g. a button that adds an item. */
+  action?: ReactNode;
   children: ReactNode;
 }
 
 export default function LibraryNavSection(props: Props) {
   const { toggleMobile } = useNavbarContext();
 
-  return (
+  const section = (
     <NavLink
       label={props.label}
       leftSection={props.icon}
@@ -67,5 +69,18 @@ export default function LibraryNavSection(props: Props) {
         )}
       </Stack>
     </NavLink>
+  );
+
+  if (!props.action) return section;
+
+  // A sibling rather than the rightSection: a button can't nest in the
+  // NavLink's own button
+  return (
+    <Box pos="relative">
+      {section}
+      <Box pos="absolute" top={8} right={36}>
+        {props.action}
+      </Box>
+    </Box>
   );
 }

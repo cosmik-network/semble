@@ -17,10 +17,34 @@ export interface CanvasControllerDeps {
   onStorageError(error: unknown): void;
 }
 
-// tldraw doesn't export its version; a test keeps this in step with the pin
-export const TLDRAW_VERSION = '3.15.6';
-
 export type CanvasLoadStatus = 'ready' | 'newer-version';
+
+// Logical width of the thumbnail, drawn at twice that for sharp screens
+const THUMBNAIL_WIDTH = 320;
+
+function readAsDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function captureThumbnail(editor: Editor) {
+  const bounds = editor.getCurrentPageBounds();
+  if (!bounds) return null;
+  const { blob } = await editor.toImage(
+    Array.from(editor.getCurrentPageShapeIds()),
+    {
+      format: 'jpeg',
+      quality: 0.8,
+      background: true,
+      scale: Math.min(1, THUMBNAIL_WIDTH / bounds.w),
+    },
+  );
+  return readAsDataUrl(blob);
+}
 
 export function attachCanvasController(deps: CanvasControllerDeps) {
   const { editor, storage, canvasId } = deps;
@@ -57,6 +81,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
           store: editor.store.serialize('document'),
         }),
         getSession: () => ({ editor: session.get() ?? {} }),
+        getThumbnail: () => captureThumbnail(editor),
         // Listeners hear about changes on the next frame, which never comes
         // in a hidden tab
         reportPendingChanges: () => editor.store._flushHistory(),

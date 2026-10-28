@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createShapeId } from 'tldraw';
 import type { CanvasDocument } from '@/features/canvas/storage/canvasStorage';
-import { TLDRAW_VERSION } from '@/features/canvas/controller/canvasController';
-import webappPackage from '../../../../package.json';
 import { createTestBoard, type TestBoard } from '../harness/createTestBoard';
 
 let board: TestBoard;
@@ -94,6 +92,7 @@ describe('attachCanvasController', () => {
       {
         getDocument: () => newerDocument,
         getSession: () => ({ editor: {} }),
+        getThumbnail: async () => null,
         reportPendingChanges() {},
       },
       () => {},
@@ -116,7 +115,21 @@ describe('attachCanvasController', () => {
     ).toMatchObject({ document: newerDocument });
   });
 
-  it('should record the tldraw version the webapp pins', () => {
-    expect(TLDRAW_VERSION).toBe(webappPackage.dependencies.tldraw);
+  it('should list a thumbnail of the board once it is left', async () => {
+    // Arrange
+    const first = await createTestBoard();
+    const empty = await createTestBoard({ storage: first.storage });
+    first.editor.createShape({ type: 'note' });
+
+    // Act
+    await first.dispose();
+    await empty.dispose();
+    const listed = await first.storage.listCanvases('did:plc:tester');
+
+    // Assert
+    const thumbnailOf = (id: string) =>
+      listed.find((canvas) => canvas.id === id)?.thumbnail;
+    expect(thumbnailOf(first.canvasId)).toMatch(/^data:image\/jpeg;base64,/);
+    expect(thumbnailOf(empty.canvasId)).toBeNull();
   });
 });

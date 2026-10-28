@@ -11,9 +11,9 @@ import {
 } from 'tldraw';
 import {
   attachCanvasController,
-  TLDRAW_VERSION,
   type CanvasLoadStatus,
 } from '@/features/canvas/controller/canvasController';
+import { TLDRAW_VERSION } from '@/features/canvas/storage/browserCanvasStorage';
 import { IndexedDbCanvasStorage } from '@/features/canvas/storage/indexedDbCanvasStorage';
 import { FakeServer } from './fakeServer';
 
@@ -67,6 +67,12 @@ export async function createTestBoard(
     bindingUtils,
     tools: [...defaultTools, ...defaultShapeTools],
     getContainer: () => document.body,
+  });
+  // A headless editor can't draw an export, so this stands in for one
+  editor.toImage = async () => ({
+    blob: new Blob(['board'], { type: 'image/jpeg' }),
+    width: 1,
+    height: 1,
   });
   const server = new FakeServer();
   const storage =
