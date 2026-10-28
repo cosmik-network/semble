@@ -20,6 +20,7 @@ export async function GET() {
       onboarding: true,
       recommendedCollections: false,
       bskyFollows: false,
+      canvas: false,
     });
   }
 }
