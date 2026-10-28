@@ -1,5 +1,8 @@
 import { Response } from 'express';
-import { AuthenticationError } from '../../core/AuthenticationError';
+import {
+  AuthenticationError,
+  PdsUnavailableError,
+} from '../../core/AuthenticationError';
 
 export abstract class Controller {
   protected abstract executeImpl(req: any, res: Response): Promise<any>;
@@ -72,6 +75,13 @@ export abstract class Controller {
   }
 
   protected handleError(res: Response, error: Error): Response {
+    // Must precede the AuthenticationError check (it is a subclass). A
+    // transient PDS failure: keep the user signed in and let them retry.
+    if (error instanceof PdsUnavailableError) {
+      return res
+        .status(503)
+        .json({ message: error.message, code: 'PDS_UNAVAILABLE' });
+    }
     if (error instanceof AuthenticationError) {
       // AuthenticationError originates from PDS agent authentication (the
       // server-side ATProto OAuth session), not from the app's own JWT.
