@@ -19,8 +19,7 @@ export class OAuthClientFactory {
     const enc = encodeURIComponent;
     const isTunnel = configService.isTunnelMode();
     const isLocal = configService.get().environment === 'local' && !isTunnel;
-    const isProd = configService.get().environment === 'prod';
-    const useConfidential = this.isConfidentialEnabled(isLocal, isProd);
+    const useConfidential = this.isConfidentialEnabled(isLocal);
 
     const collections = configService.getAtProtoCollections();
 
@@ -84,17 +83,14 @@ export class OAuthClientFactory {
   }
 
   /**
-   * Confidential (private_key_jwt) mode is enabled only where a signing key
-   * is configured, and never for:
-   * - local (loopback client_ids can't host a metadata/JWKS document), or
-   * - prod (deliberately still a public client; flipping prod requires the
-   *   auth_session authMethod migration and must be an explicit code change).
+   * Confidential (private_key_jwt) mode is enabled wherever a signing key is
+   * configured, except local (loopback client_ids can't host a metadata/JWKS
+   * document). When first enabling it in an environment, run
+   * `npm run oauth:strip-auth-method` right after the deploy goes live, or
+   * existing sessions pinned to authMethod "none" are deleted on next refresh.
    */
-  private static isConfidentialEnabled(
-    isLocal: boolean,
-    isProd: boolean,
-  ): boolean {
-    if (isLocal || isProd) return false;
+  private static isConfidentialEnabled(isLocal: boolean): boolean {
+    if (isLocal) return false;
     const { privateKeyPkcs8, keyId } = configService.getOAuthClientConfig();
     return Boolean(privateKeyPkcs8 && keyId);
   }

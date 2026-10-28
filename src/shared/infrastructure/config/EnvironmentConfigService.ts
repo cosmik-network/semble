@@ -292,6 +292,16 @@ export class EnvironmentConfigService {
         ) {
           throw new Error('JWT secret must be set in production environment');
         }
+        // Same as dev: prod runs as a confidential OAuth client, so a missing
+        // key must fail loudly rather than silently fall back to public.
+        if (
+          !this.config.oauthClient.privateKeyPkcs8 ||
+          !this.config.oauthClient.keyId
+        ) {
+          throw new Error(
+            'OAUTH_PRIVATE_KEY_PKCS8 and OAUTH_KEY_ID must be set in the production environment',
+          );
+        }
         break;
       case Environment.LOCAL:
       default:
