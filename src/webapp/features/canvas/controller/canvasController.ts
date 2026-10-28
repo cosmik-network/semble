@@ -2,11 +2,16 @@ import {
   createSessionStateSnapshotSignal,
   loadSnapshot,
   type Editor,
+  type TLRecord,
   type TLSessionStateSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
 import type { CanvasServer } from '../server/canvasServer';
-import type { CanvasSaver, CanvasStorage } from '../storage/canvasStorage';
+import type {
+  BoardStatus,
+  CanvasDocument,
+  CanvasStorage,
+} from '../storage/canvasStorage';
 
 export interface CanvasControllerDeps {
   editor: Editor;
@@ -15,9 +20,15 @@ export interface CanvasControllerDeps {
   canvasId: string;
   ownerDid: string;
   onStorageError(error: unknown): void;
+  // Another tab took the board over. Edits since the last save are lost.
+  onTakenOver(): void;
+  // This tab writes the board again after another had taken it over
+  onWritingAgain(): void;
+  // A newer app has saved the board since it loaded, so this tab can't write it
+  onNewerVersion(): void;
 }
 
-export type CanvasLoadStatus = 'ready' | 'newer-version';
+export type CanvasLoadStatus = BoardStatus;
 
 // Logical width of the thumbnail, drawn at twice that for sharp screens
 const THUMBNAIL_WIDTH = 320;
@@ -46,36 +57,46 @@ async function captureThumbnail(editor: Editor) {
   return readAsDataUrl(blob);
 }
 
+// Only records that differ are replaced, so the rest of the board doesn't
+// redraw and a selection or pan in progress isn't interrupted
+function applyRemoteSave(editor: Editor, document: CanvasDocument) {
+  const { store } = editor;
+  const migrated = store.schema.migrateStoreSnapshot(
+    document as unknown as TLStoreSnapshot,
+  );
+  if (migrated.type === 'error') {
+    throw new Error(`Couldn't migrate a saved canvas: ${migrated.reason}`);
+  }
+  const isDocument = (record: TLRecord) =>
+    store.scopedTypes.document.has(record.typeName);
+  const saved = Object.values(migrated.value).filter(isDocument);
+  const savedIds = new Set(saved.map((record) => record.id));
+  const removed = store
+    .allRecords()
+    .filter((record) => isDocument(record) && !savedIds.has(record.id))
+    .map((record) => record.id);
+  // put can't skip these itself: some shapes' validation returns a new object
+  // even when nothing changed. Records are plain JSON, and one that differs
+  // only in key order is merely replaced.
+  const changed = saved.filter((record) => {
+    const current = store.get(record.id);
+    return !current || JSON.stringify(current) !== JSON.stringify(record);
+  });
+  store.mergeRemoteChanges(() => {
+    store.remove(removed);
+    store.put(changed);
+  });
+}
+
 export function attachCanvasController(deps: CanvasControllerDeps) {
-  const { editor, storage, canvasId } = deps;
-  let detached = false;
-  let saver: CanvasSaver | null = null;
-  let unlisten: (() => void) | null = null;
-
-  async function load(): Promise<CanvasLoadStatus> {
-    const opened = await storage.openCanvas(
-      canvasId,
-      editor.store.schema.serialize(),
-    );
-    // Saving would overwrite what the newer app wrote
-    if (opened.status === 'newer-version') return opened.status;
-    if (detached) return 'ready';
-
-    if (opened.status === 'missing') {
-      await storage.createCanvas(deps.ownerDid, canvasId);
-      if (detached) return 'ready';
-    } else if (opened.document || opened.session) {
-      loadSnapshot(editor.store, {
-        document: (opened.document ?? undefined) as TLStoreSnapshot | undefined,
-        session: opened.session?.editor as TLSessionStateSnapshot | undefined,
-      });
-      editor.clearHistory();
-    }
-
-    const session = createSessionStateSnapshotSignal(editor.store);
-    saver = storage.startSaving(
-      canvasId,
-      {
+  const { editor } = deps;
+  const session = createSessionStateSnapshotSignal(editor.store);
+  const board = deps.storage.openBoard(
+    deps.canvasId,
+    {
+      ownerDid: deps.ownerDid,
+      runningSchema: editor.store.schema.serialize(),
+      source: {
         getDocument: () => ({
           schema: editor.store.schema.serialize(),
           store: editor.store.serialize('document'),
@@ -86,25 +107,43 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
         // in a hidden tab
         reportPendingChanges: () => editor.store._flushHistory(),
       },
-      deps.onStorageError,
-    );
-    // Remote changes are saved too, not only the user's
-    unlisten = editor.store.listen(() => saver?.documentChanged(), {
-      scope: 'document',
-      source: 'all',
-    });
-    return 'ready';
-  }
+    },
+    {
+      onLoad(document, saved) {
+        loadSnapshot(editor.store, {
+          document: (document ?? undefined) as TLStoreSnapshot | undefined,
+          session: saved?.editor as TLSessionStateSnapshot | undefined,
+        });
+        editor.clearHistory();
+      },
+      onRemoteSave: (document) => applyRemoteSave(editor, document),
+      onRoleChange(role) {
+        const wasReadonly = editor.getIsReadonly();
+        editor.updateInstanceState({ isReadonly: role !== 'writer' });
+        if (role === 'writer' && wasReadonly) deps.onWritingAgain();
+        if (role === 'newer-version') deps.onNewerVersion();
+      },
+      onTakenOver: deps.onTakenOver,
+      onSaveError: deps.onStorageError,
+    },
+  );
+  // Remote changes are saved too, not only the user's
+  const unlisten = editor.store.listen(() => board.documentChanged(), {
+    scope: 'document',
+    source: 'all',
+  });
 
   return {
-    loaded: load(),
+    loaded: board.opened,
+    takeOver: () => board.takeOver(),
     async detach() {
-      detached = true;
-      // Stop before unlistening: its flush reports pending changes through
+      // Close before unlistening: its flush reports pending changes through
       // the listener
-      const stopped = saver?.stop();
-      unlisten?.();
-      await stopped;
+      const closed = board.close();
+      unlisten();
+      await closed;
     },
   };
 }
+
+export type CanvasController = ReturnType<typeof attachCanvasController>;

@@ -12,6 +12,9 @@ export const BOARD_TOOLS = [
 
 export type BoardTool = (typeof BOARD_TOOLS)[number];
 
+// What a tab that doesn't write the board can still use
+export const READONLY_BOARD_TOOLS: readonly BoardTool[] = ['select', 'hand'];
+
 // No toolbar button, but keeps its keyboard shortcut
 const HIDDEN_TOOLS = ['zoom'];
 

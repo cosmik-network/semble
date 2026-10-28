@@ -52,9 +52,43 @@ export interface CanvasSource {
   reportPendingChanges(): void;
 }
 
-export interface CanvasSaver {
+export type BoardStatus = 'ready' | 'newer-version';
+
+// writer: this tab saves the board. reader: another tab does, and this one
+// shows its saves. newer-version: a newer app saved it, so this one can't.
+export type BoardRole = 'writer' | 'reader' | 'newer-version';
+
+export interface BoardOptions {
+  // Creates the board for this owner when it doesn't exist yet
+  ownerDid: string;
+  runningSchema: CanvasSchema;
+  // Read while this tab writes the board
+  source: CanvasSource;
+}
+
+export interface BoardEvents {
+  // The saved board, with this tab's last session, before opened resolves
+  onLoad(document: CanvasDocument | null, session: CanvasSession | null): void;
+  // Each save another tab makes while this one reads, newest last. Never
+  // called while this tab writes.
+  onRemoteSave(document: CanvasDocument): void;
+  // Called with the first role before opened resolves, then on each change
+  onRoleChange(role: BoardRole): void;
+  // Another tab took the board over. Edits since the last save are lost.
+  onTakenOver(): void;
+  onSaveError(error: unknown): void;
+}
+
+// One tab writes each board. The others read and can take over, and when the
+// writer's tab closes, one of them writes instead.
+export interface BoardSession {
+  opened: Promise<BoardStatus>;
+  // Ignored unless this tab writes
   documentChanged(): void;
-  stop(): Promise<void>;
+  // Ignored while writing; does nothing when a newer app has saved the board
+  takeOver(): Promise<void>;
+  // Saves what's pending and lets another tab write
+  close(): Promise<void>;
 }
 
 export interface CanvasStorage {
@@ -68,10 +102,11 @@ export interface CanvasStorage {
   // The copy gets the document, thumbnail and link info, not the session
   duplicateCanvas(id: string): Promise<CanvasRecord>;
   deleteCanvas(id: string): Promise<void>;
+  // The board as last saved, without opening it
   openCanvas(id: string, runningSchema: CanvasSchema): Promise<OpenedCanvas>;
-  startSaving(
+  openBoard(
     id: string,
-    source: CanvasSource,
-    onError: (error: unknown) => void,
-  ): CanvasSaver;
+    options: BoardOptions,
+    events: BoardEvents,
+  ): BoardSession;
 }

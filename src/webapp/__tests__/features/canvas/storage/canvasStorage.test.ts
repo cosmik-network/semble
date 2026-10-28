@@ -2,15 +2,18 @@ import { IDBFactory } from 'fake-indexeddb';
 import webappPackage from '../../../../package.json';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
+  BoardEvents,
   CanvasDocument,
   CanvasSchema,
   CanvasSession,
+  CanvasSource,
 } from '@/features/canvas/storage/canvasStorage';
 import { TLDRAW_VERSION } from '@/features/canvas/storage/browserCanvasStorage';
 import {
   CANVAS_DB_NAME,
   IndexedDbCanvasStorage,
 } from '@/features/canvas/storage/indexedDbCanvasStorage';
+import { FakeLocks } from '../harness/fakeLocks';
 
 const OWNER = 'did:plc:owner';
 
@@ -31,12 +34,48 @@ const SESSION: CanvasSession = {
 };
 
 let factory: IDBFactory;
+let locks: FakeLocks;
 
+// Each call stands in for another tab: they share the database and the locks
 function openStorage() {
   return new IndexedDbCanvasStorage({
     indexedDB: factory,
+    locks,
     tldrawVersion: '3.15.6',
   });
+}
+
+// A board opened as the canvas page opens it, with every event recorded
+function openBoard(
+  storage: IndexedDbCanvasStorage,
+  id: string,
+  source: CanvasSource = sourceOf(() => documentWith('unsaved')),
+  runningSchema = RUNNING_SCHEMA,
+) {
+  const events = {
+    onLoad: vi.fn<BoardEvents['onLoad']>(),
+    onRemoteSave: vi.fn<BoardEvents['onRemoteSave']>(),
+    onRoleChange: vi.fn<BoardEvents['onRoleChange']>(),
+    onTakenOver: vi.fn<BoardEvents['onTakenOver']>(),
+    onSaveError: vi.fn<BoardEvents['onSaveError']>(),
+  };
+  const board = storage.openBoard(
+    id,
+    { ownerDid: OWNER, runningSchema, source },
+    events,
+  );
+  return Object.assign(board, { events });
+}
+
+async function openWriter(
+  storage: IndexedDbCanvasStorage,
+  id: string,
+  source: CanvasSource,
+) {
+  const board = openBoard(storage, id, source);
+  await board.opened;
+  expect(board.events.onRoleChange).toHaveBeenLastCalledWith('writer');
+  return board;
 }
 
 const THUMBNAIL = 'data:image/png;base64,AAAA';
@@ -59,13 +98,13 @@ async function saveNow(
   id: string,
   doc: CanvasDocument,
 ) {
-  const saver = storage.startSaving(
+  const board = await openWriter(
+    storage,
     id,
     sourceOf(() => doc),
-    vi.fn(),
   );
-  saver.documentChanged();
-  await saver.stop();
+  board.documentChanged();
+  await board.close();
 }
 
 function hideTab() {
@@ -78,6 +117,7 @@ function hideTab() {
 
 beforeEach(() => {
   factory = new IDBFactory();
+  locks = new FakeLocks();
 });
 
 afterEach(() => {
@@ -225,23 +265,22 @@ describe('IndexedDbCanvasStorage', () => {
     const { id } = await storage.createCanvas(OWNER);
     let image = 'data:image/png;base64,FIRST';
     const getThumbnail = vi.fn(async () => image);
-    const saver = storage.startSaving(
-      id,
-      { ...sourceOf(() => documentWith('drawn')), getThumbnail },
-      vi.fn(),
-    );
+    const board = await openWriter(storage, id, {
+      ...sourceOf(() => documentWith('drawn')),
+      getThumbnail,
+    });
 
     // Act
-    saver.documentChanged();
+    board.documentChanged();
     await vi.advanceTimersByTimeAsync(1500);
-    saver.documentChanged();
+    board.documentChanged();
     await vi.advanceTimersByTimeAsync(1999);
     const [whileEditing] = await openStorage().listCanvases(OWNER);
     await vi.advanceTimersByTimeAsync(1);
     const [afterPause] = await openStorage().listCanvases(OWNER);
     image = 'data:image/png;base64,SECOND';
-    saver.documentChanged();
-    await saver.stop();
+    board.documentChanged();
+    await board.close();
     const [afterLeaving] = await openStorage().listCanvases(OWNER);
 
     // Assert
@@ -256,24 +295,19 @@ describe('IndexedDbCanvasStorage', () => {
     const storage = openStorage();
     const { id } = await storage.createCanvas(OWNER);
     await saveNow(storage, id, documentWith('drawn'));
-    const onError = vi.fn();
-    const saver = storage.startSaving(
-      id,
-      {
-        ...sourceOf(() => documentWith('drawn again')),
-        getThumbnail: () => Promise.reject(new Error('editor disposed')),
-      },
-      onError,
-    );
+    const board = await openWriter(storage, id, {
+      ...sourceOf(() => documentWith('drawn again')),
+      getThumbnail: () => Promise.reject(new Error('editor disposed')),
+    });
 
     // Act
-    saver.documentChanged();
-    await saver.stop();
+    board.documentChanged();
+    await board.close();
     const [listed] = await openStorage().listCanvases(OWNER);
 
     // Assert
     expect(listed.thumbnail).toBe(THUMBNAIL);
-    expect(onError).not.toHaveBeenCalled();
+    expect(board.events.onSaveError).not.toHaveBeenCalled();
   });
 
   it('should count the distinct links in the last saved document', async () => {
@@ -318,13 +352,11 @@ describe('IndexedDbCanvasStorage', () => {
       rename: await heard(() => storage.renameCanvas(id, 'Renamed')),
       save: await heard(() => saveNow(storage, id, documentWith('saved'))),
       sessionOnlySave: await heard(() =>
-        storage
-          .startSaving(
-            id,
-            sourceOf(() => documentWith('saved')),
-            vi.fn(),
-          )
-          .stop(),
+        openWriter(
+          storage,
+          id,
+          sourceOf(() => documentWith('saved')),
+        ).then((board) => board.close()),
       ),
       duplicate: await heard(() => storage.duplicateCanvas(id)),
       delete: await heard(() => storage.deleteCanvas(id)),
@@ -378,16 +410,16 @@ describe('IndexedDbCanvasStorage', () => {
     const storage = openStorage();
     const { id } = await storage.createCanvas(OWNER);
     let text = 'first';
-    const saver = storage.startSaving(
+    const board = await openWriter(
+      storage,
       id,
       sourceOf(() => documentWith(text)),
-      vi.fn(),
     );
 
     // Act
-    saver.documentChanged();
+    board.documentChanged();
     text = 'second';
-    saver.documentChanged();
+    board.documentChanged();
     await vi.advanceTimersByTimeAsync(499);
     const beforeThrottle = await openStorage().openCanvas(id, RUNNING_SCHEMA);
     await vi.advanceTimersByTimeAsync(1);
@@ -403,14 +435,14 @@ describe('IndexedDbCanvasStorage', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     const storage = openStorage();
     const { id } = await storage.createCanvas(OWNER);
-    const saver = storage.startSaving(
+    const board = await openWriter(
+      storage,
       id,
       sourceOf(() => documentWith('hidden')),
-      vi.fn(),
     );
 
     // Act
-    saver.documentChanged();
+    board.documentChanged();
     hideTab();
     await vi.advanceTimersByTimeAsync(0);
     const opened = await openStorage().openCanvas(id, RUNNING_SCHEMA);
@@ -428,17 +460,13 @@ describe('IndexedDbCanvasStorage', () => {
     const storage = openStorage();
     const { id } = await storage.createCanvas(OWNER);
     let unreported = true;
-    const saver = storage.startSaving(
-      id,
-      {
-        ...sourceOf(() => documentWith('late')),
-        reportPendingChanges() {
-          if (unreported) saver.documentChanged();
-          unreported = false;
-        },
+    const board = await openWriter(storage, id, {
+      ...sourceOf(() => documentWith('late')),
+      reportPendingChanges() {
+        if (unreported) board.documentChanged();
+        unreported = false;
       },
-      vi.fn(),
-    );
+    });
 
     // Act
     hideTab();
@@ -496,11 +524,10 @@ describe('IndexedDbCanvasStorage', () => {
     // Arrange
     const storage = openStorage();
     const { id } = await storage.createCanvas(OWNER);
-    const onError = vi.fn();
-    const saver = storage.startSaving(
+    const board = await openWriter(
+      storage,
       id,
       sourceOf(() => documentWith('lost')),
-      onError,
     );
     await new Promise<void>((resolve) => {
       const request = factory.deleteDatabase(CANVAS_DB_NAME);
@@ -508,14 +535,336 @@ describe('IndexedDbCanvasStorage', () => {
     });
 
     // Act
-    saver.documentChanged();
-    await saver.stop();
+    board.documentChanged();
+    await board.close();
 
     // Assert
-    expect(onError).toHaveBeenCalled();
+    expect(board.events.onSaveError).toHaveBeenCalled();
   });
 
   it('should record the tldraw version the webapp pins', () => {
     expect(TLDRAW_VERSION).toBe(webappPackage.dependencies.tldraw);
+  });
+});
+
+const NEWER_SCHEMA: CanvasSchema = {
+  schemaVersion: 2,
+  sequences: { ...RUNNING_SCHEMA.sequences, 'semble.shape.link-card': 1 },
+};
+
+// ─────────────────────────────────────────────
+// openBoard
+// ─────────────────────────────────────────────
+describe('openBoard', () => {
+  it('should let one tab write a board while the others read it', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const first = openBoard(openStorage(), id);
+    await first.opened;
+
+    // Act
+    const second = openBoard(openStorage(), id);
+    const otherBoard = openBoard(openStorage(), crypto.randomUUID());
+    await Promise.all([second.opened, otherBoard.opened]);
+
+    // Assert
+    expect(first.events.onRoleChange.mock.calls).toEqual([['writer']]);
+    expect(second.events.onRoleChange.mock.calls).toEqual([['reader']]);
+    expect(otherBoard.events.onRoleChange.mock.calls).toEqual([['writer']]);
+  });
+
+  it('should hand writing to a tab that takes over, and tell the former writer', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const first = openBoard(openStorage(), id);
+    await first.opened;
+    const second = openBoard(openStorage(), id);
+    await second.opened;
+
+    // Act
+    await second.takeOver();
+    await vi.waitFor(() =>
+      expect(first.events.onRoleChange).toHaveBeenLastCalledWith('reader'),
+    );
+
+    // Assert
+    expect(second.events.onRoleChange).toHaveBeenLastCalledWith('writer');
+    expect(first.events.onTakenOver).toHaveBeenCalledTimes(1);
+  });
+
+  it('should save nothing more from a tab once another takes the board over', async () => {
+    // Arrange
+    const firstTab = openStorage();
+    const { id } = await firstTab.createCanvas(OWNER);
+    await saveNow(firstTab, id, documentWith('before take-over'));
+    const first = await openWriter(
+      firstTab,
+      id,
+      sourceOf(() => documentWith('after take-over')),
+    );
+    const second = openBoard(openStorage(), id);
+    await second.opened;
+    await second.takeOver();
+    await vi.waitFor(() => expect(first.events.onTakenOver).toHaveBeenCalled());
+
+    // Act
+    first.documentChanged();
+    await first.close();
+    await second.close();
+    const opened = await openStorage().openCanvas(id, RUNNING_SCHEMA);
+
+    // Assert
+    expect(opened).toMatchObject({
+      document: documentWith('before take-over'),
+    });
+  });
+
+  it('should let a board reopened in the same tab write once the last one closes', async () => {
+    // Arrange
+    const sameTab = openStorage();
+    const { id } = await sameTab.createCanvas(OWNER);
+    const first = openBoard(sameTab, id);
+    await first.opened;
+
+    // Act
+    const closing = first.close();
+    const reopened = openBoard(sameTab, id);
+    await Promise.all([closing, reopened.opened]);
+
+    // Assert
+    expect(reopened.events.onRoleChange.mock.calls).toEqual([['writer']]);
+    expect(first.events.onTakenOver).not.toHaveBeenCalled();
+  });
+
+  it('should hand writing to a reading tab once the writer closes', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const writer = openBoard(openStorage(), id);
+    await writer.opened;
+    const reader = openBoard(
+      openStorage(),
+      id,
+      sourceOf(() => documentWith('saved by the next writer')),
+    );
+    await reader.opened;
+
+    // Act
+    await writer.close();
+    await vi.waitFor(() =>
+      expect(reader.events.onRoleChange).toHaveBeenLastCalledWith('writer'),
+    );
+    reader.documentChanged();
+    await reader.close();
+    const opened = await openStorage().openCanvas(id, RUNNING_SCHEMA);
+
+    // Assert
+    expect(opened).toMatchObject({
+      document: documentWith('saved by the next writer'),
+    });
+  });
+
+  it("should show a reading tab each of the writer's saves", async () => {
+    // Arrange
+    const writerTab = openStorage();
+    const { id } = await writerTab.createCanvas(OWNER);
+    let text = 'first save';
+    const writer = await openWriter(
+      writerTab,
+      id,
+      sourceOf(() => documentWith(text)),
+    );
+    const reader = openBoard(openStorage(), id);
+    await reader.opened;
+
+    // Act
+    writer.documentChanged();
+    await vi.waitFor(() =>
+      expect(reader.events.onRemoteSave).toHaveBeenLastCalledWith(
+        documentWith('first save'),
+      ),
+    );
+    text = 'second save';
+    writer.documentChanged();
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(reader.events.onRemoteSave).toHaveBeenLastCalledWith(
+        documentWith('second save'),
+      ),
+    );
+    await writer.close();
+    await reader.close();
+  });
+
+  it('should take over with the lock a waiting tab was just given', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const writer = openBoard(openStorage(), id);
+    await writer.opened;
+    const reader = openBoard(openStorage(), id);
+    await reader.opened;
+    const thirdTab = openBoard(openStorage(), id);
+    await thirdTab.opened;
+
+    // Act
+    const closing = writer.close();
+    await reader.takeOver();
+    await closing;
+    await thirdTab.close();
+
+    // Assert
+    expect(reader.events.onRoleChange).toHaveBeenLastCalledWith('writer');
+    expect(reader.events.onTakenOver).not.toHaveBeenCalled();
+  });
+
+  it('should not take over a board a newer app has saved since', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const newerApp = await openWriter(
+      openStorage(),
+      id,
+      sourceOf(() => documentWith('from a newer app', NEWER_SCHEMA)),
+    );
+    const reader = openBoard(openStorage(), id);
+    await reader.opened;
+    newerApp.documentChanged();
+    // Whether or not the reading tab has heard yet, it mustn't take over
+    await vi.waitFor(async () =>
+      expect(await openStorage().openCanvas(id, RUNNING_SCHEMA)).toEqual({
+        status: 'newer-version',
+      }),
+    );
+
+    // Act
+    await reader.takeOver();
+    newerApp.documentChanged();
+    await newerApp.close();
+    await reader.close();
+
+    // Assert
+    expect(reader.events.onRoleChange).toHaveBeenLastCalledWith(
+      'newer-version',
+    );
+    expect(newerApp.events.onTakenOver).not.toHaveBeenCalled();
+    expect(await openStorage().openCanvas(id, NEWER_SCHEMA)).toMatchObject({
+      document: documentWith('from a newer app', NEWER_SCHEMA),
+    });
+  });
+
+  it('should hand a newer save to no tab that runs older code', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const olderWriter = openBoard(openStorage(), id);
+    await olderWriter.opened;
+    const newerApp = openBoard(
+      openStorage(),
+      id,
+      sourceOf(() => documentWith('from a newer app', NEWER_SCHEMA)),
+      NEWER_SCHEMA,
+    );
+    await newerApp.opened;
+    await newerApp.takeOver();
+    newerApp.documentChanged();
+
+    // Act
+    await newerApp.close();
+    await vi.waitFor(() =>
+      expect(olderWriter.events.onRoleChange).toHaveBeenLastCalledWith(
+        'newer-version',
+      ),
+    );
+    olderWriter.documentChanged();
+    await olderWriter.close();
+
+    // Assert
+    expect(await openStorage().openCanvas(id, NEWER_SCHEMA)).toMatchObject({
+      document: documentWith('from a newer app', NEWER_SCHEMA),
+    });
+  });
+});
+
+// ─────────────────────────────────────────────
+// Write lock: races openBoard can't set up
+// ─────────────────────────────────────────────
+describe('IndexedDbCanvasStorage write lock', () => {
+  it('should refuse a save already under way when another tab takes over', async () => {
+    // Arrange
+    locks.holdBackAborts = true;
+    const firstTab = openStorage();
+    const { id } = await firstTab.createCanvas(OWNER);
+    await saveNow(firstTab, id, documentWith('before take-over'));
+    const first = await firstTab.claimCanvas(id, vi.fn());
+    const onSaveError = vi.fn();
+    const saver = firstTab.startSaving(
+      first!,
+      sourceOf(() => documentWith('after take-over')),
+      onSaveError,
+    );
+    await openStorage().claimCanvas(id, vi.fn(), { mode: 'take-over' });
+
+    // Act
+    saver.documentChanged();
+    await saver.stop();
+    const heldWhileSaving = first!.isHeld();
+    locks.deliverAborts();
+    const opened = await openStorage().openCanvas(id, RUNNING_SCHEMA);
+
+    // Assert
+    expect(heldWhileSaving).toBe(true);
+    expect(opened).toMatchObject({
+      document: documentWith('before take-over'),
+    });
+    // The edits are lost, and nothing else tells this tab yet
+    expect(onSaveError).toHaveBeenCalled();
+  });
+
+  it('should keep saving for a tab that took over while the former writer was still being granted', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const firstTab = openStorage();
+    const secondTab = openStorage();
+    // Its database is already open, so its writer is recorded first
+    await secondTab.getCanvas(id);
+
+    // Act
+    const first = firstTab.claimCanvas(id, vi.fn());
+    const second = await secondTab.claimCanvas(id, vi.fn(), {
+      mode: 'take-over',
+    });
+    await first.catch(() => null);
+    const saver = secondTab.startSaving(
+      second!,
+      sourceOf(() => documentWith('saved by the new writer')),
+      vi.fn(),
+    );
+    saver.documentChanged();
+    await saver.stop();
+    const opened = await openStorage().openCanvas(id, RUNNING_SCHEMA);
+
+    // Assert
+    expect(opened).toMatchObject({
+      document: documentWith('saved by the new writer'),
+    });
+  });
+
+  it('should let go of a board granted just as the wait for it was cancelled', async () => {
+    // Arrange
+    const { id } = await openStorage().createCanvas(OWNER);
+    const writer = await openStorage().claimCanvas(id, vi.fn());
+    const wait = new AbortController();
+    const waiting = openStorage().claimCanvas(id, vi.fn(), {
+      mode: 'when-free',
+      signal: wait.signal,
+    });
+
+    // Act
+    await writer!.release();
+    wait.abort();
+    const outcome = await waiting.catch((error) => error);
+    const next = await openStorage().claimCanvas(id, vi.fn());
+
+    // Assert
+    expect(outcome).toMatchObject({ name: 'AbortError' });
+    expect(next?.isHeld()).toBe(true);
   });
 });

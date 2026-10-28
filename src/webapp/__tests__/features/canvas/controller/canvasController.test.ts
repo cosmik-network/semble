@@ -1,12 +1,53 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createShapeId } from 'tldraw';
-import type { CanvasDocument } from '@/features/canvas/storage/canvasStorage';
+import type {
+  CanvasDocument,
+  CanvasStorage,
+} from '@/features/canvas/storage/canvasStorage';
 import { createTestBoard, type TestBoard } from '../harness/createTestBoard';
 
+const NEWER_DOCUMENT: CanvasDocument = {
+  schema: { schemaVersion: 2, sequences: { 'semble.shape.link-card': 1 } },
+  store: {},
+};
+
+// Opens the board in a newer app's tab, takes it over and saves; the caller
+// closes it
+async function saveFromNewerApp(storage: CanvasStorage, canvasId: string) {
+  const newerApp = storage.openBoard(
+    canvasId,
+    {
+      ownerDid: 'did:plc:tester',
+      runningSchema: NEWER_DOCUMENT.schema,
+      source: {
+        getDocument: () => NEWER_DOCUMENT,
+        getSession: () => ({ editor: {} }),
+        getThumbnail: async () => null,
+        reportPendingChanges() {},
+      },
+    },
+    {
+      onLoad() {},
+      onRemoteSave() {},
+      onRoleChange() {},
+      onTakenOver() {},
+      onSaveError() {},
+    },
+  );
+  await newerApp.opened;
+  await newerApp.takeOver();
+  newerApp.documentChanged();
+  return newerApp;
+}
+
 let board: TestBoard;
+// A second tab on the same board, when a test opens one
+let otherTab: TestBoard | undefined;
 
 afterEach(async () => {
   await board?.dispose();
+  await otherTab?.dispose();
+  otherTab = undefined;
 });
 
 // ─────────────────────────────────────────────
@@ -76,29 +117,31 @@ describe('attachCanvasController', () => {
     expect(board.editor.getShape(noteId)).toBeDefined();
   });
 
+  it('should not save a board that was only opened', async () => {
+    // Arrange
+    const first = await createTestBoard();
+    first.editor.createShape({ type: 'note' });
+    await first.dispose();
+    const [saved] = await first.storage.listCanvases('did:plc:tester');
+
+    // Act
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+    });
+    await board.dispose();
+    const [reopened] = await first.storage.listCanvases('did:plc:tester');
+
+    // Assert
+    expect(reopened.updatedAt).toBe(saved.updatedAt);
+  });
+
   it('should leave a board saved by a newer app untouched', async () => {
     // Arrange
     const first = await createTestBoard();
     await first.dispose();
-    const newerDocument: CanvasDocument = {
-      schema: {
-        schemaVersion: 2,
-        sequences: { 'semble.shape.link-card': 1 },
-      },
-      store: {},
-    };
-    const saver = first.storage.startSaving(
-      first.canvasId,
-      {
-        getDocument: () => newerDocument,
-        getSession: () => ({ editor: {} }),
-        getThumbnail: async () => null,
-        reportPendingChanges() {},
-      },
-      () => {},
-    );
-    saver.documentChanged();
-    await saver.stop();
+    const newerApp = await saveFromNewerApp(first.storage, first.canvasId);
+    await newerApp.close();
 
     // Act
     board = await createTestBoard({
@@ -111,10 +154,9 @@ describe('attachCanvasController', () => {
     // Assert
     expect(board.status).toBe('newer-version');
     expect(
-      await first.storage.openCanvas(first.canvasId, newerDocument.schema),
-    ).toMatchObject({ document: newerDocument });
+      await first.storage.openCanvas(first.canvasId, NEWER_DOCUMENT.schema),
+    ).toMatchObject({ document: NEWER_DOCUMENT });
   });
-
   it('should list a thumbnail of the board once it is left', async () => {
     // Arrange
     const first = await createTestBoard();
@@ -131,5 +173,105 @@ describe('attachCanvasController', () => {
       listed.find((canvas) => canvas.id === id)?.thumbnail;
     expect(thumbnailOf(first.canvasId)).toMatch(/^data:image\/jpeg;base64,/);
     expect(thumbnailOf(empty.canvasId)).toBeNull();
+  });
+
+  it('should open a board already open in another tab as read-only', async () => {
+    // Arrange
+    board = await createTestBoard();
+
+    // Act
+    otherTab = await board.openInAnotherTab();
+
+    // Assert
+    expect(board.editor.getIsReadonly()).toBe(false);
+    expect(otherTab.editor.getIsReadonly()).toBe(true);
+  });
+
+  it("should show the writer's saves in a read-only tab", async () => {
+    // Arrange
+    board = await createTestBoard();
+    otherTab = await board.openInAnotherTab();
+    const noteId = createShapeId();
+
+    // Act
+    board.editor.createShape({ id: noteId, type: 'note', x: 40, y: 80 });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(otherTab!.editor.getShape(noteId)).toMatchObject({ x: 40, y: 80 }),
+    );
+  });
+
+  it("should apply only what changed in the writer's saves to a read-only tab", async () => {
+    // Arrange
+    board = await createTestBoard();
+    const keptId = createShapeId();
+    const deletedId = createShapeId();
+    board.editor.createShapes([
+      { id: keptId, type: 'note', x: 0, y: 0 },
+      { id: deletedId, type: 'note', x: 300, y: 0 },
+    ]);
+    otherTab = await board.openInAnotherTab();
+    await vi.waitFor(() =>
+      expect(otherTab!.editor.getShape(deletedId)).toBeDefined(),
+    );
+    const keptBefore = otherTab.editor.getShape(keptId);
+
+    // Act
+    board.editor.deleteShape(deletedId);
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(otherTab!.editor.getShape(deletedId)).toBeUndefined(),
+    );
+    expect(otherTab.editor.getShape(keptId)).toBe(keptBefore);
+  });
+
+  it('should hand writing to a tab that takes over, leaving the former writer read-only', async () => {
+    // Arrange
+    board = await createTestBoard();
+    otherTab = await board.openInAnotherTab();
+    const keptId = createShapeId();
+    const refusedId = createShapeId();
+
+    // Act
+    await otherTab.takeOver();
+    await vi.waitFor(() => expect(board.editor.getIsReadonly()).toBe(true));
+    otherTab.editor.createShape({ id: keptId, type: 'note' });
+    board.editor.store.mergeRemoteChanges(() => {
+      board.editor.createShape({ id: refusedId, type: 'note' });
+    });
+    const takenOver = otherTab;
+    const formerWriter = board;
+    await takenOver.dispose();
+    await board.dispose();
+    board = await createTestBoard({
+      storage: board.storage,
+      canvasId: board.canvasId,
+    });
+
+    // Assert
+    expect(takenOver.editor.getIsReadonly()).toBe(false);
+    expect(formerWriter.timesTakenOver).toBe(1);
+    expect(board.editor.getShape(keptId)).toBeDefined();
+    expect(board.editor.getShape(refusedId)).toBeUndefined();
+  });
+
+  it('should stop showing a board a newer app has saved since', async () => {
+    // Arrange
+    board = await createTestBoard();
+    otherTab = await board.openInAnotherTab();
+
+    // Act
+    const newerApp = await saveFromNewerApp(
+      board.storageInAnotherTab(),
+      board.canvasId,
+    );
+
+    // Assert
+    await vi.waitFor(() => expect(otherTab!.status).toBe('newer-version'));
+    await vi.waitFor(() => expect(board.status).toBe('newer-version'));
+    expect(board.editor.getIsReadonly()).toBe(true);
+    await newerApp.close();
   });
 });

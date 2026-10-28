@@ -1,8 +1,16 @@
 import {
+  openBoardSession,
+  type BoardStorage,
+  type CanvasClaim,
+  type CanvasSaver,
+  type ClaimOptions,
+} from './boardSession';
+import {
   DEFAULT_CANVAS_NAME,
+  type BoardEvents,
+  type BoardOptions,
   type CanvasDocument,
   type CanvasRecord,
-  type CanvasSaver,
   type CanvasSchema,
   type CanvasSession,
   type CanvasSource,
@@ -12,16 +20,20 @@ import {
 import { countLinks } from '../model/linkCards';
 
 export const CANVAS_DB_NAME = 'semble-canvas';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const CANVASES = 'canvases';
 const DOCUMENTS = 'documents';
 const THUMBNAILS = 'thumbnails';
 const LINK_INFO = 'linkInfo';
+// Each board's current writer, which every save checks it still is
+const WRITERS = 'writers';
 
 const SAVE_THROTTLE_MS = 500;
 export const THUMBNAIL_IDLE_MS = 2000;
 
 const sessionKey = (id: string) => `semble:canvas-session:${id}`;
+// Names both the board's lock and the channel its saves are announced on
+const boardKey = (id: string) => `canvas:${id}`;
 
 function request<T>(req: IDBRequest<T>) {
   return new Promise<T>((resolve, reject) => {
@@ -48,14 +60,60 @@ function isNewerSchema(saved: CanvasSchema, running: CanvasSchema) {
   );
 }
 
+function lockOptions(options: ClaimOptions): LockOptions {
+  switch (options.mode ?? 'if-free') {
+    case 'if-free':
+      return { ifAvailable: true };
+    case 'take-over':
+      return { steal: true };
+    case 'when-free':
+      return { signal: options.signal };
+  }
+}
+
+type WriteOutcome = 'written' | 'deleted' | 'not-writer';
+
+interface Writer {
+  token: string;
+  grantedAt: number;
+  tookOver: boolean;
+}
+
+// Whether a writer granted the lock comes after the one recorded. Grants in
+// the same millisecond are ordered by kind: a take-over always follows the
+// grant it took from, while plain grants follow one another.
+function isLaterWriter(writer: Writer, current: Writer) {
+  if (writer.grantedAt !== current.grantedAt) {
+    return writer.grantedAt > current.grantedAt;
+  }
+  return writer.tookOver || !current.tookOver;
+}
+
+// The one form of Web Locks' request the storage uses
+interface Locks {
+  request<T>(
+    name: string,
+    options: LockOptions,
+    callback: (lock: Lock | null) => Promise<T>,
+  ): Promise<T>;
+}
+
 interface Options {
   tldrawVersion: string;
   indexedDB?: IDBFactory;
+  locks?: Locks;
 }
 
-export class IndexedDbCanvasStorage implements CanvasStorage {
+// The lock and save primitives are public for the board session and for
+// tests of races it can't set up; other callers open a board instead
+export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
   private db: Promise<IDBDatabase> | null = null;
   private listeners = new Set<() => void>();
+  // This tab's latest claim on each board, settled once refused or released
+  private claims = new Map<string, Promise<void>>();
+  // Written to WRITERS when a claim is granted, so a tab that lost the board
+  // can't save even before it hears it lost the lock
+  private writerTokens = new WeakMap<CanvasClaim, string>();
 
   constructor(private options: Options) {}
 
@@ -78,19 +136,28 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       );
       req.onupgradeneeded = () => {
         const db = req.result;
-        db.createObjectStore(CANVASES, { keyPath: 'id' }).createIndex(
-          'ownerDid',
-          'ownerDid',
-        );
-        db.createObjectStore(DOCUMENTS);
-        db.createObjectStore(THUMBNAILS);
+        const missing = (store: string) => !db.objectStoreNames.contains(store);
+        if (missing(CANVASES)) {
+          db.createObjectStore(CANVASES, { keyPath: 'id' }).createIndex(
+            'ownerDid',
+            'ownerDid',
+          );
+        }
+        if (missing(DOCUMENTS)) db.createObjectStore(DOCUMENTS);
+        if (missing(THUMBNAILS)) db.createObjectStore(THUMBNAILS);
         // Unused until link cards land; created now to skip a version upgrade
-        db.createObjectStore(LINK_INFO);
+        if (missing(LINK_INFO)) db.createObjectStore(LINK_INFO);
+        if (missing(WRITERS)) db.createObjectStore(WRITERS);
       };
       req.onsuccess = () => {
         const db = req.result;
-        // Don't block site-data clearing; later writes fail and get reported
-        db.onversionchange = () => db.close();
+        db.onversionchange = (event) => {
+          db.close();
+          // A newer schema: the next call opens it. Site data cleared: don't
+          // block it, and let later writes fail and get reported rather than
+          // land in a new, empty database.
+          if (event.newVersion !== null) this.db = null;
+        };
         resolve(db);
       };
       req.onerror = () => reject(req.error);
@@ -186,7 +253,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
   }
 
   async deleteCanvas(id: string) {
-    const stores = [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO];
+    const stores = [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO, WRITERS];
     const tx = (await this.openDb()).transaction(stores, 'readwrite');
     for (const store of stores) tx.objectStore(store).delete(id);
     await transactionDone(tx);
@@ -222,11 +289,112 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
     };
   }
 
-  startSaving(
+  openBoard(id: string, options: BoardOptions, events: BoardEvents) {
+    return openBoardSession(this, id, options, events);
+  }
+
+  async claimCanvas(
     id: string,
+    onLost: () => void,
+    options: ClaimOptions = {},
+  ): Promise<CanvasClaim | null> {
+    // A board reopened in this tab waits for its previous claim, which may
+    // still be flushing, rather than find its own lock held
+    const previous = this.claims.get(id);
+    let settle = () => {};
+    const settled = new Promise<void>((resolve) => (settle = resolve));
+    this.claims.set(id, settled);
+    void settled.then(() => {
+      if (this.claims.get(id) === settled) this.claims.delete(id);
+    });
+    await previous;
+
+    const locks = this.options.locks ?? navigator.locks;
+    let held = false;
+    let released = false;
+    let unlock = () => {};
+    const unlocked = new Promise<void>((resolve) => (unlock = resolve));
+
+    return new Promise((resolve, reject) => {
+      const claim: CanvasClaim = {
+        id,
+        isHeld: () => held,
+        release: () => {
+          released = true;
+          held = false;
+          unlock();
+          return settled;
+        },
+      };
+      const token = crypto.randomUUID();
+      this.writerTokens.set(claim, token);
+      locks
+        .request(boardKey(id), lockOptions(options), async (lock) => {
+          if (!lock) return resolve(null);
+          held = true;
+          // The system clock orders grants across tabs; performance.now()
+          // can't, as it stops while the computer sleeps
+          const grantedAt = Date.now();
+          try {
+            await this.recordWriter(id, {
+              token,
+              grantedAt,
+              tookOver: options.mode === 'take-over',
+            });
+            // Cancelled while being granted: let the lock go at once
+            options.signal?.throwIfAborted();
+          } catch (error) {
+            held = false;
+            released = true;
+            return reject(error);
+          }
+          resolve(claim);
+          await unlocked;
+        })
+        // A take-over rejects the former writer's request
+        .catch((error) => {
+          const lost = held;
+          held = false;
+          if (lost) onLost();
+          else if (!released) reject(error);
+        })
+        .finally(settle);
+    });
+  }
+
+  // A tab that took the lock earlier can get here later; it mustn't replace
+  // the newer writer
+  private async recordWriter(id: string, writer: Writer) {
+    const tx = (await this.openDb()).transaction(WRITERS, 'readwrite');
+    const writers = tx.objectStore(WRITERS);
+    const current = await request<Writer | undefined>(writers.get(id));
+    if (!current || isLaterWriter(writer, current)) {
+      writers.put(writer, id);
+    }
+    await transactionDone(tx);
+  }
+
+  // Run inside a write's transaction, so a take-over can't land in between
+  private async isWriter(tx: IDBTransaction, claim: CanvasClaim) {
+    const writer = await request<Writer | undefined>(
+      tx.objectStore(WRITERS).get(claim.id),
+    );
+    return writer?.token === this.writerTokens.get(claim);
+  }
+
+  watchSaves(id: string, listener: () => void) {
+    const channel = new BroadcastChannel(boardKey(id));
+    channel.onmessage = () => listener();
+    return () => channel.close();
+  }
+
+  startSaving(
+    claim: CanvasClaim,
     source: CanvasSource,
     onError: (error: unknown) => void,
   ): CanvasSaver {
+    const { id } = claim;
+    const channel = new BroadcastChannel(boardKey(id));
     let timer: ReturnType<typeof setTimeout> | null = null;
     let thumbnailTimer: ReturnType<typeof setTimeout> | null = null;
     let dirty = false;
@@ -237,6 +405,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
     let captures = 0;
 
     const write = async () => {
+      if (!claim.isHeld()) return;
       try {
         localStorage.setItem(
           sessionKey(id),
@@ -248,7 +417,14 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       if (!dirty) return;
       dirty = false;
       try {
-        await this.writeDocument(id, source.getDocument());
+        const outcome = await this.writeDocument(claim, source.getDocument());
+        if (outcome === 'written') channel.postMessage('saved');
+        // Still holding the lock, so nothing else will tell the user
+        if (outcome === 'not-writer' && claim.isHeld()) {
+          onError(
+            new Error(`Another tab is recorded as canvas ${id}'s writer`),
+          );
+        }
       } catch (error) {
         onError(error);
       }
@@ -276,9 +452,9 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
       writingThumbnail = captured.then(
         async (thumbnail) => {
           // A slower, older capture mustn't overwrite a newer one
-          if (capture !== captures) return;
+          if (capture !== captures || !claim.isHeld()) return;
           try {
-            await this.writeThumbnail(id, thumbnail);
+            await this.writeThumbnail(claim, thumbnail);
           } catch (error) {
             onError(error);
           }
@@ -317,38 +493,48 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
         window.removeEventListener('pagehide', onPageHide);
         const left = leave();
         stopped = true;
-        return left;
+        return left.finally(() => channel.close());
       },
     };
   }
 
-  private async writeThumbnail(id: string, thumbnail: string | null) {
+  private async writeThumbnail(claim: CanvasClaim, thumbnail: string | null) {
+    const { id } = claim;
     const tx = (await this.openDb()).transaction(
-      [CANVASES, THUMBNAILS],
+      [CANVASES, THUMBNAILS, WRITERS],
       'readwrite',
     );
-    const req = tx.objectStore(CANVASES).getKey(id);
-    req.onsuccess = () => {
-      if (req.result === undefined) return;
+    const [key, isWriter] = await Promise.all([
+      request(tx.objectStore(CANVASES).getKey(id)),
+      this.isWriter(tx, claim),
+    ]);
+    if (key !== undefined && isWriter) {
       const thumbnails = tx.objectStore(THUMBNAILS);
       if (thumbnail) thumbnails.put(thumbnail, id);
       else thumbnails.delete(id);
-    };
+    }
     await transactionDone(tx);
     this.changed();
   }
 
-  private async writeDocument(id: string, doc: CanvasDocument) {
+  private async writeDocument(claim: CanvasClaim, doc: CanvasDocument) {
+    const { id } = claim;
     const tx = (await this.openDb()).transaction(
-      [CANVASES, DOCUMENTS],
+      [CANVASES, DOCUMENTS, WRITERS],
       'readwrite',
     );
     const canvases = tx.objectStore(CANVASES);
-    const req = canvases.get(id);
-    req.onsuccess = () => {
-      const record: CanvasRecord | undefined = req.result;
-      // Deleted while open: don't leave an orphan document behind
-      if (!record) return;
+    const [record, isWriter] = await Promise.all([
+      request<CanvasRecord | undefined>(canvases.get(id)),
+      this.isWriter(tx, claim),
+    ]);
+    // Deleted while open: don't leave an orphan document behind
+    const outcome: WriteOutcome = !record
+      ? 'deleted'
+      : isWriter
+        ? 'written'
+        : 'not-writer';
+    if (record && isWriter) {
       canvases.put({
         ...record,
         linkCount: countLinks(doc.store),
@@ -356,9 +542,10 @@ export class IndexedDbCanvasStorage implements CanvasStorage {
         updatedAt: new Date().toISOString(),
       });
       tx.objectStore(DOCUMENTS).put(doc, id);
-    };
+    }
     await transactionDone(tx);
-    this.changed();
+    if (outcome === 'written') this.changed();
+    return outcome;
   }
 }
 

@@ -10,11 +10,12 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
 import {
   attachCanvasController,
+  type CanvasController,
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
 import { isBoardTool } from '../../model/boardTools';
@@ -22,6 +23,7 @@ import type { CanvasServer } from '../../server/canvasServer';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
+import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
@@ -61,6 +63,18 @@ function showSaveError(error: unknown) {
   });
 }
 
+function showTakenOver() {
+  notifications.show({
+    id: 'canvas-taken-over',
+    title: 'Canvas opened in another tab',
+    message:
+      "This tab is now read-only. Edits from the last moment before the switch weren't saved.",
+    autoClose: false,
+    withCloseButton: true,
+    position: 'top-center',
+  });
+}
+
 type Status = 'loading' | CanvasLoadStatus | 'failed';
 
 interface Props {
@@ -75,11 +89,17 @@ export default function BoardEditor(props: Props) {
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  const controllerRef = useRef<CanvasController | null>(null);
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => <BoardHeader canvasId={props.canvasId} />,
       Toolbar: BoardToolbar,
+      TopPanel: () => (
+        <ReadOnlyBanner
+          onTakeOver={async () => controllerRef.current?.takeOver()}
+        />
+      ),
     }),
     [props.canvasId],
   );
@@ -94,7 +114,11 @@ export default function BoardEditor(props: Props) {
       canvasId: props.canvasId,
       ownerDid,
       onStorageError: showSaveError,
+      onTakenOver: showTakenOver,
+      onWritingAgain: () => notifications.hide('canvas-taken-over'),
+      onNewerVersion: () => active && setStatus('newer-version'),
     });
+    controllerRef.current = controller;
     controller.loaded.then(
       (loaded) => active && setStatus(loaded),
       (error) => {
@@ -104,6 +128,7 @@ export default function BoardEditor(props: Props) {
     );
     return () => {
       active = false;
+      controllerRef.current = null;
       void controller.detach();
     };
   }, [editor, ownerDid, props.canvasId]);
