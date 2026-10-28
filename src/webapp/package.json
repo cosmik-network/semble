@@ -91,6 +91,7 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.4.2",
     "eslint-plugin-storybook": "^10.6.3",
+    "fake-indexeddb": "^6.2.6",
     "jsdom": "^26.1.0",
     "plasmo": "^0.90.5",
     "postcss": "^8.5.6",

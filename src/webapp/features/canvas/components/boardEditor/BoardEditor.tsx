@@ -1,29 +1,36 @@
 'use client';
 
 import 'tldraw/tldraw.css';
-import { useComputedColorScheme } from '@mantine/core';
-import { useEffect, useState } from 'react';
 import {
-  Editor,
-  Tldraw,
-  type TLComponents,
-  type TLUiOverrides,
-} from 'tldraw';
-import { attachCanvasController } from '../../controller/canvasController';
+  Button,
+  Center,
+  Loader,
+  Stack,
+  Text,
+  useComputedColorScheme,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useEffect, useState } from 'react';
+import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  attachCanvasController,
+  TLDRAW_VERSION,
+  type CanvasLoadStatus,
+} from '../../controller/canvasController';
 import { isBoardTool } from '../../model/boardTools';
 import type { CanvasServer } from '../../server/canvasServer';
-import { MemoryCanvasStorage } from '../../storage/memoryCanvasStorage';
+import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
+import { IndexedDbCanvasStorage } from '../../storage/indexedDbCanvasStorage';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
 
-const DEFAULT_TITLE = 'Untitled canvas';
-
 // The header replaces the main and page menus: a board has one page
 const components: TLComponents = {
-  MenuPanel: () => <BoardHeader title={DEFAULT_TITLE} />,
+  MenuPanel: () => <BoardHeader title={DEFAULT_CANVAS_NAME} />,
   Toolbar: BoardToolbar,
 };
 
@@ -44,6 +51,26 @@ const overrides: TLUiOverrides = {
 };
 
 const server: CanvasServer = {};
+const storage = new IndexedDbCanvasStorage({ tldrawVersion: TLDRAW_VERSION });
+
+function showSaveError(error: unknown) {
+  console.warn(error);
+  const quotaExceeded =
+    error instanceof DOMException && error.name === 'QuotaExceededError';
+  notifications.show({
+    id: 'canvas-save-error',
+    title: "Couldn't save this canvas",
+    message: quotaExceeded
+      ? 'Your browser storage is full. Free up space or recent changes will be lost.'
+      : 'Recent changes may be lost. Reload the page to try again.',
+    color: 'red',
+    autoClose: false,
+    withCloseButton: true,
+    position: 'top-center',
+  });
+}
+
+type Status = 'loading' | CanvasLoadStatus | 'failed';
 
 interface Props {
   canvasId: string;
@@ -51,18 +78,36 @@ interface Props {
 
 export default function BoardEditor(props: Props) {
   const colorScheme = useComputedColorScheme();
+  const { user } = useAuth();
+  // Kept once known, so signing out doesn't detach the board and drop edits
+  const [ownerDid, setOwnerDid] = useState<string>();
+  if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
-  const [storage] = useState(() => new MemoryCanvasStorage());
+  const [status, setStatus] = useState<Status>('loading');
 
   useEffect(() => {
-    if (!editor) return;
-    return attachCanvasController({
+    if (!editor || !ownerDid) return;
+    let active = true;
+    const controller = attachCanvasController({
       editor,
       server,
       storage,
       canvasId: props.canvasId,
+      ownerDid,
+      onStorageError: showSaveError,
     });
-  }, [editor, storage, props.canvasId]);
+    controller.loaded.then(
+      (loaded) => active && setStatus(loaded),
+      (error) => {
+        console.warn(error);
+        if (active) setStatus('failed');
+      },
+    );
+    return () => {
+      active = false;
+      void controller.detach();
+    };
+  }, [editor, ownerDid, props.canvasId]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -70,11 +115,33 @@ export default function BoardEditor(props: Props) {
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
-      <Tldraw
-        components={components}
-        overrides={overrides}
-        onMount={setEditor}
-      />
+      <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
+        <Tldraw
+          components={components}
+          overrides={overrides}
+          onMount={setEditor}
+        />
+      </div>
+      {status !== 'ready' && (
+        <Center pos="absolute" inset={0} bg="var(--mantine-color-body)">
+          <BoardStatus status={status} />
+        </Center>
+      )}
     </div>
+  );
+}
+
+function BoardStatus(props: { status: Exclude<Status, 'ready'> }) {
+  if (props.status === 'loading') return <Loader />;
+
+  return (
+    <Stack align="center" gap="sm">
+      <Text fw={500}>
+        {props.status === 'newer-version'
+          ? 'This canvas was saved by a newer version of Semble.'
+          : "Couldn't open this canvas."}
+      </Text>
+      <Button onClick={() => window.location.reload()}>Reload</Button>
+    </Stack>
   );
 }

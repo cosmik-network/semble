@@ -19,5 +19,6 @@ interface Props {
 }
 
 export default function CanvasBoard(props: Props) {
-  return <BoardEditor canvasId={props.canvasId} />;
+  // Keyed so another board gets a fresh editor instead of the last one's shapes
+  return <BoardEditor key={props.canvasId} canvasId={props.canvasId} />;
 }

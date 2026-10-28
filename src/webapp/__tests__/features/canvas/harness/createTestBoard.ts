@@ -1,4 +1,5 @@
 import './domShims';
+import { IDBFactory } from 'fake-indexeddb';
 import {
   Editor,
   createTLStore,
@@ -8,17 +9,30 @@ import {
   defaultTools,
   type TLPointerEventInfo,
 } from 'tldraw';
-import { attachCanvasController } from '@/features/canvas/controller/canvasController';
+import {
+  attachCanvasController,
+  TLDRAW_VERSION,
+  type CanvasLoadStatus,
+} from '@/features/canvas/controller/canvasController';
+import { IndexedDbCanvasStorage } from '@/features/canvas/storage/indexedDbCanvasStorage';
 import { FakeServer } from './fakeServer';
-import { MemoryCanvasStorage } from '@/features/canvas/storage/memoryCanvasStorage';
 
 export interface TestBoard {
   editor: Editor;
   server: FakeServer;
-  storage: MemoryCanvasStorage;
+  storage: IndexedDbCanvasStorage;
+  canvasId: string;
+  status: CanvasLoadStatus;
   // Drags with the current tool, in page coordinates at the default camera
   drag(from: [number, number], to: [number, number]): void;
-  dispose(): void;
+  // Closes the board, saving it like navigating away would
+  dispose(): Promise<void>;
+}
+
+interface Options {
+  // Pass a previous board's storage and id to reopen it
+  storage?: IndexedDbCanvasStorage;
+  canvasId?: string;
 }
 
 function pointer(
@@ -42,7 +56,9 @@ function pointer(
 }
 
 // A headless editor with the same shapes, bindings and tools <Tldraw> registers
-export function createTestBoard(canvasId = 'test-canvas'): TestBoard {
+export async function createTestBoard(
+  options: Options = {},
+): Promise<TestBoard> {
   const shapeUtils = [...defaultShapeUtils];
   const bindingUtils = [...defaultBindingUtils];
   const editor = new Editor({
@@ -53,21 +69,42 @@ export function createTestBoard(canvasId = 'test-canvas'): TestBoard {
     getContainer: () => document.body,
   });
   const server = new FakeServer();
-  const storage = new MemoryCanvasStorage();
-  const detach = attachCanvasController({ editor, server, storage, canvasId });
+  const storage =
+    options.storage ??
+    new IndexedDbCanvasStorage({
+      indexedDB: new IDBFactory(),
+      tldrawVersion: TLDRAW_VERSION,
+    });
+  const canvasId = options.canvasId ?? crypto.randomUUID();
+  const controller = attachCanvasController({
+    editor,
+    server,
+    storage,
+    canvasId,
+    ownerDid: 'did:plc:tester',
+    onStorageError: (error) => {
+      throw error;
+    },
+  });
+  const status = await controller.loaded;
 
+  let disposed = false;
   return {
     editor,
     server,
     storage,
+    canvasId,
+    status,
     drag(from, to) {
       editor
         .dispatch(pointer('pointer_down', from))
         .dispatch(pointer('pointer_move', to))
         .dispatch(pointer('pointer_up', to));
     },
-    dispose() {
-      detach();
+    async dispose() {
+      if (disposed) return;
+      disposed = true;
+      await controller.detach();
       editor.dispose();
     },
   };
