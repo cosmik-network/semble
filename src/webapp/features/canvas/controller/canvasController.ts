@@ -6,18 +6,10 @@ import {
   type TLSessionStateSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
-import type { CanvasServer } from '../server/canvasServer';
-import type {
-  BoardStatus,
-  CanvasDocument,
-  CanvasStorage,
-} from '../storage/canvasStorage';
+import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
+import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 
-export interface CanvasControllerDeps {
-  editor: Editor;
-  server: CanvasServer;
-  storage: CanvasStorage;
-  canvasId: string;
+export interface CanvasControllerDeps extends LinkCardsDeps {
   ownerDid: string;
   onStorageError(error: unknown): void;
   // Another tab took the board over. Edits since the last save are lost.
@@ -91,6 +83,8 @@ function applyRemoteSave(editor: Editor, document: CanvasDocument) {
 export function attachCanvasController(deps: CanvasControllerDeps) {
   const { editor } = deps;
   const session = createSessionStateSnapshotSignal(editor.store);
+  let detached = false;
+  const links = attachLinkCards(deps);
   const board = deps.storage.openBoard(
     deps.canvasId,
     {
@@ -109,7 +103,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
       },
     },
     {
-      onLoad(document, saved) {
+      onLoad(document, saved, known) {
+        links.showKnownLinks(known);
         loadSnapshot(editor.store, {
           document: (document ?? undefined) as TLStoreSnapshot | undefined,
           session: saved?.editor as TLSessionStateSnapshot | undefined,
@@ -132,16 +127,22 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     scope: 'document',
     source: 'all',
   });
+  const loaded = board.opened.then((status) => {
+    if (status === 'ready' && !detached) links.refresh();
+    return status;
+  });
 
   return {
-    loaded: board.opened,
+    loaded,
     takeOver: () => board.takeOver(),
     async detach() {
+      detached = true;
+      const linksDetached = links.detach();
       // Close before unlistening: its flush reports pending changes through
       // the listener
       const closed = board.close();
       unlisten();
-      await closed;
+      await Promise.all([closed, linksDetached]);
     },
   };
 }

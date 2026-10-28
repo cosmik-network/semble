@@ -15,6 +15,7 @@ import {
   type CanvasSession,
   type CanvasSource,
   type CanvasStorage,
+  type KnownLinks,
   type OpenedCanvas,
 } from './canvasStorage';
 import { countLinks } from '../model/linkCards';
@@ -145,7 +146,6 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
         }
         if (missing(DOCUMENTS)) db.createObjectStore(DOCUMENTS);
         if (missing(THUMBNAILS)) db.createObjectStore(THUMBNAILS);
-        // Unused until link cards land; created now to skip a version upgrade
         if (missing(LINK_INFO)) db.createObjectStore(LINK_INFO);
         if (missing(WRITERS)) db.createObjectStore(WRITERS);
       };
@@ -232,7 +232,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
       request<CanvasRecord | undefined>(tx.objectStore(CANVASES).get(id)),
       request<CanvasDocument | undefined>(tx.objectStore(DOCUMENTS).get(id)),
       request<string | undefined>(tx.objectStore(THUMBNAILS).get(id)),
-      request<unknown>(tx.objectStore(LINK_INFO).get(id)),
+      request<KnownLinks | undefined>(tx.objectStore(LINK_INFO).get(id)),
     ]);
     if (!record) throw new Error(`Canvas ${id} doesn't exist`);
     const now = new Date().toISOString();
@@ -270,12 +270,13 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
     runningSchema: CanvasSchema,
   ): Promise<OpenedCanvas> {
     const tx = (await this.openDb()).transaction(
-      [CANVASES, DOCUMENTS],
+      [CANVASES, DOCUMENTS, LINK_INFO],
       'readonly',
     );
-    const [record, doc] = await Promise.all([
+    const [record, doc, links] = await Promise.all([
       request<CanvasRecord | undefined>(tx.objectStore(CANVASES).get(id)),
       request<CanvasDocument | undefined>(tx.objectStore(DOCUMENTS).get(id)),
+      request<KnownLinks | undefined>(tx.objectStore(LINK_INFO).get(id)),
     ]);
     if (!record) return { status: 'missing' };
     if (doc && isNewerSchema(doc.schema, runningSchema)) {
@@ -286,7 +287,19 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
       record,
       document: doc ?? null,
       session: readSession(id),
+      links: links ?? {},
     };
+  }
+
+  async saveKnownLinks(id: string, links: KnownLinks) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, LINK_INFO],
+      'readwrite',
+    );
+    // Deleted while open: don't leave an orphan behind
+    const key = await request(tx.objectStore(CANVASES).getKey(id));
+    if (key !== undefined) tx.objectStore(LINK_INFO).put(links, id);
+    await transactionDone(tx);
   }
 
   openBoard(id: string, options: BoardOptions, events: BoardEvents) {

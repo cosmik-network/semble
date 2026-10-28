@@ -256,7 +256,7 @@ export function openBoardSession(
     if (opened.status === 'missing') {
       if (claimed) await storage.createCanvas(options.ownerDid, id);
     } else if (opened.document || opened.session) {
-      show(() => events.onLoad(opened.document, opened.session));
+      show(() => events.onLoad(opened.document, opened.session, opened.links));
     }
     if (closed) {
       await claimed?.release();

@@ -1,7 +1,7 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
+import { Card, Group, Stack, Text } from '@mantine/core';
 import { BsPinFill } from 'react-icons/bs';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import { Suspense } from 'react';
@@ -19,7 +19,7 @@ import { CardSaveAnalyticsContext } from '@/features/analytics/types';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
-import { LinkAvatar } from '@/components/link/MantineLink';
+import CardAuthorRow from '../cardAuthorRow/CardAuthorRow';
 
 interface Props {
   id: string;
@@ -121,33 +121,7 @@ export default function UrlCard(props: Props) {
 
         <Stack gap={settings.cardView === 'list' ? 'xs' : 'md'}>
           {props.showAuthor && props.cardAuthor && (
-            <Group gap={'7'}>
-              <Text fz={'xs'} c={'dimmed'} fw={500}>
-                By{' '}
-              </Text>
-              <Group gap={'5'}>
-                <LinkAvatar
-                  href={`/profile/${props.cardAuthor?.handle}`}
-                  src={props.cardAuthor?.avatarUrl?.replace(
-                    'avatar',
-                    'avatar_thumbnail',
-                  )}
-                  alt={`${props.cardAuthor?.handle}'s avatar`}
-                  size={'xs'}
-                  radius={'sm'}
-                />
-                <Anchor
-                  href={`/profile/${props.cardAuthor.handle}`}
-                  fz={'xs'}
-                  fw={600}
-                  c={'bright'}
-                  underline="never"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {props.cardAuthor.name || `@${props.cardAuthor.handle}`}
-                </Anchor>
-              </Group>
-            </Group>
+            <CardAuthorRow author={props.cardAuthor} />
           )}
 
           <UrlCardActions

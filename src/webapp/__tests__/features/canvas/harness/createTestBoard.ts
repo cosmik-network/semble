@@ -1,13 +1,18 @@
 import './domShims';
 import { IDBFactory } from 'fake-indexeddb';
+import { QueryClient } from '@tanstack/react-query';
 import {
+  Box,
   Editor,
   createTLStore,
+  defaultAddFontsFromNode,
   defaultBindingUtils,
   defaultShapeTools,
   defaultShapeUtils,
   defaultTools,
+  tipTapDefaultExtensions,
   type TLPointerEventInfo,
+  type VecLike,
 } from 'tldraw';
 import {
   attachCanvasController,
@@ -15,18 +20,27 @@ import {
 } from '@/features/canvas/controller/canvasController';
 import { TLDRAW_VERSION } from '@/features/canvas/storage/browserCanvasStorage';
 import { IndexedDbCanvasStorage } from '@/features/canvas/storage/indexedDbCanvasStorage';
+import {
+  LinkCardShapeUtil,
+  type LinkCardShape,
+} from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
+import { LINK_CARD_TYPE } from '@/features/canvas/model/linkCards';
 import { FakeLocks } from './fakeLocks';
 import { FakeServer } from './fakeServer';
 
 export interface TestBoard {
   editor: Editor;
   server: FakeServer;
+  // This tab's query cache, which the cards read
+  queryClient: QueryClient;
   storage: IndexedDbCanvasStorage;
   canvasId: string;
   // Turns to newer-version when a newer app's save stops this tab writing
   status: CanvasLoadStatus;
   // How many times another tab has taken the board over from this one
   timesTakenOver: number;
+  // How many times pasted or dropped files were refused
+  timesFilesRefused: number;
   // Opens the same board in another tab, which shares the browser's
   // database and locks but nothing else
   openInAnotherTab(): Promise<TestBoard>;
@@ -36,6 +50,12 @@ export interface TestBoard {
   takeOver(): Promise<void>;
   // Drags with the current tool, in page coordinates at the default camera
   drag(from: [number, number], to: [number, number]): void;
+  // What tldraw's clipboard and drop handling pass on
+  pasteUrl(url: string): Promise<void>;
+  pasteText(text: string): Promise<void>;
+  pasteFiles(files: File[]): Promise<void>;
+  dropUrl(url: string, point: VecLike): Promise<void>;
+  linkCards(): LinkCardShape[];
   // Closes the board, saving it like navigating away would
   dispose(): Promise<void>;
 }
@@ -44,6 +64,7 @@ interface Options {
   // Pass a previous board's storage and id to reopen it in the same tab
   storage?: IndexedDbCanvasStorage;
   canvasId?: string;
+  server?: FakeServer;
 }
 
 function pointer(
@@ -87,7 +108,7 @@ function openTab(indexedDB: IDBFactory, locks: FakeLocks) {
 export async function createTestBoard(
   options: Options = {},
 ): Promise<TestBoard> {
-  const shapeUtils = [...defaultShapeUtils];
+  const shapeUtils = [...defaultShapeUtils, LinkCardShapeUtil];
   const bindingUtils = [...defaultBindingUtils];
   const editor = new Editor({
     store: createTLStore({ shapeUtils, bindingUtils }),
@@ -95,14 +116,23 @@ export async function createTestBoard(
     bindingUtils,
     tools: [...defaultTools, ...defaultShapeTools],
     getContainer: () => document.body,
+    textOptions: {
+      addFontsFromNode: defaultAddFontsFromNode,
+      tipTapConfig: { extensions: tipTapDefaultExtensions },
+    },
   });
+  // jsdom has no layout, so the viewport is given a size
+  editor.updateViewportScreenBounds(new Box(0, 0, 1200, 800));
   // A headless editor can't draw an export, so this stands in for one
   editor.toImage = async () => ({
     blob: new Blob(['board'], { type: 'image/jpeg' }),
     width: 1,
     height: 1,
   });
-  const server = new FakeServer();
+  const server = options.server ?? new FakeServer();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   const storage = options.storage ?? openTab(new IDBFactory(), new FakeLocks());
   const canvasId = options.canvasId ?? crypto.randomUUID();
   const storageInAnotherTab = () => {
@@ -115,6 +145,7 @@ export async function createTestBoard(
   const controller = attachCanvasController({
     editor,
     server,
+    queryClient,
     storage,
     canvasId,
     ownerDid: 'did:plc:tester',
@@ -122,6 +153,7 @@ export async function createTestBoard(
       throw error;
     },
     onTakenOver: () => board.timesTakenOver++,
+    onFilesRefused: () => board.timesFilesRefused++,
     onWritingAgain: () => {},
     onNewerVersion: () => (board.status = 'newer-version'),
   });
@@ -129,10 +161,12 @@ export async function createTestBoard(
   return Object.assign(board, {
     editor,
     server,
+    queryClient,
     storage,
     canvasId,
     status: await controller.loaded,
     timesTakenOver: 0,
+    timesFilesRefused: 0,
     openInAnotherTab: () =>
       createTestBoard({ storage: storageInAnotherTab(), canvasId }),
     storageInAnotherTab,
@@ -143,6 +177,17 @@ export async function createTestBoard(
         .dispatch(pointer('pointer_move', to))
         .dispatch(pointer('pointer_up', to));
     },
+    pasteUrl: (url) => editor.putExternalContent({ type: 'url', url }),
+    pasteText: (text) => editor.putExternalContent({ type: 'text', text }),
+    pasteFiles: (files) => editor.putExternalContent({ type: 'files', files }),
+    dropUrl: (url, point) =>
+      editor.putExternalContent({ type: 'url', url, point }),
+    linkCards: () =>
+      editor
+        .getCurrentPageShapes()
+        .filter(
+          (shape): shape is LinkCardShape => shape.type === LINK_CARD_TYPE,
+        ),
     async dispose() {
       if (disposed) return;
       disposed = true;

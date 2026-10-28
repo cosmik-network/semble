@@ -10,6 +10,7 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +20,9 @@ import {
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
 import { isBoardTool } from '../../model/boardTools';
-import type { CanvasServer } from '../../server/canvasServer';
+import { CanvasServerProvider } from '../../lib/canvasServerContext';
+import { apiCanvasServer } from '../../server/apiCanvasServer';
+import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
@@ -44,7 +47,7 @@ const overrides: TLUiOverrides = {
   },
 };
 
-const server: CanvasServer = {};
+const shapeUtils = [LinkCardShapeUtil];
 
 function showSaveError(error: unknown) {
   console.warn(error);
@@ -59,6 +62,15 @@ function showSaveError(error: unknown) {
     color: 'red',
     autoClose: false,
     withCloseButton: true,
+    position: 'top-center',
+  });
+}
+
+function showFilesRefused() {
+  notifications.show({
+    id: 'canvas-files-refused',
+    title: "Images and files can't go on a canvas",
+    message: 'A canvas holds links and notes. Paste or drop a link instead.',
     position: 'top-center',
   });
 }
@@ -83,6 +95,7 @@ interface Props {
 
 export default function BoardEditor(props: Props) {
   const colorScheme = useComputedColorScheme();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   // Kept once known, so signing out doesn't detach the board and drop edits
   const [ownerDid, setOwnerDid] = useState<string>();
@@ -109,7 +122,8 @@ export default function BoardEditor(props: Props) {
     let active = true;
     const controller = attachCanvasController({
       editor,
-      server,
+      server: apiCanvasServer,
+      queryClient,
       storage: canvasStorage,
       canvasId: props.canvasId,
       ownerDid,
@@ -117,6 +131,7 @@ export default function BoardEditor(props: Props) {
       onTakenOver: showTakenOver,
       onWritingAgain: () => notifications.hide('canvas-taken-over'),
       onNewerVersion: () => active && setStatus('newer-version'),
+      onFilesRefused: showFilesRefused,
     });
     controllerRef.current = controller;
     controller.loaded.then(
@@ -131,7 +146,7 @@ export default function BoardEditor(props: Props) {
       controllerRef.current = null;
       void controller.detach();
     };
-  }, [editor, ownerDid, props.canvasId]);
+  }, [editor, ownerDid, props.canvasId, queryClient]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -140,11 +155,14 @@ export default function BoardEditor(props: Props) {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
-        <Tldraw
-          components={components}
-          overrides={overrides}
-          onMount={setEditor}
-        />
+        <CanvasServerProvider server={apiCanvasServer}>
+          <Tldraw
+            shapeUtils={shapeUtils}
+            components={components}
+            overrides={overrides}
+            onMount={setEditor}
+          />
+        </CanvasServerProvider>
       </div>
       {status !== 'ready' && (
         <Center pos="absolute" inset={0} bg="var(--mantine-color-body)">

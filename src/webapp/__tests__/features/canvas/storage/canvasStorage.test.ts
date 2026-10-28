@@ -157,6 +157,7 @@ describe('IndexedDbCanvasStorage', () => {
       },
       document: null,
       session: null,
+      links: {},
     });
   });
 

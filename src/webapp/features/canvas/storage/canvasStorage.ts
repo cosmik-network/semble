@@ -1,3 +1,5 @@
+import type { LinkInfo } from '../server/canvasServer';
+
 export const DEFAULT_CANVAS_NAME = 'Untitled canvas';
 
 // Mirrors the future Postgres row. The document and thumbnail are stored
@@ -31,6 +33,14 @@ export interface CanvasSession {
   editor: object;
 }
 
+// A link as last fetched, shown when the board opens until it's fetched again
+export interface KnownLink {
+  link: LinkInfo;
+  fetchedAt: number;
+}
+
+export type KnownLinks = Record<string, KnownLink>;
+
 export type OpenedCanvas =
   | { status: 'missing' }
   | { status: 'newer-version' }
@@ -39,6 +49,7 @@ export type OpenedCanvas =
       record: CanvasRecord;
       document: CanvasDocument | null;
       session: CanvasSession | null;
+      links: KnownLinks;
     };
 
 export interface CanvasSource {
@@ -67,8 +78,13 @@ export interface BoardOptions {
 }
 
 export interface BoardEvents {
-  // The saved board, with this tab's last session, before opened resolves
-  onLoad(document: CanvasDocument | null, session: CanvasSession | null): void;
+  // The saved board, with this tab's last session and the board's last known
+  // links, before opened resolves
+  onLoad(
+    document: CanvasDocument | null,
+    session: CanvasSession | null,
+    links: KnownLinks,
+  ): void;
   // Each save another tab makes while this one reads, newest last. Never
   // called while this tab writes.
   onRemoteSave(document: CanvasDocument): void;
@@ -104,6 +120,8 @@ export interface CanvasStorage {
   deleteCanvas(id: string): Promise<void>;
   // The board as last saved, without opening it
   openCanvas(id: string, runningSchema: CanvasSchema): Promise<OpenedCanvas>;
+  // Replaces the board's last known links. Any tab may write them.
+  saveKnownLinks(id: string, links: KnownLinks): Promise<void>;
   openBoard(
     id: string,
     options: BoardOptions,

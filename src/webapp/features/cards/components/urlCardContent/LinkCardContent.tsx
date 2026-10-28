@@ -13,6 +13,7 @@ import {
   Card,
 } from '@mantine/core';
 import { UrlCard } from '@semble/types';
+import type { UserSettings } from '@/features/settings/lib/queries/useUserSettings';
 
 import { useState } from 'react';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
@@ -22,12 +23,14 @@ interface Props {
   cardContent: UrlCard['cardContent'];
   uri?: string;
   authorHandle?: string;
+  cardView?: UserSettings['cardView'];
 }
 
 export default function LinkCardContent(props: Props) {
   const domain = getDomain(props.cardContent.url);
   const [imageError, setImageError] = useState(false);
   const { settings } = useSettings();
+  const cardView = props.cardView ?? settings.cardView;
   const marginUrl = getMarginUrl(props.uri, props.authorHandle);
 
   return (
@@ -56,7 +59,7 @@ export default function LinkCardContent(props: Props) {
             {props.cardContent.title}
           </Text>
         )}
-        {props.cardContent.description && settings.cardView === 'grid' && (
+        {props.cardContent.description && cardView === 'grid' && (
           <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
             {props.cardContent.description}
           </Text>
@@ -68,8 +71,8 @@ export default function LinkCardContent(props: Props) {
             p={0}
             radius={'md'}
             withBorder
-            w={settings.cardView === 'grid' ? 75 : 45}
-            h={settings.cardView === 'grid' ? 75 : 45}
+            w={cardView === 'grid' ? 75 : 45}
+            h={cardView === 'grid' ? 75 : 45}
             style={{ flexShrink: 0 }}
           >
             <Image
