@@ -1,0 +1,32 @@
+name: Sync to Tangled
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: sync-tangled
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'cosmik-network/semble'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TANGLED_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.TANGLED_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Push to Tangled
+        run: |
+          git remote add tangled git@tangled.org:cosmik.network/semble
+          git push --force tangled HEAD:refs/heads/main
+          git push --force tangled --tags

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import {
   Stack,
   Button,
@@ -22,6 +22,16 @@ import { Collection } from '@semble/types';
 import { FaSeedling, FaWandMagicSparkles } from 'react-icons/fa6';
 import { BsTrash2Fill } from 'react-icons/bs';
 import { COLLECTION_PANEL_HEIGHT } from './CollectionListScrollArea';
+import {
+  CollectionPickTracker,
+  CollectionSelectorTab,
+} from '../../lib/useCollectionPicks';
+
+const ANALYTICS_TABS: Record<string, CollectionSelectorTab> = {
+  myCollections: 'my_collections',
+  recommended: 'recommended',
+  openCollections: 'open_collections',
+};
 
 interface Props {
   isOpen: boolean;
@@ -35,6 +45,8 @@ interface Props {
   isDeletingCard?: boolean;
   selectedCollections: Collection[];
   onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
+  /** Records how collections get picked, for the `card_saved` event */
+  pickTracker?: CollectionPickTracker;
 }
 
 export default function CollectionSelector(props: Props) {
@@ -49,6 +61,11 @@ export default function CollectionSelector(props: Props) {
     activeTab === 'recommended' && !showRecommended
       ? 'myCollections'
       : activeTab;
+
+  const { pickTracker } = props;
+  useEffect(() => {
+    if (currentTab) pickTracker?.tabViewed(ANALYTICS_TABS[currentTab]);
+  }, [currentTab, pickTracker]);
 
   return (
     <Stack gap={'xl'}>
@@ -118,6 +135,7 @@ export default function CollectionSelector(props: Props) {
             <CollectionSelectorMyCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+              pickTracker={pickTracker}
             />
           </Suspense>
         </Tabs.Panel>
@@ -137,6 +155,7 @@ export default function CollectionSelector(props: Props) {
             <CollectionSelectorOpenCollections
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+              pickTracker={pickTracker}
             />
           </Suspense>
         </Tabs.Panel>
@@ -146,6 +165,7 @@ export default function CollectionSelector(props: Props) {
               url={props.url!}
               selectedCollections={props.selectedCollections}
               onSelectedCollectionsChange={props.onSelectedCollectionsChange}
+              pickTracker={pickTracker}
             />
           </Tabs.Panel>
         )}

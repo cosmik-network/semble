@@ -29,6 +29,7 @@ export default function RefreshButton(props: Props) {
           props.onRefresh();
         }}
         aria-label={props.label}
+        data-analytics-action="refresh"
       >
         <BiRefresh
           // Remounting replays the animation, so a refresh answered from cache

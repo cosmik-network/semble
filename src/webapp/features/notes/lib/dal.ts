@@ -1,5 +1,5 @@
 import { NoSessionError } from '@/api-client/errors';
-import { logoutUser, verifySessionOnClient } from '@/lib/auth/dal';
+import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/client.apiClient';
 import { cache } from 'react';
 
@@ -26,13 +26,9 @@ export const updateNoteCard = cache(
     const session = await verifySessionOnClient({ redirectOnFail: true });
     if (!session) throw new NoSessionError();
     const client = createSembleClient();
+    // Errors propagate: the global mutation handler logs out on 401 only.
+    const response = await client.updateNoteCard(note);
 
-    try {
-      const response = await client.updateNoteCard(note);
-
-      return response;
-    } catch (error) {
-      await logoutUser();
-    }
+    return response;
   },
 );

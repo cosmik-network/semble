@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Button, Center, Container, Stack } from '@mantine/core';
+import { MouseEvent, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { GetGlobalFeedResponse, UrlType } from '@semble/types';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
@@ -12,6 +13,17 @@ import { CardSaveSource } from '@/features/analytics/types';
 import { FeedView } from '@/features/feeds/lib/feedOptions';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
+import useListDepth from '@/features/analytics/useListDepth';
+import {
+  describeItemClick,
+  findClickedItem,
+} from '@/features/analytics/pageVisit';
+import {
+  HomeFeedState,
+  trackHomeFeedAction,
+  trackHomeFeedItemClicked,
+  trackHomeFeedListDepth,
+} from '@/features/feeds/lib/analytics';
 
 /**
  * The slice of a react-query result this list reads, declared structurally so
@@ -32,6 +44,7 @@ export interface FeedQuery {
 interface Props {
   query: FeedQuery;
   view: FeedView;
+  feedState: HomeFeedState;
   /** Reported with each save, so a save can be attributed to a filter. */
   urlType?: UrlType;
   hasFilters: boolean;
@@ -55,6 +68,31 @@ export default function FeedList(props: Props) {
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];
 
+  const listRef = useRef<HTMLDivElement>(null);
+  useListDepth({
+    containerRef: listRef,
+    itemsLoaded: allActivities.length,
+    pagesLoaded: data?.pages.length ?? 0,
+    hasMore: !!hasNextPage,
+    urlType: props.urlType,
+    onReport: (depth) => trackHomeFeedListDepth(props.feedState, depth),
+  });
+
+  const handleItemClick = (e: MouseEvent<HTMLDivElement>) => {
+    const item = findClickedItem(e.currentTarget, e.target as Element);
+    if (!item) return;
+
+    const click = describeItemClick(item);
+    if (!click) return;
+
+    const activityType = item.closest<HTMLElement>('[data-analytics-position]')
+      ?.dataset.analyticsActivityType;
+    trackHomeFeedItemClicked(props.feedState, {
+      ...click,
+      activity_type: activityType,
+    });
+  };
+
   if (isPending) {
     return <MyFeedContainerSkeleton />;
   }
@@ -68,7 +106,7 @@ export default function FeedList(props: Props) {
   }
 
   return (
-    <Container p="xs" size="xl">
+    <Container p="xs" size="xl" onClickCapture={handleItemClick}>
       <RefetchLoader isRefetching={isRefetching} subject="activities" />
       {allActivities.length === 0 && hasNextPage ? (
         // Every page so far was filtered out server-side. A button rather than
@@ -79,7 +117,10 @@ export default function FeedList(props: Props) {
             variant="light"
             color="gray"
             loading={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
+            onClick={() => {
+              trackHomeFeedAction(props.feedState, 'load_more');
+              fetchNextPage();
+            }}
           >
             Load more
           </Button>
@@ -100,10 +141,12 @@ export default function FeedList(props: Props) {
           isLoading={isFetchingNextPage}
           loadMore={fetchNextPage}
         >
-          <Stack gap={60} mx={'auto'} maw={600} w={'100%'}>
-            {allActivities.map((item) => (
+          <Stack ref={listRef} gap={60} mx={'auto'} maw={600} w={'100%'}>
+            {allActivities.map((item, index) => (
               <Box
                 key={item.id}
+                data-analytics-position={index + 1}
+                data-analytics-activity-type={item.activityType}
                 style={{
                   contentVisibility: 'auto',
                   containIntrinsicSize: 'auto 400px',
@@ -115,6 +158,7 @@ export default function FeedList(props: Props) {
                     saveSource: CardSaveSource.FEED,
                     activeFilters: { urlType: props.urlType },
                     pagePath: pathname,
+                    listPosition: index + 1,
                   }}
                 />
               </Box>
@@ -123,7 +167,12 @@ export default function FeedList(props: Props) {
         </InfiniteScroll>
       )}
 
-      <RefetchButton onRefetch={() => refetch()} />
+      <RefetchButton
+        onRefetch={() => {
+          trackHomeFeedAction(props.feedState, 'refresh');
+          refetch();
+        }}
+      />
     </Container>
   );
 }

@@ -8,6 +8,7 @@ import { JoseKey } from '@atproto/jwk-jose';
 import { configService } from 'src/shared/infrastructure/config';
 import { LockServiceFactory } from 'src/shared/infrastructure/locking';
 import { paths } from '@semble/types';
+import { reportPdsAuthFailure } from 'src/modules/atproto/infrastructure/services/pdsAuthFailure';
 
 export class OAuthClientFactory {
   static getClientMetadata(
@@ -174,13 +175,14 @@ export class OAuthClientFactory {
       const { sub, cause } = event.detail;
       if (!shouldLogDeletion(sub)) return;
       console.error(
-        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). Cause chain: ${formatCauseChain(cause)} (further deletions for this DID suppressed for ${DELETION_LOG_INTERVAL_MS / 60_000} min)`,
+        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). (further deletions for this DID suppressed for ${DELETION_LOG_INTERVAL_MS / 60_000} min)`,
       );
+      reportPdsAuthFailure('session_deleted', sub, cause);
     });
 
     client.addEventListener('updated', (event) => {
       console.log(
-        `[OAuthClient] Session updated (token refreshed) for ${event.detail.sub} (process: ${processGroup})`,
+        `[OAuthClient] Session stored (OAuth callback or token refresh) for ${event.detail.sub} (process: ${processGroup})`,
       );
     });
   }
@@ -205,21 +207,4 @@ function shouldLogDeletion(sub: string): boolean {
   lastDeletionLogAt.delete(sub);
   lastDeletionLogAt.set(sub, now);
   return true;
-}
-
-function formatCauseChain(error: unknown): string {
-  const parts: string[] = [];
-  let current: unknown = error;
-  let depth = 0;
-  while (current && depth < 5) {
-    if (current instanceof Error) {
-      parts.push(`${current.name}: ${current.message}`);
-      current = current.cause;
-    } else {
-      parts.push(JSON.stringify(current));
-      break;
-    }
-    depth++;
-  }
-  return parts.join(' <- ') || String(error);
 }

@@ -9,13 +9,17 @@ import {
 import { IoSearch } from 'react-icons/io5';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CollectionSelectorBrowseList from '../collectionSelectorBrowseList/CollectionSelectorBrowseList';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import useMyCollections from '../../lib/queries/useMyCollections';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
+import {
+  CollectionPickSource,
+  CollectionPickTracker,
+} from '../../lib/useCollectionPicks';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
@@ -25,6 +29,7 @@ import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 interface Props {
   selectedCollections: Collection[];
   onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
+  pickTracker?: CollectionPickTracker;
 }
 
 export default function CollectionSelectorMyCollections(props: Props) {
@@ -50,12 +55,23 @@ export default function CollectionSelectorMyCollections(props: Props) {
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
 
-  const handleCollectionChange = (checked: boolean, item: Collection) => {
+  const { pickTracker } = props;
+  useEffect(() => {
+    if (debouncedSearch) pickTracker?.searched('my_collections');
+  }, [debouncedSearch, pickTracker]);
+
+  const handleCollectionChange = (
+    checked: boolean,
+    item: Collection,
+    source: CollectionPickSource = 'my_collections',
+  ) => {
     if (checked) {
+      pickTracker?.pick(item.id, source, !!search);
       if (!props.selectedCollections.some((col) => col.id === item.id)) {
         props.onSelectedCollectionsChange([...props.selectedCollections, item]);
       }
     } else {
+      pickTracker?.unpick(item.id);
       props.onSelectedCollectionsChange(
         props.selectedCollections.filter((col) => col.id !== item.id),
       );
@@ -162,7 +178,7 @@ export default function CollectionSelectorMyCollections(props: Props) {
         initialName={search}
         onCreate={(collection) => {
           setSearch('');
-          handleCollectionChange(true, collection);
+          handleCollectionChange(true, collection, 'created');
         }}
       />
     </Fragment>

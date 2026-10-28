@@ -68,6 +68,14 @@ export const createExpressApp = async (
   const allowedOriginsSet = new Set(allowedOrigins);
 
   // Middleware setup
+  // TEMP: block Lightpanda headless scraper, correlated with DB latency spikes
+  app.use((req, res, next) => {
+    if (req.get('user-agent')?.startsWith('Lightpanda')) {
+      res.status(403).end();
+      return;
+    }
+    next();
+  });
   app.use(cookieParser()); // Parse cookies from incoming requests
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));

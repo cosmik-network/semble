@@ -25,6 +25,7 @@ import {
 } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
+import { getCollectionHref } from '@/lib/utils/link';
 
 interface Props {
   user: User;
@@ -101,7 +102,11 @@ export default function FeedActivityStatus(props: Props) {
               (collection: Collection, index: number) => (
                 <span key={collection.id}>
                   <Anchor
-                    href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
+                    href={getCollectionHref(
+                      collection.author.handle,
+                      getRecordKey(collection.uri!),
+                      { ref: 'feed' },
+                    )}
                     c={
                       collection.accessType === CollectionAccessType.OPEN
                         ? 'green'
@@ -134,7 +139,11 @@ export default function FeedActivityStatus(props: Props) {
                     {remainingCollections.map((c) => (
                       <LinkMenuItem
                         key={c.id}
-                        href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
+                        href={getCollectionHref(
+                          c.author.handle,
+                          getRecordKey(c.uri!),
+                          { ref: 'feed' },
+                        )}
                         target="_blank"
                         c={
                           c.accessType === CollectionAccessType.OPEN

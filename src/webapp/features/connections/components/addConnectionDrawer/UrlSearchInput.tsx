@@ -30,6 +30,7 @@ import { CollectionAccessType, type UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import { getRecordKey } from '@/lib/utils/atproto';
+import type { ConnectionLinkInputMethod } from '@/features/analytics/types';
 
 type SearchFilter = 'cards' | 'collections';
 
@@ -60,7 +61,15 @@ interface Props {
   placeholder: string;
   value: string;
   error?: React.ReactNode;
-  onUrlSelect: (url: string) => void;
+  /**
+   * `method` is left out when the link is cleared. `inLibrary` is whether the
+   * user already has the link, when the picked option says so.
+   */
+  onUrlSelect: (
+    url: string,
+    method?: ConnectionLinkInputMethod,
+    inLibrary?: boolean,
+  ) => void;
   onUrlClear?: () => void;
   onInputChange?: (rawValue: string) => void;
   /**
@@ -296,13 +305,28 @@ export default function UrlSearchInput(props: Props) {
       store={combobox}
       position="bottom-start"
       onOptionSubmit={(url) => {
-        props.onUrlSelect(url);
+        // Mirrors which list the dropdown is showing: recent cards until a
+        // search has run, then "Add this link" above the active filter's results
+        const method: ConnectionLinkInputMethod =
+          debounced.trim().length === 0
+            ? 'recent_card'
+            : url === inputValue
+              ? 'pasted'
+              : searchFilter === 'cards'
+                ? 'search_card'
+                : 'search_collection';
+        // Recent cards come from the user's own library; card search results
+        // carry their status; anything else is unknown
+        const inLibrary =
+          method === 'recent_card'
+            ? true
+            : method === 'search_card'
+              ? urls.find((u) => u.url === url)?.urlInLibrary
+              : undefined;
+        props.onUrlSelect(url, method, inLibrary);
         setInputValue(url);
         if (isValidUrl(url)) {
           setConfirmedUrl(url);
-          // Look up metadata from search results or recent cards
-          const searchMatch = urls.find((u) => u.url === url);
-          const recentMatch = recentCardsList.find((c) => c.url === url);
         }
         combobox.closeDropdown();
       }}

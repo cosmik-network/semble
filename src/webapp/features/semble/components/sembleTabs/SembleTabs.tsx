@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, MouseEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { encodeUrlParam } from '@/lib/utils/link';
 import {
@@ -32,18 +32,21 @@ import ConnectionsContainer from '@/features/connections/containers/connectionsC
 import ConnectionsContainerSkeleton from '@/features/connections/containers/connectionsContainer/Skeleton.ConnectionsContainer';
 
 import UrlGraphView from '@/features/graph/components/graphView/UrlGraphView';
+import {
+  SembleTab,
+  trackSembleItemClicked,
+  trackSembleTabViewed,
+} from '../../lib/analytics';
+import {
+  describeItemClick,
+  findClickedItem,
+} from '@/features/analytics/pageVisit';
 
 interface Props {
   url: string;
 }
 
-type TabValue =
-  | 'notes'
-  | 'collections'
-  | 'similar'
-  | 'mentions'
-  | 'connections'
-  | 'graph';
+type TabValue = SembleTab;
 
 const VALID_TABS: TabValue[] = [
   'notes',
@@ -68,6 +71,14 @@ export default function SembleTabs(props: Props) {
   // undefined while loading, null when the stats request failed
   const stats = isError ? null : urlMetadata?.stats;
 
+  const handleItemClick = (e: MouseEvent<HTMLElement>) => {
+    const item = findClickedItem(e.currentTarget, e.target as Element);
+    if (!item) return;
+
+    const click = describeItemClick(item);
+    if (click) trackSembleItemClicked(props.url, activeTab, click);
+  };
+
   return (
     <Tabs
       keepMounted={false}
@@ -75,6 +86,7 @@ export default function SembleTabs(props: Props) {
       onChange={(val) => {
         const newTab = val as TabValue;
         setActiveTab(newTab);
+        if (newTab !== activeTab) trackSembleTabViewed(props.url, newTab);
         const viaCardId = searchParams.get('viaCardId');
         const qs = `id=${encodeUrlParam(props.url)}&sembleTab=${newTab}${viaCardId ? `&viaCardId=${viaCardId}` : ''}`;
         window.history.replaceState(null, '', `?${qs}`);
@@ -125,7 +137,7 @@ export default function SembleTabs(props: Props) {
         </Paper>
       </Box>
 
-      <Container px={'xs'} size={'xl'} mt="md">
+      <Container px={'xs'} size={'xl'} mt="md" onClickCapture={handleItemClick}>
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />} key={props.url}>
             <SembleNotesContainer url={props.url} />
@@ -146,7 +158,11 @@ export default function SembleTabs(props: Props) {
             fallback={<SimilarCardsContainerSkeleton />}
             key={props.url}
           >
-            <SimilarCardsContainer url={props.url} semblePageUrl={props.url} />
+            <SimilarCardsContainer
+              url={props.url}
+              semblePageUrl={props.url}
+              depthVisit={{ page: 'semble_page', url: props.url }}
+            />
           </Suspense>
         </TabsPanel>
 

@@ -2,7 +2,9 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { getLoginPathWithRedirect } from '@/lib/auth/redirect';
-import { NoSessionError } from '@/api-client/errors';
+import { ApiError, NoSessionError } from '@/api-client/errors';
+import posthog from 'posthog-js';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
@@ -105,11 +107,45 @@ export const clearSessionMemo = (): void => {
   memo = null;
 };
 
+// One forced logout fans out to every in-flight query that 401s; count it once.
+let forcedLogoutTracked = false;
+
 /**
- * Logs out the current user by clearing tokens and redirecting to login
- * Can be called from both client and server contexts
+ * Records an involuntary logout. logoutUser is only reached when the app
+ * forces one (user-initiated logout goes through useAuth), so this event's
+ * rate is the rate at which users get kicked out.
  */
-export const logoutUser = async (): Promise<void> => {
+function trackForcedLogout(cause: unknown): void {
+  if (forcedLogoutTracked || !shouldCaptureAnalytics()) return;
+  forcedLogoutTracked = true;
+
+  const apiError = cause instanceof ApiError ? cause : undefined;
+  posthog.capture(
+    'forced_logout',
+    {
+      // PDS_SESSION_EXPIRED: a PDS write couldn't restore the ATProto session.
+      // NO_SESSION: /api/auth/me reported reauth_required (refresh failed or
+      // the ATProto session is gone).
+      reason: apiError
+        ? (apiError.code ?? `HTTP_${apiError.statusCode}`)
+        : 'NON_API_ERROR',
+      status_code: apiError?.statusCode,
+      error_message:
+        cause instanceof Error ? cause.message.slice(0, 500) : undefined,
+      page_path: window.location.pathname,
+    },
+    // The redirect below unloads the page before a batched send would flush.
+    { transport: 'sendBeacon', send_instantly: true },
+  );
+}
+
+/**
+ * Logs out the current user by clearing tokens and redirecting to login.
+ * Only for involuntary logouts; pass the error that forced it so it can be
+ * tracked.
+ */
+export const logoutUser = async (cause?: unknown): Promise<void> => {
+  if (typeof window !== 'undefined') trackForcedLogout(cause);
   clearSessionMemo();
   await ClientCookieAuthService.clearTokens();
   if (typeof window !== 'undefined') {

@@ -3,7 +3,11 @@ import { COSMIK_BLOG_PUBLICATION_URI } from '@/features/platforms/leaflet/lib/bl
 
 export default function EmailSubscribe() {
   return (
-    <form action="https://leaflet.pub/api/subscribe_email" method="post">
+    <form
+      action="https://leaflet.pub/api/subscribe_email"
+      method="post"
+      data-analytics-form="newsletter"
+    >
       <Card p={'xxs'} radius={'xl'} withBorder>
         <Group gap={'xs'} wrap="nowrap">
           <input

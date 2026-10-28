@@ -15,7 +15,7 @@ interface Props {
 
 export default function CardChip(props: Props) {
   const sembleNavigation = useSembleNavigation();
-  const href = getSembleHref(props.url);
+  const href = getSembleHref(props.url, { ref: 'semble_page' });
 
   return (
     <Tooltip label={getDomain(props.url)}>

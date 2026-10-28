@@ -31,14 +31,24 @@ export const getDisplayUrl = (url: string, maxPathLength = Infinity) => {
 export const encodeUrlParam = (url: string) =>
   url.replace(/[%#&+]/g, (c) => encodeURIComponent(c));
 
+// ref records where the visit came from for analytics (entry_source)
+export const getCollectionHref = (
+  handle: string,
+  rkey: string,
+  opts?: { ref?: string },
+) =>
+  `/profile/${handle}/collections/${rkey}${opts?.ref ? `?ref=${opts.ref}` : ''}`;
+
 // `id` goes last since it is the only value that can contain a query string
 export const getSembleHref = (
   url: string,
-  opts?: { viaCardId?: string; sembleTab?: string },
+  // ref records where the visit came from for analytics (entry_source)
+  opts?: { viaCardId?: string; sembleTab?: string; ref?: string },
 ) => {
   const parts: string[] = [];
   if (opts?.viaCardId) parts.push(`viaCardId=${opts.viaCardId}`);
   if (opts?.sembleTab) parts.push(`sembleTab=${opts.sembleTab}`);
+  if (opts?.ref) parts.push(`ref=${opts.ref}`);
   parts.push(`id=${encodeUrlParam(url)}`);
   return `/url?${parts.join('&')}`;
 };
@@ -47,12 +57,13 @@ export const getSembleHref = (
 // re-encoding anything but the `id` url
 export const buildSembleQuery = (
   params: URLSearchParams,
-  opts?: { omit?: string; set?: Record<string, string> },
+  opts?: { omit?: string | string[]; set?: Record<string, string> },
 ) => {
   const parts: string[] = [];
   const pending = { ...(opts?.set ?? {}) };
+  const omit = [opts?.omit ?? []].flat();
   params.forEach((value, key) => {
-    if (key === opts?.omit) return;
+    if (omit.includes(key)) return;
     if (key in pending) {
       parts.push(`${key}=${pending[key]}`);
       delete pending[key];

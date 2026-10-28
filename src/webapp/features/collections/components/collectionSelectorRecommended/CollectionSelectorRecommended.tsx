@@ -2,6 +2,7 @@ import { Loader, Stack, Text } from '@mantine/core';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import useRecommendedCollectionsForUrl from '../../lib/queries/useRecommendedCollectionsForUrl';
+import { CollectionPickTracker } from '../../lib/useCollectionPicks';
 import { Collection } from '@semble/types';
 import CollectionListScrollArea, {
   COLLECTION_PANEL_HEIGHT,
@@ -12,6 +13,7 @@ interface Props {
   url: string;
   selectedCollections: Collection[];
   onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
+  pickTracker?: CollectionPickTracker;
 }
 
 export default function CollectionSelectorRecommended(props: Props) {
@@ -24,10 +26,12 @@ export default function CollectionSelectorRecommended(props: Props) {
 
   const handleCollectionChange = (checked: boolean, item: Collection) => {
     if (checked) {
+      props.pickTracker?.pick(item.id, 'recommended', false);
       if (!props.selectedCollections.some((col) => col.id === item.id)) {
         props.onSelectedCollectionsChange([...props.selectedCollections, item]);
       }
     } else {
+      props.pickTracker?.unpick(item.id);
       props.onSelectedCollectionsChange(
         props.selectedCollections.filter((col) => col.id !== item.id),
       );

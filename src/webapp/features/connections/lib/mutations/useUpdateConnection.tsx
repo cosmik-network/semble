@@ -4,16 +4,28 @@ import { connectionKeys } from '../connectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { tagKeys } from '@/features/tags/lib/tagKeys';
 import { UpdateConnectionRequest } from '@semble/types';
+import posthog from 'posthog-js';
+import { ConnectionUpdatedEventProperties } from '@/features/analytics/types';
+import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 
 export default function useUpdateConnection() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (request: UpdateConnectionRequest) => {
+    mutationFn: ({
+      analytics: _analytics,
+      ...request
+    }: UpdateConnectionRequest & {
+      analytics?: ConnectionUpdatedEventProperties;
+    }) => {
       return updateConnection(request);
     },
 
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      if (variables.analytics && shouldCaptureAnalytics()) {
+        posthog.capture('connection_updated', variables.analytics);
+      }
+
       // Invalidate all connection queries to ensure updates appear everywhere
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all feed queries to update connection items in feeds

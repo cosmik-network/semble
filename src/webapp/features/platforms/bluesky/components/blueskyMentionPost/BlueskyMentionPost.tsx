@@ -36,6 +36,7 @@ export default function BlueskyMentionPost(props: Props) {
     navigate(
       getSembleHref(
         `https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
+        { ref: 'semble_page' },
       ),
     );
   };
@@ -50,6 +51,8 @@ export default function BlueskyMentionPost(props: Props) {
       withBorder
       className={styles.root}
       onClick={handleNavigateToPost}
+      data-analytics-target="open"
+      data-analytics-destination="semble_page"
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
         <Stack justify="space-between" gap="xs">

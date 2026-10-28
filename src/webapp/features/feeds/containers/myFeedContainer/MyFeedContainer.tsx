@@ -14,6 +14,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { feedViewRequiresAuth } from '@/features/feeds/lib/feedOptions';
 import { hasFeedFilters } from '@/features/feeds/lib/feedEmptyState';
 import FeedLoginCta from '@/features/feeds/components/feedLoginCta/FeedLoginCta';
+import {
+  HomeFeedState,
+  homeFeedStateFromSettings,
+  trackHomeFeedFiltersCleared,
+} from '@/features/feeds/lib/analytics';
 import FeedList from './FeedList';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -28,6 +33,7 @@ interface FeedFilters {
 
 interface ViewProps {
   filters: FeedFilters;
+  feedState: HomeFeedState;
   hasFilters: boolean;
   onClearFilters: () => void;
 }
@@ -46,6 +52,7 @@ function GlobalFeed(props: ViewProps) {
     <FeedList
       query={query}
       view="global"
+      feedState={props.feedState}
       urlType={props.filters.urlType}
       hasFilters={props.hasFilters}
       onClearFilters={props.onClearFilters}
@@ -60,6 +67,7 @@ function FollowingFeed(props: ViewProps) {
     <FeedList
       query={query}
       view="following"
+      feedState={props.feedState}
       urlType={props.filters.urlType}
       hasFilters={props.hasFilters}
       onClearFilters={props.onClearFilters}
@@ -77,6 +85,7 @@ function BskyFollowingFeed(props: ViewProps & { identifier?: string }) {
     <FeedList
       query={query}
       view="bskyFollowing"
+      feedState={props.feedState}
       urlType={props.filters.urlType}
       hasFilters={props.hasFilters}
       onClearFilters={props.onClearFilters}
@@ -162,16 +171,23 @@ export default function MyFeedContainer() {
     includeKnownBots: settings.includeKnownBots,
   };
 
+  const feedState = homeFeedStateFromSettings(settings);
   const viewProps: ViewProps = {
     filters,
+    feedState,
     hasFilters: hasFeedFilters(settings),
-    onClearFilters: () =>
+    onClearFilters: () => {
+      trackHomeFeedFiltersCleared(feedState, 'empty_state');
       updateSettings({
         feedUrlType: null,
         feedSource: null,
         feedActivityType: null,
-      }),
+      });
+    },
   };
+  // A new list per feed, so list depth is reported per feed and positions
+  // restart
+  const feedKey = JSON.stringify(feedState);
 
   // `Dashboard` holds the whole tree behind a skeleton until the session
   // resolves, so `isAuthenticated` is settled by the time this mounts.
@@ -191,7 +207,11 @@ export default function MyFeedContainer() {
           handle={settings.bskyHandle}
           onChange={() => updateSetting('bskyHandle', null)}
         />
-        <BskyFollowingFeed {...viewProps} identifier={settings.bskyHandle} />
+        <BskyFollowingFeed
+          key={feedKey}
+          {...viewProps}
+          identifier={settings.bskyHandle}
+        />
       </Suspense>
     );
   }
@@ -202,11 +222,11 @@ export default function MyFeedContainer() {
   return (
     <Suspense fallback={<MyFeedContainerSkeleton />}>
       {view === 'following' ? (
-        <FollowingFeed {...viewProps} />
+        <FollowingFeed key={feedKey} {...viewProps} />
       ) : view === 'bskyFollowing' ? (
-        <BskyFollowingFeed {...viewProps} />
+        <BskyFollowingFeed key={feedKey} {...viewProps} />
       ) : (
-        <GlobalFeed {...viewProps} />
+        <GlobalFeed key={feedKey} {...viewProps} />
       )}
     </Suspense>
   );

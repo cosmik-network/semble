@@ -11,6 +11,7 @@ import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import ProfileSuggestionList from '@/features/profile/components/profileSuggestionList/ProfileSuggestionList';
 import RecommendedProfiles from './RecommendedProfiles';
 import BlueskyProfiles from './BlueskyProfiles';
+import { trackExploreProfilesViewChanged } from '../../lib/analytics';
 
 export default function ExploreProfiles() {
   const [view, setView] = useState<ProfilesView>('forYou');
@@ -19,11 +20,15 @@ export default function ExploreProfiles() {
   return (
     <ExploreShelf
       section="profiles"
+      profilesView={view}
       subtitle={view === 'bluesky' ? 'People you follow on Bluesky' : undefined}
     >
       <SegmentedControl
         value={view}
-        onChange={(value) => setView(value as ProfilesView)}
+        onChange={(value) => {
+          trackExploreProfilesViewChanged(value as ProfilesView);
+          setView(value as ProfilesView);
+        }}
         size="sm"
         radius="lg"
         w="fit-content"

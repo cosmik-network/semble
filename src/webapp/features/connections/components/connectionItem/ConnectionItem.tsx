@@ -32,6 +32,7 @@ export default function ConnectionItem(props: Props) {
         urlIsInLibrary={urlView.urlInLibrary ?? false}
         urlConnectionCount={urlView.urlConnectionCount ?? 0}
         urlIsConnected={urlView.urlIsConnected}
+        sembleRef="semble_page"
       />
     </Stack>
   );

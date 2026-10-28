@@ -12,7 +12,10 @@ export default async function Page({ params }: Props) {
 
   return (
     <Container p="xs" size="xl">
-      <SimilarCardsContainer url={url} />
+      <SimilarCardsContainer
+        url={url}
+        depthVisit={{ page: 'collection_page', rkey }}
+      />
     </Container>
   );
 }

@@ -142,6 +142,7 @@ export default function Footer() {
         <Stack
           component="section"
           aria-labelledby="team-notes-heading"
+          data-analytics-section="team_notes"
           align="center"
           gap="xl"
           w="100%"
@@ -170,7 +171,7 @@ export default function Footer() {
 
         {/* The dashed line and stops reuse the landing page's trail
             connectors. */}
-        <Box className={styles.trail}>
+        <Box className={styles.trail} data-analytics-section="footer_links">
           {LINK_GROUPS.map((group) => {
             const headingId = `footer-${group.title.toLowerCase().replace(' ', '-')}`;
 

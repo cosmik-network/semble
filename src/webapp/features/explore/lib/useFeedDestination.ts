@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useSettings } from '@/providers/settings';
 import { FeedDestination, feedSettingsFor } from './feedDestinations';
+import { trackExploreFeedSelected } from './analytics';
 
 /**
  * /home reads its state from user settings rather than the URL, so a
@@ -20,6 +21,7 @@ export function useFeedDestination() {
   const { updateSettings } = useSettings();
 
   const select = (destination: FeedDestination) => {
+    trackExploreFeedSelected(destination);
     updateSettings(feedSettingsFor(destination));
     router.push('/home');
   };

@@ -12,7 +12,8 @@ export default function GetExtensionMenu() {
           Get Extension
         </Anchor>
       </Menu.Target>
-      <Menu.Dropdown>
+      {/* Rendered in a portal, outside the header it belongs to */}
+      <Menu.Dropdown data-analytics-section="header">
         <Menu.Item
           component="a"
           href="https://chromewebstore.google.com/detail/semble/dciebmpcjkmjbcgfdlinfgpjimhhchlg"

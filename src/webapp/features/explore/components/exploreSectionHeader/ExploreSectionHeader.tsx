@@ -22,7 +22,12 @@ export default function ExploreSectionHeader(props: Props) {
         <Group gap="xs" wrap="nowrap">
           {props.actions}
           {props.viewAllHref && (
-            <LinkButton variant="light" color="blue" href={props.viewAllHref}>
+            <LinkButton
+              variant="light"
+              color="blue"
+              href={props.viewAllHref}
+              data-analytics-action="view_all"
+            >
               View all
             </LinkButton>
           )}
