@@ -29,8 +29,15 @@ export interface CanvasDocument {
   store: Record<string, unknown>;
 }
 
+export interface SavedArrowSettings {
+  focus: boolean;
+  hidden: boolean;
+}
+
 export interface CanvasSession {
   editor: object;
+  // Missing from sessions saved before arrows could be toggled
+  arrows?: SavedArrowSettings;
 }
 
 // A link as last fetched, shown when the board opens until it's fetched again

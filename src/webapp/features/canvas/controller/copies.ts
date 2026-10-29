@@ -33,6 +33,7 @@ export function attachCopies(editor: Editor) {
   });
 
   return {
+    byUrl: () => byUrl.get(),
     count: (url: string) => byUrl.get().get(url)?.length ?? 0,
     isOutlined: (id: TLShapeId) => outlined.get().has(id),
   };

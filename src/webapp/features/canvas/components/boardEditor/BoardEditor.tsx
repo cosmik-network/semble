@@ -22,10 +22,13 @@ import {
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
+import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
+import { getShapeVisibility } from '../../shapes/connectionArrow/connectionArrows';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
 import BoardHeader from '../boardHeader/BoardHeader';
+import BoardNavigation from '../boardNavigation/BoardNavigation';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
 import QuickAdd from '../quickAdd/QuickAdd';
@@ -36,7 +39,8 @@ import { boardOverrides } from './boardOverrides';
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
 
-const shapeUtils = [LinkCardShapeUtil];
+// Replaces tldraw's arrow
+const shapeUtils = [LinkCardShapeUtil, ConnectionArrowShapeUtil];
 const CARD_MODAL_MENU = 'canvas-card-modal';
 
 function showSaveError(error: unknown) {
@@ -103,6 +107,9 @@ export default function BoardEditor(props: Props) {
           refreshFailed={controller?.refreshFailed}
         />
       ),
+      NavigationPanel: () => (
+        <BoardNavigation arrowView={controller?.arrowView ?? null} />
+      ),
       Toolbar: BoardToolbar,
       ContextMenu: BoardContextMenu,
       TopPanel: () => (
@@ -168,6 +175,7 @@ export default function BoardEditor(props: Props) {
           <CanvasCopiesProvider copies={controller?.copies ?? null}>
             <Tldraw
               shapeUtils={shapeUtils}
+              getShapeVisibility={getShapeVisibility}
               components={components}
               overrides={overrides}
               onMount={setEditor}

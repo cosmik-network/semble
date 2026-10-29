@@ -7,6 +7,7 @@ import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { tagKeys } from '@/features/tags/lib/tagKeys';
+import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 
 export default function useCreateConnection() {
   const queryClient = useQueryClient();
@@ -28,6 +29,8 @@ export default function useCreateConnection() {
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       // Invalidate all card queries so connection count updates everywhere
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+      // Canvas boards in other tabs draw it as an arrow
+      announceLinkChange({ urls: [variables.sourceUrl, variables.targetUrl] });
       // Invalidate all collection queries so connection count updates in collection views
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       // Invalidate tag queries so tags typed in the connection note appear in autocomplete

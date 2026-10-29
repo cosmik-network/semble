@@ -6,7 +6,8 @@ export const canvasKeys = {
   canvas: (id: string) => [...canvasKeys.all(), 'canvas', id] as const,
   // Under cardKeys so the webapp's save and remove mutations, which invalidate
   // all of them, refresh the board's links too
-  link: (url: string) => [...cardKeys.all(), 'canvas-link', url] as const,
+  links: () => [...cardKeys.all(), 'canvas-link'] as const,
+  link: (url: string) => [...canvasKeys.links(), url] as const,
   librarySearch: (query: string) =>
     [...cardKeys.all(), 'canvas-library-search', query] as const,
 };

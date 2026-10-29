@@ -20,6 +20,11 @@ export function boardOverrides(
       // A grouped card selects as its group, which hides the card's popup.
       // Ungroup stays for groups made before.
       delete actions['group'];
+      actions['toggle-card-arrows'] = {
+        id: 'toggle-card-arrows',
+        label: 'Hide or show arrows',
+        onSelect: () => controller?.arrowView.toggleSelectedArrows(),
+      };
       actions['quick-add'] = {
         id: 'quick-add',
         label: 'Quick add',

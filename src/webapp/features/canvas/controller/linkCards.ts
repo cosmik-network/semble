@@ -7,6 +7,8 @@ import {
   type VecLike,
 } from 'tldraw';
 import { canvasKeys } from '../lib/canvasKeys';
+import { LINK_CHANGES_CHANNEL, type LinkChange } from '../lib/linkChanges';
+import type { FetchedConnections } from '../model/arrows';
 import {
   LINK_CARD_TYPE,
   LINK_CARD_WIDTH,
@@ -47,13 +49,12 @@ const NOTE_SIZE = 200;
 // Saving last known links on every fetch would rewrite them once per link
 const KNOWN_LINKS_THROTTLE_MS = 500;
 
-// Tells canvases in other tabs which links a save changed. Each tab has its
-// own query cache, and a save there may change nothing on the board.
-const CHANGED_LINKS_CHANNEL = 'canvas-changed-links';
-
 // Places links and notes pasted or dropped on the board, and keeps each link
-// card sized to its link
-export function attachLinkCards(deps: LinkCardsDeps) {
+// card sized to its link.
+export function attachLinkCards(
+  deps: LinkCardsDeps,
+  onLinkFetched: () => void,
+) {
   const { editor, queryClient } = deps;
   // Each link as last fetched. Kept apart from the query cache, which drops
   // links no card has shown for a while.
@@ -162,22 +163,31 @@ export function attachLinkCards(deps: LinkCardsDeps) {
       .catch(() => {});
   }
 
-  const changedLinks = new BroadcastChannel(CHANGED_LINKS_CHANNEL);
+  const changedLinks = new BroadcastChannel(LINK_CHANGES_CHANNEL);
   // A save invalidates every link at once; they're sent together
   let changedUrls = new Set<string>();
   let announceTimer: ReturnType<typeof setTimeout> | null = null;
   function announceChanged(url: string) {
     changedUrls.add(url);
     announceTimer ??= setTimeout(() => {
-      changedLinks.postMessage(Array.from(changedUrls));
+      changedLinks.postMessage({
+        urls: Array.from(changedUrls),
+      } satisfies LinkChange);
       changedUrls = new Set();
       announceTimer = null;
     });
   }
   // Refetched rather than invalidated, which would announce them back
-  changedLinks.onmessage = (event: MessageEvent<string[]>) => {
-    const onBoard = boardUrls();
-    event.data.filter((url) => onBoard.includes(url)).forEach(refetchChanged);
+  changedLinks.onmessage = (event: MessageEvent<LinkChange>) => {
+    const urls = (event.data.urls ?? []).map((url) => linkKey(url) ?? url);
+    const connectionIds = event.data.connectionIds ?? [];
+    const joinsChanged = (url: string) =>
+      !!known[url]?.link.connections?.some(({ id }) =>
+        connectionIds.includes(id),
+      );
+    boardUrls()
+      .filter((url) => urls.includes(url) || joinsChanged(url))
+      .forEach(refetchChanged);
   };
 
   const unwatchLinks = queryClient.getQueryCache().subscribe((event) => {
@@ -193,8 +203,17 @@ export function attachLinkCards(deps: LinkCardsDeps) {
     }
     if (event.action.type !== 'success') return;
     const { data, dataUpdatedAt } = event.query.state;
-    known[url] = { link: data as LinkInfo, fetchedAt: dataUpdatedAt };
+    const link = data as LinkInfo;
+    // Connections that didn't load keep the board's arrows as they were
+    known[url] = {
+      link: {
+        ...link,
+        connections: link.connections ?? known[url]?.link.connections ?? null,
+      },
+      fetchedAt: dataUpdatedAt,
+    };
     sizeCards([url]);
+    onLinkFetched();
     knownLinksTimer ??= setTimeout(
       () => void saveKnownLinks(),
       KNOWN_LINKS_THROTTLE_MS,
@@ -286,6 +305,20 @@ export function attachLinkCards(deps: LinkCardsDeps) {
     sizeAll: () => sizeCards(boardUrls()),
     fetchLinks,
     boardUrls,
+    // Links whose connections never loaded, or were saved before links
+    // carried them, are left out
+    fetchedConnections: () =>
+      new Map<string, FetchedConnections>(
+        boardUrls()
+          .filter((url) => known[url]?.link.connections)
+          .map((url) => [
+            url,
+            {
+              connections: known[url].link.connections!,
+              fetchedAt: known[url].fetchedAt,
+            },
+          ]),
+      ),
     urlsInView,
     detach() {
       for (const type of ['url', 'text', 'files', 'svg-text'] as const) {

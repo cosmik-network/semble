@@ -45,7 +45,8 @@ export function attachRefreshLoop(deps: RefreshLoopDeps) {
     failed,
     // Once the board has loaded
     start() {
-      void refresh(deps.boardUrls());
+      // What the board last saved may be from before a change made elsewhere
+      void refresh(deps.boardUrls(), { force: true });
       unsubscribe = focusManager.subscribe((focused) => {
         if (focused) void refresh(deps.boardUrls());
       });

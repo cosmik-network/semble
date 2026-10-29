@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
+import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { updateConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
@@ -13,13 +15,16 @@ export default function useUpdateConnection() {
       return updateConnection(request);
     },
 
-    onSuccess: () => {
+    onSuccess: (_data, request) => {
       // Invalidate all connection queries to ensure updates appear everywhere
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all feed queries to update connection items in feeds
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       // Invalidate tag queries so tags typed in the connection note appear in autocomplete
       queryClient.invalidateQueries({ queryKey: tagKeys.all() });
+      // Canvas boards draw connections as arrows, here and in other tabs
+      queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
+      announceLinkChange({ connectionIds: [request.connectionId] });
       // Invalidate all URL metadata queries with stats to update tab counts
       queryClient.invalidateQueries({
         predicate: (query): boolean => {

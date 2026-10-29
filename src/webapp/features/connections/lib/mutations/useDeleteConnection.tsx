@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
+import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { deleteConnection } from '../dal';
 import { connectionKeys } from '../connectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
@@ -15,7 +17,7 @@ export default function useDeleteConnection() {
       return deleteConnection(request);
     },
 
-    onSuccess: () => {
+    onSuccess: (_data, request) => {
       // Invalidate all connection queries to ensure deletions are reflected everywhere
       queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
       // Invalidate all feed queries to remove deleted connection items from feeds
@@ -27,6 +29,9 @@ export default function useDeleteConnection() {
       // mutation here that doesn't invalidate cardKeys.all(), so clear them
       // explicitly.
       queryClient.invalidateQueries({ queryKey: cardKeys.urlStatuses() });
+      // Canvas boards draw connections as arrows, here and in other tabs
+      queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
+      announceLinkChange({ connectionIds: [request.connectionId] });
       // Invalidate all URL metadata queries with stats to update tab counts
       queryClient.invalidateQueries({
         predicate: (query): boolean => {

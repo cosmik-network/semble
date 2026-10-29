@@ -9,12 +9,14 @@ import {
   SelectAllMenuItem,
   TldrawUiMenuContextProvider,
   TldrawUiMenuGroup,
+  TldrawUiMenuItem,
   TldrawUiMenuSubmenu,
   ToggleAutoSizeMenuItem,
   ToggleLockMenuItem,
   UngroupMenuItem,
   preventDefault,
   useContainer,
+  useActions,
   useEditor,
   useEditorComponents,
   useMenuIsOpen,
@@ -23,6 +25,7 @@ import {
   useValue,
   type TLUiContextMenuProps,
 } from 'tldraw';
+import { selectedCardsHideArrows } from '../../shapes/connectionArrow/connectionArrows';
 
 // tldraw's DefaultContextMenu with Radix's open state following tldraw's.
 // In the default, a press on tldraw's menu click capture closes the menu
@@ -134,6 +137,12 @@ function BoardContextMenuContent() {
     () => editor.getSelectedShapeIds().length > 0,
     [editor],
   );
+  const actions = useActions();
+  const cardsHideArrows = useValue(
+    'selected cards hide arrows',
+    () => selectedCardsHideArrows(editor),
+    [editor],
+  );
   if (!isSelecting) return null;
 
   return (
@@ -149,6 +158,17 @@ function BoardContextMenuContent() {
           </TldrawUiMenuSubmenu>
           <ArrangeMenuSubmenu />
           <ReorderMenuSubmenu />
+        </TldrawUiMenuGroup>
+      )}
+      {cardsHideArrows !== null && !isReadonly && (
+        <TldrawUiMenuGroup id="card-arrows">
+          <TldrawUiMenuItem
+            id="toggle-card-arrows"
+            label={cardsHideArrows ? 'Show arrows' : 'Hide arrows'}
+            onSelect={() =>
+              actions['toggle-card-arrows']?.onSelect('context-menu')
+            }
+          />
         </TldrawUiMenuGroup>
       )}
       <ClipboardMenuGroup />

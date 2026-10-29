@@ -1,6 +1,7 @@
 import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
+  LinkConnection,
   LinkInfo,
 } from '@/features/canvas/server/canvasServer';
 
@@ -18,6 +19,7 @@ export function testLink(
     metadata: { url, title: `Title of ${url}` },
     saved: false,
     note: null,
+    connections: [],
     ...overrides,
   };
 }
@@ -26,10 +28,14 @@ export class FakeServer implements CanvasServer {
   calls: ServerCall[] = [];
   // What the server returns for each link; others load with a title only
   links = new Map<string, LinkInfo>();
+  // Every connection, whoever made it. Each link returns those it's an end of.
+  connections: LinkConnection[] = [];
   // The viewer's library, most recent first
   library: UrlMetadata[] = [];
   // getLinks fails while set, as when the network is down
   failing = false;
+  // Links load without their connections while set
+  connectionsFailing = false;
   private held: (() => void)[] | null = null;
 
   // Responses wait until the returned function is called
@@ -46,8 +52,20 @@ export class FakeServer implements CanvasServer {
     this.calls.push({ method: 'getLinks', args: [urls] });
     // Answered as things stood when asked, however long the response is held
     const failing = this.failing;
+    const connectionsFailing = this.connectionsFailing;
     const links = new Map(
-      urls.map((url) => [url, this.links.get(url) ?? testLink(url)]),
+      urls.map((url) => [
+        url,
+        {
+          ...(this.links.get(url) ?? testLink(url)),
+          connections: connectionsFailing
+            ? null
+            : this.connections.filter(
+                (connection) =>
+                  connection.sourceUrl === url || connection.targetUrl === url,
+              ),
+        },
+      ]),
     );
     const held = this.held;
     if (held) await new Promise<void>((respond) => held.push(respond));

@@ -1,6 +1,14 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
-import type { UrlMetadata, User } from '@semble/types';
+import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
+
+export interface LinkConnection {
+  id: string;
+  type: ConnectionType | null;
+  sourceUrl: string;
+  targetUrl: string;
+  curatorId: string;
+}
 
 // What a link card shows about its link, the same on every copy
 export interface LinkInfo {
@@ -10,6 +18,8 @@ export interface LinkInfo {
   saved: boolean;
   // The note on the viewer's own card for the link
   note: { id: string; text: string; author: User } | null;
+  // Null if they couldn't be loaded
+  connections: LinkConnection[] | null;
 }
 
 export interface CanvasServer {

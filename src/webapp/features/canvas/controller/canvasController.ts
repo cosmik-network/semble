@@ -7,6 +7,7 @@ import {
   type TLStoreSnapshot,
 } from 'tldraw';
 import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
+import { attachArrows } from './arrows';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 import { attachQuickAdd } from './quickAdd';
@@ -89,9 +90,16 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const { editor } = deps;
   const session = createSessionStateSnapshotSignal(editor.store);
   let detached = false;
-  const links = attachLinkCards(deps);
-  const quickAdd = attachQuickAdd(editor, links.placeLink);
   const copies = attachCopies(editor);
+  const arrows = attachArrows({
+    editor,
+    viewerDid: deps.ownerDid,
+    copies: copies.byUrl,
+    // Only read after the board has loaded
+    fetchedConnections: () => links.fetchedConnections(),
+  });
+  const links = attachLinkCards(deps, arrows.reconcileSoon);
+  const quickAdd = attachQuickAdd(editor, links.placeLink);
   const popupLink = createPopupLink(editor);
   const refreshLoop = attachRefreshLoop({
     boardUrls: links.boardUrls,
@@ -109,7 +117,10 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
           schema: editor.store.schema.serialize(),
           store: editor.store.serialize('document'),
         }),
-        getSession: () => ({ editor: session.get() ?? {} }),
+        getSession: () => ({
+          editor: session.get() ?? {},
+          arrows: arrows.saveSettings(),
+        }),
         getThumbnail: () => captureThumbnail(editor),
         // Listeners hear about changes on the next frame, which never comes
         // in a hidden tab
@@ -119,6 +130,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     {
       onLoad(document, saved, known) {
         links.showKnownLinks(known);
+        arrows.restoreSettings(saved?.arrows);
         loadSnapshot(editor.store, {
           document: (document ?? undefined) as TLStoreSnapshot | undefined,
           session: saved?.editor as TLSessionStateSnapshot | undefined,
@@ -129,7 +141,11 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
       onRoleChange(role) {
         const wasReadonly = editor.getIsReadonly();
         editor.updateInstanceState({ isReadonly: role !== 'writer' });
-        if (role === 'writer' && wasReadonly) deps.onWritingAgain();
+        if (role === 'writer' && wasReadonly) {
+          // The arrows came from the former writer, which may have been behind
+          arrows.reconcile();
+          deps.onWritingAgain();
+        }
         if (role === 'newer-version') deps.onNewerVersion();
       },
       onTakenOver: deps.onTakenOver,
@@ -144,6 +160,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const loaded = board.opened.then((status) => {
     if (status === 'ready' && !detached) {
       links.sizeAll();
+      arrows.reconcile();
       refreshLoop.start();
     }
     return status;
@@ -154,12 +171,14 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     quickAdd,
     copies,
     popupLink,
+    arrowView: arrows.view,
     refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;
       quickAdd.detach();
       refreshLoop.detach();
+      arrows.detach();
       const linksDetached = links.detach();
       // Close before unlistening: its flush reports pending changes through
       // the listener

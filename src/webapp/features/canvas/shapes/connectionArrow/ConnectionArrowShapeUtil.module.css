@@ -1,0 +1,4 @@
+/* The webapp's green, which tldraw's palette lacks */
+.arrow g[stroke] {
+  stroke: var(--mantine-color-green-filled);
+}

@@ -1,14 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { focusManager } from '@tanstack/react-query';
 import {
+  DefaultColorStyle,
+  DefaultDashStyle,
   createShapeId,
   toRichText,
+  type TLArrowShape,
   type TLNoteShape,
   type TLShapeId,
 } from 'tldraw';
+import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
-import type { LinkInfo } from '@/features/canvas/server/canvasServer';
+import type {
+  LinkConnection,
+  LinkInfo,
+} from '@/features/canvas/server/canvasServer';
 import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
 import type {
   CanvasDocument,
@@ -835,28 +842,6 @@ describe('copies', () => {
     expect(board.editor.getShape(other.id)).toEqual(other);
   });
 
-  // Nothing on the board hides arrows yet, so the prop is set directly
-  it('should hide arrows on one copy without hiding them on the others', async () => {
-    // Arrange
-    board = await createTestBoard();
-    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
-    await board.dropUrl('https://example.com/article', { x: 900, y: 200 });
-    const [hidden, other] = board.linkCards();
-
-    // Act
-    board.editor.updateShape({
-      id: hidden.id,
-      type: hidden.type,
-      props: { hideArrows: true },
-    });
-
-    // Assert
-    expect(
-      board.editor.getShape<LinkCardShape>(hidden.id)!.props.hideArrows,
-    ).toBe(true);
-    expect(board.editor.getShape(other.id)).toEqual(other);
-  });
-
   it('should fetch a link once for all its copies', async () => {
     // Arrange
     board = await createTestBoard();
@@ -1298,5 +1283,681 @@ describe('refresh', () => {
     await vi.waitFor(() => expect(linkOf(IN_VIEW)?.saved).toBe(true));
     await settle();
     expect(linkOf(IN_VIEW)?.saved).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────
+// arrows
+// ─────────────────────────────────────────────
+
+describe('arrows', () => {
+  // Long enough for a fetch to reach the fake server and its answer to land
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const A = 'https://example.com/a';
+  const B = 'https://example.com/b';
+  const C = 'https://example.com/c';
+  const VIEWER = 'did:plc:tester';
+  const connection = (
+    id: string,
+    sourceUrl: string,
+    targetUrl: string,
+    overrides: Partial<LinkConnection> = {},
+  ): LinkConnection => ({
+    id,
+    type: 'SUPPORTS',
+    sourceUrl,
+    targetUrl,
+    curatorId: VIEWER,
+    ...overrides,
+  });
+  const ends = () =>
+    board
+      .arrows()
+      .map((arrow) => `${arrow.connectionId}: ${arrow.from} -> ${arrow.to}`)
+      .sort();
+  const copiesOf = (url: string) =>
+    board
+      .linkCards()
+      .filter((card) => card.props.url === url)
+      .map((card) => card.id);
+
+  // Places each link where given and waits for every arrow to be drawn
+  async function boardWith(
+    server: FakeServer,
+    places: [string, number, number][],
+    arrowCount: number,
+  ) {
+    board = await createTestBoard({ server });
+    for (const [url, x, y] of places) await board.dropUrl(url, { x, y });
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(arrowCount));
+  }
+
+  it('should draw an arrow for every pair of copies a connection joins', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+
+    // Act
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [A, 0, 600],
+        [B, 800, 0],
+        [C, 800, 600],
+      ],
+      2,
+    );
+
+    // Assert
+    const [a1, a2] = copiesOf(A);
+    const [b] = copiesOf(B);
+    expect(ends()).toEqual([`c1: ${a1} -> ${b}`, `c1: ${a2} -> ${b}`].sort());
+  });
+
+  it('should remove the arrows of a connection deleted elsewhere on the next refresh', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B), connection('c2', B, C)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+        [C, 1200, 0],
+      ],
+      2,
+    );
+
+    // Act
+    server.connections = [connection('c2', B, C)];
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.arrows().map((arrow) => arrow.connectionId)).toEqual(['c2']),
+    );
+  });
+
+  it("should keep a link's arrows when its connections fail to load", async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+      ],
+      1,
+    );
+    const before = board.arrows();
+    server.connections = [];
+    server.connectionsFailing = true;
+
+    // Act
+    board.timedRefresh();
+    await vi.waitFor(() =>
+      expect(
+        server.calls.filter((call) => call.method === 'getLinks'),
+      ).toHaveLength(2),
+    );
+    await settle();
+
+    // Assert
+    expect(board.arrows()).toEqual(before);
+  });
+
+  it('should remove at once the arrows of a connection deleted in another tab', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B), connection('c2', B, C)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+        [C, 1200, 0],
+      ],
+      2,
+    );
+
+    // Act
+    server.connections = [connection('c2', B, C)];
+    announceLinkChange({ connectionIds: ['c1'] });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.arrows().map((arrow) => arrow.connectionId)).toEqual(['c2']),
+    );
+  });
+
+  it('should draw at once a connection made in another tab', async () => {
+    // Arrange
+    const server = new FakeServer();
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+      ],
+      0,
+    );
+    await settle();
+
+    // Act
+    server.connections = [connection('c1', A, B)];
+    announceLinkChange({ urls: [A, B] });
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+  });
+
+  it('should refresh arrows when the board is reopened, however recently they were fetched', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+      ],
+      1,
+    );
+    const first = board;
+    await first.dispose();
+    server.connections = [];
+
+    // Act
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server,
+    });
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+  });
+
+  it('should follow a connection whose type changed elsewhere', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+      ],
+      1,
+    );
+    const [before] = board.arrows();
+
+    // Act
+    server.connections = [connection('c1', A, B, { type: 'OPPOSES' })];
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.editor.getShape(before.id)!.meta).toMatchObject({
+        connectionType: 'OPPOSES',
+      }),
+    );
+    expect(board.arrows()).toEqual([before]);
+  });
+
+  // A connection arrow and a third card to drag it towards
+  async function boardWithArrowAndSpareCard() {
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+        [C, 600, 500],
+      ],
+      1,
+    );
+    const [arrow] = board.arrows();
+    return {
+      before: arrow,
+      shape: board.editor.getShape<TLArrowShape>(arrow.id)!,
+    };
+  }
+
+  it('should give a connection arrow no ends to drag', async () => {
+    // Arrange
+    const { shape } = await boardWithArrowAndSpareCard();
+
+    // Act
+    board.editor.select(shape.id);
+
+    // Assert
+    expect(board.editor.getShapeHandles(shape) ?? []).toEqual([]);
+  });
+
+  it('should keep a connection arrow bound to its cards when it is dragged', async () => {
+    // Arrange
+    const { before, shape } = await boardWithArrowAndSpareCard();
+    const middle = board.editor.getShapePageBounds(shape)!.center;
+    board.editor.select(shape.id);
+
+    // Act
+    board.drag([middle.x, middle.y], [600, 500]);
+
+    // Assert
+    expect(board.arrows()).toEqual([before]);
+    expect(board.editor.getShape(shape.id)!.props).toEqual(shape.props);
+    await settle();
+    expect(board.arrows()).toEqual([before]);
+  });
+
+  it("should keep a connection arrow's style when the user restyles it", async () => {
+    // Arrange
+    const { shape } = await boardWithArrowAndSpareCard();
+    board.editor.select(shape.id);
+
+    // Act
+    board.editor.setStyleForSelectedShapes(DefaultColorStyle, 'red');
+    board.editor.setStyleForSelectedShapes(DefaultDashStyle, 'draw');
+
+    // Assert
+    expect(board.editor.getShape(shape.id)!.props).toEqual(shape.props);
+  });
+
+  it("should draw the viewer's connections solid and other people's dotted", async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [
+      connection('mine', A, B),
+      connection('ghost', B, C, { curatorId: 'did:plc:someone-else' }),
+    ];
+
+    // Act
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 600, 0],
+        [C, 1200, 0],
+      ],
+      2,
+    );
+
+    // Assert
+    const dashOf = (connectionId: string) => {
+      const arrow = board
+        .arrows()
+        .find((candidate) => candidate.connectionId === connectionId)!;
+      return board.editor.getShape<TLArrowShape>(arrow.id)!.props.dash;
+    };
+    expect(dashOf('mine')).toBe('solid');
+    expect(dashOf('ghost')).toBe('dotted');
+  });
+
+  it('should change nothing when the same refresh runs twice', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [A, 0, 600],
+        [B, 800, 0],
+      ],
+      2,
+    );
+    board.timedRefresh();
+    await settle();
+    let changes = 0;
+    const unlisten = board.editor.store.listen(() => changes++, {
+      scope: 'document',
+    });
+
+    // Act
+    board.timedRefresh();
+    await settle();
+    unlisten();
+
+    // Assert
+    expect(changes).toBe(0);
+  });
+
+  it("should remove a deleted card's arrows, and bring them back with it on undo", async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+    const before = board.arrows();
+    const [a] = copiesOf(A);
+
+    // Act
+    board.editor.markHistoryStoppingPoint('delete');
+    board.editor.deleteShape(a);
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+    board.editor.undo();
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toEqual(before));
+  });
+
+  it('should remove again an arrow an undo brought back after its connection was deleted', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+    const [a] = copiesOf(A);
+    board.editor.markHistoryStoppingPoint('delete');
+    board.editor.deleteShape(a);
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+    server.connections = [];
+    board.timedRefresh();
+    await settle();
+    board.editor.undo();
+    await settle();
+
+    // Act
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+    expect(board.editor.getShape(a)).toBeDefined();
+  });
+
+  it('should show its arrows when the board is reopened, before any refresh returns', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+    const before = board.arrows();
+    const first = board;
+    await first.dispose();
+    server.holdResponses();
+
+    // Act
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server,
+    });
+
+    // Assert
+    expect(board.arrows()).toEqual(before);
+  });
+
+  it('should correct the arrows of a reopened board on its next refresh', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+    const first = board;
+    await first.dispose();
+    server.connections = [];
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server,
+    });
+    expect(board.arrows()).toHaveLength(1);
+
+    // Act
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+  });
+
+  describe('focus', () => {
+    // A -> B is the viewer's, B -> C a ghost, and C sits apart
+    async function boardWithMineAndGhost() {
+      const server = new FakeServer();
+      server.connections = [
+        connection('mine', A, B),
+        connection('ghost', B, C, { curatorId: 'did:plc:someone-else' }),
+      ];
+      await boardWith(
+        server,
+        [
+          [A, 0, 0],
+          [B, 600, 0],
+          [C, 600, 600],
+        ],
+        2,
+      );
+    }
+    const displayOf = (connectionId: string) => {
+      const arrow = board
+        .arrows()
+        .find((candidate) => candidate.connectionId === connectionId)!;
+      return board.arrowDisplay(arrow.id);
+    };
+    const FAINT = { strong: false, pill: false };
+
+    it('should draw every arrow faint and without its type until a card is focused', async () => {
+      // Arrange
+      await boardWithMineAndGhost();
+
+      // Act
+      board.hover([-500, 600]);
+      await settle();
+
+      // Assert
+      expect(displayOf('mine')).toEqual(FAINT);
+      expect(displayOf('ghost')).toEqual(FAINT);
+    });
+
+    it("should bring a hovered card's arrows to full strength with their types", async () => {
+      // Arrange
+      await boardWithMineAndGhost();
+
+      // Act
+      board.hover([0, 0]);
+
+      // Assert
+      await vi.waitFor(() =>
+        expect(displayOf('mine')).toEqual({ strong: true, pill: true }),
+      );
+      expect(displayOf('ghost')).toEqual(FAINT);
+    });
+
+    it("should bring a selected card's arrows to full strength, ghosts included", async () => {
+      // Arrange
+      await boardWithMineAndGhost();
+      const [b] = copiesOf(B);
+
+      // Act
+      board.editor.select(b);
+
+      // Assert
+      expect(displayOf('mine')).toEqual({ strong: true, pill: true });
+      expect(displayOf('ghost')).toEqual({ strong: true, pill: true });
+    });
+
+    it('should draw every arrow at full strength once focus is turned off, naming ghosts only on focus', async () => {
+      // Arrange
+      await boardWithMineAndGhost();
+
+      // Act
+      board.arrowView.toggleFocus();
+
+      // Assert
+      expect(board.arrowView.isFocusOn()).toBe(false);
+      expect(displayOf('mine')).toEqual({ strong: true, pill: true });
+      expect(displayOf('ghost')).toEqual({ strong: true, pill: false });
+    });
+  });
+
+  describe('hiding', () => {
+    // Two copies of A, each connected to B
+    async function boardWithTwoCopies() {
+      const server = new FakeServer();
+      server.connections = [connection('c1', A, B)];
+      await boardWith(
+        server,
+        [
+          [A, 0, 0],
+          [A, 0, 600],
+          [B, 800, 0],
+        ],
+        2,
+      );
+      return server;
+    }
+    const hiddenArrows = (copy: TLShapeId) =>
+      board
+        .arrows()
+        .filter((arrow) => arrow.from === copy)
+        .map((arrow) => board.editor.isShapeHidden(arrow.id));
+
+    it("should hide one copy's arrows without hiding the other copies'", async () => {
+      // Arrange
+      await boardWithTwoCopies();
+      const [hidden, other] = copiesOf(A);
+      board.editor.select(hidden);
+
+      // Act
+      board.runAction('toggle-card-arrows');
+
+      // Assert
+      expect(hiddenArrows(hidden)).toEqual([true]);
+      expect(hiddenArrows(other)).toEqual([false]);
+    });
+
+    it("should show a copy's arrows again when toggled twice", async () => {
+      // Arrange
+      await boardWithTwoCopies();
+      const [copy] = copiesOf(A);
+      board.editor.select(copy);
+      board.runAction('toggle-card-arrows');
+
+      // Act
+      board.runAction('toggle-card-arrows');
+
+      // Assert
+      expect(hiddenArrows(copy)).toEqual([false]);
+    });
+
+    it('should hide every arrow from the board toggle', async () => {
+      // Arrange
+      await boardWithTwoCopies();
+
+      // Act
+      board.arrowView.toggleHidden();
+
+      // Assert
+      expect(
+        board.arrows().map((arrow) => board.editor.isShapeHidden(arrow.id)),
+      ).toEqual([true, true]);
+    });
+
+    it('should hide arrows drawn on the board too when every arrow is hidden', async () => {
+      // Arrange
+      await boardWithTwoCopies();
+      board.editor.setCurrentTool('arrow');
+      board.drag([2000, 2000], [2400, 2000]);
+      const drawn = board.editor
+        .getCurrentPageShapes()
+        .find((shape) => shape.type === 'arrow' && !shape.meta.connectionId)!;
+
+      // Act
+      board.arrowView.toggleHidden();
+
+      // Assert
+      expect(board.editor.isShapeHidden(drawn.id)).toBe(true);
+    });
+
+    it('should keep hiding out of undo', async () => {
+      // Arrange
+      await boardWithTwoCopies();
+      const [copy] = copiesOf(A);
+      const [b] = copiesOf(B);
+      const before = board.editor.getShape(b)!;
+      board.drag([800, 0], [800, 300]);
+      board.editor.select(copy);
+      board.runAction('toggle-card-arrows');
+      board.arrowView.toggleFocus();
+
+      // Act
+      board.editor.undo();
+
+      // Assert
+      expect(board.editor.getShape(b)!.y).toBe(before.y);
+      expect(hiddenArrows(copy)).toEqual([true]);
+      expect(board.arrowView.isFocusOn()).toBe(false);
+    });
+
+    it('should keep arrows hidden when their connection changes elsewhere', async () => {
+      // Arrange
+      const server = await boardWithTwoCopies();
+      const [copy] = copiesOf(A);
+      board.editor.select(copy);
+      board.runAction('toggle-card-arrows');
+
+      // Act
+      server.connections = [connection('c1', A, B, { type: 'OPPOSES' })];
+      board.timedRefresh();
+      await vi.waitFor(() =>
+        expect(board.editor.getShape(board.arrows()[0].id)!.meta).toMatchObject(
+          { connectionType: 'OPPOSES' },
+        ),
+      );
+
+      // Assert
+      expect(hiddenArrows(copy)).toEqual([true]);
+    });
+
+    it('should restore the arrow toggles when the board is reopened', async () => {
+      // Arrange
+      const server = await boardWithTwoCopies();
+      board.arrowView.toggleFocus();
+      board.arrowView.toggleHidden();
+      const first = board;
+      await first.dispose();
+
+      // Act
+      board = await createTestBoard({
+        storage: first.storage,
+        canvasId: first.canvasId,
+        server,
+      });
+
+      // Assert
+      expect(board.arrowView.isFocusOn()).toBe(false);
+      expect(board.arrowView.areHidden()).toBe(true);
+      expect(
+        board.arrows().map((arrow) => board.editor.isShapeHidden(arrow.id)),
+      ).toEqual([true, true]);
+    });
   });
 });

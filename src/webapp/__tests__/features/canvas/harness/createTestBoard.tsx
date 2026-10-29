@@ -16,7 +16,10 @@ import {
   defaultTools,
   tipTapDefaultExtensions,
   useActions,
+  getArrowBindings,
+  type TLArrowShape,
   type TLPointerEventInfo,
+  type TLShapeId,
   type VecLike,
 } from 'tldraw';
 import {
@@ -32,8 +35,21 @@ import {
   linkCardsOn,
   type LinkCardShape,
 } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
+import { ConnectionArrowShapeUtil } from '@/features/canvas/shapes/connectionArrow/ConnectionArrowShapeUtil';
+import {
+  arrowDisplay,
+  getShapeVisibility,
+  type ArrowDisplay,
+} from '@/features/canvas/shapes/connectionArrow/connectionArrows';
 import { FakeLocks } from './fakeLocks';
 import { FakeServer } from './fakeServer';
+
+export interface BoardArrow {
+  id: TLShapeId;
+  connectionId: string;
+  from: TLShapeId | undefined;
+  to: TLShapeId | undefined;
+}
 
 export interface TestBoard {
   editor: Editor;
@@ -78,6 +94,8 @@ export interface TestBoard {
   pasteFiles(files: File[]): Promise<void>;
   dropUrl(url: string, point: VecLike): Promise<void>;
   linkCards(): LinkCardShape[];
+  // The connection arrows drawn, each with the copies its ends are bound to
+  arrows(): BoardArrow[];
   // Double-clicks with the select tool, in page coordinates at the default
   // camera
   doubleClick(at: [number, number]): void;
@@ -86,6 +104,10 @@ export interface TestBoard {
   // What each copy's badge and outline show
   copies: CanvasController['copies'];
   popupLink: CanvasController['popupLink'];
+  // How arrows show: focus, hiding and their toggles
+  arrowView: CanvasController['arrowView'];
+  // Whether an arrow is drawn at full strength, and with its type pill
+  arrowDisplay(id: TLShapeId): ArrowDisplay;
   // Runs the refresh due every ten minutes, as if that long had passed
   timedRefresh(): void;
   // Whether the header says refreshing failed
@@ -159,7 +181,11 @@ function openTab(indexedDB: IDBFactory, locks: FakeLocks) {
 export async function createTestBoard(
   options: Options = {},
 ): Promise<TestBoard> {
-  const shapeUtils = [...defaultShapeUtils, LinkCardShapeUtil];
+  const shapeUtils = [
+    ...defaultShapeUtils.filter((util) => util.type !== 'arrow'),
+    ConnectionArrowShapeUtil,
+    LinkCardShapeUtil,
+  ];
   const bindingUtils = [...defaultBindingUtils];
   const editor = new Editor({
     store: createTLStore({ shapeUtils, bindingUtils }),
@@ -167,6 +193,7 @@ export async function createTestBoard(
     bindingUtils,
     tools: [...defaultTools, ...defaultShapeTools],
     getContainer: () => document.body,
+    getShapeVisibility,
     initialState: 'select',
     textOptions: {
       addFontsFromNode: defaultAddFontsFromNode,
@@ -264,11 +291,29 @@ export async function createTestBoard(
     quickAdd: controller.quickAdd,
     copies: controller.copies,
     popupLink: controller.popupLink,
+    arrowView: controller.arrowView,
+    arrowDisplay: (id) => arrowDisplay(editor, editor.getShape(id)!),
     timedRefresh: () => timedRefresh(),
     refreshFailed: controller.refreshFailed,
     hideTab: () => focusManager.setFocused(false),
     showTab: () => focusManager.setFocused(true),
     linkCards: () => linkCardsOn(editor),
+    arrows: () =>
+      editor
+        .getCurrentPageShapes()
+        .filter(
+          (shape): shape is TLArrowShape =>
+            shape.type === 'arrow' && !!shape.meta.connectionId,
+        )
+        .map((arrow) => {
+          const bindings = getArrowBindings(editor, arrow);
+          return {
+            id: arrow.id,
+            connectionId: arrow.meta.connectionId as string,
+            from: bindings.start?.toId,
+            to: bindings.end?.toId,
+          };
+        }),
     async dispose() {
       if (disposed) return;
       disposed = true;

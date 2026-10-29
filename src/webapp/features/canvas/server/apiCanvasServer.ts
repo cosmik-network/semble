@@ -3,10 +3,12 @@ import {
   getMyUrlCards,
   getUrlMetadata,
 } from '@/features/cards/lib/dal';
-import type { UrlMetadata } from '@semble/types';
-import type { CanvasServer, LinkInfo } from './canvasServer';
+import { getConnectionsForUrl } from '@/features/connections/lib/dal';
+import type { ConnectionType, UrlMetadata } from '@semble/types';
+import type { CanvasServer, LinkConnection, LinkInfo } from './canvasServer';
 
-// Until a batch endpoint exists (#982), each link takes two calls
+// Until a batch endpoint exists (#982), each link takes a call for its library
+// status and one per page of its connections, plus its metadata the first time
 const MAX_LINKS_IN_FLIGHT = 6;
 
 function limitConcurrency(max: number) {
@@ -40,16 +42,52 @@ async function getMetadata(url: string) {
   return metadata;
 }
 
+const CONNECTIONS_PAGE_SIZE = 100;
+
+async function fetchConnections(url: string) {
+  const connections: LinkConnection[] = [];
+  for (let page = 1; ; page++) {
+    const response = await getConnectionsForUrl({
+      url,
+      direction: 'both',
+      page,
+      limit: CONNECTIONS_PAGE_SIZE,
+    });
+    for (const { connection, source, target } of response.connections) {
+      connections.push({
+        id: connection.id,
+        type: (connection.type as ConnectionType | undefined) ?? null,
+        sourceUrl: source.url,
+        targetUrl: target.url,
+        curatorId: connection.curator.id,
+      });
+    }
+    if (!response.pagination.hasMore) return connections;
+  }
+}
+
+// The card still shows if its connections don't load
+async function getConnections(url: string) {
+  try {
+    return await fetchConnections(url);
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
+}
+
 async function getLink(url: string): Promise<LinkInfo> {
-  const [metadata, { card }] = await Promise.all([
+  const [metadata, { card }, connections] = await Promise.all([
     getMetadata(url),
     getCardFromMyLibrary(url),
+    getConnections(url),
   ]);
   return {
     url,
     metadata,
     saved: !!card,
     note: card?.note ? { ...card.note, author: card.author } : null,
+    connections,
   };
 }
 
