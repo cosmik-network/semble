@@ -1,4 +1,4 @@
-import type { QueryClient } from '@tanstack/react-query';
+import { isCancelledError, type QueryClient } from '@tanstack/react-query';
 import {
   createShapeId,
   toRichText,
@@ -25,6 +25,11 @@ import {
 } from '../shapes/linkCard/LinkCardShapeUtil';
 import type { CanvasStorage, KnownLinks } from '../storage/canvasStorage';
 
+// Whether a refresh reached the server and got an answer. Links that were
+// fresh enough to skip, or whose fetch was dropped for a newer one, aren't
+// either.
+export type FetchOutcome = 'fetched' | 'failed' | 'nothing-fetched';
+
 export interface LinkCardsDeps {
   editor: Editor;
   server: CanvasServer;
@@ -41,6 +46,10 @@ const NOTE_SIZE = 200;
 
 // Saving last known links on every fetch would rewrite them once per link
 const KNOWN_LINKS_THROTTLE_MS = 500;
+
+// Tells canvases in other tabs which links a save changed. Each tab has its
+// own query cache, and a save there may change nothing on the board.
+const CHANGED_LINKS_CHANNEL = 'canvas-changed-links';
 
 // Places links and notes pasted or dropped on the board, and keeps each link
 // card sized to its link
@@ -102,25 +111,86 @@ export function attachLinkCards(deps: LinkCardsDeps) {
     for (const [url, last] of Object.entries(links)) {
       const cached = queryClient.getQueryState(canvasKeys.link(url));
       if (cached && cached.dataUpdatedAt >= last.fetchedAt) continue;
+      // Built with its options first: their meta marks it as a link to watch
+      queryClient
+        .getQueryCache()
+        .build(
+          queryClient,
+          queryClient.defaultQueryOptions(linkQuery(deps.server, url)),
+        );
       queryClient.setQueryData(canvasKeys.link(url), last.link, {
         updatedAt: last.fetchedAt,
       });
     }
   }
 
-  function fetchLinks(urls: string[]) {
-    for (const url of urls) {
-      void queryClient.prefetchQuery(linkQuery(deps.server, url));
-    }
+  const fetchedAt = (url: string) =>
+    queryClient.getQueryState(canvasKeys.link(url))?.dataUpdatedAt;
+
+  // Unless forced, links fetched within the last minute are left as they are
+  async function fetchLinks(
+    urls: string[],
+    options: { force?: boolean } = {},
+  ): Promise<FetchOutcome> {
+    const outcomes = await Promise.all(
+      urls.map(async (url): Promise<FetchOutcome> => {
+        const before = fetchedAt(url);
+        try {
+          await queryClient.fetchQuery({
+            ...linkQuery(deps.server, url),
+            ...(options.force && { staleTime: 0 }),
+          });
+          return fetchedAt(url) === before ? 'nothing-fetched' : 'fetched';
+        } catch (error) {
+          return isCancelledError(error) ? 'nothing-fetched' : 'failed';
+        }
+      }),
+    );
+    if (outcomes.includes('fetched')) return 'fetched';
+    if (outcomes.includes('failed')) return 'failed';
+    return 'nothing-fetched';
   }
+
+  // Drops any fetch under way, which may predate the change. Through the
+  // query itself: refetchQueries skips a query whose only observer is
+  // disabled, like a closed modal's.
+  function refetchChanged(url: string) {
+    queryClient
+      .getQueryCache()
+      .find({ queryKey: canvasKeys.link(url), exact: true })
+      ?.fetch(undefined, { cancelRefetch: true })
+      .catch(() => {});
+  }
+
+  const changedLinks = new BroadcastChannel(CHANGED_LINKS_CHANNEL);
+  // A save invalidates every link at once; they're sent together
+  let changedUrls = new Set<string>();
+  let announceTimer: ReturnType<typeof setTimeout> | null = null;
+  function announceChanged(url: string) {
+    changedUrls.add(url);
+    announceTimer ??= setTimeout(() => {
+      changedLinks.postMessage(Array.from(changedUrls));
+      changedUrls = new Set();
+      announceTimer = null;
+    });
+  }
+  // Refetched rather than invalidated, which would announce them back
+  changedLinks.onmessage = (event: MessageEvent<string[]>) => {
+    const onBoard = boardUrls();
+    event.data.filter((url) => onBoard.includes(url)).forEach(refetchChanged);
+  };
 
   const unwatchLinks = queryClient.getQueryCache().subscribe((event) => {
     if (event.type !== 'updated') return;
     const url = event.query.meta?.linkUrl;
     if (typeof url !== 'string' || !boardUrls().includes(url)) return;
-    // Saves elsewhere in the webapp invalidate links; cards fetch only while
-    // they're mounted, so the board fetches them itself
-    if (event.action.type === 'invalidate') return fetchLinks([url]);
+    // Saves elsewhere in the webapp invalidate links. Cards on screen refetch
+    // theirs; the board refetches the rest.
+    if (event.action.type === 'invalidate') {
+      announceChanged(url);
+      if (!event.query.isActive()) refetchChanged(url);
+      return;
+    }
     if (event.action.type !== 'success') return;
     const { data, dataUpdatedAt } = event.query.state;
     known[url] = { link: data as LinkInfo, fetchedAt: dataUpdatedAt };
@@ -137,6 +207,14 @@ export function attachLinkCards(deps: LinkCardsDeps) {
     return { x: at.x - w / 2, y: at.y - h / 2 };
   };
 
+  function urlsInView() {
+    const view = editor.getViewportPageBounds();
+    const inView = linkCardsOn(editor).filter((card) =>
+      view.collides(editor.getShapePageBounds(card)!),
+    );
+    return Array.from(new Set(inView.map((card) => card.props.url)));
+  }
+
   function placeLink(url: string, point: VecLike | undefined) {
     const id = createShapeId();
     const h = cardHeight(url);
@@ -148,7 +226,7 @@ export function attachLinkCards(deps: LinkCardsDeps) {
       ...centredAt(point, LINK_CARD_WIDTH, h),
       props: { url, h },
     });
-    fetchLinks([url]);
+    void fetchLinks([url]);
   }
 
   function placeNote(text: string, point: VecLike | undefined) {
@@ -205,16 +283,18 @@ export function attachLinkCards(deps: LinkCardsDeps) {
     showKnownLinks,
     placeLink,
     // Once the board has loaded
-    refresh() {
-      sizeCards(boardUrls());
-      fetchLinks(boardUrls());
-    },
+    sizeAll: () => sizeCards(boardUrls()),
+    fetchLinks,
+    boardUrls,
+    urlsInView,
     detach() {
       for (const type of ['url', 'text', 'files', 'svg-text'] as const) {
         editor.registerExternalContentHandler(type, null);
       }
       unwatchLinks();
       unlistenSizes();
+      if (announceTimer) clearTimeout(announceTimer);
+      changedLinks.close();
       return knownLinksTimer ? saveKnownLinks() : Promise.resolve();
     },
   };

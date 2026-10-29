@@ -97,7 +97,12 @@ export default function BoardEditor(props: Props) {
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
-      MenuPanel: () => <BoardHeader canvasId={props.canvasId} />,
+      MenuPanel: () => (
+        <BoardHeader
+          canvasId={props.canvasId}
+          refreshFailed={controller?.refreshFailed}
+        />
+      ),
       Toolbar: BoardToolbar,
       ContextMenu: BoardContextMenu,
       TopPanel: () => (

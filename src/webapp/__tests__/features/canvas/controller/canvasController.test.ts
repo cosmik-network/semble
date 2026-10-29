@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createShapeId, toRichText, type TLNoteShape } from 'tldraw';
+import { focusManager } from '@tanstack/react-query';
+import {
+  createShapeId,
+  toRichText,
+  type TLNoteShape,
+  type TLShapeId,
+} from 'tldraw';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import type { LinkInfo } from '@/features/canvas/server/canvasServer';
@@ -950,5 +956,347 @@ describe('selection popup', () => {
     expect(actionIds).toContain('duplicate');
     expect(actionIds).not.toContain('group');
     expect(actionIds).toContain('ungroup');
+  });
+});
+
+// ─────────────────────────────────────────────
+// refresh
+// ─────────────────────────────────────────────
+
+describe('refresh', () => {
+  const MINUTE = 60_000;
+  const IN_VIEW = 'https://example.com/in-view';
+  const OUT_OF_VIEW = 'https://example.com/out-of-view';
+  const author = { id: 'did:plc:tester', name: 'Tester', handle: 'tester' };
+  const withNote = (url: string) =>
+    testLink(url, {
+      saved: true,
+      note: { id: 'note-1', text: 'Worth a read', author },
+    });
+  const linkOf = (url: string) =>
+    board.queryClient.getQueryData<LinkInfo>(canvasKeys.link(url));
+  const fetchedUrls = () =>
+    board.server.calls
+      .filter((call) => call.method === 'getLinks')
+      .map((call) => call.args[0]);
+  // Long enough for a fetch to reach the fake server and its answer to land
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+  // A board with a link in view and one off to the side, both loaded
+  async function boardWithLinks(server = new FakeServer()) {
+    board = await createTestBoard({ server });
+    await board.dropUrl(IN_VIEW, { x: 0, y: 0 });
+    await board.dropUrl(OUT_OF_VIEW, { x: 5000, y: 0 });
+    await vi.waitFor(() => {
+      expect(linkOf(IN_VIEW)).toBeDefined();
+      expect(linkOf(OUT_OF_VIEW)).toBeDefined();
+    });
+    board.server.calls = [];
+  }
+
+  const heightOf = (id: TLShapeId) =>
+    board.editor.getShape<LinkCardShape>(id)!.props.h;
+  // As if the links were last fetched over a minute ago
+  const ageLinks = (urls: string[]) => {
+    for (const url of urls) {
+      board.queryClient.setQueryData(canvasKeys.link(url), linkOf(url), {
+        updatedAt: Date.now() - MINUTE - 1,
+      });
+    }
+  };
+
+  afterEach(async () => {
+    // Closed first: showing the tab again would refresh it
+    await board.dispose();
+    focusManager.setFocused(undefined);
+  });
+
+  it('should refresh every link when the tab is shown again', async () => {
+    // Arrange
+    await boardWithLinks();
+    ageLinks([IN_VIEW, OUT_OF_VIEW]);
+
+    // Act
+    board.hideTab();
+    board.showTab();
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(fetchedUrls()).toEqual([[IN_VIEW, OUT_OF_VIEW]]),
+    );
+  });
+
+  it('should not refresh links fetched within the last minute when the tab is shown again', async () => {
+    // Arrange
+    await boardWithLinks();
+
+    // Act
+    board.hideTab();
+    board.showTab();
+    await settle();
+
+    // Assert
+    expect(fetchedUrls()).toEqual([]);
+  });
+
+  it('should refresh the links in view on a timer, and not while the tab is hidden', async () => {
+    // Arrange
+    await boardWithLinks();
+
+    // Act
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toEqual([[IN_VIEW]]));
+    board.hideTab();
+    board.timedRefresh();
+    await settle();
+
+    // Assert
+    expect(fetchedUrls()).toEqual([[IN_VIEW]]);
+  });
+
+  it("should not say it couldn't refresh after one failure", async () => {
+    // Arrange
+    await boardWithLinks();
+    board.server.failing = true;
+
+    // Act
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+    await settle();
+
+    // Assert
+    expect(board.refreshFailed.get()).toBe(false);
+  });
+
+  it("should say it couldn't refresh after two failures in a row", async () => {
+    // Arrange
+    await boardWithLinks();
+    board.server.failing = true;
+
+    // Act
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(board.refreshFailed.get()).toBe(true));
+  });
+
+  it("should stop saying it couldn't refresh once a refresh succeeds", async () => {
+    // Arrange
+    await boardWithLinks();
+    board.server.failing = true;
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+    board.timedRefresh();
+    await vi.waitFor(() => expect(board.refreshFailed.get()).toBe(true));
+    board.server.failing = false;
+
+    // Act
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(board.refreshFailed.get()).toBe(false));
+  });
+
+  it('should not count links it had no need to fetch as a successful refresh', async () => {
+    // Arrange
+    await boardWithLinks();
+    board.server.failing = true;
+    ageLinks([IN_VIEW]);
+
+    // Act
+    board.hideTab();
+    board.showTab();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+    board.hideTab();
+    board.showTab();
+
+    // Assert
+    await vi.waitFor(() => expect(board.refreshFailed.get()).toBe(true));
+  });
+
+  it('should clear the note on every copy of a link unsaved elsewhere, leaving them in place', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.links.set(IN_VIEW, withNote(IN_VIEW));
+    await boardWithLinks(server);
+    board.editor.select(board.linkCards()[0].id);
+    board.runAction('duplicate');
+    const before = board
+      .linkCards()
+      .filter((card) => card.props.url === IN_VIEW);
+
+    // Act
+    server.links.set(IN_VIEW, testLink(IN_VIEW));
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(linkOf(IN_VIEW)?.note).toBeNull());
+    expect(linkOf(IN_VIEW)?.saved).toBe(false);
+    for (const card of before) {
+      const after = board.editor.getShape(card.id)!;
+      expect(heightOf(card.id)).toBeLessThan(card.props.h);
+      expect({ x: after.x, y: after.y }).toEqual({ x: card.x, y: card.y });
+    }
+  });
+
+  it('should change nothing when the same refresh runs twice', async () => {
+    // Arrange
+    await boardWithLinks();
+    board.server.links.set(IN_VIEW, withNote(IN_VIEW));
+    board.timedRefresh();
+    await vi.waitFor(() => expect(linkOf(IN_VIEW)?.note).not.toBeNull());
+    await settle();
+    let changes = 0;
+    const unlisten = board.editor.store.listen(() => changes++, {
+      scope: 'document',
+    });
+
+    // Act
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(2));
+    await settle();
+    unlisten();
+
+    // Assert
+    expect(changes).toBe(0);
+  });
+
+  it('should not let undo take back what a refresh changed', async () => {
+    // Arrange
+    await boardWithLinks();
+    const [card] = board.linkCards();
+    board.drag([0, 0], [200, 0]);
+    board.server.links.set(IN_VIEW, withNote(IN_VIEW));
+    board.timedRefresh();
+    await vi.waitFor(() =>
+      expect(heightOf(card.id)).toBeGreaterThan(card.props.h),
+    );
+    const refreshedHeight = heightOf(card.id);
+
+    // Act
+    board.editor.undo();
+
+    // Assert
+    expect(board.editor.getShape(card.id)!.x).toBe(card.x);
+    await vi.waitFor(() => expect(heightOf(card.id)).toBe(refreshedHeight));
+  });
+
+  it('should keep a card moved while a refresh is under way where it was moved', async () => {
+    // Arrange
+    await boardWithLinks();
+    const [card] = board.linkCards();
+    board.server.links.set(IN_VIEW, withNote(IN_VIEW));
+    const respond = board.server.holdResponses();
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+
+    // Act
+    board.drag([0, 0], [200, 0]);
+    respond();
+
+    // Assert
+    await vi.waitFor(() => expect(linkOf(IN_VIEW)?.note).not.toBeNull());
+    await settle();
+    expect(board.editor.getShape(card.id)!.x).toBe(card.x + 200);
+  });
+
+  it('should show a save made elsewhere on a board just reopened', async () => {
+    // Arrange
+    await boardWithLinks();
+    const first = board;
+    await first.dispose();
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server: first.server,
+    });
+
+    // Act
+    board.server.links.set(IN_VIEW, testLink(IN_VIEW, { saved: true }));
+    await board.queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+
+    // Assert
+    await vi.waitFor(() => expect(linkOf(IN_VIEW)?.saved).toBe(true));
+  });
+
+  it('should show a save made in another tab straight away', async () => {
+    // Arrange
+    await boardWithLinks();
+    const first = board;
+    await first.dispose();
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server: first.server,
+    });
+    otherTab = await board.openInAnotherTab();
+    await vi.waitFor(() =>
+      expect(
+        otherTab!.queryClient.getQueryData<LinkInfo>(canvasKeys.link(IN_VIEW)),
+      ).toMatchObject({ saved: false }),
+    );
+
+    // Act
+    board.server.links.set(IN_VIEW, testLink(IN_VIEW, { saved: true }));
+    await board.queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(
+        otherTab!.queryClient.getQueryData<LinkInfo>(canvasKeys.link(IN_VIEW)),
+      ).toMatchObject({ saved: true }),
+    );
+  });
+
+  it('should not let a refresh under way overwrite a save made in another tab meanwhile', async () => {
+    // Arrange
+    await boardWithLinks();
+    const first = board;
+    await first.dispose();
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+      server: first.server,
+    });
+    otherTab = await board.openInAnotherTab();
+    const otherLinkOf = (url: string) =>
+      otherTab!.queryClient.getQueryData<LinkInfo>(canvasKeys.link(url));
+    await vi.waitFor(() => expect(otherLinkOf(IN_VIEW)).toBeDefined());
+    const respond = board.server.holdResponses();
+    board.server.calls = [];
+    otherTab.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+
+    // Act
+    board.server.links.set(IN_VIEW, testLink(IN_VIEW, { saved: true }));
+    await board.queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+    await settle();
+    respond();
+
+    // Assert
+    await vi.waitFor(() => expect(otherLinkOf(IN_VIEW)?.saved).toBe(true));
+    await settle();
+    expect(otherLinkOf(IN_VIEW)?.saved).toBe(true);
+  });
+
+  it('should not let a refresh under way overwrite a save made elsewhere meanwhile', async () => {
+    // Arrange
+    await boardWithLinks();
+    const respond = board.server.holdResponses();
+    board.timedRefresh();
+    await vi.waitFor(() => expect(fetchedUrls()).toHaveLength(1));
+
+    // Act
+    board.server.links.set(IN_VIEW, testLink(IN_VIEW, { saved: true }));
+    await board.queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+    await settle();
+    respond();
+
+    // Assert
+    await vi.waitFor(() => expect(linkOf(IN_VIEW)?.saved).toBe(true));
+    await settle();
+    expect(linkOf(IN_VIEW)?.saved).toBe(true);
   });
 });

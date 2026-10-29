@@ -1,6 +1,6 @@
 import './domShims';
 import { IDBFactory } from 'fake-indexeddb';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, focusManager } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import {
@@ -49,7 +49,7 @@ export interface TestBoard {
   // How many times pasted or dropped files were refused
   timesFilesRefused: number;
   // Opens the same board in another tab, which shares the browser's
-  // database and locks but nothing else
+  // database and locks, and the server, but nothing else
   openInAnotherTab(): Promise<TestBoard>;
   // Storage for another tab with no board open, to act as some other app
   storageInAnotherTab(): IndexedDbCanvasStorage;
@@ -86,6 +86,14 @@ export interface TestBoard {
   // What each copy's badge and outline show
   copies: CanvasController['copies'];
   popupLink: CanvasController['popupLink'];
+  // Runs the refresh due every ten minutes, as if that long had passed
+  timedRefresh(): void;
+  // Whether the header says refreshing failed
+  refreshFailed: CanvasController['refreshFailed'];
+  // Switches to another browser tab and back. Every board shares the one
+  // page, so tests that hide it show it again before they end.
+  hideTab(): void;
+  showTab(): void;
   // Closes the board, saving it like navigating away would
   dispose(): Promise<void>;
 }
@@ -186,6 +194,7 @@ export async function createTestBoard(
   let disposed = false;
   // Filled in below; the controller's callbacks only run once it has loaded
   const board = {} as TestBoard;
+  let timedRefresh = () => {};
   const controller = attachCanvasController({
     editor,
     server,
@@ -200,6 +209,10 @@ export async function createTestBoard(
     onFilesRefused: () => board.timesFilesRefused++,
     onWritingAgain: () => {},
     onNewerVersion: () => (board.status = 'newer-version'),
+    everyTimedRefresh(refresh) {
+      timedRefresh = refresh;
+      return () => (timedRefresh = () => {});
+    },
   });
 
   const actions = boardActions(editor, controller);
@@ -214,7 +227,7 @@ export async function createTestBoard(
     timesTakenOver: 0,
     timesFilesRefused: 0,
     openInAnotherTab: () =>
-      createTestBoard({ storage: storageInAnotherTab(), canvasId }),
+      createTestBoard({ storage: storageInAnotherTab(), canvasId, server }),
     storageInAnotherTab,
     takeOver: () => controller.takeOver(),
     drag(from, to, keys) {
@@ -251,6 +264,10 @@ export async function createTestBoard(
     quickAdd: controller.quickAdd,
     copies: controller.copies,
     popupLink: controller.popupLink,
+    timedRefresh: () => timedRefresh(),
+    refreshFailed: controller.refreshFailed,
+    hideTab: () => focusManager.setFocused(false),
+    showTab: () => focusManager.setFocused(true),
     linkCards: () => linkCardsOn(editor),
     async dispose() {
       if (disposed) return;

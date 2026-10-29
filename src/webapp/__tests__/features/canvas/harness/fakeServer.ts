@@ -28,6 +28,8 @@ export class FakeServer implements CanvasServer {
   links = new Map<string, LinkInfo>();
   // The viewer's library, most recent first
   library: UrlMetadata[] = [];
+  // getLinks fails while set, as when the network is down
+  failing = false;
   private held: (() => void)[] | null = null;
 
   // Responses wait until the returned function is called
@@ -42,11 +44,15 @@ export class FakeServer implements CanvasServer {
 
   async getLinks(urls: string[]) {
     this.calls.push({ method: 'getLinks', args: [urls] });
-    const held = this.held;
-    if (held) await new Promise<void>((respond) => held.push(respond));
-    return new Map(
+    // Answered as things stood when asked, however long the response is held
+    const failing = this.failing;
+    const links = new Map(
       urls.map((url) => [url, this.links.get(url) ?? testLink(url)]),
     );
+    const held = this.held;
+    if (held) await new Promise<void>((respond) => held.push(respond));
+    if (failing) throw new Error('Network down');
+    return links;
   }
 
   async searchLibrary(query: string) {

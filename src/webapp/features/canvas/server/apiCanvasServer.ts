@@ -3,6 +3,7 @@ import {
   getMyUrlCards,
   getUrlMetadata,
 } from '@/features/cards/lib/dal';
+import type { UrlMetadata } from '@semble/types';
 import type { CanvasServer, LinkInfo } from './canvasServer';
 
 // Until a batch endpoint exists (#982), each link takes two calls
@@ -27,9 +28,21 @@ function limitConcurrency(max: number) {
 
 const limit = limitConcurrency(MAX_LINKS_IN_FLIGHT);
 
+// A page's metadata rarely changes, so refreshes fetch only what does: whether
+// the link is saved, and the note
+const metadataOf = new Map<string, UrlMetadata>();
+
+async function getMetadata(url: string) {
+  const known = metadataOf.get(url);
+  if (known) return known;
+  const { metadata } = await getUrlMetadata({ url });
+  metadataOf.set(url, metadata);
+  return metadata;
+}
+
 async function getLink(url: string): Promise<LinkInfo> {
-  const [{ metadata }, { card }] = await Promise.all([
-    getUrlMetadata({ url }),
+  const [metadata, { card }] = await Promise.all([
+    getMetadata(url),
     getCardFromMyLibrary(url),
   ]);
   return {

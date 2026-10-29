@@ -11,8 +11,10 @@ import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 import { attachQuickAdd } from './quickAdd';
 import { createPopupLink } from './popupLink';
+import { attachRefreshLoop, type RefreshLoopDeps } from './refreshLoop';
 
-export interface CanvasControllerDeps extends LinkCardsDeps {
+export interface CanvasControllerDeps
+  extends LinkCardsDeps, Pick<RefreshLoopDeps, 'everyTimedRefresh'> {
   ownerDid: string;
   onStorageError(error: unknown): void;
   // Another tab took the board over. Edits since the last save are lost.
@@ -91,6 +93,12 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const quickAdd = attachQuickAdd(editor, links.placeLink);
   const copies = attachCopies(editor);
   const popupLink = createPopupLink(editor);
+  const refreshLoop = attachRefreshLoop({
+    boardUrls: links.boardUrls,
+    urlsInView: links.urlsInView,
+    fetchLinks: links.fetchLinks,
+    everyTimedRefresh: deps.everyTimedRefresh,
+  });
   const board = deps.storage.openBoard(
     deps.canvasId,
     {
@@ -134,7 +142,10 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     source: 'all',
   });
   const loaded = board.opened.then((status) => {
-    if (status === 'ready' && !detached) links.refresh();
+    if (status === 'ready' && !detached) {
+      links.sizeAll();
+      refreshLoop.start();
+    }
     return status;
   });
 
@@ -143,10 +154,12 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     quickAdd,
     copies,
     popupLink,
+    refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;
       quickAdd.detach();
+      refreshLoop.detach();
       const linksDetached = links.detach();
       // Close before unlistening: its flush reports pending changes through
       // the listener

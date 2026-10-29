@@ -1,9 +1,11 @@
 'use client';
 
-import { ActionIcon, Group, Paper, TextInput } from '@mantine/core';
+import { ActionIcon, Group, Paper, Text, TextInput } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { IoArrowBack } from 'react-icons/io5';
+import { useValue } from 'tldraw';
+import type { CanvasController } from '../../controller/canvasController';
 import { useNavHistory } from '@/providers/navHistory';
 import useRenameCanvas from '../../lib/mutations/useRenameCanvas';
 import useCanvas from '../../lib/queries/useCanvas';
@@ -12,6 +14,7 @@ import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 
 interface Props {
   canvasId: string;
+  refreshFailed?: CanvasController['refreshFailed'];
 }
 
 export default function BoardHeader(props: Props) {
@@ -23,6 +26,11 @@ export default function BoardHeader(props: Props) {
   const [draft, setDraft] = useState<string | null>(null);
   // Escape blurs too, and the blur mustn't save what it discarded
   const discarding = useRef(false);
+  const refreshFailed = useValue(
+    'refresh failed',
+    () => props.refreshFailed?.get() ?? false,
+    [props.refreshFailed],
+  );
 
   const name = canvas?.name ?? DEFAULT_CANVAS_NAME;
 
@@ -92,6 +100,11 @@ export default function BoardHeader(props: Props) {
             },
           }}
         />
+        {refreshFailed && (
+          <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+            Couldn&apos;t refresh
+          </Text>
+        )}
       </Group>
     </Paper>
   );
