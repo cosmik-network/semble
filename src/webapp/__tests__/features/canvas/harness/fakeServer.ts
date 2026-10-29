@@ -1,6 +1,7 @@
 import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
+  ConnectionChange,
   LinkConnection,
   LinkInfo,
   NewConnection,
@@ -93,6 +94,26 @@ export class FakeServer implements CanvasServer {
       },
     ];
     return id;
+  }
+
+  async updateConnection(connectionId: string, change: ConnectionChange) {
+    this.calls.push({
+      method: 'updateConnection',
+      args: [connectionId, change],
+    });
+    if (this.failing) throw new Error('Network down');
+    this.connections = this.connections.map((connection) => {
+      if (connection.id !== connectionId) return connection;
+      const type = change.type ?? connection.type;
+      return change.swap
+        ? {
+            ...connection,
+            type,
+            sourceUrl: connection.targetUrl,
+            targetUrl: connection.sourceUrl,
+          }
+        : { ...connection, type };
+    });
   }
 
   async deleteConnection(connectionId: string) {

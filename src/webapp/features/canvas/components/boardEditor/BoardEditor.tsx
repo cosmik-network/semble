@@ -32,7 +32,9 @@ import BoardNavigation from '../boardNavigation/BoardNavigation';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
 import QuickAdd from '../quickAdd/QuickAdd';
+import ConnectionEditPopup from '../connectionEditPopup/ConnectionEditPopup';
 import ConnectionPicker from '../connectionPicker/ConnectionPicker';
+import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModal';
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 import SelectionPopup from '../selectionPopup/SelectionPopup';
 import UndoToast from '../undoToast/UndoToast';
@@ -186,6 +188,12 @@ export default function BoardEditor(props: Props) {
             >
               {controller && (
                 <ConnectionPicker picker={controller.connectionPicker} />
+              )}
+              {controller && (
+                <ConnectionEditPopup edits={controller.connectionEdits} />
+              )}
+              {controller && (
+                <DeleteConnectionModal edits={controller.connectionEdits} />
               )}
               {controller && (
                 <SelectionPopup

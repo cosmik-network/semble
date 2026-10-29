@@ -28,6 +28,12 @@ export interface NewConnection {
   type: ConnectionType;
 }
 
+// What an edit to a connection changes; swap flips its direction
+export interface ConnectionChange {
+  type?: ConnectionType;
+  swap?: boolean;
+}
+
 export interface CanvasServer {
   // Links it couldn't load are left out
   getLinks(urls: string[]): Promise<Map<string, LinkInfo>>;
@@ -35,6 +41,10 @@ export interface CanvasServer {
   searchLibrary(query: string): Promise<UrlMetadata[]>;
   // Resolves with the new connection's id
   createConnection(connection: NewConnection): Promise<string>;
+  updateConnection(
+    connectionId: string,
+    change: ConnectionChange,
+  ): Promise<void>;
   // Also deletes the notifications the connection created
   deleteConnection(connectionId: string): Promise<void>;
 }

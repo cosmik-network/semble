@@ -4,11 +4,20 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useValue } from 'tldraw';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
-import type { UndoToast as Toast } from '../../controller/connections';
+import type {
+  UndoToast as Toast,
+  UndoableWrite,
+} from '../../controller/connections';
 import { canvasKeys } from '../../lib/canvasKeys';
 import type { LinkInfo } from '../../server/canvasServer';
 
 const AUTO_CLOSE_MS = 6000;
+
+const TITLES: Record<UndoableWrite['kind'], (label: string) => string> = {
+  published: (label) => `Connected · ${label}`,
+  retyped: (label) => `Changed to ${label}`,
+  flipped: () => 'Direction flipped',
+};
 
 interface Props {
   undoToast: Toast;
@@ -24,13 +33,12 @@ export default function UndoToast(props: Props) {
     const titleOf = (url: string) =>
       queryClient.getQueryData<LinkInfo>(canvasKeys.link(url))?.metadata
         .title || url;
-    const label = CONNECTION_TYPES.find(
-      (type) => type.value === write.type,
-    )?.label;
+    const label =
+      CONNECTION_TYPES.find((type) => type.value === write.type)?.label ?? '';
     const id = notifications.show({
       position: 'top-center',
       autoClose: AUTO_CLOSE_MS,
-      title: `Connected · ${label}`,
+      title: TITLES[write.kind](label),
       message: (
         <Group gap="xs" wrap="nowrap">
           <Text size="sm" truncate style={{ flex: 1, minWidth: 0 }}>

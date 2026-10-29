@@ -9,6 +9,7 @@ import {
   type TLNoteShape,
   type TLShapeId,
 } from 'tldraw';
+import { CONNECTION_TYPE_MENU } from '@/features/canvas/controller/connectionEdits';
 import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
@@ -2231,5 +2232,446 @@ describe('making connections', () => {
     // Assert
     expect(board.sketchArrows()).toEqual([]);
     expect(board.linkCards()).toHaveLength(2);
+  });
+});
+
+describe('editing connections', () => {
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const A = 'https://example.com/a';
+  const B = 'https://example.com/b';
+  const C = 'https://example.com/c';
+  const VIEWER = 'did:plc:tester';
+  const connection = (
+    id: string,
+    sourceUrl: string,
+    targetUrl: string,
+    overrides: Partial<LinkConnection> = {},
+  ): LinkConnection => ({
+    id,
+    type: 'SUPPORTS',
+    sourceUrl,
+    targetUrl,
+    curatorId: VIEWER,
+    ...overrides,
+  });
+  const writes = () =>
+    board.server.calls
+      .filter(({ method }) =>
+        ['createConnection', 'updateConnection', 'deleteConnection'].includes(
+          method,
+        ),
+      )
+      .map(({ method, args }) => [method, ...args]);
+  const arrowOf = (connectionId: string) =>
+    board.arrows().find((arrow) => arrow.connectionId === connectionId);
+  const metaOf = (connectionId: string) =>
+    board.editor.getShape(arrowOf(connectionId)!.id)!.meta;
+  const urlOfCard = (id: TLShapeId | undefined) =>
+    board.editor.getShape<LinkCardShape>(id!)!.props.url;
+
+  // Mine from A to B, and someone else's from B to C, with the given one
+  // selected
+  async function boardWithConnections(selected: 'mine' | 'ghost' = 'mine') {
+    const server = new FakeServer();
+    server.connections = [
+      connection('mine', A, B),
+      connection('ghost', B, C, { curatorId: 'did:plc:someone-else' }),
+    ];
+    board = await createTestBoard({ server });
+    await board.dropUrl(A, { x: 0, y: 0 });
+    await board.dropUrl(B, { x: 600, y: 0 });
+    await board.dropUrl(C, { x: 1200, y: 0 });
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(2));
+    board.editor.select(arrowOf(selected)!.id);
+  }
+
+  it('should change the type of my connection, and change it back from the toast', async () => {
+    // Arrange
+    await boardWithConnections();
+    const editable = board.connectionEdits.selected.get()!;
+
+    // Act
+    await board.connectionEdits.changeType(editable, 'OPPOSES');
+    await vi.waitFor(() =>
+      expect(metaOf('mine')).toMatchObject({ connectionType: 'OPPOSES' }),
+    );
+    const toast = board.undoToast.current.get();
+    board.undoToast.undo();
+
+    // Assert
+    expect(editable).toMatchObject({
+      connectionId: 'mine',
+      type: 'SUPPORTS',
+      sourceUrl: A,
+      targetUrl: B,
+    });
+    expect(toast).toMatchObject({ kind: 'retyped', type: 'OPPOSES' });
+    await vi.waitFor(() =>
+      expect(metaOf('mine')).toMatchObject({ connectionType: 'SUPPORTS' }),
+    );
+    expect(writes()).toEqual([
+      ['updateConnection', 'mine', { type: 'OPPOSES' }],
+      ['updateConnection', 'mine', { type: 'SUPPORTS' }],
+    ]);
+    expect(board.undoToast.current.get()).toBeNull();
+  });
+
+  it('should flip my connection, and flip it back from the toast', async () => {
+    // Arrange
+    await boardWithConnections();
+    const editable = board.connectionEdits.selected.get()!;
+    const ends = () => {
+      const arrow = arrowOf('mine')!;
+      return [urlOfCard(arrow.from), urlOfCard(arrow.to)];
+    };
+
+    // Act
+    await board.connectionEdits.flip(editable);
+    await vi.waitFor(() => expect(ends()).toEqual([B, A]));
+    const toast = board.undoToast.current.get();
+    board.undoToast.undo();
+
+    // Assert
+    expect(toast).toMatchObject({
+      kind: 'flipped',
+      sourceUrl: B,
+      targetUrl: A,
+    });
+    await vi.waitFor(() => expect(ends()).toEqual([A, B]));
+    expect(writes()).toEqual([
+      ['updateConnection', 'mine', { swap: true }],
+      ['updateConnection', 'mine', { swap: true }],
+    ]);
+  });
+
+  it("should offer no edits on someone else's connection", async () => {
+    // Arrange
+    await boardWithConnections('ghost');
+
+    // Act
+    const editable = board.connectionEdits.selected.get();
+
+    // Assert
+    expect(editable).toBeNull();
+  });
+
+  it('should open the delete confirmation on the Delete key, and delete nothing until confirmed', async () => {
+    // Arrange
+    await boardWithConnections();
+
+    // Act
+    board.runAction('delete');
+    await settle();
+
+    // Assert
+    expect(board.connectionEdits.deleting.get()).toMatchObject({
+      connections: [{ connectionId: 'mine' }],
+    });
+    expect(arrowOf('mine')).toBeDefined();
+    expect(writes()).toEqual([]);
+  });
+
+  it('should delete my connection on confirming, with nothing to undo', async () => {
+    // Arrange
+    await boardWithConnections();
+    board.runAction('delete');
+
+    // Act
+    await board.connectionEdits.confirmDelete();
+    const arrowGone = !arrowOf('mine');
+    board.runAction('undo');
+    await settle();
+
+    // Assert
+    expect(arrowGone).toBe(true);
+    expect(arrowOf('mine')).toBeUndefined();
+    expect(board.connectionEdits.deleting.get()).toBeNull();
+    expect(board.undoToast.current.get()).toBeNull();
+    // Undo skipped the delete and took back the last board edit, C's drop
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([A, B]);
+    expect(writes()).toEqual([['deleteConnection', 'mine']]);
+  });
+
+  it('should keep my connection when the confirmation is cancelled', async () => {
+    // Arrange
+    await boardWithConnections();
+    board.runAction('delete');
+
+    // Act
+    board.connectionEdits.cancelDelete();
+    await settle();
+
+    // Assert
+    expect(board.connectionEdits.deleting.get()).toBeNull();
+    expect(arrowOf('mine')).toBeDefined();
+    expect(writes()).toEqual([]);
+  });
+
+  it("should delete nothing on the Delete key with someone else's connection selected", async () => {
+    // Arrange
+    await boardWithConnections('ghost');
+
+    // Act
+    board.runAction('delete');
+    await settle();
+
+    // Assert
+    expect(board.connectionEdits.deleting.get()).toBeNull();
+    expect(arrowOf('ghost')).toBeDefined();
+    expect(writes()).toEqual([]);
+  });
+
+  it('should drop the Undo of a change once its connection is deleted', async () => {
+    // Arrange
+    await boardWithConnections();
+    await board.connectionEdits.changeType(
+      board.connectionEdits.selected.get()!,
+      'OPPOSES',
+    );
+    board.editor.select(arrowOf('mine')!.id);
+    board.runAction('delete');
+
+    // Act
+    await board.connectionEdits.confirmDelete();
+
+    // Assert
+    expect(board.undoToast.current.get()).toBeNull();
+  });
+
+  it('should keep the connection and its arrow when the arrow is cut', async () => {
+    // Arrange
+    await boardWithConnections();
+    const before = arrowOf('mine');
+
+    // Act
+    board.runAction('cut');
+    await settle();
+
+    // Assert
+    expect(arrowOf('mine')).toEqual(before);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should change the type back on Cmd+Z while the toast shows', async () => {
+    // Arrange
+    await boardWithConnections();
+    await board.connectionEdits.changeType(
+      board.connectionEdits.selected.get()!,
+      'OPPOSES',
+    );
+
+    // Act
+    board.runAction('undo');
+    await settle();
+
+    // Assert
+    expect(writes()).toEqual([
+      ['updateConnection', 'mine', { type: 'OPPOSES' }],
+      ['updateConnection', 'mine', { type: 'SUPPORTS' }],
+    ]);
+    expect(board.linkCards()).toHaveLength(3);
+  });
+
+  it('should keep a deleted connection off the board while its links are still refetching', async () => {
+    // Arrange
+    await boardWithConnections();
+    board.runAction('delete');
+    const respond = board.server.holdResponses();
+
+    // Act
+    await board.connectionEdits.confirmDelete();
+    await board.dropUrl('https://example.com/d', { x: 0, y: 600 });
+    await settle();
+    const whileRefetching = arrowOf('mine');
+    respond();
+    await settle();
+
+    // Assert
+    expect(whileRefetching).toBeUndefined();
+    expect(arrowOf('mine')).toBeUndefined();
+    expect(arrowOf('ghost')).toBeDefined();
+  });
+
+  it('should delete the cards selected with my connection only once confirmed', async () => {
+    // Arrange
+    await boardWithConnections();
+    const cardA = board.linkCards().find((card) => card.props.url === A)!;
+    board.editor.select(arrowOf('mine')!.id, cardA.id);
+
+    // Act
+    board.runAction('delete');
+    const whileAsking = board.linkCards().map((card) => card.props.url);
+    await board.connectionEdits.confirmDelete();
+
+    // Assert
+    expect(whileAsking).toEqual([A, B, C]);
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([B, C]);
+    expect(writes()).toEqual([['deleteConnection', 'mine']]);
+  });
+
+  it('should keep the cards selected with my connection when the confirmation is cancelled', async () => {
+    // Arrange
+    await boardWithConnections();
+    const cardA = board.linkCards().find((card) => card.props.url === A)!;
+    board.editor.select(arrowOf('mine')!.id, cardA.id);
+    board.runAction('delete');
+
+    // Act
+    board.connectionEdits.cancelDelete();
+
+    // Assert
+    expect(board.linkCards()).toHaveLength(3);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should not delete a connection from a read-only tab', async () => {
+    // Arrange
+    await boardWithConnections();
+    board.runAction('delete');
+
+    // Act
+    board.editor.updateInstanceState({ isReadonly: true });
+    await board.connectionEdits.confirmDelete();
+
+    // Assert
+    expect(writes()).toEqual([]);
+  });
+
+  it('should keep offering edits while the type menu is open, but not under another menu', async () => {
+    // Arrange
+    await boardWithConnections();
+
+    // Act
+    board.editor.menus.addOpenMenu(CONNECTION_TYPE_MENU);
+    const withTypeMenu = board.connectionEdits.selected.get();
+    board.editor.menus.addOpenMenu('context menu');
+    const withContextMenu = board.connectionEdits.selected.get();
+    board.editor.menus.clearOpenMenus();
+
+    // Assert
+    expect(withTypeMenu).toMatchObject({ connectionId: 'mine' });
+    expect(withContextMenu).toBeNull();
+  });
+
+  it('should keep the arrow selected once it is flipped', async () => {
+    // Arrange
+    await boardWithConnections();
+
+    // Act
+    await board.connectionEdits.flip(board.connectionEdits.selected.get()!);
+    await vi.waitFor(() =>
+      expect(board.connectionEdits.selected.get()).toMatchObject({
+        sourceUrl: B,
+        targetUrl: A,
+      }),
+    );
+
+    // Assert
+    expect(board.editor.getSelectedShapeIds()).toEqual([arrowOf('mine')!.id]);
+  });
+
+  it('should send one write when flip is clicked twice before the first lands', async () => {
+    // Arrange
+    await boardWithConnections();
+    const editable = board.connectionEdits.selected.get()!;
+
+    // Act
+    await Promise.all([
+      board.connectionEdits.flip(editable),
+      board.connectionEdits.flip(editable),
+    ]);
+
+    // Assert
+    expect(writes()).toEqual([['updateConnection', 'mine', { swap: true }]]);
+  });
+
+  it('should not undo a change from a read-only tab', async () => {
+    // Arrange
+    await boardWithConnections();
+    await board.connectionEdits.changeType(
+      board.connectionEdits.selected.get()!,
+      'OPPOSES',
+    );
+
+    // Act
+    board.editor.updateInstanceState({ isReadonly: true });
+    board.undoToast.undo();
+    await settle();
+
+    // Assert
+    expect(writes()).toEqual([
+      ['updateConnection', 'mine', { type: 'OPPOSES' }],
+    ]);
+  });
+
+  it("should keep another connection's Undo when a connection with no type is given one", async () => {
+    // Arrange
+    await boardWithConnections();
+    const mine = board.connectionEdits.selected.get()!;
+    await board.connectionEdits.flip(mine);
+    const toast = board.undoToast.current.get();
+
+    // Act
+    await board.connectionEdits.changeType(
+      { ...mine, connectionId: 'untyped', type: null },
+      'OPPOSES',
+    );
+
+    // Assert
+    expect(board.undoToast.current.get()).toBe(toast);
+  });
+
+  it("should drop a change's Undo as soon as its connection's delete is confirmed", async () => {
+    // Arrange
+    await boardWithConnections();
+    await board.connectionEdits.changeType(
+      board.connectionEdits.selected.get()!,
+      'OPPOSES',
+    );
+    board.editor.select(arrowOf('mine')!.id);
+    board.runAction('delete');
+
+    // Act
+    const deleted = board.connectionEdits.confirmDelete();
+    const whileDeleting = board.undoToast.current.get();
+    await deleted;
+
+    // Assert
+    expect(whileDeleting).toBeNull();
+  });
+
+  it('should take a connection arrow inside a frame along with the frame', async () => {
+    // Arrange
+    await boardWithConnections();
+    const frameId = createShapeId('frame');
+    board.editor.createShape({
+      id: frameId,
+      type: 'frame',
+      x: -400,
+      y: -400,
+      props: { w: 2000, h: 1000 },
+    });
+    const inFrame = [
+      ...board.linkCards().map((card) => card.id),
+      arrowOf('mine')!.id,
+    ];
+    board.editor.reparentShapes(inFrame, frameId);
+    board.editor.select(frameId);
+
+    // Act
+    board.runAction('delete');
+    await settle();
+
+    // Assert
+    const orphans = board.editor
+      .getCurrentPageShapes()
+      .filter((shape) => !board.editor.getShape(shape.parentId as TLShapeId));
+    expect(
+      orphans.filter(
+        (shape) => shape.parentId !== board.editor.getCurrentPageId(),
+      ),
+    ).toEqual([]);
+    expect(board.arrows()).toEqual([]);
+    expect(writes()).toEqual([]);
   });
 });

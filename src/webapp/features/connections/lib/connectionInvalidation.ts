@@ -1,5 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { DeleteConnectionRequest } from '@semble/types';
+import type {
+  DeleteConnectionRequest,
+  UpdateConnectionRequest,
+} from '@semble/types';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
@@ -8,6 +11,31 @@ import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { profileKeys } from '@/features/profile/lib/profileKeys';
 import { tagKeys } from '@/features/tags/lib/tagKeys';
 import { connectionKeys } from './connectionKeys';
+
+function invalidateUrlMetadataWithStats(queryClient: QueryClient) {
+  queryClient.invalidateQueries({
+    predicate: (query): boolean => {
+      const key = query.queryKey as unknown[];
+      return !!(
+        key[0] === 'cards' &&
+        key[1] === 'metadata' &&
+        key[3] &&
+        typeof key[3] === 'object' &&
+        'includeStats' in key[3] &&
+        key[3].includeStats === true
+      );
+    },
+  });
+}
+
+// Canvas boards draw connections as arrows, here and in other tabs
+function invalidateCanvasConnection(
+  queryClient: QueryClient,
+  connectionId: string,
+) {
+  queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
+  announceLinkChange({ connectionIds: [connectionId] });
+}
 
 // Shared by the webapp's mutations and the canvas, which calls the server
 // itself
@@ -71,21 +99,22 @@ export function invalidateAfterConnectionDeleted(
   // mutation here that doesn't invalidate cardKeys.all(), so clear them
   // explicitly.
   queryClient.invalidateQueries({ queryKey: cardKeys.urlStatuses() });
-  // Canvas boards draw connections as arrows, here and in other tabs
-  queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
-  announceLinkChange({ connectionIds: [request.connectionId] });
+  invalidateCanvasConnection(queryClient, request.connectionId);
   // Invalidate all URL metadata queries with stats to update tab counts
-  queryClient.invalidateQueries({
-    predicate: (query): boolean => {
-      const key = query.queryKey as unknown[];
-      return !!(
-        key[0] === 'cards' &&
-        key[1] === 'metadata' &&
-        key[3] &&
-        typeof key[3] === 'object' &&
-        'includeStats' in key[3] &&
-        key[3].includeStats === true
-      );
-    },
-  });
+  invalidateUrlMetadataWithStats(queryClient);
+}
+
+export function invalidateAfterConnectionUpdated(
+  queryClient: QueryClient,
+  request: UpdateConnectionRequest,
+) {
+  // Invalidate all connection queries to ensure updates appear everywhere
+  queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
+  // Invalidate all feed queries to update connection items in feeds
+  queryClient.invalidateQueries({ queryKey: feedKeys.all() });
+  // Invalidate tag queries so tags typed in the connection note appear in autocomplete
+  queryClient.invalidateQueries({ queryKey: tagKeys.all() });
+  invalidateCanvasConnection(queryClient, request.connectionId);
+  // Invalidate all URL metadata queries with stats to update tab counts
+  invalidateUrlMetadataWithStats(queryClient);
 }

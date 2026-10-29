@@ -7,6 +7,7 @@ import {
   createConnection,
   deleteConnection,
   getConnectionsForUrl,
+  updateConnection,
 } from '@/features/connections/lib/dal';
 import type { ConnectionType, UrlMetadata } from '@semble/types';
 import type { CanvasServer, LinkConnection, LinkInfo } from './canvasServer';
@@ -117,6 +118,9 @@ export const apiCanvasServer: CanvasServer = {
     // The webapp's call returns nothing when it fails
     if (!response) throw new Error("Couldn't create the connection");
     return response.connectionId;
+  },
+  async updateConnection(connectionId, { type, swap }) {
+    await updateConnection({ connectionId, connectionType: type, swap });
   },
   async deleteConnection(connectionId) {
     await deleteConnection({ connectionId });

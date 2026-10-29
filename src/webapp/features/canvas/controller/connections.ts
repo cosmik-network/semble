@@ -8,7 +8,7 @@ import {
 } from 'tldraw';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
 import { LINK_CARD_TYPE, linkKey } from '../model/linkCards';
-import type { CanvasServer, NewConnection } from '../server/canvasServer';
+import type { CanvasServer } from '../server/canvasServer';
 import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
 
@@ -32,8 +32,17 @@ export interface PickerState {
   highlighted: ConnectionType;
 }
 
-export interface UndoableWrite extends NewConnection {
+// A server write the toast can reverse
+export interface UndoableWrite {
+  kind: 'published' | 'retyped' | 'flipped';
+  connectionId: string;
+  sourceUrl: string;
+  targetUrl: string;
+  // The type it has after the write
+  type: ConnectionType | null;
   undo(): Promise<void>;
+  // Shown if the undo fails
+  undoFailed: string;
 }
 
 const TYPES = CONNECTION_TYPES.map((type) => type.value);
@@ -131,10 +140,13 @@ export function attachConnections(deps: ConnectionsDeps) {
     // redo, which would notify everyone a second time.
     undoable.set({
       ...connection,
+      kind: 'published',
+      connectionId,
       async undo() {
         await deps.server.deleteConnection(connectionId);
         deps.onConnectionDeleted(connectionId);
       },
+      undoFailed: "Couldn't delete the connection.",
     });
   }
 
@@ -167,17 +179,23 @@ export function attachConnections(deps: ConnectionsDeps) {
     // Whether there was a write to undo
     undo() {
       const write = undoable.get();
-      if (!write) return false;
+      // A tab that lost the board writes nothing
+      if (!write || editor.getIsReadonly()) return false;
       undoable.set(null);
       write.undo().catch((error) => {
         console.warn(error);
-        deps.onServerError("Couldn't delete the connection.");
+        deps.onServerError(write.undoFailed);
         // Offered again, unless another write has taken its place
         if (!undoable.get()) undoable.set(write);
       });
       return true;
     },
     dismiss: () => undoable.set(null),
+    offer: (write: UndoableWrite) => undoable.set(write),
+    // A deleted connection's last write has nothing left to undo
+    forget(connectionId: string) {
+      if (undoable.get()?.connectionId === connectionId) undoable.set(null);
+    },
   };
 
   return {

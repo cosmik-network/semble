@@ -86,6 +86,10 @@ function bindingFor(
 export function attachArrows(deps: ArrowsDeps) {
   const { editor } = deps;
 
+  // Deleted from this board, though the links' cached connections may still
+  // list them until they're refetched
+  const deleted = new Set<string>();
+
   // Links fetched together arrive one by one; they're reconciled once
   let reconcileTimer: ReturnType<typeof setTimeout> | null = null;
   function reconcileSoon() {
@@ -108,7 +112,7 @@ export function attachArrows(deps: ArrowsDeps) {
       copies,
       links: deps.fetchedConnections(),
       viewerDid: deps.viewerDid,
-    });
+    }).filter((spec) => !deleted.has(spec.connectionId));
     const wanted = new Map(
       specs.map((spec) => [createShapeId(spec.key), spec]),
     );
@@ -167,12 +171,31 @@ export function attachArrows(deps: ArrowsDeps) {
     const nothingToDo =
       removed.length + created.length + updated.length + bindings.length === 0;
     if (nothingToDo) return;
+    // A flipped connection's arrow comes back under a new id, still selected
+    const selected = new Set(editor.getSelectedShapeIds());
+    const flipped = removed
+      .filter((id) => selected.has(id))
+      .map((id) => connectionOf(editor.getShape(id)!)!)
+      .flatMap((before) =>
+        created.filter((arrow) => {
+          const after = arrow.meta as unknown as ConnectionArrowMeta;
+          return (
+            after.connectionId === before.connectionId &&
+            after.from === before.to &&
+            after.to === before.from
+          );
+        }),
+      )
+      .map((arrow) => arrow.id);
     editor.store.mergeRemoteChanges(() => {
       editor.deleteShapes(removed);
       editor.deleteBindings(staleBindings);
       editor.createShapes(created);
       editor.updateShapes(updated);
       editor.createBindings(bindings);
+      if (flipped.length > 0) {
+        editor.setSelectedShapes([...editor.getSelectedShapeIds(), ...flipped]);
+      }
     });
   }
 
@@ -188,6 +211,15 @@ export function attachArrows(deps: ArrowsDeps) {
     'binding',
     (before, after, source) =>
       source === 'user' && isConnectionArrowId(before.fromId) ? before : after,
+  );
+
+  // Deletes go through the confirmation; this is a backstop for paths such as
+  // cut. tldraw has stripped the arrow's bindings by now, and the reconcile
+  // that follows binds it again.
+  const keepDeleted = editor.sideEffects.registerBeforeDeleteHandler(
+    'shape',
+    (shape, source) =>
+      source === 'user' && isConnectionArrow(shape) ? false : undefined,
   );
 
   // Moving a card changes no arrow, so only adds and deletes count
@@ -255,9 +287,16 @@ export function attachArrows(deps: ArrowsDeps) {
     },
   };
 
+  // Takes a deleted connection's arrows off at once, outside undo
+  function dropConnection(connectionId: string) {
+    deleted.add(connectionId);
+    reconcile();
+  }
+
   return {
     reconcile,
     reconcileSoon,
+    dropConnection,
     view,
     saveSettings: (): SavedArrowSettings => ({
       focus: settings.focus.get(),
@@ -273,6 +312,7 @@ export function attachArrows(deps: ArrowsDeps) {
       unlisten();
       keepArrows();
       keepBindings();
+      keepDeleted();
     },
   };
 }

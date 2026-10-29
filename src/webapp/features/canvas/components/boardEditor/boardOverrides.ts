@@ -28,6 +28,17 @@ export function boardOverrides(
           if (!controller?.undoToast.undo()) return undo.onSelect(source);
         },
       };
+      // Connection arrows are deleted with their connection, after a
+      // confirmation
+      const tldrawDelete = actions['delete'];
+      actions['delete'] = {
+        ...tldrawDelete,
+        onSelect: (source) => {
+          if (!controller?.connectionEdits.requestDelete()) {
+            return tldrawDelete.onSelect(source);
+          }
+        },
+      };
       actions['toggle-card-arrows'] = {
         id: 'toggle-card-arrows',
         label: 'Hide or show arrows',

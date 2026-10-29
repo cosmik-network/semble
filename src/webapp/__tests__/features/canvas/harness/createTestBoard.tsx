@@ -89,6 +89,8 @@ export interface TestBoard {
   connectionPicker: CanvasController['connectionPicker'];
   // The toast with Undo that follows a server write
   undoToast: CanvasController['undoToast'];
+  // Changing, flipping and deleting the viewer's own connections
+  connectionEdits: CanvasController['connectionEdits'];
   // Arrows the user drew that aren't connections
   sketchArrows(): TLArrowShape[];
   // Runs one of the board's actions as its keyboard shortcut would, e.g.
@@ -282,6 +284,7 @@ export async function createTestBoard(
     },
     connectionPicker: controller.connectionPicker,
     undoToast: controller.undoToast,
+    connectionEdits: controller.connectionEdits,
     sketchArrows: () =>
       editor
         .getCurrentPageShapes()

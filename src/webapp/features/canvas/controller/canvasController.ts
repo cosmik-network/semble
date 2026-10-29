@@ -11,7 +11,9 @@ import { attachArrows } from './arrows';
 import {
   invalidateAfterConnectionCreated,
   invalidateAfterConnectionDeleted,
+  invalidateAfterConnectionUpdated,
 } from '@/features/connections/lib/connectionInvalidation';
+import { attachConnectionEdits } from './connectionEdits';
 import { attachConnections } from './connections';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
@@ -106,13 +108,25 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     fetchedConnections: () => links.fetchedConnections(),
   });
   const links = attachLinkCards(deps, arrows.reconcileSoon);
+  const connectionDeleted = (connectionId: string) => {
+    arrows.dropConnection(connectionId);
+    invalidateAfterConnectionDeleted(deps.queryClient, { connectionId });
+  };
   const connections = attachConnections({
     editor,
     server: deps.server,
     onConnectionCreated: (connection) =>
       invalidateAfterConnectionCreated(deps.queryClient, connection),
-    onConnectionDeleted: (connectionId) =>
-      invalidateAfterConnectionDeleted(deps.queryClient, { connectionId }),
+    onConnectionDeleted: connectionDeleted,
+    onServerError: deps.onServerError,
+  });
+  const connectionEdits = attachConnectionEdits({
+    editor,
+    server: deps.server,
+    undoToast: connections.undoToast,
+    onConnectionUpdated: (connectionId) =>
+      invalidateAfterConnectionUpdated(deps.queryClient, { connectionId }),
+    onConnectionDeleted: connectionDeleted,
     onServerError: deps.onServerError,
   });
   const quickAdd = attachQuickAdd(editor, links.placeLink);
@@ -190,6 +204,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     arrowView: arrows.view,
     connectionPicker: connections.picker,
     undoToast: connections.undoToast,
+    connectionEdits,
     refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
     async detach() {
