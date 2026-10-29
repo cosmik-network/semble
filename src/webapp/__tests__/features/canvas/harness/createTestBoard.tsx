@@ -42,7 +42,7 @@ import {
   type ArrowDisplay,
 } from '@/features/canvas/shapes/connectionArrow/connectionArrows';
 import { FakeLocks } from './fakeLocks';
-import { FakeServer } from './fakeServer';
+import { FakeServer, VIEWER_DID } from './fakeServer';
 
 export interface BoardArrow {
   id: TLShapeId;
@@ -64,6 +64,8 @@ export interface TestBoard {
   timesTakenOver: number;
   // How many times pasted or dropped files were refused
   timesFilesRefused: number;
+  // What the board said went wrong talking to the server
+  serverErrors: string[];
   // Opens the same board in another tab, which shares the browser's
   // database and locks, and the server, but nothing else
   openInAnotherTab(): Promise<TestBoard>;
@@ -81,6 +83,14 @@ export interface TestBoard {
   // Presses and moves without letting go, so the drag is still under way.
   // The move lands a frame or more later.
   startDrag(from: [number, number], to: [number, number]): void;
+  // Draws with the arrow tool, in page coordinates at the default camera
+  drawArrow(from: [number, number], to: [number, number]): void;
+  // The type picker that opens on an arrow drawn between two links
+  connectionPicker: CanvasController['connectionPicker'];
+  // The toast with Undo that follows a server write
+  undoToast: CanvasController['undoToast'];
+  // Arrows the user drew that aren't connections
+  sketchArrows(): TLArrowShape[];
   // Runs one of the board's actions as its keyboard shortcut would, e.g.
   // duplicate for Cmd+D
   runAction(id: string): void;
@@ -228,12 +238,13 @@ export async function createTestBoard(
     queryClient,
     storage,
     canvasId,
-    ownerDid: 'did:plc:tester',
+    ownerDid: VIEWER_DID,
     onStorageError: (error) => {
       throw error;
     },
     onTakenOver: () => board.timesTakenOver++,
     onFilesRefused: () => board.timesFilesRefused++,
+    onServerError: (message) => board.serverErrors.push(message),
     onWritingAgain: () => {},
     onNewerVersion: () => (board.status = 'newer-version'),
     everyTimedRefresh(refresh) {
@@ -253,6 +264,7 @@ export async function createTestBoard(
     status: await controller.loaded,
     timesTakenOver: 0,
     timesFilesRefused: 0,
+    serverErrors: [],
     openInAnotherTab: () =>
       createTestBoard({ storage: storageInAnotherTab(), canvasId, server }),
     storageInAnotherTab,
@@ -264,6 +276,19 @@ export async function createTestBoard(
         .dispatch(pointer('pointer_move', to, altKey))
         .dispatch(pointer('pointer_up', to, altKey));
     },
+    drawArrow(from, to) {
+      editor.setCurrentTool('arrow');
+      board.drag(from, to);
+    },
+    connectionPicker: controller.connectionPicker,
+    undoToast: controller.undoToast,
+    sketchArrows: () =>
+      editor
+        .getCurrentPageShapes()
+        .filter(
+          (shape): shape is TLArrowShape =>
+            shape.type === 'arrow' && !shape.meta.connectionId,
+        ),
     startDrag(from, to) {
       editor
         .dispatch(pointer('pointer_down', from))

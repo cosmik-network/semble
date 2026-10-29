@@ -13,6 +13,7 @@ import {
 import { getSembleHref } from '@/lib/utils/link';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
 import type { CardModalKind } from '../cardModals/CardModals';
+import { EDGE_DOT_REACH } from '../edgeDots/EdgeDots';
 
 const GAP = 8;
 // Less room than this above the card puts the popup below it
@@ -53,9 +54,11 @@ function Popup(props: PopupProps) {
       const top = editor.pageToViewport(bounds.point);
       const bottom = editor.pageToViewport({ x: bounds.maxX, y: bounds.maxY });
       const above = top.y > ROOM_ABOVE;
+      // Clear of the card's edge dots
+      const gap = GAP + EDGE_DOT_REACH * editor.getZoomLevel();
       return {
         left: (top.x + bottom.x) / 2,
-        top: above ? top.y - GAP : bottom.y + GAP,
+        top: above ? top.y - gap : bottom.y + gap,
         transform: above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
       };
     },

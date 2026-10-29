@@ -1,13 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
-import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { deleteConnection } from '../dal';
-import { connectionKeys } from '../connectionKeys';
-import { feedKeys } from '@/features/feeds/lib/feedKeys';
 import { DeleteConnectionRequest } from '@semble/types';
-import { profileKeys } from '@/features/profile/lib/profileKeys';
-import { cardKeys } from '@/features/cards/lib/cardKeys';
-import { tagKeys } from '@/features/tags/lib/tagKeys';
+import { invalidateAfterConnectionDeleted } from '../connectionInvalidation';
 
 export default function useDeleteConnection() {
   const queryClient = useQueryClient();
@@ -17,36 +11,8 @@ export default function useDeleteConnection() {
       return deleteConnection(request);
     },
 
-    onSuccess: (_data, request) => {
-      // Invalidate all connection queries to ensure deletions are reflected everywhere
-      queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
-      // Invalidate all feed queries to remove deleted connection items from feeds
-      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-      // Invalidate all profile queries with stats to update connectionCount in ProfileTabs
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
-      // Every card in a list holds its own connection count; this is the one
-      // mutation here that doesn't invalidate cardKeys.all(), so clear them
-      // explicitly.
-      queryClient.invalidateQueries({ queryKey: cardKeys.urlStatuses() });
-      // Canvas boards draw connections as arrows, here and in other tabs
-      queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
-      announceLinkChange({ connectionIds: [request.connectionId] });
-      // Invalidate all URL metadata queries with stats to update tab counts
-      queryClient.invalidateQueries({
-        predicate: (query): boolean => {
-          const key = query.queryKey as unknown[];
-          return !!(
-            key[0] === 'cards' &&
-            key[1] === 'metadata' &&
-            key[3] &&
-            typeof key[3] === 'object' &&
-            'includeStats' in key[3] &&
-            key[3].includeStats === true
-          );
-        },
-      });
-    },
+    onSuccess: (_data, request) =>
+      invalidateAfterConnectionDeleted(queryClient, request),
   });
 
   return mutation;

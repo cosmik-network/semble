@@ -32,8 +32,11 @@ import BoardNavigation from '../boardNavigation/BoardNavigation';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
 import QuickAdd from '../quickAdd/QuickAdd';
+import ConnectionPicker from '../connectionPicker/ConnectionPicker';
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 import SelectionPopup from '../selectionPopup/SelectionPopup';
+import UndoToast from '../undoToast/UndoToast';
+import { showCanvasError } from '../../lib/showCanvasError';
 import { boardOverrides } from './boardOverrides';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
@@ -145,6 +148,7 @@ export default function BoardEditor(props: Props) {
       onWritingAgain: () => notifications.hide('canvas-taken-over'),
       onNewerVersion: () => active && setStatus('newer-version'),
       onFilesRefused: showFilesRefused,
+      onServerError: showCanvasError,
     });
     attached.loaded.then(
       (loaded) => {
@@ -181,6 +185,9 @@ export default function BoardEditor(props: Props) {
               onMount={setEditor}
             >
               {controller && (
+                <ConnectionPicker picker={controller.connectionPicker} />
+              )}
+              {controller && (
                 <SelectionPopup
                   popupLink={controller.popupLink}
                   onOpen={(kind, url) => setCardModal({ kind, url })}
@@ -188,6 +195,7 @@ export default function BoardEditor(props: Props) {
               )}
             </Tldraw>
             {controller && <QuickAdd quickAdd={controller.quickAdd} />}
+            {controller && <UndoToast undoToast={controller.undoToast} />}
             {controller && (
               <CardModals
                 modal={cardModal}

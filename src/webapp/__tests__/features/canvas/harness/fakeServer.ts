@@ -3,7 +3,11 @@ import type {
   CanvasServer,
   LinkConnection,
   LinkInfo,
+  NewConnection,
 } from '@/features/canvas/server/canvasServer';
+
+// Who the test boards are opened as
+export const VIEWER_DID = 'did:plc:tester';
 
 export interface ServerCall {
   method: string;
@@ -37,6 +41,7 @@ export class FakeServer implements CanvasServer {
   // Links load without their connections while set
   connectionsFailing = false;
   private held: (() => void)[] | null = null;
+  private connectionsCreated = 0;
 
   // Responses wait until the returned function is called
   holdResponses() {
@@ -71,6 +76,31 @@ export class FakeServer implements CanvasServer {
     if (held) await new Promise<void>((respond) => held.push(respond));
     if (failing) throw new Error('Network down');
     return links;
+  }
+
+  async createConnection(connection: NewConnection) {
+    this.calls.push({ method: 'createConnection', args: [connection] });
+    if (this.failing) throw new Error('Network down');
+    const id = `new-${++this.connectionsCreated}`;
+    this.connections = [
+      ...this.connections,
+      {
+        id,
+        type: connection.type,
+        sourceUrl: connection.sourceUrl,
+        targetUrl: connection.targetUrl,
+        curatorId: VIEWER_DID,
+      },
+    ];
+    return id;
+  }
+
+  async deleteConnection(connectionId: string) {
+    this.calls.push({ method: 'deleteConnection', args: [connectionId] });
+    if (this.failing) throw new Error('Network down');
+    this.connections = this.connections.filter(
+      (connection) => connection.id !== connectionId,
+    );
   }
 
   async searchLibrary(query: string) {

@@ -20,6 +20,14 @@ export function boardOverrides(
       // A grouped card selects as its group, which hides the card's popup.
       // Ungroup stays for groups made before.
       delete actions['group'];
+      // While the toast for a server write shows, Cmd+Z reverses that write
+      const undo = actions['undo'];
+      actions['undo'] = {
+        ...undo,
+        onSelect: (source) => {
+          if (!controller?.undoToast.undo()) return undo.onSelect(source);
+        },
+      };
       actions['toggle-card-arrows'] = {
         id: 'toggle-card-arrows',
         label: 'Hide or show arrows',

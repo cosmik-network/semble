@@ -3,7 +3,11 @@ import {
   getMyUrlCards,
   getUrlMetadata,
 } from '@/features/cards/lib/dal';
-import { getConnectionsForUrl } from '@/features/connections/lib/dal';
+import {
+  createConnection,
+  deleteConnection,
+  getConnectionsForUrl,
+} from '@/features/connections/lib/dal';
 import type { ConnectionType, UrlMetadata } from '@semble/types';
 import type { CanvasServer, LinkConnection, LinkInfo } from './canvasServer';
 
@@ -103,6 +107,19 @@ export const apiCanvasServer: CanvasServer = {
       ),
     );
     return links;
+  },
+  async createConnection({ sourceUrl, targetUrl, type }) {
+    const response = await createConnection({
+      sourceUrl,
+      targetUrl,
+      connectionType: type,
+    });
+    // The webapp's call returns nothing when it fails
+    if (!response) throw new Error("Couldn't create the connection");
+    return response.connectionId;
+  },
+  async deleteConnection(connectionId) {
+    await deleteConnection({ connectionId });
   },
   async searchLibrary(query) {
     const { cards } = await getMyUrlCards({

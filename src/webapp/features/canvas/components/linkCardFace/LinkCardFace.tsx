@@ -12,6 +12,7 @@ import {
 } from '../../model/linkCards';
 import { useCopyState } from '../../lib/canvasCopiesContext';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
+import EdgeDots from '../edgeDots/EdgeDots';
 
 interface Props {
   id: TLShapeId;
@@ -19,7 +20,7 @@ interface Props {
   height: number;
 }
 
-// Takes no clicks: the selection popup holds the card's actions
+// Only its edge dots take clicks: the selection popup holds the card's actions
 export default function LinkCardFace(props: Props) {
   const { data: link } = useCanvasLink(props.url);
   const layout = linkCardLayout(linkCardParts(link));
@@ -79,6 +80,7 @@ export default function LinkCardFace(props: Props) {
           ×{copyState.count}
         </Badge>
       )}
+      <EdgeDots cardId={props.id} />
     </Box>
   );
 }

@@ -1961,3 +1961,275 @@ describe('arrows', () => {
     });
   });
 });
+
+describe('making connections', () => {
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const A = 'https://example.com/a';
+  const B = 'https://example.com/b';
+  const writes = () =>
+    board.server.calls.filter(({ method }) =>
+      ['createConnection', 'deleteConnection'].includes(method),
+    );
+
+  // A at the left, B at the right, both loaded
+  async function boardWithTwoLinks() {
+    board = await createTestBoard();
+    await board.dropUrl(A, { x: 0, y: 0 });
+    await board.dropUrl(B, { x: 800, y: 0 });
+    await settle();
+  }
+
+  it('should open the type picker on an arrow drawn from one link to another, and publish Relates to on Enter', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+
+    // Act
+    board.drawArrow([0, 0], [800, 0]);
+    const opened = board.connectionPicker.state.get();
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(opened).toMatchObject({
+      sourceUrl: A,
+      targetUrl: B,
+      highlighted: 'RELATED',
+    });
+    expect(writes()).toEqual([
+      {
+        method: 'createConnection',
+        args: [{ sourceUrl: A, targetUrl: B, type: 'RELATED' }],
+      },
+    ]);
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.connectionPicker.state.get()).toBeNull();
+  });
+  it('should move through the types with the arrow keys and publish the one highlighted', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+
+    // Act
+    board.connectionPicker.moveHighlight(1);
+    board.connectionPicker.moveHighlight(1);
+    board.connectionPicker.moveHighlight(-1);
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(writes()).toEqual([
+      {
+        method: 'createConnection',
+        args: [{ sourceUrl: A, targetUrl: B, type: 'SUPPORTS' }],
+      },
+    ]);
+  });
+
+  it('should wrap round from the first type to the last', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+
+    // Act
+    board.connectionPicker.moveHighlight(-1);
+
+    // Assert
+    expect(board.connectionPicker.state.get()?.highlighted).toBe('REFERENCES');
+  });
+
+  it('should publish the connection the other way round once swapped', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+
+    // Act
+    board.connectionPicker.swap();
+    const named = board.connectionPicker.state.get();
+    await board.connectionPicker.publish('OPPOSES');
+
+    // Assert
+    expect(named).toMatchObject({ sourceUrl: B, targetUrl: A });
+    expect(writes()).toEqual([
+      {
+        method: 'createConnection',
+        args: [{ sourceUrl: B, targetUrl: A, type: 'OPPOSES' }],
+      },
+    ]);
+  });
+
+  it('should leave no arrow and call nothing when the picker is dismissed with Escape', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+
+    // Act
+    board.connectionPicker.discard();
+    await settle();
+
+    // Assert
+    expect(board.connectionPicker.state.get()).toBeNull();
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.arrows()).toEqual([]);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should not bring the discarded arrow back on undo or redo', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    board.connectionPicker.discard();
+
+    // Act
+    board.runAction('undo');
+    board.runAction('redo');
+
+    // Assert
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+
+  it('should keep an arrow to a sticky note on the board without opening the picker', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.editor.createShape({ type: 'note', x: -100, y: 400 });
+
+    // Act
+    board.drawArrow([0, 0], [0, 500]);
+    await settle();
+
+    // Assert
+    expect(board.connectionPicker.state.get()).toBeNull();
+    expect(board.sketchArrows()).toHaveLength(1);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should keep an arrow from a drawing to a link on the board without opening the picker', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.editor.setCurrentTool('draw');
+    board.drag([300, 500], [500, 600]);
+
+    // Act
+    board.drawArrow([400, 550], [800, 0]);
+    await settle();
+
+    // Assert
+    expect(board.connectionPicker.state.get()).toBeNull();
+    expect(board.sketchArrows()).toHaveLength(1);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should show a toast with Undo after publishing, whose Undo deletes the connection', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    await board.connectionPicker.publish();
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+    const toast = board.undoToast.current.get();
+
+    // Act
+    board.undoToast.undo();
+
+    // Assert
+    expect(toast).toMatchObject({
+      sourceUrl: A,
+      targetUrl: B,
+      type: 'RELATED',
+    });
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+    expect(writes().map(({ method, args }) => [method, args[0]])).toEqual([
+      ['createConnection', { sourceUrl: A, targetUrl: B, type: 'RELATED' }],
+      ['deleteConnection', 'new-1'],
+    ]);
+    expect(board.undoToast.current.get()).toBeNull();
+  });
+
+  it('should delete the published connection on Cmd+Z while the toast shows, with nothing to redo', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    await board.connectionPicker.publish();
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+
+    // Act
+    board.runAction('undo');
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+    board.runAction('redo');
+    await settle();
+
+    // Assert
+    expect(writes().map(({ method }) => method)).toEqual([
+      'createConnection',
+      'deleteConnection',
+    ]);
+    expect(board.arrows()).toEqual([]);
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+
+  it('should undo board edits as usual on Cmd+Z once the toast has gone', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    await board.connectionPicker.publish();
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+    board.undoToast.dismiss();
+
+    // Act
+    board.runAction('undo');
+    await settle();
+
+    // Assert
+    expect(writes().map(({ method }) => method)).toEqual(['createConnection']);
+    expect(board.linkCards()).toHaveLength(1);
+  });
+
+  it('should say so and leave no arrow when publishing fails', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    board.server.failing = true;
+
+    // Act
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(board.serverErrors).toEqual(["Couldn't publish the connection."]);
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.arrows()).toEqual([]);
+    expect(board.undoToast.current.get()).toBeNull();
+  });
+  it('should keep the Undo when deleting the connection fails, so it can be tried again', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    await board.connectionPicker.publish();
+    const toast = board.undoToast.current.get();
+    board.server.failing = true;
+
+    // Act
+    board.undoToast.undo();
+    await settle();
+
+    // Assert
+    expect(board.serverErrors).toEqual(["Couldn't delete the connection."]);
+    expect(board.undoToast.current.get()).toBe(toast);
+  });
+
+  it('should not save the drawn arrow when the board closes with the picker open', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    const first = board;
+
+    // Act
+    await first.dispose();
+    board = await createTestBoard({
+      storage: first.storage,
+      canvasId: first.canvasId,
+    });
+
+    // Assert
+    expect(board.sketchArrows()).toEqual([]);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+});

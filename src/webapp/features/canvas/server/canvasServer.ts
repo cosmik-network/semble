@@ -22,11 +22,21 @@ export interface LinkInfo {
   connections: LinkConnection[] | null;
 }
 
+export interface NewConnection {
+  sourceUrl: string;
+  targetUrl: string;
+  type: ConnectionType;
+}
+
 export interface CanvasServer {
   // Links it couldn't load are left out
   getLinks(urls: string[]): Promise<Map<string, LinkInfo>>;
   // The viewer's most recent links, or those matching the query
   searchLibrary(query: string): Promise<UrlMetadata[]>;
+  // Resolves with the new connection's id
+  createConnection(connection: NewConnection): Promise<string>;
+  // Also deletes the notifications the connection created
+  deleteConnection(connectionId: string): Promise<void>;
 }
 
 // Links requested in the same tick go to the server as one getLinks call

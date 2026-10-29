@@ -8,6 +8,11 @@ import {
 } from 'tldraw';
 import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
 import { attachArrows } from './arrows';
+import {
+  invalidateAfterConnectionCreated,
+  invalidateAfterConnectionDeleted,
+} from '@/features/connections/lib/connectionInvalidation';
+import { attachConnections } from './connections';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 import { attachQuickAdd } from './quickAdd';
@@ -24,6 +29,8 @@ export interface CanvasControllerDeps
   onWritingAgain(): void;
   // A newer app has saved the board since it loaded, so this tab can't write it
   onNewerVersion(): void;
+  // A connection couldn't be published or deleted
+  onServerError(message: string): void;
 }
 
 export type CanvasLoadStatus = BoardStatus;
@@ -99,6 +106,15 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     fetchedConnections: () => links.fetchedConnections(),
   });
   const links = attachLinkCards(deps, arrows.reconcileSoon);
+  const connections = attachConnections({
+    editor,
+    server: deps.server,
+    onConnectionCreated: (connection) =>
+      invalidateAfterConnectionCreated(deps.queryClient, connection),
+    onConnectionDeleted: (connectionId) =>
+      invalidateAfterConnectionDeleted(deps.queryClient, { connectionId }),
+    onServerError: deps.onServerError,
+  });
   const quickAdd = attachQuickAdd(editor, links.placeLink);
   const popupLink = createPopupLink(editor);
   const refreshLoop = attachRefreshLoop({
@@ -172,11 +188,14 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     copies,
     popupLink,
     arrowView: arrows.view,
+    connectionPicker: connections.picker,
+    undoToast: connections.undoToast,
     refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;
       quickAdd.detach();
+      connections.detach();
       refreshLoop.detach();
       arrows.detach();
       const linksDetached = links.detach();
