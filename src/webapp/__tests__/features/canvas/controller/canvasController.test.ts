@@ -867,3 +867,88 @@ describe('copies', () => {
     expect(board.server.calls).toHaveLength(1);
   });
 });
+
+// ─────────────────────────────────────────────
+// selection popup
+// ─────────────────────────────────────────────
+
+describe('selection popup', () => {
+  it('should show the popup for one selected card', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    const [card] = board.linkCards();
+
+    // Act
+    board.editor.select(card.id);
+
+    // Assert
+    expect(board.popupLink.get()).toBe('https://example.com/article');
+  });
+
+  it('should show no popup when several cards are selected', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    await board.dropUrl('https://example.com/other', { x: 600, y: 0 });
+
+    // Act
+    board.editor.select(...board.linkCards().map((card) => card.id));
+
+    // Assert
+    expect(board.popupLink.get()).toBeNull();
+  });
+
+  it('should show no popup for a selected sticky note', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.pasteText('a thought');
+    const [note] = board.editor.getCurrentPageShapes();
+
+    // Act
+    board.editor.select(note.id);
+
+    // Assert
+    expect(board.popupLink.get()).toBeNull();
+  });
+
+  it('should hide the popup while a menu is open', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    board.editor.select(board.linkCards()[0].id);
+
+    // Act
+    board.editor.menus.addOpenMenu('context menu');
+
+    // Assert
+    expect(board.popupLink.get()).toBeNull();
+  });
+
+  it('should hide the popup while the card is dragged', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
+    board.editor.select(board.linkCards()[0].id);
+
+    // Act
+    board.startDrag([300, 200], [300, 600]);
+
+    // Assert
+    await vi.waitFor(() => expect(board.popupLink.get()).toBeNull());
+    expect(board.editor.isIn('select.translating')).toBe(true);
+  });
+
+  it('should offer no grouping, which would hide the popup for grouped cards, but still ungroup', async () => {
+    // Arrange
+    board = await createTestBoard();
+
+    // Act
+    const actionIds = board.actionIds();
+
+    // Assert
+    expect(actionIds).toContain('duplicate');
+    expect(actionIds).not.toContain('group');
+    expect(actionIds).toContain('ungroup');
+  });
+});

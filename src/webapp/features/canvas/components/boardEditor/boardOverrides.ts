@@ -17,6 +17,9 @@ export function boardOverrides(
       // No asset store, so the insert menu items go
       delete actions['insert-media'];
       delete actions['insert-embed'];
+      // A grouped card selects as its group, which hides the card's popup.
+      // Ungroup stays for groups made before.
+      delete actions['group'];
       actions['quick-add'] = {
         id: 'quick-add',
         label: 'Quick add',

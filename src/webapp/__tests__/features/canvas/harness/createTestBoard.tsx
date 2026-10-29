@@ -62,9 +62,13 @@ export interface TestBoard {
     to: [number, number],
     keys?: { altKey: boolean },
   ): void;
+  // Presses and moves without letting go, so the drag is still under way.
+  // The move lands a frame or more later.
+  startDrag(from: [number, number], to: [number, number]): void;
   // Runs one of the board's actions as its keyboard shortcut would, e.g.
   // duplicate for Cmd+D
   runAction(id: string): void;
+  actionIds(): string[];
   // Moves the pointer there without pressing, in page coordinates at the
   // default camera. The hovered shape changes a frame or more later.
   hover(at: [number, number]): void;
@@ -81,6 +85,7 @@ export interface TestBoard {
   quickAdd: CanvasController['quickAdd'];
   // What each copy's badge and outline show
   copies: CanvasController['copies'];
+  popupLink: CanvasController['popupLink'];
   // Closes the board, saving it like navigating away would
   dispose(): Promise<void>;
 }
@@ -219,12 +224,18 @@ export async function createTestBoard(
         .dispatch(pointer('pointer_move', to, altKey))
         .dispatch(pointer('pointer_up', to, altKey));
     },
+    startDrag(from, to) {
+      editor
+        .dispatch(pointer('pointer_down', from))
+        .dispatch(pointer('pointer_move', to));
+    },
     hover(at) {
       editor.dispatch(pointer('pointer_move', at));
     },
     runAction(id) {
       actions.result.current[id].onSelect('kbd');
     },
+    actionIds: () => Object.keys(actions.result.current),
     pasteUrl: (url) => editor.putExternalContent({ type: 'url', url }),
     pasteText: (text) => editor.putExternalContent({ type: 'text', text }),
     pasteFiles: (files) => editor.putExternalContent({ type: 'files', files }),
@@ -239,6 +250,7 @@ export async function createTestBoard(
     },
     quickAdd: controller.quickAdd,
     copies: controller.copies,
+    popupLink: controller.popupLink,
     linkCards: () => linkCardsOn(editor),
     async dispose() {
       if (disposed) return;

@@ -24,16 +24,20 @@ import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
+import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
+import CardModals, { type CardModal } from '../cardModals/CardModals';
 import QuickAdd from '../quickAdd/QuickAdd';
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
+import SelectionPopup from '../selectionPopup/SelectionPopup';
 import { boardOverrides } from './boardOverrides';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
 
 const shapeUtils = [LinkCardShapeUtil];
+const CARD_MODAL_MENU = 'canvas-card-modal';
 
 function showSaveError(error: unknown) {
   console.warn(error);
@@ -89,11 +93,13 @@ export default function BoardEditor(props: Props) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [status, setStatus] = useState<Status>('loading');
   const [controller, setController] = useState<CanvasController | null>(null);
+  const [cardModal, setCardModal] = useState<CardModal | null>(null);
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => <BoardHeader canvasId={props.canvasId} />,
       Toolbar: BoardToolbar,
+      ContextMenu: BoardContextMenu,
       TopPanel: () => (
         <ReadOnlyBanner onTakeOver={async () => controller?.takeOver()} />
       ),
@@ -101,6 +107,16 @@ export default function BoardEditor(props: Props) {
     [props.canvasId, controller],
   );
   const overrides = useMemo(() => boardOverrides(controller), [controller]);
+
+  const isCardModalOpen = !!cardModal?.kind;
+
+  // Open as a tldraw menu, so the board's shortcuts don't act on key presses
+  // inside the modal
+  useEffect(() => {
+    if (!editor || !isCardModalOpen) return;
+    editor.menus.addOpenMenu(CARD_MODAL_MENU);
+    return () => editor.menus.deleteOpenMenu(CARD_MODAL_MENU);
+  }, [editor, isCardModalOpen]);
 
   useEffect(() => {
     if (!editor || !ownerDid) return;
@@ -150,8 +166,23 @@ export default function BoardEditor(props: Props) {
               components={components}
               overrides={overrides}
               onMount={setEditor}
-            />
+            >
+              {controller && (
+                <SelectionPopup
+                  popupLink={controller.popupLink}
+                  onOpen={(kind, url) => setCardModal({ kind, url })}
+                />
+              )}
+            </Tldraw>
             {controller && <QuickAdd quickAdd={controller.quickAdd} />}
+            {controller && (
+              <CardModals
+                modal={cardModal}
+                onClose={() =>
+                  setCardModal((modal) => modal && { ...modal, kind: null })
+                }
+              />
+            )}
           </CanvasCopiesProvider>
         </CanvasServerProvider>
       </div>

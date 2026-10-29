@@ -10,6 +10,7 @@ import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 import { attachQuickAdd } from './quickAdd';
+import { createPopupLink } from './popupLink';
 
 export interface CanvasControllerDeps extends LinkCardsDeps {
   ownerDid: string;
@@ -89,6 +90,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const links = attachLinkCards(deps);
   const quickAdd = attachQuickAdd(editor, links.placeLink);
   const copies = attachCopies(editor);
+  const popupLink = createPopupLink(editor);
   const board = deps.storage.openBoard(
     deps.canvasId,
     {
@@ -140,6 +142,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     loaded,
     quickAdd,
     copies,
+    popupLink,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;

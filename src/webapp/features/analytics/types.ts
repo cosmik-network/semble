@@ -10,6 +10,7 @@ export enum CardSaveSource {
   ONBOARDING = 'onboarding',
   RECOMMENDED = 'recommended',
   READER = 'reader',
+  CANVAS = 'canvas',
 }
 
 export enum FollowSource {
