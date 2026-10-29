@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -26,26 +26,35 @@ import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
+import QuickAdd from '../quickAdd/QuickAdd';
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
 
 // Removing tools here also removes their keyboard shortcuts
-const overrides: TLUiOverrides = {
-  tools(_editor, tools) {
-    for (const id of Object.keys(tools)) {
-      if (!isBoardTool(id)) delete tools[id];
-    }
-    return tools;
-  },
-  // No asset store, so the insert menu items go
-  actions(_editor, actions) {
-    delete actions['insert-media'];
-    delete actions['insert-embed'];
-    return actions;
-  },
-};
+function boardOverrides(controller: CanvasController | null): TLUiOverrides {
+  return {
+    tools(_editor, tools) {
+      for (const id of Object.keys(tools)) {
+        if (!isBoardTool(id)) delete tools[id];
+      }
+      return tools;
+    },
+    actions(_editor, actions) {
+      // No asset store, so the insert menu items go
+      delete actions['insert-media'];
+      delete actions['insert-embed'];
+      actions['quick-add'] = {
+        id: 'quick-add',
+        label: 'Quick add',
+        kbd: '/',
+        onSelect: () => controller?.quickAdd.open(),
+      };
+      return actions;
+    },
+  };
+}
 
 const shapeUtils = [LinkCardShapeUtil];
 
@@ -102,25 +111,24 @@ export default function BoardEditor(props: Props) {
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [status, setStatus] = useState<Status>('loading');
-  const controllerRef = useRef<CanvasController | null>(null);
+  const [controller, setController] = useState<CanvasController | null>(null);
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => <BoardHeader canvasId={props.canvasId} />,
       Toolbar: BoardToolbar,
       TopPanel: () => (
-        <ReadOnlyBanner
-          onTakeOver={async () => controllerRef.current?.takeOver()}
-        />
+        <ReadOnlyBanner onTakeOver={async () => controller?.takeOver()} />
       ),
     }),
-    [props.canvasId],
+    [props.canvasId, controller],
   );
+  const overrides = useMemo(() => boardOverrides(controller), [controller]);
 
   useEffect(() => {
     if (!editor || !ownerDid) return;
     let active = true;
-    const controller = attachCanvasController({
+    const attached = attachCanvasController({
       editor,
       server: apiCanvasServer,
       queryClient,
@@ -133,9 +141,12 @@ export default function BoardEditor(props: Props) {
       onNewerVersion: () => active && setStatus('newer-version'),
       onFilesRefused: showFilesRefused,
     });
-    controllerRef.current = controller;
-    controller.loaded.then(
-      (loaded) => active && setStatus(loaded),
+    attached.loaded.then(
+      (loaded) => {
+        if (!active) return;
+        setStatus(loaded);
+        setController(attached);
+      },
       (error) => {
         console.warn(error);
         if (active) setStatus('failed');
@@ -143,8 +154,8 @@ export default function BoardEditor(props: Props) {
     );
     return () => {
       active = false;
-      controllerRef.current = null;
-      void controller.detach();
+      setController(null);
+      void attached.detach();
     };
   }, [editor, ownerDid, props.canvasId, queryClient]);
 
@@ -162,6 +173,7 @@ export default function BoardEditor(props: Props) {
             overrides={overrides}
             onMount={setEditor}
           />
+          {controller && <QuickAdd quickAdd={controller.quickAdd} />}
         </CanvasServerProvider>
       </div>
       {status !== 'ready' && (

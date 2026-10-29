@@ -1,3 +1,4 @@
+import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
   LinkInfo,
@@ -25,6 +26,8 @@ export class FakeServer implements CanvasServer {
   calls: ServerCall[] = [];
   // What the server returns for each link; others load with a title only
   links = new Map<string, LinkInfo>();
+  // The viewer's library, most recent first
+  library: UrlMetadata[] = [];
   private held: (() => void)[] | null = null;
 
   // Responses wait until the returned function is called
@@ -43,6 +46,13 @@ export class FakeServer implements CanvasServer {
     if (held) await new Promise<void>((respond) => held.push(respond));
     return new Map(
       urls.map((url) => [url, this.links.get(url) ?? testLink(url)]),
+    );
+  }
+
+  async searchLibrary(query: string) {
+    this.calls.push({ method: 'searchLibrary', args: [query] });
+    return this.library.filter((link) =>
+      `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
     );
   }
 }

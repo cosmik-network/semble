@@ -206,6 +206,7 @@ export function attachLinkCards(deps: LinkCardsDeps) {
   return {
     // Before the board's document loads, so its cards first paint from them
     showKnownLinks,
+    placeLink,
     // Once the board has loaded
     refresh() {
       sizeCards(boardUrls());

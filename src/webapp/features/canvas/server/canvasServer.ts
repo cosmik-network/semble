@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import type { UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
 
@@ -15,6 +15,8 @@ export interface LinkInfo {
 export interface CanvasServer {
   // Links it couldn't load are left out
   getLinks(urls: string[]): Promise<Map<string, LinkInfo>>;
+  // The viewer's most recent links, or those matching the query
+  searchLibrary(query: string): Promise<UrlMetadata[]>;
 }
 
 // Links requested in the same tick go to the server as one getLinks call
@@ -86,5 +88,13 @@ export function linkQuery(server: CanvasServer, url: string) {
     queryFn: () => loadLink(server, url),
     meta: { linkUrl: url },
     staleTime: 60_000,
+  });
+}
+
+export function librarySearchQuery(server: CanvasServer, query: string) {
+  return queryOptions({
+    queryKey: canvasKeys.librarySearch(query),
+    queryFn: () => server.searchLibrary(query),
+    placeholderData: keepPreviousData,
   });
 }

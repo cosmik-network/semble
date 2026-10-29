@@ -617,3 +617,94 @@ describe('link cards', () => {
     respond();
   });
 });
+
+describe('quick-add', () => {
+  it('should place a link picked in quick-add where the canvas was double-clicked', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.doubleClick([300, 200]);
+
+    // Act
+    board.quickAdd.place('https://example.com/article');
+
+    // Assert
+    const [card] = board.linkCards();
+    expect(card.props.url).toBe('https://example.com/article');
+    const center = board.editor.getShapePageBounds(card)!.center;
+    expect(center.x).toBeCloseTo(300);
+    expect(center.y).toBeCloseTo(200);
+    expect(board.quickAdd.placeAt.get()).toBeNull();
+  });
+
+  it('should place a link picked in quick-add opened with / at the centre of the view', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.editor.setCamera({ x: -400, y: 250, z: 1 });
+    board.quickAdd.open();
+
+    // Act
+    board.quickAdd.place('  https://example.com ');
+
+    // Assert
+    const [card] = board.linkCards();
+    expect(card.props.url).toBe('https://example.com/');
+    const center = board.editor.getShapePageBounds(card)!.center;
+    const viewCenter = board.editor.getViewportPageBounds().center;
+    expect(center.x).toBeCloseTo(viewCenter.x);
+    expect(center.y).toBeCloseTo(viewCenter.y);
+  });
+
+  it('should not open quick-add on a double-click on a shape', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
+
+    // Act
+    board.doubleClick([300, 200]);
+
+    // Assert
+    expect(board.quickAdd.placeAt.get()).toBeNull();
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(1);
+  });
+
+  it('should place nothing when quick-add is closed', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.doubleClick([300, 200]);
+
+    // Act
+    board.quickAdd.close();
+    board.quickAdd.place('https://example.com/article');
+
+    // Assert
+    expect(board.quickAdd.placeAt.get()).toBeNull();
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+
+  it('should leave quick-add open on text that is not a link', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.quickAdd.open();
+
+    // Act
+    board.quickAdd.place('climate reading');
+
+    // Assert
+    expect(board.quickAdd.placeAt.get()).not.toBeNull();
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+
+  it('should not open quick-add in a read-only tab', async () => {
+    // Arrange
+    board = await createTestBoard();
+    otherTab = await board.openInAnotherTab();
+
+    // Act
+    otherTab.doubleClick([300, 200]);
+    otherTab.quickAdd.open();
+
+    // Assert
+    expect(otherTab.quickAdd.placeAt.get()).toBeNull();
+    expect(otherTab.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+});

@@ -28,6 +28,7 @@ import { getDomain } from '@/lib/utils/link';
 import { useMyCardsInfinite } from '@/features/cards/lib/queries/useMyCards';
 import { CollectionAccessType, type UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
+import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
 import { getRecordKey } from '@/lib/utils/atproto';
 
@@ -167,34 +168,11 @@ export default function UrlSearchInput(props: Props) {
 
   const cardOptions = urls.map((urlView) => (
     <Combobox.Option key={urlView.url} value={urlView.url} p={5}>
-      <Group gap={'xs'} align="center" wrap="nowrap">
-        {urlView.metadata.imageUrl && (
-          <Card
-            p={0}
-            radius="sm"
-            withBorder
-            w={35}
-            h={35}
-            style={{ flexShrink: 0 }}
-          >
-            <Image
-              src={urlView.metadata.imageUrl}
-              alt={urlView.metadata.title || 'URL thumbnail'}
-              w={'100%'}
-              h={'100%'}
-              fit="cover"
-            />
-          </Card>
-        )}
-        <Stack gap={0}>
-          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
-            {urlView.metadata.title || urlView.url}
-          </Text>
-          <Text c={'gray'} lineClamp={1} size="xs">
-            {getDomain(urlView.url)}
-          </Text>
-        </Stack>
-      </Group>
+      <UrlOptionRow
+        url={urlView.url}
+        title={urlView.metadata.title}
+        imageUrl={urlView.metadata.imageUrl}
+      />
     </Combobox.Option>
   ));
 
@@ -346,34 +324,11 @@ export default function UrlSearchInput(props: Props) {
                 ) : (
                   recentCardsList.map((card) => (
                     <Combobox.Option key={card.url} value={card.url} p={5}>
-                      <Group gap={'xs'} align="center" wrap="nowrap">
-                        {card.cardContent.imageUrl && (
-                          <Card
-                            p={0}
-                            radius="sm"
-                            withBorder
-                            w={35}
-                            h={35}
-                            style={{ flexShrink: 0 }}
-                          >
-                            <Image
-                              src={card.cardContent.imageUrl}
-                              alt={card.cardContent.title || 'URL thumbnail'}
-                              w={'100%'}
-                              h={'100%'}
-                              fit="cover"
-                            />
-                          </Card>
-                        )}
-                        <Stack gap={0}>
-                          <Text fw={500} c={'bright'} lineClamp={1} size="sm">
-                            {card.cardContent.title || card.url}
-                          </Text>
-                          <Text c={'gray'} lineClamp={1} size="xs">
-                            {getDomain(card.url)}
-                          </Text>
-                        </Stack>
-                      </Group>
+                      <UrlOptionRow
+                        url={card.url}
+                        title={card.cardContent.title}
+                        imageUrl={card.cardContent.imageUrl}
+                      />
                     </Combobox.Option>
                   ))
                 )}

@@ -16,6 +16,7 @@ import {
 } from 'tldraw';
 import {
   attachCanvasController,
+  type CanvasController,
   type CanvasLoadStatus,
 } from '@/features/canvas/controller/canvasController';
 import { TLDRAW_VERSION } from '@/features/canvas/storage/browserCanvasStorage';
@@ -56,6 +57,11 @@ export interface TestBoard {
   pasteFiles(files: File[]): Promise<void>;
   dropUrl(url: string, point: VecLike): Promise<void>;
   linkCards(): LinkCardShape[];
+  // Double-clicks with the select tool, in page coordinates at the default
+  // camera
+  doubleClick(at: [number, number]): void;
+  // The / shortcut calls quickAdd.open()
+  quickAdd: CanvasController['quickAdd'];
   // Closes the board, saving it like navigating away would
   dispose(): Promise<void>;
 }
@@ -116,6 +122,7 @@ export async function createTestBoard(
     bindingUtils,
     tools: [...defaultTools, ...defaultShapeTools],
     getContainer: () => document.body,
+    initialState: 'select',
     textOptions: {
       addFontsFromNode: defaultAddFontsFromNode,
       tipTapConfig: { extensions: tipTapDefaultExtensions },
@@ -182,6 +189,14 @@ export async function createTestBoard(
     pasteFiles: (files) => editor.putExternalContent({ type: 'files', files }),
     dropUrl: (url, point) =>
       editor.putExternalContent({ type: 'url', url, point }),
+    doubleClick(at) {
+      for (let i = 0; i < 2; i++) {
+        editor
+          .dispatch(pointer('pointer_down', at))
+          .dispatch(pointer('pointer_up', at));
+      }
+    },
+    quickAdd: controller.quickAdd,
     linkCards: () =>
       editor
         .getCurrentPageShapes()

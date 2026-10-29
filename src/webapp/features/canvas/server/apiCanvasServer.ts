@@ -1,4 +1,8 @@
-import { getCardFromMyLibrary, getUrlMetadata } from '@/features/cards/lib/dal';
+import {
+  getCardFromMyLibrary,
+  getMyUrlCards,
+  getUrlMetadata,
+} from '@/features/cards/lib/dal';
 import type { CanvasServer, LinkInfo } from './canvasServer';
 
 // Until a batch endpoint exists (#982), each link takes two calls
@@ -48,5 +52,12 @@ export const apiCanvasServer: CanvasServer = {
       ),
     );
     return links;
+  },
+  async searchLibrary(query) {
+    const { cards } = await getMyUrlCards({
+      limit: 8,
+      searchText: query || undefined,
+    });
+    return cards.map((card) => card.cardContent);
   },
 };

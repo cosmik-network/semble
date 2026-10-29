@@ -8,6 +8,7 @@ import {
 } from 'tldraw';
 import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
+import { attachQuickAdd } from './quickAdd';
 
 export interface CanvasControllerDeps extends LinkCardsDeps {
   ownerDid: string;
@@ -85,6 +86,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const session = createSessionStateSnapshotSignal(editor.store);
   let detached = false;
   const links = attachLinkCards(deps);
+  const quickAdd = attachQuickAdd(editor, links.placeLink);
   const board = deps.storage.openBoard(
     deps.canvasId,
     {
@@ -134,9 +136,11 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
 
   return {
     loaded,
+    quickAdd,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;
+      quickAdd.detach();
       const linksDetached = links.detach();
       // Close before unlistening: its flush reports pending changes through
       // the listener
