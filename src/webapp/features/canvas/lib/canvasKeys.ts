@@ -10,4 +10,7 @@ export const canvasKeys = {
   link: (url: string) => [...canvasKeys.links(), url] as const,
   librarySearch: (query: string) =>
     [...cardKeys.all(), 'canvas-library-search', query] as const,
+  // Not under cardKeys: the viewer's own saves barely change it
+  sembleSearch: (query: string) =>
+    [...canvasKeys.all(), 'semble-search', query] as const,
 };

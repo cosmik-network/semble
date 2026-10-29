@@ -1,5 +1,6 @@
 import { atom, type Editor, type TLClickEventInfo, type VecLike } from 'tldraw';
 import { linkKey } from '../model/linkCards';
+import type { SearchScope } from '../server/canvasServer';
 
 interface SelectIdle {
   handleDoubleClickOnCanvas(info: TLClickEventInfo): void;
@@ -13,6 +14,8 @@ export function attachQuickAdd(
 ) {
   // Where the picked link goes, or null while quick-add is closed
   const placeAt = atom<VecLike | null>('quick-add', null);
+  // Kept across openings while the board is open
+  const scope = atom<SearchScope>('quick-add scope', 'mine');
 
   function open(point?: VecLike) {
     if (editor.getIsReadonly()) return;
@@ -34,6 +37,8 @@ export function attachQuickAdd(
     placeAt,
     open: () => open(),
     close: () => placeAt.set(null),
+    scope,
+    setScope: (next: SearchScope) => scope.set(next),
     // Text that isn't a link is a search, and leaves quick-add open
     place(input: string) {
       const point = placeAt.get();

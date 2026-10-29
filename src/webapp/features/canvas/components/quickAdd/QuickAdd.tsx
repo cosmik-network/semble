@@ -2,21 +2,42 @@ import {
   Combobox,
   Loader,
   Modal,
+  SegmentedControl,
   Stack,
   TextInput,
   useCombobox,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { useValue } from 'tldraw';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import type { QuickAdd as QuickAddController } from '../../controller/quickAdd';
-import useLibrarySearch from '../../lib/queries/useLibrarySearch';
+import useLinkSearch from '../../lib/queries/useLinkSearch';
+import type { SearchScope } from '../../server/canvasServer';
 import { linkKey } from '../../model/linkCards';
 
-const PROMPT = 'Paste a link or search your library';
+const SCOPES: { value: SearchScope; label: string }[] = [
+  { value: 'mine', label: 'Mine' },
+  { value: 'everyone', label: 'Everyone' },
+];
+
+const MESSAGES: Record<
+  SearchScope,
+  { prompt: string; failed: string; noMatch: string }
+> = {
+  mine: {
+    prompt: 'Paste a link or search your library',
+    failed: "Couldn't search your library",
+    noMatch: 'No links in your library match',
+  },
+  everyone: {
+    prompt: 'Paste a link or search all of Semble',
+    failed: "Couldn't search Semble",
+    noMatch: 'No links on Semble match',
+  },
+};
 
 interface Props {
   quickAdd: QuickAddController;
@@ -44,17 +65,21 @@ export default function QuickAdd(props: Props) {
 
 function QuickAddSearch(props: Props) {
   const combobox = useCombobox();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState('');
   const [query] = useDebouncedValue(input.trim(), 200);
-  const search = useLibrarySearch(query);
+  const scope = useValue(props.quickAdd.scope);
+  const search = useLinkSearch(scope, query);
   const links = search.data ?? [];
   const isLink = linkKey(input) !== null;
+  const messages = MESSAGES[scope];
 
   const emptyMessage = () => {
-    if (search.isError) return "Couldn't search your library";
+    if (search.isError) return messages.failed;
     if (isLink) return 'Press Enter to place this link';
-    if (query) return 'No links in your library match';
-    return PROMPT;
+    if (search.isPending) return 'Searching…';
+    if (query) return messages.noMatch;
+    return messages.prompt;
   };
 
   return (
@@ -65,8 +90,9 @@ function QuickAddSearch(props: Props) {
       <Stack gap="xs">
         <Combobox.EventsTarget>
           <TextInput
-            aria-label={PROMPT}
-            placeholder={PROMPT}
+            ref={inputRef}
+            aria-label={messages.prompt}
+            placeholder={messages.prompt}
             variant="filled"
             size="md"
             leftSection={<BiSearch />}
@@ -88,6 +114,18 @@ function QuickAddSearch(props: Props) {
             }}
           />
         </Combobox.EventsTarget>
+
+        <SegmentedControl
+          value={scope}
+          onChange={(value) => {
+            props.quickAdd.setScope(value);
+            combobox.resetSelectedOption();
+            // Back to the search box, so typing and arrow keys carry on
+            inputRef.current?.focus();
+          }}
+          data={SCOPES}
+          size="xs"
+        />
 
         <Combobox.Options>
           {links.length === 0 || isLink ? (

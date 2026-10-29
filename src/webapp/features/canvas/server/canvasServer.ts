@@ -1,4 +1,4 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
 import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
 
@@ -39,6 +39,8 @@ export interface CanvasServer {
   getLinks(urls: string[]): Promise<Map<string, LinkInfo>>;
   // The viewer's most recent links, or those matching the query
   searchLibrary(query: string): Promise<UrlMetadata[]>;
+  // Links anyone on Semble has saved that match the query
+  searchEveryone(query: string): Promise<UrlMetadata[]>;
   // Resolves with the new connection's id
   createConnection(connection: NewConnection): Promise<string>;
   updateConnection(
@@ -121,10 +123,26 @@ export function linkQuery(server: CanvasServer, url: string) {
   });
 }
 
-export function librarySearchQuery(server: CanvasServer, query: string) {
+export type SearchScope = 'mine' | 'everyone';
+
+export function linkSearchQuery(
+  server: CanvasServer,
+  scope: SearchScope,
+  query: string,
+) {
   return queryOptions({
-    queryKey: canvasKeys.librarySearch(query),
-    queryFn: () => server.searchLibrary(query),
-    placeholderData: keepPreviousData,
+    queryKey:
+      scope === 'mine'
+        ? canvasKeys.librarySearch(query)
+        : canvasKeys.sembleSearch(query),
+    queryFn: async () => {
+      if (scope === 'mine') return server.searchLibrary(query);
+      // Everyone has no recent links to list
+      return query ? server.searchEveryone(query) : [];
+    },
+    meta: { searchScope: scope },
+    // Only while typing, so one scope's results never show under the other
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.meta?.searchScope === scope ? previous : undefined,
   });
 }

@@ -7,6 +7,7 @@ import {
   createConnection,
   deleteConnection,
   getConnectionsForUrl,
+  searchUrls,
   updateConnection,
 } from '@/features/connections/lib/dal';
 import type { ConnectionType, UrlMetadata } from '@semble/types';
@@ -34,6 +35,8 @@ function limitConcurrency(max: number) {
 }
 
 const limit = limitConcurrency(MAX_LINKS_IN_FLIGHT);
+
+const SEARCH_RESULTS = 8;
 
 // A page's metadata rarely changes, so refreshes fetch only what does: whether
 // the link is saved, and the note
@@ -127,9 +130,16 @@ export const apiCanvasServer: CanvasServer = {
   },
   async searchLibrary(query) {
     const { cards } = await getMyUrlCards({
-      limit: 8,
+      limit: SEARCH_RESULTS,
       searchText: query || undefined,
     });
     return cards.map((card) => card.cardContent);
+  },
+  async searchEveryone(query) {
+    const { urls } = await searchUrls({
+      searchQuery: query,
+      limit: SEARCH_RESULTS,
+    });
+    return urls.map((link) => ({ ...link.metadata, url: link.url }));
   },
 };

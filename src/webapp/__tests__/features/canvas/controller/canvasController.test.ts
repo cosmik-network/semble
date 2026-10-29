@@ -13,9 +13,10 @@ import { CONNECTION_TYPE_MENU } from '@/features/canvas/controller/connectionEdi
 import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
-import type {
-  LinkConnection,
-  LinkInfo,
+import {
+  linkSearchQuery,
+  type LinkConnection,
+  type LinkInfo,
 } from '@/features/canvas/server/canvasServer';
 import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
 import type {
@@ -707,6 +708,93 @@ describe('quick-add', () => {
     // Assert
     expect(board.quickAdd.placeAt.get()).not.toBeNull();
     expect(board.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+
+  it('should place a link found in the library', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.server.library = [
+      { url: 'https://example.com/climate', title: 'Climate reading' },
+    ];
+    board.runAction('quick-add');
+
+    // Act
+    const [result] = await board.queryClient.fetchQuery(
+      linkSearchQuery(board.server, 'mine', 'climate'),
+    );
+    board.quickAdd.place(result.url);
+
+    // Assert
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([
+      'https://example.com/climate',
+    ]);
+    expect(board.server.calls).toContainEqual({
+      method: 'searchLibrary',
+      args: ['climate'],
+    });
+  });
+
+  it('should place a link found across Semble that is not in the library', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.server.everyone = [
+      { url: 'https://example.com/climate', title: 'Climate reading' },
+    ];
+    board.runAction('quick-add');
+
+    // Act
+    const mine = await board.queryClient.fetchQuery(
+      linkSearchQuery(board.server, 'mine', 'climate'),
+    );
+    const [result] = await board.queryClient.fetchQuery(
+      linkSearchQuery(board.server, 'everyone', 'climate'),
+    );
+    board.quickAdd.place(result.url);
+
+    // Assert
+    expect(mine).toEqual([]);
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([
+      'https://example.com/climate',
+    ]);
+    expect(board.server.calls).toContainEqual({
+      method: 'searchEveryone',
+      args: ['climate'],
+    });
+  });
+
+  it('should list nothing from Semble until there is a query', async () => {
+    // Arrange
+    board = await createTestBoard();
+    board.server.everyone = [
+      { url: 'https://example.com/climate', title: 'Climate reading' },
+    ];
+
+    // Act
+    const results = await board.queryClient.fetchQuery(
+      linkSearchQuery(board.server, 'everyone', ''),
+    );
+
+    // Assert
+    expect(results).toEqual([]);
+    expect(board.server.calls.map((call) => call.method)).not.toContain(
+      'searchEveryone',
+    );
+  });
+
+  it('should start on the library and keep the scope picked while the board is open', async () => {
+    // Arrange
+    board = await createTestBoard();
+    expect(board.quickAdd.scope.get()).toBe('mine');
+    board.runAction('quick-add');
+    board.quickAdd.setScope('everyone');
+
+    // Act
+    board.quickAdd.close();
+    board.doubleClick([300, 200]);
+
+    // Assert
+    expect(board.quickAdd.placeAt.get()).not.toBeNull();
+    expect(board.quickAdd.scope.get()).toBe('everyone');
   });
 
   it('should not open quick-add in a read-only tab', async () => {

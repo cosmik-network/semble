@@ -29,6 +29,12 @@ export function testLink(
   };
 }
 
+function linksMatching(links: UrlMetadata[], query: string) {
+  return links.filter((link) =>
+    `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
+  );
+}
+
 export class FakeServer implements CanvasServer {
   calls: ServerCall[] = [];
   // What the server returns for each link; others load with a title only
@@ -37,6 +43,8 @@ export class FakeServer implements CanvasServer {
   connections: LinkConnection[] = [];
   // The viewer's library, most recent first
   library: UrlMetadata[] = [];
+  // Links saved by anyone on Semble
+  everyone: UrlMetadata[] = [];
   // getLinks fails while set, as when the network is down
   failing = false;
   // Links load without their connections while set
@@ -126,8 +134,11 @@ export class FakeServer implements CanvasServer {
 
   async searchLibrary(query: string) {
     this.calls.push({ method: 'searchLibrary', args: [query] });
-    return this.library.filter((link) =>
-      `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
-    );
+    return linksMatching(this.library, query);
+  }
+
+  async searchEveryone(query: string) {
+    this.calls.push({ method: 'searchEveryone', args: [query] });
+    return linksMatching(this.everyone, query);
   }
 }
