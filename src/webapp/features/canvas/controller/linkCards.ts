@@ -19,7 +19,10 @@ import {
   type CanvasServer,
   type LinkInfo,
 } from '../server/canvasServer';
-import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
+import {
+  linkCardsOn,
+  type LinkCardShape,
+} from '../shapes/linkCard/LinkCardShapeUtil';
 import type { CanvasStorage, KnownLinks } from '../storage/canvasStorage';
 
 export interface LinkCardsDeps {
@@ -38,12 +41,6 @@ const NOTE_SIZE = 200;
 
 // Saving last known links on every fetch would rewrite them once per link
 const KNOWN_LINKS_THROTTLE_MS = 500;
-
-function linkCardsOn(editor: Editor) {
-  return editor
-    .getCurrentPageShapes()
-    .filter((shape): shape is LinkCardShape => shape.type === LINK_CARD_TYPE);
-}
 
 // Places links and notes pasted or dropped on the board, and keeps each link
 // card sized to its link

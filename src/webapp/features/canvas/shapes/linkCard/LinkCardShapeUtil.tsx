@@ -4,6 +4,7 @@ import {
   ShapeUtil,
   T,
   createShapePropsMigrationSequence,
+  type Editor,
   type RecordProps,
   type SvgExportContext,
   type TLBaseShape,
@@ -28,6 +29,12 @@ export type LinkCardShape = TLBaseShape<
     cardId: string | null;
   }
 >;
+
+export function linkCardsOn(editor: Editor) {
+  return editor
+    .getCurrentPageShapes()
+    .filter((shape): shape is LinkCardShape => shape.type === LINK_CARD_TYPE);
+}
 
 export class LinkCardShapeUtil extends ShapeUtil<LinkCardShape> {
   static override type = LINK_CARD_TYPE;
@@ -69,7 +76,11 @@ export class LinkCardShapeUtil extends ShapeUtil<LinkCardShape> {
   component(shape: LinkCardShape) {
     return (
       <HTMLContainer>
-        <LinkCardFace url={shape.props.url} height={shape.props.h} />
+        <LinkCardFace
+          id={shape.id}
+          url={shape.props.url}
+          height={shape.props.h}
+        />
       </HTMLContainer>
     );
   }

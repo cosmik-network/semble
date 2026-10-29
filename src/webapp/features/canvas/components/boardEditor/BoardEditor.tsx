@@ -12,14 +12,14 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Editor, Tldraw, type TLComponents, type TLUiOverrides } from 'tldraw';
+import { Editor, Tldraw, type TLComponents } from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
 import {
   attachCanvasController,
   type CanvasController,
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
-import { isBoardTool } from '../../model/boardTools';
+import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
@@ -28,33 +28,10 @@ import BoardHeader from '../boardHeader/BoardHeader';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import QuickAdd from '../quickAdd/QuickAdd';
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
+import { boardOverrides } from './boardOverrides';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
-
-// Removing tools here also removes their keyboard shortcuts
-function boardOverrides(controller: CanvasController | null): TLUiOverrides {
-  return {
-    tools(_editor, tools) {
-      for (const id of Object.keys(tools)) {
-        if (!isBoardTool(id)) delete tools[id];
-      }
-      return tools;
-    },
-    actions(_editor, actions) {
-      // No asset store, so the insert menu items go
-      delete actions['insert-media'];
-      delete actions['insert-embed'];
-      actions['quick-add'] = {
-        id: 'quick-add',
-        label: 'Quick add',
-        kbd: '/',
-        onSelect: () => controller?.quickAdd.open(),
-      };
-      return actions;
-    },
-  };
-}
 
 const shapeUtils = [LinkCardShapeUtil];
 
@@ -167,13 +144,15 @@ export default function BoardEditor(props: Props) {
     <div style={{ position: 'fixed', inset: 0 }}>
       <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
         <CanvasServerProvider server={apiCanvasServer}>
-          <Tldraw
-            shapeUtils={shapeUtils}
-            components={components}
-            overrides={overrides}
-            onMount={setEditor}
-          />
-          {controller && <QuickAdd quickAdd={controller.quickAdd} />}
+          <CanvasCopiesProvider copies={controller?.copies ?? null}>
+            <Tldraw
+              shapeUtils={shapeUtils}
+              components={components}
+              overrides={overrides}
+              onMount={setEditor}
+            />
+            {controller && <QuickAdd quickAdd={controller.quickAdd} />}
+          </CanvasCopiesProvider>
         </CanvasServerProvider>
       </div>
       {status !== 'ready' && (

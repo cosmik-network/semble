@@ -1,9 +1,13 @@
 import './domShims';
 import { IDBFactory } from 'fake-indexeddb';
 import { QueryClient } from '@tanstack/react-query';
+import { renderHook } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import {
   Box,
   Editor,
+  EditorContext,
+  TldrawUiContextProvider,
   createTLStore,
   defaultAddFontsFromNode,
   defaultBindingUtils,
@@ -11,6 +15,7 @@ import {
   defaultShapeUtils,
   defaultTools,
   tipTapDefaultExtensions,
+  useActions,
   type TLPointerEventInfo,
   type VecLike,
 } from 'tldraw';
@@ -19,13 +24,14 @@ import {
   type CanvasController,
   type CanvasLoadStatus,
 } from '@/features/canvas/controller/canvasController';
+import { boardOverrides } from '@/features/canvas/components/boardEditor/boardOverrides';
 import { TLDRAW_VERSION } from '@/features/canvas/storage/browserCanvasStorage';
 import { IndexedDbCanvasStorage } from '@/features/canvas/storage/indexedDbCanvasStorage';
 import {
   LinkCardShapeUtil,
+  linkCardsOn,
   type LinkCardShape,
 } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
-import { LINK_CARD_TYPE } from '@/features/canvas/model/linkCards';
 import { FakeLocks } from './fakeLocks';
 import { FakeServer } from './fakeServer';
 
@@ -49,8 +55,19 @@ export interface TestBoard {
   storageInAnotherTab(): IndexedDbCanvasStorage;
   // Makes this tab the board's writer when another tab holds it
   takeOver(): Promise<void>;
-  // Drags with the current tool, in page coordinates at the default camera
-  drag(from: [number, number], to: [number, number]): void;
+  // Drags with the current tool, in page coordinates at the default camera.
+  // Holding Option clones what's dragged.
+  drag(
+    from: [number, number],
+    to: [number, number],
+    keys?: { altKey: boolean },
+  ): void;
+  // Runs one of the board's actions as its keyboard shortcut would, e.g.
+  // duplicate for Cmd+D
+  runAction(id: string): void;
+  // Moves the pointer there without pressing, in page coordinates at the
+  // default camera. The hovered shape changes a frame or more later.
+  hover(at: [number, number]): void;
   // What tldraw's clipboard and drop handling pass on
   pasteUrl(url: string): Promise<void>;
   pasteText(text: string): Promise<void>;
@@ -60,8 +77,10 @@ export interface TestBoard {
   // Double-clicks with the select tool, in page coordinates at the default
   // camera
   doubleClick(at: [number, number]): void;
-  // The / shortcut calls quickAdd.open()
+  // Quick-add as it shows: where a pick goes, and what picking does
   quickAdd: CanvasController['quickAdd'];
+  // What each copy's badge and outline show
+  copies: CanvasController['copies'];
   // Closes the board, saving it like navigating away would
   dispose(): Promise<void>;
 }
@@ -76,6 +95,7 @@ interface Options {
 function pointer(
   name: 'pointer_down' | 'pointer_move' | 'pointer_up',
   [x, y]: [number, number],
+  altKey = false,
 ): TLPointerEventInfo {
   return {
     type: 'pointer',
@@ -86,11 +106,23 @@ function pointer(
     button: 0,
     isPen: false,
     shiftKey: false,
-    altKey: false,
+    altKey,
     ctrlKey: false,
     metaKey: false,
     accelKey: false,
   };
+}
+
+// The board's actions, as <Tldraw> builds them from tldraw's and ours
+function boardActions(editor: Editor, controller: CanvasController) {
+  const wrapper = (props: { children: ReactNode }) => (
+    <EditorContext value={editor}>
+      <TldrawUiContextProvider overrides={boardOverrides(controller)}>
+        {props.children}
+      </TldrawUiContextProvider>
+    </EditorContext>
+  );
+  return renderHook(() => useActions(), { wrapper });
 }
 
 interface Browser {
@@ -165,6 +197,8 @@ export async function createTestBoard(
     onNewerVersion: () => (board.status = 'newer-version'),
   });
 
+  const actions = boardActions(editor, controller);
+
   return Object.assign(board, {
     editor,
     server,
@@ -178,11 +212,18 @@ export async function createTestBoard(
       createTestBoard({ storage: storageInAnotherTab(), canvasId }),
     storageInAnotherTab,
     takeOver: () => controller.takeOver(),
-    drag(from, to) {
+    drag(from, to, keys) {
+      const altKey = keys?.altKey ?? false;
       editor
-        .dispatch(pointer('pointer_down', from))
-        .dispatch(pointer('pointer_move', to))
-        .dispatch(pointer('pointer_up', to));
+        .dispatch(pointer('pointer_down', from, altKey))
+        .dispatch(pointer('pointer_move', to, altKey))
+        .dispatch(pointer('pointer_up', to, altKey));
+    },
+    hover(at) {
+      editor.dispatch(pointer('pointer_move', at));
+    },
+    runAction(id) {
+      actions.result.current[id].onSelect('kbd');
     },
     pasteUrl: (url) => editor.putExternalContent({ type: 'url', url }),
     pasteText: (text) => editor.putExternalContent({ type: 'text', text }),
@@ -197,15 +238,12 @@ export async function createTestBoard(
       }
     },
     quickAdd: controller.quickAdd,
-    linkCards: () =>
-      editor
-        .getCurrentPageShapes()
-        .filter(
-          (shape): shape is LinkCardShape => shape.type === LINK_CARD_TYPE,
-        ),
+    copies: controller.copies,
+    linkCards: () => linkCardsOn(editor),
     async dispose() {
       if (disposed) return;
       disposed = true;
+      actions.unmount();
       await controller.detach();
       editor.dispose();
     },

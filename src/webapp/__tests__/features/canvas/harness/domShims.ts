@@ -21,3 +21,8 @@ if (!window.matchMedia) {
       dispatchEvent: () => false,
     }) as MediaQueryList;
 }
+
+// tldraw's UI preloads its icons
+if (!HTMLImageElement.prototype.decode) {
+  HTMLImageElement.prototype.decode = async () => {};
+}

@@ -3,6 +3,7 @@ import { createShapeId, toRichText, type TLNoteShape } from 'tldraw';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import type { LinkInfo } from '@/features/canvas/server/canvasServer';
+import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
 import type {
   CanvasDocument,
   CanvasStorage,
@@ -640,7 +641,7 @@ describe('quick-add', () => {
     // Arrange
     board = await createTestBoard();
     board.editor.setCamera({ x: -400, y: 250, z: 1 });
-    board.quickAdd.open();
+    board.runAction('quick-add');
 
     // Act
     board.quickAdd.place('  https://example.com ');
@@ -684,7 +685,7 @@ describe('quick-add', () => {
   it('should leave quick-add open on text that is not a link', async () => {
     // Arrange
     board = await createTestBoard();
-    board.quickAdd.open();
+    board.runAction('quick-add');
 
     // Act
     board.quickAdd.place('climate reading');
@@ -701,10 +702,168 @@ describe('quick-add', () => {
 
     // Act
     otherTab.doubleClick([300, 200]);
-    otherTab.quickAdd.open();
+    otherTab.runAction('quick-add');
 
     // Assert
     expect(otherTab.quickAdd.placeAt.get()).toBeNull();
     expect(otherTab.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+});
+
+describe('copies', () => {
+  it('should make a copy when a link already on the board is added again', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+
+    // Act
+    await board.dropUrl('https://example.com/article', { x: 600, y: 0 });
+
+    // Assert
+    const copies = board.linkCards();
+    expect(copies).toHaveLength(2);
+    expect(copies.map((copy) => board.copies.count(copy.props.url))).toEqual([
+      2, 2,
+    ]);
+  });
+
+  it('should make a copy of the selected card on Cmd+D', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    board.editor.select(board.linkCards()[0].id);
+
+    // Act
+    board.runAction('duplicate');
+
+    // Assert
+    expect(board.linkCards()).toHaveLength(2);
+    expect(board.copies.count('https://example.com/article')).toBe(2);
+  });
+
+  it('should make a copy when a card is Option-dragged, leaving the card where it was', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
+    const [card] = board.linkCards();
+
+    // Act
+    board.drag([300, 200], [300, 600], { altKey: true });
+
+    // Assert
+    expect(board.editor.getShape(card.id)).toMatchObject({
+      x: card.x,
+      y: card.y,
+    });
+    const copy = board.linkCards().find((shape) => shape.id !== card.id)!;
+    expect(copy).toMatchObject({ x: card.x, y: card.y + 400 });
+    expect(board.copies.count('https://example.com/article')).toBe(2);
+  });
+
+  it('should count the copies left once one is deleted', async () => {
+    // Arrange
+    board = await createTestBoard();
+    for (const x of [0, 600, 1200]) {
+      await board.dropUrl('https://example.com/article', { x, y: 0 });
+    }
+    expect(board.copies.count('https://example.com/article')).toBe(3);
+
+    // Act
+    board.editor.deleteShape(board.linkCards()[0].id);
+
+    // Assert
+    expect(board.copies.count('https://example.com/article')).toBe(2);
+  });
+
+  it('should outline the other copies of a hovered card', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    await board.dropUrl('https://example.com/article', { x: 600, y: 0 });
+    await board.dropUrl('https://example.com/other', { x: 1200, y: 0 });
+    const [hovered, sibling, other] = board.linkCards();
+
+    // Act
+    board.hover([0, 0]);
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.copies.isOutlined(sibling.id)).toBe(true),
+    );
+    expect(board.copies.isOutlined(hovered.id)).toBe(false);
+    expect(board.copies.isOutlined(other.id)).toBe(false);
+  });
+
+  it('should stop outlining copies once the pointer leaves the card', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    await board.dropUrl('https://example.com/article', { x: 600, y: 0 });
+    const [, sibling] = board.linkCards();
+    board.hover([0, 0]);
+    await vi.waitFor(() =>
+      expect(board.copies.isOutlined(sibling.id)).toBe(true),
+    );
+
+    // Act
+    board.hover([0, 600]);
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.copies.isOutlined(sibling.id)).toBe(false),
+    );
+  });
+
+  it('should move one copy without moving the others', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
+    await board.dropUrl('https://example.com/article', { x: 900, y: 200 });
+    const [moved, other] = board.linkCards();
+
+    // Act
+    board.drag([300, 200], [300, 600]);
+
+    // Assert
+    expect(board.editor.getShape(moved.id)).toMatchObject({ y: moved.y + 400 });
+    expect(board.editor.getShape(other.id)).toEqual(other);
+  });
+
+  // Nothing on the board hides arrows yet, so the prop is set directly
+  it('should hide arrows on one copy without hiding them on the others', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 300, y: 200 });
+    await board.dropUrl('https://example.com/article', { x: 900, y: 200 });
+    const [hidden, other] = board.linkCards();
+
+    // Act
+    board.editor.updateShape({
+      id: hidden.id,
+      type: hidden.type,
+      props: { hideArrows: true },
+    });
+
+    // Assert
+    expect(
+      board.editor.getShape<LinkCardShape>(hidden.id)!.props.hideArrows,
+    ).toBe(true);
+    expect(board.editor.getShape(other.id)).toEqual(other);
+  });
+
+  it('should fetch a link once for all its copies', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl('https://example.com/article', { x: 0, y: 0 });
+    await vi.waitFor(() => expect(board.server.calls).toHaveLength(1));
+    board.editor.select(board.linkCards()[0].id);
+
+    // Act
+    board.runAction('duplicate');
+    await board.dropUrl('https://example.com/article', { x: 600, y: 0 });
+
+    // Assert
+    expect(board.linkCards()).toHaveLength(3);
+    expect(board.server.calls).toHaveLength(1);
   });
 });

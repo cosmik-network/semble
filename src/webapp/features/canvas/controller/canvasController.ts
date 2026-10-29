@@ -7,6 +7,7 @@ import {
   type TLStoreSnapshot,
 } from 'tldraw';
 import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
+import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
 import { attachQuickAdd } from './quickAdd';
 
@@ -87,6 +88,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   let detached = false;
   const links = attachLinkCards(deps);
   const quickAdd = attachQuickAdd(editor, links.placeLink);
+  const copies = attachCopies(editor);
   const board = deps.storage.openBoard(
     deps.canvasId,
     {
@@ -137,6 +139,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   return {
     loaded,
     quickAdd,
+    copies,
     takeOver: () => board.takeOver(),
     async detach() {
       detached = true;
