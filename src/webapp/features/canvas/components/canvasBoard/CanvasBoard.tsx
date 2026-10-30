@@ -16,9 +16,16 @@ const BoardEditor = dynamic(() => import('../boardEditor/BoardEditor'), {
 
 interface Props {
   canvasId: string;
+  seedUrl?: string;
 }
 
 export default function CanvasBoard(props: Props) {
   // Keyed so another board gets a fresh editor instead of the last one's shapes
-  return <BoardEditor key={props.canvasId} canvasId={props.canvasId} />;
+  return (
+    <BoardEditor
+      key={props.canvasId}
+      canvasId={props.canvasId}
+      seedUrl={props.seedUrl}
+    />
+  );
 }

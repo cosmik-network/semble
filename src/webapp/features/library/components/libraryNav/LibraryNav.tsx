@@ -40,7 +40,8 @@ export default function LibraryNav() {
   const [followingDrawerOpen, setFollowingDrawerOpen] = useState(false);
 
   // Stored flags would mismatch the server's collapsed HTML during hydration;
-  // see useUserSettings.
+  // see useUserSettings. So would feature flags fetched before this hydrates,
+  // which the server never has.
   const mounted = useMounted();
   const expanded = (key: ExpandedKey) => ({
     opened: mounted ? settings[key] : defaultSettings[key],
@@ -77,7 +78,7 @@ export default function LibraryNav() {
           <MyCollectionsNavItems />
         </LibraryNavSection>
 
-        {featureFlags?.canvas && (
+        {mounted && featureFlags?.canvas && (
           <LibraryNavSection
             label="Canvases"
             icon={<BsEasel size={20} />}

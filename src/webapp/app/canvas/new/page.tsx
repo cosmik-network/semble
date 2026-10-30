@@ -1,8 +1,14 @@
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
+import { canvasHref } from '@/features/canvas/lib/constants';
 
-export default async function Page() {
+interface Props {
+  searchParams: Promise<{ url?: string }>;
+}
+
+export default async function Page(props: Props) {
   // Without this the redirect is prerendered and every board shares one id
   await connection();
-  redirect(`/canvas/${crypto.randomUUID()}`);
+  const { url } = await props.searchParams;
+  redirect(canvasHref(crypto.randomUUID(), url));
 }

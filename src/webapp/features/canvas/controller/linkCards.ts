@@ -1,6 +1,7 @@
 import { isCancelledError, type QueryClient } from '@tanstack/react-query';
 import {
   createShapeId,
+  type TLShapePartial,
   toRichText,
   type Editor,
   type TLShapeId,
@@ -32,6 +33,12 @@ import type { CanvasStorage, KnownLinks } from '../storage/canvasStorage';
 // fresh enough to skip, or whose fetch was dropped for a newer one, aren't
 // either.
 export type FetchOutcome = 'fetched' | 'failed' | 'nothing-fetched';
+
+// A link card to place, centred at a point on the page
+export interface LinkPlacement {
+  url: string;
+  at: VecLike;
+}
 
 export interface LinkCardsDeps {
   editor: Editor;
@@ -191,6 +198,23 @@ export function attachLinkCards(
       .forEach(refetchChanged);
   };
 
+  function linkFetched(url: string, link: LinkInfo, fetchedAt: number) {
+    // Connections that didn't load keep the board's arrows as they were
+    known[url] = {
+      link: {
+        ...link,
+        connections: link.connections ?? known[url]?.link.connections ?? null,
+      },
+      fetchedAt,
+    };
+    sizeCards([url]);
+    onLinkFetched();
+    knownLinksTimer ??= setTimeout(
+      () => void saveKnownLinks(),
+      KNOWN_LINKS_THROTTLE_MS,
+    );
+  }
+
   const unwatchLinks = queryClient.getQueryCache().subscribe((event) => {
     if (event.type !== 'updated') return;
     const url = event.query.meta?.linkUrl;
@@ -204,21 +228,7 @@ export function attachLinkCards(
     }
     if (event.action.type !== 'success') return;
     const { data, dataUpdatedAt } = event.query.state;
-    const link = data as LinkInfo;
-    // Connections that didn't load keep the board's arrows as they were
-    known[url] = {
-      link: {
-        ...link,
-        connections: link.connections ?? known[url]?.link.connections ?? null,
-      },
-      fetchedAt: dataUpdatedAt,
-    };
-    sizeCards([url]);
-    onLinkFetched();
-    knownLinksTimer ??= setTimeout(
-      () => void saveKnownLinks(),
-      KNOWN_LINKS_THROTTLE_MS,
-    );
+    linkFetched(url, data as LinkInfo, dataUpdatedAt);
   });
 
   // Pasted at the centre of the view, dropped at the drop point
@@ -235,18 +245,42 @@ export function attachLinkCards(
     return Array.from(new Set(inView.map((card) => card.props.url)));
   }
 
-  function placeLink(url: string, point: VecLike | undefined) {
-    const id = createShapeId();
-    const h = cardHeight(url);
-    if (!linkOf(url)) placedUnsized.add(id);
-    editor.markHistoryStoppingPoint('place link');
-    editor.createShape<LinkCardShape>({
-      id,
-      type: LINK_CARD_TYPE,
-      ...centredAt(point, LINK_CARD_WIDTH, h),
-      props: { url, h },
+  // The new cards' ids, in the order given
+  function createLinkCards(places: LinkPlacement[]) {
+    const cards = places.map(({ url, at }): TLShapePartial<LinkCardShape> => {
+      const id = createShapeId();
+      const h = cardHeight(url);
+      if (!linkOf(url)) placedUnsized.add(id);
+      return {
+        id,
+        type: LINK_CARD_TYPE,
+        ...centredAt(at, LINK_CARD_WIDTH, h),
+        props: { url, h },
+      };
     });
+    editor.createShapes(cards);
+    return cards.map((card) => card.id);
+  }
+
+  function placeLink(url: string, point: VecLike | undefined) {
+    editor.markHistoryStoppingPoint('place link');
+    createLinkCards([
+      { url, at: point ?? editor.getViewportPageBounds().center },
+    ]);
     void fetchLinks([url]);
+  }
+
+  // Each centred where given, as part of whatever history step the caller
+  // runs it in. Links fetched before they were on the board are taken as
+  // fetched now.
+  function placeLinks(places: LinkPlacement[]) {
+    const ids = createLinkCards(places);
+    for (const { url } of places) {
+      const state = queryClient.getQueryState<LinkInfo>(canvasKeys.link(url));
+      if (state?.data) linkFetched(url, state.data, state.dataUpdatedAt);
+    }
+    void fetchLinks(places.map((place) => place.url));
+    return ids;
   }
 
   function placeNote(text: string, point: VecLike | undefined) {
@@ -314,6 +348,9 @@ export function attachLinkCards(
     // Before the board's document loads, so its cards first paint from them
     showKnownLinks,
     placeLink,
+    placeLinks,
+    linkOf,
+    cardHeight,
     // Once the board has loaded
     sizeAll: () => sizeCards(boardUrls()),
     fetchLinks,

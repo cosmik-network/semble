@@ -41,6 +41,7 @@ import {
   getShapeVisibility,
   type ArrowDisplay,
 } from '@/features/canvas/shapes/connectionArrow/connectionArrows';
+import type { SeedProgress } from '@/features/canvas/controller/linkSeed';
 import { FakeLocks } from './fakeLocks';
 import { FakeServer, VIEWER_DID } from './fakeServer';
 
@@ -66,6 +67,8 @@ export interface TestBoard {
   timesFilesRefused: number;
   // What the board said went wrong talking to the server
   serverErrors: string[];
+  // Each step of starting the board from a link, as the loader shows it
+  seedProgress: (SeedProgress | null)[];
   // Opens the same board in another tab, which shares the browser's
   // database and locks, and the server, but nothing else
   openInAnotherTab(): Promise<TestBoard>;
@@ -116,6 +119,8 @@ export interface TestBoard {
   // What each copy's badge and outline show
   copies: CanvasController['copies'];
   popupCard: CanvasController['popupCard'];
+  // The link the board was opened from, and placing more of its ring
+  linkSeed: CanvasController['linkSeed'];
   // Which cards show the media a label hides
   mediaReveals: CanvasController['mediaReveals'];
   // How arrows show: focus, hiding and their toggles
@@ -139,6 +144,8 @@ interface Options {
   storage?: IndexedDbCanvasStorage;
   canvasId?: string;
   server?: FakeServer;
+  // Opens the board as "Open in canvas" on this link's Semble page does
+  seedUrl?: string;
 }
 
 function pointer(
@@ -249,8 +256,12 @@ export async function createTestBoard(
     return openTab(browser.indexedDB, browser.locks);
   };
   let disposed = false;
-  // Filled in below; the controller's callbacks only run once it has loaded
-  const board = {} as TestBoard;
+  // Filled in below. Starting a board from a link can report errors before
+  // it has loaded; the other callbacks only run once it has.
+  const board = {
+    serverErrors: [] as string[],
+    seedProgress: [] as (SeedProgress | null)[],
+  } as TestBoard;
   let timedRefresh = () => {};
   const controller = attachCanvasController({
     editor,
@@ -258,6 +269,7 @@ export async function createTestBoard(
     queryClient,
     storage,
     canvasId,
+    seedUrl: options.seedUrl,
     ownerDid: VIEWER_DID,
     onStorageError: (error) => {
       throw error;
@@ -265,6 +277,7 @@ export async function createTestBoard(
     onTakenOver: () => board.timesTakenOver++,
     onFilesRefused: () => board.timesFilesRefused++,
     onServerError: (message) => board.serverErrors.push(message),
+    onSeedProgress: (progress) => board.seedProgress.push(progress),
     onWritingAgain: () => {},
     onNewerVersion: () => (board.status = 'newer-version'),
     everyTimedRefresh(refresh) {
@@ -284,7 +297,8 @@ export async function createTestBoard(
     status: await controller.loaded,
     timesTakenOver: 0,
     timesFilesRefused: 0,
-    serverErrors: [],
+    serverErrors: board.serverErrors,
+    seedProgress: board.seedProgress,
     openInAnotherTab: () =>
       createTestBoard({ storage: storageInAnotherTab(), canvasId, server }),
     storageInAnotherTab,
@@ -337,6 +351,7 @@ export async function createTestBoard(
     quickAdd: controller.quickAdd,
     copies: controller.copies,
     popupCard: controller.popupCard,
+    linkSeed: controller.linkSeed,
     mediaReveals: controller.mediaReveals,
     arrowView: controller.arrowView,
     arrowDisplay: (id) => arrowDisplay(editor, editor.getShape(id)!),

@@ -6,7 +6,11 @@ import {
   type TLSessionStateSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
-import type { BoardStatus, CanvasDocument } from '../storage/canvasStorage';
+import {
+  DEFAULT_CANVAS_NAME,
+  type BoardStatus,
+  type CanvasDocument,
+} from '../storage/canvasStorage';
 import { attachArrows } from './arrows';
 import {
   invalidateAfterConnectionCreated,
@@ -17,6 +21,7 @@ import { attachConnectionEdits } from './connectionEdits';
 import { attachConnections } from './connections';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
+import { attachLinkSeed, type SeedProgress } from './linkSeed';
 import { createMediaReveals } from './mediaReveals';
 import { attachQuickAdd } from './quickAdd';
 import { createPopupCard } from './popupCard';
@@ -25,6 +30,8 @@ import { attachRefreshLoop, type RefreshLoopDeps } from './refreshLoop';
 export interface CanvasControllerDeps
   extends LinkCardsDeps, Pick<RefreshLoopDeps, 'everyTimedRefresh'> {
   ownerDid: string;
+  // Opened from this link's Semble page: a new board starts from the link
+  seedUrl?: string;
   onStorageError(error: unknown): void;
   // Another tab took the board over. Edits since the last save are lost.
   onTakenOver(): void;
@@ -34,6 +41,8 @@ export interface CanvasControllerDeps
   onNewerVersion(): void;
   // A connection couldn't be published or deleted
   onServerError(message: string): void;
+  // While the board is loaded from seedUrl, what it's waiting on
+  onSeedProgress(progress: SeedProgress | null): void;
 }
 
 export type CanvasLoadStatus = BoardStatus;
@@ -100,6 +109,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const { editor } = deps;
   const session = createSessionStateSnapshotSignal(editor.store);
   let detached = false;
+  // Stays false for a board never saved, which loads nothing
+  let hasDocument = false;
   const copies = attachCopies(editor);
   const arrows = attachArrows({
     editor,
@@ -132,6 +143,25 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   });
   const quickAdd = attachQuickAdd(editor, links.placeLink);
   const popupCard = createPopupCard(editor);
+  const seedFailed = () =>
+    deps.onServerError(
+      "Couldn't load this link's connections. Reload to try again.",
+    );
+  const linkSeed = attachLinkSeed({
+    editor,
+    fetchLinks: links.fetchLinks,
+    linkOf: links.linkOf,
+    cardHeight: links.cardHeight,
+    placeLinks: links.placeLinks,
+    async rename(name) {
+      const canvas = await deps.storage.getCanvas(deps.canvasId);
+      if (canvas?.name !== DEFAULT_CANVAS_NAME) return;
+      await deps.storage.renameCanvas(deps.canvasId, name);
+    },
+    onFailed: seedFailed,
+    onProgress: deps.onSeedProgress,
+    canPlace: () => !detached && !editor.getIsReadonly(),
+  });
   const mediaReveals = createMediaReveals();
   const refreshLoop = attachRefreshLoop({
     boardUrls: links.boardUrls,
@@ -161,6 +191,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     },
     {
       onLoad(document, saved, known) {
+        hasDocument = document !== null;
         links.showKnownLinks(known);
         arrows.restoreSettings(saved?.arrows);
         loadSnapshot(editor.store, {
@@ -189,11 +220,19 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     scope: 'document',
     source: 'all',
   });
-  const loaded = board.opened.then((status) => {
+  const loaded = board.opened.then(async (status) => {
     if (status === 'ready' && !detached) {
       links.sizeAll();
       arrows.reconcile();
       refreshLoop.start();
+      // Loading lasts until the links are placed, rather than showing an
+      // empty board meanwhile
+      if (deps.seedUrl && !hasDocument && !editor.getIsReadonly()) {
+        await linkSeed.seed(deps.seedUrl).catch((error) => {
+          console.warn(error);
+          seedFailed();
+        });
+      }
     }
     return status;
   });
@@ -203,6 +242,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     quickAdd,
     copies,
     popupCard,
+    linkSeed,
     mediaReveals,
     arrowView: arrows.view,
     connectionPicker: connections.picker,

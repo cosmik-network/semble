@@ -1306,6 +1306,477 @@ describe('quick-add', () => {
   });
 });
 
+describe('open in canvas from a link', () => {
+  const A = 'https://example.com/a';
+  const B = 'https://example.com/b';
+  const C = 'https://example.com/c';
+  const D = 'https://example.com/d';
+  // Long enough for a fetch to reach the fake server and its answer to land
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const connection = (
+    id: string,
+    sourceUrl: string,
+    targetUrl: string,
+  ): LinkConnection => ({
+    id,
+    type: 'RELATED',
+    sourceUrl,
+    targetUrl,
+    curatorId: 'did:plc:someone',
+  });
+  const centreOf = (card: LinkCardShape) =>
+    board.editor.getShapePageBounds(card)!.center;
+  const cardOf = (url: string) =>
+    board.linkCards().find((card) => card.props.url === url)!;
+
+  it('should place the link in the middle with the links it is connected to in a ring around it', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [
+      connection('c1', A, B),
+      connection('c2', C, A),
+      connection('c3', A, D),
+      connection('c4', B, C),
+    ];
+
+    // Act
+    board = await createTestBoard({ server, seedUrl: A });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(
+        board
+          .linkCards()
+          .map((card) => card.props.url)
+          .sort(),
+      ).toEqual([A, B, C, D]),
+    );
+    const middle = centreOf(cardOf(A));
+    const distances = [B, C, D].map((url) =>
+      Math.round(centreOf(cardOf(url)).dist(middle)),
+    );
+    expect(new Set(distances).size).toBe(1);
+    const bounds = board
+      .linkCards()
+      .map((card) => board.editor.getShapePageBounds(card)!);
+    bounds.forEach((one, i) =>
+      bounds
+        .slice(i + 1)
+        .forEach((other) => expect(one.collides(other)).toBe(false)),
+    );
+    const view = board.editor.getViewportPageBounds();
+    expect(bounds.every((card) => view.contains(card))).toBe(true);
+  });
+
+  it('should keep tall cards in the ring from touching', async () => {
+    // Arrange
+    const server = new FakeServer();
+    const image = 'https://cdn.bsky.app/img/feed_thumbnail/plain/a@jpeg';
+    const author = { id: 'did:plc:tester', name: 'Tester', handle: 'tester' };
+    // A post with text, images, a quote and a note: the tallest a card gets
+    const tallLink = (url: string) =>
+      testLink(url, {
+        note: { id: `note-${url}`, text: 'Worth a read', author },
+        post: testPost({
+          text: 'Long enough to wrap onto every line the card shows. '.repeat(
+            4,
+          ),
+          embed: {
+            $type: 'app.bsky.embed.recordWithMedia#view',
+            record: {
+              record: {
+                $type: 'app.bsky.embed.record#viewRecord',
+                uri: 'at://did:plc:quoted/app.bsky.feed.post/3kquoted',
+                cid: 'bafyquoted',
+                author: { did: 'did:plc:quoted', handle: 'quoted.bsky.social' },
+                value: {
+                  $type: 'app.bsky.feed.post',
+                  text: 'The quoted words',
+                  createdAt: '2026-09-01T00:00:00.000Z',
+                },
+                indexedAt: '2026-09-01T00:00:00.000Z',
+              },
+            },
+            media: {
+              $type: 'app.bsky.embed.images#view',
+              images: [{ thumb: image, fullsize: image, alt: '' }],
+            },
+          },
+        }),
+      });
+    const neighbours = Array.from(
+      { length: 12 },
+      (_, i) => `https://example.com/n${i}`,
+    );
+    for (const url of [A, ...neighbours]) server.links.set(url, tallLink(url));
+    server.connections = neighbours.map((url, i) =>
+      connection(`c${i}`, A, url),
+    );
+
+    // Act
+    board = await createTestBoard({ server, seedUrl: A });
+
+    // Assert
+    await vi.waitFor(() => expect(board.linkCards()).toHaveLength(13));
+    const bounds = board
+      .linkCards()
+      .map((card) => board.editor.getShapePageBounds(card)!);
+    expect(Math.min(...bounds.map((card) => card.h))).toBeGreaterThan(560);
+    bounds.forEach((one, i) =>
+      bounds
+        .slice(i + 1)
+        .forEach((other) => expect(one.collides(other)).toBe(false)),
+    );
+  });
+
+  describe('more than one ring', () => {
+    const neighbours = Array.from(
+      { length: 20 },
+      (_, i) => `https://example.com/n${i}`,
+    );
+    const seededWithTwenty = async () => {
+      const server = new FakeServer();
+      server.connections = neighbours.map((url, i) =>
+        connection(`c${i}`, A, url),
+      );
+      board = await createTestBoard({ server, seedUrl: A });
+      await vi.waitFor(() => expect(board.linkCards()).toHaveLength(13));
+    };
+    const distanceOf = (url: string) =>
+      Math.round(centreOf(cardOf(url)).dist(centreOf(cardOf(A))));
+
+    it('should place the first 12 links and select the link so more can be placed', async () => {
+      // Act
+      await seededWithTwenty();
+
+      // Assert
+      expect(board.linkCards().map((card) => card.props.url)).toEqual(
+        expect.arrayContaining([A, ...neighbours.slice(0, 12)]),
+      );
+      expect(board.popupCard.get()?.id).toBe(cardOf(A).id);
+      expect(board.linkSeed.state.get()?.cardId).toBe(cardOf(A).id);
+      expect(board.linkSeed.unplaced()).toEqual(neighbours.slice(12));
+    });
+
+    it('should not select the link when every connected link is placed', async () => {
+      // Arrange
+      const server = new FakeServer();
+      server.connections = [connection('c1', A, B)];
+
+      // Act
+      board = await createTestBoard({ server, seedUrl: A });
+      await vi.waitFor(() => expect(board.linkCards()).toHaveLength(2));
+
+      // Assert
+      expect(board.editor.getSelectedShapeIds()).toEqual([]);
+      expect(board.linkSeed.unplaced()).toEqual([]);
+    });
+
+    it('should place the rest in a second ring outside the first, without touching it', async () => {
+      // Arrange
+      await seededWithTwenty();
+
+      // Act
+      await board.linkSeed.placeMore();
+
+      // Assert
+      expect(board.linkCards()).toHaveLength(21);
+      const [first, ...otherFirst] = neighbours.slice(0, 12).map(distanceOf);
+      const [second, ...otherSecond] = neighbours.slice(12).map(distanceOf);
+      expect(new Set(otherFirst)).toEqual(new Set([first]));
+      expect(new Set(otherSecond)).toEqual(new Set([second]));
+      expect(second).toBeGreaterThan(first);
+      const bounds = board
+        .linkCards()
+        .map((card) => board.editor.getShapePageBounds(card)!);
+      bounds.forEach((one, i) =>
+        bounds
+          .slice(i + 1)
+          .forEach((other) => expect(one.collides(other)).toBe(false)),
+      );
+      expect(board.linkSeed.unplaced()).toEqual([]);
+    });
+
+    it('should place links connected since in a new ring, even when the outer one has room', async () => {
+      // Arrange
+      const server = new FakeServer();
+      server.connections = neighbours
+        .slice(0, 5)
+        .map((url, i) => connection(`c${i}`, A, url));
+      board = await createTestBoard({ server, seedUrl: A });
+      const before = board
+        .linkCards()
+        .map((card) => ({ id: card.id, x: card.x, y: card.y }));
+      server.connections = neighbours
+        .slice(0, 10)
+        .map((url, i) => connection(`c${i}`, A, url));
+      board.timedRefresh();
+      await vi.waitFor(() =>
+        expect(board.linkSeed.unplaced()).toEqual(neighbours.slice(5, 10)),
+      );
+
+      // Act
+      await board.linkSeed.placeMore();
+
+      // Assert
+      expect(board.linkCards()).toHaveLength(11);
+      expect(
+        board
+          .linkCards()
+          .slice(0, 6)
+          .map((card) => ({ id: card.id, x: card.x, y: card.y })),
+      ).toEqual(before);
+      const [first] = neighbours.slice(0, 5).map(distanceOf);
+      const [second, ...others] = neighbours.slice(5, 10).map(distanceOf);
+      expect(new Set(others)).toEqual(new Set([second]));
+      expect(second).toBeGreaterThan(first);
+    });
+
+    it('should take back a ring placed with one undo', async () => {
+      // Arrange
+      await seededWithTwenty();
+      await board.linkSeed.placeMore();
+
+      // Act
+      board.editor.undo();
+
+      // Assert
+      expect(board.linkCards()).toHaveLength(13);
+      expect(board.linkSeed.unplaced()).toEqual(neighbours.slice(12));
+    });
+
+    it('should not place again a link deleted from a ring or one already on the board', async () => {
+      // Arrange
+      await seededWithTwenty();
+      board.editor.deleteShape(cardOf(neighbours[0]).id);
+      await board.pasteUrl(neighbours[12]);
+
+      // Act
+      await board.linkSeed.placeMore();
+
+      // Assert
+      const urls = board.linkCards().map((card) => card.props.url);
+      expect(urls).not.toContain(neighbours[0]);
+      expect(urls.filter((url) => url === neighbours[12])).toHaveLength(1);
+      expect(urls).toHaveLength(20);
+    });
+
+    it('should offer more only on the card the board was opened from, not its copies', async () => {
+      // Arrange
+      await seededWithTwenty();
+      const middle = cardOf(A).id;
+
+      // Act
+      board.runAction('duplicate');
+
+      // Assert
+      expect(board.editor.getOnlySelectedShape()?.id).not.toBe(middle);
+      expect(board.linkSeed.state.get()?.cardId).toBe(middle);
+    });
+  });
+
+  it('should finish loading only once the links are placed', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    const respond = server.holdResponses();
+    let opened = false;
+
+    // Act
+    const opening = createTestBoard({ server, seedUrl: A }).then((board) => {
+      opened = true;
+      return board;
+    });
+    await vi.waitFor(() => expect(server.calls).toHaveLength(1));
+    const openedBeforeResponse = opened;
+    respond();
+    board = await opening;
+
+    // Assert
+    expect(openedBeforeResponse).toBe(false);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+
+  it('should say what it is loading until the links are placed', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B), connection('c2', C, A)];
+    const respondWithLink = server.holdResponses();
+    const opening = createTestBoard({ server, seedUrl: A });
+    await vi.waitFor(() => expect(server.calls).toHaveLength(1));
+
+    // Act
+    const respondWithRing = server.holdResponses();
+    respondWithLink();
+    await vi.waitFor(() => expect(server.calls).toHaveLength(2));
+    respondWithRing();
+    board = await opening;
+
+    // Assert
+    expect(board.seedProgress).toEqual([
+      { step: 'link', url: A },
+      { step: 'ring', count: 2 },
+      null,
+    ]);
+  });
+
+  it('should say nothing more once a link with no connections is loaded', async () => {
+    // Act
+    board = await createTestBoard({ seedUrl: A });
+
+    // Assert
+    expect(board.seedProgress).toEqual([{ step: 'link', url: A }, null]);
+  });
+
+  it('should show the arrows of the connections between the links it placed', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [
+      connection('c1', A, B),
+      connection('c2', C, A),
+      connection('c3', B, C),
+    ];
+
+    // Act
+    board = await createTestBoard({ server, seedUrl: A });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(
+        board
+          .arrows()
+          .map((arrow) => arrow.connectionId)
+          .sort(),
+      ).toEqual(['c1', 'c2', 'c3']),
+    );
+    expect(board.arrows()).toContainEqual(
+      expect.objectContaining({
+        connectionId: 'c2',
+        from: cardOf(C).id,
+        to: cardOf(A).id,
+      }),
+    );
+  });
+
+  it('should open a link with no connections on its own', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', B, C)];
+
+    // Act
+    board = await createTestBoard({ server, seedUrl: A });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(server.calls.map((call) => call.method)).toContain('getLinks'),
+    );
+    await settle();
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([A]);
+  });
+
+  it("should place nothing and say so when the link's connections can't be loaded, so reloading tries again", async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    server.connectionsFailing = true;
+
+    // Act
+    const first = await createTestBoard({ server, seedUrl: A });
+    await vi.waitFor(() => expect(first.serverErrors).toHaveLength(1));
+    const placedFirst = first.linkCards().length;
+    await first.dispose();
+    server.connectionsFailing = false;
+    board = await createTestBoard({
+      server,
+      storage: first.storage,
+      canvasId: first.canvasId,
+      seedUrl: A,
+    });
+
+    // Assert
+    expect(placedFirst).toBe(0);
+    await vi.waitFor(() => expect(board.linkCards()).toHaveLength(2));
+  });
+
+  it('should keep a name given to the board while its links load', async () => {
+    // Arrange
+    const server = new FakeServer();
+    const other = await createTestBoard();
+    await other.dispose();
+    const { storage } = other;
+    const canvasId = crypto.randomUUID();
+    const respond = server.holdResponses();
+    const opening = createTestBoard({ server, storage, canvasId, seedUrl: A });
+    await vi.waitFor(() => expect(server.calls).toHaveLength(1));
+
+    // Act
+    await storage.renameCanvas(canvasId, 'My reading');
+    respond();
+    board = await opening;
+    await settle();
+
+    // Assert
+    expect(board.linkCards()).toHaveLength(1);
+    expect(await storage.getCanvas(canvasId)).toMatchObject({
+      name: 'My reading',
+    });
+  });
+
+  it('should name the board after the link', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.links.set(
+      A,
+      testLink(A, { metadata: { url: A, title: 'A page worth reading' } }),
+    );
+
+    // Act
+    board = await createTestBoard({ server, seedUrl: A });
+
+    // Assert
+    await vi.waitFor(async () =>
+      expect(await board.storage.getCanvas(board.canvasId)).toMatchObject({
+        name: 'A page worth reading',
+      }),
+    );
+  });
+
+  it('should not place the links again when the board is reopened', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    const first = await createTestBoard({ server, seedUrl: A });
+    await vi.waitFor(() => expect(first.linkCards()).toHaveLength(2));
+    const placedB = first.linkCards().find((card) => card.props.url === B)!;
+    first.editor.deleteShape(placedB.id);
+    await first.dispose();
+
+    // Act
+    board = await createTestBoard({
+      server,
+      storage: first.storage,
+      canvasId: first.canvasId,
+      seedUrl: A,
+    });
+    await settle();
+
+    // Assert
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([A]);
+  });
+
+  it('should not let undo take back the links it placed', async () => {
+    // Arrange
+    board = await createTestBoard({ seedUrl: A });
+    await vi.waitFor(() => expect(board.linkCards()).toHaveLength(1));
+
+    // Act
+    board.editor.undo();
+
+    // Assert
+    expect(board.linkCards()).toHaveLength(1);
+  });
+});
+
 describe('copies', () => {
   it('should make a copy when a link already on the board is added again', async () => {
     // Arrange

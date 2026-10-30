@@ -4,9 +4,11 @@ import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
 import { LuEye, LuEyeOff } from 'react-icons/lu';
 import { MdOpenInNew } from 'react-icons/md';
-import { TbPlugConnected } from 'react-icons/tb';
+import { TbCirclePlus, TbPlugConnected } from 'react-icons/tb';
+import { useState } from 'react';
 import { useEditor, useValue, type Computed } from 'tldraw';
 import { getSembleHref } from '@/lib/utils/link';
+import type { LinkSeed } from '../../controller/linkSeed';
 import type { PopupCard } from '../../controller/popupCard';
 import {
   useMediaRevealed,
@@ -24,6 +26,7 @@ import { EDGE_DOT_REACH } from '../edgeDots/EdgeDots';
 
 interface Props {
   popupCard: Computed<PopupCard | null>;
+  linkSeed: LinkSeed;
   onOpen(kind: CardModalKind, url: string): void;
 }
 
@@ -31,11 +34,12 @@ export default function SelectionPopup(props: Props) {
   const card = useValue(props.popupCard);
   if (!card) return null;
 
-  return <Popup card={card} onOpen={props.onOpen} />;
+  return <Popup card={card} linkSeed={props.linkSeed} onOpen={props.onOpen} />;
 }
 
 interface PopupProps {
   card: PopupCard;
+  linkSeed: LinkSeed;
   onOpen: Props['onOpen'];
 }
 
@@ -62,7 +66,27 @@ function Popup(props: PopupProps) {
     },
     [editor],
   );
+  const unplaced = useValue(
+    'unplaced links',
+    () =>
+      props.linkSeed.state.get()?.cardId === props.card.id
+        ? props.linkSeed.unplaced().length
+        : 0,
+    // Counted again when the link's connections refresh
+    [props.linkSeed, props.card.id, link],
+  );
+  const [placingMore, setPlacingMore] = useState(false);
   if (!position) return null;
+
+  const placeMore = async () => {
+    setPlacingMore(true);
+    try {
+      await props.linkSeed.placeMore();
+    } finally {
+      setPlacingMore(false);
+    }
+  };
+  const placeMoreLabel = `Place more connected links (${unplaced} left)`;
 
   const open = (kind: CardModalKind) => () =>
     props.onOpen(kind, props.card.url);
@@ -99,6 +123,18 @@ function Popup(props: PopupProps) {
             onClick={() => mediaReveals.toggle(props.card.id)}
           >
             {mediaRevealed ? <LuEyeOff size={16} /> : <LuEye size={16} />}
+          </ActionIcon>
+        </Tooltip>
+      )}
+      {unplaced > 0 && (
+        <Tooltip label={placeMoreLabel} withArrow withinPortal={false}>
+          <ActionIcon
+            {...ICON_PROPS}
+            aria-label={placeMoreLabel}
+            loading={placingMore}
+            onClick={placeMore}
+          >
+            <TbCirclePlus size={16} />
           </ActionIcon>
         </Tooltip>
       )}

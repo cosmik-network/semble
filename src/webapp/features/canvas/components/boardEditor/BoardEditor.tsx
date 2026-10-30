@@ -19,6 +19,8 @@ import {
   type CanvasController,
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
+import type { SeedProgress } from '../../controller/linkSeed';
+import { getDomain } from '@/lib/utils/link';
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
@@ -91,6 +93,7 @@ type Status = 'loading' | CanvasLoadStatus | 'failed';
 
 interface Props {
   canvasId: string;
+  seedUrl?: string;
 }
 
 export default function BoardEditor(props: Props) {
@@ -104,6 +107,7 @@ export default function BoardEditor(props: Props) {
   const [status, setStatus] = useState<Status>('loading');
   const [controller, setController] = useState<CanvasController | null>(null);
   const [cardModal, setCardModal] = useState<CardModal | null>(null);
+  const [seedProgress, setSeedProgress] = useState<SeedProgress | null>(null);
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
@@ -145,6 +149,7 @@ export default function BoardEditor(props: Props) {
       queryClient,
       storage: canvasStorage,
       canvasId: props.canvasId,
+      seedUrl: props.seedUrl,
       ownerDid,
       onStorageError: showSaveError,
       onTakenOver: showTakenOver,
@@ -152,6 +157,7 @@ export default function BoardEditor(props: Props) {
       onNewerVersion: () => active && setStatus('newer-version'),
       onFilesRefused: showFilesRefused,
       onServerError: showCanvasError,
+      onSeedProgress: (progress) => active && setSeedProgress(progress),
     });
     attached.loaded.then(
       (loaded) => {
@@ -169,7 +175,7 @@ export default function BoardEditor(props: Props) {
       setController(null);
       void attached.detach();
     };
-  }, [editor, ownerDid, props.canvasId, queryClient]);
+  }, [editor, ownerDid, props.canvasId, props.seedUrl, queryClient]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -202,6 +208,7 @@ export default function BoardEditor(props: Props) {
                 {controller && (
                   <SelectionPopup
                     popupCard={controller.popupCard}
+                    linkSeed={controller.linkSeed}
                     onOpen={(kind, url) => setCardModal({ kind, url })}
                   />
                 )}
@@ -222,15 +229,37 @@ export default function BoardEditor(props: Props) {
       </div>
       {status !== 'ready' && (
         <Center pos="absolute" inset={0} bg="var(--mantine-color-body)">
-          <BoardStatus status={status} />
+          <BoardStatus status={status} seedProgress={seedProgress} />
         </Center>
       )}
     </div>
   );
 }
 
-function BoardStatus(props: { status: Exclude<Status, 'ready'> }) {
-  if (props.status === 'loading') return <Loader />;
+function seedProgressText(progress: SeedProgress) {
+  if (progress.step === 'link') return `Loading ${getDomain(progress.url)}…`;
+  const links = progress.count === 1 ? 'link' : 'links';
+  return `Loading ${progress.count} connected ${links}…`;
+}
+
+interface BoardStatusProps {
+  status: Exclude<Status, 'ready'>;
+  seedProgress: SeedProgress | null;
+}
+
+function BoardStatus(props: BoardStatusProps) {
+  if (props.status === 'loading') {
+    return (
+      <Stack align="center" gap="sm">
+        <Loader />
+        {props.seedProgress && (
+          <Text c="dimmed" fz="sm">
+            {seedProgressText(props.seedProgress)}
+          </Text>
+        )}
+      </Stack>
+    );
+  }
 
   return (
     <Stack align="center" gap="sm">
