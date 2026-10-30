@@ -7,12 +7,14 @@ import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardI
 import {
   LINK_CARD_WIDTH,
   NOTE_LINES,
-  linkCardLayout,
-  linkCardParts,
+  linkCardFrame,
+  linkCardPreview,
 } from '../../model/linkCards';
 import { useCopyState } from '../../lib/canvasCopiesContext';
+import { useMediaRevealed } from '../../lib/canvasMediaRevealsContext';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
 import EdgeDots from '../edgeDots/EdgeDots';
+import LinkCardPreviewContent from './LinkCardPreviewContent';
 
 interface Props {
   id: TLShapeId;
@@ -23,15 +25,18 @@ interface Props {
 // Only its edge dots take clicks: the selection popup holds the card's actions
 export default function LinkCardFace(props: Props) {
   const { data: link } = useCanvasLink(props.url);
-  const layout = linkCardLayout(linkCardParts(link));
+  const preview = linkCardPreview(link);
+  // The controller sized the card to its content
+  const frame = linkCardFrame(!!link?.note);
   const copyState = useCopyState(props.id, props.url);
+  const mediaRevealed = useMediaRevealed(props.id);
 
   return (
     <Box pos="relative">
       <Card
         withBorder
         radius="lg"
-        p={layout.padding}
+        p={frame.padding}
         w={LINK_CARD_WIDTH}
         h={props.height}
         shadow="none"
@@ -43,15 +48,23 @@ export default function LinkCardFace(props: Props) {
           outlineOffset: 2,
         }}
       >
-        <Stack gap={layout.gap}>
-          <Box h={layout.contentHeight} style={{ overflow: 'hidden' }}>
-            <LinkCardContent
-              cardContent={link?.metadata ?? { url: props.url }}
-              cardView="grid"
-            />
+        <Stack gap={frame.gap}>
+          <Box h={props.height - frame.height} style={{ overflow: 'hidden' }}>
+            {link && preview.kind !== 'plain' ? (
+              <LinkCardPreviewContent
+                metadata={link.metadata}
+                preview={preview}
+                mediaRevealed={mediaRevealed}
+              />
+            ) : (
+              <LinkCardContent
+                cardContent={link?.metadata ?? { url: props.url }}
+                cardView="grid"
+              />
+            )}
           </Box>
           {link?.note && (
-            <Box h={layout.noteHeight} style={{ overflow: 'hidden' }}>
+            <Box h={frame.noteHeight} style={{ overflow: 'hidden' }}>
               <NoteCardInline
                 note={link.note}
                 cardAuthor={link.note.author}

@@ -10,11 +10,16 @@ import {
   searchUrls,
   updateConnection,
 } from '@/features/connections/lib/dal';
+import { getBlueskyPost } from '@/features/platforms/bluesky/lib/dal';
+import { getPostUriFromUrl } from '@/lib/utils/atproto';
+import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
+import { AppBskyFeedDefs } from '@atproto/api';
 import type { ConnectionType, UrlMetadata } from '@semble/types';
 import type { CanvasServer, LinkConnection, LinkInfo } from './canvasServer';
 
 // Until a batch endpoint exists (#982), each link takes a call for its library
 // status and one per page of its connections, plus its metadata the first time
+// and, for a Bluesky post, one to Bluesky
 const MAX_LINKS_IN_FLIGHT = 6;
 
 function limitConcurrency(max: number) {
@@ -84,11 +89,40 @@ async function getConnections(url: string) {
   }
 }
 
+function isPostLink(url: string) {
+  const platform = detectUrlPlatform(url).type;
+  return (
+    platform === SupportedPlatform.BLUESKY_POST ||
+    platform === SupportedPlatform.BLACKSKY_POST
+  );
+}
+
+// Fetched on every refresh, as its labels can change. A refresh that fails
+// keeps the post as it last loaded.
+const postOf = new Map<string, AppBskyFeedDefs.PostView>();
+
+async function getPost(url: string) {
+  try {
+    const data = await getBlueskyPost(getPostUriFromUrl(url));
+    const thread = data?.thread;
+    if (!thread || !AppBskyFeedDefs.isThreadViewPost(thread)) {
+      postOf.delete(url);
+      return null;
+    }
+    postOf.set(url, thread.post);
+    return thread.post;
+  } catch (error) {
+    console.warn(error);
+    return postOf.get(url) ?? null;
+  }
+}
+
 async function getLink(url: string): Promise<LinkInfo> {
-  const [metadata, { card }, connections] = await Promise.all([
+  const [metadata, { card }, connections, post] = await Promise.all([
     getMetadata(url),
     getCardFromMyLibrary(url),
     getConnections(url),
+    isPostLink(url) ? getPost(url) : null,
   ]);
   return {
     url,
@@ -96,6 +130,7 @@ async function getLink(url: string): Promise<LinkInfo> {
     saved: !!card,
     note: card?.note ? { ...card.note, author: card.author } : null,
     connections,
+    post,
   };
 }
 

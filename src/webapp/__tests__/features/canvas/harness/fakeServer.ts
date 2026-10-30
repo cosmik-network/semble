@@ -1,3 +1,4 @@
+import type { AppBskyFeedDefs } from '@atproto/api';
 import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
@@ -26,6 +27,32 @@ export function testLink(
     note: null,
     connections: [],
     ...overrides,
+  };
+}
+
+// A post as the public Bluesky API returns it, by an author with no labels
+export function testPost(
+  overrides: Partial<AppBskyFeedDefs.PostView> & { text?: string } = {},
+): AppBskyFeedDefs.PostView {
+  const { text = 'What the post says', ...post } = overrides;
+  return {
+    $type: 'app.bsky.feed.defs#postView',
+    uri: 'at://did:plc:poster/app.bsky.feed.post/3kpost',
+    cid: 'bafypost',
+    author: {
+      did: 'did:plc:poster',
+      handle: 'poster.bsky.social',
+      displayName: 'A Poster',
+      avatar: 'https://cdn.bsky.app/img/avatar/plain/did:plc:poster/a@jpeg',
+    },
+    record: {
+      $type: 'app.bsky.feed.post',
+      text,
+      createdAt: '2026-10-01T00:00:00.000Z',
+    },
+    indexedAt: '2026-10-01T00:00:00.000Z',
+    labels: [],
+    ...post,
   };
 }
 

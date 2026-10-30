@@ -8,11 +8,12 @@ import {
 } from 'tldraw';
 import { canvasKeys } from '../lib/canvasKeys';
 import { LINK_CHANGES_CHANNEL, type LinkChange } from '../lib/linkChanges';
+import { createLineCounter } from '../lib/lineCounter';
 import type { FetchedConnections } from '../model/arrows';
 import {
   LINK_CARD_TYPE,
   LINK_CARD_WIDTH,
-  linkCardLayout,
+  linkCardHeight,
   linkCardParts,
   linkKey,
 } from '../model/linkCards';
@@ -62,8 +63,9 @@ export function attachLinkCards(
   const linkOf = (url: string) =>
     queryClient.getQueryData<LinkInfo>(canvasKeys.link(url)) ??
     known[url]?.link;
+  const lines = createLineCounter(editor);
   const cardHeight = (url: string) =>
-    linkCardLayout(linkCardParts(linkOf(url))).height;
+    linkCardHeight(linkCardParts(linkOf(url), lines.count));
   const boardUrls = () =>
     Array.from(new Set(linkCardsOn(editor).map((card) => card.props.url)));
   // Placed before their link loaded: they stay centred where they were put
@@ -76,18 +78,17 @@ export function attachLinkCards(
     const loaded = linkCardsOn(editor).filter(
       (card) => urls.includes(card.props.url) && linkOf(card.props.url),
     );
-    const resized = loaded
-      .filter((card) => card.props.h !== cardHeight(card.props.url))
-      .map((card) => {
-        const h = cardHeight(card.props.url);
-        const centred = placedUnsized.has(card.id);
-        return {
-          id: card.id,
-          type: card.type,
-          y: centred ? card.y + (card.props.h - h) / 2 : card.y,
-          props: { h },
-        };
-      });
+    const resized = loaded.flatMap((card) => {
+      const h = cardHeight(card.props.url);
+      if (h === card.props.h) return [];
+      const centred = placedUnsized.has(card.id);
+      return {
+        id: card.id,
+        type: card.type,
+        y: centred ? card.y + (card.props.h - h) / 2 : card.y,
+        props: { h },
+      };
+    });
     loaded.forEach((card) => placedUnsized.delete(card.id));
     if (resized.length === 0) return;
     editor.run(() => editor.updateShapes(resized), { history: 'ignore' });
@@ -297,6 +298,18 @@ export function attachLinkCards(
     { scope: 'document', source: 'user' },
   );
 
+  // Text measured in a fallback font is measured again once the app's loads.
+  // tldraw loads its own fonts for its shapes, which cards don't use.
+  const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
+  const remeasure = (event: FontFaceSetLoadEvent) => {
+    if (event.fontfaces.every((font) => font.family.startsWith('tldraw'))) {
+      return;
+    }
+    lines.forget();
+    sizeCards(boardUrls());
+  };
+  fonts?.addEventListener('loadingdone', remeasure);
+
   return {
     // Before the board's document loads, so its cards first paint from them
     showKnownLinks,
@@ -321,6 +334,7 @@ export function attachLinkCards(
       ),
     urlsInView,
     detach() {
+      fonts?.removeEventListener('loadingdone', remeasure);
       for (const type of ['url', 'text', 'files', 'svg-text'] as const) {
         editor.registerExternalContentHandler(type, null);
       }

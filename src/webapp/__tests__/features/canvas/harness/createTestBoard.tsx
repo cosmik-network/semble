@@ -115,7 +115,9 @@ export interface TestBoard {
   quickAdd: CanvasController['quickAdd'];
   // What each copy's badge and outline show
   copies: CanvasController['copies'];
-  popupLink: CanvasController['popupLink'];
+  popupCard: CanvasController['popupCard'];
+  // Which cards show the media a label hides
+  mediaReveals: CanvasController['mediaReveals'];
   // How arrows show: focus, hiding and their toggles
   arrowView: CanvasController['arrowView'];
   // Whether an arrow is drawn at full strength, and with its type pill
@@ -214,6 +216,22 @@ export async function createTestBoard(
   });
   // jsdom has no layout, so the viewport is given a size
   editor.updateViewportScreenBounds(new Box(0, 0, 1200, 800));
+  // jsdom lays nothing out, so text measures as if every character were half
+  // as wide as the font is high
+  editor.textMeasure.measureText = (text, opts) => {
+    const perLine = Math.floor(
+      (opts.maxWidth ?? Infinity) / (opts.fontSize / 2),
+    );
+    const keepsBreaks = opts.otherStyles?.['white-space'] !== 'normal';
+    const paragraphs = keepsBreaks ? text.split('\n') : [text];
+    const lines = paragraphs.reduce(
+      (sum, paragraph) =>
+        sum + Math.max(1, Math.ceil(paragraph.length / perLine)),
+      0,
+    );
+    const h = lines * opts.fontSize * opts.lineHeight;
+    return { x: 0, y: 0, w: opts.maxWidth ?? 0, h, scrollWidth: 0 };
+  };
   // A headless editor can't draw an export, so this stands in for one
   editor.toImage = async () => ({
     blob: new Blob(['board'], { type: 'image/jpeg' }),
@@ -318,7 +336,8 @@ export async function createTestBoard(
     },
     quickAdd: controller.quickAdd,
     copies: controller.copies,
-    popupLink: controller.popupLink,
+    popupCard: controller.popupCard,
+    mediaReveals: controller.mediaReveals,
     arrowView: controller.arrowView,
     arrowDisplay: (id) => arrowDisplay(editor, editor.getShape(id)!),
     timedRefresh: () => timedRefresh(),

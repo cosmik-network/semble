@@ -17,8 +17,9 @@ import { attachConnectionEdits } from './connectionEdits';
 import { attachConnections } from './connections';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
+import { createMediaReveals } from './mediaReveals';
 import { attachQuickAdd } from './quickAdd';
-import { createPopupLink } from './popupLink';
+import { createPopupCard } from './popupCard';
 import { attachRefreshLoop, type RefreshLoopDeps } from './refreshLoop';
 
 export interface CanvasControllerDeps
@@ -130,7 +131,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     onServerError: deps.onServerError,
   });
   const quickAdd = attachQuickAdd(editor, links.placeLink);
-  const popupLink = createPopupLink(editor);
+  const popupCard = createPopupCard(editor);
+  const mediaReveals = createMediaReveals();
   const refreshLoop = attachRefreshLoop({
     boardUrls: links.boardUrls,
     urlsInView: links.urlsInView,
@@ -200,7 +202,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     loaded,
     quickAdd,
     copies,
-    popupLink,
+    popupCard,
+    mediaReveals,
     arrowView: arrows.view,
     connectionPicker: connections.picker,
     undoToast: connections.undoToast,

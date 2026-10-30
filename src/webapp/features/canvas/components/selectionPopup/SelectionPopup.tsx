@@ -2,11 +2,18 @@ import { ActionIcon, Tooltip } from '@mantine/core';
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
+import { LuEye, LuEyeOff } from 'react-icons/lu';
 import { MdOpenInNew } from 'react-icons/md';
 import { TbPlugConnected } from 'react-icons/tb';
 import { useEditor, useValue, type Computed } from 'tldraw';
 import { getSembleHref } from '@/lib/utils/link';
+import type { PopupCard } from '../../controller/popupCard';
+import {
+  useMediaRevealed,
+  useMediaReveals,
+} from '../../lib/canvasMediaRevealsContext';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
+import { linkCardPreview } from '../../model/linkCards';
 import BoardPopup, {
   GAP,
   ICON_PROPS,
@@ -16,25 +23,27 @@ import type { CardModalKind } from '../cardModals/CardModals';
 import { EDGE_DOT_REACH } from '../edgeDots/EdgeDots';
 
 interface Props {
-  popupLink: Computed<string | null>;
+  popupCard: Computed<PopupCard | null>;
   onOpen(kind: CardModalKind, url: string): void;
 }
 
 export default function SelectionPopup(props: Props) {
-  const url = useValue(props.popupLink);
-  if (!url) return null;
+  const card = useValue(props.popupCard);
+  if (!card) return null;
 
-  return <Popup url={url} onOpen={props.onOpen} />;
+  return <Popup card={card} onOpen={props.onOpen} />;
 }
 
 interface PopupProps {
-  url: string;
+  card: PopupCard;
   onOpen: Props['onOpen'];
 }
 
 function Popup(props: PopupProps) {
   const editor = useEditor();
-  const { data: link } = useCanvasLink(props.url);
+  const { data: link } = useCanvasLink(props.card.url);
+  const mediaReveals = useMediaReveals();
+  const mediaRevealed = useMediaRevealed(props.card.id);
   const position = useValue(
     'popup position',
     () => {
@@ -55,8 +64,12 @@ function Popup(props: PopupProps) {
   );
   if (!position) return null;
 
-  const open = (kind: CardModalKind) => () => props.onOpen(kind, props.url);
+  const open = (kind: CardModalKind) => () =>
+    props.onOpen(kind, props.card.url);
   const saveLabel = link?.saved ? 'Update' : 'Save';
+  const preview = linkCardPreview(link);
+  const hidesMedia = preview.kind === 'post' && !!preview.mediaHiddenBecause;
+  const mediaLabel = mediaRevealed ? 'Hide media' : 'Show media';
 
   return (
     <BoardPopup position={position}>
@@ -78,11 +91,22 @@ function Popup(props: PopupProps) {
           <TbPlugConnected size={16} />
         </ActionIcon>
       </Tooltip>
+      {hidesMedia && mediaReveals && (
+        <Tooltip label={mediaLabel} withArrow withinPortal={false}>
+          <ActionIcon
+            {...ICON_PROPS}
+            aria-label={mediaLabel}
+            onClick={() => mediaReveals.toggle(props.card.id)}
+          >
+            {mediaRevealed ? <LuEyeOff size={16} /> : <LuEye size={16} />}
+          </ActionIcon>
+        </Tooltip>
+      )}
       <Tooltip label="Open page" withArrow withinPortal={false}>
         <ActionIcon
           {...ICON_PROPS}
           component={Link}
-          href={getSembleHref(props.url)}
+          href={getSembleHref(props.card.url)}
           aria-label="Open page"
         >
           <MdOpenInNew size={16} />

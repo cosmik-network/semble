@@ -12,7 +12,7 @@ import {
 import {
   LINK_CARD_TYPE,
   LINK_CARD_WIDTH,
-  linkCardLayout,
+  linkCardHeight,
   linkCardParts,
 } from '../../model/linkCards';
 import LinkCardFace from '../../components/linkCardFace/LinkCardFace';
@@ -51,7 +51,7 @@ export class LinkCardShapeUtil extends ShapeUtil<LinkCardShape> {
   getDefaultProps(): LinkCardShape['props'] {
     return {
       url: '',
-      h: linkCardLayout(linkCardParts(undefined)).height,
+      h: linkCardHeight(linkCardParts(undefined, () => 0)),
       hideArrows: false,
       cardId: null,
     };

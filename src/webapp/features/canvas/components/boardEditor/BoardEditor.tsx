@@ -20,6 +20,7 @@ import {
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
+import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
@@ -179,29 +180,33 @@ export default function BoardEditor(props: Props) {
       <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
         <CanvasServerProvider server={apiCanvasServer}>
           <CanvasCopiesProvider copies={controller?.copies ?? null}>
-            <Tldraw
-              shapeUtils={shapeUtils}
-              getShapeVisibility={getShapeVisibility}
-              components={components}
-              overrides={overrides}
-              onMount={setEditor}
+            <CanvasMediaRevealsProvider
+              mediaReveals={controller?.mediaReveals ?? null}
             >
-              {controller && (
-                <ConnectionPicker picker={controller.connectionPicker} />
-              )}
-              {controller && (
-                <ConnectionEditPopup edits={controller.connectionEdits} />
-              )}
-              {controller && (
-                <DeleteConnectionModal edits={controller.connectionEdits} />
-              )}
-              {controller && (
-                <SelectionPopup
-                  popupLink={controller.popupLink}
-                  onOpen={(kind, url) => setCardModal({ kind, url })}
-                />
-              )}
-            </Tldraw>
+              <Tldraw
+                shapeUtils={shapeUtils}
+                getShapeVisibility={getShapeVisibility}
+                components={components}
+                overrides={overrides}
+                onMount={setEditor}
+              >
+                {controller && (
+                  <ConnectionPicker picker={controller.connectionPicker} />
+                )}
+                {controller && (
+                  <ConnectionEditPopup edits={controller.connectionEdits} />
+                )}
+                {controller && (
+                  <DeleteConnectionModal edits={controller.connectionEdits} />
+                )}
+                {controller && (
+                  <SelectionPopup
+                    popupCard={controller.popupCard}
+                    onOpen={(kind, url) => setCardModal({ kind, url })}
+                  />
+                )}
+              </Tldraw>
+            </CanvasMediaRevealsProvider>
             {controller && <QuickAdd quickAdd={controller.quickAdd} />}
             {controller && <UndoToast undoToast={controller.undoToast} />}
             {controller && (

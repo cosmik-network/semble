@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
+import type { AppBskyFeedDefs } from '@atproto/api';
 import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
 
@@ -20,6 +21,9 @@ export interface LinkInfo {
   note: { id: string; text: string; author: User } | null;
   // Null if they couldn't be loaded
   connections: LinkConnection[] | null;
+  // A Bluesky or Blacksky post's link: the post, or null if it couldn't be
+  // loaded. Missing from links fetched before posts were.
+  post?: AppBskyFeedDefs.PostView | null;
 }
 
 export interface NewConnection {

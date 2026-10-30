@@ -19,12 +19,13 @@ import {
   type LinkInfo,
 } from '@/features/canvas/server/canvasServer';
 import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
+import { linkCardPreview } from '@/features/canvas/model/linkCards';
 import type {
   CanvasDocument,
   CanvasStorage,
 } from '@/features/canvas/storage/canvasStorage';
 import { createTestBoard, type TestBoard } from '../harness/createTestBoard';
-import { FakeServer, testLink } from '../harness/fakeServer';
+import { FakeServer, testLink, testPost } from '../harness/fakeServer';
 
 const NEWER_DOCUMENT: CanvasDocument = {
   schema: { schemaVersion: 2, sequences: { 'semble.shape.link-card': 1 } },
@@ -634,6 +635,499 @@ describe('link cards', () => {
   });
 });
 
+// ─────────────────────────────────────────────
+// Link previews
+// ─────────────────────────────────────────────
+describe('link previews', () => {
+  const linkOf = (url: string) =>
+    board.queryClient.getQueryData<LinkInfo>(canvasKeys.link(url));
+  const THUMBNAIL = 'https://img.example.com/thumb.jpg';
+
+  // Pastes the link and waits for its card to be sized to it
+  async function placedHeight(url: string) {
+    await board.pasteUrl(url);
+    await vi.waitFor(() =>
+      expect(
+        board.queryClient.getQueryData(canvasKeys.link(url)),
+      ).toBeDefined(),
+    );
+    const card = board.linkCards().find((card) => card.props.url === url)!;
+    return board.editor.getShape<LinkCardShape>(card.id)!.props.h;
+  }
+
+  it('should show a YouTube video thumbnail at 16:9 across a taller card', async () => {
+    // Arrange
+    const server = new FakeServer();
+    const video = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    const article = 'https://example.com/article';
+    for (const url of [video, article]) {
+      server.links.set(
+        url,
+        testLink(url, {
+          metadata: { url, title: 'A title', imageUrl: THUMBNAIL },
+        }),
+      );
+    }
+    board = await createTestBoard({ server });
+
+    // Act
+    const videoHeight = await placedHeight(video);
+    const articleHeight = await placedHeight(article);
+
+    // Assert
+    expect(linkCardPreview(linkOf(video))).toEqual({
+      kind: 'video',
+      imageUrl: THUMBNAIL,
+    });
+    // A 189px thumbnail, its margin and the domain and title lines, against
+    // the plain card's 75px image
+    expect(videoHeight - articleHeight).toBe(171);
+  });
+
+  it('should fit a title to the lines it wraps to, up to two', async () => {
+    // Arrange
+    const server = new FakeServer();
+    const titled = (path: string, title: string) => {
+      const url = `https://example.com/${path}`;
+      server.links.set(url, testLink(url, { metadata: { url, title } }));
+      return url;
+    };
+    const short = titled('short', 'Short');
+    const long = titled('long', 'A long title '.repeat(20));
+    board = await createTestBoard({ server });
+
+    // Act
+    const shortHeight = await placedHeight(short);
+    const longHeight = await placedHeight(long);
+
+    // Assert
+    expect(longHeight - shortHeight).toBe(25);
+  });
+
+  it.each([
+    ['https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC', 'Spotify'],
+    ['https://soundcloud.com/an-artist/a-track', 'SoundCloud'],
+    ['https://an-artist.bandcamp.com/album/an-album', 'Bandcamp'],
+    ['https://plyr.fm/track/42', 'plyr.fm'],
+  ])(
+    'should show the artwork of %s as a square with its platform label',
+    async (url, label) => {
+      // Arrange
+      const server = new FakeServer();
+      const article = 'https://example.com/article';
+      for (const each of [url, article]) {
+        server.links.set(
+          each,
+          testLink(each, {
+            metadata: { url: each, title: 'A title', imageUrl: THUMBNAIL },
+          }),
+        );
+      }
+      board = await createTestBoard({ server });
+
+      // Act
+      const audioHeight = await placedHeight(url);
+      const articleHeight = await placedHeight(article);
+
+      // Assert
+      expect(linkCardPreview(linkOf(url))).toEqual({
+        kind: 'audio',
+        imageUrl: THUMBNAIL,
+        label,
+      });
+      // Larger than the plain card's 75px image
+      expect(audioHeight).toBeGreaterThan(articleHeight);
+    },
+  );
+
+  describe('Bluesky posts', () => {
+    const POST = 'https://bsky.app/profile/poster.bsky.social/post/3kpost';
+    const IMAGE = 'https://cdn.bsky.app/img/feed_thumbnail/plain/a@jpeg';
+    const imagesEmbed = {
+      $type: 'app.bsky.embed.images#view',
+      images: [
+        { thumb: IMAGE, fullsize: IMAGE, alt: 'A cat' },
+        { thumb: 'https://cdn.bsky.app/second', fullsize: '', alt: '' },
+      ],
+    };
+
+    it("should show a post's author, text and every image", async () => {
+      // Arrange
+      const server = new FakeServer();
+      server.links.set(
+        POST,
+        testLink(POST, { post: testPost({ embed: imagesEmbed }) }),
+      );
+      board = await createTestBoard({ server });
+
+      // Act
+      await placedHeight(POST);
+
+      // Assert
+      expect(linkCardPreview(linkOf(POST))).toEqual({
+        kind: 'post',
+        author: {
+          name: 'A Poster',
+          avatarUrl:
+            'https://cdn.bsky.app/img/avatar/plain/did:plc:poster/a@jpeg',
+        },
+        text: 'What the post says',
+        media: {
+          kind: 'images',
+          images: [
+            { url: IMAGE, alt: 'A cat' },
+            { url: 'https://cdn.bsky.app/second', alt: '' },
+          ],
+          // Cropped to 16:9 across the card's 336px inner width
+          height: 189,
+        },
+        quote: null,
+        mediaHiddenBecause: null,
+      });
+    });
+
+    it("should size a post's only image by its own ratio, no taller than 16:9", async () => {
+      // Arrange
+      const server = new FakeServer();
+      const single = (width: number, height: number) => ({
+        $type: 'app.bsky.embed.images#view',
+        images: [
+          {
+            thumb: IMAGE,
+            fullsize: IMAGE,
+            alt: '',
+            aspectRatio: { width, height },
+          },
+        ],
+      });
+      const wide = 'https://bsky.app/profile/poster.bsky.social/post/3kwide';
+      const tall = 'https://bsky.app/profile/poster.bsky.social/post/3ktall';
+      server.links.set(
+        wide,
+        testLink(wide, { post: testPost({ embed: single(3, 1) }) }),
+      );
+      server.links.set(
+        tall,
+        testLink(tall, { post: testPost({ embed: single(1, 2) }) }),
+      );
+      board = await createTestBoard({ server });
+
+      // Act
+      await placedHeight(wide);
+      await placedHeight(tall);
+
+      // Assert
+      expect(linkCardPreview(linkOf(wide))).toMatchObject({
+        media: { height: 112 },
+      });
+      expect(linkCardPreview(linkOf(tall))).toMatchObject({
+        media: { height: 189 },
+      });
+    });
+
+    it("should fit a post's text to the lines it wraps to, up to three", async () => {
+      // Arrange
+      const server = new FakeServer();
+      const post = (slug: string, text: string) => {
+        const url = `https://bsky.app/profile/poster.bsky.social/post/${slug}`;
+        server.links.set(url, testLink(url, { post: testPost({ text }) }));
+        return url;
+      };
+      const short = post('3kshort', 'OUT NOW');
+      const twoParagraphs = post('3kbreak', 'OUT NOW\n\nOn every platform');
+      const long = post('3klong', 'word '.repeat(200));
+      board = await createTestBoard({ server });
+
+      // Act
+      const shortHeight = await placedHeight(short);
+      const breakHeight = await placedHeight(twoParagraphs);
+      const longHeight = await placedHeight(long);
+
+      // Assert
+      // The blank line between paragraphs counts, at 25px a line
+      expect(breakHeight - shortHeight).toBe(50);
+      expect(longHeight - shortHeight).toBe(50);
+    });
+
+    it('should make a post with an image taller than one without', async () => {
+      // Arrange
+      const server = new FakeServer();
+      const withImage = POST;
+      const withoutImage =
+        'https://bsky.app/profile/poster.bsky.social/post/3ktext';
+      server.links.set(
+        withImage,
+        testLink(withImage, { post: testPost({ embed: imagesEmbed }) }),
+      );
+      server.links.set(
+        withoutImage,
+        testLink(withoutImage, { post: testPost() }),
+      );
+      board = await createTestBoard({ server });
+
+      // Act
+      const imageHeight = await placedHeight(withImage);
+      const textHeight = await placedHeight(withoutImage);
+
+      // Assert
+      expect(imageHeight).toBeGreaterThan(textHeight);
+    });
+
+    it("should show a link in a post as the webapp's compact link card, with or without a thumbnail", async () => {
+      // Arrange
+      const server = new FakeServer();
+      const external = (thumb?: string) => ({
+        $type: 'app.bsky.embed.external#view',
+        external: {
+          uri: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
+          title: 'A song',
+          description: 'By an artist',
+          thumb,
+        },
+      });
+      const withThumb = POST;
+      const withoutThumb =
+        'https://bsky.app/profile/poster.bsky.social/post/3knothumb';
+      server.links.set(
+        withThumb,
+        testLink(withThumb, { post: testPost({ embed: external(IMAGE) }) }),
+      );
+      server.links.set(
+        withoutThumb,
+        testLink(withoutThumb, { post: testPost({ embed: external() }) }),
+      );
+      board = await createTestBoard({ server });
+
+      // Act
+      const thumbHeight = await placedHeight(withThumb);
+      const noThumbHeight = await placedHeight(withoutThumb);
+
+      // Assert
+      expect(linkCardPreview(linkOf(withThumb))).toMatchObject({
+        media: {
+          kind: 'link',
+          url: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
+          title: 'A song',
+          thumbUrl: IMAGE,
+          height: 72,
+        },
+      });
+      expect(linkCardPreview(linkOf(withoutThumb))).toMatchObject({
+        media: { kind: 'link', thumbUrl: null },
+      });
+      expect(noThumbHeight).toBe(thumbHeight);
+    });
+
+    it('should show a quoted post as a card under the media the quote adds', async () => {
+      // Arrange
+      const server = new FakeServer();
+      const quoted = {
+        $type: 'app.bsky.embed.record#viewRecord',
+        uri: 'at://did:plc:quoted/app.bsky.feed.post/3kquoted',
+        cid: 'bafyquoted',
+        author: {
+          did: 'did:plc:quoted',
+          handle: 'quoted.bsky.social',
+          avatar: 'https://cdn.bsky.app/img/avatar/plain/did:plc:quoted/b@jpeg',
+        },
+        value: {
+          $type: 'app.bsky.feed.post',
+          text: 'The quoted words',
+          createdAt: '2026-09-01T00:00:00.000Z',
+        },
+        indexedAt: '2026-09-01T00:00:00.000Z',
+      };
+      const quote = POST;
+      const quoteWithMedia =
+        'https://bsky.app/profile/poster.bsky.social/post/3kquotemedia';
+      server.links.set(
+        quote,
+        testLink(quote, {
+          post: testPost({
+            embed: { $type: 'app.bsky.embed.record#view', record: quoted },
+          }),
+        }),
+      );
+      server.links.set(
+        quoteWithMedia,
+        testLink(quoteWithMedia, {
+          post: testPost({
+            embed: {
+              $type: 'app.bsky.embed.recordWithMedia#view',
+              record: { record: quoted },
+              media: imagesEmbed,
+            },
+          }),
+        }),
+      );
+      board = await createTestBoard({ server });
+
+      // Act
+      const quoteHeight = await placedHeight(quote);
+      const withMediaHeight = await placedHeight(quoteWithMedia);
+
+      // Assert
+      const quotedCard = {
+        author: {
+          name: 'quoted.bsky.social',
+          avatarUrl:
+            'https://cdn.bsky.app/img/avatar/plain/did:plc:quoted/b@jpeg',
+        },
+        text: 'The quoted words',
+      };
+      expect(linkCardPreview(linkOf(quote))).toMatchObject({
+        media: null,
+        quote: quotedCard,
+      });
+      expect(linkCardPreview(linkOf(quoteWithMedia))).toMatchObject({
+        media: { kind: 'images' },
+        quote: quotedCard,
+      });
+      // The 189px grid and the gap above it
+      expect(withMediaHeight - quoteHeight).toBe(199);
+    });
+
+    describe('labelled media', () => {
+      const LABEL = {
+        src: 'did:plc:ar7c4by46qjdydhdevvrndac',
+        uri: 'at://did:plc:poster/app.bsky.feed.post/3kpost',
+        val: 'porn',
+        cts: '2026-10-01T00:00:00.000Z',
+      };
+      const labelledPost = () =>
+        testLink(POST, {
+          post: testPost({ embed: imagesEmbed, labels: [LABEL] }),
+        });
+
+      it("should hide a labelled post's media behind the webapp's notice, keeping its text and the card's height", async () => {
+        // Arrange
+        const server = new FakeServer();
+        const unlabelled =
+          'https://bsky.app/profile/poster.bsky.social/post/3kplain';
+        server.links.set(POST, labelledPost());
+        server.links.set(
+          unlabelled,
+          testLink(unlabelled, { post: testPost({ embed: imagesEmbed }) }),
+        );
+        board = await createTestBoard({ server });
+
+        // Act
+        const labelledHeight = await placedHeight(POST);
+        const unlabelledHeight = await placedHeight(unlabelled);
+
+        // Assert
+        expect(linkCardPreview(linkOf(POST))).toMatchObject({
+          kind: 'post',
+          text: 'What the post says',
+          mediaHiddenBecause: 'Adult content',
+        });
+        expect(labelledHeight).toBe(unlabelledHeight);
+      });
+
+      it('should hide nothing on a labelled post with no media', async () => {
+        // Arrange
+        const server = new FakeServer();
+        server.links.set(
+          POST,
+          testLink(POST, { post: testPost({ labels: [LABEL] }) }),
+        );
+        board = await createTestBoard({ server });
+
+        // Act
+        await placedHeight(POST);
+
+        // Assert
+        expect(linkCardPreview(linkOf(POST))).toMatchObject({
+          mediaHiddenBecause: null,
+        });
+      });
+
+      it("should show one copy's media, and hide it again, without changing the board", async () => {
+        // Arrange
+        const server = new FakeServer();
+        server.links.set(POST, labelledPost());
+        board = await createTestBoard({ server });
+        await placedHeight(POST);
+        await board.pasteUrl(POST);
+        const [shown, other] = board.linkCards();
+        const before = board.editor.store.getStoreSnapshot('document');
+
+        // Act
+        board.mediaReveals.toggle(shown.id);
+
+        // Assert
+        expect(board.mediaReveals.isRevealed(shown.id)).toBe(true);
+        expect(board.mediaReveals.isRevealed(other.id)).toBe(false);
+        expect(board.editor.store.getStoreSnapshot('document')).toEqual(before);
+        board.mediaReveals.toggle(shown.id);
+        expect(board.mediaReveals.isRevealed(shown.id)).toBe(false);
+      });
+
+      it('should hide shown media again when the board is reopened', async () => {
+        // Arrange
+        const first = await createTestBoard();
+        first.server.links.set(POST, labelledPost());
+        board = first;
+        await placedHeight(POST);
+        const [card] = first.linkCards();
+        first.mediaReveals.toggle(card.id);
+        await first.dispose();
+
+        // Act
+        board = await createTestBoard({
+          storage: first.storage,
+          canvasId: first.canvasId,
+        });
+
+        // Assert
+        expect(board.mediaReveals.isRevealed(card.id)).toBe(false);
+      });
+    });
+
+    it('should show a post that could not be loaded as a plain link', async () => {
+      // Arrange
+      const server = new FakeServer();
+      server.links.set(POST, testLink(POST, { post: null }));
+      board = await createTestBoard({ server });
+
+      // Act
+      await placedHeight(POST);
+
+      // Assert
+      expect(linkCardPreview(linkOf(POST))).toEqual({ kind: 'plain' });
+    });
+
+    it('should show a reopened board its post previews before any fetch returns', async () => {
+      // Arrange
+      const first = await createTestBoard();
+      first.server.links.set(
+        POST,
+        testLink(POST, { post: testPost({ embed: imagesEmbed }) }),
+      );
+      board = first;
+      const height = await placedHeight(POST);
+      await first.dispose();
+      const server = new FakeServer();
+      const respond = server.holdResponses();
+
+      // Act
+      board = await createTestBoard({
+        storage: first.storage,
+        canvasId: first.canvasId,
+        server,
+      });
+
+      // Assert
+      expect(linkCardPreview(linkOf(POST))).toMatchObject({
+        kind: 'post',
+        media: { images: [{ url: IMAGE }, {}] },
+      });
+      expect(board.linkCards()[0].props.h).toBe(height);
+      respond();
+    });
+  });
+});
+
 describe('quick-add', () => {
   it('should place a link picked in quick-add where the canvas was double-clicked', async () => {
     // Arrange
@@ -963,7 +1457,7 @@ describe('selection popup', () => {
     board.editor.select(card.id);
 
     // Assert
-    expect(board.popupLink.get()).toBe('https://example.com/article');
+    expect(board.popupCard.get()?.url).toBe('https://example.com/article');
   });
 
   it('should show no popup when several cards are selected', async () => {
@@ -976,7 +1470,7 @@ describe('selection popup', () => {
     board.editor.select(...board.linkCards().map((card) => card.id));
 
     // Assert
-    expect(board.popupLink.get()).toBeNull();
+    expect(board.popupCard.get()).toBeNull();
   });
 
   it('should show no popup for a selected sticky note', async () => {
@@ -989,7 +1483,7 @@ describe('selection popup', () => {
     board.editor.select(note.id);
 
     // Assert
-    expect(board.popupLink.get()).toBeNull();
+    expect(board.popupCard.get()).toBeNull();
   });
 
   it('should hide the popup while a menu is open', async () => {
@@ -1002,7 +1496,7 @@ describe('selection popup', () => {
     board.editor.menus.addOpenMenu('context menu');
 
     // Assert
-    expect(board.popupLink.get()).toBeNull();
+    expect(board.popupCard.get()).toBeNull();
   });
 
   it('should hide the popup while the card is dragged', async () => {
@@ -1015,7 +1509,7 @@ describe('selection popup', () => {
     board.startDrag([300, 200], [300, 600]);
 
     // Assert
-    await vi.waitFor(() => expect(board.popupLink.get()).toBeNull());
+    await vi.waitFor(() => expect(board.popupCard.get()).toBeNull());
     expect(board.editor.isIn('select.translating')).toBe(true);
   });
 
