@@ -242,7 +242,7 @@ export const routes = {
     recommendedCollections: defineRoute(
       paths.recommendedCollections,
       'GET',
-      true,
+      false,
     ),
   },
   graph: {

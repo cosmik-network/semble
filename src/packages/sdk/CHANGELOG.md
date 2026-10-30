@@ -1,3 +1,53 @@
+# sdk-v0.0.11 - 2026-10-30
+
+This release adds #tag endpoints, adds three recommendation endpoints to the SDK, and adds a new notification type for @mentions.
+
+Tags are written inline as `#tag` in note cards, connection notes and collection descriptions. They are matched case-insensitively.
+
+## New endpoints
+
+### Tags (`tags` contract)
+
+- `getTags` (`GET /network.cosmik.tag.list`): recently used tags, intended for autocomplete. Authentication is optional. Query: `GetTagsParams` (optional `q`, `limit`, default 20, max 50). Returns `GetTagsResponse` (`tags: TagSummary[]`, most recently used first).
+  - With `q`, returns tags from recent activity across Semble that start with `q`. A leading `#` is ignored.
+  - Without `q`, returns the authenticated user's own recent tags. Unauthenticated requests without `q` return an empty list.
+- `taggedItems` (`GET /network.cosmik.tag.getItems`): paginated list, newest first, of items whose note or description contains the given tag. Authentication is optional. Query: `GetTaggedItemsParams` (`tag`, optional `itemType: 'card' | 'connection' | 'collection'`, `user` as a DID or handle, `page`, `limit`, default 20, max 100). Returns `GetTaggedItemsResponse`.
+  - Without `itemType`, `items` holds one list mixing all three types, newest first, as a `TaggedItem` union keyed on `type`.
+  - With `itemType`, the response echoes `itemType` and fills exactly one of `cards`, `connections` or `collections`. `items` is omitted.
+  - `user` limits results to that account's items.
+  - Returns 400 if `tag` is missing or empty, or if `user` is malformed or cannot be resolved.
+
+New shared types: `GetTagsParams`, `GetTagsResponse`, `TagSummary` (`tag`, `lastUsed`), `GetTaggedItemsParams`, `GetTaggedItemsResponse`, `TaggedItem`, `TaggedItemType`.
+
+### Recommendations (`search` contract)
+
+These endpoints already existed but were not part of the SDK until now.
+
+- `recommended` (`GET /network.cosmik.search.getRecommended`): URLs recommended for a set of query strings. Authentication is optional. Query: `RecommendedUrlsParams` (optional `queries`, `page`, `limit`, default 10, max 100, `urlType`, and ranking weight overrides `urlCardWeight`, `noteWeight`, `collectionWeight`, `connectionWeight`, `randomness`). Returns `RecommendedUrlsResponse` (`urls: UrlView[]`, `queries`, `pagination`).
+  - Each query's matches are ranked separately by network activity, then interleaved so that no single query dominates. URLs the authenticated user has already saved are excluded.
+  - Without `queries`, the server picks queries from the authenticated user's recent cards (falling back to their profile bio), or from the global feed when unauthenticated. The response returns the `queries` it used. Pass them back when requesting later pages to keep the same result set.
+- `recommendedUsers` (`GET /network.cosmik.search.getRecommendedUsers`): users recommended for a set of URLs. These are users who saved or connected those URLs, plus Semble users you follow on Bluesky. Users you already follow are excluded. Requires authentication. Query: `RecommendedUsersParams` (`urls`, required, one or more). Returns `RecommendedUsersResponse` (`users: RecommendedUser[]`, up to 40, and `bskyFollowedSembleUserCount`). `RecommendedUser` is `User` plus `followsOnBsky: boolean`. Returns 400 if `urls` is missing.
+- `recommendedCollections` (`GET /network.cosmik.search.getRecommendedCollections`): collections containing any of the given URLs, ranked by card count, followers, how recently they were updated, and whether you follow the author on Bluesky. Authentication is optional. Query: `RecommendedCollectionsParams` (optional `urls`). Returns `RecommendedCollectionsResponse` (`collections: RecommendedCollection[]`, up to 20). `RecommendedCollection` is `Collection` plus `authorFollowedOnBsky: boolean`.
+  - Authenticated callers must pass at least one URL, or the request returns 400.
+  - Unauthenticated callers may omit `urls`. The server then picks URLs from the global feed, and `authorFollowedOnBsky` is always `false`.
+
+For `urls` and `queries`, repeat the query parameter to pass several values.
+
+New shared types: `RecommendedUrlsParams`, `RecommendedUrlsResponse`, `RecommendedUsersParams`, `RecommendedUsersResponse`, `RecommendedUser`, `RecommendedCollectionsParams`, `RecommendedCollectionsResponse`, `RecommendedCollection`.
+
+## Modified types
+
+- `NotificationType` has a new value, `USER_MENTIONED_YOU`. It is sent when someone @mentions your handle in a note card, connection note or collection description.
+- `NotificationItem` has a new union member, `MentionNotificationItem`. Its `mentionSource` field (`'NOTE' | 'CONNECTION' | 'COLLECTION'`) says which kind of item contains the mention. Exactly one matching field is set: `card` for `NOTE`, `connection` for `CONNECTION`, or `mentionCollection` for `COLLECTION`.
+
+  This only adds a type, so existing code keeps compiling. Any exhaustive `switch` over `NotificationType` or `NotificationItem` will need a case for the new value.
+
+New shared types: `MentionNotificationItem`, `MentionSource`.
+
+## Modified endpoints
+
+- `myNotifications` (`GET /network.cosmik.notification.list`) can now return `USER_MENTIONED_YOU` items.
+
 # sdk-v0.0.10 - 2026-08-26
 
 No new or removed endpoints. This release makes one endpoint usable without authentication and lets it target any account.

@@ -117,7 +117,6 @@ export const searchContract = c.router(
       summary: 'Recommended URLs',
       description:
         "Returns URLs recommended for a set of query strings. Each query's matches are ranked independently by network activity (saves, notes, collections, connections) with randomized ordering, then interleaved round-robin so no single query crowds out the others. Excludes URLs the calling user already saved. Ranking weights can be overridden per request; each distinct weight set is cached separately. Optionally filtered to a single `urlType`; changing it re-queries the vector database rather than reusing the cached ranked set. Paginated over a cached ranked set. When no queries are given, they are derived from random recent cards in the calling user's library (falling back to their profile bio), or, for unauthenticated callers, from random recent cards in the global feed; the derived queries are returned so later pages can pass them back.",
-      metadata: { internal: true } as const,
     },
     recommendedUsers: {
       method: 'GET',
@@ -130,7 +129,6 @@ export const searchContract = c.router(
       summary: 'Recommended users',
       description:
         'Returns users recommended for a set of URLs — users who saved or connected those URLs, plus Semble users the caller follows on Bluesky — ranked by activity, followers, recency, and Bluesky follow status, excluding users the caller already follows.',
-      metadata: { internal: true } as const,
     },
     recommendedCollections: {
       method: 'GET',
@@ -145,7 +143,6 @@ export const searchContract = c.router(
       summary: 'Recommended collections',
       description:
         'Returns collections containing any of the given URLs, ranked by card count, follower count, update recency, and whether the caller follows the collection author on Bluesky. Unauthenticated callers may omit urls, in which case the seed URLs are drawn from random recent cards in the global feed and the Bluesky-follow signal is skipped.',
-      metadata: { internal: true } as const,
     },
   },
   { strictStatusCodes: true },
