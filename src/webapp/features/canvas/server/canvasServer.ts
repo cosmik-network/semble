@@ -32,6 +32,36 @@ export interface NewConnection {
   type: ConnectionType;
 }
 
+// A collection as its card in the webapp shows it
+export interface CollectionInfo {
+  id: string;
+  // Its Semble page is /profile/<handle>/collections/<rkey>
+  handle: string;
+  rkey: string;
+  name: string;
+  description: string | null;
+  // Anyone can add to an open collection
+  open: boolean;
+  author: User;
+  cardCount: number;
+  updatedAt: string;
+}
+
+// One card in a collection: whoever added it, with their note
+export interface CollectionEntry {
+  cardId: string;
+  url: string;
+  author: User;
+  note: { id: string; text: string } | null;
+}
+
+export interface CollectionPage {
+  collection: CollectionInfo;
+  // Most recent first, as the collection page lists them
+  entries: CollectionEntry[];
+  hasMore: boolean;
+}
+
 // What an edit to a connection changes; swap flips its direction
 export interface ConnectionChange {
   type?: ConnectionType;
@@ -45,6 +75,11 @@ export interface CanvasServer {
   searchLibrary(query: string): Promise<UrlMetadata[]>;
   // Links anyone on Semble has saved that match the query
   searchEveryone(query: string): Promise<UrlMetadata[]>;
+  // Pages count from 1
+  getCollection(
+    collectionId: string,
+    page: { page: number; limit: number },
+  ): Promise<CollectionPage>;
   // Resolves with the new connection's id
   createConnection(connection: NewConnection): Promise<string>;
   updateConnection(

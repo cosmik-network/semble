@@ -18,6 +18,7 @@ import {
   useActions,
   getArrowBindings,
   type TLArrowShape,
+  type TLFrameShape,
   type TLPointerEventInfo,
   type TLShapeId,
   type VecLike,
@@ -35,12 +36,18 @@ import {
   linkCardsOn,
   type LinkCardShape,
 } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
+import {
+  collectionFrameMeta,
+  frameFooter,
+  type CollectionFrameFooter,
+} from '@/features/canvas/model/collectionFrames';
+import { CollectionFrameShapeUtil } from '@/features/canvas/shapes/collectionFrame/CollectionFrameShapeUtil';
 import { ConnectionArrowShapeUtil } from '@/features/canvas/shapes/connectionArrow/ConnectionArrowShapeUtil';
 import {
   arrowDisplay,
-  getShapeVisibility,
   type ArrowDisplay,
 } from '@/features/canvas/shapes/connectionArrow/connectionArrows';
+import { getShapeVisibility } from '@/features/canvas/shapes/shapeVisibility';
 import type { SeedProgress } from '@/features/canvas/controller/linkSeed';
 import { FakeLocks } from './fakeLocks';
 import { FakeServer, VIEWER_DID } from './fakeServer';
@@ -109,6 +116,12 @@ export interface TestBoard {
   pasteFiles(files: File[]): Promise<void>;
   dropUrl(url: string, point: VecLike): Promise<void>;
   linkCards(): LinkCardShape[];
+  // Collection frames and frames the user drew
+  frames(): TLFrameShape[];
+  // Load more and collapsing on collection frames
+  collectionFrames: CanvasController['collectionFrames'];
+  // What a collection frame's footer says, or null for a plain frame
+  frameFooter(id: TLShapeId): CollectionFrameFooter | null;
   // The connection arrows drawn, each with the copies its ends are bound to
   arrows(): BoardArrow[];
   // Double-clicks with the select tool, in page coordinates at the default
@@ -144,8 +157,11 @@ interface Options {
   storage?: IndexedDbCanvasStorage;
   canvasId?: string;
   server?: FakeServer;
-  // Opens the board as "Open in canvas" on this link's Semble page does
+  // Opens the board as "Open in canvas" on this link's or collection's
+  // Semble page does
   seedUrl?: string;
+  // The collection's id, which a collection page passes along with its URL
+  seedCollectionId?: string;
 }
 
 function pointer(
@@ -203,8 +219,11 @@ export async function createTestBoard(
   options: Options = {},
 ): Promise<TestBoard> {
   const shapeUtils = [
-    ...defaultShapeUtils.filter((util) => util.type !== 'arrow'),
+    ...defaultShapeUtils.filter(
+      (util) => util.type !== 'arrow' && util.type !== 'frame',
+    ),
     ConnectionArrowShapeUtil,
+    CollectionFrameShapeUtil,
     LinkCardShapeUtil,
   ];
   const bindingUtils = [...defaultBindingUtils];
@@ -270,6 +289,7 @@ export async function createTestBoard(
     storage,
     canvasId,
     seedUrl: options.seedUrl,
+    seedCollectionId: options.seedCollectionId,
     ownerDid: VIEWER_DID,
     onStorageError: (error) => {
       throw error;
@@ -360,6 +380,15 @@ export async function createTestBoard(
     hideTab: () => focusManager.setFocused(false),
     showTab: () => focusManager.setFocused(true),
     linkCards: () => linkCardsOn(editor),
+    frames: () =>
+      editor
+        .getCurrentPageShapes()
+        .filter((shape): shape is TLFrameShape => shape.type === 'frame'),
+    collectionFrames: controller.collectionFrames,
+    frameFooter(id) {
+      const meta = collectionFrameMeta(editor.getShape(id)!.meta);
+      return meta && frameFooter(meta);
+    },
     arrows: () =>
       editor
         .getCurrentPageShapes()

@@ -10,13 +10,17 @@ import {
 import { canvasKeys } from '../lib/canvasKeys';
 import { LINK_CHANGES_CHANNEL, type LinkChange } from '../lib/linkChanges';
 import { createLineCounter } from '../lib/lineCounter';
+import { jsonMeta } from '../lib/jsonMeta';
 import type { FetchedConnections } from '../model/arrows';
 import {
+  ENTRY_META_KEY,
   LINK_CARD_TYPE,
   LINK_CARD_WIDTH,
+  entryCardOf,
   linkCardHeight,
   linkCardParts,
   linkKey,
+  type EntryCard,
 } from '../model/linkCards';
 import {
   linkQuery,
@@ -38,6 +42,10 @@ export type FetchOutcome = 'fetched' | 'failed' | 'nothing-fetched';
 export interface LinkPlacement {
   url: string;
   at: VecLike;
+  // Known before the card exists, for a frame to map its entries to
+  id?: TLShapeId;
+  // A collection entry's card, rather than the viewer's own
+  entry?: { cardId: string; card: EntryCard };
 }
 
 export interface LinkCardsDeps {
@@ -71,8 +79,10 @@ export function attachLinkCards(
     queryClient.getQueryData<LinkInfo>(canvasKeys.link(url)) ??
     known[url]?.link;
   const lines = createLineCounter(editor);
-  const cardHeight = (url: string) =>
-    linkCardHeight(linkCardParts(linkOf(url), lines.count));
+  const cardHeight = (url: string, entry: EntryCard | null = null) =>
+    linkCardHeight(linkCardParts(linkOf(url), lines.count, entry));
+  const heightOf = (card: LinkCardShape) =>
+    cardHeight(card.props.url, entryCardOf(card.meta));
   const boardUrls = () =>
     Array.from(new Set(linkCardsOn(editor).map((card) => card.props.url)));
   // Placed before their link loaded: they stay centred where they were put
@@ -86,7 +96,7 @@ export function attachLinkCards(
       (card) => urls.includes(card.props.url) && linkOf(card.props.url),
     );
     const resized = loaded.flatMap((card) => {
-      const h = cardHeight(card.props.url);
+      const h = heightOf(card);
       if (h === card.props.h) return [];
       const centred = placedUnsized.has(card.id);
       return {
@@ -247,15 +257,18 @@ export function attachLinkCards(
 
   // The new cards' ids, in the order given
   function createLinkCards(places: LinkPlacement[]) {
-    const cards = places.map(({ url, at }): TLShapePartial<LinkCardShape> => {
-      const id = createShapeId();
-      const h = cardHeight(url);
-      if (!linkOf(url)) placedUnsized.add(id);
+    const cards = places.map((place): TLShapePartial<LinkCardShape> => {
+      const id = place.id ?? createShapeId();
+      const h = cardHeight(place.url, place.entry?.card);
+      if (!linkOf(place.url)) placedUnsized.add(id);
       return {
         id,
         type: LINK_CARD_TYPE,
-        ...centredAt(at, LINK_CARD_WIDTH, h),
-        props: { url, h },
+        ...centredAt(place.at, LINK_CARD_WIDTH, h),
+        props: { url: place.url, h, cardId: place.entry?.cardId ?? null },
+        ...(place.entry && {
+          meta: { [ENTRY_META_KEY]: jsonMeta(place.entry.card) },
+        }),
       };
     });
     editor.createShapes(cards);
@@ -325,7 +338,7 @@ export function attachLinkCards(
           record.typeName === 'shape' && record.type === LINK_CARD_TYPE,
       );
       const urls = cards
-        .filter((card) => card.props.h !== cardHeight(card.props.url))
+        .filter((card) => card.props.h !== heightOf(card))
         .map((card) => card.props.url);
       if (urls.length > 0) sizeCards(urls);
     },
@@ -351,6 +364,7 @@ export function attachLinkCards(
     placeLinks,
     linkOf,
     cardHeight,
+    countLines: lines.count,
     // Once the board has loaded
     sizeAll: () => sizeCards(boardUrls()),
     fetchLinks,

@@ -12,10 +12,35 @@ import {
   getModerationReasonText,
   getPostModerationUI,
 } from '@/features/platforms/bluesky/lib/moderation';
+import type { User } from '@semble/types';
 import type { LinkInfo } from '../server/canvasServer';
 
 export const LINK_CARD_TYPE = 'link-card';
 export const LINK_CARD_WIDTH = 360;
+
+// The card a copy shows when a collection frame placed it: whoever added the
+// entry, with their note. Kept in the copy's meta.
+export interface EntryCard {
+  author: User;
+  note: { id: string; text: string } | null;
+  // As on the collection page: when the card isn't the collection owner's
+  byRow: boolean;
+}
+
+export const ENTRY_META_KEY = 'entry';
+
+export function entryCardOf(meta: object): EntryCard | null {
+  const value = (meta as Record<string, unknown>)[ENTRY_META_KEY];
+  return value ? (value as EntryCard) : null;
+}
+
+// The note a copy shows: its entry's, or else the viewer's own
+export function shownNote(link: LinkInfo | undefined, entry: EntryCard | null) {
+  if (entry) {
+    return entry.note ? { ...entry.note, author: entry.author } : null;
+  }
+  return link?.note ?? null;
+}
 
 // The server's URL.create rule: trimmed, with a slash added to a bare root.
 // Null for anything that isn't an http(s) URL.
@@ -234,6 +259,12 @@ const POST_FONT: TextFont = {
   fontWeight: 400,
   richText: true,
 };
+const NOTE_FONT: TextFont = {
+  fontSize: 14,
+  fontWeight: 500,
+  lineHeight: 1.55,
+  richText: true,
+};
 
 export interface LinkCardParts {
   preview: LinkCardPreview;
@@ -241,12 +272,15 @@ export interface LinkCardParts {
   descriptionLines: number;
   postLines: number;
   image: boolean;
-  note: boolean;
+  // None without a note
+  noteLines: number;
+  byRow: boolean;
 }
 
 export function linkCardParts(
   link: LinkInfo | undefined,
   countLines: CountLines,
+  entry: EntryCard | null = null,
 ): LinkCardParts {
   const preview = linkCardPreview(link);
   const lines = (
@@ -262,6 +296,7 @@ export function linkCardParts(
       : preview.kind === 'plain' && image
         ? INNER_WIDTH - IMAGE_SIZE - BESIDE_IMAGE_GAP
         : INNER_WIDTH;
+  const note = shownNote(link, entry);
   // Only the parts the preview draws are measured
   return {
     preview,
@@ -283,7 +318,10 @@ export function linkCardParts(
         ? lines(preview.text, POST_FONT, INNER_WIDTH, POST_LINES)
         : 0,
     image,
-    note: !!link?.note,
+    noteLines: note
+      ? Math.max(lines(note.text, NOTE_FONT, NOTE_TEXT_WIDTH, NOTE_LINES), 1)
+      : 0,
+    byRow: !!entry?.byRow,
   };
 }
 
@@ -291,8 +329,10 @@ export function linkCardParts(
 // card's height follows from its link, with only its text measured. The sizes
 // mirror LinkCardContent's grid view and NoteCardInline; the face clips each
 // part to them.
-const PADDING = 12;
-const GAP = 12;
+export const LINK_CARD_PADDING = 12;
+export const LINK_CARD_GAP = 12;
+const PADDING = LINK_CARD_PADDING;
+const GAP = LINK_CARD_GAP;
 const INNER_WIDTH = LINK_CARD_WIDTH - PADDING * 2;
 const DOMAIN_HEIGHT = 22;
 const LABEL_HEIGHT = 22;
@@ -320,9 +360,13 @@ const quoteHeight = (quote: PostQuote) =>
   (quote.text ? PREVIEW_MARGIN + POST_LINE : 0);
 export const POST_LINES = 3;
 const NOTE_PADDING = 10;
+const NOTE_TEXT_WIDTH = INNER_WIDTH - NOTE_PADDING * 2;
 const NOTE_AUTHOR_HEIGHT = 20;
+// NoteCardInline's gap between the author and the text
+const NOTE_GAP = 10;
 const NOTE_LINE = 22;
 export const NOTE_LINES = 4;
+const BY_ROW_HEIGHT = 20;
 
 function contentHeight(parts: LinkCardParts) {
   const titleHeight = TITLE_LINE * parts.titleLines;
@@ -352,19 +396,19 @@ function contentHeight(parts: LinkCardParts) {
   }
 }
 
-// The card round its link's content: padding, and the note under it
-export function linkCardFrame(note: boolean) {
-  const noteHeight = note
-    ? NOTE_PADDING * 2 + NOTE_AUTHOR_HEIGHT + GAP + NOTE_LINE * NOTE_LINES
-    : 0;
-  return {
-    padding: PADDING,
-    gap: GAP,
-    noteHeight,
-    height: PADDING * 2 + (note ? GAP + noteHeight : 0),
-  };
-}
-
+// The link's content, the card's padding, and the By row and the note, sized
+// to its text, under it
 export function linkCardHeight(parts: LinkCardParts) {
-  return contentHeight(parts) + linkCardFrame(parts.note).height;
+  const noteHeight = parts.noteLines
+    ? NOTE_PADDING * 2 +
+      NOTE_AUTHOR_HEIGHT +
+      NOTE_GAP +
+      NOTE_LINE * parts.noteLines
+    : 0;
+  return (
+    contentHeight(parts) +
+    PADDING * 2 +
+    (parts.byRow ? GAP + BY_ROW_HEIGHT : 0) +
+    (noteHeight ? GAP + noteHeight : 0)
+  );
 }

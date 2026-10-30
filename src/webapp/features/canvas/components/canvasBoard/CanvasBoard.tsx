@@ -17,6 +17,7 @@ const BoardEditor = dynamic(() => import('../boardEditor/BoardEditor'), {
 interface Props {
   canvasId: string;
   seedUrl?: string;
+  seedCollectionId?: string;
 }
 
 export default function CanvasBoard(props: Props) {
@@ -26,6 +27,7 @@ export default function CanvasBoard(props: Props) {
       key={props.canvasId}
       canvasId={props.canvasId}
       seedUrl={props.seedUrl}
+      seedCollectionId={props.seedCollectionId}
     />
   );
 }

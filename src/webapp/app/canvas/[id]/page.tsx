@@ -5,14 +5,17 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface Props {
   params: Promise<{ id: string }>;
-  // Only used if the board is new
-  searchParams: Promise<{ url?: string }>;
+  // A link's Semble page starts a new board; a collection's page adds the
+  // collection to any board
+  searchParams: Promise<{ url?: string; collection?: string }>;
 }
 
 export default async function Page(props: Props) {
   const { id } = await props.params;
   if (!UUID.test(id)) notFound();
-  const { url } = await props.searchParams;
+  const { url, collection } = await props.searchParams;
 
-  return <CanvasBoard canvasId={id} seedUrl={url} />;
+  return (
+    <CanvasBoard canvasId={id} seedUrl={url} seedCollectionId={collection} />
+  );
 }

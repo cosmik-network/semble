@@ -10,12 +10,24 @@ import {
   searchUrls,
   updateConnection,
 } from '@/features/connections/lib/dal';
+import { getCollectionPage } from '@/features/collections/lib/dal';
 import { getBlueskyPost } from '@/features/platforms/bluesky/lib/dal';
-import { getPostUriFromUrl } from '@/lib/utils/atproto';
+import { getPostUriFromUrl, getRecordKey } from '@/lib/utils/atproto';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { AppBskyFeedDefs } from '@atproto/api';
-import type { ConnectionType, UrlMetadata } from '@semble/types';
-import type { CanvasServer, LinkConnection, LinkInfo } from './canvasServer';
+import {
+  CollectionAccessType,
+  type ConnectionType,
+  type GetCollectionPageResponse,
+  type UrlMetadata,
+  type User,
+} from '@semble/types';
+import type {
+  CanvasServer,
+  CollectionPage,
+  LinkConnection,
+  LinkInfo,
+} from './canvasServer';
 
 // Until a batch endpoint exists (#982), each link takes a call for its library
 // status and one per page of its connections, plus its metadata the first time
@@ -134,6 +146,37 @@ async function getLink(url: string): Promise<LinkInfo> {
   };
 }
 
+// Only what the board shows, as it's kept in the board's document
+const shownUser = (user: User): User => ({
+  id: user.id,
+  name: user.name,
+  handle: user.handle,
+  avatarUrl: user.avatarUrl,
+});
+
+function collectionPage(response: GetCollectionPageResponse): CollectionPage {
+  return {
+    collection: {
+      id: response.id,
+      handle: response.author.handle,
+      rkey: getRecordKey(response.uri ?? ''),
+      name: response.name,
+      description: response.description ?? null,
+      open: response.accessType === CollectionAccessType.OPEN,
+      author: shownUser(response.author),
+      cardCount: response.cardCount,
+      updatedAt: response.updatedAt,
+    },
+    entries: response.urlCards.map((card) => ({
+      cardId: card.id,
+      url: card.url,
+      author: shownUser(card.author),
+      note: card.note ?? null,
+    })),
+    hasMore: response.pagination.hasMore,
+  };
+}
+
 export const apiCanvasServer: CanvasServer = {
   async getLinks(urls) {
     const links = new Map<string, LinkInfo>();
@@ -146,6 +189,11 @@ export const apiCanvasServer: CanvasServer = {
       ),
     );
     return links;
+  },
+  async getCollection(collectionId, { page, limit }) {
+    return collectionPage(
+      await getCollectionPage(collectionId, { page, limit }),
+    );
   },
   async createConnection({ sourceUrl, targetUrl, type }) {
     const response = await createConnection({

@@ -13,6 +13,10 @@ import {
 } from '../storage/canvasStorage';
 import { attachArrows } from './arrows';
 import {
+  COLLECTION_LOAD_FAILED,
+  attachCollectionFrames,
+} from './collectionFrames';
+import {
   invalidateAfterConnectionCreated,
   invalidateAfterConnectionDeleted,
   invalidateAfterConnectionUpdated,
@@ -32,6 +36,8 @@ export interface CanvasControllerDeps
   ownerDid: string;
   // Opened from this link's Semble page: a new board starts from the link
   seedUrl?: string;
+  // Opened from this collection's page: it joins the board, new or not
+  seedCollectionId?: string;
   onStorageError(error: unknown): void;
   // Another tab took the board over. Edits since the last save are lost.
   onTakenOver(): void;
@@ -41,7 +47,7 @@ export interface CanvasControllerDeps
   onNewerVersion(): void;
   // A connection couldn't be published or deleted
   onServerError(message: string): void;
-  // While the board is loaded from seedUrl, what it's waiting on
+  // While the board is loaded from a seed, what it's waiting on
   onSeedProgress(progress: SeedProgress | null): void;
 }
 
@@ -143,6 +149,12 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   });
   const quickAdd = attachQuickAdd(editor, links.placeLink);
   const popupCard = createPopupCard(editor);
+  const renameIfUnnamed = async (name: string) => {
+    const canvas = await deps.storage.getCanvas(deps.canvasId);
+    if (canvas?.name !== DEFAULT_CANVAS_NAME) return;
+    await deps.storage.renameCanvas(deps.canvasId, name);
+  };
+  const canPlace = () => !detached && !editor.getIsReadonly();
   const seedFailed = () =>
     deps.onServerError(
       "Couldn't load this link's connections. Reload to try again.",
@@ -153,15 +165,31 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     linkOf: links.linkOf,
     cardHeight: links.cardHeight,
     placeLinks: links.placeLinks,
-    async rename(name) {
-      const canvas = await deps.storage.getCanvas(deps.canvasId);
-      if (canvas?.name !== DEFAULT_CANVAS_NAME) return;
-      await deps.storage.renameCanvas(deps.canvasId, name);
-    },
+    rename: renameIfUnnamed,
     onFailed: seedFailed,
     onProgress: deps.onSeedProgress,
-    canPlace: () => !detached && !editor.getIsReadonly(),
+    canPlace,
   });
+  const collectionFrames = attachCollectionFrames({
+    editor,
+    server: deps.server,
+    fetchLinks: links.fetchLinks,
+    cardHeight: links.cardHeight,
+    placeLinks: links.placeLinks,
+    countLines: links.countLines,
+    rename: renameIfUnnamed,
+    onFailed: deps.onServerError,
+    onProgress: deps.onSeedProgress,
+    canPlace,
+  });
+  const openCollection = (collectionId: string, startsBoard: boolean) =>
+    collectionFrames.open(collectionId, startsBoard).catch((error) => {
+      console.warn(error);
+      deps.onServerError(COLLECTION_LOAD_FAILED);
+    });
+  // A tab that opens the board read-only adds the collection once it gets to
+  // write the board, as when the tab writing it closes
+  let pendingCollection: string | null = null;
   const mediaReveals = createMediaReveals();
   const refreshLoop = attachRefreshLoop({
     boardUrls: links.boardUrls,
@@ -208,6 +236,11 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
           // The arrows came from the former writer, which may have been behind
           arrows.reconcile();
           deps.onWritingAgain();
+          if (pendingCollection) {
+            // Joins a board another tab was writing, so it's one step of undo
+            void openCollection(pendingCollection, false);
+            pendingCollection = null;
+          }
         }
         if (role === 'newer-version') deps.onNewerVersion();
       },
@@ -227,7 +260,10 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
       refreshLoop.start();
       // Loading lasts until the links are placed, rather than showing an
       // empty board meanwhile
-      if (deps.seedUrl && !hasDocument && !editor.getIsReadonly()) {
+      if (deps.seedCollectionId) {
+        if (editor.getIsReadonly()) pendingCollection = deps.seedCollectionId;
+        else await openCollection(deps.seedCollectionId, !hasDocument);
+      } else if (deps.seedUrl && !hasDocument && !editor.getIsReadonly()) {
         await linkSeed.seed(deps.seedUrl).catch((error) => {
           console.warn(error);
           seedFailed();
@@ -243,6 +279,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     copies,
     popupCard,
     linkSeed,
+    collectionFrames,
     mediaReveals,
     arrowView: arrows.view,
     connectionPicker: connections.picker,
@@ -253,6 +290,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     async detach() {
       detached = true;
       quickAdd.detach();
+      collectionFrames.detach();
       connections.detach();
       refreshLoop.detach();
       arrows.detach();

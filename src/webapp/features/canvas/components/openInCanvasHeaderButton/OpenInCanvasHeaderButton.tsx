@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { BsEasel } from 'react-icons/bs';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
-import { linkCanvasHref } from '../../lib/constants';
+import { seededCanvasHref } from '../../lib/constants';
 
 export default function OpenInCanvasHeaderButton() {
   const searchParams = useSearchParams();
@@ -22,7 +22,7 @@ export default function OpenInCanvasHeaderButton() {
     <Tooltip label="Open in canvas" withArrow position="top">
       <ActionIcon
         component={Link}
-        href={linkCanvasHref(url)}
+        href={seededCanvasHref({ url })}
         prefetch={false}
         variant="light"
         color="gray"

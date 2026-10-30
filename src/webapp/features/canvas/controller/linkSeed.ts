@@ -14,10 +14,13 @@ import { linkCardsOn } from '../shapes/linkCard/LinkCardShapeUtil';
 import type { FetchOutcome, LinkPlacement } from './linkCards';
 
 // What starting a board from a link is waiting on: the link and its
-// connections, then the links of its ring
+// connections, then the links of its ring. From a collection: the collection,
+// then its entries' links.
 export type SeedProgress =
   | { step: 'link'; url: string }
-  | { step: 'ring'; count: number };
+  | { step: 'ring'; count: number }
+  | { step: 'collection' }
+  | { step: 'entries'; count: number };
 
 export interface LinkSeedDeps {
   editor: Editor;

@@ -3,12 +3,16 @@
 import { Badge, Box, Card, Stack } from '@mantine/core';
 import type { TLShapeId } from 'tldraw';
 import LinkCardContent from '@/features/cards/components/urlCardContent/LinkCardContent';
+import CardAuthorRow from '@/features/cards/components/cardAuthorRow/CardAuthorRow';
 import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardInline';
 import {
   LINK_CARD_WIDTH,
   NOTE_LINES,
-  linkCardFrame,
+  LINK_CARD_GAP,
+  LINK_CARD_PADDING,
   linkCardPreview,
+  shownNote,
+  type EntryCard,
 } from '../../model/linkCards';
 import { useCopyState } from '../../lib/canvasCopiesContext';
 import { useMediaRevealed } from '../../lib/canvasMediaRevealsContext';
@@ -20,14 +24,15 @@ interface Props {
   id: TLShapeId;
   url: string;
   height: number;
+  // A collection entry's card, rather than the viewer's own
+  entry: EntryCard | null;
 }
 
 // Only its edge dots take clicks: the selection popup holds the card's actions
 export default function LinkCardFace(props: Props) {
   const { data: link } = useCanvasLink(props.url);
   const preview = linkCardPreview(link);
-  // The controller sized the card to its content
-  const frame = linkCardFrame(!!link?.note);
+  const note = shownNote(link, props.entry);
   const copyState = useCopyState(props.id, props.url);
   const mediaRevealed = useMediaRevealed(props.id);
 
@@ -36,7 +41,7 @@ export default function LinkCardFace(props: Props) {
       <Card
         withBorder
         radius="lg"
-        p={frame.padding}
+        p={LINK_CARD_PADDING}
         w={LINK_CARD_WIDTH}
         h={props.height}
         shadow="none"
@@ -48,8 +53,10 @@ export default function LinkCardFace(props: Props) {
           outlineOffset: 2,
         }}
       >
-        <Stack gap={frame.gap}>
-          <Box h={props.height - frame.height} style={{ overflow: 'hidden' }}>
+        {/* The controller sized the card to its content. The By row and the
+            note take what they need, and the link's content the rest. */}
+        <Stack gap={LINK_CARD_GAP} h="100%">
+          <Box flex={1} mih={0} style={{ overflow: 'hidden' }}>
             {link && preview.kind !== 'plain' ? (
               <LinkCardPreviewContent
                 metadata={link.metadata}
@@ -63,14 +70,13 @@ export default function LinkCardFace(props: Props) {
               />
             )}
           </Box>
-          {link?.note && (
-            <Box h={frame.noteHeight} style={{ overflow: 'hidden' }}>
-              <NoteCardInline
-                note={link.note}
-                cardAuthor={link.note.author}
-                lineClamp={NOTE_LINES}
-              />
-            </Box>
+          {props.entry?.byRow && <CardAuthorRow author={props.entry.author} />}
+          {note && (
+            <NoteCardInline
+              note={note}
+              cardAuthor={note.author}
+              lineClamp={NOTE_LINES}
+            />
           )}
         </Stack>
       </Card>

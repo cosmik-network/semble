@@ -3,7 +3,7 @@
 import { LinkNavLink } from '@/components/link/MantineLink';
 import LibraryNavSectionSkeleton from '@/features/library/components/libraryNav/Skeleton.LibraryNavSection';
 import { useNavbarContext } from '@/providers/navbar';
-import { canvasHref, NAV_CANVASES_LIMIT } from '../../lib/constants';
+import { canvasHref, RECENT_CANVASES_LIMIT } from '../../lib/constants';
 import useCanvases from '../../lib/queries/useCanvases';
 
 export default function CanvasNavItems() {
@@ -13,7 +13,7 @@ export default function CanvasNavItems() {
   if (!canvases) return <LibraryNavSectionSkeleton />;
 
   return canvases
-    .slice(0, NAV_CANVASES_LIMIT)
+    .slice(0, RECENT_CANVASES_LIMIT)
     .map((canvas) => (
       <LinkNavLink
         key={canvas.id}

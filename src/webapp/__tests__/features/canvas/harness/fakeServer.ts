@@ -2,6 +2,8 @@ import type { AppBskyFeedDefs } from '@atproto/api';
 import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
+  CollectionEntry,
+  CollectionInfo,
   ConnectionChange,
   LinkConnection,
   LinkInfo,
@@ -56,6 +58,37 @@ export function testPost(
   };
 }
 
+// A collection and its entries, most recent first
+export interface TestCollection {
+  collection: CollectionInfo;
+  entries: CollectionEntry[];
+}
+
+export function testCollection(
+  overrides: Partial<CollectionInfo> & { entries?: CollectionEntry[] } = {},
+): TestCollection {
+  const { entries = [], ...collection } = overrides;
+  return {
+    collection: {
+      id: 'collection-1',
+      handle: 'curator.bsky.social',
+      rkey: '3kcollection',
+      name: 'Climate reading',
+      description: null,
+      open: false,
+      author: {
+        id: 'did:plc:curator',
+        name: 'A Curator',
+        handle: 'curator.bsky.social',
+      },
+      cardCount: entries.length,
+      updatedAt: '2026-10-01T00:00:00.000Z',
+      ...collection,
+    },
+    entries,
+  };
+}
+
 function linksMatching(links: UrlMetadata[], query: string) {
   return links.filter((link) =>
     `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
@@ -72,6 +105,8 @@ export class FakeServer implements CanvasServer {
   library: UrlMetadata[] = [];
   // Links saved by anyone on Semble
   everyone: UrlMetadata[] = [];
+  // Each collection by id
+  collections = new Map<string, TestCollection>();
   // getLinks fails while set, as when the network is down
   failing = false;
   // Links load without their connections while set
@@ -112,6 +147,28 @@ export class FakeServer implements CanvasServer {
     if (held) await new Promise<void>((respond) => held.push(respond));
     if (failing) throw new Error('Network down');
     return links;
+  }
+
+  async getCollection(
+    collectionId: string,
+    { page, limit }: { page: number; limit: number },
+  ) {
+    this.calls.push({
+      method: 'getCollection',
+      args: [collectionId, { page, limit }],
+    });
+    const failing = this.failing;
+    const held = this.held;
+    if (held) await new Promise<void>((respond) => held.push(respond));
+    if (failing) throw new Error('Network down');
+    const found = this.collections.get(collectionId);
+    if (!found) throw new Error('Collection not found');
+    const start = (page - 1) * limit;
+    return {
+      collection: { ...found.collection, cardCount: found.entries.length },
+      entries: found.entries.slice(start, start + limit),
+      hasMore: start + limit < found.entries.length,
+    };
   }
 
   async createConnection(connection: NewConnection) {

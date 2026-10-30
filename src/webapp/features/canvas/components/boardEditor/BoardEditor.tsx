@@ -21,12 +21,14 @@ import {
 } from '../../controller/canvasController';
 import type { SeedProgress } from '../../controller/linkSeed';
 import { getDomain } from '@/lib/utils/link';
+import { CanvasCollectionFramesProvider } from '../../lib/canvasCollectionFramesContext';
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
+import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
-import { getShapeVisibility } from '../../shapes/connectionArrow/connectionArrows';
+import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
@@ -41,14 +43,19 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 import SelectionPopup from '../selectionPopup/SelectionPopup';
 import UndoToast from '../undoToast/UndoToast';
+import { canvasHref } from '../../lib/constants';
 import { showCanvasError } from '../../lib/showCanvasError';
 import { boardOverrides } from './boardOverrides';
 
 // tldraw's licence requires the "Made with tldraw" watermark to stay visible
 // and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
 
-// Replaces tldraw's arrow
-const shapeUtils = [LinkCardShapeUtil, ConnectionArrowShapeUtil];
+// Replaces tldraw's arrow and frame
+const shapeUtils = [
+  LinkCardShapeUtil,
+  ConnectionArrowShapeUtil,
+  CollectionFrameShapeUtil,
+];
 const CARD_MODAL_MENU = 'canvas-card-modal';
 
 function showSaveError(error: unknown) {
@@ -94,6 +101,7 @@ type Status = 'loading' | CanvasLoadStatus | 'failed';
 interface Props {
   canvasId: string;
   seedUrl?: string;
+  seedCollectionId?: string;
 }
 
 export default function BoardEditor(props: Props) {
@@ -108,6 +116,12 @@ export default function BoardEditor(props: Props) {
   const [controller, setController] = useState<CanvasController | null>(null);
   const [cardModal, setCardModal] = useState<CardModal | null>(null);
   const [seedProgress, setSeedProgress] = useState<SeedProgress | null>(null);
+  // Read once: the seed leaves the address once used, and props that change
+  // with it mustn't reattach the board
+  const [seed] = useState(() => ({
+    url: props.seedUrl,
+    collectionId: props.seedCollectionId,
+  }));
   // The header replaces the main and page menus: a board has one page
   const components = useMemo<TLComponents>(
     () => ({
@@ -149,7 +163,8 @@ export default function BoardEditor(props: Props) {
       queryClient,
       storage: canvasStorage,
       canvasId: props.canvasId,
-      seedUrl: props.seedUrl,
+      seedUrl: seed.url,
+      seedCollectionId: seed.collectionId,
       ownerDid,
       onStorageError: showSaveError,
       onTakenOver: showTakenOver,
@@ -164,6 +179,11 @@ export default function BoardEditor(props: Props) {
         if (!active) return;
         setStatus(loaded);
         setController(attached);
+        // Reloading would otherwise place a collection again after its
+        // frame was deleted. Not a navigation, so the board stays attached.
+        if (seed.url || seed.collectionId) {
+          window.history.replaceState(null, '', canvasHref(props.canvasId));
+        }
       },
       (error) => {
         console.warn(error);
@@ -175,7 +195,7 @@ export default function BoardEditor(props: Props) {
       setController(null);
       void attached.detach();
     };
-  }, [editor, ownerDid, props.canvasId, props.seedUrl, queryClient]);
+  }, [editor, ownerDid, props.canvasId, seed, queryClient]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -189,30 +209,34 @@ export default function BoardEditor(props: Props) {
             <CanvasMediaRevealsProvider
               mediaReveals={controller?.mediaReveals ?? null}
             >
-              <Tldraw
-                shapeUtils={shapeUtils}
-                getShapeVisibility={getShapeVisibility}
-                components={components}
-                overrides={overrides}
-                onMount={setEditor}
+              <CanvasCollectionFramesProvider
+                collectionFrames={controller?.collectionFrames ?? null}
               >
-                {controller && (
-                  <ConnectionPicker picker={controller.connectionPicker} />
-                )}
-                {controller && (
-                  <ConnectionEditPopup edits={controller.connectionEdits} />
-                )}
-                {controller && (
-                  <DeleteConnectionModal edits={controller.connectionEdits} />
-                )}
-                {controller && (
-                  <SelectionPopup
-                    popupCard={controller.popupCard}
-                    linkSeed={controller.linkSeed}
-                    onOpen={(kind, url) => setCardModal({ kind, url })}
-                  />
-                )}
-              </Tldraw>
+                <Tldraw
+                  shapeUtils={shapeUtils}
+                  getShapeVisibility={getShapeVisibility}
+                  components={components}
+                  overrides={overrides}
+                  onMount={setEditor}
+                >
+                  {controller && (
+                    <ConnectionPicker picker={controller.connectionPicker} />
+                  )}
+                  {controller && (
+                    <ConnectionEditPopup edits={controller.connectionEdits} />
+                  )}
+                  {controller && (
+                    <DeleteConnectionModal edits={controller.connectionEdits} />
+                  )}
+                  {controller && (
+                    <SelectionPopup
+                      popupCard={controller.popupCard}
+                      linkSeed={controller.linkSeed}
+                      onOpen={(kind, url) => setCardModal({ kind, url })}
+                    />
+                  )}
+                </Tldraw>
+              </CanvasCollectionFramesProvider>
             </CanvasMediaRevealsProvider>
             {controller && <QuickAdd quickAdd={controller.quickAdd} />}
             {controller && <UndoToast undoToast={controller.undoToast} />}
@@ -237,9 +261,16 @@ export default function BoardEditor(props: Props) {
 }
 
 function seedProgressText(progress: SeedProgress) {
-  if (progress.step === 'link') return `Loading ${getDomain(progress.url)}…`;
-  const links = progress.count === 1 ? 'link' : 'links';
-  return `Loading ${progress.count} connected ${links}…`;
+  switch (progress.step) {
+    case 'link':
+      return `Loading ${getDomain(progress.url)}…`;
+    case 'ring':
+      return `Loading ${progress.count} connected ${progress.count === 1 ? 'link' : 'links'}…`;
+    case 'collection':
+      return 'Loading collection…';
+    case 'entries':
+      return `Loading ${progress.count} ${progress.count === 1 ? 'card' : 'cards'}…`;
+  }
 }
 
 interface BoardStatusProps {

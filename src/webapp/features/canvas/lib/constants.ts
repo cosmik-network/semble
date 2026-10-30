@@ -1,17 +1,24 @@
 import { encodeUrlParam } from '@/lib/utils/link';
 
-// Boards shown in the Library sidebar's Canvases section
-export const NAV_CANVASES_LIMIT = 5;
+// Recent boards listed in the Library sidebar and under "Add to a canvas"
+export const RECENT_CANVASES_LIMIT = 5;
 
-const withSeedUrl = (href: string, seedUrl?: string) =>
-  seedUrl ? `${href}?url=${encodeUrlParam(seedUrl)}` : href;
+// What a board is opened from: a link's Semble page, or a collection's
+export type CanvasSeed = { url: string } | { collectionId: string };
 
-export const canvasHref = (id: string, seedUrl?: string) =>
-  withSeedUrl(`/canvas/${id}`, seedUrl);
+const withSeed = (href: string, seed?: CanvasSeed) => {
+  if (!seed) return href;
+  return 'url' in seed
+    ? `${href}?url=${encodeUrlParam(seed.url)}`
+    : `${href}?collection=${encodeURIComponent(seed.collectionId)}`;
+};
+
+export const canvasHref = (id: string, seed?: CanvasSeed) =>
+  withSeed(`/canvas/${id}`, seed);
 
 // Not prefetched: the route mints a new id each time it runs
 export const NEW_CANVAS_HREF = '/canvas/new';
 
-// Not prefetched, like NEW_CANVAS_HREF
-export const linkCanvasHref = (url: string) =>
-  withSeedUrl(NEW_CANVAS_HREF, url);
+// A new board started from a link's or a collection's Semble page
+export const seededCanvasHref = (seed: CanvasSeed) =>
+  withSeed(NEW_CANVAS_HREF, seed);

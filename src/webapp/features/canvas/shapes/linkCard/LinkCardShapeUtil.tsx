@@ -12,6 +12,7 @@ import {
 import {
   LINK_CARD_TYPE,
   LINK_CARD_WIDTH,
+  entryCardOf,
   linkCardHeight,
   linkCardParts,
 } from '../../model/linkCards';
@@ -80,6 +81,7 @@ export class LinkCardShapeUtil extends ShapeUtil<LinkCardShape> {
           id={shape.id}
           url={shape.props.url}
           height={shape.props.h}
+          entry={entryCardOf(shape.meta)}
         />
       </HTMLContainer>
     );
