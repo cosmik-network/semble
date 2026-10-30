@@ -1,15 +1,22 @@
 import type { ReactNode } from 'react';
 import {
   ArrowShapeUtil,
+  STROKE_SIZES,
+  SVGContainer,
+  getArrowInfo,
+  track,
+  useEditor,
   useUniqueSafeId,
   type TLArrowShape,
   type VecLike,
 } from 'tldraw';
 import ArrowPill from '../../components/arrowPill/ArrowPill';
+import { detailLevel } from '../detailLevel';
 import {
   arrowDisplay,
   arrowMiddle,
   connectionOf,
+  connectionArrowPaths,
   pillSize,
   type PillSize,
 } from './connectionArrows';
@@ -54,14 +61,13 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
       OPACITY[connection.own ? 'own' : 'ghost'][
         display.strong ? 'strong' : 'faint'
       ];
-    const middle = arrowMiddle(this.editor, shape);
+    const middle =
+      detailLevel(this.editor) === 'full' && arrowMiddle(this.editor, shape);
 
     // The pill stays crisp on a faded arrow
     return (
       <>
-        <div className={classes.arrow} style={{ opacity }}>
-          {super.component(drawn)}
-        </div>
+        <ConnectionArrowSvg arrow={drawn} opacity={opacity} />
         {display.pill && connection.connectionType && middle && (
           <ArrowPill
             arrowId={shape.id}
@@ -90,6 +96,45 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
     );
   }
 }
+
+interface ConnectionArrowSvgProps {
+  arrow: TLArrowShape;
+  opacity: number;
+}
+
+// Drawn here rather than by tldraw, whose arrow wraps each body in a clip path
+// and would need an opacity group to fade: with thousands of arrows, the
+// browser couldn't repaint them fast enough while panning. A connection arrow
+// has no label or handles to need them.
+// Tracked: moving a card changes its arrows' geometry, not their records
+const ConnectionArrowSvg = track(function ConnectionArrowSvg(
+  props: ConnectionArrowSvgProps,
+) {
+  const editor = useEditor();
+  const info = getArrowInfo(editor, props.arrow);
+  if (!info?.isValid) return null;
+  const strokeWidth =
+    STROKE_SIZES[props.arrow.props.size] * props.arrow.props.scale;
+  const { body, head } = connectionArrowPaths(info, strokeWidth);
+  const dotted = props.arrow.props.dash === 'dotted';
+
+  // Faded per stroke, not as a group, which the browser paints separately
+  return (
+    <SVGContainer>
+      <g
+        className={classes.arrow}
+        strokeWidth={strokeWidth}
+        strokeOpacity={props.opacity}
+      >
+        <path
+          d={body}
+          strokeDasharray={dotted ? `0 ${strokeWidth * 2}` : undefined}
+        />
+        {head && <path d={head} />}
+      </g>
+    </SVGContainer>
+  );
+});
 
 interface OutlineWithGapProps {
   middle: VecLike;

@@ -44,7 +44,15 @@ function Still(props: { url: string; alt: string; h: number; w?: number }) {
       w={props.w}
       style={{ flexShrink: 0 }}
     >
-      <Image src={props.url} alt={props.alt} h="100%" w="100%" fit="cover" />
+      <Image
+        loading="lazy"
+        decoding="async"
+        src={props.url}
+        alt={props.alt}
+        h="100%"
+        w="100%"
+        fit="cover"
+      />
     </Card>
   );
 }
@@ -68,6 +76,8 @@ function EmbeddedLink(props: { media: Extract<PostMedia, { kind: 'link' }> }) {
       <Group gap="xs" wrap="nowrap">
         {props.media.thumbUrl && (
           <Image
+            loading="lazy"
+            decoding="async"
             src={props.media.thumbUrl}
             alt=""
             h={EMBEDDED_LINK_THUMB}
@@ -132,6 +142,8 @@ function Media(props: { media: PostMedia }) {
             style={count === 3 && i === 0 ? { gridRow: 'span 2' } : undefined}
           >
             <Image
+              loading="lazy"
+              decoding="async"
               src={image.url}
               alt={image.alt}
               pos="absolute"

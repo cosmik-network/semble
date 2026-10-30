@@ -1,7 +1,8 @@
 'use client';
 
-import { Badge, Box, Card, Stack } from '@mantine/core';
-import type { TLShapeId } from 'tldraw';
+import { Badge, Box, Card, Stack, Text } from '@mantine/core';
+import { useEditor, useValue, type TLShapeId } from 'tldraw';
+import { getDomain } from '@/lib/utils/link';
 import LinkCardContent from '@/features/cards/components/urlCardContent/LinkCardContent';
 import CardAuthorRow from '@/features/cards/components/cardAuthorRow/CardAuthorRow';
 import NoteCardInline from '@/features/notes/components/noteCardInline/NoteCardInline';
@@ -14,6 +15,8 @@ import {
   shownNote,
   type EntryCard,
 } from '../../model/linkCards';
+import type { DetailLevel } from '../../model/detailLevel';
+import { detailLevel } from '../../shapes/detailLevel';
 import { useCopyState } from '../../lib/canvasCopiesContext';
 import { useMediaRevealed } from '../../lib/canvasMediaRevealsContext';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
@@ -35,6 +38,9 @@ export default function LinkCardFace(props: Props) {
   const note = shownNote(link, props.entry);
   const copyState = useCopyState(props.id, props.url);
   const mediaRevealed = useMediaRevealed(props.id);
+  const editor = useEditor();
+  const level = useValue('detail level', () => detailLevel(editor), [editor]);
+  const full = level === 'full';
 
   return (
     <Box pos="relative">
@@ -57,7 +63,12 @@ export default function LinkCardFace(props: Props) {
             note take what they need, and the link's content the rest. */}
         <Stack gap={LINK_CARD_GAP} h="100%">
           <Box flex={1} mih={0} style={{ overflow: 'hidden' }}>
-            {link && preview.kind !== 'plain' ? (
+            {!full ? (
+              <TitleOnly
+                level={level}
+                title={link?.metadata.title || getDomain(props.url)}
+              />
+            ) : link && preview.kind !== 'plain' ? (
               <LinkCardPreviewContent
                 metadata={link.metadata}
                 preview={preview}
@@ -70,8 +81,10 @@ export default function LinkCardFace(props: Props) {
               />
             )}
           </Box>
-          {props.entry?.byRow && <CardAuthorRow author={props.entry.author} />}
-          {note && (
+          {full && props.entry?.byRow && (
+            <CardAuthorRow author={props.entry.author} />
+          )}
+          {full && note && (
             <NoteCardInline
               note={note}
               cardAuthor={note.author}
@@ -80,7 +93,7 @@ export default function LinkCardFace(props: Props) {
           )}
         </Stack>
       </Card>
-      {copyState.count > 1 && (
+      {full && copyState.count > 1 && (
         <Badge
           pos="absolute"
           top={-10}
@@ -101,5 +114,30 @@ export default function LinkCardFace(props: Props) {
       )}
       <EdgeDots cardId={props.id} />
     </Box>
+  );
+}
+
+interface TitleOnlyProps {
+  level: Exclude<DetailLevel, 'full'>;
+  title: string;
+}
+
+// What a card shows once it's too small on screen to read in full
+function TitleOnly(props: TitleOnlyProps) {
+  if (props.level === 'bar') {
+    return (
+      <Box
+        h={16}
+        w="80%"
+        bg="var(--mantine-color-default-border)"
+        style={{ borderRadius: 8 }}
+      />
+    );
+  }
+
+  return (
+    <Text c="bright" lineClamp={2} fw={500}>
+      {props.title}
+    </Text>
   );
 }

@@ -1,15 +1,18 @@
 import type { ConnectionType } from '@semble/types';
 import {
   atom,
+  createComputedCache,
   getArrowInfo,
   Vec,
   type Atom,
   type Editor,
+  type TLArrowInfo,
   type TLArrowShape,
   type TLShape,
   type TLShapeId,
 } from 'tldraw';
 import { LINK_CARD_TYPE } from '../../model/linkCards';
+import { detailLevel } from '../detailLevel';
 import type { LinkCardShape } from '../linkCard/LinkCardShapeUtil';
 
 // Kept on an arrow drawn for a server connection. Arrows without it are the
@@ -75,15 +78,17 @@ export function selectedCardsHideArrows(editor: Editor): boolean | null {
   return cards.every((card) => card.props.hideArrows);
 }
 
-// Every arrow hides board-wide; a connection arrow also hides on either card
-// it joins. Read reactively by tldraw.
+// Every arrow hides board-wide. A connection arrow also hides on either card
+// it joins, and while cards are only bars, too small for it to tell anything.
+// Read reactively by tldraw.
 export function getShapeVisibility(shape: TLShape, editor: Editor) {
   if (shape.type !== 'arrow') return 'inherit';
   const connection = connectionOf(shape);
   const hidden =
     arrowSettings(editor).hidden.get() ||
     (!!connection &&
-      (hidesArrows(editor, connection.from) ||
+      (detailLevel(editor) === 'bar' ||
+        hidesArrows(editor, connection.from) ||
         hidesArrows(editor, connection.to)));
   return hidden ? 'hidden' : 'inherit';
 }
@@ -94,18 +99,30 @@ export interface ArrowDisplay {
   pill: boolean;
 }
 
-// Focus reads what's hovered and selected, so it writes nothing to the board
+// Focus reads what's hovered and selected, so it writes nothing to the board.
+// Kept per arrow and compared by value, so hovering one card redraws only its
+// own arrows rather than every arrow on the board.
+const displayCache = createComputedCache(
+  'arrow display',
+  (editor: Editor, arrow: TLShape): ArrowDisplay => {
+    const connection = connectionOf(arrow);
+    if (!connection) return { strong: true, pill: false };
+    const hovered = editor.getHoveredShapeId();
+    const selected = editor.getSelectedShapeIds();
+    const touched = [arrow.id, connection.from, connection.to].some(
+      (id) => id === hovered || selected.includes(id),
+    );
+    const strong = touched || !arrowSettings(editor).focus.get();
+    // A ghost names its type only on hover or select
+    return { strong, pill: connection.own ? strong : touched };
+  },
+  {
+    areResultsEqual: (a, b) => a.strong === b.strong && a.pill === b.pill,
+  },
+);
+
 export function arrowDisplay(editor: Editor, arrow: TLShape): ArrowDisplay {
-  const connection = connectionOf(arrow);
-  if (!connection) return { strong: true, pill: false };
-  const hovered = editor.getHoveredShapeId();
-  const selected = editor.getSelectedShapeIds();
-  const touched = [arrow.id, connection.from, connection.to].some(
-    (id) => id === hovered || selected.includes(id),
-  );
-  const strong = touched || !arrowSettings(editor).focus.get();
-  // A ghost names its type only on hover or select
-  return { strong, pill: connection.own ? strong : touched };
+  return displayCache.get(editor, arrow.id)!;
 }
 
 // In the arrow's own space
@@ -115,6 +132,36 @@ export function arrowMiddle(editor: Editor, arrow: TLArrowShape) {
   return info.type === 'arc'
     ? info.middle
     : Vec.Lrp(info.start.point, info.end.point, 0.5);
+}
+
+// The arrow's body, and its head where it ends, sized and angled as tldraw's
+// own arrowhead
+export function connectionArrowPaths(info: TLArrowInfo, strokeWidth: number) {
+  const start = Vec.From(info.start.point);
+  const end = Vec.From(info.end.point);
+  let body: string;
+  // The way the arrow points as it reaches its end, and how long it is there
+  let direction: Vec;
+  let reach: number;
+  if (info.type === 'arc') {
+    const { radius, largeArcFlag, sweepFlag, center, length } = info.bodyArc;
+    body = `M${start.x},${start.y} A${radius},${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x},${end.y}`;
+    const out = Vec.Sub(end, center).uni();
+    direction = sweepFlag ? new Vec(-out.y, out.x) : new Vec(out.y, -out.x);
+    reach = Math.abs(length) / 5;
+  } else {
+    // Connection arrows are arcs, straight when unbent; never elbows
+    body = `M${start.x},${start.y} L${end.x},${end.y}`;
+    direction = Vec.Sub(end, start).uni();
+    reach = Vec.Dist(start, end) / 5;
+  }
+  if (info.end.arrowhead === 'none') return { body, head: null };
+  const length = Math.min(Math.max(reach, strokeWidth), strokeWidth * 3);
+  const back = Vec.Sub(end, Vec.Mul(direction, length));
+  const left = Vec.RotWith(back, end, Math.PI / 6);
+  const right = Vec.RotWith(back, end, -Math.PI / 6);
+  const head = `M${left.x},${left.y} L${end.x},${end.y} L${right.x},${right.y}`;
+  return { body, head };
 }
 
 export interface PillSize {

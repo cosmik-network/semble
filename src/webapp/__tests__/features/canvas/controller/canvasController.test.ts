@@ -21,6 +21,7 @@ import {
   type LinkInfo,
 } from '@/features/canvas/server/canvasServer';
 import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
+import { detailLevel } from '@/features/canvas/shapes/detailLevel';
 import {
   entryCardOf,
   linkCardPreview,
@@ -3076,6 +3077,67 @@ describe('refresh', () => {
 });
 
 // ─────────────────────────────────────────────
+// level of detail
+// ─────────────────────────────────────────────
+describe('level of detail', () => {
+  // Lets the camera settle, as the editor's ticks would after a gesture
+  const zoomTo = (z: number) => {
+    board.editor.setCamera({ x: 0, y: 0, z });
+    board.editor.emit('tick', 1000);
+  };
+
+  it('should show cards in full at their normal size', async () => {
+    // Arrange
+    board = await createTestBoard();
+
+    // Act
+    zoomTo(1);
+
+    // Assert
+    expect(detailLevel(board.editor)).toBe('full');
+  });
+
+  it('should drop to the title once card text is too small to read, then to a bar', async () => {
+    // Arrange
+    board = await createTestBoard();
+
+    // Act / Assert
+    zoomTo(0.2);
+    expect(detailLevel(board.editor)).toBe('title');
+    zoomTo(0.08);
+    expect(detailLevel(board.editor)).toBe('bar');
+  });
+
+  it('should come back only once well past the point it dropped at', async () => {
+    // Arrange
+    board = await createTestBoard();
+    zoomTo(0.2);
+    expect(detailLevel(board.editor)).toBe('title');
+
+    // Act / Assert
+    zoomTo(0.24);
+    expect(detailLevel(board.editor)).toBe('title');
+    zoomTo(0.32);
+    expect(detailLevel(board.editor)).toBe('full');
+  });
+
+  it('should hold while the camera moves and change once it stops', async () => {
+    // Arrange
+    board = await createTestBoard();
+    zoomTo(1);
+
+    // Act
+    board.editor.setCamera({ x: 0, y: 0, z: 0.08 });
+
+    // Assert
+    expect(board.editor.getCameraState()).toBe('moving');
+    expect(detailLevel(board.editor)).toBe('full');
+    board.editor.emit('tick', 1000);
+    expect(detailLevel(board.editor)).toBe('bar');
+  });
+});
+
+// ─────────────────────────────────────────────
 // arrows
 // ─────────────────────────────────────────────
 
@@ -3498,6 +3560,68 @@ describe('arrows', () => {
     expect(board.arrows()).toEqual(before);
   });
 
+  it('should leave connection arrows and their bindings out of the saved board', async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+    const first = board;
+
+    // Act
+    await first.dispose();
+
+    // Assert
+    const saved = await first.storage.openCanvas(
+      first.canvasId,
+      first.editor.store.schema.serialize(),
+    );
+    if (saved.status !== 'ready') throw new Error('not saved');
+    const records = Object.values(saved.document!.store) as {
+      typeName: string;
+      type?: string;
+    }[];
+    expect(
+      records.filter((record) => record.type === 'link-card'),
+    ).toHaveLength(2);
+    expect(records.some((record) => record.type === 'arrow')).toBe(false);
+    expect(records.some((record) => record.typeName === 'binding')).toBe(false);
+  });
+
+  it("should draw arrows in a read-only tab and keep them through the writer's saves", async () => {
+    // Arrange
+    const server = new FakeServer();
+    server.connections = [connection('c1', A, B)];
+    await boardWith(
+      server,
+      [
+        [A, 0, 0],
+        [B, 800, 0],
+      ],
+      1,
+    );
+
+    // Act
+    otherTab = await board.openInAnotherTab();
+    board.editor.createShape({ type: 'note', x: 0, y: 900 });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(
+        otherTab!.editor
+          .getCurrentPageShapes()
+          .filter((shape) => shape.type === 'note'),
+      ).toHaveLength(1),
+    );
+    expect(otherTab.arrows()).toEqual(board.arrows());
+  });
+
   it('should correct the arrows of a reopened board on its next refresh', async () => {
     // Arrange
     const server = new FakeServer();
@@ -3593,6 +3717,23 @@ describe('arrows', () => {
       expect(displayOf('ghost')).toEqual({ strong: true, pill: true });
     });
 
+    it("should leave an arrow's display as it was when a card it doesn't join is hovered", async () => {
+      // Arrange
+      await boardWithMineAndGhost();
+      board.hover([-500, 600]);
+      await settle();
+      const before = displayOf('mine');
+
+      // Act
+      board.hover([600, 600]);
+      await vi.waitFor(() =>
+        expect(displayOf('ghost')).toEqual({ strong: true, pill: true }),
+      );
+
+      // Assert: the same value, so the arrow doesn't redraw
+      expect(displayOf('mine')).toBe(before);
+    });
+
     it('should draw every arrow at full strength once focus is turned off, naming ghosts only on focus', async () => {
       // Arrange
       await boardWithMineAndGhost();
@@ -3628,6 +3769,23 @@ describe('arrows', () => {
         .arrows()
         .filter((arrow) => arrow.from === copy)
         .map((arrow) => board.editor.isShapeHidden(arrow.id));
+
+    it('should hide every arrow once cards are only bars, and show them again on zooming in', async () => {
+      // Arrange
+      await boardWithTwoCopies();
+      const zoomTo = (z: number) => {
+        board.editor.setCamera({ x: 0, y: 0, z });
+        board.editor.emit('tick', 1000);
+      };
+      const hidden = () =>
+        board.arrows().map((arrow) => board.editor.isShapeHidden(arrow.id));
+
+      // Act / Assert
+      zoomTo(0.08);
+      expect(hidden()).toEqual([true, true]);
+      zoomTo(1);
+      expect(hidden()).toEqual([false, false]);
+    });
 
     it("should hide one copy's arrows without hiding the other copies'", async () => {
       // Arrange

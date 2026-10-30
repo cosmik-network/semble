@@ -76,6 +76,8 @@ export default function LinkCardContent(props: Props) {
             style={{ flexShrink: 0 }}
           >
             <Image
+              loading="lazy"
+              decoding="async"
               src={props.cardContent.imageUrl}
               alt={`${props.cardContent.url} social preview image`}
               w={'100%'}

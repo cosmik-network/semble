@@ -1,4 +1,5 @@
 import {
+  Box,
   createSessionStateSnapshotSignal,
   loadSnapshot,
   type Editor,
@@ -11,7 +12,8 @@ import {
   type BoardStatus,
   type CanvasDocument,
 } from '../storage/canvasStorage';
-import { attachArrows } from './arrows';
+import { attachArrows, isDerivedArrowRecord } from './arrows';
+import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import {
   COLLECTION_LOAD_FAILED,
   attachCollectionFrames,
@@ -65,11 +67,20 @@ function readAsDataUrl(blob: Blob) {
   });
 }
 
+// Without connection arrows, which are most of a large board's shapes and too
+// fine to make out at thumbnail size
 async function captureThumbnail(editor: Editor) {
-  const bounds = editor.getCurrentPageBounds();
-  if (!bounds) return null;
+  const shapes = editor
+    .getCurrentPageShapes()
+    .filter((shape) => !isConnectionArrow(shape));
+  const pageBounds = shapes.flatMap(
+    (shape) => editor.getShapePageBounds(shape) ?? [],
+  );
+  if (pageBounds.length === 0) return null;
+  const bounds = Box.Common(pageBounds);
+  if (!(bounds.w > 0)) return null;
   const { blob } = await editor.toImage(
-    Array.from(editor.getCurrentPageShapeIds()),
+    shapes.map((shape) => shape.id),
     {
       format: 'jpeg',
       quality: 0.8,
@@ -78,6 +89,16 @@ async function captureThumbnail(editor: Editor) {
     },
   );
   return readAsDataUrl(blob);
+}
+
+// Most of a large board's records, and rebuilt on open from the links' last
+// known connections
+function withoutDerivedArrows(records: Record<string, TLRecord>) {
+  return Object.fromEntries(
+    Object.entries(records).filter(
+      ([, record]) => !isDerivedArrowRecord(record),
+    ),
+  );
 }
 
 // Only records that differ are replaced, so the rest of the board doesn't
@@ -90,8 +111,10 @@ function applyRemoteSave(editor: Editor, document: CanvasDocument) {
   if (migrated.type === 'error') {
     throw new Error(`Couldn't migrate a saved canvas: ${migrated.reason}`);
   }
+  // This tab's own arrows aren't in a save, so they stay
   const isDocument = (record: TLRecord) =>
-    store.scopedTypes.document.has(record.typeName);
+    store.scopedTypes.document.has(record.typeName) &&
+    !isDerivedArrowRecord(record);
   const saved = Object.values(migrated.value).filter(isDocument);
   const savedIds = new Set(saved.map((record) => record.id));
   const removed = store
@@ -205,7 +228,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
       source: {
         getDocument: () => ({
           schema: editor.store.schema.serialize(),
-          store: editor.store.serialize('document'),
+          store: withoutDerivedArrows(editor.store.serialize('document')),
         }),
         getSession: () => ({
           editor: session.get() ?? {},
@@ -228,12 +251,21 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
         });
         editor.clearHistory();
       },
-      onRemoteSave: (document) => applyRemoteSave(editor, document),
+      onRemoteSave(document) {
+        applyRemoteSave(editor, document);
+        // Saves carry no arrows, so a read-only tab derives them for the
+        // links the writer added. Only those: the rest refresh on their own.
+        void links.fetchLinks(
+          links.boardUrls().filter((url) => !links.linkOf(url)),
+        );
+        arrows.reconcileSoon();
+      },
       onRoleChange(role) {
         const wasReadonly = editor.getIsReadonly();
         editor.updateInstanceState({ isReadonly: role !== 'writer' });
         if (role === 'writer' && wasReadonly) {
-          // The arrows came from the former writer, which may have been behind
+          // Edits made elsewhere while this tab read the board may have
+          // moved or removed cards
           arrows.reconcile();
           deps.onWritingAgain();
           if (pendingCollection) {
@@ -249,10 +281,19 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     },
   );
   // Remote changes are saved too, not only the user's
-  const unlisten = editor.store.listen(() => board.documentChanged(), {
-    scope: 'document',
-    source: 'all',
-  });
+  const unlisten = editor.store.listen(
+    ({ changes }) => {
+      // Arrows aren't saved, so a reconcile alone changes nothing to save
+      const records = [
+        ...Object.values(changes.added),
+        ...Object.values(changes.updated).map(([, after]) => after),
+        ...Object.values(changes.removed),
+      ];
+      if (records.every(isDerivedArrowRecord)) return;
+      board.documentChanged();
+    },
+    { scope: 'document', source: 'all' },
+  );
   const loaded = board.opened.then(async (status) => {
     if (status === 'ready' && !detached) {
       links.sizeAll();

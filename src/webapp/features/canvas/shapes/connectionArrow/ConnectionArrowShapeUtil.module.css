@@ -1,4 +1,7 @@
 /* The webapp's green, which tldraw's palette lacks */
-.arrow g[stroke] {
+.arrow {
+  fill: none;
   stroke: var(--mantine-color-green-filled);
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

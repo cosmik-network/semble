@@ -22,3 +22,7 @@ export const NEW_CANVAS_HREF = '/canvas/new';
 // A new board started from a link's or a collection's Semble page
 export const seededCanvasHref = (seed: CanvasSeed) =>
   withSeed(NEW_CANVAS_HREF, seed);
+
+// The dev-only stress board (#980). Fixed, so reloading opens the saved board
+// rather than placing it again.
+export const STRESS_CANVAS_ID = '00000000-0000-4000-8000-000000000980';

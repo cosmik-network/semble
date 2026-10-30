@@ -40,6 +40,18 @@ const SHAPE_PREFIX = 'shape:';
 const withoutShapePrefix = (id: string) =>
   id.startsWith(SHAPE_PREFIX) ? id.slice(SHAPE_PREFIX.length) : id;
 
+// A connection arrow or one of its bindings. They follow from the links' last
+// known connections, so they're rebuilt on open rather than saved.
+export function isDerivedArrowRecord(record: TLRecord) {
+  if (record.typeName === 'shape') {
+    return isArrowKey(withoutShapePrefix(record.id));
+  }
+  if (record.typeName === 'binding') {
+    return isArrowKey(withoutShapePrefix(record.fromId));
+  }
+  return false;
+}
+
 const arrowStyle = (own: boolean): Partial<TLArrowShape['props']> => ({
   kind: 'arc',
   bend: 0,
@@ -100,8 +112,6 @@ export function attachArrows(deps: ArrowsDeps) {
   }
 
   function reconcile() {
-    // Its writer's saves bring a read-only tab its arrows
-    if (editor.getIsReadonly()) return;
     const copies = new Map(
       Array.from(deps.copies(), ([url, ids]) => [
         url,
@@ -187,14 +197,25 @@ export function attachArrows(deps: ArrowsDeps) {
         }),
       )
       .map((arrow) => arrow.id);
+    // Arrows aren't saved, so a read-only tab draws its own. The editor
+    // refuses shape writes while read-only; these never reach the document.
+    const readonly = editor.getIsReadonly();
     editor.store.mergeRemoteChanges(() => {
-      editor.deleteShapes(removed);
-      editor.deleteBindings(staleBindings);
-      editor.createShapes(created);
-      editor.updateShapes(updated);
-      editor.createBindings(bindings);
-      if (flipped.length > 0) {
-        editor.setSelectedShapes([...editor.getSelectedShapeIds(), ...flipped]);
+      if (readonly) editor.updateInstanceState({ isReadonly: false });
+      try {
+        editor.deleteShapes(removed);
+        editor.deleteBindings(staleBindings);
+        editor.createShapes(created);
+        editor.updateShapes(updated);
+        editor.createBindings(bindings);
+        if (flipped.length > 0) {
+          editor.setSelectedShapes([
+            ...editor.getSelectedShapeIds(),
+            ...flipped,
+          ]);
+        }
+      } finally {
+        if (readonly) editor.updateInstanceState({ isReadonly: true });
       }
     });
   }

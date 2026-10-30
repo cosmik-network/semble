@@ -26,6 +26,7 @@ import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
+import type { CanvasServer } from '../../server/canvasServer';
 import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
@@ -102,9 +103,14 @@ interface Props {
   canvasId: string;
   seedUrl?: string;
   seedCollectionId?: string;
+  // The API unless given
+  server?: CanvasServer;
+  onLoaded?(editor: Editor): void;
 }
 
 export default function BoardEditor(props: Props) {
+  const server = props.server ?? apiCanvasServer;
+  const onLoaded = props.onLoaded;
   const colorScheme = useComputedColorScheme();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -159,7 +165,7 @@ export default function BoardEditor(props: Props) {
     let active = true;
     const attached = attachCanvasController({
       editor,
-      server: apiCanvasServer,
+      server,
       queryClient,
       storage: canvasStorage,
       canvasId: props.canvasId,
@@ -179,6 +185,7 @@ export default function BoardEditor(props: Props) {
         if (!active) return;
         setStatus(loaded);
         setController(attached);
+        if (loaded === 'ready') onLoaded?.(editor);
         // Reloading would otherwise place a collection again after its
         // frame was deleted. Not a navigation, so the board stays attached.
         if (seed.url || seed.collectionId) {
@@ -195,7 +202,7 @@ export default function BoardEditor(props: Props) {
       setController(null);
       void attached.detach();
     };
-  }, [editor, ownerDid, props.canvasId, seed, queryClient]);
+  }, [editor, ownerDid, props.canvasId, seed, queryClient, server, onLoaded]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -204,7 +211,7 @@ export default function BoardEditor(props: Props) {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
-        <CanvasServerProvider server={apiCanvasServer}>
+        <CanvasServerProvider server={server}>
           <CanvasCopiesProvider copies={controller?.copies ?? null}>
             <CanvasMediaRevealsProvider
               mediaReveals={controller?.mediaReveals ?? null}
