@@ -16,6 +16,8 @@ import {
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
 import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
+import { connections } from '../../../cards/infrastructure/repositories/schema/connection.sql';
+import { randomUUID } from 'crypto';
 import { notifications } from '../../infrastructure/repositories/schema/notification.sql';
 import {
   Collection,
@@ -79,6 +81,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
   // Clear data between tests
   beforeEach(async () => {
     await db.delete(notifications);
+    await db.delete(connections);
     await db.delete(collectionCards);
     await db.delete(collections);
     await db.delete(libraryMemberships);
@@ -509,6 +512,73 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       const enrichedNotification = data.notifications[0]!;
       expect(enrichedNotification.cardLibraryCount).toBe(1); // Individual card library count
       expect(enrichedNotification.cardUrlLibraryCount).toBe(2); // URL appears in 2 different users' libraries
+    });
+
+    it('should count incoming and outgoing URL connections for the card URL', async () => {
+      const url = URL.create('https://example.com/connected-article').unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(cardAuthorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+      urlCard.addToLibrary(cardAuthorId);
+      await cardRepository.save(urlCard);
+
+      const insertConnection = (
+        curatorId: string,
+        source: { type: string; value: string },
+        target: { type: string; value: string },
+      ) =>
+        db.insert(connections).values({
+          id: randomUUID(),
+          curatorId,
+          sourceType: source.type,
+          sourceValue: source.value,
+          targetType: target.type,
+          targetValue: target.value,
+        });
+
+      // Outgoing from the card URL
+      await insertConnection(
+        actorId.value,
+        { type: 'URL', value: url.value },
+        { type: 'URL', value: 'https://example.com/other-1' },
+      );
+      // Incoming to the card URL, made by the recipient
+      await insertConnection(
+        recipientId.value,
+        { type: 'URL', value: 'https://example.com/other-2' },
+        { type: 'URL', value: url.value },
+      );
+      // URL→CARD connections are not counted
+      await insertConnection(
+        actorId.value,
+        { type: 'URL', value: url.value },
+        { type: 'CARD', value: randomUUID() },
+      );
+
+      const notification = Notification.create({
+        recipientUserId: recipientId,
+        actorUserId: actorId,
+        type: NotificationType.create(
+          NotificationTypeEnum.USER_ADDED_YOUR_CARD,
+        ).unwrap(),
+        metadata: {
+          cardId: urlCard.cardId.getStringValue(),
+        },
+        read: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).unwrap();
+      await notificationRepository.save(notification);
+
+      const result = await notificationRepository.findByRecipientEnriched(
+        recipientId,
+        { page: 1, limit: 10 },
+      );
+
+      const enrichedNotification = result.unwrap().notifications[0]!;
+      expect(enrichedNotification.cardUrlConnectionCount).toBe(2);
+      expect(enrichedNotification.cardUrlIsConnected).toBe(true);
     });
 
     it('should handle pagination correctly', async () => {
