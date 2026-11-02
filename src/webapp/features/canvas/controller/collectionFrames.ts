@@ -261,16 +261,18 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       const frame = card && editor.getShape(card.parentId);
       const meta = frame && collectionFrameOf(frame);
       if (!card || !meta) continue;
-      const duplicate = Object.values(meta.entries)
-        .map((copyId) => editor.getShape(copyId as TLShapeId))
-        .some(
-          (entry) =>
-            entry?.id !== id &&
-            entry?.parentId === frame.id &&
-            isCard(entry) &&
-            entry.props.url === card.props.url &&
-            ownerOf(entry) === ownerOf(card),
-        );
+      const sameCard = (other: TLShape | undefined) =>
+        isCard(other) &&
+        other.props.url === card.props.url &&
+        ownerOf(other) === ownerOf(card);
+      const held = Object.values(meta.entries).some((copyId) =>
+        sameCard(editor.getShape(copyId as TLShapeId)),
+      );
+      const duplicate =
+        held &&
+        editor
+          .getSortedChildIdsForParent(frame.id)
+          .some((child) => child !== id && sameCard(editor.getShape(child)));
       if (!duplicate) continue;
       const frameBounds = editor.getShapePageBounds(frame)!;
       const at = editor.getShapePageBounds(card)!;
@@ -296,7 +298,10 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
   const unlistenArrivedNew = editor.sideEffects.registerAfterCreateHandler(
     'shape',
     (shape, source) => {
-      if (source === 'user' && isCard(shape)) arrive(shape.id);
+      // Copies a frame places are its entries, never duplicates
+      if (source === 'user' && isCard(shape) && !managed.get().has(shape.id)) {
+        arrive(shape.id);
+      }
     },
   );
   const unlistenArrivedMoved = editor.sideEffects.registerAfterChangeHandler(
@@ -501,19 +506,18 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       }
       await deps.fetchLinks(page.entries.map((entry) => entry.url));
       const meta = metaOf(frameId);
-      if (!meta || !deps.canPlace()) return;
+      // A refresh meanwhile put the frame back to its first page
+      if (!meta || meta.pages !== before.pages || !deps.canPlace()) return;
       const frame = editor.getShape<TLFrameShape>(frameId)!;
       const placing = page.entries.filter(
-        (entry) => !(entry.cardId in meta.entries),
+        (entry) =>
+          !(entry.cardId in meta.entries) &&
+          !meta.hidden.includes(entry.cardId),
       );
-      const childBottoms = editor
-        .getSortedChildIdsForParent(frameId)
-        .map((id) => editor.getShape(id)!)
-        .map((child) => child.y + editor.getShapeGeometry(child).bounds.maxY);
       const headerHeight = headerHeightOf(page.collection);
       const top = Math.max(
         cardsTop(headerHeight),
-        ...childBottoms.map((bottom) => bottom + FRAME_GAP),
+        ...childBottoms(frameId).map((bottom) => bottom + FRAME_GAP),
       );
       const layout = layOut(placing, page.collection, top);
       // A frame collapsed meanwhile stays collapsed, and opens to fit them
@@ -550,8 +554,8 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     }
   }
 
-  // The bottom of the lowest shape in the frame, in its space
-  const childrenBottom = (frameId: TLShapeId) =>
+  // In the frame's space
+  const childBottoms = (frameId: TLShapeId) =>
     editor
       .getSortedChildIdsForParent(frameId)
       .map((id) => editor.getShape(id)!)
@@ -645,7 +649,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
         props: { name: collection.name },
       });
       placeCopies(frameId, placing);
-      const h = frameHeightFor(Math.max(top, ...childrenBottom(frameId)));
+      const h = frameHeightFor(Math.max(top, ...childBottoms(frameId)));
       const collapsed = isCollapsed(meta);
       editor.updateShape({
         ...frameMetaOf(frameId, {
@@ -716,10 +720,14 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
   async function showHidden(frameId: TLShapeId) {
     const before = metaOf(frameId);
     if (!before?.hidden.length || !deps.canPlace()) return;
-    const page = await fetchPage(before.collection.id, 1).catch((error) => {
+    let page: CollectionPage | null;
+    try {
+      page = await fetchPage(before.collection.id, 1);
+    } catch (error) {
       console.warn(error);
-      return null;
-    });
+      deps.onFailed("Couldn't show the hidden entries. Try again.");
+      return;
+    }
     if (page) await deps.fetchLinks(page.entries.map((entry) => entry.url));
     const meta = metaOf(frameId);
     if (!meta || !deps.canPlace()) return;

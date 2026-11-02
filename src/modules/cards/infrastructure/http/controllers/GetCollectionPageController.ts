@@ -1,6 +1,10 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetCollectionPageUseCase } from '../../../application/useCases/queries/GetCollectionPageUseCase';
+import {
+  CollectionNotFoundError,
+  GetCollectionPageUseCase,
+  ValidationError,
+} from '../../../application/useCases/queries/GetCollectionPageUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 
@@ -30,7 +34,14 @@ export class GetCollectionPageController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error);
+        const error = result.error;
+        if (error instanceof CollectionNotFoundError) {
+          return this.notFound(res, error.message, 'COLLECTION_NOT_FOUND');
+        }
+        if (error instanceof ValidationError) {
+          return this.badRequest(res, error.message);
+        }
+        return this.fail(res, error);
       }
 
       return this.ok(res, result.value);

@@ -2569,7 +2569,6 @@ describe('open in canvas from a collection', () => {
       const free = board
         .linkCards()
         .find((card) => card.props.url === url && !card.props.cardId)!;
-      board.drag([at.x, at.y], [at.x + 20, at.y + 20]);
       return free.id;
     }
 
@@ -2781,6 +2780,28 @@ describe('open in canvas from a collection', () => {
         expect(board.frames()[0].props.name).toBe('Climate notes'),
       );
     });
+
+    it('should drop Load more that a refresh overtook, rather than skip a page', async () => {
+      // Arrange
+      const server = withEntries(35);
+      board = await createTestBoard({ server, ...OPENED });
+      const [frame] = board.frames();
+      await board.collectionFrames.loadMore(frame.id);
+      const release = server.holdResponses();
+      const loadingMore = board.collectionFrames.loadMore(frame.id);
+      board.timedRefresh();
+
+      // Act
+      release();
+      await loadingMore;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Assert
+      expect(shownCards(frame.id)).toEqual(
+        Array.from({ length: 10 }, (_, i) => `card-${i}`).sort(),
+      );
+      expect(board.frameFooter(frame.id)).toMatchObject({ shown: 10 });
+    });
   });
 
   describe('duplicates', () => {
@@ -2819,7 +2840,6 @@ describe('open in canvas from a collection', () => {
       const free = board.linkCards().find((card) => !card.props.cardId)!;
 
       // Act
-      board.drag([at.x, at.y], [at.x + 20, at.y + 20]);
 
       // Assert
       await vi.waitFor(() => outsideJustRightOf(frame.id, free.id));
@@ -2876,6 +2896,82 @@ describe('open in canvas from a collection', () => {
       expect(board.alreadyIn).toEqual(['Climate reading']);
     });
 
+    it('should keep in the frame an entry Load more places beside a copy of its card', async () => {
+      // Arrange
+      const server = new FakeServer();
+      const collection = testCollection({
+        entries: [
+          ...Array.from({ length: 10 }, (_, i) => entry(i)),
+          entry(10, { author: VIEWER }),
+        ],
+      });
+      server.collections.set(collection.collection.id, collection);
+      board = await createTestBoard({ server, ...OPENED });
+      const [frame] = board.frames();
+      board.editor.setCamera({ x: 0, y: 0, z: 1 });
+      const bounds = board.editor.getShapePageBounds(frame.id)!;
+      const at = { x: bounds.maxX - 300, y: bounds.maxY - 120 };
+      await board.dropUrl(urlOf(10), at);
+      board.drag([at.x, at.y], [at.x + 20, at.y + 20]);
+
+      // Act
+      await board.collectionFrames.loadMore(frame.id);
+
+      // Assert
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(shownCards(frame.id)).toContain('card-10');
+      expect(board.alreadyIn).toEqual([]);
+    });
+
+    it('should keep out the entry dragged back into a frame that holds a copy of its card', async () => {
+      // Arrange
+      const frame = await boardWithOwnEntry();
+      const [entryCopy] = board.linkCards();
+      const bounds = board.editor.getShapePageBounds(frame.id)!;
+      const from = board.editor.getShapePageBounds(entryCopy)!.center;
+      board.drag([from.x, from.y], [from.x, bounds.maxY + 150]);
+      const at = { x: bounds.maxX - 300, y: bounds.maxY - 120 };
+      await board.dropUrl(urlOf(0), at);
+      board.drag([at.x, at.y], [at.x + 20, at.y + 20]);
+      const free = board.linkCards().find((card) => card.id !== entryCopy.id)!;
+      await vi.waitFor(() =>
+        expect(board.editor.getShape(free.id)!.parentId).toBe(frame.id),
+      );
+      const out = board.editor.getShapePageBounds(entryCopy.id)!.center;
+
+      // Act
+      board.drag([out.x, out.y], [from.x, from.y]);
+
+      // Assert
+      await vi.waitFor(() => outsideJustRightOf(frame.id, entryCopy.id));
+      expect(board.editor.getShape(free.id)!.parentId).toBe(frame.id);
+    });
+
+    it('should keep out a second copy duplicated in after the entry was dragged out', async () => {
+      // Arrange
+      const frame = await boardWithOwnEntry();
+      const [copy] = board.linkCards();
+      const from = board.editor.getShapePageBounds(copy)!.center;
+      board.drag([from.x, from.y], [from.x, from.y + 3000]);
+      const bounds = board.editor.getShapePageBounds(frame.id)!;
+      const at = { x: bounds.maxX - 300, y: bounds.maxY - 120 };
+      await board.dropUrl(urlOf(0), at);
+      const first = board
+        .linkCards()
+        .find((card) => card.parentId === frame.id)!;
+      board.editor.select(first.id);
+
+      // Act
+      board.runAction('duplicate');
+
+      // Assert
+      const second = board
+        .linkCards()
+        .find((card) => ![copy.id, first.id].includes(card.id))!;
+      await vi.waitFor(() => outsideJustRightOf(frame.id, second.id));
+      expect(board.editor.getShape(first.id)!.parentId).toBe(frame.id);
+    });
+
     it("should let in a copy of a link the frame holds only someone else's card for", async () => {
       // Arrange
       board = await createTestBoard({ server: withEntries(1), ...OPENED });
@@ -2903,7 +2999,6 @@ describe('open in canvas from a collection', () => {
     const bounds = board.editor.getShapePageBounds(frame.id)!;
     const at = { x: bounds.maxX - 300, y: bounds.maxY - 120 };
     await board.dropUrl('https://example.com/mine', at);
-    board.drag([at.x, at.y], [at.x + 20, at.y + 20]);
     const free = board.linkCards().find((card) => !card.props.cardId)!;
     board.editor.select(free.id);
 
@@ -3003,6 +3098,40 @@ describe('open in canvas from a collection', () => {
       await refresh();
 
       // Assert
+      expect(shownCards(frame.id)).toEqual(['card-1']);
+      expect(board.frameFooter(frame.id)).toMatchObject({ hidden: 1 });
+    });
+
+    it('should not bring a hidden entry back on Load more', async () => {
+      // Arrange
+      board = await createTestBoard({ server: withEntries(15), ...OPENED });
+      const [frame] = board.frames();
+      await board.collectionFrames.loadMore(frame.id);
+      deleteCopy('card-12');
+      await refresh();
+
+      // Act
+      await board.collectionFrames.loadMore(frame.id);
+
+      // Assert
+      expect(copyOf('card-12')).toBeUndefined();
+      expect(shownCards(frame.id)).toHaveLength(14);
+    });
+
+    it("should say so and keep the frame when hidden entries can't be shown", async () => {
+      // Arrange
+      board = await createTestBoard({ server: withEntries(2), ...OPENED });
+      const [frame] = board.frames();
+      deleteCopy('card-0');
+      board.server.failing = true;
+
+      // Act
+      await board.collectionFrames.showHidden(frame.id);
+
+      // Assert
+      expect(board.serverErrors).toEqual([
+        "Couldn't show the hidden entries. Try again.",
+      ]);
       expect(shownCards(frame.id)).toEqual(['card-1']);
       expect(board.frameFooter(frame.id)).toMatchObject({ hidden: 1 });
     });
