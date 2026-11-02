@@ -173,6 +173,19 @@ export default function CollectionFrameFace(props: Props) {
           >
             {footer.shown} of {footer.total}
           </Text>
+          {footer.hidden > 0 && !readonly && (
+            <Button
+              className={classes.control}
+              variant="subtle"
+              color="gray"
+              radius="xl"
+              size="compact-sm"
+              onPointerDown={stopEventPropagation}
+              onClick={() => collectionFrames?.showHidden(props.id)}
+            >
+              Show hidden ({footer.hidden})
+            </Button>
+          )}
           {footer.canLoadMore && !readonly && (
             <Button
               className={classes.control}

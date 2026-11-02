@@ -75,6 +75,8 @@ export interface TestBoard {
   timesFilesRefused: number;
   // What the board said went wrong talking to the server
   serverErrors: string[];
+  // The collections a copy was kept out of, as a duplicate, one per toast
+  alreadyIn: string[];
   // Each step of starting the board from a link, as the loader shows it
   seedProgress: (SeedProgress | null)[];
   // Opens the same board in another tab, which shares the browser's
@@ -281,6 +283,7 @@ export async function createTestBoard(
   // it has loaded; the other callbacks only run once it has.
   const board = {
     serverErrors: [] as string[],
+    alreadyIn: [] as string[],
     seedProgress: [] as (SeedProgress | null)[],
   } as TestBoard;
   let timedRefresh = () => {};
@@ -301,6 +304,7 @@ export async function createTestBoard(
     onTakenOver: () => board.timesTakenOver++,
     onFilesRefused: () => board.timesFilesRefused++,
     onServerError: (message) => board.serverErrors.push(message),
+    onAlreadyInCollection: (name) => board.alreadyIn.push(name),
     onSeedProgress: (progress) => board.seedProgress.push(progress),
     onWritingAgain: () => {},
     onNewerVersion: () => (board.status = 'newer-version'),
@@ -322,6 +326,7 @@ export async function createTestBoard(
     timesTakenOver: 0,
     timesFilesRefused: 0,
     serverErrors: board.serverErrors,
+    alreadyIn: board.alreadyIn,
     seedProgress: board.seedProgress,
     openInAnotherTab: () =>
       createTestBoard({ storage: storageInAnotherTab(), canvasId, server }),

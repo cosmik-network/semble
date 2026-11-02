@@ -75,11 +75,11 @@ export interface CanvasServer {
   searchLibrary(query: string): Promise<UrlMetadata[]>;
   // Links anyone on Semble has saved that match the query
   searchEveryone(query: string): Promise<UrlMetadata[]>;
-  // Pages count from 1
+  // Pages count from 1. Null once the collection is deleted.
   getCollection(
     collectionId: string,
     page: { page: number; limit: number },
-  ): Promise<CollectionPage>;
+  ): Promise<CollectionPage | null>;
   // Resolves with the new connection's id
   createConnection(connection: NewConnection): Promise<string>;
   updateConnection(

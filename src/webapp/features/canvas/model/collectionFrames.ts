@@ -1,5 +1,5 @@
 import type { VecLike } from 'tldraw';
-import type { CollectionInfo } from '../server/canvasServer';
+import type { CollectionEntry, CollectionInfo } from '../server/canvasServer';
 import { LINK_CARD_WIDTH, type TextFont } from './linkCards';
 
 // Entries a frame loads when placed, and each Load more adds
@@ -8,9 +8,12 @@ export const COLLECTION_PAGE_SIZE = 10;
 // In a collection frame's meta. A frame without it is one the user drew.
 export interface CollectionFrameMeta {
   collection: CollectionInfo;
-  // Each entry the frame placed (its card id) and its copy's shape id. A
-  // copy made from one of them isn't in it, so it starts out free.
+  // Each entry the frame placed (its card id) and its copy's shape id, most
+  // recent first. A copy made from one of them isn't in it, so it starts out
+  // free.
   entries: Record<string, string>;
+  // Entries whose copies were deleted on this board, which refreshes skip
+  hidden: string[];
   pages: number;
   hasMore: boolean;
   // Fits the collection's name and description
@@ -23,7 +26,10 @@ export const COLLECTION_META_KEY = 'collection';
 
 export function collectionFrameMeta(meta: object): CollectionFrameMeta | null {
   const value = (meta as Record<string, unknown>)[COLLECTION_META_KEY];
-  return value ? (value as CollectionFrameMeta) : null;
+  // Frames placed before entries could be hidden have no list
+  if (!value) return null;
+  const frame = value as CollectionFrameMeta;
+  return { ...frame, hidden: frame.hidden ?? [] };
 }
 
 export const collectionFrameOf = (shape: { type: string; meta: object }) =>
@@ -42,15 +48,22 @@ export interface CollectionFrameFooter {
   shown: number;
   total: number;
   canLoadMore: boolean;
+  hidden: number;
 }
 
 export const frameFooter = (
   meta: CollectionFrameMeta,
-): CollectionFrameFooter => ({
-  shown: Object.keys(meta.entries).length,
-  total: meta.collection.cardCount,
-  canLoadMore: meta.hasMore,
-});
+): CollectionFrameFooter => {
+  const total = meta.collection.cardCount;
+  return {
+    shown: meta.hasMore
+      ? Math.min(meta.pages * COLLECTION_PAGE_SIZE, total)
+      : total,
+    total,
+    canLoadMore: meta.hasMore,
+    hidden: meta.hidden.length,
+  };
+};
 
 export const FRAME_PADDING = 24;
 export const FRAME_GAP = 24;
@@ -116,3 +129,61 @@ export const cardsTop = (headerHeight: number) => headerHeight + FRAME_PADDING;
 
 export const frameHeightFor = (cardsBottom: number) =>
   cardsBottom + FRAME_FOOTER_HEIGHT;
+
+// A copy a frame placed, as the board has it
+export interface FrameCopy {
+  cardId: string;
+  shapeId: string;
+  inFrame: boolean;
+}
+
+export interface FrameRefresh {
+  // On the first page, not on the board and not hidden, most recent first
+  placing: CollectionEntry[];
+  // Kept copies whose entries are on the first page, to show it as it is now
+  updating: { shapeId: string; entry: CollectionEntry }[];
+  removing: string[];
+  // Dragged out of the frame, and their entries left the collection
+  freeing: string[];
+  // The entries the frame keeps or places, most recent first: the first
+  // page's, then those dragged out that slid off it
+  ranked: string[];
+}
+
+// Puts a frame back to the collection's first page. A copy dragged out of the
+// frame whose entry isn't on it is freed only once an entry ranked below it
+// still is: the entry left the collection rather than slid down.
+export function refreshFrame(
+  hidden: string[],
+  copies: FrameCopy[],
+  firstPage: CollectionEntry[],
+): FrameRefresh {
+  const onPage = new Map(firstPage.map((entry) => [entry.cardId, entry]));
+  const onBoard = new Set(copies.map((copy) => copy.cardId));
+  const result: FrameRefresh = {
+    placing: firstPage.filter(
+      ({ cardId }) => !onBoard.has(cardId) && !hidden.includes(cardId),
+    ),
+    updating: [],
+    removing: [],
+    freeing: [],
+    ranked: [],
+  };
+  const slidOff: string[] = [];
+  copies.forEach((copy, i) => {
+    const entry = onPage.get(copy.cardId);
+    if (entry) result.updating.push({ shapeId: copy.shapeId, entry });
+    else if (copy.inFrame) result.removing.push(copy.shapeId);
+    else if (copies.slice(i + 1).some(({ cardId }) => onPage.has(cardId))) {
+      result.freeing.push(copy.shapeId);
+    } else slidOff.push(copy.cardId);
+  });
+  const placing = new Set(result.placing.map(({ cardId }) => cardId));
+  result.ranked = [
+    ...firstPage
+      .map(({ cardId }) => cardId)
+      .filter((cardId) => onBoard.has(cardId) || placing.has(cardId)),
+    ...slidOff,
+  ];
+  return result;
+}

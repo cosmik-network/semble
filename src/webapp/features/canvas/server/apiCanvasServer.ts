@@ -11,6 +11,7 @@ import {
   updateConnection,
 } from '@/features/connections/lib/dal';
 import { getCollectionPage } from '@/features/collections/lib/dal';
+import { isNotFoundApiError } from '@/api-client/errors';
 import { getBlueskyPost } from '@/features/platforms/bluesky/lib/dal';
 import { getPostUriFromUrl, getRecordKey } from '@/lib/utils/atproto';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
@@ -191,9 +192,14 @@ export const apiCanvasServer: CanvasServer = {
     return links;
   },
   async getCollection(collectionId, { page, limit }) {
-    return collectionPage(
-      await getCollectionPage(collectionId, { page, limit }),
-    );
+    try {
+      return collectionPage(
+        await getCollectionPage(collectionId, { page, limit }),
+      );
+    } catch (error) {
+      if (isNotFoundApiError(error)) return null;
+      throw error;
+    }
   },
   async createConnection({ sourceUrl, targetUrl, type }) {
     const response = await createConnection({

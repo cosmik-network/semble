@@ -52,6 +52,8 @@ export interface CanvasControllerDeps
   onNewerVersion(): void;
   // A connection couldn't be published or deleted
   onServerError(message: string): void;
+  // A copy was kept out of a collection frame holding that person's card
+  onAlreadyInCollection(collectionName: string): void;
   // While the board is loaded from a seed, what it's waiting on
   onSeedProgress(progress: SeedProgress | null): void;
 }
@@ -219,6 +221,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const collectionFrames = attachCollectionFrames({
     editor,
     server: deps.server,
+    viewerDid: deps.ownerDid,
     collectionPageUrl: deps.collectionPageUrl,
     fetchLinks: links.fetchLinks,
     cardHeight: links.cardHeight,
@@ -226,6 +229,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     countLines: links.countLines,
     rename: renameIfUnnamed,
     onFailed: deps.onServerError,
+    onAlreadyInCollection: deps.onAlreadyInCollection,
     onProgress: deps.onSeedProgress,
     canPlace,
   });
@@ -242,6 +246,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     connectionUrls,
     urlsInView,
     fetchLinks: links.fetchLinks,
+    refreshFrames: (options) => collectionFrames.refresh(options),
     everyTimedRefresh: deps.everyTimedRefresh,
   });
   const board = deps.storage.openBoard(

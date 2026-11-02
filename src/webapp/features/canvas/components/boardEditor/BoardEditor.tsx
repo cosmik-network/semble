@@ -85,6 +85,15 @@ function showFilesRefused() {
   });
 }
 
+function showAlreadyInCollection(collectionName: string) {
+  notifications.show({
+    id: 'canvas-already-in-collection',
+    title: `Already in ${collectionName}`,
+    message: "A collection holds each person's card for a link once.",
+    position: 'top-center',
+  });
+}
+
 function showTakenOver() {
   notifications.show({
     id: 'canvas-taken-over',
@@ -178,6 +187,7 @@ export default function BoardEditor(props: Props) {
       onWritingAgain: () => notifications.hide('canvas-taken-over'),
       onNewerVersion: () => active && setStatus('newer-version'),
       onFilesRefused: showFilesRefused,
+      onAlreadyInCollection: showAlreadyInCollection,
       onServerError: showCanvasError,
       onSeedProgress: (progress) => active && setSeedProgress(progress),
     });

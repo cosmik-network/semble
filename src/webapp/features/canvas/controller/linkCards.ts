@@ -38,6 +38,13 @@ import type { CanvasStorage, KnownLinks } from '../storage/canvasStorage';
 // either.
 export type FetchOutcome = 'fetched' | 'failed' | 'nothing-fetched';
 
+// Fetched if anything was, failed if anything failed otherwise
+export function combineOutcomes(outcomes: FetchOutcome[]): FetchOutcome {
+  if (outcomes.includes('fetched')) return 'fetched';
+  if (outcomes.includes('failed')) return 'failed';
+  return 'nothing-fetched';
+}
+
 // A link card to place, centred at a point on the page
 export interface LinkPlacement {
   url: string;
@@ -169,9 +176,7 @@ export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
         }
       }),
     );
-    if (outcomes.includes('fetched')) return 'fetched';
-    if (outcomes.includes('failed')) return 'failed';
-    return 'nothing-fetched';
+    return combineOutcomes(outcomes);
   }
 
   // Drops any fetch under way, which may predate the change. Through the

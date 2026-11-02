@@ -164,7 +164,7 @@ export class FakeServer implements CanvasServer {
     if (held) await new Promise<void>((respond) => held.push(respond));
     if (failing) throw new Error('Network down');
     const found = this.collections.get(collectionId);
-    if (!found) throw new Error('Collection not found');
+    if (!found) return null;
     const start = (page - 1) * limit;
     return {
       collection: { ...found.collection, cardCount: found.entries.length },
