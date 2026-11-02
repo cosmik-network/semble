@@ -12,6 +12,8 @@ import type {
 
 // Who the test boards are opened as
 export const VIEWER_DID = 'did:plc:tester';
+// Where the test boards' webapp is
+export const APP_ORIGIN = 'https://semble.test';
 
 export interface ServerCall {
   method: string;
@@ -173,7 +175,10 @@ export class FakeServer implements CanvasServer {
 
   async createConnection(connection: NewConnection) {
     this.calls.push({ method: 'createConnection', args: [connection] });
-    if (this.failing) throw new Error('Network down');
+    const failing = this.failing;
+    const held = this.held;
+    if (held) await new Promise<void>((respond) => held.push(respond));
+    if (failing) throw new Error('Network down');
     const id = `new-${++this.connectionsCreated}`;
     this.connections = [
       ...this.connections,

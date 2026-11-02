@@ -2,19 +2,30 @@ import type { ConnectionType } from '@semble/types';
 import {
   atom,
   getArrowBindings,
+  transact,
   type Editor,
   type TLArrowShape,
   type TLShapeId,
 } from 'tldraw';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
+import {
+  collectionFrameOf,
+  type CollectionPageUrl,
+} from '../model/collectionFrames';
 import { LINK_CARD_TYPE, linkKey } from '../model/linkCards';
-import type { CanvasServer } from '../server/canvasServer';
+import type { CanvasServer, NewConnection } from '../server/canvasServer';
 import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
 
 export interface ConnectionsDeps {
   editor: Editor;
   server: CanvasServer;
+  collectionPageUrl: CollectionPageUrl;
+  // As a connection starts publishing. Settled with its id, or null if it
+  // wasn't published.
+  onPublishing(
+    connection: NewConnection,
+  ): (connectionId: string | null) => void;
   // After a connection is made or deleted, with the links it joins
   onConnectionCreated(connection: {
     sourceUrl: string;
@@ -56,15 +67,34 @@ export function attachConnections(deps: ConnectionsDeps) {
   const { editor } = deps;
   const state = atom<PickerState | null>('connection picker', null);
   const undoable = atom<UndoableWrite | null>('undoable write', null);
+  const publishing = atom<NewConnection | null>('publishing', null);
   // Taken when an arrow drag starts
   let drawing: { markId: string; before: Set<TLShapeId> } | null = null;
   let pickerMarkId = '';
 
-  const linkUrlOf = (id: TLShapeId | undefined) => {
+  // Arrows bind to collection frames, which are connection ends, but not to
+  // frames the user drew. tldraw 3.15.6 gives ShapeUtil.canBind only the
+  // shapes' types, both frame here, so the editor's check is wrapped instead.
+  const canBindShapes = editor.canBindShapes;
+  editor.canBindShapes = (opts) => {
+    const { toShape } = opts;
+    const isDrawnFrame =
+      typeof toShape === 'object' &&
+      'meta' in toShape &&
+      toShape.type === 'frame' &&
+      !collectionFrameOf(toShape);
+    return !isDrawnFrame && canBindShapes.call(editor, opts);
+  };
+
+  // A link, or a collection by its Semble page
+  const urlOf = (id: TLShapeId | undefined) => {
     const shape = id && editor.getShape(id);
-    if (!shape || !editor.isShapeOfType<LinkCardShape>(shape, LINK_CARD_TYPE))
-      return null;
-    return linkKey(shape.props.url) ?? shape.props.url;
+    if (!shape) return null;
+    if (editor.isShapeOfType<LinkCardShape>(shape, LINK_CARD_TYPE)) {
+      return linkKey(shape.props.url) ?? shape.props.url;
+    }
+    const frame = collectionFrameOf(shape);
+    return frame && deps.collectionPageUrl(frame.collection);
   };
 
   function close() {
@@ -73,11 +103,12 @@ export function attachConnections(deps: ConnectionsDeps) {
     editor.bailToMark(pickerMarkId);
   }
 
-  // Arrows touching anything but two links stay on the board only
+  // Arrows touching anything but links and collection frames stay on the
+  // board only
   function arrowDrawn(markId: string, arrow: TLArrowShape) {
     const bindings = getArrowBindings(editor, arrow);
-    const sourceUrl = linkUrlOf(bindings.start?.toId);
-    const targetUrl = linkUrlOf(bindings.end?.toId);
+    const sourceUrl = urlOf(bindings.start?.toId);
+    const targetUrl = urlOf(bindings.end?.toId);
     if (!sourceUrl || !targetUrl || sourceUrl === targetUrl) return;
     pickerMarkId = markId;
     state.set({
@@ -122,31 +153,44 @@ export function attachConnections(deps: ConnectionsDeps) {
     const open = state.get();
     if (!open) return;
     close();
-    const connection = {
+    const connection: NewConnection = {
       sourceUrl: open.sourceUrl,
       targetUrl: open.targetUrl,
       type: type ?? open.highlighted,
     };
+    // Replaces the last write's toast, as the published one would
+    transact(() => {
+      undoable.set(null);
+      publishing.set(connection);
+    });
+    const settle = deps.onPublishing(connection);
     let connectionId: string;
     try {
       connectionId = await deps.server.createConnection(connection);
     } catch (error) {
       console.warn(error);
+      settle(null);
+      if (publishing.get() === connection) publishing.set(null);
       deps.onServerError("Couldn't publish the connection.");
       return;
     }
+    settle(connectionId);
     deps.onConnectionCreated(connection);
     // Deleting it needs no confirmation: nobody has seen it yet. There's no
     // redo, which would notify everyone a second time.
-    undoable.set({
-      ...connection,
-      kind: 'published',
-      connectionId,
-      async undo() {
-        await deps.server.deleteConnection(connectionId);
-        deps.onConnectionDeleted(connectionId);
-      },
-      undoFailed: "Couldn't delete the connection.",
+    // Another publish since keeps its toast
+    transact(() => {
+      if (publishing.get() === connection) publishing.set(null);
+      undoable.set({
+        ...connection,
+        kind: 'published',
+        connectionId,
+        async undo() {
+          await deps.server.deleteConnection(connectionId);
+          deps.onConnectionDeleted(connectionId);
+        },
+        undoFailed: "Couldn't delete the connection.",
+      });
     });
   }
 
@@ -154,6 +198,12 @@ export function attachConnections(deps: ConnectionsDeps) {
     state,
     publish,
     discard: close,
+    highlight(type: ConnectionType) {
+      const open = state.get();
+      if (open && open.highlighted !== type) {
+        state.set({ ...open, highlighted: type });
+      }
+    },
     moveHighlight(by: 1 | -1) {
       const open = state.get();
       if (!open) return;
@@ -176,6 +226,7 @@ export function attachConnections(deps: ConnectionsDeps) {
   // while it shows, reverses the last one.
   const undoToast = {
     current: undoable,
+    publishing,
     // Whether there was a write to undo
     undo() {
       const write = undoable.get();
@@ -202,11 +253,13 @@ export function attachConnections(deps: ConnectionsDeps) {
     picker,
     undoToast,
     detach() {
+      editor.canBindShapes = canBindShapes;
       editor.off('before-event', onBeforeEvent);
       editor.off('event', onEvent);
       // Before the board's last save, which would keep the drawn arrow
       close();
       undoable.set(null);
+      publishing.set(null);
     },
   };
 }

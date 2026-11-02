@@ -26,6 +26,15 @@ export function collectionFrameMeta(meta: object): CollectionFrameMeta | null {
   return value ? (value as CollectionFrameMeta) : null;
 }
 
+export const collectionFrameOf = (shape: { type: string; meta: object }) =>
+  shape.type === 'frame' ? collectionFrameMeta(shape.meta) : null;
+
+// Where a frame's connections point. Injected so tests fix the app's host.
+export type CollectionPageUrl = (collection: {
+  handle: string;
+  rkey: string;
+}) => string;
+
 export const isCollapsed = (meta: CollectionFrameMeta) =>
   meta.expandedHeight !== null;
 

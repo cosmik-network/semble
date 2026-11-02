@@ -10,28 +10,36 @@ import {
   type TLShapeId,
   type TLShapePartial,
 } from 'tldraw';
+import { collectionFrameOf } from '../model/collectionFrames';
 import { LINK_CARD_TYPE } from '../model/linkCards';
 import {
   isArrowKey,
+  listedConnections,
   reconcileArrows,
+  type ConnectionEnd,
   type BoardArrowSpec,
   type FetchedConnections,
 } from '../model/arrows';
 import {
+  arrowPhases,
   arrowSettings,
   connectionOf,
   DEFAULT_ARROW_SETTINGS,
   isConnectionArrow,
   selectedCardsHideArrows,
+  type ArrowPhase,
   type ConnectionArrowMeta,
 } from '../shapes/connectionArrow/connectionArrows';
 import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
+import type { LinkConnection, NewConnection } from '../server/canvasServer';
 import type { SavedArrowSettings } from '../storage/canvasStorage';
+
+const LANDED_MS = 700;
 
 export interface ArrowsDeps {
   editor: Editor;
   viewerDid: string;
-  copies(): Map<string, TLShapeId[]>;
+  ends(): ConnectionEnd[];
   // Each link's connections, for links fetched at least once
   fetchedConnections(): Map<string, FetchedConnections>;
 }
@@ -52,11 +60,11 @@ export function isDerivedArrowRecord(record: TLRecord) {
   return false;
 }
 
-const arrowStyle = (own: boolean): Partial<TLArrowShape['props']> => ({
+const arrowStyle = (spec: BoardArrowSpec): Partial<TLArrowShape['props']> => ({
   kind: 'arc',
-  bend: 0,
+  bend: spec.bend,
   color: 'green',
-  dash: own ? 'solid' : 'dotted',
+  dash: spec.own ? 'solid' : 'dotted',
   size: 'm',
   arrowheadStart: 'none',
   arrowheadEnd: 'arrow',
@@ -67,8 +75,8 @@ const metaOf = (spec: BoardArrowSpec): ConnectionArrowMeta => ({
   connectionId: spec.connectionId,
   connectionType: spec.type,
   own: spec.own,
-  from: createShapeId(spec.fromCopy),
-  to: createShapeId(spec.toCopy),
+  from: createShapeId(spec.fromEnd),
+  to: createShapeId(spec.toEnd),
 });
 
 const sameMeta = (arrow: TLArrowShape, meta: ConnectionArrowMeta) =>
@@ -101,6 +109,22 @@ export function attachArrows(deps: ArrowsDeps) {
   // Deleted from this board, though the links' cached connections may still
   // list them until they're refetched
   const deleted = new Set<string>();
+  // Published from this tab, drawn until every fetched end lists them
+  const pending = new Map<string, LinkConnection>();
+  const published: string[] = [];
+  let pendingCount = 0;
+  const phases = arrowPhases(editor);
+  const setPhases = (change: Record<string, ArrowPhase | null>) =>
+    phases.update((all) => {
+      const next = { ...all };
+      for (const [connectionId, phase] of Object.entries(change)) {
+        if (phase) next[connectionId] = phase;
+        else delete next[connectionId];
+      }
+      return next;
+    });
+  let detached = false;
+  const landedTimers = new Set<ReturnType<typeof setTimeout>>();
 
   // Links fetched together arrive one by one; they're reconciled once
   let reconcileTimer: ReturnType<typeof setTimeout> | null = null;
@@ -112,16 +136,23 @@ export function attachArrows(deps: ArrowsDeps) {
   }
 
   function reconcile() {
-    const copies = new Map(
-      Array.from(deps.copies(), ([url, ids]) => [
-        url,
-        ids.map(withoutShapePrefix),
-      ]),
-    );
+    const ends = deps.ends().map((end) => ({
+      url: end.url,
+      shapeIds: end.shapeIds.map(withoutShapePrefix),
+    }));
+    const links = deps.fetchedConnections();
+    const listed = listedConnections(links);
+    for (const [key, connection] of Array.from(pending)) {
+      if (listed.has(connection.id) || deleted.has(connection.id)) {
+        pending.delete(key);
+      }
+    }
     const specs = reconcileArrows({
-      copies,
-      links: deps.fetchedConnections(),
+      ends,
+      links,
       viewerDid: deps.viewerDid,
+      pending: Array.from(pending.values()),
+      published,
     }).filter((spec) => !deleted.has(spec.connectionId));
     const wanted = new Map(
       specs.map((spec) => [createShapeId(spec.key), spec]),
@@ -138,8 +169,8 @@ export function attachArrows(deps: ArrowsDeps) {
 
     for (const [id, spec] of Array.from(wanted)) {
       const meta = metaOf(spec);
-      const from = createShapeId(spec.fromCopy);
-      const to = createShapeId(spec.toCopy);
+      const from = createShapeId(spec.fromEnd);
+      const to = createShapeId(spec.toEnd);
       const arrow = editor.getShape<TLArrowShape>(id);
       if (!arrow) {
         const start = editor.getShapePageBounds(from)!.center;
@@ -151,17 +182,17 @@ export function attachArrows(deps: ArrowsDeps) {
           y: start.y,
           meta: { ...meta },
           props: {
-            ...arrowStyle(spec.own),
+            ...arrowStyle(spec),
             start: { x: 0, y: 0 },
             end: { x: end.x - start.x, y: end.y - start.y },
           },
         });
-      } else if (!sameMeta(arrow, meta)) {
+      } else if (!sameMeta(arrow, meta) || arrow.props.bend !== spec.bend) {
         updated.push({
           id,
           type: 'arrow',
           meta: { ...meta },
-          props: arrowStyle(spec.own),
+          props: arrowStyle(spec),
         });
       }
       const bound: Partial<Record<'start' | 'end', TLArrowBinding>> = arrow
@@ -243,11 +274,12 @@ export function attachArrows(deps: ArrowsDeps) {
       source === 'user' && isConnectionArrow(shape) ? false : undefined,
   );
 
-  // Moving a card changes no arrow, so only adds and deletes count
+  // Moving an end changes no arrow, so only adds and deletes count
   const unlisten = editor.store.listen(
     ({ changes }) => {
-      const isCard = (record: TLRecord) =>
-        record.typeName === 'shape' && record.type === LINK_CARD_TYPE;
+      const isEnd = (record: TLRecord) =>
+        record.typeName === 'shape' &&
+        (record.type === LINK_CARD_TYPE || !!collectionFrameOf(record));
       const isArrowRecord = (record: TLRecord) =>
         (record.typeName === 'shape' && isConnectionArrow(record)) ||
         (record.typeName === 'binding' &&
@@ -259,7 +291,7 @@ export function attachArrows(deps: ArrowsDeps) {
       ];
       const touched =
         addedOrRemoved.some(
-          (record) => isCard(record) || isArrowRecord(record),
+          (record) => isEnd(record) || isArrowRecord(record),
         ) ||
         Object.values(changes.updated).some(([before]) =>
           isArrowRecord(before),
@@ -308,6 +340,35 @@ export function attachArrows(deps: ArrowsDeps) {
     },
   };
 
+  // Draws the connection while it publishes. Settled with its id once
+  // published, which flashes its arrow, or null if it wasn't.
+  function drawPending(connection: NewConnection) {
+    const key = `pending-${++pendingCount}`;
+    pending.set(key, { ...connection, id: key, curatorId: deps.viewerDid });
+    published.push(key);
+    setPhases({ [key]: 'pending' });
+    reconcile();
+    return (connectionId: string | null) => {
+      if (detached) return;
+      const drawn = pending.get(key);
+      if (connectionId && drawn) {
+        pending.set(key, { ...drawn, id: connectionId });
+        published[published.indexOf(key)] = connectionId;
+        setPhases({ [key]: null, [connectionId]: 'landed' });
+        const timer = setTimeout(() => {
+          landedTimers.delete(timer);
+          setPhases({ [connectionId]: null });
+        }, LANDED_MS);
+        landedTimers.add(timer);
+      } else {
+        setPhases({ [key]: null });
+        pending.delete(key);
+        published.splice(published.indexOf(key), 1);
+      }
+      reconcile();
+    };
+  }
+
   // Takes a deleted connection's arrows off at once, outside undo
   function dropConnection(connectionId: string) {
     deleted.add(connectionId);
@@ -317,6 +378,7 @@ export function attachArrows(deps: ArrowsDeps) {
   return {
     reconcile,
     reconcileSoon,
+    drawPending,
     dropConnection,
     view,
     saveSettings: (): SavedArrowSettings => ({
@@ -329,7 +391,9 @@ export function attachArrows(deps: ArrowsDeps) {
       settings.hidden.set(hidden);
     },
     detach() {
+      detached = true;
       if (reconcileTimer) clearTimeout(reconcileTimer);
+      landedTimers.forEach(clearTimeout);
       unlisten();
       keepArrows();
       keepBindings();

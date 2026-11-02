@@ -50,7 +50,8 @@ import {
 import { getShapeVisibility } from '@/features/canvas/shapes/shapeVisibility';
 import type { SeedProgress } from '@/features/canvas/controller/linkSeed';
 import { FakeLocks } from './fakeLocks';
-import { FakeServer, VIEWER_DID } from './fakeServer';
+import { getCollectionPageUrl } from '@/lib/utils/link';
+import { APP_ORIGIN, FakeServer, VIEWER_DID } from './fakeServer';
 
 export interface BoardArrow {
   id: TLShapeId;
@@ -97,6 +98,7 @@ export interface TestBoard {
   drawArrow(from: [number, number], to: [number, number]): void;
   // The type picker that opens on an arrow drawn between two links
   connectionPicker: CanvasController['connectionPicker'];
+  titleOf: CanvasController['titleOf'];
   // The toast with Undo that follows a server write
   undoToast: CanvasController['undoToast'];
   // Changing, flipping and deleting the viewer's own connections
@@ -291,6 +293,8 @@ export async function createTestBoard(
     seedUrl: options.seedUrl,
     seedCollectionId: options.seedCollectionId,
     ownerDid: VIEWER_DID,
+    collectionPageUrl: (collection) =>
+      getCollectionPageUrl(collection, APP_ORIGIN),
     onStorageError: (error) => {
       throw error;
     },
@@ -335,6 +339,7 @@ export async function createTestBoard(
       board.drag(from, to);
     },
     connectionPicker: controller.connectionPicker,
+    titleOf: controller.titleOf,
     undoToast: controller.undoToast,
     connectionEdits: controller.connectionEdits,
     sketchArrows: () =>

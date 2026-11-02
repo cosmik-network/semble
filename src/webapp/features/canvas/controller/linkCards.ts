@@ -65,12 +65,16 @@ const NOTE_SIZE = 200;
 // Saving last known links on every fetch would rewrite them once per link
 const KNOWN_LINKS_THROTTLE_MS = 500;
 
+export interface LinkCardsHooks {
+  onLinkFetched(): void;
+  // Every URL whose connections the board draws, collection frames' pages
+  // among them, which are fetched and kept like links
+  connectionUrls(): string[];
+}
+
 // Places links and notes pasted or dropped on the board, and keeps each link
 // card sized to its link.
-export function attachLinkCards(
-  deps: LinkCardsDeps,
-  onLinkFetched: () => void,
-) {
+export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
   const { editor, queryClient } = deps;
   // Each link as last fetched. Kept apart from the query cache, which drops
   // links no card has shown for a while.
@@ -83,7 +87,7 @@ export function attachLinkCards(
     linkCardHeight(linkCardParts(linkOf(url), lines.count, entry));
   const heightOf = (card: LinkCardShape) =>
     cardHeight(card.props.url, entryCardOf(card.meta));
-  const boardUrls = () =>
+  const cardUrls = () =>
     Array.from(new Set(linkCardsOn(editor).map((card) => card.props.url)));
   // Placed before their link loaded: they stay centred where they were put
   // when it does
@@ -116,7 +120,7 @@ export function attachLinkCards(
     if (knownLinksTimer) clearTimeout(knownLinksTimer);
     knownLinksTimer = null;
     const onBoard: KnownLinks = {};
-    for (const url of boardUrls()) {
+    for (const url of hooks.connectionUrls()) {
       if (known[url]) onBoard[url] = known[url];
     }
     return deps.storage
@@ -203,7 +207,8 @@ export function attachLinkCards(
       !!known[url]?.link.connections?.some(({ id }) =>
         connectionIds.includes(id),
       );
-    boardUrls()
+    hooks
+      .connectionUrls()
       .filter((url) => urls.includes(url) || joinsChanged(url))
       .forEach(refetchChanged);
   };
@@ -218,7 +223,7 @@ export function attachLinkCards(
       fetchedAt,
     };
     sizeCards([url]);
-    onLinkFetched();
+    hooks.onLinkFetched();
     knownLinksTimer ??= setTimeout(
       () => void saveKnownLinks(),
       KNOWN_LINKS_THROTTLE_MS,
@@ -228,7 +233,8 @@ export function attachLinkCards(
   const unwatchLinks = queryClient.getQueryCache().subscribe((event) => {
     if (event.type !== 'updated') return;
     const url = event.query.meta?.linkUrl;
-    if (typeof url !== 'string' || !boardUrls().includes(url)) return;
+    if (typeof url !== 'string' || !hooks.connectionUrls().includes(url))
+      return;
     // Saves elsewhere in the webapp invalidate links. Cards on screen refetch
     // theirs; the board refetches the rest.
     if (event.action.type === 'invalidate') {
@@ -246,14 +252,6 @@ export function attachLinkCards(
     const at = point ?? editor.getViewportPageBounds().center;
     return { x: at.x - w / 2, y: at.y - h / 2 };
   };
-
-  function urlsInView() {
-    const view = editor.getViewportPageBounds();
-    const inView = linkCardsOn(editor).filter((card) =>
-      view.collides(editor.getShapePageBounds(card)!),
-    );
-    return Array.from(new Set(inView.map((card) => card.props.url)));
-  }
 
   // The new cards' ids, in the order given
   function createLinkCards(places: LinkPlacement[]) {
@@ -353,7 +351,7 @@ export function attachLinkCards(
       return;
     }
     lines.forget();
-    sizeCards(boardUrls());
+    sizeCards(cardUrls());
   };
   fonts?.addEventListener('loadingdone', remeasure);
 
@@ -366,14 +364,14 @@ export function attachLinkCards(
     cardHeight,
     countLines: lines.count,
     // Once the board has loaded
-    sizeAll: () => sizeCards(boardUrls()),
+    sizeAll: () => sizeCards(cardUrls()),
     fetchLinks,
-    boardUrls,
     // Links whose connections never loaded, or were saved before links
     // carried them, are left out
     fetchedConnections: () =>
       new Map<string, FetchedConnections>(
-        boardUrls()
+        hooks
+          .connectionUrls()
           .filter((url) => known[url]?.link.connections)
           .map((url) => [
             url,
@@ -383,7 +381,6 @@ export function attachLinkCards(
             },
           ]),
       ),
-    urlsInView,
     detach() {
       fonts?.removeEventListener('loadingdone', remeasure);
       for (const type of ['url', 'text', 'files', 'svg-text'] as const) {

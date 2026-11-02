@@ -20,7 +20,7 @@ import {
   type CanvasLoadStatus,
 } from '../../controller/canvasController';
 import type { SeedProgress } from '../../controller/linkSeed';
-import { getDomain } from '@/lib/utils/link';
+import { getCollectionPageUrl, getDomain } from '@/lib/utils/link';
 import { CanvasCollectionFramesProvider } from '../../lib/canvasCollectionFramesContext';
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
@@ -172,6 +172,7 @@ export default function BoardEditor(props: Props) {
       seedUrl: seed.url,
       seedCollectionId: seed.collectionId,
       ownerDid,
+      collectionPageUrl: getCollectionPageUrl,
       onStorageError: showSaveError,
       onTakenOver: showTakenOver,
       onWritingAgain: () => notifications.hide('canvas-taken-over'),
@@ -227,7 +228,10 @@ export default function BoardEditor(props: Props) {
                   onMount={setEditor}
                 >
                   {controller && (
-                    <ConnectionPicker picker={controller.connectionPicker} />
+                    <ConnectionPicker
+                      picker={controller.connectionPicker}
+                      titleOf={controller.titleOf}
+                    />
                   )}
                   {controller && (
                     <ConnectionEditPopup edits={controller.connectionEdits} />
@@ -246,7 +250,12 @@ export default function BoardEditor(props: Props) {
               </CanvasCollectionFramesProvider>
             </CanvasMediaRevealsProvider>
             {controller && <QuickAdd quickAdd={controller.quickAdd} />}
-            {controller && <UndoToast undoToast={controller.undoToast} />}
+            {controller && (
+              <UndoToast
+                undoToast={controller.undoToast}
+                titleOf={controller.titleOf}
+              />
+            )}
             {controller && (
               <CardModals
                 modal={cardModal}

@@ -24,7 +24,7 @@ import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchUrls } from '../../lib/dal';
 import { BiPlus } from 'react-icons/bi';
-import { getDomain } from '@/lib/utils/link';
+import { getCollectionPageUrl, getDomain } from '@/lib/utils/link';
 import { useMyCardsInfinite } from '@/features/cards/lib/queries/useMyCards';
 import { CollectionAccessType, type UrlMetadata } from '@semble/types';
 import SourceCardPreview from './SourceCardPreview';
@@ -146,8 +146,7 @@ export default function UrlSearchInput(props: Props) {
     if (!collection.uri) return null;
     const rkey = getRecordKey(collection.uri);
     if (!rkey) return null;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-    return `${appUrl}/profile/${collection.author.handle}/collections/${rkey}`;
+    return getCollectionPageUrl({ handle: collection.author.handle, rkey });
   };
 
   if (confirmedUrl) {

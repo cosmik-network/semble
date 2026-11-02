@@ -32,17 +32,17 @@ const WIDTH = 300;
 
 interface Props {
   picker: Picker;
+  titleOf(url: string): string;
 }
 
 export default function ConnectionPicker(props: Props) {
   const open = useValue(props.picker.state);
   if (!open) return null;
 
-  return <PickerPanel picker={props.picker} open={open} />;
+  return <PickerPanel {...props} open={open} />;
 }
 
-interface PanelProps {
-  picker: Picker;
+interface PanelProps extends Props {
   open: PickerState;
 }
 
@@ -126,8 +126,8 @@ function PickerPanel(props: PanelProps) {
     >
       <Group gap="sm" wrap="nowrap" px={8} pt={6} pb={10}>
         <div className={classes.route}>
-          <EndTitle url={props.open.sourceUrl} />
-          <EndTitle url={props.open.targetUrl} />
+          <EndTitle url={props.open.sourceUrl} titleOf={props.titleOf} />
+          <EndTitle url={props.open.targetUrl} titleOf={props.titleOf} />
         </div>
         <Tooltip label="Swap" withArrow withinPortal={false}>
           <ActionIcon
@@ -163,6 +163,8 @@ function PickerPanel(props: PanelProps) {
                 bg={
                   isHighlighted ? 'var(--mantine-color-green-light)' : undefined
                 }
+                // Not on enter: keys scroll rows under a resting pointer
+                onPointerMove={() => props.picker.highlight(type.value)}
                 onClick={() => void props.picker.publish(type.value)}
               >
                 <Group gap="sm" wrap="nowrap">
@@ -185,13 +187,14 @@ function PickerPanel(props: PanelProps) {
   );
 }
 
-function EndTitle(props: { url: string }) {
-  const { data: link } = useCanvasLink(props.url);
+function EndTitle(props: { url: string; titleOf(url: string): string }) {
+  // Renders again once the link loads
+  useCanvasLink(props.url);
 
   return (
     <div className={classes.end}>
       <Text size="sm" fw={500} c="bright" truncate>
-        {link?.metadata.title || props.url}
+        {props.titleOf(props.url)}
       </Text>
     </div>
   );

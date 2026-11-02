@@ -61,6 +61,35 @@ export function arrowSettings(editor: Editor): ArrowSettings {
   return settings;
 }
 
+// Pending while its connection publishes; landed for a moment once it has
+export type ArrowPhase = 'pending' | 'landed';
+
+const phasesOf = new WeakMap<Editor, Atom<Record<string, ArrowPhase>>>();
+
+// By connection id
+export function arrowPhases(editor: Editor) {
+  let phases = phasesOf.get(editor);
+  if (!phases) {
+    phases = atom('arrow phases', {});
+    phasesOf.set(editor, phases);
+  }
+  return phases;
+}
+
+// Per arrow, so a phase change redraws only its own arrows
+const phaseCache = createComputedCache(
+  'arrow phase',
+  (editor: Editor, arrow: TLShape): ArrowPhase | null => {
+    const connection = connectionOf(arrow);
+    return (
+      (connection && arrowPhases(editor).get()[connection.connectionId]) ?? null
+    );
+  },
+);
+
+export const arrowPhase = (editor: Editor, arrow: TLShape) =>
+  phaseCache.get(editor, arrow.id) ?? null;
+
 const hidesArrows = (editor: Editor, id: TLShapeId) => {
   const card = editor.getShape(id);
   return (

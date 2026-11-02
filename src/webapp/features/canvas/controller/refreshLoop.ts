@@ -13,7 +13,7 @@ function runEvery(callback: () => void, ms: number) {
 }
 
 export interface RefreshLoopDeps {
-  boardUrls(): string[];
+  connectionUrls(): string[];
   urlsInView(): string[];
   fetchLinks(
     urls: string[],
@@ -46,9 +46,9 @@ export function attachRefreshLoop(deps: RefreshLoopDeps) {
     // Once the board has loaded
     start() {
       // What the board last saved may be from before a change made elsewhere
-      void refresh(deps.boardUrls(), { force: true });
+      void refresh(deps.connectionUrls(), { force: true });
       unsubscribe = focusManager.subscribe((focused) => {
-        if (focused) void refresh(deps.boardUrls());
+        if (focused) void refresh(deps.connectionUrls());
       });
       stopTimer = everyTimedRefresh(() => {
         if (focusManager.isFocused())

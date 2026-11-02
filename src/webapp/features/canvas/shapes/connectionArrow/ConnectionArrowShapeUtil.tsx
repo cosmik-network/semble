@@ -15,9 +15,11 @@ import { detailLevel } from '../detailLevel';
 import {
   arrowDisplay,
   arrowMiddle,
+  arrowPhase,
   connectionOf,
   connectionArrowPaths,
   pillSize,
+  type ArrowPhase,
   type PillSize,
 } from './connectionArrows';
 import classes from './ConnectionArrowShapeUtil.module.css';
@@ -63,11 +65,12 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
       ];
     const middle =
       detailLevel(this.editor) === 'full' && arrowMiddle(this.editor, shape);
+    const phase = arrowPhase(this.editor, shape);
 
     // The pill stays crisp on a faded arrow
     return (
       <>
-        <ConnectionArrowSvg arrow={drawn} opacity={opacity} />
+        <ConnectionArrowSvg arrow={drawn} opacity={opacity} phase={phase} />
         {display.pill && connection.connectionType && middle && (
           <ArrowPill
             arrowId={shape.id}
@@ -100,6 +103,7 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
 interface ConnectionArrowSvgProps {
   arrow: TLArrowShape;
   opacity: number;
+  phase: ArrowPhase | null;
 }
 
 // Drawn here rather than by tldraw, whose arrow wraps each body in a clip path
@@ -122,7 +126,11 @@ const ConnectionArrowSvg = track(function ConnectionArrowSvg(
   return (
     <SVGContainer>
       <g
-        className={classes.arrow}
+        className={
+          props.phase
+            ? `${classes.arrow} ${classes[props.phase]}`
+            : classes.arrow
+        }
         strokeWidth={strokeWidth}
         strokeOpacity={props.opacity}
       >

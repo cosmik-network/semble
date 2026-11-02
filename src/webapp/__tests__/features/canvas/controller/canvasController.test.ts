@@ -13,6 +13,11 @@ import {
 import { CONNECTION_TYPE_MENU } from '@/features/canvas/controller/connectionEdits';
 import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
+import {
+  arrowMiddle,
+  arrowPhases,
+} from '@/features/canvas/shapes/connectionArrow/connectionArrows';
+import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import {
   linkSearchQuery,
@@ -26,12 +31,14 @@ import {
   entryCardOf,
   linkCardPreview,
 } from '@/features/canvas/model/linkCards';
+import { getCollectionPageUrl } from '@/lib/utils/link';
 import type {
   CanvasDocument,
   CanvasStorage,
 } from '@/features/canvas/storage/canvasStorage';
 import { createTestBoard, type TestBoard } from '../harness/createTestBoard';
 import {
+  APP_ORIGIN,
   FakeServer,
   testCollection,
   testLink,
@@ -3971,6 +3978,22 @@ describe('making connections', () => {
     ]);
   });
 
+  it('should continue with the arrow keys from the type the pointer highlighted', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+
+    // Act
+    board.connectionPicker.highlight('OPPOSES');
+    board.connectionPicker.moveHighlight(1);
+
+    // Assert
+    const types = CONNECTION_TYPES.map((type) => type.value);
+    expect(board.connectionPicker.state.get()?.highlighted).toBe(
+      types[types.indexOf('OPPOSES') + 1],
+    );
+  });
+
   it('should wrap round from the first type to the last', async () => {
     // Arrange
     await boardWithTwoLinks();
@@ -4128,6 +4151,123 @@ describe('making connections', () => {
     // Assert
     expect(writes().map(({ method }) => method)).toEqual(['createConnection']);
     expect(board.linkCards()).toHaveLength(1);
+  });
+
+  it('should show the connection as publishing until the server answers', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    const respond = board.server.holdResponses();
+
+    // Act
+    const published = board.connectionPicker.publish();
+    const whilePublishing = board.undoToast.publishing.get();
+    respond();
+    await published;
+
+    // Assert
+    expect(whilePublishing).toEqual({
+      sourceUrl: A,
+      targetUrl: B,
+      type: 'RELATED',
+    });
+    expect(board.undoToast.publishing.get()).toBeNull();
+    expect(board.undoToast.current.get()).toMatchObject({ kind: 'published' });
+  });
+
+  it('should stop showing the connection as publishing when publishing fails', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    board.server.failing = true;
+
+    // Act
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(board.undoToast.publishing.get()).toBeNull();
+    expect(board.undoToast.current.get()).toBeNull();
+  });
+
+  it('should draw the connection pulsing while it publishes, then flash its arrow once', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    const respond = board.server.holdResponses();
+    const phases = arrowPhases(board.editor);
+
+    // Act
+    const published = board.connectionPicker.publish();
+    const [whilePublishing] = board.arrows();
+    const phasesWhilePublishing = phases.get();
+    respond();
+    await published;
+
+    // Assert
+    expect(phasesWhilePublishing).toEqual({
+      [whilePublishing.connectionId]: 'pending',
+    });
+    expect(board.arrows()).toMatchObject([{ connectionId: 'new-1' }]);
+    expect(phases.get()).toEqual({ 'new-1': 'landed' });
+    await vi.waitFor(() => expect(phases.get()).toEqual({}));
+    expect(board.arrows()).toMatchObject([{ connectionId: 'new-1' }]);
+  });
+
+  it('should take the pulsing arrow off when publishing fails', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    board.drawArrow([0, 0], [800, 0]);
+    board.server.failing = true;
+
+    // Act
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(board.arrows()).toEqual([]);
+    expect(arrowPhases(board.editor).get()).toEqual({});
+  });
+
+  it('should keep a new arrow where it was drawn among parallel ones once published', async () => {
+    // Arrange
+    const server = new FakeServer();
+    // Sorts after the published id, new-1, but before the pending one's
+    server.connections = [
+      {
+        id: 'o-existing',
+        type: 'SUPPORTS',
+        sourceUrl: A,
+        targetUrl: B,
+        curatorId: 'did:plc:tester',
+      },
+    ];
+    board = await createTestBoard({ server });
+    await board.dropUrl(A, { x: 0, y: 0 });
+    await board.dropUrl(B, { x: 800, y: 0 });
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+    board.drawArrow([0, 0], [800, 0]);
+    const bends = () =>
+      board
+        .arrows()
+        .map((arrow) => [
+          arrow.connectionId.startsWith('pending') ? 'new' : arrow.connectionId,
+          board.editor.getShape<TLArrowShape>(arrow.id)!.props.bend,
+        ]);
+    const respond = server.holdResponses();
+
+    // Act
+    const published = board.connectionPicker.publish();
+    const whilePublishing = bends();
+    respond();
+    await published;
+    await settle();
+
+    // Assert
+    expect(whilePublishing).toHaveLength(2);
+    expect(
+      bends()
+        .map(([id, bend]) => [id === 'new-1' ? 'new' : id, bend])
+        .sort(),
+    ).toEqual(whilePublishing.sort());
   });
 
   it('should say so and leave no arrow when publishing fails', async () => {
@@ -4619,5 +4759,364 @@ describe('editing connections', () => {
     ).toEqual([]);
     expect(board.arrows()).toEqual([]);
     expect(writes()).toEqual([]);
+  });
+});
+
+describe('connections to collection frames', () => {
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const A = 'https://example.com/a';
+  // The collection's Semble page, as the webapp's connect flow builds it
+  const PAGE = getCollectionPageUrl(
+    { handle: 'curator.bsky.social', rkey: '3kcollection' },
+    APP_ORIGIN,
+  );
+  const ON_ANOTHER_HOST =
+    'https://semble.so/profile/curator.bsky.social/collections/3kcollection';
+  const OPENED = { seedCollectionId: 'collection-1' };
+  const collection1Owner = {
+    id: 'did:plc:curator',
+    name: 'A Curator',
+    handle: 'curator.bsky.social',
+  };
+  const writes = () =>
+    board.server.calls.filter(({ method }) =>
+      ['createConnection', 'deleteConnection'].includes(method),
+    );
+  const connection = (
+    id: string,
+    sourceUrl: string,
+    targetUrl: string,
+  ): LinkConnection => ({
+    id,
+    type: 'SUPPORTS',
+    sourceUrl,
+    targetUrl,
+    curatorId: 'did:plc:tester',
+  });
+  const withCollection = () => {
+    const server = new FakeServer();
+    const collection = testCollection();
+    server.collections.set(collection.collection.id, collection);
+    return server;
+  };
+  const collectionFrame = () =>
+    board.frames().find((frame) => frame.meta.collection)!;
+  // A collection with one entry, so the frame has room beside its card, and A
+  // to its left, at the default camera
+  async function boardWithFrameAndLink() {
+    const server = new FakeServer();
+    const collection = testCollection({
+      entries: [
+        {
+          cardId: 'card-1',
+          url: 'https://example.com/entry',
+          author: collection1Owner,
+          note: null,
+        },
+      ],
+    });
+    server.collections.set(collection.collection.id, collection);
+    board = await createTestBoard({ server, ...OPENED });
+    board.editor.setCamera({ x: 0, y: 0, z: 1 });
+    const frame = collectionFrame();
+    await board.dropUrl(A, { x: frame.x - 600, y: frame.y + 200 });
+    await settle();
+  }
+  // Inside the frame, below its header and right of its only card
+  const emptyFrameSpace = (): [number, number] => {
+    const frame = board.frames().find((shape) => shape.meta.collection)!;
+    return [frame.x + frame.props.w - 200, frame.y + frame.props.h - 120];
+  };
+  const linkA = (): [number, number] => {
+    const center = board.editor.getShapePageBounds(
+      board.linkCards().find((card) => card.props.url === A)!,
+    )!.center;
+    return [center.x, center.y];
+  };
+
+  it("should draw an arrow from a link to its collection's frame", async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, PAGE)];
+    board = await createTestBoard({ server, ...OPENED });
+
+    // Act
+    await board.dropUrl(A, { x: -2000, y: 0 });
+
+    // Assert
+    const [card] = board.linkCards();
+    await vi.waitFor(() =>
+      expect(board.arrows()).toMatchObject([
+        { connectionId: 'c1', from: card.id, to: collectionFrame().id },
+      ]),
+    );
+  });
+
+  it('should fan out the arrows of every connection between a link and a collection, either way round', async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [
+      connection('c1', A, PAGE),
+      { ...connection('c2', A, PAGE), type: 'OPPOSES' },
+      connection('c3', PAGE, A),
+    ];
+    board = await createTestBoard({ server, ...OPENED });
+
+    // Act
+    await board.dropUrl(A, { x: -2000, y: 0 });
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(3));
+    const middles = board.arrows().map((arrow) => {
+      const shape = board.editor.getShape<TLArrowShape>(arrow.id)!;
+      const middle = arrowMiddle(board.editor, shape)!;
+      const inPage = board.editor
+        .getShapePageTransform(shape)
+        .applyToPoint(middle);
+      return `${Math.round(inPage.x)},${Math.round(inPage.y)}`;
+    });
+    expect(new Set(middles).size).toBe(3);
+  });
+
+  it("should draw a connection to a collection's page on another host, which the frame's own fetch can't list", async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, ON_ANOTHER_HOST)];
+    board = await createTestBoard({ server, ...OPENED });
+
+    // Act
+    await board.dropUrl(A, { x: -2000, y: 0 });
+
+    // Assert
+    const [card] = board.linkCards();
+    await vi.waitFor(() =>
+      expect(board.arrows()).toMatchObject([
+        { connectionId: 'c1', from: card.id, to: collectionFrame().id },
+      ]),
+    );
+  });
+
+  it("should open the picker on an arrow drawn to the frame, and publish a connection to the collection's page", async () => {
+    // Arrange
+    await boardWithFrameAndLink();
+
+    // Act
+    board.drawArrow(linkA(), emptyFrameSpace());
+    const opened = board.connectionPicker.state.get();
+    await board.connectionPicker.publish();
+
+    // Assert
+    expect(opened).toMatchObject({ sourceUrl: A, targetUrl: PAGE });
+    expect(writes()).toEqual([
+      {
+        method: 'createConnection',
+        args: [{ sourceUrl: A, targetUrl: PAGE, type: 'RELATED' }],
+      },
+    ]);
+    await vi.waitFor(() =>
+      expect(board.arrows()).toMatchObject([{ to: collectionFrame().id }]),
+    );
+    expect(board.sketchArrows()).toEqual([]);
+  });
+
+  it("should call a collection's page by its frame's name, on any host, and a link by its title", async () => {
+    // Arrange
+    await boardWithFrameAndLink();
+
+    // Act
+    const titles = [PAGE, ON_ANOTHER_HOST, A].map(board.titleOf);
+
+    // Assert
+    expect(titles).toEqual([
+      'Climate reading · collection',
+      'Climate reading · collection',
+      `Title of ${A}`,
+    ]);
+  });
+
+  it('should not bind an arrow to a frame the user drew', async () => {
+    // Arrange
+    board = await createTestBoard();
+    await board.dropUrl(A, { x: 0, y: 0 });
+    await settle();
+    board.editor.setCurrentTool('frame');
+    board.drag([600, -200], [1000, 200]);
+    const [drawn] = board.frames();
+
+    board.drawArrow([0, 0], [800, 0]);
+    await settle();
+    const [arrow] = board.sketchArrows();
+    const before = board.editor.getShapePageBounds(arrow)!;
+
+    // Act
+    board.editor.nudgeShapes([drawn.id], { x: 0, y: 400 });
+
+    // Assert
+    expect(board.editor.getShapePageBounds(arrow)).toEqual(before);
+    expect(board.connectionPicker.state.get()).toBeNull();
+    expect(writes()).toEqual([]);
+  });
+
+  it("should fetch a frame's connections on every refresh", async () => {
+    // Arrange
+    board = await createTestBoard({ server: withCollection(), ...OPENED });
+    await settle();
+    board.server.calls = [];
+
+    // Act
+    board.timedRefresh();
+    await settle();
+
+    // Assert
+    expect(board.server.calls).toEqual([
+      { method: 'getLinks', args: [[PAGE]] },
+    ]);
+  });
+
+  it('should remove the arrow of a connection to a collection deleted elsewhere on the next refresh', async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, PAGE)];
+    board = await createTestBoard({ server, ...OPENED });
+    await board.dropUrl(A, { x: -2000, y: 0 });
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+
+    // Act
+    server.connections = [];
+    board.timedRefresh();
+
+    // Assert
+    await vi.waitFor(() => expect(board.arrows()).toEqual([]));
+  });
+
+  it('should not fetch a frame out of view on the timed refresh', async () => {
+    // Arrange
+    board = await createTestBoard({ server: withCollection(), ...OPENED });
+    await settle();
+    board.editor.setCamera({ x: 100_000, y: 100_000, z: 1 });
+    board.server.calls = [];
+
+    // Act
+    board.timedRefresh();
+    await settle();
+
+    // Assert
+    expect(board.server.calls).toEqual([]);
+  });
+
+  it('should bind an arrow drawn to a card inside the frame to the card, not the frame', async () => {
+    // Arrange
+    await boardWithFrameAndLink();
+    const entry = board
+      .linkCards()
+      .find((card) => card.props.url === 'https://example.com/entry')!;
+    const center = board.editor.getShapePageBounds(entry)!.center;
+
+    // Act
+    board.drawArrow(linkA(), [center.x, center.y]);
+
+    // Assert
+    expect(board.connectionPicker.state.get()).toMatchObject({
+      sourceUrl: A,
+      targetUrl: 'https://example.com/entry',
+    });
+  });
+
+  it('should draw a connection to a collection page built from an app URL with a trailing slash', async () => {
+    // Arrange
+    const server = withCollection();
+    const doubleSlashed = PAGE.replace('/profile', '//profile');
+    server.connections = [connection('c1', A, doubleSlashed)];
+    board = await createTestBoard({ server, ...OPENED });
+
+    // Act
+    await board.dropUrl(A, { x: -2000, y: 0 });
+
+    // Assert
+    await vi.waitFor(() =>
+      expect(board.arrows()).toMatchObject([
+        { connectionId: 'c1', to: collectionFrame().id },
+      ]),
+    );
+  });
+
+  it("should refresh a frame's connections when the tab is shown again", async () => {
+    // Arrange
+    board = await createTestBoard({ server: withCollection(), ...OPENED });
+    await settle();
+    board.queryClient.setQueryData(
+      canvasKeys.link(PAGE),
+      board.queryClient.getQueryData(canvasKeys.link(PAGE)),
+      { updatedAt: Date.now() - 60_001 },
+    );
+    board.server.calls = [];
+
+    // Act
+    board.hideTab();
+    board.showTab();
+
+    // Assert
+    try {
+      await vi.waitFor(() =>
+        expect(board.server.calls).toEqual([
+          { method: 'getLinks', args: [[PAGE]] },
+        ]),
+      );
+    } finally {
+      // Closed first: showing the tab again would refresh it
+      await board.dispose();
+      focusManager.setFocused(undefined);
+    }
+  });
+
+  it('should fetch the connections of a frame the writer adds in a read-only tab', async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, PAGE)];
+    board = await createTestBoard({ server });
+    await board.dropUrl(A, { x: -2000, y: 0 });
+    otherTab = await board.openInAnotherTab();
+    const pageFetches = () =>
+      server.calls.filter(
+        ({ method, args }) =>
+          method === 'getLinks' && (args[0] as string[]).includes(PAGE),
+      );
+
+    // Act
+    await board.collectionFrames.open('collection-1', false);
+
+    // Assert
+    await vi.waitFor(() => {
+      const frame = otherTab!.frames().find((shape) => shape.meta.collection);
+      expect(otherTab!.arrows()).toMatchObject([
+        { connectionId: 'c1', to: frame?.id },
+      ]);
+    });
+    // Once by each tab
+    await vi.waitFor(() => expect(pageFetches()).toHaveLength(2));
+  });
+
+  it('should draw a connection to a collection to both its frame and a card of its page on another host', async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, PAGE)];
+    board = await createTestBoard({ server, ...OPENED });
+
+    // Act
+    await board.dropUrl(A, { x: -2000, y: 0 });
+    await board.dropUrl(ON_ANOTHER_HOST, { x: -2000, y: 1000 });
+
+    // Assert
+    const page = board
+      .linkCards()
+      .find((card) => card.props.url === ON_ANOTHER_HOST)!;
+    await vi.waitFor(() =>
+      expect(
+        board
+          .arrows()
+          .map((arrow) => arrow.to)
+          .sort(),
+      ).toEqual([collectionFrame().id, page.id].sort()),
+    );
   });
 });

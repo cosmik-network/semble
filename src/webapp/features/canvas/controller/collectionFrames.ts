@@ -15,7 +15,8 @@ import {
   FRAME_DESCRIPTION_WIDTH,
   FRAME_GAP,
   cardsTop,
-  collectionFrameMeta,
+  collectionFrameOf,
+  type CollectionPageUrl,
   frameHeaderHeight,
   frameHeightFor,
   isCollapsed,
@@ -40,10 +41,12 @@ import { isInCollapsedFrame } from '../shapes/collectionFrame/CollectionFrameSha
 import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
 import type { FetchOutcome, LinkPlacement } from './linkCards';
 import type { SeedProgress } from './linkSeed';
+import { parseCollectionPage } from '@/lib/utils/link';
 
 export interface CollectionFramesDeps {
   editor: Editor;
   server: CanvasServer;
+  collectionPageUrl: CollectionPageUrl;
   fetchLinks(urls: string[]): Promise<FetchOutcome>;
   cardHeight(url: string, entry: EntryCard | null): number;
   placeLinks(places: LinkPlacement[]): TLShapeId[];
@@ -71,8 +74,7 @@ export function collectionFramesOn(editor: Editor) {
   return editor
     .getCurrentPageShapes()
     .filter(
-      (shape): shape is CollectionFrameShape =>
-        shape.type === 'frame' && !!collectionFrameMeta(shape.meta),
+      (shape): shape is CollectionFrameShape => !!collectionFrameOf(shape),
     );
 }
 
@@ -102,9 +104,15 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
           .flatMap((frame) => Object.values(frame.meta.collection.entries)),
       ),
   );
+  const ends = computed('collection frame ends', () =>
+    frames.get().map((frame) => ({
+      url: deps.collectionPageUrl(frame.meta.collection.collection),
+      shapeIds: [frame.id],
+    })),
+  );
   const metaOf = (id: TLShapeId) => {
     const frame = editor.getShape(id);
-    return frame?.type === 'frame' ? collectionFrameMeta(frame.meta) : null;
+    return frame ? collectionFrameOf(frame) : null;
   };
   const withMeta = (meta: CollectionFrameMeta) => ({
     [COLLECTION_META_KEY]: jsonMeta(meta),
@@ -123,8 +131,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       const carriesCard =
         shape.type === LINK_CARD_TYPE &&
         !!(shape as LinkCardShape).props.cardId;
-      const isCollection =
-        shape.type === 'frame' && !!collectionFrameMeta(shape.meta);
+      const isCollection = !!collectionFrameOf(shape);
       if (source === 'user' && (carriesCard || isCollection)) {
         created.push(shape.id);
       }
@@ -339,6 +346,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       await deps.fetchLinks(page.entries.map((entry) => entry.url));
       if (!deps.canPlace()) return;
       show(placeFrame(page, startsBoard));
+      void deps.fetchLinks([deps.collectionPageUrl(page.collection)]);
       await deps.rename(page.collection.name).catch(console.warn);
     } finally {
       deps.onProgress(null);
@@ -431,6 +439,19 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
   }
 
   return {
+    ends: () => ends.get(),
+    // The collection whose page the URL names, on any host, if it has a frame
+    nameAt(url: string) {
+      const page = parseCollectionPage(url);
+      if (!page) return null;
+      const collection = frames
+        .get()
+        .map((frame) => frame.meta.collection.collection)
+        .find(
+          ({ handle, rkey }) => handle === page.handle && rkey === page.rkey,
+        );
+      return collection?.name ?? null;
+    },
     open,
     loadMore,
     toggleCollapsed,

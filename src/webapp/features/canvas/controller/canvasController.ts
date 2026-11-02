@@ -5,6 +5,7 @@ import {
   type Editor,
   type TLRecord,
   type TLSessionStateSnapshot,
+  type TLShapeId,
   type TLStoreSnapshot,
 } from 'tldraw';
 import {
@@ -12,6 +13,7 @@ import {
   type BoardStatus,
   type CanvasDocument,
 } from '../storage/canvasStorage';
+import type { CollectionPageUrl } from '../model/collectionFrames';
 import { attachArrows, isDerivedArrowRecord } from './arrows';
 import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import {
@@ -36,6 +38,7 @@ import { attachRefreshLoop, type RefreshLoopDeps } from './refreshLoop';
 export interface CanvasControllerDeps
   extends LinkCardsDeps, Pick<RefreshLoopDeps, 'everyTimedRefresh'> {
   ownerDid: string;
+  collectionPageUrl: CollectionPageUrl;
   // Opened from this link's Semble page: a new board starts from the link
   seedUrl?: string;
   // Opened from this collection's page: it joins the board, new or not
@@ -141,14 +144,32 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   // Stays false for a board never saved, which loads nothing
   let hasDocument = false;
   const copies = attachCopies(editor);
+  const connectionEnds = () => [
+    ...Array.from(copies.byUrl(), ([url, shapeIds]) => ({ url, shapeIds })),
+    ...collectionFrames.ends(),
+  ];
+  const connectionUrls = () =>
+    Array.from(new Set(connectionEnds().map((end) => end.url)));
+  const urlsInView = () => {
+    const view = editor.getViewportPageBounds();
+    const isInView = (id: TLShapeId) =>
+      view.collides(editor.getShapePageBounds(id)!);
+    const inView = connectionEnds().filter((end) =>
+      end.shapeIds.some(isInView),
+    );
+    return Array.from(new Set(inView.map((end) => end.url)));
+  };
   const arrows = attachArrows({
     editor,
     viewerDid: deps.ownerDid,
-    copies: copies.byUrl,
+    ends: connectionEnds,
     // Only read after the board has loaded
     fetchedConnections: () => links.fetchedConnections(),
   });
-  const links = attachLinkCards(deps, arrows.reconcileSoon);
+  const links = attachLinkCards(deps, {
+    onLinkFetched: arrows.reconcileSoon,
+    connectionUrls,
+  });
   const connectionDeleted = (connectionId: string) => {
     arrows.dropConnection(connectionId);
     invalidateAfterConnectionDeleted(deps.queryClient, { connectionId });
@@ -156,6 +177,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const connections = attachConnections({
     editor,
     server: deps.server,
+    collectionPageUrl: deps.collectionPageUrl,
+    onPublishing: arrows.drawPending,
     onConnectionCreated: (connection) =>
       invalidateAfterConnectionCreated(deps.queryClient, connection),
     onConnectionDeleted: connectionDeleted,
@@ -196,6 +219,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const collectionFrames = attachCollectionFrames({
     editor,
     server: deps.server,
+    collectionPageUrl: deps.collectionPageUrl,
     fetchLinks: links.fetchLinks,
     cardHeight: links.cardHeight,
     placeLinks: links.placeLinks,
@@ -215,8 +239,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   let pendingCollection: string | null = null;
   const mediaReveals = createMediaReveals();
   const refreshLoop = attachRefreshLoop({
-    boardUrls: links.boardUrls,
-    urlsInView: links.urlsInView,
+    connectionUrls,
+    urlsInView,
     fetchLinks: links.fetchLinks,
     everyTimedRefresh: deps.everyTimedRefresh,
   });
@@ -256,7 +280,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
         // Saves carry no arrows, so a read-only tab derives them for the
         // links the writer added. Only those: the rest refresh on their own.
         void links.fetchLinks(
-          links.boardUrls().filter((url) => !links.linkOf(url)),
+          connectionUrls().filter((url) => !links.linkOf(url)),
         );
         arrows.reconcileSoon();
       },
@@ -325,6 +349,12 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     arrowView: arrows.view,
     connectionPicker: connections.picker,
     undoToast: connections.undoToast,
+    // What the picker and toasts call a connection's end
+    titleOf(url: string) {
+      const collection = collectionFrames.nameAt(url);
+      if (collection) return `${collection} · collection`;
+      return links.linkOf(url)?.metadata.title || url;
+    },
     connectionEdits,
     refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
