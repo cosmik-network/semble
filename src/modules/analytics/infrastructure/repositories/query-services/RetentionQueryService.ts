@@ -102,12 +102,12 @@ export class RetentionQueryService {
       ORDER BY 1, 2
     `;
 
-    const sizeRows = (await this.db.execute(
-      sizeQuery,
-    )) as unknown as CohortSizeRow[];
-    const cellRows = (await this.db.execute(
-      cellQuery,
-    )) as unknown as RetentionCellRow[];
+    const [sizeResult, cellResult] = await Promise.all([
+      this.db.execute(sizeQuery),
+      this.db.execute(cellQuery),
+    ]);
+    const sizeRows = sizeResult as unknown as CohortSizeRow[];
+    const cellRows = cellResult as unknown as RetentionCellRow[];
 
     const sizeByWeek = new Map<string, number>();
     for (const row of sizeRows) {
@@ -207,12 +207,12 @@ export class RetentionQueryService {
       ORDER BY 1, 2
     `;
 
-    const sizeRows = (await this.db.execute(
-      sizeQuery,
-    )) as unknown as SegmentSizeRow[];
-    const cellRows = (await this.db.execute(
-      cellQuery,
-    )) as unknown as SegmentCellRow[];
+    const [sizeResult, cellResult] = await Promise.all([
+      this.db.execute(sizeQuery),
+      this.db.execute(cellQuery),
+    ]);
+    const sizeRows = sizeResult as unknown as SegmentSizeRow[];
+    const cellRows = cellResult as unknown as SegmentCellRow[];
 
     // Oldest pooled cohort week: explicit lower bound, else earliest row.
     let oldestCohortMs: number | null = range.lowerBound?.getTime() ?? null;
@@ -348,8 +348,10 @@ export class RetentionQueryService {
    * All activity that counts toward retention, as a UNION ALL so each branch's
    * time bounds hit the created_at/added_at indexes (see WacQueryService).
    * is_curation marks the stricter WAC tier (collection add / connection).
-   * The join back to the cohort CTE handles user filtering, so no excluded-ids
-   * predicate is needed here.
+   * Each branch is restricted to cohort users so Postgres can drive it from the
+   * per-user (user_id, timestamp) indexes instead of scanning every user's
+   * activity in the range; this also covers the excluded-ids filtering.
+   * Requires a preceding `cohort` CTE with a user_id column.
    */
   private activityCte(lowerBound: Date | null, upperExclusive: Date): SQL {
     const upperIso = upperExclusive.toISOString();
@@ -359,26 +361,31 @@ export class RetentionQueryService {
         FROM cards
         WHERE ${this.lowerConditionFor(sql`created_at`, lowerBound)}
           AND created_at < ${upperIso}
+          AND author_id IN (SELECT user_id FROM cohort)
         UNION ALL
         SELECT author_id, created_at, false
         FROM collections
         WHERE ${this.lowerConditionFor(sql`created_at`, lowerBound)}
           AND created_at < ${upperIso}
+          AND author_id IN (SELECT user_id FROM cohort)
         UNION ALL
         SELECT added_by, added_at, true
         FROM collection_cards
         WHERE ${this.lowerConditionFor(sql`added_at`, lowerBound)}
           AND added_at < ${upperIso}
+          AND added_by IN (SELECT user_id FROM cohort)
         UNION ALL
         SELECT curator_id, created_at, true
         FROM connections
         WHERE ${this.lowerConditionFor(sql`created_at`, lowerBound)}
           AND created_at < ${upperIso}
+          AND curator_id IN (SELECT user_id FROM cohort)
         UNION ALL
         SELECT follower_id, created_at, false
         FROM follows
         WHERE ${this.lowerConditionFor(sql`created_at`, lowerBound)}
           AND created_at < ${upperIso}
+          AND follower_id IN (SELECT user_id FROM cohort)
       )
     `;
   }

@@ -14,6 +14,12 @@ import { Collection } from '../../cards/domain/Collection';
 import { Connection } from '../../cards/domain/Connection';
 import { CollectionId } from '../../cards/domain/value-objects/CollectionId';
 import { ConnectionId } from '../../cards/domain/value-objects/ConnectionId';
+import { StatsCache } from '../infrastructure/StatsCache';
+import { resolveWeekRange } from '../infrastructure/repositories/query-services/weekRange';
+
+// Totals span every user since launch, so they move continuously; a short TTL
+// still absorbs dashboard refreshes and the profile hydration fan-out.
+const ONBOARDING_CACHE_TTL_SECONDS = 3600;
 
 // Hydrated response DTOs (plain TS, matching the /wac precedent of no zod contract)
 
@@ -147,9 +153,33 @@ export class OnboardingStatsComposer {
     private batchProfileFetcher: BatchProfileFetcher,
     private collectionRepository: ICollectionRepository,
     private connectionRepository: IConnectionRepository,
+    // Optional: when absent every request recomputes and re-hydrates.
+    private cache?: StatsCache,
   ) {}
 
   async getWeeklyStats(options: {
+    endWeek?: string;
+  }): Promise<OnboardingWeeklyStatsDTO> {
+    if (!this.cache) return this.computeWeeklyStats(options);
+    // Key on the resolved cohort week so any date within it shares an entry.
+    const { endWeekStart } = resolveWeekRange(options.endWeek, 1, new Date());
+    return this.cache.getOrCompute(
+      `onboarding-weekly:${endWeekStart.toISOString()}`,
+      ONBOARDING_CACHE_TTL_SECONDS,
+      () => this.computeWeeklyStats(options),
+    );
+  }
+
+  async getSummaryStats(): Promise<OnboardingSummaryStatsDTO> {
+    if (!this.cache) return this.computeSummaryStats();
+    return this.cache.getOrCompute(
+      'onboarding-summary',
+      ONBOARDING_CACHE_TTL_SECONDS,
+      () => this.computeSummaryStats(),
+    );
+  }
+
+  private async computeWeeklyStats(options: {
     endWeek?: string;
   }): Promise<OnboardingWeeklyStatsDTO> {
     const raw = await this.queryRepository.getOnboardingWeeklyStatsRaw(options);
@@ -259,7 +289,7 @@ export class OnboardingStatsComposer {
     };
   }
 
-  async getSummaryStats(): Promise<OnboardingSummaryStatsDTO> {
+  private async computeSummaryStats(): Promise<OnboardingSummaryStatsDTO> {
     const raw = await this.queryRepository.getOnboardingSummaryStatsRaw();
     const ctx = await this.hydrate(raw);
 

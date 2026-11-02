@@ -104,6 +104,8 @@ export const collectionCards = pgTable(
         table.addedBy,
         table.addedAt.desc(),
       ),
+      // Index for time-range scans across all users (e.g. WAC analytics)
+      addedAtIdx: index('idx_collection_cards_added_at').on(table.addedAt),
       // Index for AT-URI resolution joins from published_records
       publishedRecordIdIdx: index('idx_collection_cards_published_record_id')
         .on(table.publishedRecordId)
