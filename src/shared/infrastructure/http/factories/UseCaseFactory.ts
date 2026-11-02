@@ -53,6 +53,7 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/applicat
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { RecommendedCardsUseCase } from '../../../../modules/search/application/useCases/queries/RecommendedCardsUseCase';
 import { RedisFactory } from '../../redis/RedisFactory';
+import { CachedUserStatsRepository } from '../../../../modules/user/infrastructure/repositories/CachedUserStatsRepository';
 import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
 import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
 import { GlobalFeedSeedService } from '../../../../modules/feeds/application/services/GlobalFeedSeedService';
@@ -414,7 +415,10 @@ export class UseCaseFactory {
         repositories.collectionRepository,
       ),
       getUserStatsUseCase: new GetUserStatsUseCase(
-        repositories.userStatsRepository,
+        new CachedUserStatsRepository(
+          repositories.userStatsRepository,
+          services.statsCache,
+        ),
       ),
 
       // Card use cases
