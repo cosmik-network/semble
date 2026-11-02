@@ -2,6 +2,7 @@ import { CardTypeEnum } from './value-objects/CardType';
 import { UrlType } from './value-objects/UrlType';
 import { DID } from '../../atproto/domain/DID';
 import { CollectionId } from './value-objects/CollectionId';
+import { ConnectionTypeEnum } from './value-objects/ConnectionType';
 
 export interface CardQueryOptions {
   page: number;
@@ -185,12 +186,29 @@ export interface UserActivityStats {
   lastActivityAt: Date | null; // most recent card, collection add, or connection
 }
 
-// Batch URL ranking stats used for recommendation scoring
-export interface UrlRankingStats {
-  urlCardCount: number; // URL cards with this URL
-  noteCount: number; // NOTE cards with this URL
-  collectionCount: number; // distinct collections containing URL cards with this URL
-  connectionCount: number; // connections where this URL is source or target
+/**
+ * URL↔URL connection counts for a URL. Connections to non-URL targets/sources
+ * are excluded. A self-loop counts once in each direction. Connections with no
+ * type count toward the totals but not the by-type maps.
+ */
+export interface UrlConnectionCounts {
+  forwardTotal: number; // connections where the URL is the source
+  backwardTotal: number; // connections where the URL is the target
+  forwardByType: Map<ConnectionTypeEnum, number>;
+  backwardByType: Map<ConnectionTypeEnum, number>;
+}
+
+/**
+ * Canonical aggregate stats for a URL (exact string match on the URL).
+ * All other URL count surfaces should agree with these definitions.
+ */
+export interface UrlStats {
+  libraryCount: number; // distinct users with a URL card for this URL in their library
+  noteCount: number; // NOTE cards whose url is this URL
+  collectionCount: number; // distinct collections containing a URL card for this URL
+  connections: UrlConnectionCounts;
+  urlInLibrary?: boolean; // only set when a calling user is given
+  urlIsConnected?: boolean; // only set when a calling user is given
 }
 
 export interface ICardQueryRepository {
@@ -238,9 +256,15 @@ export interface ICardQueryRepository {
     callingUserId?: string,
   ): Promise<Map<string, UrlLibraryInfo>>;
 
-  getBatchUrlRankingStats(
+  /**
+   * Canonical aggregate stats for each URL. Every input URL is present in the
+   * result (zeroed if unknown). urlInLibrary/urlIsConnected are set only when
+   * callingUserId is given.
+   */
+  getBatchUrlStats(
     urls: string[],
-  ): Promise<Map<string, UrlRankingStats>>;
+    callingUserId?: string,
+  ): Promise<Map<string, UrlStats>>;
 
   /**
    * Get distinct DIDs of users who saved any of the URLs as URL cards
@@ -265,15 +289,6 @@ export interface ICardQueryRepository {
   searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>>;
-
-  /**
-   * Get aggregate statistics for a URL (library count and note count)
-   * Used for efficient counting without fetching full data
-   */
-  getUrlAggregateStats(url: string): Promise<{
-    libraryCount: number;
-    noteCount: number;
-  }>;
 
   /**
    * Get aggregate card statistics for a user profile

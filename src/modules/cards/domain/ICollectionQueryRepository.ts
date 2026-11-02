@@ -185,12 +185,6 @@ export interface ICollectionQueryRepository {
   ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
-   * Get the count of collections containing a specific URL
-   * Used for efficient counting without fetching full data
-   */
-  getCollectionCountForUrl(url: string): Promise<number>;
-
-  /**
    * Get the count of collections created by a user
    * Used for efficient profile stats without fetching full data
    */

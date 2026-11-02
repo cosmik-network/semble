@@ -11,6 +11,7 @@ export * from './cards/getUrlCards';
 export * from './cards/get';
 export * from './cards/getLibraries';
 export * from './cards/getUrlMetadata';
+export * from './cards/getBatchUrlStats';
 export * from './cards/getLibraryStatus';
 export * from './cards/getLibrariesForUrl';
 export * from './cards/getNoteCardsForUrl';

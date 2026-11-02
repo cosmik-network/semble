@@ -329,6 +329,7 @@ export const createExpressApp = async (
       controllers.getLibrariesForUrlController,
       controllers.getNoteCardsForUrlController,
       controllers.searchUrlsController,
+      controllers.getBatchUrlStatsController,
       // Collection controllers
       controllers.createCollectionController,
       controllers.updateCollectionController,

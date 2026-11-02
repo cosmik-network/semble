@@ -10,7 +10,7 @@ import {
   NoteCardForUrlRawDTO,
   UrlCardView,
   UrlLibraryInfo,
-  UrlRankingStats,
+  UrlStats,
   UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
@@ -106,10 +106,11 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     return this.urlCardQueryService.getBatchUrlLibraryInfo(urls, callingUserId);
   }
 
-  async getBatchUrlRankingStats(
+  async getBatchUrlStats(
     urls: string[],
-  ): Promise<Map<string, UrlRankingStats>> {
-    return this.urlCardQueryService.getBatchUrlRankingStats(urls);
+    callingUserId?: string,
+  ): Promise<Map<string, UrlStats>> {
+    return this.urlCardQueryService.getBatchUrlStats(urls, callingUserId);
   }
 
   async getUsersForUrls(urls: string[]): Promise<string[]> {
@@ -139,13 +140,6 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
     return this.urlCardQueryService.searchUrls(options);
-  }
-
-  async getUrlAggregateStats(url: string): Promise<{
-    libraryCount: number;
-    noteCount: number;
-  }> {
-    return this.urlCardQueryService.getUrlAggregateStats(url);
   }
 
   async getProfileCardStats(authorId: string): Promise<{
