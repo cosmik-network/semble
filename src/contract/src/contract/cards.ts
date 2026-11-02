@@ -108,7 +108,6 @@ export const cardsContract = c.router(
       summary: 'Get Semble stats for multiple URLs',
       description:
         'Returns aggregated Semble stats (saves, notes, collections, connections) for up to 100 URLs without fetching URL metadata. Results are in request order and deduplicated; invalid URLs are omitted. Authenticated callers also get whether each URL is in their library or connected by them.',
-      metadata: { internal: true } as const,
     },
     urlLibraryStatus: {
       method: 'GET',
