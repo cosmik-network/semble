@@ -7,6 +7,7 @@ import { UpdateUrlCardAssociationsController } from '../controllers/UpdateUrlCar
 import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
+import { GetBatchUrlStatsController } from '../controllers/GetBatchUrlStatsController';
 import { GetUrlCardViewController } from '../controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
@@ -42,6 +43,7 @@ export function registerCardRoutes(
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
   searchUrlsController: SearchUrlsController,
+  getBatchUrlStatsController: GetBatchUrlStatsController,
 ): void {
   app.get(
     routes.cards.searchCards.path,
@@ -55,6 +57,13 @@ export function registerCardRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(cardsContract.urlMetadata.query),
     (req, res) => getUrlMetadataController.execute(req, res),
+  );
+
+  app.post(
+    routes.cards.batchUrlStats.path,
+    authMiddleware.optionalAuth(),
+    validateBody(cardsContract.batchUrlStats.body),
+    (req, res) => getBatchUrlStatsController.execute(req, res),
   );
 
   app.get(

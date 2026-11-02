@@ -32,6 +32,7 @@ import { GetCollectionFollowersController } from '../controllers/GetCollectionFo
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
 import { GetCollectionContributorsController } from '../controllers/GetCollectionContributorsController';
 import { SearchUrlsController } from '../controllers/SearchUrlsController';
+import { GetBatchUrlStatsController } from '../controllers/GetBatchUrlStatsController';
 
 export function registerCardsModuleRoutes(
   app: IRouter,
@@ -53,6 +54,7 @@ export function registerCardsModuleRoutes(
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
   searchUrlsController: SearchUrlsController,
+  getBatchUrlStatsController: GetBatchUrlStatsController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -88,6 +90,7 @@ export function registerCardsModuleRoutes(
     getLibrariesForUrlController,
     getNoteCardsForUrlController,
     searchUrlsController,
+    getBatchUrlStatsController,
   );
 
   registerCollectionRoutes(

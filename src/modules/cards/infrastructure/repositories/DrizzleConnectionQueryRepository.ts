@@ -3,7 +3,6 @@ import {
   IConnectionQueryRepository,
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
-  ConnectionForUrlDTO,
   ConnectionForUserDTO,
 } from '../../domain/IConnectionQueryRepository';
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
@@ -14,26 +13,6 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
 
   constructor(private db: PostgresJsDatabase) {
     this.connectionQueryService = new ConnectionQueryService(db);
-  }
-
-  async getForwardConnectionsForUrl(
-    url: string,
-    options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.connectionQueryService.getForwardConnectionsForUrl(
-      url,
-      options,
-    );
-  }
-
-  async getBackwardConnectionsForUrl(
-    url: string,
-    options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.connectionQueryService.getBackwardConnectionsForUrl(
-      url,
-      options,
-    );
   }
 
   async getConnectionsForUrl(
@@ -56,15 +35,6 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
       curatorId,
       options,
     );
-  }
-
-  async getConnectionStatsForUrl(url: string): Promise<{
-    forwardTotal: number;
-    backwardTotal: number;
-    forwardByType: Map<ConnectionTypeEnum, number>;
-    backwardByType: Map<ConnectionTypeEnum, number>;
-  }> {
-    return this.connectionQueryService.getConnectionStatsForUrl(url);
   }
 
   async getConnectionStatsForCurator(curatorId: string): Promise<{

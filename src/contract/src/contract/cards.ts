@@ -15,6 +15,8 @@ import {
   SearchUrlsResponseSchema,
   GetUrlMetadataParamsSchema,
   GetUrlMetadataResponseSchema,
+  GetBatchUrlStatsRequestSchema,
+  GetBatchUrlStatsResponseSchema,
   GetUrlStatusForMyLibraryParamsSchema,
   GetUrlStatusForMyLibraryResponseSchema,
   GetLibrariesForUrlParamsSchema,
@@ -97,6 +99,16 @@ export const cardsContract = c.router(
       summary: 'Get URL metadata and optional Semble stats',
       description:
         'Fetches title, description, and other metadata for a given URL. Can optionally include aggregated Semble stats for the URL, such as total saves and collection counts.',
+    },
+    batchUrlStats: {
+      method: 'POST',
+      path: paths.batchUrlStats,
+      body: GetBatchUrlStatsRequestSchema,
+      responses: { 200: GetBatchUrlStatsResponseSchema },
+      summary: 'Get Semble stats for multiple URLs',
+      description:
+        'Returns aggregated Semble stats (saves, notes, collections, connections) for up to 100 URLs without fetching URL metadata. Results are in request order and deduplicated; invalid URLs are omitted. Authenticated callers also get whether each URL is in their library or connected by them.',
+      metadata: { internal: true } as const,
     },
     urlLibraryStatus: {
       method: 'GET',
