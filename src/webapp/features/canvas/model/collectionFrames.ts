@@ -67,7 +67,7 @@ export const frameFooter = (
 
 export const FRAME_PADDING = 24;
 export const FRAME_GAP = 24;
-const FRAME_COLUMNS = 4;
+const FRAME_COLUMNS = 2;
 // Its text sits about a padding below the cards, as they sit below the header
 export const FRAME_FOOTER_HEIGHT = 64;
 export const COLLECTION_FRAME_WIDTH =
@@ -77,8 +77,7 @@ export const COLLECTION_FRAME_WIDTH =
 
 // The header follows the collection page's: a "Collection" label over the
 // name with the author beside them, then the description cut to three lines
-// at a readable width, and the card count. The face lays its rows out with
-// these sizes.
+// at a readable width. The face lays its rows out with these sizes.
 export const FRAME_DESCRIPTION_FONT: TextFont = {
   fontSize: 14,
   fontWeight: 400,
@@ -92,8 +91,6 @@ export const HEADER_LABEL_HEIGHT = 24;
 export const HEADER_TITLE_HEIGHT = 34;
 export const HEADER_DESCRIPTION_MARGIN = 10;
 const DESCRIPTION_LINE = 22;
-export const HEADER_STATS_MARGIN = 10;
-export const HEADER_STATS_HEIGHT = 20;
 
 export function frameHeaderHeight(descriptionLines: number) {
   const lines = Math.min(descriptionLines, FRAME_DESCRIPTION_LINES);
@@ -102,8 +99,6 @@ export function frameHeaderHeight(descriptionLines: number) {
     HEADER_LABEL_HEIGHT +
     HEADER_TITLE_HEIGHT +
     (lines ? HEADER_DESCRIPTION_MARGIN + DESCRIPTION_LINE * lines : 0) +
-    HEADER_STATS_MARGIN +
-    HEADER_STATS_HEIGHT +
     HEADER_PADDING
   );
 }

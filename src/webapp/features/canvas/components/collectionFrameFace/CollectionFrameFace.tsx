@@ -30,8 +30,6 @@ import {
   HEADER_DESCRIPTION_MARGIN,
   HEADER_LABEL_HEIGHT,
   HEADER_PADDING,
-  HEADER_STATS_HEIGHT,
-  HEADER_STATS_MARGIN,
   HEADER_TITLE_HEIGHT,
   frameFooter,
   isCollapsed,
@@ -98,7 +96,7 @@ export default function CollectionFrameFace(props: Props) {
               {collection.name}
             </Title>
           </Stack>
-          <Group gap="sm" wrap="nowrap">
+          <Group gap="xl" wrap="nowrap">
             <Group gap="xs" wrap="nowrap">
               <Avatar
                 size={32}
@@ -120,7 +118,7 @@ export default function CollectionFrameFace(props: Props) {
             <Tooltip label={collapseLabel} withArrow>
               <ActionIcon
                 className={classes.control}
-                variant="subtle"
+                variant="light"
                 color="gray"
                 radius="xl"
                 aria-label={collapseLabel}
@@ -146,15 +144,6 @@ export default function CollectionFrameFace(props: Props) {
             />
           </Box>
         )}
-        <Text
-          fz="sm"
-          fw={500}
-          c="gray"
-          h={HEADER_STATS_HEIGHT}
-          mt={HEADER_STATS_MARGIN}
-        >
-          {collection.cardCount} {collection.cardCount === 1 ? 'card' : 'cards'}
-        </Text>
       </Stack>
       {!collapsed && (
         <Group
