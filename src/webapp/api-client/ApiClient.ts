@@ -27,6 +27,7 @@ import type {
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
   GetUrlMetadataParams,
+  GetBatchUrlStatsRequest,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetCollectionPageByAtUriParams,
@@ -51,6 +52,7 @@ import type {
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
   GetUrlMetadataResponse,
+  GetBatchUrlStatsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
   GetCollectionPageResponse,
@@ -190,6 +192,12 @@ export class ApiClient {
     params: GetUrlMetadataParams,
   ): Promise<GetUrlMetadataResponse> {
     return this.queryClient.getUrlMetadata(params);
+  }
+
+  async getBatchUrlStats(
+    request: GetBatchUrlStatsRequest,
+  ): Promise<GetBatchUrlStatsResponse> {
+    return this.queryClient.getBatchUrlStats(request);
   }
 
   async getMyUrlCards(
