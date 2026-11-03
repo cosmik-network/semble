@@ -48,8 +48,9 @@ import { canvasHref } from '../../lib/constants';
 import { showCanvasError } from '../../lib/showCanvasError';
 import { boardOverrides } from './boardOverrides';
 
-// tldraw's licence requires the "Made with tldraw" watermark to stay visible
-// and unaltered: never hide, cover or restyle it. See TLDRAW-LICENSE.md.
+// tldraw's licence forbids hiding, covering or restyling the "Made with
+// tldraw" watermark, or interfering with licence key validation, which decides
+// whether it shows. See TLDRAW-LICENSE.md.
 
 // Replaces tldraw's arrow and frame
 const shapeUtils = [
@@ -231,6 +232,7 @@ export default function BoardEditor(props: Props) {
                 collectionFrames={controller?.collectionFrames ?? null}
               >
                 <Tldraw
+                  licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
                   shapeUtils={shapeUtils}
                   getShapeVisibility={getShapeVisibility}
                   components={components}
