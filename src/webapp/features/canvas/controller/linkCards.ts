@@ -25,6 +25,7 @@ import {
 import {
   linkQuery,
   type CanvasServer,
+  type CollectionAddress,
   type LinkInfo,
 } from '../server/canvasServer';
 import {
@@ -32,6 +33,7 @@ import {
   type LinkCardShape,
 } from '../shapes/linkCard/LinkCardShapeUtil';
 import type { CanvasStorage, KnownLinks } from '../storage/canvasStorage';
+import { parseCollectionPage } from '@/lib/utils/link';
 
 // Whether a refresh reached the server and got an answer. Links that were
 // fresh enough to skip, or whose fetch was dropped for a newer one, aren't
@@ -77,6 +79,12 @@ export interface LinkCardsHooks {
   // Every URL whose connections the board draws, collection frames' pages
   // among them, which are fetched and kept like links
   connectionUrls(): string[];
+  // A pasted or dropped collection page, which places the collection's frame
+  placeCollection(
+    address: CollectionAddress,
+    point: VecLike,
+    link: string,
+  ): Promise<void>;
 }
 
 // Places links and notes pasted or dropped on the board, and keeps each link
@@ -310,10 +318,17 @@ export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
 
   // Pasted or dropped text that holds a link places the link. tldraw already
   // passes most links as urls; this catches ones with whitespace around them.
-  function place(text: string, point: VecLike | undefined) {
+  async function place(text: string, point: VecLike | undefined) {
     if (editor.getIsReadonly() || !text.trim()) return;
     const url = linkKey(text);
-    if (url) placeLink(url, point);
+    const collection = url && parseCollectionPage(url);
+    if (collection) {
+      await hooks.placeCollection(
+        collection,
+        point ?? editor.getViewportPageBounds().center,
+        url,
+      );
+    } else if (url) placeLink(url, point);
     else placeNote(text, point);
   }
 

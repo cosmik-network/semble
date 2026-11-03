@@ -9,6 +9,7 @@ import {
   type TLShape,
   type TLShapeId,
   type TLShapePartial,
+  type VecLike,
 } from 'tldraw';
 import {
   COLLECTION_FRAME_WIDTH,
@@ -38,6 +39,7 @@ import {
 } from '../model/linkCards';
 import type {
   CanvasServer,
+  CollectionAddress,
   CollectionEntry,
   CollectionInfo,
   CollectionPage,
@@ -52,7 +54,7 @@ import {
 } from './linkCards';
 import type { SeedProgress } from './linkSeed';
 import type { RefreshOptions } from './refreshLoop';
-import { parseCollectionPage } from '@/lib/utils/link';
+import { isSembleUrl, parseCollectionPage } from '@/lib/utils/link';
 
 export interface CollectionFramesDeps {
   editor: Editor;
@@ -62,6 +64,7 @@ export interface CollectionFramesDeps {
   fetchLinks(urls: string[]): Promise<FetchOutcome>;
   cardHeight(url: string, entry: EntryCard | null): number;
   placeLinks(places: LinkPlacement[]): TLShapeId[];
+  placeLink(url: string, point: VecLike | undefined): void;
   countLines: CountLines;
   // Leaves a name the user has given the board
   rename(name: string): Promise<void>;
@@ -80,6 +83,23 @@ export type CollectionFrameShape = TLFrameShape & {
 
 export const COLLECTION_LOAD_FAILED =
   "Couldn't load this collection. Try again from its page.";
+export const COLLECTION_NOT_FOUND =
+  "Couldn't find this collection. It may have been deleted.";
+const ADDED_COLLECTION_FAILED = "Couldn't load this collection. Try again.";
+
+// By id, or by its Semble page's address when added from the board
+export type CollectionToOpen = { id: string } | CollectionAddress;
+
+export interface OpenOptions {
+  // A new board's first collection, which undo doesn't take back
+  startsBoard?: boolean;
+  // Where the frame's centre goes. Otherwise it joins the board to the right
+  // of what's there.
+  at?: VecLike;
+  // The pasted link that names the page. Placed as a link when no collection
+  // is there and it isn't on this app's host.
+  link?: string;
+}
 
 // Between a frame and the board's other shapes when it joins a board
 const FRAME_MARGIN = 160;
@@ -405,7 +425,8 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     );
   };
 
-  function placeFrame(page: CollectionPage, startsBoard: boolean) {
+  function placeFrame(page: CollectionPage, options: OpenOptions) {
+    const startsBoard = options.startsBoard ?? false;
     const { collection } = page;
     const headerHeight = headerHeightOf(collection);
     const layout = layOut(page.entries, collection, cardsTop(headerHeight));
@@ -413,9 +434,14 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     const h = frameHeightFor(layout.bottom);
     const content = editor.getCurrentPageBounds();
     const view = editor.getViewportPageBounds();
-    const at = content
-      ? { x: content.maxX + FRAME_MARGIN, y: content.minY }
-      : { x: view.midX - w / 2, y: view.midY - h / 2 };
+    const centredAt = (point: VecLike) => ({
+      x: point.x - w / 2,
+      y: point.y - h / 2,
+    });
+    let at;
+    if (options.at) at = centredAt(options.at);
+    else if (content) at = { x: content.maxX + FRAME_MARGIN, y: content.minY };
+    else at = centredAt(view.center);
     const id = createShapeId();
     const meta: CollectionFrameMeta = {
       collection,
@@ -450,29 +476,61 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       .get()
       .find((frame) => frame.meta.collection.collection.id === collectionId);
 
+  // A handle can change, so a miss here is checked again by id once fetched
+  const frameAt = (address: CollectionAddress) =>
+    frames.get().find(({ meta }) => {
+      const { collection } = meta.collection;
+      return (
+        collection.handle === address.handle && collection.rkey === address.rkey
+      );
+    });
+
+  const firstPage = (target: CollectionToOpen) =>
+    'id' in target
+      ? fetchPage(target.id, 1)
+      : deps.server.getCollectionAt(target, {
+          page: 1,
+          limit: COLLECTION_PAGE_SIZE,
+        });
+
   // A collection already on the board is shown rather than placed again
-  async function open(collectionId: string, startsBoard: boolean) {
+  async function open(target: CollectionToOpen, options: OpenOptions = {}) {
     if (!deps.canPlace()) return;
-    const onBoard = frameOf(collectionId);
+    const byId = 'id' in target;
+    const onBoard = byId ? frameOf(target.id) : frameAt(target);
     if (onBoard) {
       show(onBoard.id);
       return;
     }
     deps.onProgress({ step: 'collection' });
     try {
-      const page = await fetchPage(collectionId, 1).catch((error) => {
+      let page: CollectionPage | null;
+      try {
+        page = await firstPage(target);
+      } catch (error) {
         console.warn(error);
-        return null;
-      });
+        deps.onFailed(byId ? COLLECTION_LOAD_FAILED : ADDED_COLLECTION_FAILED);
+        return;
+      }
+      if (!page && options.link && !isSembleUrl(options.link)) {
+        if (deps.canPlace()) deps.placeLink(options.link, options.at);
+        return;
+      }
       if (!page) {
-        deps.onFailed(COLLECTION_LOAD_FAILED);
+        deps.onFailed(byId ? COLLECTION_LOAD_FAILED : COLLECTION_NOT_FOUND);
         return;
       }
       if (!deps.canPlace()) return;
       deps.onProgress({ step: 'entries', count: page.entries.length });
       await deps.fetchLinks(page.entries.map((entry) => entry.url));
       if (!deps.canPlace()) return;
-      const frameId = placeFrame(page, startsBoard);
+      // Found by address, or placed by another paste of it meanwhile
+      const placed = frameOf(page.collection.id);
+      if (placed) {
+        show(placed.id);
+        return;
+      }
+      const frameId = placeFrame(page, options);
       fetchedAt.set(frameId, Date.now());
       show(frameId);
       void deps.fetchLinks([deps.collectionPageUrl(page.collection)]);

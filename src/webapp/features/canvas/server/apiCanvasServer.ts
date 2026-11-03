@@ -10,8 +10,11 @@ import {
   searchUrls,
   updateConnection,
 } from '@/features/connections/lib/dal';
-import { getCollectionPage } from '@/features/collections/lib/dal';
-import { isNotFoundApiError } from '@/api-client/errors';
+import {
+  getCollectionPage,
+  getCollectionPageByAtUri,
+} from '@/features/collections/lib/dal';
+import { ApiError, isNotFoundApiError } from '@/api-client/errors';
 import { getBlueskyPost } from '@/features/platforms/bluesky/lib/dal';
 import { getPostUriFromUrl, getRecordKey } from '@/lib/utils/atproto';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
@@ -178,6 +181,22 @@ function collectionPage(response: GetCollectionPageResponse): CollectionPage {
   };
 }
 
+// A page address with a malformed handle is refused, and can't name one either
+const isMalformedAddress = (error: unknown) =>
+  error instanceof ApiError && error.statusCode === 400;
+
+async function orNotFound(
+  response: Promise<GetCollectionPageResponse>,
+  isMissing: (error: unknown) => boolean = isNotFoundApiError,
+) {
+  try {
+    return collectionPage(await response);
+  } catch (error) {
+    if (isMissing(error)) return null;
+    throw error;
+  }
+}
+
 export const apiCanvasServer: CanvasServer = {
   async getLinks(urls) {
     const links = new Map<string, LinkInfo>();
@@ -191,16 +210,17 @@ export const apiCanvasServer: CanvasServer = {
     );
     return links;
   },
-  async getCollection(collectionId, { page, limit }) {
-    try {
-      return collectionPage(
-        await getCollectionPage(collectionId, { page, limit }),
-      );
-    } catch (error) {
-      if (isNotFoundApiError(error)) return null;
-      throw error;
-    }
-  },
+  getCollection: (collectionId, { page, limit }) =>
+    orNotFound(getCollectionPage(collectionId, { page, limit })),
+  getCollectionAt: ({ handle, rkey }, { page, limit }) =>
+    orNotFound(
+      getCollectionPageByAtUri({
+        handle,
+        recordKey: rkey,
+        params: { page, limit },
+      }),
+      (error) => isNotFoundApiError(error) || isMalformedAddress(error),
+    ),
   async createConnection({ sourceUrl, targetUrl, type }) {
     const response = await createConnection({
       sourceUrl,

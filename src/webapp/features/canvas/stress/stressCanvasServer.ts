@@ -21,6 +21,9 @@ export function stressCanvasServer(viewerDid: string): CanvasServer {
     async getCollection() {
       throw new Error('The stress board has no collections');
     },
+    async getCollectionAt() {
+      throw new Error('The stress board has no collections');
+    },
     createConnection: async () => `stress-created-${++created}`,
     updateConnection: async () => {},
     deleteConnection: async () => {},

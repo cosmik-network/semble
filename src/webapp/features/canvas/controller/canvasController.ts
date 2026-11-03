@@ -19,6 +19,8 @@ import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import {
   COLLECTION_LOAD_FAILED,
   attachCollectionFrames,
+  type CollectionToOpen,
+  type OpenOptions,
 } from './collectionFrames';
 import {
   invalidateAfterConnectionCreated,
@@ -171,6 +173,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const links = attachLinkCards(deps, {
     onLinkFetched: arrows.reconcileSoon,
     connectionUrls,
+    placeCollection: (address, at, link) =>
+      openCollection(address, { at, link }),
   });
   const connectionDeleted = (connectionId: string) => {
     arrows.dropConnection(connectionId);
@@ -195,7 +199,10 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     onConnectionDeleted: connectionDeleted,
     onServerError: deps.onServerError,
   });
-  const quickAdd = attachQuickAdd(editor, links.placeLink);
+  const quickAdd = attachQuickAdd(editor, {
+    placeLink: links.placeLink,
+    placeCollection: (target, at) => void openCollection(target, { at }),
+  });
   const popupCard = createPopupCard(editor);
   const renameIfUnnamed = async (name: string) => {
     const canvas = await deps.storage.getCanvas(deps.canvasId);
@@ -226,6 +233,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     fetchLinks: links.fetchLinks,
     cardHeight: links.cardHeight,
     placeLinks: links.placeLinks,
+    placeLink: links.placeLink,
     countLines: links.countLines,
     rename: renameIfUnnamed,
     onFailed: deps.onServerError,
@@ -233,8 +241,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     onProgress: deps.onSeedProgress,
     canPlace,
   });
-  const openCollection = (collectionId: string, startsBoard: boolean) =>
-    collectionFrames.open(collectionId, startsBoard).catch((error) => {
+  const openCollection = (target: CollectionToOpen, options?: OpenOptions) =>
+    collectionFrames.open(target, options).catch((error) => {
       console.warn(error);
       deps.onServerError(COLLECTION_LOAD_FAILED);
     });
@@ -299,7 +307,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
           deps.onWritingAgain();
           if (pendingCollection) {
             // Joins a board another tab was writing, so it's one step of undo
-            void openCollection(pendingCollection, false);
+            void openCollection({ id: pendingCollection });
             pendingCollection = null;
           }
         }
@@ -332,7 +340,12 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
       // empty board meanwhile
       if (deps.seedCollectionId) {
         if (editor.getIsReadonly()) pendingCollection = deps.seedCollectionId;
-        else await openCollection(deps.seedCollectionId, !hasDocument);
+        else {
+          await openCollection(
+            { id: deps.seedCollectionId },
+            { startsBoard: !hasDocument },
+          );
+        }
       } else if (deps.seedUrl && !hasDocument && !editor.getIsReadonly()) {
         await linkSeed.seed(deps.seedUrl).catch((error) => {
           console.warn(error);

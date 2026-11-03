@@ -11,6 +11,7 @@ import {
   type TLShapeId,
 } from 'tldraw';
 import { CONNECTION_TYPE_MENU } from '@/features/canvas/controller/connectionEdits';
+import { COLLECTION_NOT_FOUND } from '@/features/canvas/controller/collectionFrames';
 import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import {
@@ -28,6 +29,7 @@ import {
 import type { LinkCardShape } from '@/features/canvas/shapes/linkCard/LinkCardShapeUtil';
 import { detailLevel } from '@/features/canvas/shapes/detailLevel';
 import {
+  LINK_CARD_TYPE,
   entryCardOf,
   linkCardPreview,
 } from '@/features/canvas/model/linkCards';
@@ -88,6 +90,7 @@ afterEach(async () => {
   await board?.dispose();
   await otherTab?.dispose();
   otherTab = undefined;
+  vi.unstubAllEnvs();
 });
 
 // ─────────────────────────────────────────────
@@ -3138,6 +3141,245 @@ describe('open in canvas from a collection', () => {
   });
 });
 
+describe('adding a collection from the board', () => {
+  const OWNER = {
+    id: 'did:plc:curator',
+    name: 'A Curator',
+    handle: 'curator.bsky.social',
+  };
+  const entry = (i: number): CollectionEntry => ({
+    cardId: `card-${i}`,
+    url: `https://example.com/entry-${i}`,
+    author: OWNER,
+    note: null,
+  });
+  const PAGE =
+    'https://semble.so/profile/curator.bsky.social/collections/3kcollection';
+
+  async function boardWithCollection(count = 2) {
+    const server = new FakeServer();
+    const collection = testCollection({
+      entries: Array.from({ length: count }, (_, i) => entry(i)),
+    });
+    server.collections.set(collection.collection.id, collection);
+    board = await createTestBoard({ server });
+    return board;
+  }
+  const writes = () =>
+    board.server.calls.filter(
+      (call) =>
+        !['getCollection', 'getCollectionAt', 'getLinks'].includes(call.method),
+    );
+  const centreOf = (id: TLShapeId) =>
+    board.editor.getShapePageBounds(id)!.center;
+
+  it('should place a pasted collection page as its frame at the centre of the view', async () => {
+    // Arrange
+    await boardWithCollection();
+    board.editor.setCamera({ x: -400, y: 250, z: 1 });
+    const viewCentre = board.editor.getViewportPageBounds().center;
+
+    // Act
+    await board.pasteUrl(PAGE);
+
+    // Assert
+    const [frame] = board.frames();
+    expect(board.frames()).toHaveLength(1);
+    expect(frame.props.name).toBe('Climate reading');
+    expect(board.linkCards().map((card) => card.parentId)).toEqual([
+      frame.id,
+      frame.id,
+    ]);
+    expect(centreOf(frame.id).x).toBeCloseTo(viewCentre.x);
+    expect(centreOf(frame.id).y).toBeCloseTo(viewCentre.y);
+    expect(board.serverErrors).toEqual([]);
+    expect(writes()).toEqual([]);
+  });
+
+  it('should match a collection page on any host, with or without a trailing slash', async () => {
+    // Arrange
+    await boardWithCollection();
+
+    // Act
+    await board.pasteUrl(
+      'http://localhost:4000/profile/curator.bsky.social/collections/3kcollection/',
+    );
+
+    // Assert
+    const [frame] = board.frames();
+    expect(board.frames()).toHaveLength(1);
+    expect(board.linkCards().every((card) => card.parentId === frame.id)).toBe(
+      true,
+    );
+  });
+
+  it('should place a dropped collection page as its frame at the drop point', async () => {
+    // Arrange
+    await boardWithCollection();
+
+    // Act
+    await board.dropUrl(PAGE, { x: 900, y: -300 });
+
+    // Assert
+    const [frame] = board.frames();
+    expect(centreOf(frame.id).x).toBeCloseTo(900);
+    expect(centreOf(frame.id).y).toBeCloseTo(-300);
+  });
+
+  it('should pan to a collection already on the board and add nothing', async () => {
+    // Arrange
+    await boardWithCollection();
+    await board.dropUrl(PAGE, { x: 0, y: 0 });
+    const [frame] = board.frames();
+    board.editor.setCamera({ x: -5000, y: -5000, z: 1 });
+    const shapes = board.editor.getCurrentPageShapes().length;
+
+    // Act
+    await board.pasteUrl(PAGE);
+
+    // Assert
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(shapes);
+    const view = board.editor.getViewportPageBounds();
+    expect(view.contains(board.editor.getShapePageBounds(frame.id)!)).toBe(
+      true,
+    );
+  });
+
+  it('should place a collection pasted twice in quick succession once', async () => {
+    // Arrange
+    await boardWithCollection();
+
+    // Act
+    await Promise.all([
+      board.pasteUrl(PAGE),
+      board.dropUrl(PAGE, { x: 900, y: 0 }),
+    ]);
+
+    // Assert
+    expect(board.frames()).toHaveLength(1);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+
+  it('should pan to a collection already on the board under another handle', async () => {
+    // Arrange
+    await boardWithCollection();
+    await board.dropUrl(PAGE, { x: 0, y: 0 });
+    board.server.collections.get('collection-1')!.collection.handle =
+      'renamed.bsky.social';
+    const shapes = board.editor.getCurrentPageShapes().length;
+
+    // Act
+    await board.pasteUrl(
+      'https://semble.so/profile/renamed.bsky.social/collections/3kcollection',
+    );
+
+    // Assert
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(shapes);
+  });
+
+  it('should say a collection that does not exist was not found and add nothing', async () => {
+    // Arrange
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://semble.so');
+    await boardWithCollection();
+
+    // Act
+    await board.pasteUrl(
+      'https://semble.so/profile/curator.bsky.social/collections/3kmissing',
+    );
+
+    // Assert
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(0);
+    expect(board.serverErrors).toEqual([COLLECTION_NOT_FOUND]);
+  });
+
+  it('should place a link elsewhere that only looks like a collection page as a link card', async () => {
+    // Arrange
+    await boardWithCollection();
+    const link = 'https://example.com/profile/someone/collections/reading';
+
+    // Act
+    await board.pasteUrl(link);
+
+    // Assert
+    expect(board.linkCards().map((card) => card.props.url)).toEqual([link]);
+    expect(board.frames()).toHaveLength(0);
+    expect(board.serverErrors).toEqual([]);
+  });
+
+  it('should still place other Semble pages and links as link cards', async () => {
+    // Arrange
+    await boardWithCollection();
+
+    // Act
+    await board.pasteUrl('https://semble.so/profile/curator.bsky.social');
+    await board.pasteUrl('https://example.com/article');
+
+    // Assert
+    expect(board.frames()).toHaveLength(0);
+    expect(board.linkCards()).toHaveLength(2);
+  });
+
+  it('should add a pasted collection in one step of undo', async () => {
+    // Arrange
+    await boardWithCollection();
+    await board.pasteUrl('https://example.com/article');
+
+    // Act
+    await board.pasteUrl(PAGE);
+    board.editor.undo();
+
+    // Assert
+    expect(board.frames()).toHaveLength(0);
+    expect(board.linkCards()).toHaveLength(1);
+  });
+
+  it('should add nothing when the board is read-only', async () => {
+    // Arrange
+    await boardWithCollection();
+    board.editor.updateInstanceState({ isReadonly: true });
+
+    // Act
+    await board.pasteUrl(PAGE);
+
+    // Assert
+    expect(board.editor.getCurrentPageShapes()).toHaveLength(0);
+  });
+
+  describe('quick-add', () => {
+    it('should place a collection page entered in quick-add as a link card', async () => {
+      // Arrange
+      await boardWithCollection();
+      board.doubleClick([300, 200]);
+
+      // Act
+      board.quickAdd.place(PAGE);
+
+      // Assert
+      expect(board.linkCards().map((card) => card.props.url)).toEqual([PAGE]);
+      expect(board.frames()).toHaveLength(0);
+      expect(board.quickAdd.placeAt.get()).toBeNull();
+    });
+
+    it('should place a picked collection at the centre of the view', async () => {
+      // Arrange
+      await boardWithCollection();
+      board.runAction('quick-add');
+      const viewCentre = board.editor.getViewportPageBounds().center;
+
+      // Act
+      board.quickAdd.placeCollection('collection-1');
+
+      // Assert
+      await vi.waitFor(() => expect(board.frames()).toHaveLength(1));
+      const [frame] = board.frames();
+      expect(centreOf(frame.id).x).toBeCloseTo(viewCentre.x);
+      expect(centreOf(frame.id).y).toBeCloseTo(viewCentre.y);
+      expect(board.quickAdd.placeAt.get()).toBeNull();
+      expect(writes()).toEqual([]);
+    });
+  });
+});
+
 describe('copies', () => {
   it('should make a copy when a link already on the board is added again', async () => {
     // Arrange
@@ -5701,7 +5943,7 @@ describe('connections to collection frames', () => {
       );
 
     // Act
-    await board.collectionFrames.open('collection-1', false);
+    await board.collectionFrames.open({ id: 'collection-1' });
 
     // Assert
     await vi.waitFor(() => {
@@ -5719,10 +5961,17 @@ describe('connections to collection frames', () => {
     const server = withCollection();
     server.connections = [connection('c1', A, PAGE)];
     board = await createTestBoard({ server, ...OPENED });
+    // A card of the page, as boards placed them before a dropped collection
+    // page placed its frame
+    board.editor.createShape({
+      type: LINK_CARD_TYPE,
+      x: -2000,
+      y: 1000,
+      props: { url: ON_ANOTHER_HOST, h: 100, cardId: null },
+    });
 
     // Act
     await board.dropUrl(A, { x: -2000, y: 0 });
-    await board.dropUrl(ON_ANOTHER_HOST, { x: -2000, y: 1000 });
 
     // Assert
     const page = board

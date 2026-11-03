@@ -47,6 +47,12 @@ export interface CollectionInfo {
   updatedAt: string;
 }
 
+// Where a collection's Semble page is: /profile/<handle>/collections/<rkey>
+export interface CollectionAddress {
+  handle: string;
+  rkey: string;
+}
+
 // One card in a collection: whoever added it, with their note
 export interface CollectionEntry {
   cardId: string;
@@ -78,6 +84,11 @@ export interface CanvasServer {
   // Pages count from 1. Null once the collection is deleted.
   getCollection(
     collectionId: string,
+    page: { page: number; limit: number },
+  ): Promise<CollectionPage | null>;
+  // The same, found by its page's address. Null if there's no such collection.
+  getCollectionAt(
+    address: CollectionAddress,
     page: { page: number; limit: number },
   ): Promise<CollectionPage | null>;
   // Resolves with the new connection's id

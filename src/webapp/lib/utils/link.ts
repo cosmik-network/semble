@@ -91,7 +91,7 @@ const getAppOrigin = () => {
   return window.location.origin;
 };
 
-const isSembleUrl = (url: string): boolean => {
+export const isSembleUrl = (url: string): boolean => {
   // Relative paths are always local to the app
   if (url.startsWith('/')) return true;
   try {

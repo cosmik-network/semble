@@ -10,6 +10,7 @@ interface Props {
   limit?: number;
   sortBy?: CollectionSortField;
   query?: string;
+  enabled?: boolean;
 }
 
 export default function useMyCollections(props?: Props) {
@@ -49,5 +50,6 @@ export function useMyCollectionsInfinite(props?: Props) {
         ? lastPage.pagination.currentPage + 1
         : undefined;
     },
+    enabled: props?.enabled !== false,
   });
 }

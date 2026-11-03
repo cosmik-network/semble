@@ -2,6 +2,7 @@ import type { AppBskyFeedDefs } from '@atproto/api';
 import type { UrlMetadata } from '@semble/types';
 import type {
   CanvasServer,
+  CollectionAddress,
   CollectionEntry,
   CollectionInfo,
   ConnectionChange,
@@ -163,7 +164,34 @@ export class FakeServer implements CanvasServer {
     const held = this.held;
     if (held) await new Promise<void>((respond) => held.push(respond));
     if (failing) throw new Error('Network down');
-    const found = this.collections.get(collectionId);
+    return this.pageOf(this.collections.get(collectionId), page, limit);
+  }
+
+  async getCollectionAt(
+    address: CollectionAddress,
+    { page, limit }: { page: number; limit: number },
+  ) {
+    this.calls.push({
+      method: 'getCollectionAt',
+      args: [address, { page, limit }],
+    });
+    const failing = this.failing;
+    const held = this.held;
+    if (held) await new Promise<void>((respond) => held.push(respond));
+    if (failing) throw new Error('Network down');
+    const found = Array.from(this.collections.values()).find(
+      ({ collection }) =>
+        collection.handle === address.handle &&
+        collection.rkey === address.rkey,
+    );
+    return this.pageOf(found, page, limit);
+  }
+
+  private pageOf(
+    found: TestCollection | undefined,
+    page: number,
+    limit: number,
+  ) {
     if (!found) return null;
     const start = (page - 1) * limit;
     return {

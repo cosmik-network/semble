@@ -14,7 +14,7 @@ export default function UrlOptionRow(props: Props) {
       {props.imageUrl && (
         <Card
           p={0}
-          radius="sm"
+          radius="md"
           withBorder
           w={35}
           h={35}
