@@ -258,7 +258,7 @@ export default function UrlCardActions(props: Props) {
                     });
                   }}
                 >
-                  Share Semble page
+                  Copy Semble link
                 </Menu.Item>
               )}
             </CopyButton>
