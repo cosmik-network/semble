@@ -17,6 +17,7 @@ import { UpdateUrlCardAssociationsUseCase } from '../../../../modules/cards/appl
 import { RemoveCardFromLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromCollectionUseCase';
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
+import { GetBatchUrlStatsUseCase } from '../../../../modules/cards/application/useCases/queries/GetBatchUrlStatsUseCase';
 import { GetUrlCardViewUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardViewUseCase';
 import { GetLibrariesForCardUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForCardUseCase';
 import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardsUseCase';
@@ -53,6 +54,7 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/applicat
 import { SemanticSearchUrlsUseCase } from '../../../../modules/search/application/useCases/queries/SemanticSearchUrlsUseCase';
 import { RecommendedCardsUseCase } from '../../../../modules/search/application/useCases/queries/RecommendedCardsUseCase';
 import { RedisFactory } from '../../redis/RedisFactory';
+import { CachedUserStatsRepository } from '../../../../modules/user/infrastructure/repositories/CachedUserStatsRepository';
 import { RecommendedUsersUseCase } from '../../../../modules/user/application/useCases/queries/RecommendedUsersUseCase';
 import { RecommendedCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/RecommendedCollectionsUseCase';
 import { GlobalFeedSeedService } from '../../../../modules/feeds/application/services/GlobalFeedSeedService';
@@ -169,6 +171,7 @@ export interface UseCases {
   removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase;
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
+  getBatchUrlStatsUseCase: GetBatchUrlStatsUseCase;
   getUrlCardViewUseCase: GetUrlCardViewUseCase;
   getLibrariesForCardUseCase: GetLibrariesForCardUseCase;
   getMyUrlCardsUseCase: GetUrlCardsUseCase;
@@ -414,7 +417,10 @@ export class UseCaseFactory {
         repositories.collectionRepository,
       ),
       getUserStatsUseCase: new GetUserStatsUseCase(
-        repositories.userStatsRepository,
+        new CachedUserStatsRepository(
+          repositories.userStatsRepository,
+          services.statsCache,
+        ),
       ),
 
       // Card use cases
@@ -458,10 +464,10 @@ export class UseCaseFactory {
       ),
       getUrlMetadataUseCase: new GetUrlMetadataUseCase(
         services.metadataService,
-        repositories.cardRepository,
         repositories.cardQueryRepository,
-        repositories.collectionQueryRepository,
-        repositories.connectionQueryRepository,
+      ),
+      getBatchUrlStatsUseCase: new GetBatchUrlStatsUseCase(
+        repositories.cardQueryRepository,
       ),
       getUrlCardViewUseCase: new GetUrlCardViewUseCase(
         repositories.cardQueryRepository,

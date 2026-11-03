@@ -24,19 +24,6 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-// Raw DTO from repository - will be enriched in use case layer
-export interface ConnectionForUrlDTO {
-  connection: {
-    id: string;
-    type?: ConnectionTypeEnum;
-    note?: string;
-    createdAt: Date;
-    updatedAt: Date;
-    curatorId: string; // Will be enriched to profile in use case
-  };
-  url: string; // The other URL in the connection (target for forward, source for backward)
-}
-
 // DTO for curator's connections - includes both source and target URLs
 export interface ConnectionForUserDTO {
   connection: {
@@ -54,24 +41,6 @@ export interface ConnectionForUserDTO {
 }
 
 export interface IConnectionQueryRepository {
-  /**
-   * Get connections where the given URL is the source (forward connections)
-   * Returns connections pointing FROM this URL TO other URLs
-   */
-  getForwardConnectionsForUrl(
-    url: string,
-    options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
-
-  /**
-   * Get connections where the given URL is the target (backward connections)
-   * Returns connections pointing FROM other URLs TO this URL
-   */
-  getBackwardConnectionsForUrl(
-    url: string,
-    options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
-
   /**
    * Get connections for a URL with optional direction filtering
    * Returns connections with both source and target URLs
@@ -93,17 +62,6 @@ export interface IConnectionQueryRepository {
     curatorId: string,
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
-
-  /**
-   * Get connection statistics for a URL (counts by type for forward and backward)
-   * Used for efficient aggregation without fetching full data
-   */
-  getConnectionStatsForUrl(url: string): Promise<{
-    forwardTotal: number;
-    backwardTotal: number;
-    forwardByType: Map<ConnectionTypeEnum, number>;
-    backwardByType: Map<ConnectionTypeEnum, number>;
-  }>;
 
   /**
    * Get connection statistics for a curator (total count and breakdown by type)

@@ -271,6 +271,11 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
   ): Promise<DailyActivityStatsDTO> {
     const { interval, limit } = options;
 
+    // Only the most recent `limit` periods are returned, so bound each scan to
+    // that window (lets the created_at indexes do the work instead of
+    // aggregating all history and discarding most of it)
+    const windowStart = sql`date_trunc(${interval}, now()) - ${limit - 1}::int * ('1 ' || ${interval})::interval`;
+
     // Optimized query: pre-aggregate each table before joining
     const activityQuery = sql`
       WITH card_counts AS (
@@ -278,7 +283,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
           date_trunc(${interval}, created_at) AS period,
           COUNT(*)::int AS count
         FROM ${cards}
-        WHERE type = 'URL' AND created_at IS NOT NULL
+        WHERE type = 'URL' AND created_at >= ${windowStart}
         GROUP BY period
       ),
       collection_counts AS (
@@ -286,7 +291,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
           date_trunc(${interval}, created_at) AS period,
           COUNT(*)::int AS count
         FROM ${collections}
-        WHERE created_at IS NOT NULL
+        WHERE created_at >= ${windowStart}
         GROUP BY period
       ),
       connection_counts AS (
@@ -294,7 +299,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
           date_trunc(${interval}, created_at) AS period,
           COUNT(*)::int AS count
         FROM ${connections}
-        WHERE created_at IS NOT NULL
+        WHERE created_at >= ${windowStart}
         GROUP BY period
       ),
       follow_counts AS (
@@ -302,7 +307,7 @@ export class DrizzleUserStatsRepository implements IUserStatsRepository {
           date_trunc(${interval}, created_at) AS period,
           COUNT(*)::int AS count
         FROM ${follows}
-        WHERE created_at IS NOT NULL
+        WHERE created_at >= ${windowStart}
         GROUP BY period
       ),
       all_periods AS (

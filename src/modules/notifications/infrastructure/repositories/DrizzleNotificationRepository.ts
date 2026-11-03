@@ -1,4 +1,4 @@
-import { eq, desc, and, count, inArray, or, sql } from 'drizzle-orm';
+import { eq, desc, and, count, inArray, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   INotificationRepository,
@@ -22,10 +22,9 @@ import {
   collectionCards,
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
-import { libraryMemberships } from '../../../cards/infrastructure/repositories/schema/libraryMembership.sql';
 import { connections } from '../../../cards/infrastructure/repositories/schema/connection.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
-import { countDistinct } from 'drizzle-orm';
+import { fetchUrlEngagement } from '../../../cards/infrastructure/repositories/query-services/urlStatsQueries';
 
 export class DrizzleNotificationRepository implements INotificationRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -699,124 +698,15 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           : Promise.resolve(emptyResult),
       ]);
 
-      // URL-derived queries depend on the card data, so they run in a second stage
-      const urlLibraryCountMap = new Map<string, number>();
-      const urlInLibrarySet = new Set<string>();
-      const urlConnectionCountMap = new Map<string, number>();
-      const urlIsConnectedSet = new Set<string>();
-
-      const urls = cardsResult.map((card) => card.url).filter(Boolean);
-      if (urls.length > 0) {
-        const [
-          urlLibraryCountsResult,
-          urlInLibraryResult,
-          urlConnectionCountsResult,
-          urlIsConnectedResult,
-        ] = await Promise.all([
-          // Get URL library counts for these cards
-          this.db
-            .select({
-              url: cards.url,
-              count: countDistinct(libraryMemberships.userId),
-            })
-            .from(cards)
-            .innerJoin(
-              libraryMemberships,
-              eq(cards.id, libraryMemberships.cardId),
-            )
-            .where(
-              and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
-            )
-            .groupBy(cards.url),
-          // Check which URLs are in the calling user's library
-          // More efficient: check if user has a card with matching url and authorId
-          this.db
-            .select({
-              url: cards.url,
-            })
-            .from(cards)
-            .where(
-              and(
-                eq(cards.type, CardTypeEnum.URL),
-                inArray(cards.url, urls),
-                eq(cards.authorId, callingUserId),
-              ),
-            )
-            .groupBy(cards.url),
-          // Get connection counts for these URLs
-          this.db
-            .select({
-              url: sql<string>`CASE
-                WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-                WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-              END`.as('url'),
-              count: count(),
-            })
-            .from(connections)
-            .where(
-              or(
-                and(
-                  eq(connections.sourceType, 'URL'),
-                  inArray(connections.sourceValue, urls),
-                ),
-                and(
-                  eq(connections.targetType, 'URL'),
-                  inArray(connections.targetValue, urls),
-                ),
-              ),
-            )
-            .groupBy(sql`url`),
-          // Check which URLs the calling user has connections with
-          this.db
-            .select({
-              url: sql<string>`CASE
-                WHEN ${connections.sourceType} = 'URL' THEN ${connections.sourceValue}
-                WHEN ${connections.targetType} = 'URL' THEN ${connections.targetValue}
-              END`.as('url'),
-            })
-            .from(connections)
-            .where(
-              and(
-                eq(connections.curatorId, callingUserId),
-                or(
-                  and(
-                    eq(connections.sourceType, 'URL'),
-                    inArray(connections.sourceValue, urls),
-                  ),
-                  and(
-                    eq(connections.targetType, 'URL'),
-                    inArray(connections.targetValue, urls),
-                  ),
-                ),
-              ),
-            )
-            .groupBy(sql`url`),
-        ]);
-
-        urlLibraryCountsResult.forEach((row) => {
-          if (row.url) {
-            urlLibraryCountMap.set(row.url, row.count);
-          }
-        });
-
-        urlInLibraryResult.forEach((row) => {
-          if (row.url) {
-            urlInLibrarySet.add(row.url);
-          }
-        });
-
-        urlConnectionCountsResult.forEach((row) => {
-          if (row.url) {
-            urlConnectionCountMap.set(row.url, row.count);
-          }
-        });
-
-        urlIsConnectedResult.forEach((row) => {
-          if (row.url) {
-            urlIsConnectedSet.add(row.url);
-          }
-        });
-      }
+      // URL-derived stats depend on the card data, so they run in a second stage
+      const urls = cardsResult
+        .map((card) => card.url)
+        .filter((url): url is string => Boolean(url));
+      const urlEngagementMap = await fetchUrlEngagement(
+        this.db,
+        urls,
+        callingUserId,
+      );
 
       // Build lookup maps
       const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
@@ -966,13 +856,13 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               updatedAt: c.collectionUpdatedAt,
             }));
 
-          const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
-          const urlInLibrary = card.url ? urlInLibrarySet.has(card.url) : false;
-          const urlConnectionCount =
-            urlConnectionCountMap.get(card.url || '') || 0;
-          const urlIsConnected = card.url
-            ? urlIsConnectedSet.has(card.url)
-            : false;
+          const urlEngagement = card.url
+            ? urlEngagementMap.get(card.url)
+            : undefined;
+          const urlLibraryCount = urlEngagement?.urlLibraryCount ?? 0;
+          const urlInLibrary = urlEngagement?.urlInLibrary ?? false;
+          const urlConnectionCount = urlEngagement?.urlConnectionCount ?? 0;
+          const urlIsConnected = urlEngagement?.urlIsConnected ?? false;
 
           enrichedNotifications.push({
             id: notification.id,

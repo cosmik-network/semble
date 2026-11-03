@@ -1,3 +1,29 @@
+# sdk-v0.0.12 - 2026-11-02
+
+This release adds an endpoint that returns Semble stats for many URLs in one request. It also changes how some URL counts are calculated, so a few existing endpoints may now return different numbers.
+
+## New endpoints
+
+### Cards (`cards` contract)
+
+- `batchUrlStats` (`POST /network.cosmik.card.getUrlStats`): Semble stats for up to 100 URLs, without fetching URL metadata. Authentication is optional. Body: `GetBatchUrlStatsRequest` (`urls: string[]`, 1 to 100 URLs, each at most 2048 characters). Returns `GetBatchUrlStatsResponse` (`urls: UrlStatsItem[]`).
+  - Each `UrlStatsItem` has:
+    - `url`: exactly as you sent it.
+    - `stats`: a `UrlAggregateStats`, the same shape as `stats` from `urlMetadata`. It contains `libraryCount`, `noteCount`, `collectionCount`, and `connections` split into `all`, `incoming` and `outgoing`, each with a `total` and per-type counts.
+    - `urlInLibrary` and `urlIsConnected`: set only for authenticated requests.
+  - Results are in request order with duplicates removed. Invalid URLs are left out of the results instead of failing the request. URLs with no Semble activity are returned with zero counts.
+  - Returns 400 if `urls` is empty, has more than 100 entries, or contains a URL longer than 2048 characters.
+
+New shared types: `GetBatchUrlStatsRequest`, `GetBatchUrlStatsResponse`, `UrlStatsItem`. New constant: `MAX_BATCH_URL_STATS` (100).
+
+## Modified endpoints
+
+No request or response types have changed. These endpoints may return different values than before:
+
+- `urlMetadata` (`GET /network.cosmik.card.getUrlMetadata`) with `includeStats`: `stats.noteCount` now counts notes whose URL matches the requested URL. This is the same count as `noteCardsForUrl` returns, so the two now agree.
+- `recommended` (`GET /network.cosmik.search.getRecommended`): ranking now counts only connections between two URLs. Connections between a URL and a card no longer count. The `urlCardWeight` weight now applies to the number of distinct users who saved the URL. Result order may change.
+- Endpoints that return `urlInLibrary` or `urlIsConnected` for an authenticated caller now return `false` where they sometimes left the field out before. This affects some feed and recommendation responses. Unauthenticated responses still leave both fields out.
+
 # sdk-v0.0.11 - 2026-10-30
 
 This release adds #tag endpoints, adds three recommendation endpoints to the SDK, and adds a new notification type for @mentions.

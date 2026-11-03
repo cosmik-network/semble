@@ -10,6 +10,8 @@ import {
   GetCollectionsResponse,
   GetUrlStatusForMyLibraryResponse,
   GetUrlMetadataParams,
+  GetBatchUrlStatsRequest,
+  GetBatchUrlStatsResponse,
   GetMyUrlCardsParams,
   GetUrlCardsParams,
   GetCollectionPageParams,
@@ -80,6 +82,13 @@ export class QueryClient extends BaseClient {
       query: { url: params.url, includeStats: params.includeStats },
     });
     return unwrap<GetUrlMetadataResponse>(res);
+  }
+
+  async getBatchUrlStats(
+    request: GetBatchUrlStatsRequest,
+  ): Promise<GetBatchUrlStatsResponse> {
+    const res = await this.client.cards.batchUrlStats({ body: request });
+    return unwrap<GetBatchUrlStatsResponse>(res);
   }
 
   async getMyUrlCards(

@@ -12,7 +12,7 @@ import {
   CardSortField,
   ICardQueryRepository,
   SortOrder,
-  UrlRankingStats,
+  UrlStats,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
@@ -425,27 +425,24 @@ export class RecommendedCardsUseCase implements UseCase<
         return ok([]);
       }
 
-      // 3. Batch fetch ranking stats and library info
-      const [rankingStatsMap, urlLibraryInfoMap] = await Promise.all([
-        this.cardQueryRepository.getBatchUrlRankingStats(urls),
-        this.cardQueryRepository.getBatchUrlLibraryInfo(urls, callingUserId),
-      ]);
+      // 3. Batch fetch URL stats (counts + caller's saved/connected flags)
+      const urlStatsMap = await this.cardQueryRepository.getBatchUrlStats(
+        urls,
+        callingUserId,
+      );
 
       // 4. Drop URLs the calling user has already saved or connected
       const isCandidate = (url: string) => {
         if (!callingUserId) return true;
-        const libraryInfo = urlLibraryInfoMap.get(url);
-        return !libraryInfo?.urlInLibrary && !libraryInfo?.urlIsConnected;
+        const stats = urlStatsMap.get(url);
+        return !stats?.urlInLibrary && !stats?.urlIsConnected;
       };
 
       // 5. Rank each query's results independently, using one rank key per URL
       // so a URL matched by several queries sorts consistently in each list.
       const rankKeys = new Map<string, number>();
       for (const url of urls) {
-        rankKeys.set(
-          url,
-          this.computeRankKey(rankingStatsMap.get(url), config),
-        );
+        rankKeys.set(url, this.computeRankKey(urlStatsMap.get(url), config));
       }
 
       const rankedPerQuery = perQueryUrls.map((urlsForQuery) =>
@@ -495,10 +492,10 @@ export class RecommendedCardsUseCase implements UseCase<
         if (!advanced) break;
       }
 
-      // 7. Build UrlViews from vector metadata + library info
+      // 7. Build UrlViews from vector metadata + URL stats
       const urlViews: UrlView[] = ranked.map((url) => {
         const searchResult = uniqueResults.get(url)!;
-        const libraryInfo = urlLibraryInfoMap.get(url);
+        const stats = urlStatsMap.get(url);
 
         return {
           url,
@@ -514,10 +511,12 @@ export class RecommendedCardsUseCase implements UseCase<
             doi: searchResult.metadata.doi,
             isbn: searchResult.metadata.isbn,
           },
-          urlLibraryCount: libraryInfo?.urlLibraryCount || 0,
-          urlInLibrary: libraryInfo?.urlInLibrary,
-          urlConnectionCount: libraryInfo?.urlConnectionCount,
-          urlIsConnected: libraryInfo?.urlIsConnected,
+          urlLibraryCount: stats?.libraryCount ?? 0,
+          urlInLibrary: stats?.urlInLibrary,
+          urlConnectionCount: stats
+            ? stats.connections.forwardTotal + stats.connections.backwardTotal
+            : undefined,
+          urlIsConnected: stats?.urlIsConnected,
         };
       });
 
@@ -536,18 +535,20 @@ export class RecommendedCardsUseCase implements UseCase<
     const title = result.metadata.title?.trim().toLowerCase() ?? '';
     const description = result.metadata.description?.trim().toLowerCase() ?? '';
     if (!title && !description) return null;
-    return `${title} ${description}`;
+    return `${title}\u0000${description}`;
   }
 
   private computeRankKey(
-    stats: UrlRankingStats | undefined,
+    stats: UrlStats | undefined,
     config: RecommendationRankingConfig,
   ): number {
+    // urlCardWeight applies to libraryCount (distinct savers of the URL)
     const score = stats
-      ? config.urlCardWeight * stats.urlCardCount +
+      ? config.urlCardWeight * stats.libraryCount +
         config.noteWeight * stats.noteCount +
         config.collectionWeight * stats.collectionCount +
-        config.connectionWeight * stats.connectionCount
+        config.connectionWeight *
+          (stats.connections.forwardTotal + stats.connections.backwardTotal)
       : 0;
 
     // Multiplicative jitter: randomness=0 keeps deterministic order,

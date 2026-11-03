@@ -4,6 +4,7 @@ import { StatsApiKeyMiddleware } from '../middleware/StatsApiKeyMiddleware';
 import { IProductAnalyticsQueryRepository } from '../../../../analytics/domain/IProductAnalyticsQueryRepository';
 import { OnboardingStatsComposer } from '../../../../analytics/application/OnboardingStatsComposer';
 import { isRetentionSegmentBy } from '../../../../analytics/infrastructure/repositories/query-services/RetentionQueryService';
+import { isStatementTimeoutError } from '../../../../../shared/infrastructure/database/isStatementTimeoutError';
 
 export const createStatsRoutes = (
   router: Router,
@@ -12,14 +13,6 @@ export const createStatsRoutes = (
   productAnalyticsQueryRepository: IProductAnalyticsQueryRepository,
   onboardingStatsComposer: OnboardingStatsComposer,
 ) => {
-  // TEMPORARY: stats routes disabled while investigating DB latency.
-  // Remove this middleware to re-enable.
-  router.use((_req: Request, res: Response) => {
-    return res
-      .status(503)
-      .json({ message: 'Stats endpoints are temporarily disabled' });
-  });
-
   // All stats routes require API key authentication
   router.use(statsApiKeyMiddleware.ensureAuthenticated());
 
@@ -75,9 +68,7 @@ export const createStatsRoutes = (
       });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res
-        .status(400)
-        .json({ message: error?.message ?? 'Failed to load WAC stats' });
+      return sendStatsError(res, error, 'Failed to load WAC stats');
     }
   });
 
@@ -114,9 +105,11 @@ export const createStatsRoutes = (
         });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res.status(400).json({
-        message: error?.message ?? 'Failed to load activation funnel stats',
-      });
+      return sendStatsError(
+        res,
+        error,
+        'Failed to load activation funnel stats',
+      );
     }
   });
 
@@ -168,9 +161,7 @@ export const createStatsRoutes = (
       });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res
-        .status(400)
-        .json({ message: error?.message ?? 'Failed to load retention stats' });
+      return sendStatsError(res, error, 'Failed to load retention stats');
     }
   });
 
@@ -230,9 +221,11 @@ export const createStatsRoutes = (
         });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res.status(400).json({
-        message: error?.message ?? 'Failed to load retention segment stats',
-      });
+      return sendStatsError(
+        res,
+        error,
+        'Failed to load retention segment stats',
+      );
     }
   });
 
@@ -280,9 +273,7 @@ export const createStatsRoutes = (
       });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res
-        .status(400)
-        .json({ message: error?.message ?? 'Failed to load API usage stats' });
+      return sendStatsError(res, error, 'Failed to load API usage stats');
     }
   });
 
@@ -317,9 +308,11 @@ export const createStatsRoutes = (
       const result = await onboardingStatsComposer.getWeeklyStats({ endWeek });
       return res.status(200).json(result);
     } catch (error: any) {
-      return res.status(400).json({
-        message: error?.message ?? 'Failed to load onboarding weekly stats',
-      });
+      return sendStatsError(
+        res,
+        error,
+        'Failed to load onboarding weekly stats',
+      );
     }
   });
 
@@ -337,14 +330,29 @@ export const createStatsRoutes = (
       const result = await onboardingStatsComposer.getSummaryStats();
       return res.status(200).json(result);
     } catch (error: any) {
-      return res.status(400).json({
-        message: error?.message ?? 'Failed to load onboarding summary stats',
-      });
+      return sendStatsError(
+        res,
+        error,
+        'Failed to load onboarding summary stats',
+      );
     }
   });
 
   return router;
 };
+
+/**
+ * Timeouts (the stats pool's statement_timeout) are 503 so dashboards can
+ * show "try again"; everything else here is treated as bad input.
+ */
+function sendStatsError(res: Response, error: any, fallbackMessage: string) {
+  if (isStatementTimeoutError(error)) {
+    return res
+      .status(503)
+      .json({ message: 'Stats query timed out, try again later' });
+  }
+  return res.status(400).json({ message: error?.message ?? fallbackMessage });
+}
 
 /**
  * Parse and validate the shared analytics query params (endWeek, weeks).

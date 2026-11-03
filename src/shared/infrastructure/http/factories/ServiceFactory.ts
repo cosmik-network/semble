@@ -69,6 +69,7 @@ import { IProfileService } from 'src/modules/cards/domain/services/IProfileServi
 import { IEventPublisher } from '../../../application/events/IEventPublisher';
 import { QueueName } from '../../events/QueueConfig';
 import { RedisFactory } from '../../redis/RedisFactory';
+import { StatsCache } from '../../../../modules/analytics/infrastructure/StatsCache';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
@@ -131,6 +132,7 @@ export interface WebAppServices extends SharedServices {
   appPasswordProcessor: IAppPasswordProcessor;
   authMiddleware: AuthMiddleware;
   statsApiKeyMiddleware: StatsApiKeyMiddleware;
+  statsCache: StatsCache;
 }
 
 export interface WorkerServiceOptions {
@@ -198,12 +200,21 @@ export class ServiceFactory {
       configService.getStatsConfig().apiKey,
     );
 
+    // Shared cache for the /api/stats queries. In-process only (no Redis)
+    // under mock persistence, which still dedupes concurrent identical queries.
+    const statsCache = new StatsCache(
+      configService.shouldUseMockPersistence()
+        ? undefined
+        : RedisFactory.createConnection(configService.getRedisConfig()),
+    );
+
     return {
       ...sharedServices,
       oauthProcessor,
       appPasswordProcessor,
       authMiddleware,
       statsApiKeyMiddleware,
+      statsCache,
     };
   }
 

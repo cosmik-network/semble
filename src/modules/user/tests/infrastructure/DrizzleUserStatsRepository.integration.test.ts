@@ -344,7 +344,14 @@ describe('DrizzleUserStatsRepository', () => {
 
   describe('getDailyActivityStats', () => {
     it('should return daily activity counts for all content types', async () => {
-      const baseTime = new Date('2026-04-01T00:00:00Z');
+      // Recent UTC midnight: getDailyActivityStats only covers the last `limit` periods
+      const baseTime = new Date(
+        Date.UTC(
+          new Date().getUTCFullYear(),
+          new Date().getUTCMonth(),
+          new Date().getUTCDate() - 8,
+        ),
+      );
 
       // Day 1: Create URL cards
       await db.insert(cards).values([
@@ -417,10 +424,10 @@ describe('DrizzleUserStatsRepository', () => {
 
       // Find day 1 and day 2 data points
       const day1 = result.dataPoints.find((dp) =>
-        dp.date.startsWith('2026-04-01'),
+        dp.date.startsWith(baseTime.toISOString().slice(0, 10)),
       );
       const day2 = result.dataPoints.find((dp) =>
-        dp.date.startsWith('2026-04-02'),
+        dp.date.startsWith(day2Time.toISOString().slice(0, 10)),
       );
 
       expect(day1).toBeDefined();
@@ -446,7 +453,14 @@ describe('DrizzleUserStatsRepository', () => {
     });
 
     it('should only count URL cards, not NOTE or HIGHLIGHT cards', async () => {
-      const baseTime = new Date('2026-04-01T00:00:00Z');
+      // Recent UTC midnight: getDailyActivityStats only covers the last `limit` periods
+      const baseTime = new Date(
+        Date.UTC(
+          new Date().getUTCFullYear(),
+          new Date().getUTCMonth(),
+          new Date().getUTCDate() - 8,
+        ),
+      );
 
       // Create URL cards (should count)
       await db.insert(cards).values([
@@ -496,7 +510,14 @@ describe('DrizzleUserStatsRepository', () => {
     });
 
     it('should support week interval aggregation', async () => {
-      const baseTime = new Date('2026-04-01T00:00:00Z');
+      // Recent UTC midnight: getDailyActivityStats only covers the last `limit` periods
+      const baseTime = new Date(
+        Date.UTC(
+          new Date().getUTCFullYear(),
+          new Date().getUTCMonth(),
+          new Date().getUTCDate() - 8,
+        ),
+      );
 
       // Create cards in two different weeks
       await db.insert(cards).values([

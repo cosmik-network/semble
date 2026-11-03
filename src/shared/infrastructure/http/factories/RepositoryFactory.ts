@@ -153,9 +153,12 @@ export class RepositoryFactory {
       const db = DatabaseFactory.createConnection(
         configService.getDatabaseConfig(),
       );
-      const userStatsRepository = new DrizzleUserStatsRepository(db);
+      const statsDb = DatabaseFactory.createStatsConnection(
+        configService.getDatabaseConfig(),
+      );
+      const userStatsRepository = new DrizzleUserStatsRepository(statsDb);
       const productAnalyticsQueryRepository =
-        new DrizzleProductAnalyticsQueryRepository(db);
+        new DrizzleProductAnalyticsQueryRepository(statsDb);
       const apiRequestLogRepository = new DrizzleApiRequestLogRepository(db);
 
       return {
@@ -189,15 +192,20 @@ export class RepositoryFactory {
       configService.getDatabaseConfig(),
     );
 
+    // Stats queries get their own capped pool (see createStatsConnection)
+    const statsDb = DatabaseFactory.createStatsConnection(
+      configService.getDatabaseConfig(),
+    );
+
     const oauthStateStore = new DrizzleStateStore(db);
     const oauthSessionStore = new DrizzleSessionStore(db);
 
     return {
       userRepository: new DrizzleUserRepository(db),
       userOnboardingRepository: new DrizzleUserOnboardingRepository(db),
-      userStatsRepository: new DrizzleUserStatsRepository(db),
+      userStatsRepository: new DrizzleUserStatsRepository(statsDb),
       productAnalyticsQueryRepository:
-        new DrizzleProductAnalyticsQueryRepository(db),
+        new DrizzleProductAnalyticsQueryRepository(statsDb),
       apiRequestLogRepository: new DrizzleApiRequestLogRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
       apiKeyRepository: new DrizzleApiKeyRepository(db),
